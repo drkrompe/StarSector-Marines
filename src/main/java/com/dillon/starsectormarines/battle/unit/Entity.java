@@ -117,36 +117,35 @@ public class Entity {
     public float localRenderY;
 
     /**
-     * Per-tick movement step. Every piece of per-unit movement state now lives
-     * in the entity world's components, read/written by id through the registry's
-     * transitional adapters: the cell pair in POSITION, move-progress + the path
-     * reference + the path cursor in MOVEMENT. The flat {@code int[]} path (cell
-     * {@code i} at {@code (path[i*2], path[i*2+1])},
-     * {@link GridPathfinder#EMPTY_PATH} when nothing is scheduled) is fetched
-     * once and interrogated through {@link Paths}; the cursor advances as the
-     * unit lands in each next cell.
+     * Per-tick movement step. Every piece of per-unit movement state lives in the
+     * entity world's components, read/written by id through the {@link World}
+     * facade: the cell pair in POSITION, move-progress + the path reference + the
+     * path cursor in MOVEMENT. The flat {@code int[]} path (cell {@code i} at
+     * {@code (path[i*2], path[i*2+1])}, {@link GridPathfinder#EMPTY_PATH} when
+     * nothing is scheduled) is fetched once and interrogated through
+     * {@link Paths}; the cursor advances as the unit lands in each next cell.
      */
-    public void advanceAlongPath(UnitRegistry registry, float dt) {
-        int[] path = registry.pathById(entityId);
-        int pathIdx = registry.pathIdxById(entityId);
+    public void advanceAlongPath(World world, float dt) {
+        int[] path = world.path(entityId);
+        int pathIdx = world.pathIdx(entityId);
         if (pathIdx >= Paths.cellCount(path)) return;
         int nextX = Paths.cellX(path, pathIdx);
         int nextY = Paths.cellY(path, pathIdx);
-        int curX = registry.cellXById(entityId);
-        int curY = registry.cellYById(entityId);
+        int curX = world.cellX(entityId);
+        int curY = world.cellY(entityId);
         float dx = nextX - curX;
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (cellDist < 0.0001f) { registry.setPathIdxById(entityId, pathIdx + 1); return; }
-        float mp = registry.moveProgressById(entityId) + (moveSpeed * dt) / cellDist;
+        if (cellDist < 0.0001f) { world.setPathIdx(entityId, pathIdx + 1); return; }
+        float mp = world.moveProgress(entityId) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
-            registry.setCellPosById(entityId, nextX, nextY);
-            registry.setRenderPosById(entityId, nextX, nextY);
-            registry.setMoveProgressById(entityId, 0f);
-            registry.setPathIdxById(entityId, pathIdx + 1);
+            world.setCellPos(entityId, nextX, nextY);
+            world.setRenderPos(entityId, nextX, nextY);
+            world.setMoveProgress(entityId, 0f);
+            world.setPathIdx(entityId, pathIdx + 1);
         } else {
-            registry.setMoveProgressById(entityId, mp);
-            registry.setRenderPosById(entityId, curX + dx * mp, curY + dy * mp);
+            world.setMoveProgress(entityId, mp);
+            world.setRenderPos(entityId, curX + dx * mp, curY + dy * mp);
         }
     }
 

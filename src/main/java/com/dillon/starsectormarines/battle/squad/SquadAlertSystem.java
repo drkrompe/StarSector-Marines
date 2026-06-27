@@ -6,8 +6,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
 
@@ -101,9 +101,9 @@ public final class SquadAlertSystem {
 
     public void tick(float dt) {
         NavigationGrid grid = navigation.getGrid();
-        UnitRegistry registry = roster.getRegistry();
-        Entity[] dense = registry.denseArray();
-        int liveCount = registry.liveCount();
+        World world = roster.world();
+        Entity[] dense = roster.denseArray();
+        int liveCount = roster.liveCount();
 
         // Per-tick transient flags. Boxed onto Squad to keep allocation out of
         // the hot path; reset at the top so a dead squad's leftover flags
@@ -131,9 +131,9 @@ public final class SquadAlertSystem {
             Squad squad = roster.getSquad(u.squadId);
             if (squad == null) continue;
             squad.aliveMembers++;
-            squad.centroidX += registry.cellXById(u.entityId);
-            squad.centroidY += registry.cellYById(u.entityId);
-            if (registry.fallbackTimerById(u.entityId) > 0f) squad._suspiciousThisTick = true;
+            squad.centroidX += world.cellX(u.entityId);
+            squad.centroidY += world.cellY(u.entityId);
+            if (world.fallbackTimer(u.entityId) > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
             // squadmate with LOS to a close enemy combatant — a single
@@ -141,14 +141,14 @@ public final class SquadAlertSystem {
             // squad. The scan is keyed on holdsFireUntilKillZone so non-
             // garrison squads pay nothing.
             if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
-                int uCellX = registry.cellXById(u.entityId);
-                int uCellY = registry.cellYById(u.entityId);
+                int uCellX = world.cellX(u.entityId);
+                int uCellY = world.cellY(u.entityId);
                 for (int j = 0; j < liveCount; j++) {
                     Entity other = dense[j];
                     if (other.faction == squad.faction) continue;
                     if (!other.type.combatant) continue;
-                    int otherCellX = registry.cellXById(other.entityId);
-                    int otherCellY = registry.cellYById(other.entityId);
+                    int otherCellX = world.cellX(other.entityId);
+                    int otherCellY = world.cellY(other.entityId);
                     int dx = otherCellX - uCellX;
                     int dy = otherCellY - uCellY;
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
@@ -162,14 +162,14 @@ public final class SquadAlertSystem {
             // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
             // one engaged squadmate is enough to commit the whole squad.
             if (squad._engagedThisTick) continue;
-            int uCellX = registry.cellXById(u.entityId);
-            int uCellY = registry.cellYById(u.entityId);
+            int uCellX = world.cellX(u.entityId);
+            int uCellY = world.cellY(u.entityId);
             for (int j = 0; j < liveCount; j++) {
                 Entity other = dense[j];
                 if (other.faction == squad.faction) continue;
                 if (!other.type.combatant) continue;
-                int otherCellX = registry.cellXById(other.entityId);
-                int otherCellY = registry.cellYById(other.entityId);
+                int otherCellX = world.cellX(other.entityId);
+                int otherCellY = world.cellY(other.entityId);
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         u.airLosRadius, other.airLosRadius)) continue;
                 squad._engagedThisTick = true;
@@ -190,8 +190,8 @@ public final class SquadAlertSystem {
                 if (u.squadId == Entity.NO_SQUAD) continue;
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
-                int uCellX = registry.cellXById(u.entityId);
-                int uCellY = registry.cellYById(u.entityId);
+                int uCellX = world.cellX(u.entityId);
+                int uCellY = world.cellY(u.entityId);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
                     float dx = shot.fromX - (uCellX + 0.5f);
@@ -219,8 +219,8 @@ public final class SquadAlertSystem {
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || !squad.holdsFireUntilKillZone) continue;
                 if (squad._underFireAtLosThisTick) continue;
-                int uCellX = registry.cellXById(u.entityId);
-                int uCellY = registry.cellYById(u.entityId);
+                int uCellX = world.cellX(u.entityId);
+                int uCellY = world.cellY(u.entityId);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
                     float dx = shot.toX - (uCellX + 0.5f);
@@ -290,7 +290,7 @@ public final class SquadAlertSystem {
                     // zone). Drop targets here; next behavior tick re-picks
                     // via findBestTarget — no LOS to anything = null target,
                     // which is the correct posture for a squad in SUSPICIOUS.
-                    clearSquadMemberTargets(squad.id, registry, dense, liveCount);
+                    clearSquadMemberTargets(squad.id, roster, dense, liveCount);
                 } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                         && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
                     squad.alertLevel = SquadAlertLevel.UNAWARE;
@@ -299,7 +299,7 @@ public final class SquadAlertSystem {
                     // Belt-and-braces: any target re-acquired during
                     // SUSPICIOUS (via a transient LOS flicker that didn't
                     // bump back to ENGAGED) shouldn't survive into UNAWARE.
-                    clearSquadMemberTargets(squad.id, registry, dense, liveCount);
+                    clearSquadMemberTargets(squad.id, roster, dense, liveCount);
                 }
             }
         }
@@ -316,9 +316,10 @@ public final class SquadAlertSystem {
      * {@link TacticalScoring#findBestTarget findBestTarget} or holds null if
      * nobody's visible.
      */
-    private void clearSquadMemberTargets(int squadId, UnitRegistry registry, Entity[] dense, int liveCount) {
+    private void clearSquadMemberTargets(int squadId, UnitRosterService roster, Entity[] dense, int liveCount) {
+        World world = roster.world();
         for (int i = 0; i < liveCount; i++) {
-            if (dense[i].squadId == squadId) registry.setTargetIdById(dense[i].entityId, 0L);
+            if (dense[i].squadId == squadId) world.setTargetId(dense[i].entityId, 0L);
         }
     }
 }

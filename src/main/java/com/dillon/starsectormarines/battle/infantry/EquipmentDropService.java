@@ -2,11 +2,11 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,8 +65,8 @@ public final class EquipmentDropService {
         if (carried == null || carried.isComplete()) return;
         // Called from DamageResolver.resolve's died branch before release, so the
         // dead unit is still registered — read its cell by id.
-        UnitRegistry registry = rosterService.getRegistry();
-        equipmentDrops.add(new EquipmentDrop(registry.cellXById(dead.entityId), registry.cellYById(dead.entityId), carried));
+        World world = rosterService.world();
+        equipmentDrops.add(new EquipmentDrop(world.cellX(dead.entityId), world.cellY(dead.entityId), carried));
     }
 
     /**
@@ -87,16 +87,16 @@ public final class EquipmentDropService {
         // Live-only over the dense registry — every pass here gates on alive
         // marines and mutates only role/target fields (no death), so a plain
         // dense walk is safe; the corpse never appears.
-        UnitRegistry registry = rosterService.getRegistry();
+        World world = rosterService.world();
 
         // Pickup pass — any marine standing on a drop cell takes the kit.
         for (EquipmentDrop drop : equipmentDrops) {
             if (drop.consumed) continue;
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
-            for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Entity u = registry.get(i);
+            for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
+                Entity u = rosterService.get(i);
                 if (u.faction != Faction.MARINE) continue;
-                if (registry.cellXById(u.entityId) != drop.cellX || registry.cellYById(u.entityId) != drop.cellY) continue;
+                if (world.cellX(u.entityId) != drop.cellX || world.cellY(u.entityId) != drop.cellY) continue;
                 u.role = UnitRole.PLANTER;
                 u.assignedObjective = drop.objective;
                 u.equipmentDropTarget = null;
@@ -108,8 +108,8 @@ public final class EquipmentDropService {
         // Assignment pass — make sure each unconsumed drop has a retriever.
         for (EquipmentDrop drop : equipmentDrops) {
             if (drop.consumed) continue;
-            if (hasLivingRetriever(drop, registry)) continue;
-            Entity nearest = nearestAvailableMarine(drop.cellX, drop.cellY, registry);
+            if (hasLivingRetriever(drop, rosterService)) continue;
+            Entity nearest = nearestAvailableMarine(drop.cellX, drop.cellY, rosterService);
             if (nearest != null) {
                 nearest.role = UnitRole.KIT_RETRIEVER;
                 nearest.equipmentDropTarget = drop;
@@ -125,9 +125,9 @@ public final class EquipmentDropService {
         }
     }
 
-    private boolean hasLivingRetriever(EquipmentDrop drop, UnitRegistry registry) {
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
+    private boolean hasLivingRetriever(EquipmentDrop drop, UnitRosterService roster) {
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
             if (u.role == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
         }
         return false;
@@ -141,11 +141,12 @@ public final class EquipmentDropService {
      * combatant, finished planter, retriever whose kit got picked up — is
      * eligible. Returns null only when every alive marine is genuinely busy.
      */
-    private Entity nearestAvailableMarine(int cx, int cy, UnitRegistry registry) {
+    private Entity nearestAvailableMarine(int cx, int cy, UnitRosterService roster) {
+        World world = roster.world();
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
             if (u.faction != Faction.MARINE) continue;
             if (u.role == UnitRole.PLANTER
                     && u.assignedObjective != null
@@ -153,7 +154,7 @@ public final class EquipmentDropService {
             if (u.role == UnitRole.KIT_RETRIEVER
                     && u.equipmentDropTarget != null
                     && !u.equipmentDropTarget.consumed) continue;
-            float d = TacticalScoring.cellDistance(registry.cellXById(u.entityId), registry.cellYById(u.entityId), cx, cy);
+            float d = TacticalScoring.cellDistance(world.cellX(u.entityId), world.cellY(u.entityId), cx, cy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;

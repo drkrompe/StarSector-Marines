@@ -13,7 +13,8 @@ import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class InfantryWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
 
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
     private final DamageService damageService;
     private final HitResponseService hitResponse;
     private final ShotService shots;
@@ -54,10 +55,10 @@ public class InfantryWeapons {
      */
     private final List<Entity> burstScratch = new ArrayList<>();
 
-    public InfantryWeapons(UnitRegistry registry,
+    public InfantryWeapons(UnitRosterService roster,
                            DamageService damageService, HitResponseService hitResponse,
                            ShotService shots) {
-        this.registry = registry;
+        this.roster = roster;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
         this.shots = shots;
@@ -72,22 +73,23 @@ public class InfantryWeapons {
         // Gather the mid-burst units first (read-only over the dense registry),
         // then run the continuation pass over the snapshot — see burstScratch.
         burstScratch.clear();
-        Entity[] dense = registry.denseArray();
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            if (registry.burstRemainingById(dense[i].entityId) > 0) burstScratch.add(dense[i]);
+        World world = roster.world();
+        Entity[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            if (world.burstRemaining(dense[i].entityId) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
             Entity u = burstScratch.get(i);
-            if (!registry.isAliveById(u.entityId)) continue; // killed earlier this pass
+            if (!roster.isAliveById(u.entityId)) continue; // killed earlier this pass
             long id = u.entityId;
-            if (registry.burstRemainingById(id) <= 0) continue; // cleared earlier this pass
-            float timer = registry.burstTimerById(id) - BattleSimulation.TICK_DT;
-            registry.setBurstTimerById(id, timer);
+            if (world.burstRemaining(id) <= 0) continue; // cleared earlier this pass
+            float timer = world.burstTimer(id) - BattleSimulation.TICK_DT;
+            world.setBurstTimer(id, timer);
             if (timer > 0f) continue;
-            Entity burstTarget = registry.getOrNull(registry.burstTargetIdById(id));
+            Entity burstTarget = roster.getOrNull(world.burstTargetId(id));
             if (burstTarget == null || u.primaryWeapon == null) {
-                registry.setBurstRemainingById(id, 0);
-                registry.setBurstTargetIdById(id, 0L);
+                world.setBurstRemaining(id, 0);
+                world.setBurstTargetId(id, 0L);
                 continue;
             }
             // Burst follow-up: use the unit's current motion state. If they
@@ -103,16 +105,16 @@ public class InfantryWeapons {
             // mech/drone-only, and a MapTurret tracks its burst on its own shadow
             // fields — so its burstRemaining stays 0 and it never enters
             // burstScratch above. If turrets are ever rewired to burst via the
-            // COMBAT columns, gate this on registry.hasMovement(id) (a non-mover
+            // COMBAT columns, gate this on world.hasMovement(id) (a non-mover
             // is always STANCED).
-            fireShot(u, burstTarget, FireStance.stanceFor(registry.moveProgressById(id)));
+            fireShot(u, burstTarget, FireStance.stanceFor(world.moveProgress(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
             // invalidate these post-fire writes — no slot re-resolve needed.
-            int remaining = registry.burstRemainingById(id) - 1;
-            registry.setBurstRemainingById(id, remaining);
-            registry.setBurstTimerById(id, u.primaryWeapon.burstSpacing);
-            if (remaining == 0) registry.setBurstTargetIdById(id, 0L);
+            int remaining = world.burstRemaining(id) - 1;
+            world.setBurstRemaining(id, remaining);
+            world.setBurstTimer(id, u.primaryWeapon.burstSpacing);
+            if (remaining == 0) world.setBurstTargetId(id, 0L);
         }
         burstScratch.clear();
     }
@@ -129,16 +131,17 @@ public class InfantryWeapons {
      * rolled here, which can mutate the target's path via the context.
      */
     public void fireShot(Entity shooter, Entity target, FireStance stance) {
-        float accuracy = registry.accuracyById(shooter.entityId);
-        float damage   = registry.attackDamageById(shooter.entityId);
+        World world = roster.world();
+        float accuracy = world.accuracy(shooter.entityId);
+        float damage   = world.attackDamage(shooter.entityId);
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
         // through to their baked Entity stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        float dist = RangeFalloff.dist(registry.cellXById(shooter.entityId), registry.cellYById(shooter.entityId),
-                registry.cellXById(target.entityId), registry.cellYById(target.entityId));
+        float dist = RangeFalloff.dist(world.cellX(shooter.entityId), world.cellY(shooter.entityId),
+                world.cellX(target.entityId), world.cellY(target.entityId));
         float effectiveSpread = 0f;
         if (shooter.primaryWeapon != null) {
             MarineWeapon w = shooter.primaryWeapon;
@@ -161,10 +164,10 @@ public class InfantryWeapons {
         // miss-scatter both resolve through ShotEndpoint so all three
         // weapon paths (infantry primary / secondary / mech) live by the
         // same hit-jitter + miss-ring rules.
-        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
-        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter.entityId) + 0.5f;
+        float fromY = world.renderY(shooter.entityId) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                world.renderX(target.entityId), world.renderY(target.entityId),
                 hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
@@ -206,22 +209,23 @@ public class InfantryWeapons {
      * before calling.
      */
     public void fireSecondary(Entity shooter, Entity target) {
+        World world = roster.world();
         long shooterId = shooter.entityId;
-        if (!registry.hasSecondaryWeapon(shooterId)) return;
-        MarineSecondary sec = registry.secondaryWeaponOf(shooterId);
-        int ammo = registry.secondaryAmmoById(shooterId);
+        if (!world.hasSecondaryWeapon(shooterId)) return;
+        MarineSecondary sec = world.secondaryWeapon(shooterId);
+        int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
-        registry.setSecondaryAmmoById(shooterId, ammo - 1);
+        world.setSecondaryAmmo(shooterId, ammo - 1);
         boolean hit = shooter.rng.nextFloat() < sec.accuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
         // don't carry their own hitSpread today, so the universal hit-jitter
         // + miss-ring still apply but no weapon-specific scatter.
-        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
-        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter.entityId) + 0.5f;
+        float fromY = world.renderY(shooter.entityId) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                world.renderX(target.entityId), world.renderY(target.entityId),
                 hit, 0f, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -42,7 +41,6 @@ public class GroundSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
-    private final UnitRegistry registry;
     private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
     private final World world;
     private final TurretFireSink fireSink;
@@ -56,7 +54,6 @@ public class GroundSystem {
                         World world, TurretFireSink fireSink, Random rng, Consumer<Entity> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
-        this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
         this.world = world;
         this.fireSink = fireSink;
@@ -229,7 +226,7 @@ public class GroundSystem {
             float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
 
             Entity currentBurstTarget = (v.turretBurstTargetId != 0L)
-                    ? registry.getOrNull(v.turretBurstTargetId) : null;
+                    ? roster.getOrNull(v.turretBurstTargetId) : null;
 
             // Burst continuation fires ahead of fresh acquisition — the turret
             // commits to its salvo target, matching shuttle turret behavior.
@@ -261,7 +258,7 @@ public class GroundSystem {
             aim.minRange = kind.minRange;
             aim.cooldownTimer = v.turretCooldownTimer;
             aim.attackCooldown = kind.cooldown;
-            aim.target = (v.turretTargetId != 0L) ? registry.getOrNull(v.turretTargetId) : null;
+            aim.target = (v.turretTargetId != 0L) ? roster.getOrNull(v.turretTargetId) : null;
 
             TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, dt);
 

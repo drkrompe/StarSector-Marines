@@ -3,10 +3,10 @@ package com.dillon.starsectormarines.battle.drone;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,10 +100,10 @@ public final class HubDemolitionSystem {
      * corrupting a live registry walk.
      */
     private void cascadeKillDrones(DroneHubUnit h) {
-        UnitRegistry registry = roster.getRegistry();
+        World world = roster.world();
         List<Drone> doomed = null;
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
             if (u instanceof Drone d && d.homeHub == h) {
                 if (doomed == null) doomed = new ArrayList<>();
                 doomed.add(d);
@@ -112,12 +112,12 @@ public final class HubDemolitionSystem {
         if (doomed == null) return;
         for (int i = 0, n = doomed.size(); i < n; i++) {
             Drone d = doomed.get(i);
-            registry.setHpById(d.entityId, 0f);
+            world.setHp(d.entityId, 0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
             // Snapshot the cell while the drone is still registered.
-            deathDispatcher.publish(new DeathEvent(d, registry.cellXById(d.entityId), registry.cellYById(d.entityId)));
+            deathDispatcher.publish(new DeathEvent(d, world.cellX(d.entityId), world.cellY(d.entityId)));
             roster.releaseFromRegistry(d.entityId);
         }
     }

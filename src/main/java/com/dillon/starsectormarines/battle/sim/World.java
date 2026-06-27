@@ -196,4 +196,6 @@ public final class World {
         entityWorld.addComponent(id, components.MECH_LOADOUT);
         entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
     }
+    /** Detach the loadout when the wreck spawns (a {@code removeComponent} row-move back to a plain corpse). Serial-only. */
+    public void removeMechLoadout(long id) { entityWorld.removeComponent(id, components.MECH_LOADOUT); }
 }

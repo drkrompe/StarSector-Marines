@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
@@ -36,9 +36,9 @@ public final class DroneSpawner {
     public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
         if (!sim.world().isAlive(hub.entityId)) return null;
         NavigationGrid grid = sim.getGrid();
-        UnitRegistry registry = sim.getUnitRegistry();
-        int hubX = registry.cellXById(hub.entityId);
-        int hubY = registry.cellYById(hub.entityId);
+        World world = sim.world();
+        int hubX = world.cellX(hub.entityId);
+        int hubY = world.cellY(hub.entityId);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -64,10 +64,10 @@ public final class AttackerIndexService {
             pool.add(bucket);
         }
         attackersByTarget.clear();
-        UnitRegistry registry = rosterService.getRegistry();
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
-            Entity target = registry.getOrNull(registry.targetIdById(u.entityId));
+        World world = rosterService.world();
+        for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
+            Entity u = rosterService.get(i);
+            Entity target = rosterService.getOrNull(world.targetId(u.entityId));
             if (target == null) continue;
             ArrayList<Entity> bucket = attackersByTarget.get(target);
             if (bucket == null) {

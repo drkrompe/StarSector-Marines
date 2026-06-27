@@ -4,7 +4,8 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 
 /**
@@ -32,11 +33,11 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 public final class MechWreckSystem {
 
     private final EffectsService effects;
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
 
-    public MechWreckSystem(EffectsService effects, UnitRegistry registry) {
+    public MechWreckSystem(EffectsService effects, UnitRosterService roster) {
         this.effects = effects;
-        this.registry = registry;
+        this.roster = roster;
     }
 
     /**
@@ -47,11 +48,12 @@ public final class MechWreckSystem {
      */
     public void onDeath(DeathEvent event) {
         Entity u = event.unit();
+        World world = roster.world();
         // MECH_LOADOUT rides the corpse archetype (kept off the corpse-remove
         // mask), so the dead mech's loadout is still readable here even though the
         // unit left the live registry. A non-mech death has none → null, and we
-        // skip. (mechLoadoutOf is the null-safe by-id read.)
-        MechLoadoutComponent m = registry.mechLoadoutOf(u.entityId);
+        // skip. (mechLoadout is the null-safe by-id read.)
+        MechLoadoutComponent m = world.mechLoadout(u.entityId);
         if (m == null || m.wreckSpawned) return;
         // Read the death cell off the event snapshot: the unit is released by
         // the time this drains, so its Group-C cell accessors are fail-loud.
@@ -61,6 +63,6 @@ public final class MechWreckSystem {
         // removeComponent row-move back to a plain corpse) so the mech-fire query
         // stops seeing it. Mirrors the CrashingComponent lifecycle: the component
         // is removed once its terminal event fires.
-        registry.removeMechLoadout(u.entityId);
+        world.removeMechLoadout(u.entityId);
     }
 }

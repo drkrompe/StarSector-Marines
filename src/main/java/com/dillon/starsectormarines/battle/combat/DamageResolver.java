@@ -8,9 +8,9 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
@@ -95,11 +95,11 @@ public final class DamageResolver {
      * — and the damage is moot anyway.
      */
     public void resolve(Entity target, float damage, float vsTurretMult, float moraleImpact) {
-        UnitRegistry registry = roster.getRegistry();
-        boolean wasAlive = registry.isAliveById(target.entityId);
+        World world = roster.world();
+        boolean wasAlive = roster.isAliveById(target.entityId);
         if (!wasAlive) return;
-        int tcx = registry.cellXById(target.entityId);
-        int tcy = registry.cellYById(target.entityId);
+        int tcx = world.cellX(target.entityId);
+        int tcy = world.cellY(target.entityId);
         int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
@@ -109,8 +109,8 @@ public final class DamageResolver {
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
-        float newHp = registry.hpById(target.entityId) - damage * effectiveMult * (1f - dr);
-        registry.setHpById(target.entityId, newHp);
+        float newHp = world.hp(target.entityId) - damage * effectiveMult * (1f - dr);
+        world.setHp(target.entityId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
@@ -160,7 +160,7 @@ public final class DamageResolver {
         // event + cap scaling + death bonus). Solo units (turrets, civilians)
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
-            if (roster.getRegistry().hasMechLoadout(target.entityId)) {
+            if (world.hasMechLoadout(target.entityId)) {
                 // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
                 // killed by this very hit was already released from the registry
                 // (above) — its HEALTH component still reads until the death drain
@@ -189,16 +189,16 @@ public final class DamageResolver {
     private Entity pickPromotionCandidate(Squad squad, Entity deadLeader) {
         Entity best = null;
         float bestDistSq = Float.MAX_VALUE;
-        UnitRegistry registry = roster.getRegistry();
-        int lx = registry.cellXById(deadLeader.entityId);
-        int ly = registry.cellYById(deadLeader.entityId);
-        Entity[] dense = registry.denseArray();
-        int liveCount = registry.liveCount();
+        World world = roster.world();
+        int lx = world.cellX(deadLeader.entityId);
+        int ly = world.cellY(deadLeader.entityId);
+        Entity[] dense = roster.denseArray();
+        int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             if (u == deadLeader || u.squadId != squad.id) continue;
-            int dx = registry.cellXById(u.entityId) - lx;
-            int dy = registry.cellYById(u.entityId) - ly;
+            int dx = world.cellX(u.entityId) - lx;
+            int dy = world.cellY(u.entityId) - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
@@ -253,12 +253,12 @@ public final class DamageResolver {
      * instantaneous HP.
      */
     private void applyMechHpThresholdDrain(Entity target) {
-        UnitRegistry registry = roster.getRegistry();
-        MechLoadoutComponent m = registry.mechLoadoutOf(target.entityId);
+        World world = roster.world();
+        MechLoadoutComponent m = world.mechLoadout(target.entityId);
         m.timeSinceUnderFire = 0f;
-        float maxHp = registry.maxHpById(target.entityId);
+        float maxHp = world.maxHp(target.entityId);
         if (maxHp <= 0f) return;
-        float frac = Math.max(0f, registry.hpById(target.entityId)) / maxHp;
+        float frac = Math.max(0f, world.hp(target.entityId)) / maxHp;
         int newCount = 0;
         for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
             if (frac <= t) newCount++;

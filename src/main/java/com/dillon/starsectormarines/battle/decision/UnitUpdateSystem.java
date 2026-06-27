@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -54,7 +54,7 @@ import java.util.stream.IntStream;
  * can't strand the snapshot mid-dispatch.
  *
  * <h2>Registry-driven dispatch</h2>
- * <p>Dispatch source is the {@link UnitRegistry} dense array. The legacy
+ * <p>Dispatch source is the {@link UnitRosterService} dense array. The legacy
  * {@code List<Entity>} is no longer iterated here. Every production death
  * path now releases from the registry: {@code DamageResolver} on damage
  * kills, and {@code HubDemolitionSystem} on the drone cascade. The
@@ -74,9 +74,9 @@ public final class UnitUpdateSystem {
     private final ForkJoinPool pool;
     private final DamageService damageService;
     private final TickInnerProfile tickInnerProfile;
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
 
-    public UnitUpdateSystem(UnitRegistry registry,
+    public UnitUpdateSystem(UnitRosterService roster,
                             DamageService damageService,
                             TickInnerProfile tickInnerProfile) {
         this.pool = new ForkJoinPool(
@@ -88,7 +88,7 @@ public final class UnitUpdateSystem {
                     return t;
                 },
                 null, false);
-        this.registry = registry;
+        this.roster = roster;
         this.damageService = damageService;
         this.tickInnerProfile = tickInnerProfile;
     }
@@ -97,14 +97,14 @@ public final class UnitUpdateSystem {
      * Dispatch one tick of per-unit updates across the alive roster. Reads
      * the registry's dense array fresh each tick (the array reference can
      * be replaced by {@code allocate()} growth between ticks — see
-     * {@link UnitRegistry#denseArray()}). Workers iterate
+     * {@link UnitRosterService#denseArray()}). Workers iterate
      * {@code [0, liveCount)} indices in parallel via {@link IntStream}; the
      * submission to {@link #pool} pins the stream to our worker pool rather
      * than the common one.
      */
     public void tick(BattleSimulation sim) {
-        Entity[] snapshot = registry.denseArray();
-        int liveCount = registry.liveCount();
+        Entity[] snapshot = roster.denseArray();
+        int liveCount = roster.liveCount();
         damageService.enterParallel();
         try {
             pool.submit(() -> IntStream.range(0, liveCount).parallel()

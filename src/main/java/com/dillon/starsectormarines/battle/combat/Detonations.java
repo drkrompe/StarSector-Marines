@@ -4,8 +4,9 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class Detonations {
     private final List<PendingDetonation> pending = new ArrayList<>();
     private final List<PendingDetonation> pendingView = Collections.unmodifiableList(pending);
 
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final DamageService damageService;
@@ -51,10 +52,10 @@ public class Detonations {
      */
     private final List<Entity> aoeScratch = new ArrayList<>();
 
-    public Detonations(UnitRegistry registry, NavigationGrid grid, CellTopology topology,
+    public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapService mapService,
                        EffectsService effects) {
-        this.registry = registry;
+        this.roster = roster;
         this.grid = grid;
         this.topology = topology;
         this.damageService = damageService;
@@ -117,12 +118,13 @@ public class Detonations {
             // Gather the in-range, LOS-visible, non-roof-shielded units first
             // (read-only over the live registry), then apply — see aoeScratch.
             aoeScratch.clear();
-            Entity[] dense = registry.denseArray();
-            for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            World world = roster.world();
+            Entity[] dense = roster.denseArray();
+            for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 Entity u = dense[i];
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
-                int ucx = registry.cellXById(u.entityId);
-                int ucy = registry.cellYById(u.entityId);
+                int ucx = world.cellX(u.entityId);
+                int ucy = world.cellY(u.entityId);
                 float dx = (ucx + 0.5f) - det.endpointX;
                 float dy = (ucy + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;

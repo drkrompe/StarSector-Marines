@@ -53,7 +53,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
@@ -127,9 +126,9 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
     /** Drone-crash system — death-event handler that attaches a {@code CRASHING} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over the world's {@code CRASHING} query. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
-    /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}), owned by the {@link UnitRegistry} for the transition (allocate is the spawn seam that adopts ids into it). Every unit lives here as {@code {IDENTITY, HEALTH}}; death transmutes it to the corpse archetype; the dead-sprite render and the mission resolver walk the corpse columns via {@link #battleComponents}' shared query. Remaining live capabilities migrate in ({@code roadmap/ecs-migration/archetype-storage.md}). Alias assigned in the ctor from the roster's registry. */
+    /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}), owned by the {@link UnitRosterService} (allocate is the spawn seam that adopts ids into it). Every live unit lives here as {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, COMBAT}} (+ optional movement/ai-state/secondary/mech); death transmutes it to the corpse archetype; the dead-sprite render and the mission resolver walk the corpse columns via {@link #battleComponents}' shared query. Alias assigned in the ctor from the roster service. */
     private final EntityWorld entityWorld;
-    /** Game component-type registrations + shared queries over {@link #entityWorld}. Alias of the registry's instance. */
+    /** Game component-type registrations + shared queries over {@link #entityWorld}. Alias of the roster service's instance. */
     private final BattleComponents battleComponents;
     /** Dead-body system — death-event handler that transmutes the dead unit's world entity to the corpse archetype in {@link #entityWorld}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final DeadBodySystem deadBodySystem;
@@ -279,11 +278,11 @@ public class BattleSimulation implements BattleControl {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
-        // The entity world + component registrations are owned by the registry
-        // (allocate is the spawn seam that adopts ids into the world); the sim
-        // aliases them for its tick barrier + getters.
-        this.entityWorld = rosterService.getRegistry().entityWorld();
-        this.battleComponents = rosterService.getRegistry().components();
+        // The entity world + component registrations are owned by the roster
+        // service (allocate is the spawn seam that adopts ids into the world); the
+        // sim aliases them for its tick barrier + getters.
+        this.entityWorld = rosterService.entityWorld();
+        this.battleComponents = rosterService.components();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
@@ -293,19 +292,18 @@ public class BattleSimulation implements BattleControl {
                 this::writeReprioInline,
                 this::writeFallbackInline,
                 navigation::applyOccupancyDeltaInline,
-                rosterService.getRegistry()::getOrNull);
+                rosterService::getOrNull);
         // setPath/clearPath bodies live on NavigationService; they enqueue
         // their occupancy/destIndex delta through the damage service's
         // queued (parallel-safe) path. Wired here since the navigation
         // service is built before the damage service exists.
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
-        navigation.setRegistry(rosterService.getRegistry());
+        navigation.setRoster(rosterService);
         rosterService.setDamageService(damageService);
         // Entity-access facade — by-id accessors that read the archetype entity
-        // world's component columns directly. All optional capabilities are world
-        // components (reached via typed accessors like world.mechLoadout); the old
-        // Class→ComponentStore cold-face map is gone.
-        this.world = new World(entityWorld, battleComponents);
+        // world's component columns directly. Owned by the roster service (which
+        // owns the world it reads); the sim aliases it for its world() getter.
+        this.world = rosterService.world();
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
@@ -317,7 +315,7 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
-        this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService.getRegistry());
+        this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
         deathDispatcher.subscribe(mechWreckSystem::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
@@ -330,19 +328,19 @@ public class BattleSimulation implements BattleControl {
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
-                rosterService.getRegistry(), damageService, tickInnerProfile);
+                rosterService, damageService, tickInnerProfile);
         this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
-                grid, rosterService.getRegistry(), tacticalScoring, damageService,
+                grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
-        this.detonations = new Detonations(rosterService.getRegistry(), grid, topology, damageService,
+        this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapService, effects);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world);
-        this.infantry = new InfantryWeapons(rosterService.getRegistry(),
+        this.infantry = new InfantryWeapons(rosterService,
                 damageService, hitResponse, shots);
-        this.heavy = new HeavyWeapons(rosterService.getRegistry(), grid, damageService, hitResponse,
+        this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
@@ -370,12 +368,11 @@ public class BattleSimulation implements BattleControl {
 
     public boolean isRoofShielded(Entity target) {
         if (target == null) return false;
-        UnitRegistry registry = rosterService.getRegistry();
-        return topology.isRoofIntact(registry.cellXById(target.entityId), registry.cellYById(target.entityId));
+        return topology.isRoofIntact(world.cellX(target.entityId), world.cellY(target.entityId));
     }
 
-    @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
-    @Override public Entity liveUnitAt(int index) { return rosterService.getRegistry().get(index); }
+    @Override public int liveUnitCount() { return rosterService.liveCount(); }
+    @Override public Entity liveUnitAt(int index) { return rosterService.get(index); }
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
@@ -493,24 +490,23 @@ public class BattleSimulation implements BattleControl {
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
-     * Dense entity registry for SoA consumers — bulk readers that want to
-     * iterate {@code [0, liveCount())} over {@link UnitRegistry#denseArray()}
-     * and pull cellX/cellY/hp/maxHp from the parallel primitive arrays.
-     * Same registry instance {@link #targetOf(Entity)} and the spatial-index
-     * rebuilds already use; exposed here so static scorers (TacticalScoring,
-     * etc.) can match the established consumer pattern without threading
-     * the roster service through every helper signature.
+     * The live entity roster for SoA consumers — bulk readers that iterate
+     * {@code [0, liveCount())} over {@link UnitRosterService#denseArray()} (or
+     * resolve ids via {@link UnitRosterService#getOrNull(long)}) and pull
+     * component columns by id through {@link #world()}. Same roster instance
+     * {@link #targetOf(Entity)} and the spatial-index rebuilds use; exposed here
+     * so static scorers (TacticalScoring, etc.) can match the established consumer
+     * pattern without threading the roster service through every helper signature.
      */
-    public UnitRegistry getUnitRegistry() { return rosterService.getRegistry(); }
+    public UnitRosterService getRoster() { return rosterService; }
     /**
      * Resolves a unit's {@code world.targetId(id)} to the current target reference,
      * or {@code null} when the target was released / never set. Short delegate
-     * over {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)};
+     * over {@link UnitRosterService#getOrNull(long)};
      * the canonical read path replacing the old {@code u.target} field.
      */
     public Entity targetOf(Entity u) {
-        UnitRegistry registry = rosterService.getRegistry();
-        return registry.getOrNull(registry.targetIdById(u.entityId));
+        return rosterService.getOrNull(world.targetId(u.entityId));
     }
 
     /**
@@ -523,7 +519,7 @@ public class BattleSimulation implements BattleControl {
      * there's no companion holder unit to thread.
      */
     public Entity resolveUnit(long id) {
-        return rosterService.getRegistry().getOrNull(id);
+        return rosterService.getOrNull(id);
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
@@ -558,7 +554,7 @@ public class BattleSimulation implements BattleControl {
     public void addUnit(Entity u) {
         rosterService.addUnit(u);
         if (vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u, rosterService.getRegistry());
+            vision.addContributor(u, rosterService);
         }
     }
 
@@ -574,7 +570,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.queueSpawn(u);
         if (idBefore == 0L && u.entityId != 0L
                 && vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u, rosterService.getRegistry());
+            vision.addContributor(u, rosterService);
         }
     }
 
@@ -587,7 +583,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.flushPendingSpawns();
         for (Entity u : snapshot) {
             if (vision.getVisionState().isContributor(u.faction)) {
-                vision.addContributor(u, rosterService.getRegistry());
+                vision.addContributor(u, rosterService);
             }
         }
     }
@@ -669,15 +665,13 @@ public class BattleSimulation implements BattleControl {
 
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path. Clears the targetId only if it still matches {@code expectedTargetId} (the race-check now lives here, registry-side, instead of a no-arg {@code target.getTargetId()} read in the flush drain); the next behavior tick re-picks via {@code findBestTarget}. */
     private void writeReprioInline(Entity target, long expectedTargetId) {
-        UnitRegistry registry = rosterService.getRegistry();
-        if (registry.targetIdById(target.entityId) == expectedTargetId) registry.setTargetIdById(target.entityId, 0L);
+        if (world.targetId(target.entityId) == expectedTargetId) world.setTargetId(target.entityId, 0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Entity target, int fbX, int fbY) {
-        UnitRegistry registry = rosterService.getRegistry();
-        registry.setFallbackCellById(target.entityId, fbX, fbY);
-        registry.setFallbackTimerById(target.entityId, HitResponseService.FALLBACK_DURATION);
+        world.setFallbackCell(target.entityId, fbX, fbY);
+        world.setFallbackTimer(target.entityId, HitResponseService.FALLBACK_DURATION);
         clearPath(target);
     }
 
@@ -774,16 +768,16 @@ public class BattleSimulation implements BattleControl {
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
         // are pushed by BattleScreen.advance() each frame before this call.
-        vision.tick(simTickIndex, rosterService.getRegistry());
+        vision.tick(simTickIndex, rosterService);
         tickProfile.lap(TickProfile.Phase.VISION);
-        navigation.rebuildOccupancyMap(rosterService.getRegistry());
+        navigation.rebuildOccupancyMap(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
-        navigation.rebuildSpatialIndices(rosterService.getRegistry());
+        navigation.rebuildSpatialIndices(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
@@ -1059,9 +1053,9 @@ public class BattleSimulation implements BattleControl {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
-    /** Delegates to {@link Entity#advanceAlongPath(UnitRegistry, float)}. Kept so existing behavior call sites compile unchanged. */
+    /** Delegates to {@link Entity#advanceAlongPath(World, float)}. Kept so existing behavior call sites compile unchanged. */
     public void advanceMovement(Entity u) {
-        u.advanceAlongPath(rosterService.getRegistry(), TICK_DT);
+        u.advanceAlongPath(world, TICK_DT);
     }
 
     /**

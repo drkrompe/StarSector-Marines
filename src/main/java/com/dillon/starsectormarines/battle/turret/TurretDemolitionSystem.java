@@ -3,13 +3,13 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
 
@@ -96,7 +96,7 @@ public final class TurretDemolitionSystem {
      * cell accessors would fail loud.
      */
     private void releaseGuardpostIfAllTurretsDead(int deadCellX, int deadCellY) {
-        UnitRegistry registry = roster.getRegistry();
+        World world = roster.world();
         List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;
@@ -115,10 +115,10 @@ public final class TurretDemolitionSystem {
         // already-demolished and the never-spawned edge cases.
         for (DefensePost.TurretSpec spec : owner.turrets) {
             boolean aliveAtSpec = false;
-            for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Entity u = registry.get(i);
+            for (int i = 0, n = roster.liveCount(); i < n; i++) {
+                Entity u = roster.get(i);
                 if (!(u instanceof MapTurret)) continue;
-                if (registry.cellXById(u.entityId) != spec.cellX || registry.cellYById(u.entityId) != spec.cellY) continue;
+                if (world.cellX(u.entityId) != spec.cellX || world.cellY(u.entityId) != spec.cellY) continue;
                 aliveAtSpec = true;
                 break;
             }

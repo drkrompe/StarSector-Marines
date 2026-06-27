@@ -3,10 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -82,14 +82,14 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepFootprints(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
-        UnitRegistry registry = ctx.sim.getUnitRegistry();
+        World world = ctx.sim.world();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsFootprint) continue;
-            float x0 = cam.cellToScreenX(registry.cellXById(u.entityId));
-            float y0 = cam.cellToScreenY(registry.cellYById(u.entityId));
+            float x0 = cam.cellToScreenX(world.cellX(u.entityId));
+            float y0 = cam.cellToScreenY(world.cellY(u.entityId));
             GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
         }
     }
@@ -105,15 +105,15 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepTurretBodies(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
-        UnitRegistry registry = ctx.sim.getUnitRegistry();
+        World world = ctx.sim.world();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
-            float cx = cam.cellToScreenX(registry.cellXById(t.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(registry.cellYById(t.entityId) + 0.5f);
+            float cx = cam.cellToScreenX(world.cellX(t.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(world.cellY(t.entityId) + 0.5f);
 
             ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
             if (base == null) {
@@ -149,14 +149,14 @@ public final class UnitRenderService implements RenderSystem {
         ShuttleSpriteCache hub = sprites.droneHubSprite();
         if (hub == null) return;
         BattleCamera cam = ctx.camera;
-        UnitRegistry registry = ctx.sim.getUnitRegistry();
+        World world = ctx.sim.world();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof DroneHubUnit)) continue;
-            float cx = cam.cellToScreenX(registry.cellXById(u.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(registry.cellYById(u.entityId) + 0.5f);
+            float cx = cam.cellToScreenX(world.cellX(u.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(world.cellY(u.entityId) + 0.5f);
             emitWholeSprite(out, hub, 0f, DroneHubUnit.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }
@@ -260,7 +260,7 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         BattleSimulation sim = ctx.sim;
-        UnitRegistry registry = sim.getUnitRegistry();
+        World world = sim.world();
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
@@ -274,10 +274,10 @@ public final class UnitRenderService implements RenderSystem {
             float unitAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
 
-            boolean inAim = registry.hasSecondaryWeapon(u.entityId) && registry.secondaryActionTimerById(u.entityId) > 0f;
+            boolean inAim = world.hasSecondaryWeapon(u.entityId) && world.secondaryActionTimer(u.entityId) > 0f;
             UnitSpriteCache cache = sprites.unitSprites().get(u.type);
             if (inAim) {
-                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(registry.secondaryWeaponOf(u.entityId));
+                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(world.secondaryWeapon(u.entityId));
                 if (aim != null && aim.sheet != null && aim.frames != null
                         && aim.frames.frames.length > 0) {
                     cache = aim;
@@ -287,8 +287,8 @@ public final class UnitRenderService implements RenderSystem {
                     || cache.frames.frames.length == 0) {
                 Color c = u.faction == Faction.MARINE ? MARINE_COLOR
                         : u.faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
-                float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
-                float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
+                float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
+                float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
                 emitSolidQuad(out, cx, cy, half, c, unitAlpha);
                 continue;
             }
@@ -305,14 +305,14 @@ public final class UnitRenderService implements RenderSystem {
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
         // cooldown, this unit's cell, and the target cell all read via world by-id
         // adapters (COMBAT cooldown + POSITION cells).
-        UnitRegistry registry = sim.getUnitRegistry();
+        World world = sim.world();
         SpriteSheetFrames frames = cache.frames;
-        float cooldown = registry.cooldownTimerById(u.entityId);
+        float cooldown = world.cooldownTimer(u.entityId);
         boolean weaponUp = inAim || (u.type.combatant
                 && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
                 && cooldown > 0f);
-        int selfCellX = registry.cellXById(u.entityId);
-        int selfCellY = registry.cellYById(u.entityId);
+        int selfCellX = world.cellX(u.entityId);
+        int selfCellY = world.cellY(u.entityId);
 
         int frameIdx;
         boolean flipV;
@@ -329,8 +329,8 @@ public final class UnitRenderService implements RenderSystem {
 
         float targetH = unitSize * u.type.renderScale;
         float targetW = targetH * f.w / (float) f.h;
-        float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
-        float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
+        float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
+        float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
         if (flipV) {
             out.addSheetQuadFlippedV(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
                     cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
@@ -357,7 +357,7 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepHpBars(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
-        UnitRegistry registry = ctx.sim.getUnitRegistry();
+        World world = ctx.sim.world();
         float cellPx = cam.cellPxSize();
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
@@ -372,8 +372,8 @@ public final class UnitRenderService implements RenderSystem {
             float barAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
-            float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
+            float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
             float barY;
             if (u instanceof MapTurret) {
                 barY = cy + ((MapTurret) u).kind.visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
@@ -383,7 +383,7 @@ public final class UnitRenderService implements RenderSystem {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }
             HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
-                    registry.hpById(u.entityId) / registry.maxHpById(u.entityId), barAlpha);
+                    world.hp(u.entityId) / world.maxHp(u.entityId), barAlpha);
         }
     }
 
@@ -394,15 +394,15 @@ public final class UnitRenderService implements RenderSystem {
     private static Facing computeFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
         Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            UnitRegistry registry = sim.getUnitRegistry();
-            int dx = registry.cellXById(target.entityId) - selfCellX;
-            int dy = registry.cellYById(target.entityId) - selfCellY;
+            World world = sim.world();
+            int dx = world.cellX(target.entityId) - selfCellX;
+            int dy = world.cellY(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
-        UnitRegistry registry = sim != null ? sim.getUnitRegistry() : null;
-        if (registry != null) {
-            int[] path = registry.pathById(u.entityId);
-            int pathIdx = registry.pathIdxById(u.entityId);
+        World world = sim != null ? sim.world() : null;
+        if (world != null) {
+            int[] path = world.path(u.entityId);
+            int pathIdx = world.pathIdx(u.entityId);
             if (pathIdx < Paths.cellCount(path)) {
                 int dx = Paths.cellX(path, pathIdx) - selfCellX;
                 int dy = Paths.cellY(path, pathIdx) - selfCellY;
@@ -441,15 +441,15 @@ public final class UnitRenderService implements RenderSystem {
     private static EightWayFacing computeEightWayFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
         Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            UnitRegistry registry = sim.getUnitRegistry();
-            int dx = registry.cellXById(target.entityId) - selfCellX;
-            int dy = registry.cellYById(target.entityId) - selfCellY;
+            World world = sim.world();
+            int dx = world.cellX(target.entityId) - selfCellX;
+            int dy = world.cellY(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
-        UnitRegistry registry = sim != null ? sim.getUnitRegistry() : null;
-        if (registry != null) {
-            int[] path = registry.pathById(u.entityId);
-            int pathIdx = registry.pathIdxById(u.entityId);
+        World world = sim != null ? sim.world() : null;
+        if (world != null) {
+            int[] path = world.path(u.entityId);
+            int pathIdx = world.pathIdx(u.entityId);
             if (pathIdx < Paths.cellCount(path)) {
                 int dx = Paths.cellX(path, pathIdx) - selfCellX;
                 int dy = Paths.cellY(path, pathIdx) - selfCellY;

@@ -2,8 +2,9 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -38,7 +39,7 @@ public class HeavyWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
 
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
     private final NavigationGrid grid;
     private final DamageService damageService;
     private final HitResponseService hitResponse;
@@ -54,10 +55,10 @@ public class HeavyWeapons {
      */
     private final List<Entity> mechScratch = new ArrayList<>();
 
-    public HeavyWeapons(UnitRegistry registry, NavigationGrid grid,
+    public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
                         DamageService damageService, HitResponseService hitResponse,
                         ShotService shots, Detonations detonations) {
-        this.registry = registry;
+        this.roster = roster;
         this.grid = grid;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
@@ -93,19 +94,20 @@ public class HeavyWeapons {
         boolean hit = shooter.rng.nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
+        World world = roster.world();
 
         // Muzzle origin tracks the SHOOTER'S CURRENT RENDER POSITION so a
         // chaingun burst follows the walking mech instead of pinning the
         // muzzle flash to the cell where the burst started. Mirrors the
         // infantry-side fix in InfantryWeapons.fireShot.
-        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
-        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter.entityId) + 0.5f;
+        float fromY = world.renderY(shooter.entityId) + 0.5f;
         // Distance-scaled spread — see RangeFalloff for the physical model.
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
         // hitSpread numbers.
-        float distToTarget = RangeFalloff.dist(registry.cellXById(shooter.entityId), registry.cellYById(shooter.entityId),
-                registry.cellXById(target.entityId), registry.cellYById(target.entityId));
+        float distToTarget = RangeFalloff.dist(world.cellX(shooter.entityId), world.cellY(shooter.entityId),
+                world.cellX(target.entityId), world.cellY(target.entityId));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
         // Endpoint resolves through ShotEndpoint — same hit-jitter +
@@ -114,7 +116,7 @@ public class HeavyWeapons {
         // center scattered through the same machinery so a salvo sprays the
         // impact zone instead of stacking on one cell.
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                world.renderX(target.entityId), world.renderY(target.entityId),
                 hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
@@ -199,18 +201,19 @@ public class HeavyWeapons {
         // corrupting the pass. The query excludes CORPSE (live mechs only), and
         // getOrNull still guards an entity released earlier this same drain.
         mechScratch.clear();
-        EntityWorld world = registry.entityWorld();
-        BattleComponents components = registry.components();
-        for (ArchetypeTable t : world.matched(components.mechLoadouts)) {
+        EntityWorld entityWorld = roster.entityWorld();
+        BattleComponents components = roster.components();
+        for (ArchetypeTable t : entityWorld.matched(components.mechLoadouts)) {
             for (int r = 0, n = t.rowCount(); r < n; r++) {
-                Entity u = registry.getOrNull(t.entityAt(r));
+                Entity u = roster.getOrNull(t.entityAt(r));
                 if (u != null) mechScratch.add(u);
             }
         }
+        World world = roster.world();
         for (int i = 0, n = mechScratch.size(); i < n; i++) {
             Entity u = mechScratch.get(i);
-            if (!registry.isAliveById(u.entityId)) continue; // killed earlier in this same pass
-            MechLoadoutComponent m = registry.mechLoadoutOf(u.entityId);
+            if (!roster.isAliveById(u.entityId)) continue; // killed earlier in this same pass
+            MechLoadoutComponent m = world.mechLoadout(u.entityId);
 
             if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;
             if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;
@@ -222,7 +225,7 @@ public class HeavyWeapons {
             if (m.chaingunBurstRemaining > 0) {
                 m.chaingunBurstTimer -= BattleSimulation.TICK_DT;
                 if (m.chaingunBurstTimer <= 0f) {
-                    Entity cgTarget = registry.getOrNull(m.chaingunBurstTargetId);
+                    Entity cgTarget = roster.getOrNull(m.chaingunBurstTargetId);
                     if (cgTarget == null) {
                         m.chaingunBurstRemaining = 0;
                         m.chaingunBurstTargetId = 0L;
@@ -239,7 +242,7 @@ public class HeavyWeapons {
             if (m.srmSalvoRemaining > 0) {
                 m.srmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.srmSalvoTimer <= 0f) {
-                    Entity srmTarget = registry.getOrNull(m.srmSalvoTargetId);
+                    Entity srmTarget = roster.getOrNull(m.srmSalvoTargetId);
                     if (srmTarget == null) {
                         m.srmSalvoRemaining = 0;
                         m.srmSalvoTargetId = 0L;
@@ -261,14 +264,14 @@ public class HeavyWeapons {
             if (m.lrmSalvoRemaining > 0) {
                 m.lrmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.lrmSalvoTimer <= 0f) {
-                    Entity lrmTarget = registry.getOrNull(m.lrmSalvoTargetId);
+                    Entity lrmTarget = roster.getOrNull(m.lrmSalvoTargetId);
                     if (lrmTarget == null) {
                         m.lrmSalvoRemaining = 0;
                         m.lrmSalvoTargetId = 0L;
                     } else {
                         boolean hasLos = grid.hasLineOfSight(
-                                registry.cellXById(u.entityId), registry.cellYById(u.entityId),
-                                registry.cellXById(lrmTarget.entityId), registry.cellYById(lrmTarget.entityId));
+                                world.cellX(u.entityId), world.cellY(u.entityId),
+                                world.cellX(lrmTarget.entityId), world.cellY(lrmTarget.entityId));
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
                         fireMechWeapon(u, lrmTarget, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;

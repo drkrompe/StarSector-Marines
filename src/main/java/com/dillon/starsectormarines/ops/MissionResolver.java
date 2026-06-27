@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -108,10 +108,10 @@ public final class MissionResolver {
         // whole battle and carries the dead unit's faction (IDENTITY column). A
         // deboarded marine is in exactly one of the two (live registry or a
         // corpse), so engaged = survivors + casualties.
-        UnitRegistry registry = sim.getUnitRegistry();
+        UnitRosterService roster = sim.getRoster();
         int marinesAlive = 0;
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            if (registry.get(i).faction == Faction.MARINE) marinesAlive++;
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            if (roster.get(i).faction == Faction.MARINE) marinesAlive++;
         }
         int rawMarinesLost = 0;
         BattleComponents c = sim.getBattleComponents();

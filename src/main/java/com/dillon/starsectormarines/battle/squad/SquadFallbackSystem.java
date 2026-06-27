@@ -2,10 +2,10 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,14 +55,13 @@ public final class SquadFallbackSystem {
     }
 
     public void tick() {
-        UnitRegistry registry = roster.getRegistry();
         for (Squad squad : roster.getSquads()) {
             if (squad.assignedNode == null) continue;
             if (squad.aliveMembers == 0) continue;
 
             // Arrival pass for in-progress retreats.
             if (squad.fallbackInProgress) {
-                if (allMembersHome(squad, registry)) squad.fallbackInProgress = false;
+                if (allMembersHome(squad, roster)) squad.fallbackInProgress = false;
                 continue;
             }
 
@@ -74,7 +73,7 @@ public final class SquadFallbackSystem {
             if (targets.isEmpty()) continue;
 
             TacticalNode newNode = targets.get(0);
-            assignFallbackHomes(squad, newNode, registry);
+            assignFallbackHomes(squad, newNode, roster);
             squad.assignedNode = newNode;
             squad.fallbackTriggered = true;
             squad.fallbackInProgress = true;
@@ -82,13 +81,14 @@ public final class SquadFallbackSystem {
     }
 
     /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS_SQ} of their home cell — caller treats that as "the retreat is finished." */
-    private boolean allMembersHome(Squad squad, UnitRegistry registry) {
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
+    private boolean allMembersHome(Squad squad, UnitRosterService roster) {
+        World world = roster.world();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
             if (u.squadId != squad.id) continue;
             if (u.homeCellX < 0) continue;
-            float dx = u.homeCellX - registry.cellXById(u.entityId);
-            float dy = u.homeCellY - registry.cellYById(u.entityId);
+            float dx = u.homeCellX - world.cellX(u.entityId);
+            float dy = u.homeCellY - world.cellY(u.entityId);
             if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS_SQ) return false;
         }
         return true;
@@ -102,10 +102,10 @@ public final class SquadFallbackSystem {
      * order explicitly. Returns the reused scratch list (valid until the next
      * call).
      */
-    private List<Entity> squadMembersInSpawnOrder(Squad squad, UnitRegistry registry) {
+    private List<Entity> squadMembersInSpawnOrder(Squad squad, UnitRosterService roster) {
         memberScratch.clear();
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
             if (u.squadId == squad.id) memberScratch.add(u);
         }
         memberScratch.sort((a, b) -> Long.compare(a.entityId, b.entityId));
@@ -120,10 +120,10 @@ public final class SquadFallbackSystem {
      * spawn order via {@link #squadMembersInSpawnOrder}, which preserves spawn
      * priority) take the best new cover stacks.
      */
-    private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRegistry registry) {
+    private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRosterService roster) {
         List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
-        List<Entity> members = squadMembersInSpawnOrder(squad, registry);
+        List<Entity> members = squadMembersInSpawnOrder(squad, roster);
         int idx = 0;
         for (int i = 0, n = members.size(); i < n; i++) {
             Entity u = members.get(i);

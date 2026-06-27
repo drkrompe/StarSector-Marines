@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -64,7 +63,6 @@ public class AirSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
-    private final UnitRegistry registry;
     private final TacticalScoring tacticalScoring;
     private final World world;
     private final TurretFireSink fireSink;
@@ -87,7 +85,6 @@ public class AirSystem {
                      Random rng, Consumer<Entity> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
-        this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
         this.world = world;
         this.fireSink = fireSink;
@@ -362,7 +359,7 @@ public class AirSystem {
                 // Resolve the burst victim once per tick — null surfaces both
                 // "released from registry" and "id was 0L all along," same path
                 // as TurretBehavior's MapTurret-shadow read.
-                Entity currentBurstTarget = registry.getOrNull(mt.burstTargetId);
+                Entity currentBurstTarget = roster.getOrNull(mt.burstTargetId);
                 if (mt.burstRemaining > 0 && currentBurstTarget == null) {
                     // A burst whose victim died is dead too — release the lock so
                     // the aim loop can re-acquire a fresh target next tick.
@@ -402,7 +399,7 @@ public class AirSystem {
                 aim.minRange = mt.mount.kind.minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
-                aim.target = registry.getOrNull(mt.targetId);
+                aim.target = roster.getOrNull(mt.targetId);
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
@@ -500,11 +497,11 @@ public class AirSystem {
         if (s.mission.squadId == Entity.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
-        for (int i = 0, live = registry.liveCount(); i < live; i++) {
-            Entity u = registry.get(i);
+        for (int i = 0, live = roster.liveCount(); i < live; i++) {
+            Entity u = roster.get(i);
             if (u.squadId != s.mission.squadId) continue;
-            sumX += registry.cellXById(u.entityId) + 0.5f;
-            sumY += registry.cellYById(u.entityId) + 0.5f;
+            sumX += world.cellX(u.entityId) + 0.5f;
+            sumY += world.cellY(u.entityId) + 0.5f;
             n++;
         }
         if (n == 0) return;  // squad wiped — hold current hover point

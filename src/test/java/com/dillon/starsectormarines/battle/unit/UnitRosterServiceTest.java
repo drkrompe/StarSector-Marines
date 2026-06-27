@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.sim.World;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,13 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Entity-tests the {@link UnitRegistry} contract: monotonic id allocation,
- * dense {@code [0, liveCount())} iteration, swap-and-pop release moving
- * the tail entity into the freed slot, stale-id lookups returning
- * {@link UnitRegistry#INVALID_INDEX}, growth on overflow without index
- * corruption.
+ * Entity-tests the {@link UnitRosterService} roster contract: monotonic id
+ * allocation, dense {@code [0, liveCount())} iteration, swap-and-pop release
+ * moving the tail entity into the freed slot, stale-id lookups returning
+ * {@link UnitRosterService#INVALID_INDEX}, and growth on overflow without index
+ * corruption. The per-entity component columns are seeded by
+ * {@link UnitRosterService#allocate} and read by id through the {@code r.world()}
+ * facade.
  */
-public class UnitRegistryTest {
+public class UnitRosterServiceTest {
 
     private static Entity unit(String label) {
         return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
@@ -33,9 +36,13 @@ public class UnitRegistryTest {
         return u;
     }
 
+    private static UnitRosterService roster() {
+        return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
+    }
+
     @Test
     public void allocateAssignsMonotonicIdsAndPacksDenseSlots() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
@@ -58,7 +65,7 @@ public class UnitRegistryTest {
 
     @Test
     public void releaseSwapsTailIntoFreedSlot() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
@@ -72,7 +79,7 @@ public class UnitRegistryTest {
 
         assertEquals(2, r.liveCount());
         assertFalse(r.isLive(idA));
-        assertEquals(UnitRegistry.INVALID_INDEX, r.indexOf(idA));
+        assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(idA));
         // c moved from slot 2 into slot 0; its id should now resolve to index 0.
         assertEquals(0, r.indexOf(idC));
         assertSame(c, r.get(0));
@@ -82,7 +89,7 @@ public class UnitRegistryTest {
 
     @Test
     public void releaseOfTailEntityIsSimplePop() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         long idA = r.allocate(a);
@@ -99,7 +106,7 @@ public class UnitRegistryTest {
 
     @Test
     public void releaseOfUnknownIdIsNoOp() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         long idA = r.allocate(a);
 
@@ -113,18 +120,18 @@ public class UnitRegistryTest {
 
     @Test
     public void staleIdAfterReleaseReturnsInvalidIndex() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         long idA = r.allocate(a);
         r.release(idA);
 
-        assertEquals(UnitRegistry.INVALID_INDEX, r.indexOf(idA));
+        assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(idA));
         assertFalse(r.isLive(idA));
     }
 
     @Test
     public void backingArrayGrowsWithoutCorruptingIndices() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         // Allocate past the initial capacity (64) so the doubling growth
         // path runs. Every previously-allocated id must still resolve to
         // the same dense slot.
@@ -145,7 +152,7 @@ public class UnitRegistryTest {
 
     @Test
     public void denseArrayNullsTheFreedTailSlot() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         r.allocate(a);
@@ -163,16 +170,16 @@ public class UnitRegistryTest {
 
     @Test
     public void newRegistryHasZeroLiveCount() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         assertEquals(0, r.liveCount());
         assertFalse(r.isLive(1L));
-        assertEquals(UnitRegistry.INVALID_INDEX, r.indexOf(1L));
+        assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(1L));
         assertNotNull(r.denseArray());
     }
 
     @Test
     public void allocateRejectsAlreadyAllocatedUnit() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         r.allocate(a);
         // Same instance, second allocate — would otherwise mint a new id and
@@ -185,7 +192,7 @@ public class UnitRegistryTest {
 
     @Test
     public void getOrNullResolvesAliveReturnsNullForReleasedAndZeroSentinel() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         long idA = r.allocate(a);
@@ -210,7 +217,8 @@ public class UnitRegistryTest {
 
     @Test
     public void allocateSeedsHealthIntoTheEntityWorldFromUnitsSeedFields() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         // Pre-allocate: ctor seeded seedHp + seedMaxHp from type.maxHp
         // (MARINE_BLUE). hp is unreadable pre-allocate (no world entity yet),
@@ -222,28 +230,29 @@ public class UnitRegistryTest {
         r.allocate(u);
 
         // Post-allocate: hp lives in the entity world's HEALTH columns under the
-        // minted id (migration step 3) — the registry's by-id adapters read it.
-        assertEquals(typeMaxHp, r.hpById(u.entityId), 1e-6f);
-        assertEquals(typeMaxHp, r.maxHpById(u.entityId), 1e-6f);
+        // minted id (migration step 3) — the by-id world facade reads it.
+        assertEquals(typeMaxHp, w.hp(u.entityId), 1e-6f);
+        assertEquals(typeMaxHp, w.maxHp(u.entityId), 1e-6f);
         assertTrue(r.isLive(u.entityId));
         // And the world entity carries the spawn-written IDENTITY alongside.
         assertTrue(r.entityWorld().has(u.entityId, r.components().IDENTITY));
 
-        // setHpById writes the world slot — the world is the sole canonical
+        // setHp writes the world slot — the world is the sole canonical
         // store once allocated.
-        r.setHpById(u.entityId, 42f);
-        assertEquals(42f, r.hpById(u.entityId), 1e-6f);
+        w.setHp(u.entityId, 42f);
+        assertEquals(42f, w.hp(u.entityId), 1e-6f);
     }
 
     @Test
     public void releaseDropsTheDenseSlotButHpStaysWorldSideUntilTheDeathTransmute() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         r.allocate(u);
 
         // Production order: every release path zeroes hp first (resolve /
         // cascade / TestUnits.kill), THEN releases the dense slot.
-        r.setHpById(u.entityId, 0f);
+        w.setHp(u.entityId, 0f);
         r.release(u.entityId);
 
         // After release: the dense slot is dropped, and liveness reads the
@@ -258,7 +267,7 @@ public class UnitRegistryTest {
 
     @Test
     public void releaseUpdatesDenseIdxOfTheSwappedTailUnit() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
@@ -280,30 +289,32 @@ public class UnitRegistryTest {
 
     @Test
     public void allocateSeedsCellPosIntoTheEntityWorldFromUnitsSeedFields() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         // Entity ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
 
         r.allocate(u);
 
         // The cell pair lives in the world's POSITION columns under the minted
-        // id (migration step 3b) — read/written through the by-id adapters.
-        assertEquals(7, r.cellXById(u.entityId));
-        assertEquals(3, r.cellYById(u.entityId));
+        // id (migration step 3b) — read/written through the by-id facade.
+        assertEquals(7, w.cellX(u.entityId));
+        assertEquals(3, w.cellY(u.entityId));
 
-        r.setCellPosById(u.entityId, 12, 9);
-        assertEquals(12, r.cellXById(u.entityId));
-        assertEquals(9, r.cellYById(u.entityId));
+        w.setCellPos(u.entityId, 12, 9);
+        assertEquals(12, w.cellX(u.entityId));
+        assertEquals(9, w.cellY(u.entityId));
     }
 
     @Test
     public void cellSurvivesReleaseAndRidesTheDeathTransmute() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         r.allocate(u);
 
-        r.setCellPosById(u.entityId, 42, 17);
-        r.setHpById(u.entityId, 0f);
+        w.setCellPos(u.entityId, 42, 17);
+        w.setHp(u.entityId, 0f);
         r.release(u.entityId);
 
         // POSITION persists alive→dead — "the corpse keeps its cell" is now the
@@ -312,96 +323,102 @@ public class UnitRegistryTest {
         // transmute's row-move carries it.
         assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
-        assertEquals(42, r.cellXById(u.entityId));
-        assertEquals(17, r.cellYById(u.entityId));
+        assertEquals(42, w.cellX(u.entityId));
+        assertEquals(17, w.cellY(u.entityId));
     }
 
     @Test
     public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.cooldownTimerById(u.entityId), 1e-6f);
+        assertEquals(0f, w.cooldownTimer(u.entityId), 1e-6f);
 
-        r.setCooldownTimerById(u.entityId, 0.3f);
-        assertEquals(0.3f, r.cooldownTimerById(u.entityId), 1e-6f);
+        w.setCooldownTimer(u.entityId, 0.3f);
+        assertEquals(0.3f, w.cooldownTimer(u.entityId), 1e-6f);
     }
 
     @Test
     public void cooldownTimerIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setCooldownTimerById(c.entityId, 4.2f);
+        w.setCooldownTimer(c.entityId, 4.2f);
 
         // Releasing a swap-pops c into a's old dense slot — COMBAT is keyed by
         // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(4.2f, r.cooldownTimerById(c.entityId), 1e-6f);
+        assertEquals(4.2f, w.cooldownTimer(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateMoveProgressDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.moveProgressById(u.entityId), 1e-6f);
+        assertEquals(0f, w.moveProgress(u.entityId), 1e-6f);
 
-        r.setMoveProgressById(u.entityId, 0.2f);
-        assertEquals(0.2f, r.moveProgressById(u.entityId), 1e-6f);
+        w.setMoveProgress(u.entityId, 0.2f);
+        assertEquals(0.2f, w.moveProgress(u.entityId), 1e-6f);
     }
 
     @Test
     public void moveProgressIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setMoveProgressById(c.entityId, 0.9f);
+        w.setMoveProgress(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — MOVEMENT is keyed by
         // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.moveProgressById(c.entityId), 1e-6f);
+        assertEquals(0.9f, w.moveProgress(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocatePathDefaultsToEmptySentinelAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
         // The OBJECT path column seeds to the shared empty-path sentinel (a null
         // append would NPE every path reader); the cursor zero-inits.
-        assertSame(GridPathfinder.EMPTY_PATH, r.pathById(u.entityId));
-        assertEquals(0, r.pathIdxById(u.entityId));
+        assertSame(GridPathfinder.EMPTY_PATH, w.path(u.entityId));
+        assertEquals(0, w.pathIdx(u.entityId));
 
         int[] p = {3, 4, 5, 6};
-        r.setPathRefById(u.entityId, p);
-        r.setPathIdxById(u.entityId, 1);
-        assertSame(p, r.pathById(u.entityId));
-        assertEquals(1, r.pathIdxById(u.entityId));
+        w.setPathRef(u.entityId, p);
+        w.setPathIdx(u.entityId, 1);
+        assertSame(p, w.path(u.entityId));
+        assertEquals(1, w.pathIdx(u.entityId));
     }
 
     @Test
     public void pathIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
@@ -409,42 +426,44 @@ public class UnitRegistryTest {
         r.allocate(b);
         r.allocate(c);
         int[] p = {7, 8};
-        r.setPathRefById(c.entityId, p);
-        r.setPathIdxById(c.entityId, 1);
+        w.setPathRef(c.entityId, p);
+        w.setPathIdx(c.entityId, 1);
 
         // Releasing a swap-pops c into a's old dense slot — MOVEMENT is id-keyed
         // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertSame(p, r.pathById(c.entityId));
-        assertEquals(1, r.pathIdxById(c.entityId));
+        assertSame(p, w.path(c.entityId));
+        assertEquals(1, w.pathIdx(c.entityId));
     }
 
     @Test
     public void allocateSeedsRenderPosIntoTheWorldComponent() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
 
         long id = r.allocate(u);
 
         // Seeded from the unit's pre-allocate cell into the universal
         // RENDER_POSITION world component, read by id.
-        assertEquals(5f, r.renderXById(id), 1e-6f);
-        assertEquals(8f, r.renderYById(id), 1e-6f);
+        assertEquals(5f, w.renderX(id), 1e-6f);
+        assertEquals(8f, w.renderY(id), 1e-6f);
 
-        r.setRenderPosById(id, 5.3f, 8.7f);
-        assertEquals(5.3f, r.renderXById(id), 1e-6f);
-        assertEquals(8.7f, r.renderYById(id), 1e-6f);
+        w.setRenderPos(id, 5.3f, 8.7f);
+        assertEquals(5.3f, w.renderX(id), 1e-6f);
+        assertEquals(8.7f, w.renderY(id), 1e-6f);
     }
 
     @Test
     public void renderPosSurvivesReleaseForTheCorpse() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long id = r.allocate(u);
 
-        r.setRenderPosById(id, 3.5f, 7.2f);
+        w.setRenderPos(id, 3.5f, 7.2f);
         r.release(u.entityId);
 
         // Dropped from the live dense table...
@@ -455,351 +474,372 @@ public class UnitRegistryTest {
         // (it rides the death transmute when the corpse forms — see
         // DeadBodySystemTest) and the entity still resolves where it fell.
         assertTrue(r.entityWorld().has(id, r.components().RENDER_POSITION));
-        assertEquals(3.5f, r.renderXById(id), 1e-6f);
-        assertEquals(7.2f, r.renderYById(id), 1e-6f);
+        assertEquals(3.5f, w.renderX(id), 1e-6f);
+        assertEquals(7.2f, w.renderY(id), 1e-6f);
     }
 
     @Test
     public void renderPosIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = new Entity("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         Entity b = new Entity("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         Entity c = new Entity("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long idA = r.allocate(a);
         r.allocate(b);
         long idC = r.allocate(c);
-        r.setRenderPosById(idC, 11.5f, 22.3f);
+        w.setRenderPos(idC, 11.5f, 22.3f);
 
         // Releasing a swap-pops c into a's old dense slot — render position is
         // id-keyed in the world, not dense index, so c's render pos is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(11.5f, r.renderXById(idC), 1e-6f);
-        assertEquals(22.3f, r.renderYById(idC), 1e-6f);
+        assertEquals(11.5f, w.renderX(idC), 1e-6f);
+        assertEquals(22.3f, w.renderY(idC), 1e-6f);
     }
 
     @Test
     public void allocateSeedsAttackDamageAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         float typeDmg = u.seedAttackDamage;
         assertTrue(typeDmg > 0f, "test prerequisite: type seeds a non-zero attackDamage");
 
         r.allocate(u);
 
-        assertEquals(typeDmg, r.attackDamageById(u.entityId), 1e-6f);
+        assertEquals(typeDmg, w.attackDamage(u.entityId), 1e-6f);
 
-        r.setAttackDamageById(u.entityId, 77f);
-        assertEquals(77f, r.attackDamageById(u.entityId), 1e-6f);
+        w.setAttackDamage(u.entityId, 77f);
+        assertEquals(77f, w.attackDamage(u.entityId), 1e-6f);
     }
 
     @Test
     public void attackDamageIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAttackDamageById(c.entityId, 55f);
+        w.setAttackDamage(c.entityId, 55f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(55f, r.attackDamageById(c.entityId), 1e-6f);
+        assertEquals(55f, w.attackDamage(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateSeedsAttackRangeAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         float typeRange = u.seedAttackRange;
         assertTrue(typeRange > 0f, "test prerequisite: type seeds a non-zero attackRange");
 
         r.allocate(u);
 
-        assertEquals(typeRange, r.attackRangeById(u.entityId), 1e-6f);
+        assertEquals(typeRange, w.attackRange(u.entityId), 1e-6f);
 
-        r.setAttackRangeById(u.entityId, 20f);
-        assertEquals(20f, r.attackRangeById(u.entityId), 1e-6f);
+        w.setAttackRange(u.entityId, 20f);
+        assertEquals(20f, w.attackRange(u.entityId), 1e-6f);
     }
 
     @Test
     public void attackRangeIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAttackRangeById(c.entityId, 99f);
+        w.setAttackRange(c.entityId, 99f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(99f, r.attackRangeById(c.entityId), 1e-6f);
+        assertEquals(99f, w.attackRange(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateSeedsAccuracyAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         float typeAcc = u.seedAccuracy;
         assertTrue(typeAcc > 0f, "test prerequisite: type seeds a non-zero accuracy");
 
         r.allocate(u);
 
-        assertEquals(typeAcc, r.accuracyById(u.entityId), 1e-6f);
+        assertEquals(typeAcc, w.accuracy(u.entityId), 1e-6f);
 
-        r.setAccuracyById(u.entityId, 0.5f);
-        assertEquals(0.5f, r.accuracyById(u.entityId), 1e-6f);
+        w.setAccuracy(u.entityId, 0.5f);
+        assertEquals(0.5f, w.accuracy(u.entityId), 1e-6f);
     }
 
     @Test
     public void accuracyIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAccuracyById(c.entityId, 0.95f);
+        w.setAccuracy(c.entityId, 0.95f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.95f, r.accuracyById(c.entityId), 1e-6f);
+        assertEquals(0.95f, w.accuracy(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateWithoutSecondaryLacksTheSecondaryWeaponComponent() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
         // No seedSecondaryWeapon → the optional capability isn't in the unit's
         // archetype. Presence IS the capability — there's nothing else to check.
-        assertFalse(r.hasSecondaryWeapon(u.entityId));
+        assertFalse(w.hasSecondaryWeapon(u.entityId));
     }
 
     @Test
     public void allocateWithSecondarySeedsSpecAmmoAndDefaultTimers() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = secondaryUnit("u");
 
         r.allocate(u);
 
-        assertTrue(r.hasSecondaryWeapon(u.entityId));
-        assertSame(MarineSecondary.ROCKET_LAUNCHER, r.secondaryWeaponOf(u.entityId));
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo, r.secondaryAmmoById(u.entityId));
+        assertTrue(w.hasSecondaryWeapon(u.entityId));
+        assertSame(MarineSecondary.ROCKET_LAUNCHER, w.secondaryWeapon(u.entityId));
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo, w.secondaryAmmo(u.entityId));
         // Mid-combat scalars start zeroed by the world's row append.
-        assertEquals(0f, r.secondaryCooldownTimerById(u.entityId), 1e-6f);
-        assertEquals(0f, r.secondaryActionTimerById(u.entityId), 1e-6f);
-        assertEquals(0L, r.secondaryAimTargetIdById(u.entityId));
-        assertFalse(r.secondaryFiredById(u.entityId));
+        assertEquals(0f, w.secondaryCooldownTimer(u.entityId), 1e-6f);
+        assertEquals(0f, w.secondaryActionTimer(u.entityId), 1e-6f);
+        assertEquals(0L, w.secondaryAimTargetId(u.entityId));
+        assertFalse(w.secondaryFired(u.entityId));
     }
 
     @Test
     public void secondaryScalarsRoundTripThroughByIdAccessors() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = secondaryUnit("u");
         r.allocate(u);
         long id = u.entityId;
 
-        r.setSecondaryAmmoById(id, 2);
-        r.setSecondaryCooldownTimerById(id, 0.4f);
-        r.setSecondaryActionTimerById(id, 0.6f);
-        r.setSecondaryAimTargetIdById(id, 7L);
-        r.setSecondaryFiredById(id, true);
+        w.setSecondaryAmmo(id, 2);
+        w.setSecondaryCooldownTimer(id, 0.4f);
+        w.setSecondaryActionTimer(id, 0.6f);
+        w.setSecondaryAimTargetId(id, 7L);
+        w.setSecondaryFired(id, true);
 
-        assertEquals(2, r.secondaryAmmoById(id));
-        assertEquals(0.4f, r.secondaryCooldownTimerById(id), 1e-6f);
-        assertEquals(0.6f, r.secondaryActionTimerById(id), 1e-6f);
-        assertEquals(7L, r.secondaryAimTargetIdById(id));
-        assertTrue(r.secondaryFiredById(id));
+        assertEquals(2, w.secondaryAmmo(id));
+        assertEquals(0.4f, w.secondaryCooldownTimer(id), 1e-6f);
+        assertEquals(0.6f, w.secondaryActionTimer(id), 1e-6f);
+        assertEquals(7L, w.secondaryAimTargetId(id));
+        assertTrue(w.secondaryFired(id));
     }
 
     @Test
     public void secondaryStateIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = secondaryUnit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setSecondaryActionTimerById(c.entityId, 0.7f);
-        r.setSecondaryAimTargetIdById(c.entityId, 999L);
+        w.setSecondaryActionTimer(c.entityId, 0.7f);
+        w.setSecondaryAimTargetId(c.entityId, 999L);
 
         // Releasing a swap-pops c into a's old dense slot — SECONDARY_WEAPON is a
         // world component keyed by entity id, untouched by the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.7f, r.secondaryActionTimerById(c.entityId), 1e-6f);
-        assertEquals(999L, r.secondaryAimTargetIdById(c.entityId));
+        assertEquals(0.7f, w.secondaryActionTimer(c.entityId), 1e-6f);
+        assertEquals(999L, w.secondaryAimTargetId(c.entityId));
     }
 
     @Test
     public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0, r.burstRemainingById(u.entityId));
+        assertEquals(0, w.burstRemaining(u.entityId));
 
-        r.setBurstRemainingById(u.entityId, 1);
-        assertEquals(1, r.burstRemainingById(u.entityId));
+        w.setBurstRemaining(u.entityId, 1);
+        assertEquals(1, w.burstRemaining(u.entityId));
     }
 
     @Test
     public void burstRemainingIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstRemainingById(c.entityId, 5);
+        w.setBurstRemaining(c.entityId, 5);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(5, r.burstRemainingById(c.entityId));
+        assertEquals(5, w.burstRemaining(c.entityId));
     }
 
     @Test
     public void allocateBurstTimerDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.burstTimerById(u.entityId), 1e-6f);
+        assertEquals(0f, w.burstTimer(u.entityId), 1e-6f);
 
-        r.setBurstTimerById(u.entityId, 0.1f);
-        assertEquals(0.1f, r.burstTimerById(u.entityId), 1e-6f);
+        w.setBurstTimer(u.entityId, 0.1f);
+        assertEquals(0.1f, w.burstTimer(u.entityId), 1e-6f);
     }
 
     @Test
     public void burstTimerIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstTimerById(c.entityId, 0.33f);
+        w.setBurstTimer(c.entityId, 0.33f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.33f, r.burstTimerById(c.entityId), 1e-6f);
+        assertEquals(0.33f, w.burstTimer(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0L, r.burstTargetIdById(u.entityId));
+        assertEquals(0L, w.burstTargetId(u.entityId));
 
-        r.setBurstTargetIdById(u.entityId, 9L);
-        assertEquals(9L, r.burstTargetIdById(u.entityId));
+        w.setBurstTargetId(u.entityId, 9L);
+        assertEquals(9L, w.burstTargetId(u.entityId));
     }
 
     @Test
     public void burstTargetIdIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstTargetIdById(c.entityId, 777L);
+        w.setBurstTargetId(c.entityId, 777L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(777L, r.burstTargetIdById(c.entityId));
+        assertEquals(777L, w.burstTargetId(c.entityId));
     }
 
     @Test
     public void allocateTargetIdDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0L, r.targetIdById(u.entityId));
+        assertEquals(0L, w.targetId(u.entityId));
 
-        r.setTargetIdById(u.entityId, 8L);
-        assertEquals(8L, r.targetIdById(u.entityId));
+        w.setTargetId(u.entityId, 8L);
+        assertEquals(8L, w.targetId(u.entityId));
     }
 
     @Test
     public void targetIdIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setTargetIdById(c.entityId, 642L);
+        w.setTargetId(c.entityId, 642L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(642L, r.targetIdById(c.entityId));
+        assertEquals(642L, w.targetId(c.entityId));
     }
 
     @Test
     public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.repositionCooldownById(u.entityId), 1e-6f);
+        assertEquals(0f, w.repositionCooldown(u.entityId), 1e-6f);
 
-        r.setRepositionCooldownById(u.entityId, 0.75f);
-        assertEquals(0.75f, r.repositionCooldownById(u.entityId), 1e-6f);
+        w.setRepositionCooldown(u.entityId, 0.75f);
+        assertEquals(0.75f, w.repositionCooldown(u.entityId), 1e-6f);
     }
 
     @Test
     public void repositionCooldownIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setRepositionCooldownById(c.entityId, 0.9f);
+        w.setRepositionCooldown(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is keyed by
         // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.repositionCooldownById(c.entityId), 1e-6f);
+        assertEquals(0.9f, w.repositionCooldown(c.entityId), 1e-6f);
     }
 
     @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
         Entity a = unit("a");
         long idA = r.allocate(a);
         // Setup-discarded units (constructed but never registered) carry
@@ -814,15 +854,16 @@ public class UnitRegistryTest {
 
     @Test
     public void allocateGivesAFreshUnitDefaultsAfterReusingAFreedSlot() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         long idA = r.allocate(a);
         // Dirty several mid-combat columns — all now id-keyed in the world:
         // COMBAT scalars and the AI_STATE fall-back cell.
-        r.setCooldownTimerById(a.entityId, 2.5f);
-        r.setTargetIdById(a.entityId, 99L);
-        r.setBurstRemainingById(a.entityId, 3);
-        r.setFallbackCellById(a.entityId, 7, 8);
+        w.setCooldownTimer(a.entityId, 2.5f);
+        w.setTargetId(a.entityId, 99L);
+        w.setBurstRemaining(a.entityId, 3);
+        w.setFallbackCell(a.entityId, 7, 8);
         r.release(idA);
 
         // A fresh unit reusing the freed dense slot 0 must see defaults: its
@@ -833,51 +874,54 @@ public class UnitRegistryTest {
         Entity b = unit("b");
         r.allocate(b);
         assertEquals(0, r.indexOf(b.entityId));
-        assertEquals(0f, r.cooldownTimerById(b.entityId), 1e-6f);
-        assertEquals(0L, r.targetIdById(b.entityId));
-        assertEquals(0, r.burstRemainingById(b.entityId));
-        assertEquals(-1, r.fallbackCellXById(b.entityId));
-        assertEquals(-1, r.fallbackCellYById(b.entityId));
+        assertEquals(0f, w.cooldownTimer(b.entityId), 1e-6f);
+        assertEquals(0L, w.targetId(b.entityId));
+        assertEquals(0, w.burstRemaining(b.entityId));
+        assertEquals(-1, w.fallbackCellX(b.entityId));
+        assertEquals(-1, w.fallbackCellY(b.entityId));
     }
 
     @Test
     public void allocateFallbackCellDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
         // The -1/-1 "no cached cell" sentinel must be seeded by allocate (a
         // zero-init world row would otherwise read (0,0) as a live destination).
         r.allocate(u);
-        assertEquals(-1, r.fallbackCellXById(u.entityId));
-        assertEquals(-1, r.fallbackCellYById(u.entityId));
+        assertEquals(-1, w.fallbackCellX(u.entityId));
+        assertEquals(-1, w.fallbackCellY(u.entityId));
 
-        r.setFallbackCellById(u.entityId, 12, 9);
-        assertEquals(12, r.fallbackCellXById(u.entityId));
-        assertEquals(9, r.fallbackCellYById(u.entityId));
+        w.setFallbackCell(u.entityId, 12, 9);
+        assertEquals(12, w.fallbackCellX(u.entityId));
+        assertEquals(9, w.fallbackCellY(u.entityId));
     }
 
     @Test
     public void fallbackCellIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setFallbackCellById(c.entityId, 99, 88);
+        w.setFallbackCell(c.entityId, 99, 88);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
         // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(99, r.fallbackCellXById(c.entityId));
-        assertEquals(88, r.fallbackCellYById(c.entityId));
+        assertEquals(99, w.fallbackCellX(c.entityId));
+        assertEquals(88, w.fallbackCellY(c.entityId));
     }
 
     @Test
     public void staticEmplacementsGetNoMovementOrAiStateComponents() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         Entity turret = new Entity("t", Faction.MARINE, UnitType.TURRET, 1, 1);
         Entity hub = new Entity("h", Faction.MARINE, UnitType.DRONE_HUB_STRUCTURE, 2, 2);
@@ -887,84 +931,88 @@ public class UnitRegistryTest {
 
         // A mobile unit is a mover AND a thinker; a static emplacement (turret,
         // drone hub; UnitType.isStatic) is neither — presence IS the capability.
-        assertTrue(r.hasMovement(marine.entityId));
-        assertTrue(r.hasAiState(marine.entityId));
-        assertFalse(r.hasMovement(turret.entityId));
-        assertFalse(r.hasAiState(turret.entityId));
-        assertFalse(r.hasMovement(hub.entityId));
-        assertFalse(r.hasAiState(hub.entityId));
+        assertTrue(w.hasMovement(marine.entityId));
+        assertTrue(w.hasAiState(marine.entityId));
+        assertFalse(w.hasMovement(turret.entityId));
+        assertFalse(w.hasAiState(turret.entityId));
+        assertFalse(w.hasMovement(hub.entityId));
+        assertFalse(w.hasAiState(hub.entityId));
 
         // The mobile unit's non-zero seeds still run (the mobile-gated allocate
         // block): the empty-path sentinel and the -1/-1 fall-back cell.
-        assertSame(GridPathfinder.EMPTY_PATH, r.pathById(marine.entityId));
-        assertEquals(-1, r.fallbackCellXById(marine.entityId));
+        assertSame(GridPathfinder.EMPTY_PATH, w.path(marine.entityId));
+        assertEquals(-1, w.fallbackCellX(marine.entityId));
 
         // The field accessors are fail-loud on a unit that lacks the component.
-        assertThrows(RuntimeException.class, () -> r.moveProgressById(turret.entityId));
-        assertThrows(RuntimeException.class, () -> r.repositionCooldownById(hub.entityId));
+        assertThrows(RuntimeException.class, () -> w.moveProgress(turret.entityId));
+        assertThrows(RuntimeException.class, () -> w.repositionCooldown(hub.entityId));
     }
 
     @Test
     public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.fallbackTimerById(u.entityId), 1e-6f);
+        assertEquals(0f, w.fallbackTimer(u.entityId), 1e-6f);
 
-        r.setFallbackTimerById(u.entityId, 1.25f);
-        assertEquals(1.25f, r.fallbackTimerById(u.entityId), 1e-6f);
+        w.setFallbackTimer(u.entityId, 1.25f);
+        assertEquals(1.25f, w.fallbackTimer(u.entityId), 1e-6f);
     }
 
     @Test
     public void fallbackTimerIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setFallbackTimerById(c.entityId, 0.4f);
+        w.setFallbackTimer(c.entityId, 0.4f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
         // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.4f, r.fallbackTimerById(c.entityId), 1e-6f);
+        assertEquals(0.4f, w.fallbackTimer(c.entityId), 1e-6f);
     }
 
     @Test
     public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughWorld() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.wanderDwellTimerById(u.entityId), 1e-6f);
+        assertEquals(0f, w.wanderDwellTimer(u.entityId), 1e-6f);
 
-        r.setWanderDwellTimerById(u.entityId, 0.75f);
-        assertEquals(0.75f, r.wanderDwellTimerById(u.entityId), 1e-6f);
+        w.setWanderDwellTimer(u.entityId, 0.75f);
+        assertEquals(0.75f, w.wanderDwellTimer(u.entityId), 1e-6f);
     }
 
     @Test
     public void wanderDwellTimerIsUndisturbedByDenseTailSwap() {
-        UnitRegistry r = new UnitRegistry();
+        UnitRosterService r = roster();
+        World w = r.world();
         Entity a = unit("a");
         Entity b = unit("b");
         Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setWanderDwellTimerById(c.entityId, 0.9f);
+        w.setWanderDwellTimer(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
         // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.wanderDwellTimerById(c.entityId), 1e-6f);
+        assertEquals(0.9f, w.wanderDwellTimer(c.entityId), 1e-6f);
     }
 }

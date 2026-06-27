@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.sim.World;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -88,7 +90,7 @@ public final class UnitSpatialIndex {
      * battle, so caching the reference is safe; it's only dereferenced inside
      * the bucket loop, which never runs until a populate path has set it.
      */
-    private UnitRegistry registry;
+    private UnitRosterService roster;
 
     public UnitSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + BUCKET - 1) / BUCKET);
@@ -100,16 +102,17 @@ public final class UnitSpatialIndex {
      * Discards the previous bucket contents and re-bins every alive unit by
      * its current cell. Called once per sim tick before per-unit updates.
      *
-     * <p>Iterates the {@link UnitRegistry}'s dense {@code [0, liveCount())}
-     * range directly — released slots are excluded by the registry, so no
+     * <p>Iterates the {@link UnitRosterService}'s dense {@code [0, liveCount())}
+     * range directly — released slots are excluded by the roster, so no
      * per-call {@code isAlive()} branch in the inner loop. Cell positions
      * are read via the world POSITION columns by-id adapters
      * ({@code cellXById} / {@code cellYById}), then stored alongside the
      * {@code Entity} ref in the bucket so {@link #gather} never has to read
      * them back.
      */
-    public void rebuild(UnitRegistry registry) {
-        this.registry = registry;
+    public void rebuild(UnitRosterService roster) {
+        this.roster = roster;
+        World world = roster.world();
         for (int i = 0; i < buckets.length; i++) {
             Bucket b = buckets[i];
             if (b != null) {
@@ -118,12 +121,12 @@ public final class UnitSpatialIndex {
                 buckets[i] = null;
             }
         }
-        Entity[] dense = registry.denseArray();
-        int liveCount = registry.liveCount();
+        Entity[] dense = roster.denseArray();
+        int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            int x = registry.cellXById(u.entityId);
-            int y = registry.cellYById(u.entityId);
+            int x = world.cellX(u.entityId);
+            int y = world.cellY(u.entityId);
             Bucket bucket = bucketAt(x, y);
             if (bucket != null) bucket.add(u, x, y);
         }
@@ -143,11 +146,12 @@ public final class UnitSpatialIndex {
      * the world POSITION column adapters) — the cell is denormalized into the
      * bucket, mirroring {@link #rebuild}.
      */
-    public void add(UnitRegistry registry, Entity u) {
-        this.registry = registry;
-        if (!registry.isAliveById(u.entityId)) return;
-        int x = registry.cellXById(u.entityId);
-        int y = registry.cellYById(u.entityId);
+    public void add(UnitRosterService roster, Entity u) {
+        this.roster = roster;
+        if (!roster.isAliveById(u.entityId)) return;
+        World world = roster.world();
+        int x = world.cellX(u.entityId);
+        int y = world.cellY(u.entityId);
         Bucket bucket = bucketAt(x, y);
         if (bucket != null) bucket.add(u, x, y);
     }
@@ -207,7 +211,7 @@ public final class UnitSpatialIndex {
                     // "alive units only" contract still requires the skip so dead
                     // units aren't handed back. (Callers also filter, but gather
                     // owns the contract.)
-                    if (!registry.isAliveById(u.entityId)) continue;
+                    if (!roster.isAliveById(u.entityId)) continue;
                     int dx = bcx[i] - cx;
                     int dy = bcy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);

@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.battle.vision;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 
@@ -133,9 +134,10 @@ public final class VisionService {
      * on the fog bitmap. Assigned to the smallest cohort. Runs an immediate
      * shadowcast so the unit's surroundings reveal on the spawn frame.
      */
-    public void addContributor(Entity u, UnitRegistry registry) {
+    public void addContributor(Entity u, UnitRosterService roster) {
         if (!initialized) return;
 
+        World world = roster.world();
         FogCohort smallest = cohorts[0];
         for (int i = 1; i < COHORT_COUNT; i++) {
             if (cohorts[i].contributors.size() < smallest.contributors.size()) {
@@ -145,8 +147,8 @@ public final class VisionService {
 
         ContributorEntry entry = new ContributorEntry();
         entry.unitId = u.entityId;
-        entry.lastCellX = registry.cellXById(u.entityId);
-        entry.lastCellY = registry.cellYById(u.entityId);
+        entry.lastCellX = world.cellX(u.entityId);
+        entry.lastCellY = world.cellY(u.entityId);
 
         int range = Math.min(MAX_VISION_RANGE, (int) u.visionRange);
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
@@ -203,13 +205,13 @@ public final class VisionService {
      * and runs the building visibility pass. Uses the {@code grid} captured in
      * {@link #init} — callers needn't re-pass it.
      */
-    public void tick(int simTickIndex, UnitRegistry registry) {
+    public void tick(int simTickIndex, UnitRosterService roster) {
         if (simTickIndex % 3 != 0) return;
 
         if (initialized) {
-            tickFogCohort(registry);
+            tickFogCohort(roster);
             tickEphemeralSources();
-            sweepUnitVisibility(registry);
+            sweepUnitVisibility(roster);
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
             // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
             if (!buildings.isEmpty()) {
@@ -307,22 +309,23 @@ public final class VisionService {
         }
     }
 
-    private void tickFogCohort(UnitRegistry registry) {
+    private void tickFogCohort(UnitRosterService roster) {
+        World world = roster.world();
         FogCohort cohort = cohorts[cohortCursor % COHORT_COUNT];
         cohortCursor++;
 
         for (int i = cohort.contributors.size() - 1; i >= 0; i--) {
             ContributorEntry e = cohort.contributors.get(i);
-            Entity u = registry.getOrNull(e.unitId);
+            Entity u = roster.getOrNull(e.unitId);
 
-            if (u == null || !registry.isAliveById(e.unitId)) {
+            if (u == null || !roster.isAliveById(e.unitId)) {
                 decrementFootprint(e);
                 cohort.contributors.remove(i);
                 continue;
             }
 
-            int cx = registry.cellXById(e.unitId);
-            int cy = registry.cellYById(e.unitId);
+            int cx = world.cellX(e.unitId);
+            int cy = world.cellY(e.unitId);
             if (cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
@@ -358,10 +361,11 @@ public final class VisionService {
         }
     }
 
-    private void sweepUnitVisibility(UnitRegistry registry) {
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
-            // i IS the dense index (registry.get(i) == dense[i], dense[i].denseIdx==i),
+    private void sweepUnitVisibility(UnitRosterService roster) {
+        World world = roster.world();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
+            // i IS the dense index (roster.get(i) == dense[i], dense[i].denseIdx==i),
             // and the visibility/fade arrays are keyed by dense index — so i indexes
             // them directly, no u.denseIdx field read.
             ensureUnitCapacity(i + 1);
@@ -372,7 +376,7 @@ public final class VisionService {
                 continue;
             }
 
-            boolean revealed = isCellRevealed(registry.cellXById(u.entityId), registry.cellYById(u.entityId));
+            boolean revealed = isCellRevealed(world.cellX(u.entityId), world.cellY(u.entityId));
             byte prev = unitVisibility[i];
 
             if (revealed) {

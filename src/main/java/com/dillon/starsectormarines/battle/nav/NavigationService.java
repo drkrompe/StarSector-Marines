@@ -7,7 +7,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.World;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.Arrays;
@@ -79,7 +80,7 @@ public final class NavigationService {
      * after this service; never null once the sim is wired. Part of the
      * {@code world-facade} migration off {@code Entity}'s self-routing accessors.
      */
-    private UnitRegistry registry;
+    private UnitRosterService roster;
 
     public NavigationService(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
@@ -91,8 +92,8 @@ public final class NavigationService {
         this.zoneGraph.rebuild();
     }
 
-    /** Injects the dense entity store once it's built (see {@link #registry}). Called once at sim construction. */
-    public void setRegistry(UnitRegistry registry) { this.registry = registry; }
+    /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
+    public void setRoster(UnitRosterService roster) { this.roster = roster; }
 
     public NavigationGrid getGrid() { return grid; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
@@ -180,17 +181,18 @@ public final class NavigationService {
      * incremented — so units picking positions later in the same tick see
      * the freshest information.
      */
-    public void rebuildOccupancyMap(UnitRegistry registry) {
+    public void rebuildOccupancyMap(UnitRosterService roster) {
+        World world = roster.world();
         Arrays.fill(occupancyMap, (byte) 0);
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Entity u = registry.get(i);
-            int curX = registry.cellXById(u.entityId);
-            int curY = registry.cellYById(u.entityId);
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            Entity u = roster.get(i);
+            int curX = world.cellX(u.entityId);
+            int curY = world.cellY(u.entityId);
             incrementOccupancy(curX, curY);
             // Static emplacements (turrets, hubs) have no MOVEMENT — they claim
             // their current cell above but carry no path destination to reserve.
-            if (!registry.hasMovement(u.entityId)) continue;
-            int[] path = registry.pathById(u.entityId);
+            if (!world.hasMovement(u.entityId)) continue;
+            int[] path = world.path(u.entityId);
             int destX = Paths.destX(path);
             if (destX != Integer.MIN_VALUE) {
                 int destY = Paths.destY(path);
@@ -209,9 +211,9 @@ public final class NavigationService {
      * units are excluded by construction, and cellX/cellY reads stream
      * from the SoA arrays without per-unit indirection.
      */
-    public void rebuildSpatialIndices(UnitRegistry registry) {
-        unitIndex.rebuild(registry);
-        destIndex.rebuild(registry);
+    public void rebuildSpatialIndices(UnitRosterService roster) {
+        unitIndex.rebuild(roster);
+        destIndex.rebuild(roster);
     }
 
     /**
@@ -229,7 +231,7 @@ public final class NavigationService {
         }
         if (newDestX != Integer.MIN_VALUE) {
             incrementOccupancy(newDestX, newDestY);
-            destIndex.addDestination(registry, u, newDestX, newDestY);
+            destIndex.addDestination(roster, u, newDestX, newDestY);
         }
     }
 
@@ -248,11 +250,12 @@ public final class NavigationService {
      * the sink call is elided entirely.
      */
     public void setPath(Entity u, int[] newPath) {
-        int[] oldPath = registry.pathById(u.entityId);
+        World world = roster.world();
+        int[] oldPath = world.path(u.entityId);
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);
-        registry.setPathRefById(u.entityId, newPath);
-        registry.setPathIdxById(u.entityId, newPath.length == 0 ? 0 : 1);
+        world.setPathRef(u.entityId, newPath);
+        world.setPathIdx(u.entityId, newPath.length == 0 ? 0 : 1);
         int newDestX;
         int newDestY;
         if (newPath.length > 0) {
@@ -262,8 +265,8 @@ public final class NavigationService {
             newDestX = Integer.MIN_VALUE;
             newDestY = Integer.MIN_VALUE;
         }
-        int curX = registry.cellXById(u.entityId);
-        int curY = registry.cellYById(u.entityId);
+        int curX = world.cellX(u.entityId);
+        int curY = world.cellY(u.entityId);
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != curX || oldDestY != curY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != curX || newDestY != curY);
         if (!hasOld && !hasNew) return;
@@ -301,11 +304,11 @@ public final class NavigationService {
 
     /** X coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
     public int pathDestX(Entity u) {
-        return Paths.destX(registry.pathById(u.entityId));
+        return Paths.destX(roster.world().path(u.entityId));
     }
     /** Y coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
     public int pathDestY(Entity u) {
-        return Paths.destY(registry.pathById(u.entityId));
+        return Paths.destY(roster.world().path(u.entityId));
     }
 
     private void incrementOccupancy(int x, int y) {

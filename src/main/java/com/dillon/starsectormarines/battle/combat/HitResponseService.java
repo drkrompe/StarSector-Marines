@@ -2,9 +2,10 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.IntSupplier;
@@ -38,53 +39,55 @@ public final class HitResponseService {
             AtomicIntegerFieldUpdater.newUpdater(Entity.class, "lastReprioTickIndex");
 
     private final NavigationGrid grid;
-    private final UnitRegistry registry;
+    private final UnitRosterService roster;
     private final TacticalScoring tacticalScoring;
     private final DamageService damageService;
     private final IntSupplier tickIndexSupplier;
 
-    public HitResponseService(NavigationGrid grid, UnitRegistry registry,
+    public HitResponseService(NavigationGrid grid, UnitRosterService roster,
                               TacticalScoring tacticalScoring,
                               DamageService damageService,
                               IntSupplier tickIndexSupplier) {
         this.grid = grid;
-        this.registry = registry;
+        this.roster = roster;
         this.tacticalScoring = tacticalScoring;
         this.damageService = damageService;
         this.tickIndexSupplier = tickIndexSupplier;
     }
 
     public void rollFallbackOnHit(Entity target) {
-        if (!registry.isAliveById(target.entityId)) return;
+        World world = roster.world();
+        if (!roster.isAliveById(target.entityId)) return;
         // Static emplacements (turrets, drone hubs) have no AI_STATE — they don't
         // fall back. This presence gate replaces the old `instanceof MapTurret`
         // check and also (correctly) covers drone hubs, which previously could roll
         // a fall-back they had no behavior to execute. It must precede the
         // fallbackTimer read below, which is fail-loud without AI_STATE.
-        if (!registry.hasAiState(target.entityId)) return;
-        if (registry.fallbackTimerById(target.entityId) > 0f) return;
+        if (!world.hasAiState(target.entityId)) return;
+        if (world.fallbackTimer(target.entityId) > 0f) return;
         if (target.squadId != Entity.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
-        if (fallback[0] == registry.cellXById(target.entityId) && fallback[1] == registry.cellYById(target.entityId)) return;
+        if (fallback[0] == world.cellX(target.entityId) && fallback[1] == world.cellY(target.entityId)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
     public void rollReprioritizeOnHit(Entity target, Entity shooter) {
-        if (!registry.isAliveById(target.entityId)) return;
-        boolean qualifies = registry.hasMechLoadout(target.entityId) || target instanceof MapTurret;
+        World world = roster.world();
+        if (!roster.isAliveById(target.entityId)) return;
+        boolean qualifies = world.hasMechLoadout(target.entityId) || target instanceof MapTurret;
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();
         int prev = LAST_REPRIO_TICK.get(target);
         if (prev == simTickIndex) return;
         if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
-        long expectedTargetId = registry.targetIdById(target.entityId);
-        Entity expectedTarget = registry.getOrNull(expectedTargetId);
+        long expectedTargetId = world.targetId(target.entityId);
+        Entity expectedTarget = roster.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                registry.cellXById(target.entityId), registry.cellYById(target.entityId),
-                registry.cellXById(expectedTarget.entityId), registry.cellYById(expectedTarget.entityId),
+                world.cellX(target.entityId), world.cellY(target.entityId),
+                world.cellX(expectedTarget.entityId), world.cellY(expectedTarget.entityId),
                 target.airLosRadius, expectedTarget.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;

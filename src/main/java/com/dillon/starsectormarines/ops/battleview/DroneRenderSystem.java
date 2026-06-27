@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -51,7 +51,7 @@ public final class DroneRenderSystem implements RenderSystem {
         if (cache == null) return;
 
         VisionService vis = ctx.sim.getVision();
-        UnitRegistry registry = ctx.sim.getUnitRegistry();
+        World world = ctx.sim.world();
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
@@ -66,8 +66,8 @@ public final class DroneRenderSystem implements RenderSystem {
         // the component owns the body the wreck tracks and the timer that fades it
         // out. No vision gate, matching the legacy pass (a crash is always shown).
         BattleComponents components = ctx.sim.getBattleComponents();
-        EntityWorld world = ctx.sim.getEntityWorld();
-        for (ArchetypeTable t : world.matched(components.crashing)) {
+        EntityWorld entityWorld = ctx.sim.getEntityWorld();
+        for (ArchetypeTable t : entityWorld.matched(components.crashing)) {
             Object[] states = t.objects(components.CRASHING, BattleComponents.CRASHING_STATE).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 CrashingComponent crash = (CrashingComponent) states[r];
@@ -103,7 +103,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    registry.hpById(d.entityId) / registry.maxHpById(d.entityId), drawAlpha);
+                    world.hp(d.entityId) / world.maxHp(d.entityId), drawAlpha);
         }
     }
 }

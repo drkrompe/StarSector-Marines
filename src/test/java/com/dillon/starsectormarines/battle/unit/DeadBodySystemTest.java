@@ -105,7 +105,7 @@ public class DeadBodySystemTest {
         sim.advance(BattleSimulation.TICK_DT);
 
         // The unit is gone from the live registry...
-        assertFalse(sim.getUnitRegistry().isLive(id), "dead unit released from the dense registry");
+        assertFalse(sim.getRoster().isLive(id), "dead unit released from the dense roster");
         // ...but the corpse entity persists with the draw position snapshotted at
         // death — composed into its own RENDER_POSITION columns, no released
         // Entity handle and no shared-store read after the spawn.

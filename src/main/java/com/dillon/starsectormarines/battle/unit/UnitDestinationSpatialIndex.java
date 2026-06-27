@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.World;
 import java.util.ArrayList;
 
 /**
@@ -57,7 +58,8 @@ public final class UnitDestinationSpatialIndex {
      * The path data is still per-Entity (no component storage for path arrays),
      * so the destination read goes through the Entity ref.
      */
-    public void rebuild(UnitRegistry registry) {
+    public void rebuild(UnitRosterService roster) {
+        World world = roster.world();
         for (int i = 0; i < buckets.length; i++) {
             ArrayList<Entity> b = buckets[i];
             if (b != null) {
@@ -66,20 +68,20 @@ public final class UnitDestinationSpatialIndex {
                 buckets[i] = null;
             }
         }
-        Entity[] dense = registry.denseArray();
-        int liveCount = registry.liveCount();
+        Entity[] dense = roster.denseArray();
+        int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             // Static emplacements (turrets, hubs) have no MOVEMENT component and
             // never path — skip before the fail-loud path read (an empty path
             // would be filtered by the cells<=0 check below anyway).
-            if (!registry.hasMovement(u.entityId)) continue;
-            int[] path = registry.pathById(u.entityId);
+            if (!world.hasMovement(u.entityId)) continue;
+            int[] path = world.path(u.entityId);
             int cells = Paths.cellCount(path);
             if (cells <= 0) continue;
             int destX = Paths.cellX(path, cells - 1);
             int destY = Paths.cellY(path, cells - 1);
-            if (destX == registry.cellXById(u.entityId) && destY == registry.cellYById(u.entityId)) continue;
+            if (destX == world.cellX(u.entityId) && destY == world.cellY(u.entityId)) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
@@ -104,8 +106,8 @@ public final class UnitDestinationSpatialIndex {
      * at any bucket — pair with {@link #removeDestination} when overwriting
      * an existing path.
      */
-    public void addDestination(UnitRegistry registry, Entity u, int destX, int destY) {
-        if (!registry.isAliveById(u.entityId)) return;
+    public void addDestination(UnitRosterService roster, Entity u, int destX, int destY) {
+        if (!roster.isAliveById(u.entityId)) return;
         int bx = destX / UnitSpatialIndex.BUCKET;
         int by = destY / UnitSpatialIndex.BUCKET;
         if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;
@@ -150,9 +152,10 @@ public final class UnitDestinationSpatialIndex {
      * is the caller's job, matching the primary index's "primitive over
      * all alive units" semantics.
      */
-    public void gather(UnitRegistry registry, int cx, int cy, float radius, ArrayList<Entity> out) {
+    public void gather(UnitRosterService roster, int cx, int cy, float radius, ArrayList<Entity> out) {
         out.clear();
         if (radius <= 0f) return;
+        World world = roster.world();
         int r = (int) Math.ceil(radius);
         int x0 = Math.max(0, (cx - r) / UnitSpatialIndex.BUCKET);
         int x1 = Math.min(bucketsX - 1, (cx + r) / UnitSpatialIndex.BUCKET);
@@ -169,7 +172,7 @@ public final class UnitDestinationSpatialIndex {
                     // to a local — under the parallel UPDATE_UNITS dispatch,
                     // another worker may call setPath on this unit. One load
                     // → consistent view for the length + index accesses below.
-                    int[] p = registry.pathById(u.entityId);
+                    int[] p = world.path(u.entityId);
                     int cells = Paths.cellCount(p);
                     if (cells <= 0) continue;
                     int dx = Paths.cellX(p, cells - 1) - cx;
