@@ -90,6 +90,14 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
     safest-first with min-spacing. The carrier now launches a *wave* (`DROP_COUNT` staggered
     `AEROSHUTTLE`s, threat = `countCombatantsWithin(DEFENDER)`) over a hardcoded centroid+radius zone.
     Unit-tested (`DropZoneScatterTest`). Cold spread: threat ranks cells; radius fixed (D3 widens it).
+    - **Critique pass:** logically correct, crash-free, all engine invariants verified (in-disc,
+      spaced, walkable, safest-first), threading safe. One MEDIUM **fixed (`59e97470`)** — the feature
+      requires `AirProvider.INTERNAL` but stale docs called the bridge `EXTERNAL`; reconciled the
+      `BattleSimulation` javadoc + s3e doc + a call-site note. Two follow-ups (not blocking, both
+      noted): **(L1)** `launchDrop` fires ~1000 `countCombatantsWithin` calls in one frame (one-shot
+      launch hitch — coarser lattice / reuse scratch / pre-bucket density when it matters); **(L5,
+      pre-existing)** `AirSystem` never removes `GONE` shuttles from its list (host prunes its own
+      `drops`; the unbounded growth is in `AirSystem`, a separate cleanup task).
   - **Slice 2 — commander-painted DZ (next).** Replace the hardcoded centroid+radius with a zone the
     player paints in the spectator canvas (open question: cell-paint vs radius brush).
 - **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
