@@ -119,6 +119,11 @@ chosen point against the admiral* (playtest 2026-06-25: the ship hard-moved to t
 - **`SHUTTLES` render layer** — added to `DEFAULT_SCENE_LAYERS`; `GroundSceneBackdrop` now loads shuttle +
   engine-FX sprites. `ShuttleRenderSystem` was already registered, so this also made the four pre-existing
   setup Aeroshuttles (which ran invisibly) read on screen.
+- **Egress — fly home to the carrier (`89012a28`)** — instead of vanishing mid-grid, the deboarded
+  drop-ship returns to its host carrier and docks. `ShuttleMission.exitX/exitY` became mutable;
+  `CarrierDescentPlugin.retargetDropExit` steers the exit to the carrier's live projected cell each frame
+  (the carrier holds a near-stationary orbit, so it reads as a return-to-mothership), falling back to an
+  off-map egress only once the carrier has left the field.
 
 **Critique fix (`70f3d0a`):** the heading-cone used `Math.abs(normalizeAngle(...))`, but `Misc.normalizeAngle`
 returns `[0,360)` — so a small CW error read as ~350° and the ship braked instead of thrusting. Now uses

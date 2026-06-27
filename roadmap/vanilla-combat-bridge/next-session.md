@@ -183,6 +183,10 @@ cadence + `TacticalScoring` + defense-post proxies + the wired-forward `ShuttleM
   centroid, entry pushed back along the carrier→LZ bearing (`MIN_DROP_LEG_CELLS = 12`) so the
   altitude-lerp descent always reads. INTERNAL air; sim ticks earlier in the frame (SimProxyMirror) so
   no race.
+- **Part 2b egress — fly home to the carrier (`89012a28`):** the deboarded drop-ship returns to its host
+  carrier and docks instead of vanishing mid-grid. `ShuttleMission.exitX/exitY` made mutable;
+  `CarrierDescentPlugin.retargetDropExit` steers exit to the carrier's live cell each frame (near-stationary
+  orbit → reads as return-to-mothership), with an off-map egress fallback once the carrier has left.
 
 **D1b critique fix (`16433ef5`):** a background review caught a real wedge — the raw-centroid LZ could sit
 on a non-walkable cell, and the deboard scan only reaches 5 cells, so a dropship there would stick in
