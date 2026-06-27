@@ -72,6 +72,16 @@ public final class CarrierDescentBrain implements ShipAIPlugin {
         return arrived;
     }
 
+    /**
+     * Re-aim the descent mid-approach — the "land there instead" re-designation. Resets the arrival
+     * latch + dwell clock so the carrier flies to and re-settles over the new point before the drop.
+     */
+    public void setTarget(Vector2f newTarget) {
+        this.target.set(newTarget);
+        this.arrived = false;
+        this.dwellInRadius = 0f;
+    }
+
     @Override
     public void advance(float amount) {
         if (ship == null || !ship.isAlive()) return;

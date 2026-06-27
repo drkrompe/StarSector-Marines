@@ -15,10 +15,12 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import org.apache.log4j.Logger;
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayDeque;
@@ -31,22 +33,20 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * S3d descent foundation — the in-combat trigger that hands one carrier over to a {@link
- * CarrierDescentBrain}. Press <b>L</b> ("land") during a SIM_COUPLED bridge battle: this picks the
- * first live carrier-side ship and {@code setShipAI}s the descent brain onto it, which then flies it
- * to the live ground band (the targetable-structure centroid, the same point {@link
- * CarrierEngagementPlugin} steers the fleet toward). Once the carrier settles in orbit ({@link
- * CarrierDescentBrain#hasArrived()}), this plugin launches one sim-native drop-ship ({@code Shuttle})
- * from the carrier's projected cell (D1b): it descends through the air layer, lands, and pours its
- * squad onto the band — the drop-ship scene at its simplest, before painted DZs or AA.
+ * S3d drop-ship invasion — the in-combat <b>"land here"</b> trigger. <b>Left-click</b> a point in a
+ * SIM_COUPLED bridge battle to designate a wide landing zone: this picks the first live carrier-side
+ * ship, {@code setShipAI}s a {@link CarrierDescentBrain} onto it aimed at the clicked point, and
+ * flies it there to establish orbit. Once it settles ({@link CarrierDescentBrain#hasArrived()}), the
+ * plugin scatters a wave of sim-native dropships ({@code Shuttle}s) across the zone ({@link
+ * DropZoneScatter}) — they descend, land, and pour their squads onto the ground. Re-clicking before
+ * arrival re-aims the landing zone ("no — land <em>there</em>").
  *
- * <p>The trigger is keyed off an in-combat input event ({@code processInputPreCoreControls}) rather
- * than the campaign hotkey listener, because the takeover only makes sense once the combat instance
- * is live. {@code L} is safe in the spectator canvas: there is no player ship (player-ship control
- * is disabled each frame) and {@link SpectatorCanvasPlugin} consumes only WASD / RMB / scroll, so
- * {@code L} passes through to here. One <em>active</em> takeover at a time (a probe demonstrates the
- * mechanism, not a fleet-wide descent): re-pressing is a no-op while the taken-over carrier is alive;
- * once it dies, {@code L} can take over another (and launch its own drop).
+ * <p>The trigger rides an in-combat input event ({@code processInputPreCoreControls}) because it only
+ * makes sense once the combat instance is live. Left-click is safe in the spectator canvas: there is
+ * no player ship (player-ship control is disabled each frame) and {@link SpectatorCanvasPlugin}
+ * consumes only WASD / RMB / scroll, so LMB passes through to here. One <em>active</em> takeover at a
+ * time (a probe demonstrates the mechanism, not a fleet-wide descent): clicks are ignored once the
+ * carrier has dropped; once it dies, a fresh click can take over another (and drop again).
  *
  * <p>Session-policy plugin, installed by {@link CombatBridgeSession#enterEngine}. Reachable only via
  * the dev probe today.
@@ -55,9 +55,6 @@ import java.util.Set;
 public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
 
     private static final Logger LOG = Global.getLogger(CarrierDescentPlugin.class);
-
-    /** "L" for land — the in-combat key that triggers one carrier's descent. */
-    private static final int TRIGGER_KEY = Keyboard.KEY_L;
 
     /**
      * Minimum descent leg (cells) for the launched drop-ship. The carrier settles within
@@ -73,8 +70,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /** Cells past the grid edge a drop-ship egresses to when its host carrier has left the field. */
     private static final float OFFGRID_MARGIN_CELLS = 8f;
 
-    /** Radius (cells) of the hardcoded drop zone around the band centroid. D2-painted DZ supersedes this. */
-    private static final float ZONE_RADIUS_CELLS = 18f;
+    /** Radius (cells) of the "land here" drop zone around the clicked point — a wide LZ, not a pinpoint. */
+    private static final float ZONE_RADIUS_CELLS = 30f;
     /** Dropships in a wave — the swarm size. */
     private static final int DROP_COUNT = 5;
     /** Minimum spacing (cells) between landing cells so squads scatter instead of stacking. */
@@ -88,8 +85,9 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     private final FleetSide carrierSide;
     private final List<Shuttle> drops = new ArrayList<>();   // launched wave — exits track the carrier each frame
     private final Random scatterRng = new Random();          // jitters the DZ scatter (transient battle → no seed needed)
+    private final Vector2f dropZoneWorld = new Vector2f();    // the clicked "land here" point (combat-world coords)
     private CombatEngineAPI engine;
-    private ShipAPI descending;          // the single carrier we've taken over (null until L is pressed)
+    private ShipAPI descending;          // the single carrier we've taken over (null until first click)
     private CarrierDescentBrain brain;   // its installed brain — polled for the arrival cue
     private boolean dropLaunched;        // one drop wave per takeover (D1b)
 
@@ -107,19 +105,36 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
-            if (e.isKeyDownEvent() && e.getEventValue() == TRIGGER_KEY) {
-                e.consume();
-                triggerDescent();
+            if (e.isLMBDownEvent()) {
+                Vector2f world = new Vector2f();
+                if (cursorWorld(world)) {
+                    e.consume();
+                    designateLandingZone(world);
+                }
                 break;
             }
         }
     }
 
-    private void triggerDescent() {
+    /**
+     * "Land here": designate the drop zone at {@code worldTarget}. With no active takeover, takes over
+     * the first live carrier and aims a fresh {@link CarrierDescentBrain} at the point; with a carrier
+     * already en route (not yet dropped), re-aims it ("land there instead"). Ignored once the wave has
+     * dropped — that takeover is committed.
+     */
+    private void designateLandingZone(Vector2f worldTarget) {
         if (engine == null) return;
+        dropZoneWorld.set(worldTarget);
+
         if (descending != null && descending.isAlive()) {
-            LOG.info("ground-bridge(descent): " + descending.getHullSpec().getHullId()
-                    + " is already descending; ignoring trigger.");
+            if (dropLaunched || brain == null) {
+                LOG.info("ground-bridge(descent): " + descending.getHullSpec().getHullId()
+                        + " has already committed its drop; ignoring re-designation.");
+                return;
+            }
+            brain.setTarget(worldTarget);   // re-aim mid-approach
+            LOG.info("ground-bridge(descent): re-aimed landing zone to ("
+                    + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
             return;
         }
 
@@ -128,15 +143,29 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             LOG.warn("ground-bridge(descent): no live carrier-side ship to take over.");
             return;
         }
-
-        Vector2f target = new Vector2f();
-        config.targetableCentroid(target);
-        brain = new CarrierDescentBrain(carrier, target);
+        brain = new CarrierDescentBrain(carrier, worldTarget);
         carrier.setShipAI(brain);
         descending = carrier;
         dropLaunched = false;
         LOG.info("ground-bridge(descent): took over " + carrier.getHullSpec().getHullId()
-                + " — descending to ground band at (" + (int) target.x + ", " + (int) target.y + ").");
+                + " — landing zone designated at (" + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
+    }
+
+    /**
+     * Cursor → combat-world via the viewport's explicit rectangle (getLLX/getVisibleWidth), NOT the
+     * {@code convert*} helpers: under the spectator's {@code setExternalControl} camera those read the
+     * inert viewMult and drift with zoom, while the rectangle getters reflect the canvas's own
+     * {@code vp.set(...)}. Mouse (0,0) is bottom-left = the lower-left corner the getters report. See
+     * {@link SeeThroughPlugin}. Returns false (no viewport yet) without writing {@code out}.
+     */
+    private boolean cursorWorld(Vector2f out) {
+        ViewportAPI vp = engine.getViewport();
+        if (vp == null) return false;
+        float screenW = Math.max(1, Display.getWidth());
+        float screenH = Math.max(1, Display.getHeight());
+        out.set(vp.getLLX() + Mouse.getX() * (vp.getVisibleWidth() / screenW),
+                vp.getLLY() + Mouse.getY() * (vp.getVisibleHeight() / screenH));
+        return true;
     }
 
     @Override
@@ -182,10 +211,10 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /**
      * Launches a scattered wave of sim-native dropships from the orbiting carrier. Entry = the
      * carrier's combat-world position projected to a cell; the {@link DropZoneScatter} engine picks up
-     * to {@value #DROP_COUNT} low-threat, spaced landing cells across the zone around the band centroid.
-     * Each is a pure-transport {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's
-     * {@code AirSystem} flies it INCOMING (altitude-scaling down the leg), lands it, and deboards its
-     * squad. D2's commander-painted DZ supersedes the hardcoded centroid + {@link #ZONE_RADIUS_CELLS}.
+     * to {@value #DROP_COUNT} low-threat, spaced landing cells across the designated "land here" zone
+     * (the clicked point + {@link #ZONE_RADIUS_CELLS}). Each is a pure-transport
+     * {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's {@code AirSystem} flies it
+     * INCOMING (altitude-scaling down the leg), lands it, and deboards its squad.
      */
     private void launchDrop() {
         dropLaunched = true;
@@ -198,11 +227,9 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         Vector2f entry = new Vector2f();
         config.worldToCell(descending.getLocation().x, descending.getLocation().y, entry);
 
-        // Zone center = the band centroid, snapped to walkable ground.
-        Vector2f centerWorld = new Vector2f();
-        config.targetableCentroid(centerWorld);
+        // Zone center = the designated "land here" point, snapped to walkable ground.
         Vector2f center = new Vector2f();
-        config.worldToCell(centerWorld.x, centerWorld.y, center);
+        config.worldToCell(dropZoneWorld.x, dropZoneWorld.y, center);
         int[] centerCell = nearestWalkableCell(grid, (int) Math.floor(center.x), (int) Math.floor(center.y));
 
         // Scatter the wave: low-threat, spaced landing cells across the zone (paratrooper drop). Threat
