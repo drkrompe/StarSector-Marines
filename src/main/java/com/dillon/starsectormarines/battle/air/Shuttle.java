@@ -23,13 +23,18 @@ public class Shuttle {
     public enum State { PENDING, INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE }
 
     /**
-     * Air-entity id — a monotonic {@code long}, assigned by {@link AirSystem#add}
-     * when this shuttle is registered (0 means "not yet registered"). Keys this
-     * craft's components in the air component stores (today:
-     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterFx},
-     * {@link AirTurrets}). Disjoint from unit ids; never recycled, so no
-     * generation bits. The first step of the air tier's air-entity-composition
-     * migration — air craft as real entities.
+     * World entity id — a monotonic {@code long}, assigned by {@link AirSystem#add}
+     * when this shuttle is registered (0 means "not yet registered"). Minted from
+     * the single {@code UnitRosterService} id authority (shared with ground units,
+     * so a shuttle id can never collide with a ground id) and adopted into the one
+     * entity world as the air archetype {@code {AIR_IDENTITY, KINEMATICS,
+     * SHUTTLE_MISSION}} — world-resident but never in the dense ground roster.
+     * Keys this craft's components (incl. the optional
+     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterFx} /
+     * {@link AirTurrets}); never recycled, so no generation bits. This handle's
+     * {@code body}/{@code mission} refs alias the world's KINEMATICS/SHUTTLE_MISSION
+     * columns during the air-into-world migration (the handle dissolves in its
+     * final phase).
      */
     public long entityId;
 

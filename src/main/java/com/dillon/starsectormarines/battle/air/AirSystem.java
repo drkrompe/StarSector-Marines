@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotData;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -17,6 +18,7 @@ import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
+import com.dillon.starsectormarines.engine.ecs.ComponentType;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -77,8 +79,13 @@ public class AirSystem {
     /** Turret loadout per armed air craft, keyed by air entity id. Present only on craft with a fire-support role; pure transports carry no entry. */
     private final ComponentStore<AirTurrets> airTurrets = new ComponentStore<>();
 
-    /** Monotonic air-entity id source. Starts at 1 so 0 reads as "unregistered". Never recycled — see {@link Shuttle#entityId}. */
-    private long nextAirId = 1L;
+    /**
+     * The air-craft spawn archetype {@code {AIR_IDENTITY, KINEMATICS,
+     * SHUTTLE_MISSION}} — adopted into the one entity world by {@link #add}. Cached
+     * once (the component types are world-lifetime). No grid/combat components, so
+     * every grid walk skips air for free.
+     */
+    private final ComponentType[] shuttleArchetype;
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
@@ -90,12 +97,29 @@ public class AirSystem {
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
+        BattleComponents c = roster.components();
+        this.shuttleArchetype = new ComponentType[]{c.AIR_IDENTITY, c.KINEMATICS, c.SHUTTLE_MISSION};
     }
 
     public List<Shuttle> getShuttles() { return shuttles; }
 
+    /**
+     * Registers a shuttle: adopts it into the one entity world via the shared id
+     * mint ({@link UnitRosterService#allocateAir}) and seeds its components with the
+     * <em>same</em> {@link AirBody}/{@link ShuttleMission}/type/faction instances the
+     * {@link Shuttle} handle holds — the world columns alias the handle's refs, so
+     * every {@code getShuttles()} consumer keeps working unchanged while the id
+     * space is unified (a shuttle id can no longer collide with a ground id). Turret
+     * + thruster-FX components are attached separately (FX lazily by
+     * {@link ThrusterFxSystem}, turrets by {@link #attachTurrets}).
+     */
     public void add(Shuttle s) {
-        if (s.entityId == 0L) s.entityId = nextAirId++;
+        if (s.entityId == 0L) {
+            s.entityId = roster.allocateAir(shuttleArchetype);
+            world.setAirIdentity(s.entityId, s.type, s.faction);
+            world.setKinematics(s.entityId, s.body);
+            world.setMission(s.entityId, s.mission);
+        }
         shuttles.add(s);
     }
 
