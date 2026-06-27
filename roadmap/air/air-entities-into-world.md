@@ -167,6 +167,17 @@ later ground `allocate` collision.)
    per-component removes; the multi-sortie re-arm must NOT destroy); delete the
    `Shuttle` handle class. Confirm occupancy/vision/win-counts never see air.
 
+### Progress
+
+- **Phase 1 ✓ (`02b5c55f`)** — air component types + `World` accessors +
+  `UnitRosterService.allocateAir` registered; `AirEntityAllocationTest` (4) proves
+  the single-mint + world-only invariants. Additive, suite green.
+- **Phase 2 ✓ (`1e3f92fd`)** — `AirSystem.add` adopts shuttles into the world
+  (shared mint, columns alias the handle's `AirBody`/`ShuttleMission`/type/faction);
+  `nextAirId` deleted, dual-mint trap closed. Behavior-preserving, suite green at 775.
+- **Phase 3 (next)** — re-key `ThrusterFx`/`AirTurrets` to OBJECT columns, delete
+  `ComponentStore<T>`.
+
 ### Watch-items (from the critic)
 
 - `getObject` throws vs `ComponentStore.get`→null: `has`-gate every migrated air
