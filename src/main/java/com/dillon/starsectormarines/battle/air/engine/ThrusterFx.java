@@ -2,9 +2,9 @@ package com.dillon.starsectormarines.battle.air.engine;
 
 /**
  * Per-air-entity engine-FX state component — the temporally-smoothed per-slot
- * thrust demand. Lives in a {@code ComponentStore<ThrusterFx>} keyed by air
- * entity id; an air craft that draws plumes <em>has</em> one, transports without
- * engine slots don't. The instantaneous target comes from {@link ThrusterDemand}
+ * thrust demand. Lives in the world's {@code THRUSTER_FX} OBJECT column (has-gated)
+ * keyed by air entity id; an air craft that draws plumes <em>has</em> one,
+ * transports without engine slots don't. The instantaneous target comes from {@link ThrusterDemand}
  * (a pure function of the flight model); this carries the value across ticks so
  * {@link ThrusterFxSystem} can ramp it instead of letting it snap 0↔1 with the
  * bang-bang acceleration the steering model produces.
