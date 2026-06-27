@@ -124,7 +124,6 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      */
     private void designateLandingZone(Vector2f worldTarget) {
         if (engine == null) return;
-        dropZoneWorld.set(worldTarget);
 
         if (descending != null && descending.isAlive()) {
             if (dropLaunched || brain == null) {
@@ -132,6 +131,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
                         + " has already committed its drop; ignoring re-designation.");
                 return;
             }
+            dropZoneWorld.set(worldTarget);
             brain.setTarget(worldTarget);   // re-aim mid-approach
             LOG.info("ground-bridge(descent): re-aimed landing zone to ("
                     + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
@@ -143,12 +143,25 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             LOG.warn("ground-bridge(descent): no live carrier-side ship to take over.");
             return;
         }
+        // Fresh takeover: a leftover wave from a now-dead carrier must not be re-homed onto this new
+        // mothership — send it off-grid for good and stop tracking it before we re-point retargeting.
+        flushOrphanedDrops();
+        dropZoneWorld.set(worldTarget);
         brain = new CarrierDescentBrain(carrier, worldTarget);
         carrier.setShipAI(brain);
         descending = carrier;
         dropLaunched = false;
         LOG.info("ground-bridge(descent): took over " + carrier.getHullSpec().getHullId()
                 + " — landing zone designated at (" + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
+    }
+
+    /** Sends any still-airborne drops from a prior (dead-carrier) wave off-grid and forgets them, so
+     *  {@link #retargetDropExit} doesn't re-home a previous takeover's shuttles onto a fresh carrier. */
+    private void flushOrphanedDrops() {
+        for (Shuttle s : drops) {
+            if (s.mission.state != Shuttle.State.GONE) sendOffGrid(s);
+        }
+        drops.clear();
     }
 
     /**
@@ -159,6 +172,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * {@link SeeThroughPlugin}. Returns false (no viewport yet) without writing {@code out}.
      */
     private boolean cursorWorld(Vector2f out) {
+        if (engine == null) return false;
         ViewportAPI vp = engine.getViewport();
         if (vp == null) return false;
         float screenW = Math.max(1, Display.getWidth());
@@ -202,10 +216,15 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
                 s.mission.exitX = c.x;
                 s.mission.exitY = c.y;
             } else {
-                s.mission.exitX = s.mission.lzX;
-                s.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
+                sendOffGrid(s);
             }
         }
+    }
+
+    /** Point a drop-ship's egress straight off the top of the grid — the carrier-gone / orphaned escape. */
+    private void sendOffGrid(Shuttle s) {
+        s.mission.exitX = s.mission.lzX;
+        s.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
     }
 
     /**
@@ -227,10 +246,14 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         Vector2f entry = new Vector2f();
         config.worldToCell(descending.getLocation().x, descending.getLocation().y, entry);
 
-        // Zone center = the designated "land here" point, snapped to walkable ground.
+        // Zone center = the designated "land here" point, clamped into the grid (an off-map click
+        // lands the wave at the nearest edge instead of wedging a shuttle off-grid) then snapped to
+        // walkable ground.
         Vector2f center = new Vector2f();
         config.worldToCell(dropZoneWorld.x, dropZoneWorld.y, center);
-        int[] centerCell = nearestWalkableCell(grid, (int) Math.floor(center.x), (int) Math.floor(center.y));
+        int cx = Math.max(0, Math.min(config.gridW() - 1, (int) Math.floor(center.x)));
+        int cy = Math.max(0, Math.min(config.gridH() - 1, (int) Math.floor(center.y)));
+        int[] centerCell = nearestWalkableCell(grid, cx, cy);
 
         // Scatter the wave: low-threat, spaced landing cells across the zone (paratrooper drop). Threat
         // = enemy-combatant density at the cell; walkable filter keeps drops off walls/structures.
