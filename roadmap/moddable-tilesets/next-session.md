@@ -90,8 +90,38 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
 per-cell labels — is data-driven through `TileRegistry`; `TileManifest` is now just
 the kept production pickers (nature pools, wall fallback) + doodad/turret tables.
 
-Then **Phase 2** (gen mapping as data — incl. the doodad pools + turret embankment,
-both still hardcoded in `TileManifest`) and **Phase 3** (mod-merge, deferred).
+## Phase 2 — in progress (gen mapping as data)
+
+Story: [`stories/phase-2-doodad-pools.md`](stories/phase-2-doodad-pools.md). First
+target = the doodad pools. User chose (AskUserQuestion 2026-06-27) the **full**
+"pools + cover as data" scope. Scope refinement (in the story doc): **prop
+doodads become data-with-cover; resolver/marker doodads (turret embankments via
+`turretEmbankment`, LZ arrows/pad/vent) stay code** per the data/algorithm seam.
+
+- **Sub-slice 1 — core + data ✅ `fda40a33`** (gradle-green). `DoodadCover`
+  (4-level) + `DoodadDef` (id/sheet/col/row/cover); `TileRegistry` parses a
+  sheet's `"doodads"` array (23 `urban-tileset` prop cells, cover == today's
+  `Doodad.defaultCoverFor`); new `GenMappingRegistry` (the Phase 2 seam) loads
+  `data/tilesets/*.mapping.json` → `doodadPool(DistrictTheme)`; `urban.mapping.json`
+  carries the 4 theme pools (order-preserved → seeded scatter unchanged). Wired
+  into `onApplicationLoad`. `DoodadMappingParityTest` pins cover + ordered pool
+  parity. **Additive — no consumer flipped.**
+- **Sub-slice 2 — flip consumers (NEXT):** `Doodad` gains a `from(DoodadDef)`
+  path; pool consumers (`UrbanMapGenerator` + ~10 BSP fillers) read
+  `GenMappingRegistry.doodadPool(theme)`; hardcoded prop sites (`BuildingLayouts`
+  shelves/desks/chests/crates, `Park`/`Plaza`/`WastelandRubble` fillers) resolve
+  defs by id; marker sites (LZ arrows/pad/vent) pass explicit cover; embankments
+  (`DefensePostStamper`) already pass explicit `COVER_HEAVY` — unchanged. Mechanical
+  → fan out to Sonnet subagents. Confirm the resolver-stays-code scope first.
+- **Sub-slice 3 — retire:** delete `Doodad.defaultCoverFor` + the cover-deriving
+  `TileFrame` ctors; delete `TileManifest.DOODAD_POOL`/`RESIDENTIAL_/WAREHOUSE_/SKYPORT_DOODADS`
+  + `doodadPoolFor`; update `TacticalScoringTest`. `DistrictTheme` stays.
+
+Follow-ups (story doc): cover-gap tuning (chairs/shelves/desks score `NONE` today —
+now a JSON edit); later Phase 2 slices = `GroundKind` render dispatch + per-`BlockKind`
+filler params, extending the same `*.mapping.json` + `GenMappingRegistry`.
+
+Then **Phase 3** (mod-merge, deferred).
 
 > **Concurrent-session friction (recurring):** another session's drone/turret/
 > sim refactor has repeatedly left `battle/` main OR its test files
