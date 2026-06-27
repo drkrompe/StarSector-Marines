@@ -76,5 +76,8 @@ public final class CombatBridgeSession {
         engine.addPlugin(new CarrierEngagementPlugin(config, FleetSide.PLAYER));
         // S3d foundation: press L in-combat to take over one carrier and fly it down to the band.
         engine.addPlugin(new CarrierDescentPlugin(config, FleetSide.PLAYER));
+        // Ground-control-mode probe: press X to toggle the cursor reveal disk (fade player ships
+        // near the cursor so the ground scene shows through). See stories/ground-control-mode.md.
+        engine.addPlugin(new SeeThroughPlugin());
     }
 }

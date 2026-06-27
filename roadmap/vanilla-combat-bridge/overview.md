@@ -288,6 +288,7 @@ product direction; walls stay in the headless sim.
   proxy/targetability model, spatial fork, and the S3a–d decomposition. **Read this
   before building any S3 story.**
 - **`stories/`** — `s3d-shuttle-scaledown` (**the drop-ship invasion — full vision + D1–D5 ladder, next build**),
+  `ground-control-mode` (the player-facing ground command mode + the contextual see-through probe),
   `s3c-airspace-gating` + `skybattle-fleet-control` (parked), `s3f`–`s3j` render layers (resolved);
   `s3a`/`s3b` shipped, `s1-wall-clamp-probe` shelved.
 - **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s2-proxy-target-probe`,

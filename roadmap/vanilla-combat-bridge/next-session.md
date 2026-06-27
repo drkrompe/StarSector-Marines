@@ -266,6 +266,10 @@ Overview open question #2 is answered: the external-damage path is `applyExterna
 - `SpectatorCanvasPlugin` — free cam (`viewport.set()`-based), HUD starve, fleet restore.
 - `CarrierDescentBrain` / `CarrierDescentPlugin` — S3d takeover: press **L** in-combat to `setShipAI`
   a tier-2 steering brain onto one carrier and fly it to the ground band (the descent "schedule" phase).
+- `SeeThroughPlugin` — ground-control-mode probe: press **X** in-combat to toggle a cursor reveal disk
+  that fades player ships (`getOwner()==0`, so proxies are excluded) by proximity via `setExtraAlphaMult2`,
+  so the ground scene shows through them. Reveal-disk (spotlight) model, per-ship temporal lerp, constant
+  on-screen lens. Config-free. Concept + decisions in [`stories/ground-control-mode.md`](stories/ground-control-mode.md).
 - `GroundBattleConfig.targetableCentroid(out)` — the shared "ground band" point (engagement + descent).
 - Scale: `WORLD_UNITS_PER_CELL = 20` (lowered from 50 after S3b playtest). Real variant ids validated before spawn.
 - *Retired (X4a):* `CanvasBackdropRenderer` (grid plate, superseded by `GroundSceneBackdrop`), `ProxyTargetPlugin` (single-proxy probe, superseded by `SimProxyMirror`). Verdicts sealed in `complete/`.
