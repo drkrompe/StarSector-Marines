@@ -186,8 +186,22 @@ later ground `allocate` collision.)
   `ThrusterFxSystemTest` rewritten against a real world harness. The `GONE` seam
   still leaves the entity alive (Phase 5 adds `destroy`). Behavior-preserving,
   suite green at 768 (−7 `ComponentStoreTest`).
-- **Phase 4 (next)** — drone `KINEMATICS` fold: `Entity.seedBody`, conditional
-  `KINEMATICS` at `allocate`, drop `Drone.body`, reroute the drone consumers.
+- **Phase 4 ✓ (`ffc368da`)** — drone `KINEMATICS` fold. `Entity.seedBody` (mirrors
+  `seedSecondaryWeapon`) is the pre-allocate channel; `allocate` adds `KINEMATICS`
+  to the spawn archetype iff `seedBody != null`, seeding the same `AirBody` instance
+  (aliased, zero-churn). `Drone.body` **dropped**; `DroneSwarmAction` reads it once
+  via `world.kinematics(id)` and threads it through engage/pursue/patrol (post-steer
+  cell+render sync unchanged); `DroneRenderSystem` live pass reads by id.
+  `KINEMATICS` kept OFF the `corpseRemove` mask (rides the transmute, like
+  `CRASHING`/`MECH_LOADOUT`), so `DroneCrashSystem.onDeath` reads the body to seed
+  the `CrashingComponent` then **detaches** it (lifecycle moves to the crash
+  component — the `MECH_LOADOUT` survive-then-detach precedent; no `DeadBodySystem`
+  change). New `DroneCrashSystemTest` case proves carry-while-alive + read-then-detach.
+  Behavior-preserving, suite green at 777.
+- **Phase 5 (next)** — register `APPEARANCE` (altitudeT/flightPhase FLOAT columns),
+  move render state off `Shuttle`, migrate the 7 `getShuttles()` consumers to the
+  `airCraft` Query, `world.destroy(id)` at terminal GONE (reconciled with the FX
+  removes), delete the `Shuttle` handle class.
 
 ### Watch-items (from the critic)
 
