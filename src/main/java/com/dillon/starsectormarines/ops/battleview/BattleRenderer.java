@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
@@ -430,6 +432,12 @@ public class BattleRenderer {
         if (buildings == null || buildings.isEmpty()) return;
         // Floors sheet is ensured at BattleScreen.attach; collect stays GL-free. Guard covers the not-loaded case.
         if (sprites.floorsSheet() == null) return;
+        // Roof brick is the floors.brick variant-pool block (center pick, (x,y)-hashed).
+        // Registry is process-wide/stable for the battle, so resolve the block once here.
+        TileRegistry reg = TileRegistry.installed();
+        if (reg == null) return;
+        GridBlockDef brick = reg.block("floors.brick");
+        if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
         for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
@@ -439,7 +447,8 @@ public class BattleRenderer {
                 int cx = b.cellsX[i];
                 int cy = b.cellsY[i];
                 if (topology.isRoofDestroyed(cx, cy)) continue;
-                TileManifest.TileFrame f = TileManifest.pickBrickTile(cx, cy);
+                int[] c = brick.resolve(false, false, false, false, cx, cy);
+                TileManifest.TileFrame f = new TileManifest.TileFrame(c[0], c[1]);
                 addSmallTileTinted(out, f, cx, cy,
                         b.tintR, b.tintG, b.tintB, roofAlpha * alphaMult);
             }

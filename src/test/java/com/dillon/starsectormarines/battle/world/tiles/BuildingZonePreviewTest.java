@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercial
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -87,6 +89,29 @@ public class BuildingZonePreviewTest {
             new BuildingVariant("tall 6x9",    6, 9, 100L),
             new BuildingVariant("large 12x8", 12, 8, 777L),
     };
+
+    /**
+     * Installs a disk-loaded {@link TileRegistry} so {@link #renderScene} can
+     * resolve fixed-grid blocks via {@link TileRegistry#installed()} — the same
+     * registry-block path the in-game {@code GroundRenderSystem} uses.
+     */
+    @BeforeAll
+    static void installRegistry() throws Exception {
+        TileRegistry reg = new TileRegistry();
+        for (String path : TileRegistry.BUILTIN_TILESETS) {
+            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
+        }
+        reg.validateReferences();
+        TileRegistry.install(reg);
+    }
+
+    /**
+     * Adapts a {@link GridBlockDef#resolve} {@code int[]{col,row}} result (or
+     * {@code null}, the block's enclosed/fill case) to a {@link TileManifest.TileFrame}.
+     */
+    private static TileManifest.TileFrame frame(int[] c) {
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
+    }
 
     /**
      * Renders the clean wall 3×3 (cols 3..5, rows 0..2) and damaged wall 3×3
@@ -299,10 +324,10 @@ public class BuildingZonePreviewTest {
     }
 
     /**
-     * Stamps the five {@code fl-tile-1..5} catalog coords on BOTH the road
-     * sheet (where {@link TileManifest#pickTileGroundTile} currently indexes
-     * via {@link TileManifest#ROAD_SHEET}) and the floors sheet (where
-     * {@code mod/data/tilesets/Floors_Tiles.catalog.json} says the art
+     * Stamps the five {@code fl-tile-1..5} coords on BOTH the road
+     * sheet (which the single-tile commercial floor historically indexed via
+     * {@link TileManifest#ROAD_SHEET}) and the floors sheet (where the
+     * {@code Floors_Tiles} tileset {@code "cells"} annotations say the art
      * actually lives). The road sheet is only 17×3 cells at 32px source, so
      * coords (17,1), (17,2), (18,2), (17,3) all read off-sheet there; the
      * floors sheet is 25×26 cells at 16px source, where the same coords are
@@ -317,9 +342,8 @@ public class BuildingZonePreviewTest {
         assertNotNull(road,   "failed to load " + ROAD_SHEET);
         assertNotNull(floors, "failed to load " + FLOORS_SHEET);
 
-        // Catalog coords for fl-tile-1..5, copied straight from
-        // mod/data/tilesets/Floors_Tiles.catalog.json. Matches
-        // TileManifest.FL_TILE_VARIANTS.
+        // Coords for fl-tile-1..5, from the Floors_Tiles tileset "cells"
+        // annotations.
         int[][] coords = {
                 {17, 1}, // fl-tile-1
                 {16, 2}, // fl-tile-2
@@ -346,7 +370,7 @@ public class BuildingZonePreviewTest {
 
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
-        g.drawString("fl-tile-1..5 — road sheet (current pickTileGroundTile target) vs floors sheet (catalog origin)",
+        g.drawString("fl-tile-1..5 — road sheet (historical fl-tile target) vs floors sheet (art origin)",
                 gap, 32);
 
         int roadCellPx = TileManifest.TILE_SIZE;          // 32
@@ -508,6 +532,7 @@ public class BuildingZonePreviewTest {
         TileSink urbanSink  = new Graphics2DTileSink(g, urban);
         TileSink roadSink   = new Graphics2DTileSink(g, road);
         TileSink floorsSink = new Graphics2DTileSink(g, floors);
+        TileRegistry reg = TileRegistry.installed();
 
         // Pass 1: STREET cells get a flat gray underneath (the preview
         // doesn't render the road autotile). Interior cells aren't
@@ -538,12 +563,12 @@ public class BuildingZonePreviewTest {
                 GroundKind kind = topology.getGroundKind(x, y);
                 switch (kind) {
                     case INDOOR: {
-                        TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                        TileManifest.TileFrame f = frame(reg.block("urban.floor").resolve(nWall, sWall, eWall, wWall));
                         stampCell(drawer, urbanSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
                     case STRIPED: {
-                        TileManifest.TileFrame f = TileManifest.pickStripedTile(nWall, sWall, eWall, wWall);
+                        TileManifest.TileFrame f = frame(reg.block("road.striped").resolve(nWall, sWall, eWall, wWall));
                         stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
@@ -551,14 +576,14 @@ public class BuildingZonePreviewTest {
                         // Polished commercial floor (fl-2) on ROAD_SHEET —
                         // mirrors the BattleScreen.TILE dispatch through
                         // drawRoadTile.
-                        TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
+                        TileManifest.TileFrame f = frame(reg.block("road.tile").resolve(false, false, false, false));
                         stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
                     case BRICK: {
                         // Brick paving (fl-tile-1..5) on FLOORS_SHEET — per-
                         // cell hash variant pool. Plazas, building roofs (planned).
-                        TileManifest.TileFrame f = TileManifest.pickBrickTile(x, y);
+                        TileManifest.TileFrame f = frame(reg.block("floors.brick").resolve(false, false, false, false, x, y));
                         stampCell(floorsDrawer, floorsSink, f, x, y, gridH, floorsDrawer.defaultGroundInsetPx());
                         break;
                     }
@@ -571,7 +596,7 @@ public class BuildingZonePreviewTest {
                         break;
                     }
                     case RUBBLE: {
-                        TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
+                        TileManifest.TileFrame f = frame(reg.block("urban.rubble").resolve(nWall, sWall, eWall, wWall));
                         stampCell(drawer, urbanSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }

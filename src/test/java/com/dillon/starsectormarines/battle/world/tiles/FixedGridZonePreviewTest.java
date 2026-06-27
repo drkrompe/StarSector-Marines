@@ -50,19 +50,20 @@ public class FixedGridZonePreviewTest {
     private static final Color LABEL_BG  = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG  = new Color(0xE0, 0xE8, 0xF4);
 
-    /** Five ground kinds the Floors_Tiles sheet provides autotile pickers for. */
-    private enum FloorsKind { GRASS, DIRT, SAND, SNOW, STONE }
+    /** Four ground kinds the Floors block variant-pools cover (SNOW has no block). */
+    private enum FloorsKind { GRASS, DIRT, SAND, STONE }
 
     @Test
     void renderOutdoorSurfacesZone() throws Exception {
         Files.createDirectories(OUT_DIR);
         BufferedImage sheet = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
         assertNotNull(sheet, "failed to load " + FLOORS_SHEET);
+        TileRegistry reg = loadRegistry();
 
         int zoneW = 16;
         int zoneH = 12;
 
-        // Four quadrants — grass NW, dirt NE, sand SW, snow SE — chosen so
+        // Four quadrants — grass NW, dirt NE, sand SW, stone SE — chosen so
         // every kind has neighbors on every side and the autotile picker
         // fires its corner + edge cases at the quadrant seams. Stone gets
         // its own zone test below (one quadrant ground per scene keeps the
@@ -78,7 +79,7 @@ public class FixedGridZonePreviewTest {
                 if      (west &&  !south) ground[x][y] = FloorsKind.GRASS;
                 else if (!west && !south) ground[x][y] = FloorsKind.DIRT;
                 else if (west &&  south)  ground[x][y] = FloorsKind.SAND;
-                else                      ground[x][y] = FloorsKind.SNOW;
+                else                      ground[x][y] = FloorsKind.STONE;
             }
         }
 
@@ -96,11 +97,10 @@ public class FixedGridZonePreviewTest {
                 FloorsKind k = ground[x][y];
                 TileManifest.TileFrame f;
                 switch (k) {
-                    case GRASS: f = TileManifest.pickGrassTile(false, false, false, false, x, y); break;
-                    case DIRT:  f = TileManifest.pickDirtTile (false, false, false, false, x, y); break;
-                    case SAND:  f = TileManifest.pickSandTile (false, false, false, false, x, y); break;
-                    case SNOW:  f = TileManifest.pickSnowTile (false, false, false, false, x, y); break;
-                    case STONE: f = TileManifest.pickStoneTile(false, false, false, false, x, y); break;
+                    case GRASS: f = frame(reg.block("floors.grass").resolve(false, false, false, false, x, y)); break;
+                    case DIRT:  f = frame(reg.block("floors.dirt") .resolve(false, false, false, false, x, y)); break;
+                    case SAND:  f = frame(reg.block("floors.sand") .resolve(false, false, false, false, x, y)); break;
+                    case STONE: f = frame(reg.block("floors.stone").resolve(false, false, false, false, x, y)); break;
                     default: continue;
                 }
                 stampCell(drawer, sink, f, x, y, zoneH, drawer.defaultGroundInsetPx());
@@ -108,7 +108,7 @@ public class FixedGridZonePreviewTest {
         }
 
         drawLabel(g, zoneW, zoneH,
-                "Floors_Tiles outdoor surfaces — NW grass · NE dirt · SW sand · SE snow (flat edges)");
+                "Floors_Tiles outdoor surfaces — NW grass · NE dirt · SW sand · SE stone (flat edges)");
         g.dispose();
 
         Path out = OUT_DIR.resolve("floors-outdoor-zone.png");
@@ -121,6 +121,7 @@ public class FixedGridZonePreviewTest {
         Files.createDirectories(OUT_DIR);
         BufferedImage sheet = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
         assertNotNull(sheet, "failed to load " + FLOORS_SHEET);
+        TileRegistry reg = loadRegistry();
 
         // Stone island in the center, dirt border. Lets the stone autotile
         // close in on itself with edges + corners on every side rather than
@@ -145,8 +146,8 @@ public class FixedGridZonePreviewTest {
             for (int y = 0; y < zoneH; y++) {
                 FloorsKind k = ground[x][y];
                 TileManifest.TileFrame f = (k == FloorsKind.STONE)
-                        ? TileManifest.pickStoneTile(false, false, false, false, x, y)
-                        : TileManifest.pickDirtTile (false, false, false, false, x, y);
+                        ? frame(reg.block("floors.stone").resolve(false, false, false, false, x, y))
+                        : frame(reg.block("floors.dirt") .resolve(false, false, false, false, x, y));
                 stampCell(drawer, sink, f, x, y, zoneH, drawer.defaultGroundInsetPx());
             }
         }
@@ -172,11 +173,8 @@ public class FixedGridZonePreviewTest {
         // "water-uses-nature-tile". Sand cells still use the Floors_Tiles sheet.
         SpriteSheetFrames natureFrames = SpriteSheetSlicer.slice(nature);
 
-        // Load a disk registry so we can resolve tile ids → TileDef.
-        TileRegistry reg = new TileRegistry();
-        for (String p : TileRegistry.BUILTIN_TILESETS) {
-            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + p))));
-        }
+        // Load a disk registry so we can resolve tile ids → TileDef / blocks.
+        TileRegistry reg = loadRegistry();
 
         int zoneW = 14;
         int zoneH = 10;
@@ -204,7 +202,7 @@ public class FixedGridZonePreviewTest {
                     natureDrawer.draw(natureSink, water,
                             dstCx, dstCy, DISPLAY_CELL_PX, DISPLAY_CELL_PX, 1f);
                 } else {
-                    TileManifest.TileFrame f = TileManifest.pickSandTile(false, false, false, false, x, y);
+                    TileManifest.TileFrame f = frame(reg.block("floors.sand").resolve(false, false, false, false, x, y));
                     stampCell(fixedDrawer, floorsSink, f, x, y, zoneH, fixedDrawer.defaultGroundInsetPx());
                 }
             }
@@ -225,6 +223,20 @@ public class FixedGridZonePreviewTest {
     }
 
     // ---- helpers ----------------------------------------------------------
+
+    /** Builds an in-memory {@link TileRegistry} from the built-in tileset manifests on disk. */
+    private static TileRegistry loadRegistry() throws Exception {
+        TileRegistry reg = new TileRegistry();
+        for (String p : TileRegistry.BUILTIN_TILESETS) {
+            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + p))));
+        }
+        return reg;
+    }
+
+    /** Adapts a {@code block(...).resolve(...)} {@code int[]{col,row}} (or {@code null}) to a {@link TileManifest.TileFrame}. */
+    private static TileManifest.TileFrame frame(int[] c) {
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
+    }
 
     private static void stampCell(FixedGridTileDrawer drawer, TileSink sink,
                                   TileManifest.TileFrame f, int gridX, int gridY, int zoneH,

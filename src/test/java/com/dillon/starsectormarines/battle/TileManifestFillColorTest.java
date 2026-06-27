@@ -18,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * constants still match the art. Fails loudly if either the sheet is rebased
  * (autotile blocks moved) or the constants drift from the sampled colors.
  *
- * <p>Fill colors are what the renderer paints when {@link TileManifest#pickRoadTile}
- * / {@link TileManifest#pickCourtyardTile} return null — i.e., the cell has no
- * wall neighbors. Sampling target is the visible interior of each autotile,
- * not the geometric center cell of the 3×3 (those center cells are transparent
- * on this sheet, which is the autotile convention).
+ * <p>Fill colors are what the renderer paints when the {@code road.road} /
+ * {@code road.courtyard} perimeter autotile blocks resolve to their fill case —
+ * i.e., the cell has no wall neighbors. Sampling target is the visible interior
+ * of each autotile, not the geometric center cell of the 3×3 (those center cells
+ * are transparent on this sheet, which is the autotile convention).
  */
 public class TileManifestFillColorTest {
 

@@ -185,7 +185,8 @@ public class BspMapSpritePreviewTest {
                         break;
                     case BRICK:
                         stampFrame(floorsDrawer, floorsSink,
-                                TileManifest.pickBrickTile(x, y), x, y, gh, floorsInset);
+                                frame(reg.block("floors.brick").resolve(false, false, false, false, x, y)),
+                                x, y, gh, floorsInset);
                         break;
                     case SIDEWALK: {
                         boolean nNotSw = !isSidewalkLike(grid, topo, x, y + 1);
@@ -206,51 +207,48 @@ public class BspMapSpritePreviewTest {
                         break;
                     case STONE:
                         stampFrame(floorsDrawer, floorsSink,
-                                TileManifest.pickStoneTile(false, false, false, false, x, y),
+                                frame(reg.block("floors.stone").resolve(false, false, false, false, x, y)),
                                 x, y, gh, floorsInset);
                         break;
                     case SAND:
                         stampFrame(floorsDrawer, floorsSink,
-                                TileManifest.pickSandTile(false, false, false, false, x, y),
-                                x, y, gh, floorsInset);
-                        break;
-                    case SNOW:
-                        stampFrame(floorsDrawer, floorsSink,
-                                TileManifest.pickSnowTile(false, false, false, false, x, y),
+                                frame(reg.block("floors.sand").resolve(false, false, false, false, x, y)),
                                 x, y, gh, floorsInset);
                         break;
                     case WATER:
                         stampFrame(floorsDrawer, waterSink,
-                                TileManifest.pickWaterTile(false, false, false, false, x, y),
+                                frame(reg.block("water.water").resolve(false, false, false, false, x, y)),
                                 x, y, gh, floorsInset);
                         break;
                     case TILE:
                         stampFrame(urbanDrawer, roadSink,
-                                TileManifest.pickTileGroundTile(x, y), x, y, gh, urbanInset);
+                                frame(reg.block("road.tile").resolve(false, false, false, false)),
+                                x, y, gh, urbanInset);
                         break;
                     case COURTYARD:
                         stampFrame(urbanDrawer, roadSink,
-                                TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall),
+                                frame(reg.block("road.courtyard").resolve(nWall, sWall, eWall, wWall)),
                                 x, y, gh, urbanInset);
                         break;
                     case STRIPED:
                         stampFrame(urbanDrawer, roadSink,
-                                TileManifest.pickStripedTile(nWall, sWall, eWall, wWall),
+                                frame(reg.block("road.striped").resolve(nWall, sWall, eWall, wWall)),
                                 x, y, gh, urbanInset);
                         break;
                     case LZ_MARKER:
                         stampFrame(urbanDrawer, roadSink,
-                                TileManifest.pickLzMarkerTile(), x, y, gh, urbanInset);
+                                frame(reg.block("road.lz-marker").resolve(false, false, false, false)),
+                                x, y, gh, urbanInset);
                         break;
                     case RUBBLE:
                         stampFrame(urbanDrawer, urbanSink,
-                                TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall),
+                                frame(reg.block("urban.rubble").resolve(nWall, sWall, eWall, wWall)),
                                 x, y, gh, urbanInset);
                         break;
                     case INDOOR:
                     default:
                         stampFrame(urbanDrawer, urbanSink,
-                                TileManifest.pickFloorTile(nWall, sWall, eWall, wWall),
+                                frame(reg.block("urban.floor").resolve(nWall, sWall, eWall, wWall)),
                                 x, y, gh, urbanInset);
                         break;
                 }
@@ -299,6 +297,11 @@ public class BspMapSpritePreviewTest {
 
         g.dispose();
         return img;
+    }
+
+    /** Wraps a registry block's {@code int[]{col,row}} pick as a {@link TileManifest.TileFrame}; {@code null} = the block's enclosed/fill case. */
+    private TileManifest.TileFrame frame(int[] c) {
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
     }
 
     private void stampFrame(FixedGridTileDrawer drawer, TileSink sink,

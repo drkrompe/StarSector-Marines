@@ -9,9 +9,9 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * re-points origins, it doesn't author new geometry — see
  * {@code roadmap/moddable-tilesets/overview.md}).
  *
- * <p>Faithful ports of the corresponding {@code TileManifest.pickXxxTile}
- * resolvers; {@code GridBlockParityTest} pins each to its origin so the
- * migration off the hardcoded pickers is behavior-preserving.
+ * <p>Each layout is the authoritative autotile geometry for its block —
+ * originally ported, behavior-for-behavior, from the now-removed
+ * {@code TileManifest.pickXxx} pickers.
  */
 public enum GridLayout {
 
@@ -24,7 +24,7 @@ public enum GridLayout {
 
     /**
      * Facing-inward 3×3 — the decorated edge faces the wall it abuts
-     * (port of {@code pickFloorTile} / {@code pickRubbleTile}). Never null.
+     * (used by {@code urban.floor} / {@code urban.rubble}). Never null.
      */
     FLOOR_3X3 {
         @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
@@ -35,7 +35,7 @@ public enum GridLayout {
     },
 
     /**
-     * Hollow-perimeter 3×3 wall (port of {@code pickWallTile}) — same offsets
+     * Hollow-perimeter 3×3 wall (used by {@code urban.wall}) — same offsets
      * as {@link #FLOOR_3X3} but the fully-enclosed case (all four neighbors are
      * walls) returns {@code null}, so the caller paints the block's
      * {@link GridBlockDef#fillRgb} (the source center cell is transparent).
@@ -50,8 +50,8 @@ public enum GridLayout {
     },
 
     /**
-     * Hollow-perimeter 3×3 whose <em>open</em> case is null (ports
-     * {@code pickRoadTile} / {@code pickCourtyardTile}) — same edge offsets as
+     * Hollow-perimeter 3×3 whose <em>open</em> case is null (used by
+     * {@code road.road} / {@code road.courtyard}) — same edge offsets as
      * {@link #FLOOR_3X3}, but a cell with no wall neighbor returns {@code null}
      * so the caller paints the block's {@link GridBlockDef#fillRgb} (the open
      * road/courtyard interior). The inverse null-trigger of {@link #WALL_3X3}.
@@ -66,7 +66,7 @@ public enum GridLayout {
     },
 
     /**
-     * Standard 3×3 (port of {@code pickStripedTile}) — the named-direction edge
+     * Standard 3×3 (used by {@code road.striped}) — the named-direction edge
      * sits on that side (N edge = top row), corners on the diagonals. The
      * fully-open case has no center art on the sheet, so it falls back to the
      * south-edge cell {@code (origin + (1,2))}. Never null.

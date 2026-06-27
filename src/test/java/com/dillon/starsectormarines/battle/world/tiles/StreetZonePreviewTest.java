@@ -537,22 +537,23 @@ public class StreetZonePreviewTest {
                     }
                     case GRASS: {
                         // Center variant only — flat edges between kinds.
-                        TileManifest.TileFrame f = TileManifest.pickGrassTile(
-                                false, false, false, false, x, y);
+                        TileManifest.TileFrame f = frame(TileRegistry.installed()
+                                .block("floors.grass").resolve(false, false, false, false, x, y));
                         stampCell(floorsDrawer, floorsSink, f, x, y, gridH,
                                 floorsDrawer.defaultGroundInsetPx());
                         break;
                     }
                     case INDOOR_FLOOR: {
-                        // pickFloorTile semantic: nWall = "north neighbor IS a
-                        // wall." Production reads this off topology.isWall —
+                        // urban.floor autotile semantic: nWall = "north neighbor
+                        // IS a wall." Production reads this off topology.isWall —
                         // mirror that here so the floor's edge decoration
                         // kisses the building's actual wall ring.
                         boolean nWall = isTopologyWall(topology, x, y + 1);
                         boolean sWall = isTopologyWall(topology, x, y - 1);
                         boolean eWall = isTopologyWall(topology, x + 1, y);
                         boolean wWall = isTopologyWall(topology, x - 1, y);
-                        TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                        TileManifest.TileFrame f = frame(TileRegistry.installed()
+                                .block("urban.floor").resolve(nWall, sWall, eWall, wWall));
                         stampCell(urbanDrawer, urbanSink, f, x, y, gridH, urbanDrawer.defaultGroundInsetPx());
                         break;
                     }
@@ -591,6 +592,11 @@ public class StreetZonePreviewTest {
     private static boolean isTopologyWall(CellTopology topology, int x, int y) {
         if (!topology.inBounds(x, y)) return false;
         return topology.isWall(x, y);
+    }
+
+    /** Adapts a registry block's {@code int[]{col,row}} resolve (null = enclosed/fill) to a {@link TileManifest.TileFrame}. */
+    private static TileManifest.TileFrame frame(int[] c) {
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
     }
 
     private static boolean isSidewalk(Role[][] role, int x, int y, int gridW, int gridH) {
@@ -684,7 +690,8 @@ public class StreetZonePreviewTest {
                 boolean sWall = isTopologyWall(topology, x, y - 1);
                 boolean eWall = isTopologyWall(topology, x + 1, y);
                 boolean wWall = isTopologyWall(topology, x - 1, y);
-                TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                TileManifest.TileFrame f = frame(TileRegistry.installed()
+                        .block("urban.floor").resolve(nWall, sWall, eWall, wWall));
                 stampCell(urbanDrawer, urbanSink, f, x, y, gridH, urbanDrawer.defaultGroundInsetPx());
             }
         }

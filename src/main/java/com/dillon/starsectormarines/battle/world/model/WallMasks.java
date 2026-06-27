@@ -60,7 +60,7 @@ public final class WallMasks {
      * <p>Resolves the {@code urban.wall} {@link GridBlockDef} from the
      * {@link TileRegistry} (moddable-tilesets Phase 1c); falls back to the
      * static {@link TileManifest#pickWallTile} when the registry isn't
-     * installed (the two agree by construction — {@code GridBlockParityTest}).
+     * installed (the two agree by construction — the block was ported from it).
      */
     public static TileManifest.TileFrame pickTileFromMask(int wallDirMask) {
         boolean n = (wallDirMask & CellTopology.WALL_DIR_N) != 0;
