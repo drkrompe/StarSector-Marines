@@ -39,8 +39,9 @@ import java.util.Set;
  * than the campaign hotkey listener, because the takeover only makes sense once the combat instance
  * is live. {@code L} is safe in the spectator canvas: there is no player ship (player-ship control
  * is disabled each frame) and {@link SpectatorCanvasPlugin} consumes only WASD / RMB / scroll, so
- * {@code L} passes through to here. One takeover per battle (a probe demonstrates the mechanism, not
- * a fleet-wide descent); re-pressing is a no-op while a ship is descending.
+ * {@code L} passes through to here. One <em>active</em> takeover at a time (a probe demonstrates the
+ * mechanism, not a fleet-wide descent): re-pressing is a no-op while the taken-over carrier is alive;
+ * once it dies, {@code L} can take over another (and launch its own drop).
  *
  * <p>Session-policy plugin, installed by {@link CombatBridgeSession#enterEngine}. Reachable only via
  * the dev probe today.

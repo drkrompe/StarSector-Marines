@@ -42,12 +42,21 @@ public final class CarrierDescentBrain implements ShipAIPlugin {
     private static final float ACCEL_CONE_DEG = 35f;
     /** Below this speed at the target, the descent is considered settled (handoff-ready). */
     private static final float SETTLED_SPEED = 30f;
+    /**
+     * Dwell fallback: latch arrived after this long inside {@link #ARRIVE_RADIUS} even if the ship
+     * never drops below {@link #SETTLED_SPEED}. The vision's transport is a <em>lumbering</em> hull —
+     * a heavy ship can orbit/oscillate around the point without its speed ever settling, which would
+     * leave the drop un-launched forever. Once it's been loitering over the band this long, that's
+     * "in orbit" enough to drop.
+     */
+    private static final float ARRIVE_DWELL_SEC = 6f;
 
     private final ShipAPI ship;
     private final Vector2f target = new Vector2f();
     private final ShipwideAIFlags flags = new ShipwideAIFlags();
     private final ShipAIConfig config = new ShipAIConfig();
     private boolean arrived;
+    private float dwellInRadius;   // seconds continuously within ARRIVE_RADIUS (resets on leaving)
 
     public CarrierDescentBrain(ShipAPI ship, Vector2f target) {
         this.ship = ship;
@@ -86,15 +95,18 @@ public final class CarrierDescentBrain implements ShipAIPlugin {
         if (dist > ARRIVE_RADIUS) {
             // Thrust only when roughly pointed at the target; brake while still turning so the ship
             // bleeds tangential speed and cuts toward the point instead of carving a wide orbit.
+            dwellInRadius = 0f;   // left the arrival zone — restart the settle clock
             ship.giveCommand(headingErr < ACCEL_CONE_DEG
                     ? ShipCommand.ACCELERATE : ShipCommand.DECELERATE, null, 0);
         } else {
             ship.giveCommand(ShipCommand.DECELERATE, null, 0);
-            if (ship.getVelocity().length() < SETTLED_SPEED) {
+            dwellInRadius += amount;
+            boolean settled = ship.getVelocity().length() < SETTLED_SPEED;
+            if (settled || dwellInRadius > ARRIVE_DWELL_SEC) {
                 arrived = true;
                 LOG.info("ground-bridge(descent): " + ship.getHullSpec().getHullId()
-                        + " settled over ground band at (" + (int) loc.x + ", " + (int) loc.y
-                        + ") — handoff point reached.");
+                        + (settled ? " settled" : " dwell-timeout") + " over ground band at ("
+                        + (int) loc.x + ", " + (int) loc.y + ") — handoff point reached.");
             }
         }
     }
