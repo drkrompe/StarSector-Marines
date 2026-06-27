@@ -111,6 +111,11 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureVehicleSheets();
         sprites.ensureConvoySprites();
 
+        // SHUTTLES layer (S3d D1): dropship hulls + their engine-FX plumes. Turret sprites for
+        // armed craft are already loaded above (UNITS); pure-transport dropships carry no mounts.
+        sprites.ensureShuttleSprites();
+        sprites.ensureEngineFxSprites();
+
         renderer = new BattleRenderer(sprites);
         renderer.buildTileBatches();
 

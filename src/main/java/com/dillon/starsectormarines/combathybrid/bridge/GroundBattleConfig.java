@@ -39,13 +39,14 @@ public record GroundBattleConfig(
 
     /**
      * The render passes the bridge draws today: terrain + structure + ground units (S3f) +
-     * objective / compound capture-state markers (S3g) + parked vehicles & convoys (S3h). Grows as
-     * the render-layers thread brings the remaining projection-agnostic passes over.
+     * objective / compound capture-state markers (S3g) + parked vehicles & convoys (S3h) +
+     * airborne dropships (S3d D1). Grows as the render-layers thread brings the remaining
+     * projection-agnostic passes over.
      */
     public static final EnumSet<RenderLayer> DEFAULT_SCENE_LAYERS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS,
                     RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
-                    RenderLayer.VEHICLES, RenderLayer.CONVOY);
+                    RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES);
 
     /**
      * Vanilla-damage → sim-damage divisor: maps ship-gun damage (hundreds/sec, bursty fighter
