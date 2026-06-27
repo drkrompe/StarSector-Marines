@@ -84,8 +84,10 @@ Data:
 
 ## Follow-ups (don't lose)
 
-- **Cover tuning** — revisit the `NONE` gaps (chairs/shelves/desks) once data-driven;
-  a shelf reading `HEAVY`, a chair `LIGHT`, etc. Pure JSON edit now.
+- **Cover tuning ✅ `c78501b4`** — the `NONE` gaps are filled: clean chairs/desks
+  → `MED`, clean shelves → `HEAVY` (matching their damaged row-7 counterparts).
+  Every prop doodad now carries cover ≥ LIGHT (markers stay literal frames). Was
+  a pure JSON edit + golden bump, exactly as the data-driven model intended.
 - **Resolver doodads as data** — if a submod ever needs to reskin embankment /
   LZ-marker art, revisit folding those into defs; deferred as geometry-stays-code.
 - Later Phase 2 slices: `GroundKind` → tile render dispatch; per-`BlockKind`

@@ -123,8 +123,8 @@ doodads become data-with-cover; resolver/marker doodads (turret embankments via
 **The doodad-pools slice is done** — `TileManifest` no longer owns any doodad
 data; props are registry defs with cover, pools are `urban.mapping.json` data.
 
-Follow-ups (story doc): **cover-gap tuning** (chairs/shelves/desks score `NONE`
-today — preserved for parity, now a one-line JSON edit); resolver doodads
+Follow-ups (story doc): **cover-gap tuning ✅ `c78501b4`** (clean chairs/desks →
+MED, shelves → HEAVY; every prop now carries cover); resolver doodads
 (embankments/arrows) stay code unless a submod needs to reskin them; later Phase 2
 slices = `GroundKind` render dispatch + per-`BlockKind` filler params (groundPool/
 chances), extending the same `*.mapping.json` + `GenMappingRegistry`.
