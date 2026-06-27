@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.fs.starfarer.api.Global;
@@ -118,31 +120,51 @@ public class AirSystem {
                 components.APPEARANCE};
     }
 
-    public List<Shuttle> getShuttles() { return shuttles; }
+    /**
+     * The live air-entity ids — every craft the world holds, collected from the
+     * {@code airCraft} query (so a {@code world.destroy}'d craft drops out for
+     * free). The render/audio/objective consumers walk this in place of the
+     * retired {@code List<Shuttle>}; each reads the craft's state by id via the
+     * {@link World} facade. Air is a tiny population, so the per-call {@code long[]}
+     * is negligible.
+     */
+    public long[] airEntityIds() {
+        int n = 0;
+        for (ArchetypeTable t : entityWorld.matched(components.airCraft)) n += t.rowCount();
+        long[] ids = new long[n];
+        int i = 0;
+        for (ArchetypeTable t : entityWorld.matched(components.airCraft)) {
+            for (int r = 0, rc = t.rowCount(); r < rc; r++) ids[i++] = t.entityAt(r);
+        }
+        return ids;
+    }
 
     /**
-     * Registers a shuttle: adopts it into the one entity world via the shared id
-     * mint ({@link UnitRosterService#allocateAir}) and seeds its components with the
-     * <em>same</em> {@link AirBody}/{@link ShuttleMission}/type/faction instances the
-     * {@link Shuttle} handle holds — the world columns alias the handle's refs, so
-     * every {@code getShuttles()} consumer keeps working unchanged while the id
-     * space is unified (a shuttle id can no longer collide with a ground id). Turret
-     * + thruster-FX components are attached separately (FX lazily by
-     * {@link ThrusterFxSystem}, turrets by {@link #attachTurrets}).
+     * Spawns one shuttle: builds its {@link AirBody} + {@link ShuttleMission},
+     * mints a world entity from the shared id authority
+     * ({@link UnitRosterService#allocateAir}), seeds the air-archetype columns, and
+     * returns the entity id. Callers configure the rest by id —
+     * {@code world.mission(id)} for the mission bag (cycles, loadouts, garrison
+     * node, …) and {@link BattleSimulation#attachAirTurrets} for the optional
+     * turret kit. Replaces the old {@code new Shuttle(...)} + {@code add(...)}: the
+     * handle is internal to this system now (it dissolves entirely in the air
+     * epic's final slice).
      */
-    public void add(Shuttle s) {
-        if (s.entityId == 0L) {
-            s.entityId = roster.allocateAir(shuttleArchetype);
-            world.setAirIdentity(s.entityId, s.type, s.faction);
-            world.setKinematics(s.entityId, s.body);
-            world.setMission(s.entityId, s.mission);
-            // Seed the authored render-state column (cruise altitude, zero wobble
-            // phase). The state-machine tick drives it thereafter; the render/audio
-            // passes read it by id.
-            world.setAltitudeT(s.entityId, 1f);
-            world.setFlightPhase(s.entityId, 0f);
-        }
+    public long spawn(ShuttleType type, Faction faction,
+                      float lzX, float lzY, float entryX, float entryY,
+                      float exitX, float exitY, float pendingDelay) {
+        Shuttle s = new Shuttle(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
+        s.entityId = roster.allocateAir(shuttleArchetype);
+        world.setAirIdentity(s.entityId, type, faction);
+        world.setKinematics(s.entityId, s.body);
+        world.setMission(s.entityId, s.mission);
+        // Seed the authored render-state column (cruise altitude, zero wobble
+        // phase). The state-machine tick drives it thereafter; the render/audio
+        // passes read it by id.
+        world.setAltitudeT(s.entityId, 1f);
+        world.setFlightPhase(s.entityId, 0f);
         shuttles.add(s);
+        return s.entityId;
     }
 
     /**
@@ -441,7 +463,7 @@ public class AirSystem {
 
     private void tickShuttleTurrets(float dt) {
         for (Shuttle s : shuttles) {
-            if (!s.isVisible()) continue;
+            if (!s.mission.isVisible()) continue;
             // Presence: only armed craft carry an AirTurrets component.
             AirTurrets t = world.airTurrets(s.entityId);
             if (t == null) continue;
@@ -487,8 +509,8 @@ public class AirSystem {
                 // mounts sit at the real, fore-aft-spread hardpoints, each mount's
                 // LoS (resolved per-State below) differs front-to-rear. Same
                 // helper the render pass uses, so a round fires from where it's drawn.
-                float worldX = s.turretWorldX(mt.mount, c, si, 1f);
-                float worldY = s.turretWorldY(mt.mount, c, si, 1f);
+                float worldX = mt.worldX(s.body, c, si, 1f);
+                float worldY = mt.worldY(s.body, c, si, 1f);
 
                 TurretAim.State aim = new TurretAim.State();
                 aim.originCellX = (int) Math.floor(worldX);

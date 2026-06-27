@@ -7,7 +7,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
@@ -406,10 +407,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
         vis.clearEphemeralSources();
         renderer.getFlybyOverlay().pushFighterVision(vis, sim.getVisionState());
-        for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
-            if (!s.isVisible()) continue;
-            if (!sim.getVisionState().isContributor(s.faction)) continue;
-            vis.addEphemeralSource((int) s.body.x, (int) s.body.y, 50, 3.5f);
+        World airWorld = sim.world();
+        for (long id : sim.getAirEntityIds()) {
+            ShuttleMission mission = airWorld.mission(id);
+            if (mission == null || !mission.isVisible()) continue;
+            if (!sim.getVisionState().isContributor(airWorld.airFaction(id))) continue;
+            AirBody body = airWorld.kinematics(id);
+            vis.addEphemeralSource((int) body.x, (int) body.y, 50, 3.5f);
         }
         // Player recon-ping reveals — same ephemeral-source seam as shuttles.
         // The sim owns the ping list + time-to-live; we just project the live
@@ -478,21 +482,23 @@ public class BattleScreen implements Screen, BattleUiContext {
         // position (no altitude offset), so cruise altitude doesn't lift the
         // halo off the ground — the shuttle stays a flying spotlight.
         World world = sim.world();
-        for (Shuttle s : sim.getShuttles()) {
-            if (s.mission.state == ShuttleState.PENDING
-                    || s.mission.state == ShuttleState.GONE) continue;
-            float altitudeT = world.altitudeT(s.entityId);
+        for (long id : sim.getAirEntityIds()) {
+            ShuttleMission mission = world.mission(id);
+            if (mission == null || mission.state == ShuttleState.PENDING
+                    || mission.state == ShuttleState.GONE) continue;
+            AirBody body = world.kinematics(id);
+            float altitudeT = world.altitudeT(id);
             EngineFxRenderer.emitLights(
-                    EngineSlotResolver.resolve(s.type),
-                    s.body.x, s.body.y,
-                    s.body.facingDegrees,
-                    AirAppearance.scaleMult(altitudeT, world.flightPhase(s.entityId)),
+                    EngineSlotResolver.resolve(world.airType(id)),
+                    body.x, body.y,
+                    body.facingDegrees,
+                    AirAppearance.scaleMult(altitudeT, world.flightPhase(id)),
                     AirAppearance.visualAltitudeOffsetCells(altitudeT),
                     AirAppearance.engineIntensity(true, altitudeT),
                     renderer.getLightAccumulator(),
-                    ((long) System.identityHashCode(s)) << 16,
+                    id << 16,
                     seenLightIds,
-                    sim.getThrusterGlow(s));
+                    sim.getThrusterGlow(id));
         }
         // Fighter engine halos — FlybyOverlay owns the fighter list, so it
         // pumps directly into our seen-id set.
@@ -691,42 +697,46 @@ public class BattleScreen implements Screen, BattleUiContext {
      * Per-shuttle positional engine loop — every visible shuttle emits its
      * {@link EngineVoice} clip (a base-game {@code sfx_engines} loop chosen from the hull's
      * tech tier + size, resolved once per hull by {@link EngineVoiceResolver}) at its world
-     * position every frame. The shuttle itself is the {@code playingEntity} key, so three
+     * position every frame. The craft's {@link AirBody} is the {@code playingEntity} key (a stable per-entity instance), so three
      * shuttles landing at once stay on three distinct voices even when they share a clip id.
      *
      * <p>Volume scales by {@link AirAppearance#engineIntensity(boolean, float)} so on-ground idle reads quiet and
      * cruise reads loud; pitch sweeps {@link #ENGINE_PITCH_IDLE} → {@link #ENGINE_PITCH_CRUISE}
-     * across that range plus a small per-shuttle deterministic offset (from the identity hash,
+     * across that range plus a small per-shuttle deterministic offset (from the entity id,
      * stable frame-to-frame) so two craft on the same clip don't phase-lock. Velocity feeds
      * OpenAL Doppler as a shuttle banks over the camera. When no shuttles are visible we skip
      * the call and the loops self-fade over Starsector's default loop hold.
      */
     private void driveShuttleEngineLoops(BattleSimulation sim) {
         World world = sim.world();
-        for (Shuttle s : sim.getShuttles()) {
-            if (!s.isVisible()) continue;
-            float intensity = AirAppearance.engineIntensity(true, world.altitudeT(s.entityId));
+        for (long id : sim.getAirEntityIds()) {
+            ShuttleMission mission = world.mission(id);
+            if (mission == null || !mission.isVisible()) continue;
+            float intensity = AirAppearance.engineIntensity(true, world.altitudeT(id));
             if (intensity <= 0f) continue;
-            EngineVoice voice = EngineVoiceResolver.resolve(s.type.renderHullId());
-            int idHash = System.identityHashCode(s);
-            // Deterministic ±jitter from the hash so the offset doesn't change frame-to-frame.
-            float pitchOffset = (((idHash >> 8) & 0xff) / 255f * 2f - 1f) * SHUTTLE_ENGINE_PITCH_JITTER;
+            AirBody body = world.kinematics(id);
+            EngineVoice voice = EngineVoiceResolver.resolve(world.airType(id).renderHullId());
+            // Deterministic ±jitter from the entity id so the offset doesn't change frame-to-frame.
+            float pitchOffset = (((id >> 8) & 0xffL) / 255f * 2f - 1f) * SHUTTLE_ENGINE_PITCH_JITTER;
             float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * intensity + pitchOffset;
-            Vector2f loc = new Vector2f(s.body.x * AUDIO_WORLD_UNITS_PER_CELL,
-                                        s.body.y * AUDIO_WORLD_UNITS_PER_CELL);
-            Vector2f vel = shuttleVelocity(s);
-            Global.getSoundPlayer().playLoop(voice.loopSoundId, s, pitch,
+            Vector2f loc = new Vector2f(body.x * AUDIO_WORLD_UNITS_PER_CELL,
+                                        body.y * AUDIO_WORLD_UNITS_PER_CELL);
+            Vector2f vel = shuttleVelocity(mission, body);
+            // The AirBody instance is the stable per-entity loop-voice key (same
+            // instance every frame and across sorties), so concurrent craft on the
+            // same clip stay on distinct voices.
+            Global.getSoundPlayer().playLoop(voice.loopSoundId, body, pitch,
                     SHUTTLE_ENGINE_VOLUME * intensity, loc, vel);
         }
     }
 
     /** Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
-    private static Vector2f shuttleVelocity(Shuttle s) {
-        if (s.mission.state != ShuttleState.INCOMING && s.mission.state != ShuttleState.DEPARTING) {
+    private static Vector2f shuttleVelocity(ShuttleMission mission, AirBody body) {
+        if (mission.state != ShuttleState.INCOMING && mission.state != ShuttleState.DEPARTING) {
             return new Vector2f(0f, 0f);
         }
-        return new Vector2f(s.body.vx * AUDIO_WORLD_UNITS_PER_CELL,
-                            s.body.vy * AUDIO_WORLD_UNITS_PER_CELL);
+        return new Vector2f(body.vx * AUDIO_WORLD_UNITS_PER_CELL,
+                            body.vy * AUDIO_WORLD_UNITS_PER_CELL);
     }
 
     /**

@@ -80,4 +80,29 @@ public final class MountedTurret {
     public boolean ammoDry() {
         return ammo <= 0;
     }
+
+    /**
+     * World-frame X of this mount's pivot: its hull-local slot offset
+     * ({@link TurretMount#localOffsetX}/{@code Y}, scraped from the hull's
+     * {@code weaponSlots}) scaled by {@code extraScale}, rotated by the body facing,
+     * and added to {@code body.x}. {@code extraScale} is the renderer's altitude
+     * zoom ({@link AirAppearance#scaleMult(float, float)}); the sim passes 1. Shared
+     * by {@link AirSystem} and the render pass so a round fires from where the
+     * turret is drawn.
+     *
+     * @param facingCos {@code cos(toRadians(body.facingDegrees))}, hoisted by the caller
+     * @param facingSin {@code sin(toRadians(body.facingDegrees))}, hoisted by the caller
+     */
+    public float worldX(AirBody body, float facingCos, float facingSin, float extraScale) {
+        float lx = mount.localOffsetX * extraScale;
+        float ly = mount.localOffsetY * extraScale;
+        return body.x + lx * facingCos - ly * facingSin;
+    }
+
+    /** World-frame Y counterpart of {@link #worldX}; the renderer adds the altitude Y-offset on top. */
+    public float worldY(AirBody body, float facingCos, float facingSin, float extraScale) {
+        float lx = mount.localOffsetX * extraScale;
+        float ly = mount.localOffsetY * extraScale;
+        return body.y + lx * facingSin + ly * facingCos;
+    }
 }

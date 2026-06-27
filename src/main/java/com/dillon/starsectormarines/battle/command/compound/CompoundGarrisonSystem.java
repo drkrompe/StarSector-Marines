@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command.compound;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -90,19 +90,19 @@ public final class CompoundGarrisonSystem {
         float lzY = lz[1] + 0.5f;
         float[] entry = entryForMarine(lzX, lzY, grid.getWidth(), grid.getHeight());
 
-        Shuttle shuttle = new Shuttle(
+        long shuttleId = sim.spawnShuttle(
                 SHUTTLE_TYPE, Faction.MARINE,
                 lzX, lzY,
                 entry[0], entry[1],
                 entry[2], entry[3],
                 0f);
-        shuttle.mission.totalCycles = 1;
-        shuttle.mission.deboardUnitType = FactionUnitRoster.forFaction(Faction.MARINE).infantry();
+        ShuttleMission mission = sim.world().mission(shuttleId);
+        mission.totalCycles = 1;
+        mission.deboardUnitType = FactionUnitRoster.forFaction(Faction.MARINE).infantry();
         // The deboarded squad is born holding this compound (HOLD_NODE → the
         // GarrisonCompound behavior), so it garrisons without the commander
         // pinning whichever assault squad captured the place.
-        shuttle.mission.garrisonNode = node;
-        sim.addShuttle(shuttle);
+        mission.garrisonNode = node;
         LOG.info("CompoundGarrisonSystem: garrison shuttle dispatched to compound "
                 + node.kind + " lz=(" + lz[0] + "," + lz[1] + ")");
         return true;

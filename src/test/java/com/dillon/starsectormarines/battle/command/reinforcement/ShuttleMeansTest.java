@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -8,8 +8,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,10 +54,11 @@ public class ShuttleMeansTest {
         assertTrue(means.canFulfill(sim, req), "open ground exists outside the building near the rally");
         means.dispatch(sim, req);
 
-        List<Shuttle> shuttles = sim.getShuttles();
-        assertEquals(1, shuttles.size(), "one shuttle dispatched");
-        int lzX = (int) shuttles.get(0).mission.lzX;
-        int lzY = (int) shuttles.get(0).mission.lzY;
+        long[] airIds = sim.getAirEntityIds();
+        assertEquals(1, airIds.length, "one shuttle dispatched");
+        ShuttleMission mission = sim.world().mission(airIds[0]);
+        int lzX = (int) mission.lzX;
+        int lzY = (int) mission.lzY;
         assertEquals(0, topo.getBuildingId(lzX, lzY), "LZ must be outside any building footprint");
         assertTrue(sim.getGrid().isWalkable(lzX, lzY), "LZ must be walkable");
     }

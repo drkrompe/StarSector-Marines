@@ -2,8 +2,9 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
@@ -38,11 +39,13 @@ public final class EliminateFactionObjective implements Objective {
             Entity u = sim.liveUnitAt(i);
             if (u.faction == target) return;
         }
-        for (Shuttle s : sim.getShuttles()) {
-            if (s.faction != target) continue;
-            if (s.mission.marinesRemaining > 0
-                    && s.mission.state != ShuttleState.DEPARTING
-                    && s.mission.state != ShuttleState.GONE) {
+        World world = sim.world();
+        for (long id : sim.getAirEntityIds()) {
+            if (world.airFaction(id) != target) continue;
+            ShuttleMission m = world.mission(id);
+            if (m != null && m.marinesRemaining > 0
+                    && m.state != ShuttleState.DEPARTING
+                    && m.state != ShuttleState.GONE) {
                 return;
             }
         }

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.command.compound;
 
-import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -61,6 +60,13 @@ public class CompoundGarrisonSystemTest {
         }
     }
 
+    /** The most recently spawned air entity (max id — the mint is monotonic), i.e. the just-dispatched shuttle. */
+    private static long lastAirId(BattleSimulation sim) {
+        long max = -1L;
+        for (long id : sim.getAirEntityIds()) if (id > max) max = id;
+        return max;
+    }
+
     @Test
     public void dispatchesShuttleOnCapture() {
         BattleSimulation sim = openSim();
@@ -71,14 +77,13 @@ public class CompoundGarrisonSystemTest {
 
         captureCompound(sim, service, capture);
 
-        int shuttlesBefore = sim.getShuttles().size();
+        int shuttlesBefore = sim.getAirEntityIds().length;
         tickGarrison(garrison, sim, service, 1);
-        int shuttlesAfter = sim.getShuttles().size();
+        int shuttlesAfter = sim.getAirEntityIds().length;
 
         assertEquals(shuttlesBefore + 1, shuttlesAfter,
                 "garrison system should spawn one shuttle on compound capture");
-        Shuttle last = sim.getShuttles().get(sim.getShuttles().size() - 1);
-        assertEquals(Faction.MARINE, last.faction,
+        assertEquals(Faction.MARINE, sim.world().airFaction(lastAirId(sim)),
                 "garrison shuttle must be marine-faction");
     }
 
@@ -94,8 +99,7 @@ public class CompoundGarrisonSystemTest {
         captureCompound(sim, service, capture);
         tickGarrison(garrison, sim, service, 1);
 
-        Shuttle shuttle = sim.getShuttles().get(sim.getShuttles().size() - 1);
-        assertEquals(node, shuttle.mission.garrisonNode,
+        assertEquals(node, sim.world().mission(lastAirId(sim)).garrisonNode,
                 "garrison shuttle carries the compound node so its squad is born holding");
     }
 
@@ -110,7 +114,7 @@ public class CompoundGarrisonSystemTest {
 
         captureCompound(sim, service, capture);
         tickGarrison(garrison, sim, service, 1);
-        Shuttle shuttle = sim.getShuttles().get(sim.getShuttles().size() - 1);
+        long shuttleId = lastAirId(sim);
 
         // Keep a defender alive (far from the compound) so the battle doesn't
         // auto-complete the instant capture finishes — otherwise advance() stops
@@ -120,13 +124,13 @@ public class CompoundGarrisonSystemTest {
 
         // Fly the shuttle in and deboard its first marine (squad minted then).
         int guard = 0;
-        while (shuttle.mission.squadId == Entity.NO_SQUAD && guard++ < 8000) {
+        while (sim.world().mission(shuttleId).squadId == Entity.NO_SQUAD && guard++ < 8000) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertTrue(shuttle.mission.squadId != Entity.NO_SQUAD,
+        assertTrue(sim.world().mission(shuttleId).squadId != Entity.NO_SQUAD,
                 "garrison shuttle should deboard within the tick budget");
 
-        Squad gsquad = sim.getSquad(shuttle.mission.squadId);
+        Squad gsquad = sim.getSquad(sim.world().mission(shuttleId).squadId);
         assertNotNull(gsquad);
         ObjectiveAssignment a = gsquad.assignedObjective;
         assertNotNull(a, "garrison squad is born with an objective");
@@ -141,9 +145,9 @@ public class CompoundGarrisonSystemTest {
         CompoundGarrisonSystem garrison = new CompoundGarrisonSystem(TraversalAxis.SOUTH_TO_NORTH);
         service.register(barracksAt(5, 5));
 
-        int shuttlesBefore = sim.getShuttles().size();
+        int shuttlesBefore = sim.getAirEntityIds().length;
         tickGarrison(garrison, sim, service, 3);
-        assertEquals(shuttlesBefore, sim.getShuttles().size(),
+        assertEquals(shuttlesBefore, sim.getAirEntityIds().length,
                 "no shuttle while compound is still DEFENDER_HELD");
     }
 
@@ -217,12 +221,12 @@ public class CompoundGarrisonSystemTest {
         // First capture → garrison dispatched.
         captureCompound(sim, service, capture);
         tickGarrison(garrison, sim, service, 1);
-        int afterFirstCapture = sim.getShuttles().size();
+        int afterFirstCapture = sim.getAirEntityIds().length;
         assertTrue(afterFirstCapture > 0, "first garrison shuttle should have spawned");
 
         // Second tick while still MARINE_HELD → no duplicate.
         tickGarrison(garrison, sim, service, 1);
-        assertEquals(afterFirstCapture, sim.getShuttles().size(),
+        assertEquals(afterFirstCapture, sim.getAirEntityIds().length,
                 "no duplicate shuttle while compound stays MARINE_HELD");
 
         // Defender recaptures: kill the marine, add a defender, tick capture system.
@@ -259,7 +263,7 @@ public class CompoundGarrisonSystemTest {
                 service.getRecord(node).state, "compound should be MARINE_HELD again");
 
         tickGarrison(garrison, sim, service, 1);
-        assertEquals(afterFirstCapture + 1, sim.getShuttles().size(),
+        assertEquals(afterFirstCapture + 1, sim.getAirEntityIds().length,
                 "re-armed garrison should dispatch a second shuttle on recapture");
     }
 }

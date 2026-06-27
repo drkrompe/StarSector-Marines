@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
@@ -54,8 +54,15 @@ public interface BattleControl extends BattleView {
     /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
     void addUnit(Entity u);
 
-    /** Add a shuttle to the air system (shuttle reinforcement / garrison drop). */
-    void addShuttle(Shuttle s);
+    /**
+     * Spawn a shuttle into the air system (shuttle reinforcement / garrison drop) and
+     * return its world entity id. Configure the rest by id — {@code world().mission(id)}
+     * for the mission bag (cycles, loadouts, garrison node), {@code attachAirTurrets} for
+     * the turret kit.
+     */
+    long spawnShuttle(ShuttleType type, Faction faction,
+                      float lzX, float lzY, float entryX, float entryY,
+                      float exitX, float exitY, float pendingDelay);
 
     /** Add a convoy vehicle to the ground system (convoy reinforcement). */
     void addConvoyVehicle(Vehicle v);

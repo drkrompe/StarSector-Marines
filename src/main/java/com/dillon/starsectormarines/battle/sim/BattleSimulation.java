@@ -31,7 +31,8 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.MountedTurret;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -252,7 +253,7 @@ public class BattleSimulation implements BattleControl {
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
-    /** Who owns the air layer. {@link AirProvider#INTERNAL} by default — standalone battles <em>and</em> the current combat-bridge host both run the sim's own shuttles + flyby (the S3d drop-ship invasion depends on it: dropships are the sim's own {@code Shuttle}s, spawned via {@link #addShuttle}). {@link AirProvider#EXTERNAL} is the alternative where a host owns the air — the sim's air tick is skipped and internal air-install is rejected — kept for a future direct-injection bridge, but not used today. See {@link AirProvider}. */
+    /** Who owns the air layer. {@link AirProvider#INTERNAL} by default — standalone battles <em>and</em> the current combat-bridge host both run the sim's own shuttles + flyby (the S3d drop-ship invasion depends on it: dropships are the sim's own air craft, spawned via {@link #spawnShuttle}). {@link AirProvider#EXTERNAL} is the alternative where a host owns the air — the sim's air tick is skipped and internal air-install is rejected — kept for a future direct-injection bridge, but not used today. See {@link AirProvider}. */
     private AirProvider airProvider = AirProvider.INTERNAL;
 
     /** Battle-scoped tactical data from the map generator — TacticalMap hint graph + DefensePost list. The {@link #getTacticalMap}/{@link #setTacticalMap}/{@link #setDefensePosts} delegates below forward here. */
@@ -383,13 +384,13 @@ public class BattleSimulation implements BattleControl {
     /** Game component-type registrations + shared queries for {@link #getEntityWorld()}. */
     public BattleComponents getBattleComponents() { return battleComponents; }
 
-    public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
-    /** Smoothed per-slot engine-FX demand for a shuttle (by air entity id), or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
-    public float[] getThrusterGlow(Shuttle s) { return airSystem.thrusterGlow(s.entityId); }
-    /** Attaches a turret loadout to a shuttle (presence component). Called at setup once the shuttle is added (id minted); no-op for an empty loadout. */
-    public void attachAirTurrets(Shuttle s, com.dillon.starsectormarines.battle.air.MountedTurret[] mounts) { requireInternalAir("attachAirTurrets"); airSystem.attachTurrets(s.entityId, mounts); }
-    /** A shuttle's mounted turrets (by air entity id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
-    public com.dillon.starsectormarines.battle.air.MountedTurret[] getAirTurretMounts(Shuttle s) { return airSystem.mountsFor(s.entityId); }
+    public long[] getAirEntityIds()        { return airSystem.airEntityIds(); }
+    /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
+    public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
+    /** Attaches a turret loadout to an air entity (presence component). Called at setup once the craft is spawned (id minted); no-op for an empty loadout. */
+    public void attachAirTurrets(long airEntityId, MountedTurret[] mounts) { requireInternalAir("attachAirTurrets"); airSystem.attachTurrets(airEntityId, mounts); }
+    /** An air entity's mounted turrets (by id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
+    public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
@@ -453,7 +454,7 @@ public class BattleSimulation implements BattleControl {
     /**
      * Declare who owns the air. {@link AirProvider#EXTERNAL} hands the air off to the
      * combat-bridge host: the internal air tick is skipped and internal air-install
-     * ({@link #addShuttle}/{@link #attachAirTurrets}/{@link #setFlybyRoster}) fails loud.
+     * ({@link #spawnShuttle}/{@link #attachAirTurrets}/{@link #setFlybyRoster}) fails loud.
      * Set once at setup, before any air is installed.
      */
     public void setAirProvider(AirProvider provider) {
@@ -604,9 +605,11 @@ public class BattleSimulation implements BattleControl {
         rosterService.releaseFromRegistry(entityId);
     }
 
-    public void addShuttle(Shuttle s) {
-        requireInternalAir("addShuttle");
-        airSystem.add(s);
+    public long spawnShuttle(ShuttleType type, Faction faction,
+                             float lzX, float lzY, float entryX, float entryY,
+                             float exitX, float exitY, float pendingDelay) {
+        requireInternalAir("spawnShuttle");
+        return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
     }
 
     public void addConvoyVehicle(Vehicle v) {

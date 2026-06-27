@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -117,8 +116,8 @@ public interface BattleView {
     /** Per-cell structural topology (walls/roofs/cover classes). Rebuilt on map modification. */
     CellTopology getTopology();
 
-    /** Active air shuttles in the battle. */
-    List<Shuttle> getShuttles();
+    /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
+    long[] getAirEntityIds();
 
     /** Active convoy ground vehicles in the battle. */
     List<Vehicle> getConvoyVehicles();

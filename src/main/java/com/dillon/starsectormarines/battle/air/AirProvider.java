@@ -14,7 +14,7 @@ package com.dillon.starsectormarines.battle.air;
  *       from the installed {@code FlybyRoster}. The standalone {@code BattleScreen}
  *       host. All {@code createX} factories and tests run in this mode.</li>
  *   <li><b>{@link #EXTERNAL}</b> — the host owns the air. The internal air tick is
- *       skipped, and installing internal air ({@code addShuttle} / {@code attachAirTurrets}
+ *       skipped, and installing internal air ({@code spawnShuttle} / {@code attachAirTurrets}
  *       / {@code setFlybyRoster}) is a contract violation that fails loud. External
  *       air-to-ground arrives as events: strafing via
  *       {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#applyExternalDamage},

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.DropZoneScatter;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -101,7 +101,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
 
     private final GroundBattleConfig config;
     private final FleetSide carrierSide;
-    private final List<Shuttle> drops = new ArrayList<>();   // launched wave — exits track the carrier each frame
+    private final List<Long> drops = new ArrayList<>();      // launched wave (air entity ids) — exits track the carrier each frame
     private final Random scatterRng = new Random();          // jitters the DZ scatter (transient battle → no seed needed)
     private final Vector2f dropZoneWorld = new Vector2f();    // the clicked "land here" point (combat-world coords)
     private CombatEngineAPI engine;
@@ -181,8 +181,9 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /** Sends any still-airborne drops from a prior (dead-carrier) wave off-grid and forgets them, so
      *  {@link #retargetDropExit} doesn't re-home a previous takeover's shuttles onto a fresh carrier. */
     private void flushOrphanedDrops() {
-        for (Shuttle s : drops) {
-            if (s.mission.state != ShuttleState.GONE) sendOffGrid(s);
+        for (long id : drops) {
+            ShuttleMission m = config.sim().world().mission(id);
+            if (m != null && m.state != ShuttleState.GONE) sendOffGrid(m);
         }
         drops.clear();
     }
@@ -213,7 +214,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             } else if (brain.hasArrived() && marinePool > 0) {
                 // Orbit window: hold station and deploy the marine pool one wave per WAVE_INTERVAL_SEC
                 // until it's exhausted (D5 depth). The sim ticks in SimProxyMirror.advance (earlier in
-                // the plugin order), so addShuttle inside launchWave never races the air loop.
+                // the plugin order), so spawnShuttle inside launchWave never races the air loop.
                 waveTimer -= amount;
                 if (waveTimer <= 0f) {
                     launchWave();
@@ -239,25 +240,28 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         boolean carrierLive = descending != null && descending.isAlive();
         Vector2f c = new Vector2f();
         if (carrierLive) config.worldToCell(descending.getLocation().x, descending.getLocation().y, c);
-        for (Iterator<Shuttle> it = drops.iterator(); it.hasNext(); ) {
-            Shuttle s = it.next();
-            if (s.mission.state == ShuttleState.GONE) {
+        for (Iterator<Long> it = drops.iterator(); it.hasNext(); ) {
+            long id = it.next();
+            ShuttleMission m = config.sim().world().mission(id);
+            // null = the craft reached terminal GONE and the air system destroyed
+            // its entity; drop the stale id (same forget-it path as the GONE check).
+            if (m == null || m.state == ShuttleState.GONE) {
                 it.remove();
                 continue;
             }
             if (carrierLive) {
-                s.mission.exitX = c.x;
-                s.mission.exitY = c.y;
+                m.exitX = c.x;
+                m.exitY = c.y;
             } else {
-                sendOffGrid(s);
+                sendOffGrid(m);
             }
         }
     }
 
     /** Point a drop-ship's egress straight off the top of the grid — the carrier-gone / orphaned escape. */
-    private void sendOffGrid(Shuttle s) {
-        s.mission.exitX = s.mission.lzX;
-        s.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
+    private void sendOffGrid(ShuttleMission m) {
+        m.exitX = m.lzX;
+        m.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
     }
 
     /**
@@ -319,7 +323,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * INCOMING (altitude-scaling down the leg), lands it, and deboards its squad.
      */
     private void launchWave() {
-        // Requires AirProvider.INTERNAL — dropships are the sim's own shuttles, so addShuttle below
+        // Requires AirProvider.INTERNAL — dropships are the sim's own shuttles, so spawnShuttle below
         // fail-louds under EXTERNAL. The bridge runs INTERNAL by design (S3d); see BattleSimulation.
         BattleSimulation sim = config.sim();
         NavigationGrid grid = sim.getGrid();
@@ -395,11 +399,10 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
                 ey = lzY + dy / d * MIN_DROP_LEG_CELLS;
             }
         }
-        Shuttle s = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
+        long id = sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
                 lzX, lzY, ex, ey, ex, ey, pendingDelay);
-        s.mission.marinesRemaining = Math.min(marineCount, ShuttleType.AEROSHUTTLE.capacity);
-        sim.addShuttle(s);
-        drops.add(s);
+        sim.world().mission(id).marinesRemaining = Math.min(marineCount, ShuttleType.AEROSHUTTLE.capacity);
+        drops.add(id);
     }
 
     /** First live, non-fighter ship on the carrier side. */

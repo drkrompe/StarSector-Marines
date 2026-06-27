@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -92,22 +92,22 @@ public final class ShuttleMeans implements ReinforcementMeans {
         float lzY = lz[1] + 0.5f;
         float[] entry = entryForSide(req.side, axis, lzX, lzY, grid.getWidth(), grid.getHeight());
 
-        Shuttle shuttle = new Shuttle(
+        long shuttleId = sim.spawnShuttle(
                 DEFAULT_TYPE, req.side,
                 lzX, lzY,
                 entry[0], entry[1],
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
-        shuttle.mission.totalCycles = 1;
+        ShuttleMission mission = sim.world().mission(shuttleId);
+        mission.totalCycles = 1;
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
         // infantry slot — see roadmap/reinforcement/faction-roster.md.
-        shuttle.mission.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
+        mission.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
         // No marineLoadout / no turret kit — AirSystem deboards plain COMBATANT
         // units and the null assignedRole skips HOVER_STATION (shuttle drops,
         // unloads, and leaves immediately).
-        sim.addShuttle(shuttle);
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")");
     }

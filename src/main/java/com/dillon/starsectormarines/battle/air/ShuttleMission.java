@@ -133,6 +133,18 @@ public final class ShuttleMission {
      */
     public boolean departingFromHover;
 
+    /**
+     * On-map / drawable: the craft is somewhere over the grid (descending,
+     * landed, loitering, or egressing) rather than off-map waiting to launch
+     * (PENDING) or finished (GONE). The render + audio + vision passes gate on
+     * this, and it is the complement of the off-map states the engine-intensity
+     * derivation zeroes.
+     */
+    public boolean isVisible() {
+        return state == ShuttleState.INCOMING || state == ShuttleState.LANDED
+                || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING;
+    }
+
     public ShuttleMission(float lzX, float lzY, float entryX, float entryY,
                           float exitX, float exitY, float pendingDelay,
                           int marinesRemaining, float hp) {
