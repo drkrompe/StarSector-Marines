@@ -39,8 +39,8 @@ Decomposition:
 - **S3c — airspace banding / AI gating.** Parked → folded into the skybattle feature.
 - **S3d — drop-ship invasion.** Re-spec'd 2026-06-25 into the bridge's product core (transport
   orbits, sim-native dropships land marines, diegetic/scored/emergent). Vision + D1–D5 ladder
-  written; **D1 + D2 shipped 2026-06-27 (scatter wave `3d232392` + "land here" click DZ `141bf9e9`); D3
-  (AA / hot drops) next.** See the S3d story.
+  written; **D1–D3 shipped 2026-06-27 (scatter wave + "land here" click DZ + AA shoot-down `0751e013` /
+  threat-scaled spread `4fba6ea0`); D4 (orbit window stake) next.** See the S3d story.
 
 ### Scale + real-map pass (done after S3b playtest; re-dialed 2026-06-27)
 - `WORLD_UNITS_PER_CELL` stepped **50 → 20 → 7** (`02c829b0`… → `2118b4b2`): at 7 the ground
@@ -218,9 +218,18 @@ The brain-target vs fresh-LZ centroid divergence (#4) was confirmed a non-bug, l
   Painting rejected as too fiddly for fast play (user call). Cursor→world via viewport rectangle getters
   (not `convert*`, which drift under the spectator camera). DZ-overlay (radius under cursor) = polish TODO.
 
-**Next — D3 (AA / hot drops):** defense posts get an air-threat radius draining `ShuttleMission.hp`
-(wired-forward, no damage source yet); the scatter radius widens with threat (the "cold spread" radius is
-fixed today). Then D4 (orbit window stake), D5 (continuous logistics).
+**D3 — AA / hot drops ✅ shipped.**
+- **Slice 1 — AA drain + shoot-down (`0751e013`):** `AirSystem.tickAirThreat` — airborne shuttles within
+  `AA_THREAT_RADIUS` of an enemy `MapTurret` take `AA_DPS_PER_POST × posts` HP/sec; 0 HP → shot down
+  (GONE, marines aboard lost). First `ShuttleMission.hp` damage source; `HOVER_HP_THRESHOLD` abort now
+  live. Universal (standalone shuttles too) — **watch standalone balance**; tunables `AA_THREAT_RADIUS_CELLS`,
+  `AA_DPS_PER_POST`. Follow-ups: drone-hub AA, crash FX.
+- **Slice 2 — threat-scaled spread (`4fba6ea0`):** DZ radius = `ZONE_RADIUS_CELLS × (1 +
+  HOT_SPREAD_PER_ENEMY × enemyCount)`, capped `ZONE_RADIUS_MAX_CELLS`. Cold = tight 30; hot fans toward 60.
+
+**Next — D4 (orbit window stake):** holding orbit is exposed; losing the transport loses the marines still
+aboard → AA-suppression / air superiority becomes the prep that earns the drop (ties to the skybattle
+feature). Then D5 (continuous logistics from the fleet marine pool).
 
 **D1 playtest (2026-06-27): works okay** — carrier orbits, drops, deboards, dropship flies home. Remaining
 watch-items (the dev probe — Ctrl+Shift+K, press **L**): stale target as structures die (non-bug); ASSAULT

@@ -5,8 +5,8 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1 + D2 shipped 2026-06-27 (scatter wave +
-> "land here" click-designated DZ); D3 (AA / hot drops) next.**
+> spine, never scripted modes). Vision locked 2026-06-25; **D1–D3 shipped 2026-06-27 (scatter wave +
+> "land here" click DZ + AA shoot-down / threat-scaled spread); D4 (orbit window stake) next.**
 > Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
@@ -110,8 +110,17 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
       onto a freshly-taken-over carrier — now flushed off-grid + forgotten), an `engine` null-guard, a
       premature `dropZoneWorld` write, and an off-map-click wedge (scatter center now clamped to the
       grid). DZ-radius overlay-under-cursor remains the only D2 polish TODO.
-- **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
-  widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
+- **D3 — AA / hot drops (shipped 2026-06-27).** The hot/cold curve is live.
+  - **Slice 1 — AA drain + shoot-down (`0751e013`).** `AirSystem.tickAirThreat`: each airborne shuttle
+    (INCOMING / HOVER_STATION / DEPARTING) within `AA_THREAT_RADIUS` of an enemy `MapTurret` takes
+    `AA_DPS_PER_POST × postsInRange` HP/sec; at 0 HP it's shot down (GONE via `releaseAirEntity`,
+    marines aboard lost → partial-success wave). First damage source for `ShuttleMission.hp`, so the
+    `HOVER_HP_THRESHOLD` loiter-abort also went live. Area drain (not lock-on), spatial-indexed.
+    **Universal** (standalone arrival shuttles feel it too) — gentle tuning vs `AEROSHUTTLE` maxHp=60;
+    *watch standalone balance.* Follow-ups: drone-hub AA, a crash FX (vs instant disappear).
+  - **Slice 2 — threat-scaled spread (`4fba6ea0`).** DZ radius widens with zone threat:
+    `ZONE_RADIUS_CELLS × (1 + HOT_SPREAD_PER_ENEMY × enemyCount)`, capped at `ZONE_RADIUS_MAX_CELLS`.
+    Cold = tight wide LZ (30); hot fans out toward 60 (isolating). Launch log reports threat + radius.
 - **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
   aboard → AA-suppression / air superiority becomes prep (ties to the skybattle feature).
 - **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
