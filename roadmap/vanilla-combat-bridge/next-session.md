@@ -39,8 +39,8 @@ Decomposition:
 - **S3c — airspace banding / AI gating.** Parked → folded into the skybattle feature.
 - **S3d — drop-ship invasion.** Re-spec'd 2026-06-25 into the bridge's product core (transport
   orbits, sim-native dropships land marines, diegetic/scored/emergent). Vision + D1–D5 ladder
-  written; **D1 shipped 2026-06-27; D2 in progress — scatter engine landed (`3d232392`), painted DZ next.**
-  See the S3d story.
+  written; **D1 + D2 shipped 2026-06-27 (scatter wave `3d232392` + "land here" click DZ `141bf9e9`); D3
+  (AA / hot drops) next.** See the S3d story.
 
 ### Scale + real-map pass (done after S3b playtest; re-dialed 2026-06-27)
 - `WORLD_UNITS_PER_CELL` stepped **50 → 20 → 7** (`02c829b0`… → `2118b4b2`): at 7 the ground
@@ -205,19 +205,22 @@ arrival latch that could never trip on a non-settling lumbering carrier → dwel
 (`ARRIVE_DWELL_SEC = 6s`, logged "dwell-timeout"); "one takeover per battle" doc → "one active at a time."
 The brain-target vs fresh-LZ centroid divergence (#4) was confirmed a non-bug, left as-is.
 
-**D2 — painted DZ + scatter (in progress).**
-- **Slice 1 — scatter engine ✅ (`3d232392`):** `DropZoneScatter` (battle/air) — pure, dependency-inverted
-  (walkable + threat lambdas, no compile dep on grid/`TacticalScoring`, unit-tested). The carrier now
-  launches a *wave* (`DROP_COUNT = 5` staggered `AEROSHUTTLE`s) over a hardcoded centroid+radius zone:
-  safest-first, min-spaced landing cells; threat = `TacticalScoring.countCombatantsWithin(DEFENDER, …)`.
-  Cold spread (threat ranks cells, radius fixed). The single-drop ref became a wave list; retarget
-  tracks + prunes the whole wave.
-- **Slice 2 — commander-painted DZ (next):** replace the hardcoded centroid+`ZONE_RADIUS_CELLS` with a
-  zone the player paints in the spectator canvas. Open question: cell-paint vs radius brush (overview
-  fact-12 "starve, don't cover" overlay constraint applies).
+**D2 — DZ + scatter ✅ shipped.**
+- **Slice 1 — scatter engine (`3d232392`):** `DropZoneScatter` (battle/air) — pure, dependency-inverted
+  (walkable + threat lambdas, no compile dep on grid/`TacticalScoring`, unit-tested). The carrier
+  launches a *wave* (`DROP_COUNT = 5` staggered `AEROSHUTTLE`s): safest-first, min-spaced landing cells;
+  threat = `TacticalScoring.countCombatantsWithin(DEFENDER, …)`. Cold spread (threat ranks cells, radius
+  fixed). Single-drop ref became a wave list; retarget tracks + prunes the whole wave. Critique M1
+  (INTERNAL-air contract) fixed `59e97470`; L1/L5 perf/leak follow-ups noted in the story.
+- **Slice 2 — "land here" click DZ (`141bf9e9`):** left-click designates a **wide** LZ
+  (`ZONE_RADIUS_CELLS = 30`) at the cursor; the carrier takes over + flies there + scatters the wave
+  around it. Re-click before the drop re-aims (`CarrierDescentBrain.setTarget`). L-key trigger removed.
+  Painting rejected as too fiddly for fast play (user call). Cursor→world via viewport rectangle getters
+  (not `convert*`, which drift under the spectator camera). DZ-overlay (radius under cursor) = polish TODO.
 
-Then D3 (AA/hot drops — defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
-radius widens with threat), D4 (orbit window stake), D5 (continuous logistics).
+**Next — D3 (AA / hot drops):** defense posts get an air-threat radius draining `ShuttleMission.hp`
+(wired-forward, no damage source yet); the scatter radius widens with threat (the "cold spread" radius is
+fixed today). Then D4 (orbit window stake), D5 (continuous logistics).
 
 **D1 playtest (2026-06-27): works okay** — carrier orbits, drops, deboards, dropship flies home. Remaining
 watch-items (the dev probe — Ctrl+Shift+K, press **L**): stale target as structures die (non-bug); ASSAULT

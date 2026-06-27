@@ -5,8 +5,8 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1 shipped; D2 in progress (scatter engine
-> landed 2026-06-27, commander-painted DZ next).**
+> spine, never scripted modes). Vision locked 2026-06-25; **D1 + D2 shipped 2026-06-27 (scatter wave +
+> "land here" click-designated DZ); D3 (AA / hot drops) next.**
 > Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
@@ -98,8 +98,13 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
       launch hitch — coarser lattice / reuse scratch / pre-bucket density when it matters); **(L5,
       pre-existing)** `AirSystem` never removes `GONE` shuttles from its list (host prunes its own
       `drops`; the unbounded growth is in `AirSystem`, a separate cleanup task).
-  - **Slice 2 — commander-painted DZ (next).** Replace the hardcoded centroid+radius with a zone the
-    player paints in the spectator canvas (open question: cell-paint vs radius brush).
+  - **Slice 2 — "land here" click-designated DZ (`141bf9e9`, shipped).** Left-click a point in the
+    spectator canvas → the carrier takes over, flies there + orbits, and scatters its wave across a
+    **wide** LZ (`ZONE_RADIUS_CELLS = 30`) around the click. A click before the drop re-aims it
+    (`CarrierDescentBrain.setTarget`). The L-key centroid trigger is gone. *Painting was rejected as
+    too fiddly for fast play — a wide single-click LZ reads as "land here-ish" (user call).*
+    Cursor→world uses the viewport rectangle getters (not `convert*`, which drift under the
+    spectator's `setExternalControl` camera — see `SeeThroughPlugin`).
 - **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
   widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
 - **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
@@ -184,8 +189,10 @@ critical path for this vision.
 
 ## Open questions (resolve at the relevant rung)
 
-- **DZ painting UX** — how the commander designates the zone in the spectator canvas (cell paint vs. a
-  radius brush). The fact-12 "starve, don't cover" overlay constraint applies (overview § round 2).
+- ~~**DZ painting UX**~~ **Resolved (D2 slice 2):** a single left-click designates a wide "land here"
+  zone (fixed `ZONE_RADIUS_CELLS`), re-aimable before the drop. Painting/brush rejected as too fiddly
+  for fast-paced play. A DZ overlay (showing the radius under the cursor) is still a polish follow-up —
+  the fact-12 "starve, don't cover" constraint applies when it lands.
 - **Carrier→cell projection origin** — `worldToCell` is a trivial inverse, but the "airspace band" the
   carrier orbits in vs. the ground plane is a convention to pin (overview open question #1; S3c spatial fork).
 - **Marine pool plumbing** — the per-battle marine count rides the campaign→battle bridge
