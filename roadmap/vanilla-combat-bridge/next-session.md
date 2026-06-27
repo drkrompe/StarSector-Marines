@@ -240,10 +240,15 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
   the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.
 
 ### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
-Two sub-points. (a) **Hitbox size/shape**: `setCollisionRadius(float)` is mutable at runtime
-→ size each proxy to its ground footprint (turrets small). True polygon *shape* comes from
-the hull variant bounds (not cheaply settable) — pick a small-bounds variant if shape
-matters. (b) **"Smaller target PD prioritizes"**: PD prioritization most likely keys off
+Two sub-points. (a) ~~**Hitbox size/shape**: size each proxy to its ground footprint.~~ ✅
+**SHIPPED (2026-06-27, `4625f753`)** — a `ProxyShape` seam applied at spawn in `SimProxyMirror`.
+`FootprintCircleShape` (the general structure shape) sets `setCollisionRadius` to the entity's
+footprint in cells (`TurretKind.visualCells` / `DroneHubUnit.VISUAL_CELLS`) × `worldUnitsPerCell`,
+so the hittable area matches the structure and tracks cell density. Seam has two extension axes:
+**more proxied targets** → register a footprint in `FootprintCircleShape.footprintCells`; **more
+shapes** (true polygon bounds, multi-proxy clusters) → sibling `ProxyShape` impls picked in
+`ProxyShape.forUnit`. (True polygon *shape* still needs hull-variant bounds — a future shape impl,
+pick a small-bounds variant if it matters.) (b) **"Smaller target PD prioritizes"**: PD prioritization most likely keys off
 `isFighter()` (hull-type), NOT `CollisionClass.FIGHTER` — so the reliable path is to spawn an
 actual **fighter wing** as the proxy, not flip the collision class on a ship hull. User's
 extension idea: **ground bases (defense structures) launch their own fighter wings** — a
