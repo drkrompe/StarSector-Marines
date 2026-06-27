@@ -129,9 +129,10 @@ chosen point against the admiral* (playtest 2026-06-25: the ship hard-moved to t
 returns `[0,360)` — so a small CW error read as ~350° and the ship braked instead of thrusting. Now uses
 `Misc.getAngleDiff` (true `[0,180]`) + `Misc.turnTowardsFacingV2` (vanilla's overshoot-damped turn).
 
-**Playtest watch-items** (fine for a `@DebugOnly` probe): orbit/stall at the arrival boundary (no
-closing-velocity gate); target snapshotted at takeover (drifts as structures die); the parked
-`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war).
+**Playtest watch-items** (fine for a `@DebugOnly` probe): target snapshotted at takeover (drifts as
+structures die — confirmed a non-bug, geometry stays valid); the parked `CarrierEngagementPlugin` ASSAULT
+co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war). *(Playtested 2026-06-27:
+works okay — carrier orbits, drops, deboards, dropship flies home.)*
 
 **Critique pass (`16433ef5`):** a background review of D1b caught a real wedge — the LZ was the raw structure
 centroid, which can sit on a non-walkable cell; the deboard scan only reaches 5 cells, so a dropship there
@@ -139,6 +140,12 @@ would stick in LANDED forever and deliver nothing. Fixed by snapping the LZ to t
 (BFS over `sim.getGrid()`) before the spawn. The rest of the slice (inverse-projection geometry, the
 min-leg pushback, the one-shot arrival latch, INTERNAL-air, add-vs-tick ordering) verified correct. D2's
 threat-scored scatter still supersedes the single-centroid LZ with proper landing-cell selection.
+
+**Critique LOWs cleared (`89012a28`, `50268888`):** the departing-dropship-vanishes wart became the
+carrier-return egress (above). The arrival latch could never trip if a *lumbering* carrier orbited the
+point without settling below `SETTLED_SPEED` — added a dwell fallback (`ARRIVE_DWELL_SEC = 6s`: loiter in
+`ARRIVE_RADIUS` long enough and it latches anyway, logged "dwell-timeout"). The "one takeover per battle"
+doc was corrected to "one active at a time" (a second carrier is takeable once the first dies).
 
 ## Superseded alternative — kept for the reasoning
 

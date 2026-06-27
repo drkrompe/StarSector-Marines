@@ -193,14 +193,18 @@ on a non-walkable cell, and the deboard scan only reaches 5 cells, so a dropship
 LANDED forever and deliver nothing. Fixed by snapping the LZ to the nearest walkable cell before spawn. The
 rest of D1b (geometry, min-leg pushback, one-shot latch, INTERNAL-air, add-vs-tick ordering) verified correct.
 
+**Critique LOWs cleared (`89012a28`, `50268888`):** departing-vanish → carrier-return egress (above);
+arrival latch that could never trip on a non-settling lumbering carrier → dwell fallback
+(`ARRIVE_DWELL_SEC = 6s`, logged "dwell-timeout"); "one takeover per battle" doc → "one active at a time."
+The brain-target vs fresh-LZ centroid divergence (#4) was confirmed a non-bug, left as-is.
+
 **Next build — D2: painted DZ + scatter.** Replace the single (snapped) centroid LZ with a commander-painted
 zone; sample landing cells via `TacticalScoring`, spread ∝ threat (cold spread first). Then D3 (AA/hot drops),
 D4 (orbit window stake), D5 (continuous logistics).
 
-**D1 playtest watch-items** (the dev probe — Ctrl+Shift+K, press **L**): does the launched dropship's
-descent read (leg long enough)? does it deboard onto the band (centroid walkable)? do the four setup
-Aeroshuttles now draw? orbit/stall at the arrival boundary; stale target as structures die; ASSAULT
-co-existence with the takeover.
+**D1 playtest (2026-06-27): works okay** — carrier orbits, drops, deboards, dropship flies home. Remaining
+watch-items (the dev probe — Ctrl+Shift+K, press **L**): stale target as structures die (non-bug); ASSAULT
+co-existence with the takeover (`setShipAI` should win — confirm no tug-of-war).
 
 ### Live battle below the fleet ✅ SHIPPED (2026-06-20) — the chosen "bridge the sim over" slice
 The coupled sim was **map-only** (terrain + static defense-post turrets). Swapped it to a **live
