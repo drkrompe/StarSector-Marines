@@ -50,9 +50,10 @@ universe over time, not retrofitted into intel slots.
   sim and vanilla `CombatEngineAPI` together (the reverse of how the mod is built).
   Past its probes: sim-authoritative *proxy targets* are proven, and a live Conquest
   ground battle now runs below a real vanilla fleet fight. The product it builds toward
-  is the **drop-ship invasion** (S3d) — a transport establishes orbit over a painted
-  drop zone and sim-native dropships land marines; vision + D1–D5 ladder spec'd, D1 shipped
-  (carrier orbits → launches a sim dropship that descends + deboards), D2 (painted DZ + scatter) next.
+  is the **drop-ship invasion** (S3d) — **the full D1–D5 ladder shipped 2026-06-27**: click a drop
+  zone → carrier establishes orbit → timed dropship waves fall through AA into a threat-scaled scatter
+  → marines fight; the fleet you bring is the invasion depth, and losing the transport is the stake.
+  Remaining: extraction/dustoff + the skybattle feature (the carrier-death source that arms the stake).
   A third **design-stage** track — [`air/`](air/overview.md) — recaptures
   vanilla/modded airborne craft (fighters and overhead ships) as sim entities
   via a shared `ShipHullSpecAPI`-sourced hull-extraction pipeline (kinematics +
