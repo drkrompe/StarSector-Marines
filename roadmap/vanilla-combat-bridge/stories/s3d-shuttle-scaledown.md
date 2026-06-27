@@ -5,8 +5,8 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1 is the next build.** Unblocked by
-> S3e (`AirProvider`).
+> spine, never scripted modes). Vision locked 2026-06-25; **D1 shipped 2026-06-27 — D2 is next.**
+> Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
 > mechanic. That approach is superseded; see § Superseded alternative for why and what it taught us.)*
@@ -77,10 +77,12 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
 
 ## Build ladder (D1–D5) — each rung adds one pillar, no rework
 
-- **D1 — the core handoff + the shot (MVP of the *scene*).** Trigger → carrier establishes orbit over a
-  painted point (reuse `CarrierDescentBrain`) → spawn sim dropships from its projected cell → they
-  descend (altitude-scale, free) → deboard squads. Render the `SHUTTLES` layer. *The whole cinematic at
-  its simplest — no AA yet.*
+- ~~**D1 — the core handoff + the shot (MVP of the *scene*).**~~ **Shipped 2026-06-27**
+  (`02c829b0` render, `219b04ee` spawn). Press **L** → carrier establishes orbit over the band
+  (reuse `CarrierDescentBrain`) → on arrival, `CarrierDescentPlugin` spawns a sim dropship from the
+  carrier's projected cell (`worldToCell`) → it descends (altitude-scale, free) → deboards its squad.
+  The `SHUTTLES` layer draws it (plus the four pre-existing setup Aeroshuttles, which were already
+  running invisibly). *The whole cinematic at its simplest — no AA yet.*
 - **D2 — painted DZ + scatter** via `TacticalScoring` sampling landing cells in the zone (cold spread first).
 - **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
   widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
@@ -90,27 +92,44 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   waves over time replacing the fixed manifest; running-out → fight-to-the-end *emerges*.
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
 
-## Built so far — the orbit-positioning takeover (D1, part 1)
+## Built so far — D1 complete (orbit takeover → drop-ship launch → render)
 
-The mothership-positioning half of D1 is built + wired into the bridge (`CombatBridgeSession.enterEngine`),
-originally as the "fly-to-handoff" probe and now repurposed as "establish orbit over the DZ":
+The full D1 loop is built + wired into the bridge (`CombatBridgeSession.enterEngine`). Press **L** in a
+SIM_COUPLED battle and the whole scene plays out at its simplest:
 
+**Part 1 — the orbit-positioning takeover** (originally the "fly-to-handoff" probe, repurposed):
 - **`CarrierDescentBrain implements ShipAIPlugin`** (host/) — grip **tier 2**: owns the brain, vanilla
   physics flies the ship. Turns toward the target, thrusts only inside a heading cone, bleeds speed while
   turning / near the target so it arrives instead of orbiting; settles + logs at the target. Never fires.
-- **`CarrierDescentPlugin`** (host/) — press **L** in a SIM_COUPLED battle to take over the first live
-  carrier and steer it to the live ground-band centroid (`GroundBattleConfig.targetableCentroid`).
+  Exposes `hasArrived()` as the launch cue.
+- **`CarrierDescentPlugin`** (host/) — press **L** to take over the first live carrier and steer it to the
+  live ground-band centroid (`GroundBattleConfig.targetableCentroid`).
 
-This proved the load-bearing tier-2 question — *a custom `ShipAIPlugin` can steer a live vanilla ship to a
-chosen point against the admiral* (playtest 2026-06-25: the ship hard-moved to the target). **D1's remaining
-half:** the sim-dropship spawn from the carrier's projected cell + the `SHUTTLES` render layer.
+Proved the load-bearing tier-2 question — *a custom `ShipAIPlugin` can steer a live vanilla ship to a
+chosen point against the admiral* (playtest 2026-06-25: the ship hard-moved to the target).
+
+**Part 2 — the drop-ship launch + render** (`02c829b0`, `219b04ee`):
+- **`GroundBattleConfig.worldToCell`** — inverse of `cellToWorld`; maps the carrier's combat-world
+  position to the sim cell the dropship spawns from.
+- **`CarrierDescentPlugin.advance`** — on `brain.hasArrived()`, one-shot spawns a pure-transport
+  `AEROSHUTTLE` (`Faction.MARINE`) via `sim.addShuttle`: entry = carrier cell, LZ = band centroid, entry
+  pushed back along the carrier→LZ bearing when the carrier settled almost on the LZ (the altitude lerp is
+  leg-distance driven, so a zero-length leg shows no descent). Air stays **INTERNAL**, so `addShuttle` is
+  legal; the sim ticks in `SimProxyMirror.advance` earlier in the frame, so the add never races the air loop.
+- **`SHUTTLES` render layer** — added to `DEFAULT_SCENE_LAYERS`; `GroundSceneBackdrop` now loads shuttle +
+  engine-FX sprites. `ShuttleRenderSystem` was already registered, so this also made the four pre-existing
+  setup Aeroshuttles (which ran invisibly) read on screen.
 
 **Critique fix (`70f3d0a`):** the heading-cone used `Math.abs(normalizeAngle(...))`, but `Misc.normalizeAngle`
 returns `[0,360)` — so a small CW error read as ~350° and the ship braked instead of thrusting. Now uses
 `Misc.getAngleDiff` (true `[0,180]`) + `Misc.turnTowardsFacingV2` (vanilla's overshoot-damped turn).
+
 **Playtest watch-items** (fine for a `@DebugOnly` probe): orbit/stall at the arrival boundary (no
 closing-velocity gate); target snapshotted at takeover (drifts as structures die); the parked
-`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war).
+`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war);
+**D1b LZ walkability** — the LZ is the raw structure centroid, which can land on a non-walkable cell; the
+deboard BFS scans radius 5 for a free cell, but a fully-walled centroid would drop no marines (D2's
+threat-scored scatter picks proper landing cells and removes this risk).
 
 ## Superseded alternative — kept for the reasoning
 
