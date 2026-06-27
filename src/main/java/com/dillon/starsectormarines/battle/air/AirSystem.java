@@ -16,9 +16,12 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -47,6 +50,18 @@ import java.util.function.Consumer;
  * and a {@link TurretFireSink} for the mounted-turret fire path.
  */
 public class AirSystem {
+
+    private static final Logger LOG = Global.getLogger(AirSystem.class);
+
+    /** Cell radius within which an enemy defense post threatens an airborne shuttle (the AA bubble). */
+    private static final float AA_THREAT_RADIUS_CELLS = 14f;
+    /**
+     * HP/sec each enemy defense post in range drains from an airborne shuttle. Gentle by design — a
+     * lone post merely taxes a pass, but a cluster (a hot drop zone) shreds the wave. Tuned against
+     * {@code AEROSHUTTLE} maxHp = 60: one post for a ~3s descent leg costs ~18 (survivable), three
+     * posts shred it. Re-dial freely. (S3d D3; the standalone battle's arrival shuttles feel it too.)
+     */
+    private static final float AA_DPS_PER_POST = 6f;
 
     /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Driven by {@link Shuttle#altitudeT}; ground scale is 1.0. */
     private static final float SHUTTLE_CRUISE_SCALE = 1.5f;
@@ -194,8 +209,61 @@ public class AirSystem {
 
     public void tick(float dt) {
         advanceShuttles(dt);
+        tickAirThreat(dt);
         tickShuttleTurrets(dt);
         advanceThrusterFx(dt);
+    }
+
+    /**
+     * Anti-air: each airborne shuttle within range of an enemy defense post (turret) takes HP drain,
+     * summed over every post in its AA bubble. At zero HP it's shot down — the marines still aboard are
+     * lost, so a hot drop zone yields a partial-success wave (S3d D3). This is the first damage source
+     * for {@link ShuttleMission#hp}, so the {@link Shuttle#HOVER_HP_THRESHOLD} loiter-abort also goes
+     * live here. Area drain, not lock-on projectiles — the same "structures threaten an area" model as
+     * ground-vs-infantry. Posts come from the spatial index, so this is O(shuttles × small bucket).
+     */
+    private void tickAirThreat(float dt) {
+        if (shuttles.isEmpty()) return;
+        ArrayList<Entity> scratch = new ArrayList<>();
+        for (Shuttle s : shuttles) {
+            if (!isAirborneHittable(s)) continue;
+            scratch.clear();
+            navigation.getUnitIndex().gather(Math.round(s.body.x), Math.round(s.body.y),
+                    AA_THREAT_RADIUS_CELLS, scratch);
+            int posts = 0;
+            for (int i = 0, n = scratch.size(); i < n; i++) {
+                Entity e = scratch.get(i);
+                if (e.faction == s.faction) continue;
+                if (!(e instanceof MapTurret)) continue;     // defense posts only — not infantry / mechs
+                if (!world.isAlive(e.entityId)) continue;
+                posts++;
+            }
+            if (posts == 0) continue;
+            s.mission.hp -= posts * AA_DPS_PER_POST * dt;
+            if (s.mission.hp <= 0f) shootDown(s, posts);
+        }
+    }
+
+    /**
+     * Airborne states an AA post can hit — the descent gauntlet, the armed loiter, and the egress. A
+     * LANDED shuttle deboarding on the ground is exempt (it's already "down").
+     */
+    private static boolean isAirborneHittable(Shuttle s) {
+        Shuttle.State st = s.mission.state;
+        return st == Shuttle.State.INCOMING || st == Shuttle.State.HOVER_STATION
+                || st == Shuttle.State.DEPARTING;
+    }
+
+    /**
+     * Shoot-down: the shuttle dies in the air with its undelivered marines aboard. Terminal like the
+     * DEPARTING→GONE transition — set GONE and release its optional air components through the single
+     * death seam ({@link #releaseAirEntity}).
+     */
+    private void shootDown(Shuttle s, int posts) {
+        s.mission.state = Shuttle.State.GONE;
+        releaseAirEntity(s.entityId);
+        LOG.info("air: shuttle " + s.type + " shot down by " + posts + " AA post(s) with "
+                + s.mission.marinesRemaining + " marine(s) still aboard.");
     }
 
     /**
