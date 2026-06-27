@@ -220,14 +220,14 @@ method together act as a copyable template — see
   directly on battle victory, since phasesDone goes 0→1 and
   phasesTotal=1). Functionally fine for the current scope; will need
   attention when multi-phase Planetary Assault lands.
-- **Offer expiry** — offers don't lapse. Per-patron cap (1 outstanding)
-  keeps the count bounded at ~80 sector-wide so it's not a real
-  scaling concern, but the offer pool doesn't *feel* alive without
-  expiry. Small lifecycle addition in `ContractLifecycleSystem`.
-- **Patron archetype byte populated at seed time** — designed in
-  `mechanics.md` and the narrative overview (CORPORATE_RUSHED / FALLEN_NOBLE /
-  TRUE_BELIEVER / etc), unused so far. `HouseSeeder` doesn't populate
-  it; briefing flavor doesn't read it.
+- ~~**Offer expiry** — offers don't lapse.~~ **Shipped** (`7136bc09`):
+  `ContractGenerator` stamps `offerExpiresTick` per the patron's
+  archetype-driven window; `ContractLifecycleSystem` lapses `OFFERED → EXPIRED`.
+- ~~**Patron archetype byte populated at seed time**~~ **Shipped**
+  (`e3cbe306`, `1e6afe6d`): `HouseSeeder` populates `houseArchetype[]`
+  deterministically and the briefing path reads it through
+  `BriefingComposer.compose(archetype, mood, …)` (archetype × comms-officer
+  mood). See the `narrative/` track.
 - **Contract generator for non-STRIKE types** — ESCORT,
   PLANETARY_ASSAULT, GARRISON, CADRE, EXTRACTION are byte-backed in
   ContractType but never spawned. Strike is the only type the

@@ -84,20 +84,21 @@ universe over time, not retrofitted into intel slots.
    and the post-battle picker grid with cargo-capacity check + 75%
    fence-on-spot for overflow. MechWarrior Mercenaries vibe. Designed in
    [`campaign/loot/overview.md`](campaign/loot/overview.md).
-2. **Offer expiry + patron archetypes** — small polish round. Offers
-   currently never lapse; add expiry in `ContractLifecycleSystem`.
-   Archetype byte (CORPORATE_RUSHED / FALLEN_NOBLE / etc) is designed
-   in `mechanics.md` but `HouseSeeder` doesn't populate it; briefing
-   flavor doesn't read it.
-3. **Contract generation for non-STRIKE types** — `ContractType` has
+2. **Contract generation for non-STRIKE types** — `ContractType` has
    six values; only STRIKE is generated. GARRISON + CADRE introduce
    retainer payment over time (closer to the contract design's
    "two-mode dichotomy" from `campaign/contracts/overview.md`).
-4. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See
    [`conquest/central-keep.md`](conquest/central-keep.md) § V2.
+
+*(Shipped since this list was written: **offer expiry + patron archetypes** —
+offers now lapse per archetype-driven windows (`ContractGenerator` +
+`ContractLifecycleSystem`), and `HouseSeeder` populates `houseArchetype[]`
+which drives the briefing voice via `BriefingComposer`. Commits `e3cbe306`,
+`1e6afe6d`, `7136bc09`.)*
 
 ## How to use this directory
 
