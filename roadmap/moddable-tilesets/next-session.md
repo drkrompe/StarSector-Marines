@@ -41,7 +41,7 @@ Key decisions as shipped:
 > `NavigationService` changes, NOT this work (none of our files touch that code;
 > our domain's tests all pass in isolation). Leave their files alone.
 
-## Phase 1c — in progress (SCOPED: live blocks)
+## Phase 1c — COMPLETE ✅ (SCOPED: live blocks)
 
 User scoped 1c to the **live grid blocks + dead-code cleanup** (not a full
 `TileManifest` port). Gut-check correction: genuine dead code is minimal —
@@ -66,9 +66,7 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
   center-only → **variant pools** (`GridBlockDef` cells, hashed), NOT autotiles;
   reuse the existing 16px `floorsTile`/`waterTile` path (no new emitter). `SNOW`
   dropped (dead). **All four grid sheets flipped.**
-- **Catalog fold-in ✅ `ab6e98ac`** (gradle `:test` PENDING — tree red on a
-  sibling's `UnitRegistry` refactor at commit time; all 4 of my main files +
-  2 test files IntelliJ-verified clean, fold node-verified lossless). User chose
+- **Catalog fold-in ✅ `ab6e98ac`** (gradle-verified green 2026-06-27). User chose
   **fold into tileset JSON** + **retire test-only pickers + oracle** (AskUserQuestion
   2026-06-27). What landed: each grid sheet's `<sheet>.catalog.json` per-cell
   labels folded into its `.tileset.json` as a read-only `"cells"` array (one file
@@ -77,22 +75,23 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
   `name`/`description`. `TilesetDebugScreen` → read-only viewer; the in-game catalog
   editor (`TilesetCatalog`/`Normalizer`, saves/common round-trip, `pullCatalogs`
   task, the 2 catalog tests) deleted. `TileRegistryCellLabelTest` pins the lookup.
-  → **Run once green:** `gradlew :test --tests "*TileRegistryCellLabelTest*" --tests "*TileRegistryParityTest*"`
-  (the parity test now also loads the new `cells` arrays at bootstrap).
-- **Thread A — picker retirement (queued, NOT started; needs a green tree):**
-  Per Q2 "retire test-only pickers + oracle": migrate the dev-tool preview tests
-  (`FixedGridZonePreviewTest`/`BuildingZonePreviewTest`/`BspMapSpritePreviewTest`)
-  off `TileManifest.pickXxx` onto block ids; flip `BattleRenderer` brick
-  (`BattleRenderer.java:442` `pickBrickTile`) to the `floors.brick` registry block;
-  then delete the test-only pickers (incl. dead `pickSnowTile` + unused edge
-  resolvers) AND the now-redundant `GridBlockParityTest` oracle. **Keep** the 3
-  production-live pickers: `pickNatureGrassTileId`, `pickNatureDirtTileId`,
-  `pickWallTile` (WallMasks registry-fallback). Do the migration + brick flip
-  first (keeps the oracle), verify against the oracle when green, THEN delete the
-  oracle/pickers — don't delete the safety net blind.
+- **Thread A — picker retirement ✅ `bfe76d9e`** (gradle-verified green). Authored
+  via an ultracode workflow (map → migrate → retire → verify). Migrated the dev
+  preview tests (`FixedGrid`/`Building`/`Street`/`BspMapSprite` zone previews) +
+  `BattleRenderer` roof brick off `TileManifest.pickXxx` onto `reg.block(id).resolve(...)`;
+  dropped the dead SNOW case (no `floors.snow` block). Deleted **14** test-only
+  pickers + their private helpers/origin constants + `FL_TILE`, and the now-redundant
+  `GridBlockParityTest` oracle. **Kept** the 3 production-live pickers
+  (`pickNatureGrassTileId`, `pickNatureDirtTileId`, `pickWallTile`) + the public
+  `*_FILL_RGB` constants + `TileFrame` + `FLOORS_TILE_SIZE`. (The grep-gated retire
+  caught `StreetZonePreviewTest` as an unlisted consumer — migrated it too.)
 
-Then **Phase 2** (gen mapping as data — incl. the doodad pools) and **Phase 3**
-(mod-merge, deferred).
+**Phase 1c is done.** The full live tile surface — sliced + all four grid sheets +
+per-cell labels — is data-driven through `TileRegistry`; `TileManifest` is now just
+the kept production pickers (nature pools, wall fallback) + doodad/turret tables.
+
+Then **Phase 2** (gen mapping as data — incl. the doodad pools + turret embankment,
+both still hardcoded in `TileManifest`) and **Phase 3** (mod-merge, deferred).
 
 > **Concurrent-session friction (recurring):** another session's drone/turret/
 > sim refactor has repeatedly left `battle/` main OR its test files
