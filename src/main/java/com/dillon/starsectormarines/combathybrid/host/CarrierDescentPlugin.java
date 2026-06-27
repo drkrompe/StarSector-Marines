@@ -189,6 +189,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      */
     private void launchDrop() {
         dropLaunched = true;
+        // Requires AirProvider.INTERNAL — dropships are the sim's own shuttles, so addShuttle below
+        // fail-louds under EXTERNAL. The bridge runs INTERNAL by design (S3d); see BattleSimulation.
         BattleSimulation sim = config.sim();
         NavigationGrid grid = sim.getGrid();
         TacticalScoring scoring = sim.getTacticalScoring();

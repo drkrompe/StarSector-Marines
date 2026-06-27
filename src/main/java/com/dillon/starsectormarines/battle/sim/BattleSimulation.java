@@ -252,7 +252,7 @@ public class BattleSimulation implements BattleControl {
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
-    /** Who owns the air layer. {@link AirProvider#INTERNAL} by default (standalone battles run their own shuttles + flyby); the combat-bridge host sets {@link AirProvider#EXTERNAL} so the sim's air tick is skipped and internal air-install is rejected. See {@link AirProvider}. */
+    /** Who owns the air layer. {@link AirProvider#INTERNAL} by default — standalone battles <em>and</em> the current combat-bridge host both run the sim's own shuttles + flyby (the S3d drop-ship invasion depends on it: dropships are the sim's own {@code Shuttle}s, spawned via {@link #addShuttle}). {@link AirProvider#EXTERNAL} is the alternative where a host owns the air — the sim's air tick is skipped and internal air-install is rejected — kept for a future direct-injection bridge, but not used today. See {@link AirProvider}. */
     private AirProvider airProvider = AirProvider.INTERNAL;
 
     /** Battle-scoped tactical data from the map generator — TacticalMap hint graph + DefensePost list. The {@link #getTacticalMap}/{@link #setTacticalMap}/{@link #setDefensePosts} delegates below forward here. */

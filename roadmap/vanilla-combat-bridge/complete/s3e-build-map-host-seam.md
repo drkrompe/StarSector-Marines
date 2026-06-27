@@ -1,5 +1,12 @@
 # S3e — "Build a BattleSimulation, then choose a host"
 
+> ⚠️ **Superseded detail (2026-06):** this doc records S3e setting the bridge to
+> `AirProvider.EXTERNAL`. The later live-battle slice + the S3d drop-ship invasion **reverted the
+> bridge to `INTERNAL`** — the sim owns its own shuttles (dropships spawn via `addShuttle`), and the
+> vanilla carriers' air-to-ground is additive. `EXTERNAL` + `deliverSquad` remain valid for a future
+> direct-injection bridge but are *not* the current path. Anything below that says "bridge → EXTERNAL"
+> is the original S3e plan, not today's reality.
+
 > **SHIPPED** — `d152441` (AirProvider) → `e171d00` (buildMap) → `03dd62f` (bridge). Test
 > suite green throughout. The standalone factories and the combat-bridge host now build
 > their sim through one shared `BattleSetup.buildMap`, and air ownership is an explicit
