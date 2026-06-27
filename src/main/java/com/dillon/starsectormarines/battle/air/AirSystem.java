@@ -400,6 +400,11 @@ public class AirSystem {
                             }
                             s.mission.marinesRemaining = s.type.capacity;
                             s.mission.pendingDelay = s.mission.rearmDelay;
+                            // The re-arm is a full refit at the carrier, so repair the hull too —
+                            // without this, AA damage (D3) carries across sorties and a cycling
+                            // shuttle dies early on a later run despite "re-arming". Symmetric with
+                            // the magazine refill below.
+                            s.mission.hp = s.type.maxHp;
                             // Each sortie spawns an independent squad — without
                             // this reset, marines from cycle N+1 reinforce the
                             // surviving squad from cycle N instead of forming
