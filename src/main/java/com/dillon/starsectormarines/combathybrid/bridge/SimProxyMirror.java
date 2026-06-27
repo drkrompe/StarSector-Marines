@@ -120,6 +120,10 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             proxy.setExtraAlphaMult(0f);                  // invisible; the scene's UNITS layer draws it
             proxy.setCollisionClass(CollisionClass.SHIP); // hittable by weapons (explicit)
             proxy.setShipAI(null);                         // no brain — we pin it each frame
+            // Hittable footprint = the structure's real size, not the frigate hull it spawned from
+            // (and it tracks cell density, since the radius is in cells). The seam grows as more
+            // proxied target kinds / shapes arrive.
+            ProxyShape.forUnit(u).applyTo(proxy, u, cfg.worldUnitsPerCell());
             proxy.getLocation().set(loc);
             ProxyLink link = new ProxyLink(u, proxy);
             link.anchor.set(loc);
