@@ -102,6 +102,8 @@ a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capabil
 dafaacaf battle: fold Crashing onto the EntityWorld — CRASHING component (step-4 store fold)  ← 2026-06-25
 8f8a0d76 battle: fold MechLoadout onto the EntityWorld + delete the World cold face  ← 2026-06-25
 1cbf5b03 battle: relocate render position off Entity to the world RENDER_POSITION component  ← 2026-06-25
+751458a0 battle: World reads the EntityWorld directly — drop the registry-adapter middleman (step-4 B1)  ← 2026-06-27
+5a79941a battle: dissolve UnitRegistry — roster→UnitRosterService, by-id adapters→World (step-4 B2, FINALE)  ← 2026-06-27
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -259,8 +261,27 @@ is now **built and consuming real game state**:
   drone hub can no longer roll a fall-back it had no behavior to execute (the old
   gate only excluded `MapTurret`). Suite green at 772.
 
-**Step 4 — IN PROGRESS (2026-06-25).** The store folds first, then the registry
-dissolution:
+**Step 4 — COMPLETE (2026-06-27). THE MIGRATION IS DONE.** The store folds
+first (part A), then the registry dissolution (part B). `UnitRegistry` is
+**DELETED**: the entity is its `long` id, every per-entity datum lives in the
+archetype `EntityWorld`, `UnitRosterService` is the live `Entity[]` roster +
+id-mint + world owner, and `World` is the sole by-id access facade. See
+[`complete/dissolve-unit-registry.md`](complete/dissolve-unit-registry.md).
+- **Part B — dissolve `UnitRegistry` ✓ (B1 `751458a0`, B2 `5a79941a`).** B1:
+  `World` reads the `EntityWorld` columns directly (`World(EntityWorld,
+  BattleComponents)`), dropping the `registry.*ById` delegation — zero caller
+  churn, makes World independent of the registry. B2: the dense roster + id-mint
+  + `EntityWorld`/`BattleComponents` ownership fold into `UnitRosterService`
+  (which now owns + exposes the `World` via `world()`); the ~60 `*ById`/presence
+  adapters inline into `World`; `requireLiveIndex` dropped (zero callers);
+  `UnitRegistry` deleted. ~24 consumer + 3 test files repointed (5 Sonnet agents,
+  compiler backstop): adapter bits `registry.fooById(id)` → `world.foo(id)`,
+  roster bits → `roster.*`; `getUnitRegistry()`→`getRoster()`;
+  `Entity.advanceAlongPath` takes `World`; `UnitRegistryTest`→`UnitRosterServiceTest`.
+  Low-churn key: `battle.unit → battle.sim` already existed (Entity imports
+  World), so `UnitRosterService.world()` lets services reach `World` via their
+  existing `roster` ref with no new ctor params. Suite green at 765.
+- **The store folds (part A) — Crashing ✓ (`dafaacaf`), MechLoadout ✓ (`8f8a0d76`).** Both
 - **Store folds — Crashing ✓ (`dafaacaf`), MechLoadout ✓ (`8f8a0d76`).** Both
   optional rich-payload capabilities are now world OBJECT components (`CRASHING`
   id 10, `MECH_LOADOUT` id 11), each holding the existing component object. Kept
@@ -279,21 +300,16 @@ dissolution:
   [`complete/store-folds-and-render-position.md`](complete/store-folds-and-render-position.md).
   `ComponentStore<T>` now backs ONLY the air-FX stores (`ThrusterFx`/`AirTurrets`),
   a separate entity space — it dies in the air-into-world epic, not here.
-- **Step 4 proper — dissolve `UnitRegistry`.** With every dense column gone (the
-  registry is now id-mint + dense `Entity[]` + id↔slot map + the
-  owned-for-transition `EntityWorld`/`BattleComponents`/`RenderPositionService`),
-  hop id-mint + the `Entity[]` + the world ownership up to the sim and delete
-  `UnitRegistry`.
-
-**After step 4 — air entities into the world (new epic, captured 2026-06-25).**
-`ComponentStore<T>` legitimately survives step 4 for the **air** subsystem
+**NEXT — air entities into the world (epic, now UNBLOCKED 2026-06-27).**
+`ComponentStore<T>` survives the migration ONLY for the **air** subsystem
 (`ThrusterFx`/`AirTurrets`), which keys a *separate* entity space (`Shuttle` +
 `AirSystem.nextAirId`), not the battle world. The decision — **unify air into the
 one `EntityWorld`** (air-vs-ground is a component difference, not a separate
 world; drones already straddle) — is captured in
 [`roadmap/air/air-entities-into-world.md`](../air/air-entities-into-world.md). It
-is **gated on step 4**: it adopts air craft into the sim-owned world step 4
-creates. That epic is where `ComponentStore<T>` finally dies.
+was gated on step 4 (it adopts air craft into the sim-owned world the dissolution
+left behind); **step 4 is done, so this is the next epic.** It is where
+`ComponentStore<T>` finally dies.
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
