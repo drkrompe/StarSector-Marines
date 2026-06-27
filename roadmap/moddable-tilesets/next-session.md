@@ -138,9 +138,21 @@ unless a submod needs to reskin them.
   pinned by `GroundRenderMappingTest` (id + sheet/cellPx golden) + reasoning;
   an in-game visual A/B is the final check.
 
-**Remaining Phase 2:** per-`BlockKind` filler params (groundPool / plant+rock
-chances / etc.) → the `fillers` section of `*.mapping.json`, fillers read their
-param block from `GenMappingRegistry`. Then **Phase 3** (mod-merge, deferred).
+- **Filler params ✅ `2d37595a`** (IntelliJ/JSON-verified; gradle `:test` pending —
+  sibling Shuttle/air refactor had main red at commit). `NatureZoneFiller`'s
+  tunables → the `fillers` section of `urban.mapping.json`, read via new
+  `FillerParams` + `GenMappingRegistry.fillerParams(BlockKind)`. Weighted base-ground
+  pool (grassland/beach; wetland keeps its water-puddle carve), plant/rock chances
+  + id pools. Deleted the hardcoded chance constants + `pickPlant`/`pickRock`.
+  Behavior-preserving (weighted pick reproduces the 0.80/0.95 thresholds — weights
+  sum to 100; pool order + draws unchanged); `FillerParamsParityTest` pins values.
+  **First thing next session: run** `gradlew :test --tests "*FillerParamsParityTest*" --tests "*GroundRenderMappingTest*"` once the tree compiles.
+
+**Phase 2 is functionally complete** — the `*.mapping.json` carries `groundRender`
++ `fillers` (params) + `doodadPools`; `GenMappingRegistry` is the seam. Optional
+later extensions: a `"filler"` field naming the code filler per BlockKind
+(data-driven dispatch); other fillers' scatter tunables (e.g. `UrbanMapGenerator`
+doodad chances). Then **Phase 3** (mod-merge, deferred).
 
 > **Concurrent-session friction (recurring):** another session's drone/turret/
 > sim refactor has repeatedly left `battle/` main OR its test files
