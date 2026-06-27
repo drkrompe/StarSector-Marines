@@ -231,8 +231,19 @@ public final class World {
         entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, body);
     }
 
-    public ShuttleType airType(long id) { return (ShuttleType) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE); }
-    public Faction airFaction(long id) { return (Faction) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_FACTION); }
+    // has-gated null-returning like the rest of the air surface (kinematics/mission/…)
+    // so a held id read after the craft's GONE-destroy answers null instead of
+    // throwing — a live craft always has AIR_IDENTITY, so this never hides a real bug.
+    public ShuttleType airType(long id) {
+        return entityWorld.has(id, components.AIR_IDENTITY)
+                ? (ShuttleType) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE)
+                : null;
+    }
+    public Faction airFaction(long id) {
+        return entityWorld.has(id, components.AIR_IDENTITY)
+                ? (Faction) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_FACTION)
+                : null;
+    }
     /** Seed AIR_IDENTITY (present from the air spawn archetype). */
     public void setAirIdentity(long id, ShuttleType type, Faction faction) {
         entityWorld.setObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE, type);
