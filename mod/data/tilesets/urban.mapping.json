@@ -14,6 +14,32 @@
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
+  "fillers": {
+    "NATURE_GRASSLAND": {
+      "groundPool": [
+        { "kind": "GRASS", "w": 80 }, { "kind": "DIRT", "w": 15 }, { "kind": "SAND", "w": 5 }
+      ],
+      "plantChance": 0.25,
+      "rockChance": 0.12,
+      "plantPool": ["nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2", "nature.shrub-3"],
+      "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3", "nature.rock-medium-1", "nature.rock-medium-2"]
+    },
+    "NATURE_WETLAND": {
+      "plantChance": 0.25,
+      "rockChance": 0.12,
+      "plantPool": ["nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2", "nature.shrub-3"],
+      "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3", "nature.rock-medium-1", "nature.rock-medium-2"]
+    },
+    "NATURE_BEACH": {
+      "groundPool": [
+        { "kind": "SAND", "w": 95 }, { "kind": "DIRT", "w": 5 }
+      ],
+      "plantChance": 0.25,
+      "rockChance": 0.18,
+      "plantPool": ["nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2", "nature.shrub-3"],
+      "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3", "nature.rock-medium-1", "nature.rock-medium-2", "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3"]
+    }
+  },
   "doodadPools": {
     "MIXED": [
       "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",

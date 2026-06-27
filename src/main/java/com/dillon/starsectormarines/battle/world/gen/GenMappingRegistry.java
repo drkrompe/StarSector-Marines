@@ -46,6 +46,8 @@ public final class GenMappingRegistry {
     private final Map<String, List<String>> doodadPoolIds = new LinkedHashMap<>();
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
+    /** {@link BlockKind} -> its code filler's tunables (pools/chances). The filler reads these instead of hardcoding them; the carve/scatter algorithm stays in the filler. */
+    private final Map<BlockKind, FillerParams> fillerParams = new EnumMap<>(BlockKind.class);
 
     /** The mapping installed at application load, or {@code null} if load failed / hasn't run. */
     public static GenMappingRegistry installed() { return installed; }
@@ -72,6 +74,38 @@ public final class GenMappingRegistry {
                 groundRender.put(GroundKind.valueOf(kindName), ground.getString(kindName));
             }
         }
+        JSONObject fillers = root.optJSONObject("fillers");
+        if (fillers != null) {
+            for (Iterator<String> it = fillers.keys(); it.hasNext(); ) {
+                String blockKindName = it.next();
+                fillerParams.put(BlockKind.valueOf(blockKindName), parseFillerParams(fillers.getJSONObject(blockKindName)));
+            }
+        }
+    }
+
+    private static FillerParams parseFillerParams(JSONObject o) throws JSONException {
+        List<GroundKind> groundKinds = new ArrayList<>();
+        List<Integer> groundWeights = new ArrayList<>();
+        JSONArray pool = o.optJSONArray("groundPool");
+        if (pool != null) {
+            for (int i = 0; i < pool.length(); i++) {
+                JSONObject e = pool.getJSONObject(i);
+                groundKinds.add(GroundKind.valueOf(e.getString("kind")));
+                groundWeights.add(e.getInt("w"));
+            }
+        }
+        return new FillerParams(groundKinds, groundWeights,
+                (float) o.optDouble("plantChance", 0.0),
+                (float) o.optDouble("rockChance", 0.0),
+                parseStringArray(o.optJSONArray("plantPool")),
+                parseStringArray(o.optJSONArray("rockPool")));
+    }
+
+    private static List<String> parseStringArray(JSONArray arr) throws JSONException {
+        if (arr == null) return List.of();
+        List<String> out = new ArrayList<>(arr.length());
+        for (int i = 0; i < arr.length(); i++) out.add(arr.getString(i));
+        return out;
     }
 
     /**
@@ -81,6 +115,11 @@ public final class GenMappingRegistry {
      */
     public String groundBlockId(GroundKind kind) {
         return groundRender.get(kind);
+    }
+
+    /** The code filler's data tunables for {@code kind}, or {@code null} if none authored. */
+    public FillerParams fillerParams(BlockKind kind) {
+        return fillerParams.get(kind);
     }
 
     /** The raw doodad ids for {@code poolId} (empty if none authored). */

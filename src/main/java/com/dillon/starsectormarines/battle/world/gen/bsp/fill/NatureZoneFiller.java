@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.FillerParams;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -60,14 +62,6 @@ import java.util.Random;
  */
 public final class NatureZoneFiller implements BlockFiller {
 
-    /** Per-cell chance of attempting a plant overlay roll on a grass cell. Tuned for "noticeable but not crowded" — ~25% lines up with the iteration zone preview. */
-    private static final float PLANT_CHANCE = 0.25f;
-    /** Per-cell chance of attempting a rock overlay roll on a non-water cell. Lower than plants so the two layers stay visually distinct. */
-    private static final float ROCK_CHANCE = 0.12f;
-
-    /** Beach gets a higher rock density — that's where the cover is actually wanted. */
-    private static final float BEACH_ROCK_CHANCE = 0.18f;
-
     private final BlockKind kind;
 
     public NatureZoneFiller(BlockKind kind) {
@@ -87,13 +81,15 @@ public final class NatureZoneFiller implements BlockFiller {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         Random rng = ctx.rng;
-        paintBase(leaf, grid, topology, rng);
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        FillerParams params = (mapping == null) ? null : mapping.fillerParams(kind);
+        paintBase(leaf, grid, topology, rng, params);
         TileRegistry reg = TileRegistry.installed();
-        // reg is null in unit tests that don't install a registry; ground painting
-        // (GroundKind, walkability, water clusters) already happened above and does
-        // NOT need tile defs. Skip overlay scatter when reg is unavailable.
-        if (reg == null) return;
-        scatterOverlays(leaf, topology, rng, reg);
+        // Overlays need both the tile defs (TileRegistry) and the pools/chances
+        // (FillerParams). Skip them if either is unavailable — base ground is still
+        // painted. Both are installed at app load + by the test bootstrap.
+        if (reg == null || params == null) return;
+        scatterOverlays(leaf, topology, rng, reg, params);
     }
 
     /**
@@ -102,31 +98,28 @@ public final class NatureZoneFiller implements BlockFiller {
      * everything else stays walkable.
      */
     private void paintBase(BlockLeaf leaf, NavigationGrid grid,
-                           CellTopology topology, Random rng) {
+                           CellTopology topology, Random rng, FillerParams params) {
         if (kind == BlockKind.NATURE_WETLAND) {
             paintWetlandBase(leaf, grid, topology, rng);
             return;
         }
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
-                GroundKind g = pickBaseGround(rng);
+                GroundKind g = pickBaseGround(rng, params);
                 topology.setGroundKind(x, y, g);
                 grid.setWalkableFloor(x, y);
             }
         }
     }
 
-    /** Per-cell pick for grassland / beach (no water cluster logic). */
-    private GroundKind pickBaseGround(Random rng) {
-        float roll = rng.nextFloat();
-        if (kind == BlockKind.NATURE_GRASSLAND) {
-            if (roll < 0.80f) return GroundKind.GRASS;
-            if (roll < 0.95f) return GroundKind.DIRT;
-            return GroundKind.SAND;
-        }
-        // NATURE_BEACH
-        if (roll < 0.95f) return GroundKind.SAND;
-        return GroundKind.DIRT;
+    /**
+     * Per-cell pick for grassland / beach (no water cluster logic) from the
+     * data-driven weighted ground pool. The {@code params == null} fallback (no
+     * registry — degraded) paints the kind's dominant ground uniformly.
+     */
+    private GroundKind pickBaseGround(Random rng, FillerParams params) {
+        GroundKind dominant = (kind == BlockKind.NATURE_GRASSLAND) ? GroundKind.GRASS : GroundKind.SAND;
+        return (params == null) ? dominant : params.pickGround(rng, dominant);
     }
 
     /**
@@ -311,7 +304,7 @@ public final class NatureZoneFiller implements BlockFiller {
      * to skip if the base isn't grass); rocks tried second. Plant + rock
      * are mutually exclusive in a single cell — first match wins.
      */
-    private void scatterOverlays(BlockLeaf leaf, CellTopology topology, Random rng, TileRegistry reg) {
+    private void scatterOverlays(BlockLeaf leaf, CellTopology topology, Random rng, TileRegistry reg, FillerParams params) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 GroundKind base = topology.getGroundKind(x, y);
@@ -322,17 +315,17 @@ public final class NatureZoneFiller implements BlockFiller {
                 if (baseDef == null) continue;
 
                 // Plant attempt — only meaningful on grass cells.
-                if (base == GroundKind.GRASS && rng.nextFloat() < PLANT_CHANCE) {
-                    TileDef plantDef = pickPlant(rng, reg);
+                if (base == GroundKind.GRASS && rng.nextFloat() < params.plantChance) {
+                    TileDef plantDef = reg.tile(params.pickPlantId(rng));
                     if (plantDef.canOverlayOn(baseDef)) {
                         topology.setNatureOverlayIndex(x, y, plantDef.index);
                         continue;
                     }
                 }
-                // Rock attempt — valid on grass/dirt/sand, denser on beach.
-                float rockChance = (kind == BlockKind.NATURE_BEACH) ? BEACH_ROCK_CHANCE : ROCK_CHANCE;
-                if (rng.nextFloat() < rockChance) {
-                    TileDef rockDef = pickRock(rng, reg);
+                // Rock attempt — valid on grass/dirt/sand; the per-kind density
+                // (denser on beach) is carried by params.rockChance.
+                if (rng.nextFloat() < params.rockChance) {
+                    TileDef rockDef = reg.tile(params.pickRockId(rng));
                     if (!rockDef.canOverlayOn(baseDef)) continue;
                     topology.setNatureOverlayIndex(x, y, rockDef.index);
                 }
@@ -356,39 +349,4 @@ public final class NatureZoneFiller implements BlockFiller {
         }
     }
 
-    private static TileDef pickPlant(Random rng, TileRegistry reg) {
-        // BEHAVIOR-CRITICAL: pool order and rng.nextInt(pool.length) draw must
-        // match the pre-migration pool exactly so seeded RNG sequences are
-        // preserved after migration.
-        String[] pool = {
-                "nature.shrub-1",
-                "nature.shrub-2",
-                "nature.tuft-1",
-                "nature.tuft-2",
-                "nature.shrub-3",
-        };
-        return reg.tile(pool[rng.nextInt(pool.length)]);
-    }
-
-    private TileDef pickRock(Random rng, TileRegistry reg) {
-        // Beach gets a wider rock-size mix — large impassable rocks read as
-        // breakwater boulders and add real cover. Grassland / wetland keep
-        // to smaller decorative rocks; large boulders mid-meadow look odd.
-        // BEHAVIOR-CRITICAL: pool order and rng.nextInt(pool.length) draw must
-        // match the pre-migration pool exactly so seeded RNG sequences are
-        // preserved after migration.
-        if (kind == BlockKind.NATURE_BEACH) {
-            String[] pool = {
-                    "nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3",
-                    "nature.rock-medium-1", "nature.rock-medium-2",
-                    "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3",
-            };
-            return reg.tile(pool[rng.nextInt(pool.length)]);
-        }
-        String[] pool = {
-                "nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3",
-                "nature.rock-medium-1", "nature.rock-medium-2",
-        };
-        return reg.tile(pool[rng.nextInt(pool.length)]);
-    }
 }
