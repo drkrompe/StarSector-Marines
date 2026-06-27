@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -121,6 +124,12 @@ public class DroneCrashSystemTest {
         assertTrue(isCrashing(sim, drone.entityId), "the dead drone is crashing");
         assertFalse(hasKinematics(sim, drone.entityId),
                 "KINEMATICS detached on crash — the CrashingComponent owns the body now");
+
+        // Read-then-detach identity: the crash took over the EXACT body instance,
+        // not a copy — so the fall animates from where the drone actually was.
+        CrashingComponent crash = (CrashingComponent) sim.getEntityWorld().getObject(
+                drone.entityId, sim.getBattleComponents().CRASHING, BattleComponents.CRASHING_STATE);
+        assertSame(body, crash.body, "the crash reuses the drone's body instance, not a copy");
     }
 
     @Test
