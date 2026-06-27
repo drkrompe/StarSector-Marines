@@ -90,15 +90,17 @@ public final class DroneRenderSystem implements RenderSystem {
             byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
 
-            float cx = cam.cellToScreenX(d.body.x);
-            float cy = cam.cellToScreenY(d.body.y);
+            // The drone's body is a world KINEMATICS component now (read by id).
+            AirBody body = world.kinematics(d.entityId);
+            float cx = cam.cellToScreenX(body.x);
+            float cy = cam.cellToScreenY(body.y);
             float drawAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) {
                 drawAlpha *= vis.getFadeAlpha(i);
             }
 
             out.addSprite(RenderLayer.DRONES, cache.sprite,
-                    cx, cy, pxW, pxH, d.body.facingDegrees,
+                    cx, cy, pxW, pxH, body.facingDegrees,
                     1f, 1f, 1f, drawAlpha);
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;

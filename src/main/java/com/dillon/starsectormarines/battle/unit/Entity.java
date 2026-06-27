@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -197,6 +198,18 @@ public class Entity {
     public MarineSecondary seedSecondaryWeapon;
     /** <b>Pre-allocate seed ONLY.</b> Starting rounds for {@link #seedSecondaryWeapon}; consumed by {@link UnitRosterService#allocate}. */
     public int seedSecondaryAmmo;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The optional kinematic
+     * {@link AirBody} a flying unit spawns with (null = a ground unit, no body).
+     * Only {@link com.dillon.starsectormarines.battle.drone.Drone} sets it today.
+     * {@link UnitRosterService#allocate} consumes it: a non-null value makes the
+     * unit spawn with the {@code KINEMATICS} component (its continuous-flight
+     * capability IS that archetype membership), seeded with this body instance.
+     * The live body thereafter lives in the world column, read by id via
+     * {@code world.kinematics(id)} — the handle the sim steers each tick, then
+     * syncs the grid cell + render position from. Mirrors {@link #seedSecondaryWeapon}.
+     */
+    public AirBody seedBody;
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
     public float visionRange;
     public float attackCooldown;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.drone;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
@@ -72,10 +73,18 @@ public final class DroneCrashSystem {
         // the corpse archetype on this same death drain), so attach CRASHING to it
         // — a one-component row-move onto the corpse. CRASHING is off the
         // corpseRemove mask, so it rides the corpse while the drone falls.
+        //
+        // KINEMATICS is off the corpseRemove mask too, so the dead drone's AirBody
+        // is still readable here. Hand it to the CrashingComponent (which owns the
+        // body for the fall), then detach KINEMATICS — a corpse doesn't fly, and
+        // the body's lifecycle has moved to the crash component (the
+        // MECH_LOADOUT "survive the transmute, detach once read" precedent).
+        AirBody body = (AirBody) world.getObject(d.entityId, components.KINEMATICS, BattleComponents.KINEMATICS_BODY);
         world.addComponent(d.entityId, components.CRASHING);
         world.setObject(d.entityId, components.CRASHING, BattleComponents.CRASHING_STATE,
-                new CrashingComponent(d.body, Drone.CRASH_DURATION_SEC, Drone.CRASH_SPIN_DEG_PER_SEC));
-        effects.spawnSmokePlume(d.body.x, d.body.y);
+                new CrashingComponent(body, Drone.CRASH_DURATION_SEC, Drone.CRASH_SPIN_DEG_PER_SEC));
+        effects.spawnSmokePlume(body.x, body.y);
+        world.removeComponent(d.entityId, components.KINEMATICS);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.drone;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -53,6 +55,11 @@ public class DroneCrashSystemTest {
         return sim.getEntityWorld().has(id, sim.getBattleComponents().CRASHING);
     }
 
+    /** Whether {@code id} carries the world's KINEMATICS component (the drone's flight body). */
+    private static boolean hasKinematics(BattleSimulation sim, long id) {
+        return sim.getEntityWorld().has(id, sim.getBattleComponents().KINEMATICS);
+    }
+
     /** Total rows across the CRASHING query — the world equivalent of the old store's size. */
     private static int crashingCount(BattleSimulation sim) {
         int n = 0;
@@ -89,6 +96,31 @@ public class DroneCrashSystemTest {
                 "on impact the CrashingComponent component is detached (crash done)");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
                 "a smoking wreck is dropped at the impact site");
+    }
+
+    @Test
+    public void liveDroneCarriesKinematicsAndTheCrashDetachesIt() {
+        BattleSimulation sim = openArena(40, 40);
+        Drone drone = parkArenaWithDrone(sim);
+
+        // Alive: the drone flies, so it carries a KINEMATICS body — the SAME
+        // instance its ctor positioned at the spawn cell center (20.5, 20.5),
+        // now world-resident and read by id.
+        assertTrue(hasKinematics(sim, drone.entityId), "a live drone has KINEMATICS");
+        AirBody body = sim.world().kinematics(drone.entityId);
+        assertNotNull(body, "KINEMATICS round-trips the seeded AirBody");
+        assertEquals(20.5f, body.x, 1e-4f, "body seeded at the spawn cell center x");
+        assertEquals(20.5f, body.y, 1e-4f, "body seeded at the spawn cell center y");
+
+        // Kill it. On the death drain the crash handler reads the body off
+        // KINEMATICS (it rode the corpse transmute, off the corpseRemove mask) to
+        // seed the CrashingComponent, then DETACHES KINEMATICS — the body's
+        // lifecycle has moved to the crash component (a corpse doesn't fly).
+        sim.applyDamage(drone, 100_000f, 20f, 20f);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(isCrashing(sim, drone.entityId), "the dead drone is crashing");
+        assertFalse(hasKinematics(sim, drone.entityId),
+                "KINEMATICS detached on crash — the CrashingComponent owns the body now");
     }
 
     @Test

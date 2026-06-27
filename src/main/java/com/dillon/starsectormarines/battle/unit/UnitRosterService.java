@@ -239,7 +239,14 @@ public final class UnitRosterService {
         // removes HEALTH, COMBAT, and any MOVEMENT / AI_STATE / SECONDARY_WEAPON.
         boolean mobile = !u.type.isStatic();
         boolean hasSecondary = u.seedSecondaryWeapon != null;
-        ComponentType[] archetype = new ComponentType[5 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)];
+        // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
+        // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
+        // a ground unit has none. It is kept OFF the corpse-remove mask
+        // (DeadBodySystem), so a dead drone's body rides the death transmute for the
+        // crash handler to read before it detaches it.
+        boolean hasBody = u.seedBody != null;
+        ComponentType[] archetype = new ComponentType[
+                5 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -251,6 +258,7 @@ public final class UnitRosterService {
             archetype[c++] = components.AI_STATE;
         }
         if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
+        if (hasBody) archetype[c++] = components.KINEMATICS;
         entityWorld.createEntity(id, archetype);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
@@ -267,6 +275,12 @@ public final class UnitRosterService {
         if (hasSecondary) {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
+        }
+        // Seed the flier's KINEMATICS body — the SAME AirBody instance the unit's
+        // ctor created and positioned, now world-resident and aliased by the unit's
+        // steering reads (zero-churn, the shuttle-KINEMATICS precedent).
+        if (hasBody) {
+            entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, u.seedBody);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative

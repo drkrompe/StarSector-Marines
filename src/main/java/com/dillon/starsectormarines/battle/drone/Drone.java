@@ -11,10 +11,12 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
 
 /**
  * Autonomous defensive drone launched from a {@link DroneHubUnit}. Combatant
- * with HP, faction = DEFENDER, targetable by marines like any other unit. The
- * drone composes an {@link AirBody} for future kinematic flight (patrol +
- * intercept come in follow-up commits); for the spawn-cadence-only slice the
- * body holds the spawn position and the drone idles in place.
+ * with HP, faction = DEFENDER, targetable by marines like any other unit. Its
+ * continuous-flight {@link AirBody} is a world {@code KINEMATICS} component: the
+ * ctor builds + positions it and hands it to {@link Entity#seedBody}, then
+ * {@code UnitRosterService.allocate} adopts it into the world column — read by id
+ * via {@code world.kinematics(id)} and steered each tick by {@link DroneSwarmAction}
+ * (which then syncs the grid cell + render position from it).
  *
  * <p>Per-instance vanilla sprite path (the {@link UnitType#DRONE} sheet field
  * is empty) so the renderer hooks the dedicated drone pass instead of the
@@ -52,13 +54,6 @@ public class Drone extends Entity {
      * the drone "see through the next building's wall too" reach.
      */
     public static final float DRONE_AIR_LOS_RADIUS = 3.0f;
-
-    /**
-     * Kinematic state. Position is initialized to the spawn cell center;
-     * patrol behavior (next commit) drives steering and slews the body around
-     * the hub's anchor.
-     */
-    public final AirBody body = new AirBody();
 
     /** Hub that launched this drone. Held so the hub's active-drone bookkeeping can drop dead drones; patrol behavior reads it for the patrol-around-this-anchor goal. */
     public final DroneHubUnit homeHub;
@@ -230,6 +225,11 @@ public class Drone extends Entity {
         this.moveSpeed = 0f;
         this.airLosRadius = DRONE_AIR_LOS_RADIUS;
         this.role = UnitRole.DRONE_PATROL;
-        this.body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
+        // Build + position the kinematic body and hand it to the world-adoption seam.
+        // allocate() reads seedBody → adds the KINEMATICS component, keyed by entity
+        // id; the body lives in that column thereafter (this same instance, aliased).
+        AirBody seed = new AirBody();
+        seed.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
+        this.seedBody = seed;
     }
 }

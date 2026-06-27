@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -79,18 +80,22 @@ public final class DroneSwarmAction implements Action {
         Drone d = (Drone) member;
         if (!sim.world().isAlive(d.entityId)) return ActionStatus.RUNNING;
 
+        // The drone's kinematic body is a world KINEMATICS component now; read it
+        // once and thread it through the per-mode helpers + the cell/render sync.
+        AirBody body = sim.world().kinematics(d.entityId);
+
         int slotIdx = resolveSlotIndex(squad, d);
         int slotCount = Math.max(1, slotMemberCount(squad));
 
         TurretAim.State s = new TurretAim.State();
         s.originCellX = sim.world().cellX(d.entityId);
         s.originCellY = sim.world().cellY(d.entityId);
-        s.originX = d.body.x;
-        s.originY = d.body.y;
+        s.originX = body.x;
+        s.originY = body.y;
         s.faction = d.faction;
         s.squadId = d.squadId;
         s.excludeFromCrowding = d;
-        s.facingDegrees = d.body.facingDegrees;
+        s.facingDegrees = body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
         s.attackRange = sim.world().attackRange(d.entityId);
         s.minRange = 0f;
@@ -121,20 +126,20 @@ public final class DroneSwarmAction implements Action {
         }
 
         if (s.target != null) {
-            tickEngage(d, s, slotIdx, slotCount, sim, dt);
+            tickEngage(d, body, s, slotIdx, slotCount, sim, dt);
         } else if (d.pursuitTimer > 0f) {
-            tickPursue(d, lockedOn != null, slotIdx, slotCount, sim, dt);
+            tickPursue(d, body, lockedOn != null, slotIdx, slotCount, sim, dt);
         } else {
-            tickPatrol(d, sim, slotIdx, slotCount, dt);
+            tickPatrol(d, body, sim, slotIdx, slotCount, dt);
         }
 
-        sim.world().setCellPos(d.entityId, (int) Math.floor(d.body.x), (int) Math.floor(d.body.y));
+        sim.world().setCellPos(d.entityId, (int) Math.floor(body.x), (int) Math.floor(body.y));
         // Sync render position so the shot pipeline picks up the drone's actual
         // position. InfantryWeapons.fireShot computes the tracer origin as
         // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
         // the tracers fire from the drone's spawn cell while the sprite
         // visually orbits the target.
-        sim.world().setRenderPos(d.entityId, d.body.x - 0.5f, d.body.y - 0.5f);
+        sim.world().setRenderPos(d.entityId, body.x - 0.5f, body.y - 0.5f);
 
         if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);
@@ -166,7 +171,7 @@ public final class DroneSwarmAction implements Action {
      * at least one is roughly nose-on at most moments, distributing squad
      * fire across the orbit cycle.
      */
-    private static void tickEngage(Drone d, TurretAim.State s,
+    private static void tickEngage(Drone d, AirBody body, TurretAim.State s,
                                    int slotIdx, int slotCount,
                                    BattleView sim, float dt) {
         float tx = sim.world().cellX(s.target.entityId) + 0.5f;
@@ -190,7 +195,7 @@ public final class DroneSwarmAction implements Action {
         float orbitY = ty + orbitRadius * oy;
 
         float[] goal = clampGoalToLeash(d, sim, orbitX, orbitY);
-        AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
+        AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
     /**
@@ -198,7 +203,7 @@ public final class DroneSwarmAction implements Action {
      * around the latched goal; tick the latch down only when no fresh target
      * sourced the refresh this tick.
      */
-    private static void tickPursue(Drone d, boolean latchRefreshedThisTick,
+    private static void tickPursue(Drone d, AirBody body, boolean latchRefreshedThisTick,
                                    int slotIdx, int slotCount, BattleView sim, float dt) {
         if (!latchRefreshedThisTick) {
             d.pursuitTimer -= dt;
@@ -207,7 +212,7 @@ public final class DroneSwarmAction implements Action {
         float[] hover = encircleOffset(d.pursuitGoalX, d.pursuitGoalY,
                 comfortableDist, slotIdx, slotCount);
         float[] goal = clampGoalToLeash(d, sim, hover[0], hover[1]);
-        AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
+        AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
     }
 
     /**
@@ -216,14 +221,14 @@ public final class DroneSwarmAction implements Action {
      * constraint keeps the swarm fanned around the hub rather than orbiting
      * in a single bunch.
      */
-    private static void tickPatrol(Drone d, BattleView sim,
+    private static void tickPatrol(Drone d, AirBody body, BattleView sim,
                                    int slotIdx, int slotCount, float dt) {
-        ensureSectorWaypoint(d, sim, slotIdx, slotCount);
-        AirSteeringSystem.steer(d.body, d.patrolGoalX, d.patrolGoalY,
+        ensureSectorWaypoint(d, body, sim, slotIdx, slotCount);
+        AirSteeringSystem.steer(body, d.patrolGoalX, d.patrolGoalY,
                 SteeringMode.CRUISE, Drone.HANDLING, dt);
-        if (d.body.distanceTo(d.patrolGoalX, d.patrolGoalY)
+        if (body.distanceTo(d.patrolGoalX, d.patrolGoalY)
                 <= Drone.PATROL_WAYPOINT_ARRIVE_DIST) {
-            pickSectorWaypoint(d, sim, slotIdx, slotCount);
+            pickSectorWaypoint(d, body, sim, slotIdx, slotCount);
         }
     }
 
@@ -279,10 +284,10 @@ public final class DroneSwarmAction implements Action {
     }
 
     /** Picks an initial sector waypoint if the drone has never had one. */
-    private static void ensureSectorWaypoint(Drone d, BattleView sim,
+    private static void ensureSectorWaypoint(Drone d, AirBody body, BattleView sim,
                                              int slotIdx, int slotCount) {
         if (Float.isNaN(d.patrolGoalX) || Float.isNaN(d.patrolGoalY)) {
-            pickSectorWaypoint(d, sim, slotIdx, slotCount);
+            pickSectorWaypoint(d, body, sim, slotIdx, slotCount);
         }
     }
 
@@ -293,11 +298,11 @@ public final class DroneSwarmAction implements Action {
      * the distribution is uniform on the disk's annular slice. In-bounds
      * fallback: 6 attempts, then snap to the hub anchor.
      */
-    private static void pickSectorWaypoint(Drone d, BattleView sim,
+    private static void pickSectorWaypoint(Drone d, AirBody body, BattleView sim,
                                            int slotIdx, int slotCount) {
         if (d.homeHub == null) {
-            d.patrolGoalX = d.body.x;
-            d.patrolGoalY = d.body.y;
+            d.patrolGoalX = body.x;
+            d.patrolGoalY = body.y;
             return;
         }
         Random rng = d.rng;
