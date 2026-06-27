@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
@@ -39,7 +40,6 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final Color FLOOR_COLOR     = new Color(0x18, 0x22, 0x30);
     private static final Color WALL_COLOR      = new Color(0x06, 0x0A, 0x10);
     private static final Color ROAD_FILL       = new Color(TileManifest.ROAD_FILL_RGB);
-    private static final Color COURTYARD_FILL  = new Color(TileManifest.COURTYARD_FILL_RGB);
     private static final Color CROSSWALK_STRIPE = new Color(0xE8, 0xE8, 0xD0);
 
     private static final int CROSSWALK_STRIPE_COUNT = 5;
@@ -60,6 +60,7 @@ public final class GroundRenderSystem implements RenderSystem {
     private SpriteAPI urban, road, floors, water, urbanTile3, nature;
     private SpriteSheetFrames urbanTile3Frames, natureFrames;
     private TileRegistry tileReg;
+    private GenMappingRegistry genMapping;
 
     public GroundRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -84,6 +85,7 @@ public final class GroundRenderSystem implements RenderSystem {
         this.urbanTile3Frames = sprites.urbanTile3Frames();
         this.natureFrames = sprites.natureFrames();
         this.tileReg = TileRegistry.installed();
+        this.genMapping = GenMappingRegistry.installed();
 
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
@@ -116,10 +118,31 @@ public final class GroundRenderSystem implements RenderSystem {
     // ---- floor + overlay pass ------------------------------------------------
 
     private void emitFloors(NavigationGrid grid, CellTopology topology) {
-        // Open-interior fills for the road/courtyard perimeter blocks, resolved
-        // once (data-driven from each block's fillRgb; static-color fallback).
+        // Resolve the data-driven GroundKind -> render-block mapping once per
+        // pass (GenMappingRegistry.groundBlockId). Each kind's block carries its
+        // own resolver (autotile layout / variant pool / single) + sheet + cellPx,
+        // so the generic drawGroundBlock path handles every "regular" kind. STREET
+        // maps to a sliced urban3 TILE id (not a block), so tileReg.block() is null
+        // and it falls through to its special case; SIDEWALK/SNOW are unmapped.
+        CellTopology.GroundKind[] kinds = CellTopology.GroundKind.values();
+        GridBlockDef[] kindBlock = new GridBlockDef[kinds.length];
+        SpriteAPI[] kindSheet = new SpriteAPI[kinds.length];
+        Color[] kindFill = new Color[kinds.length];
+        for (CellTopology.GroundKind k : kinds) {
+            String id = (genMapping == null || tileReg == null) ? null : genMapping.groundBlockId(k);
+            if (id == null) continue;
+            GridBlockDef b = tileReg.block(id);
+            if (b == null) continue; // a sliced-tile mapping (e.g. STREET) — special-cased below
+            kindBlock[k.ordinal()] = b;
+            kindSheet[k.ordinal()] = sheetFor(b.sheetPath);
+            if (b.fillRgb != null) kindFill[k.ordinal()] = new Color(b.fillRgb);
+        }
+
+        // STREET's road-sheet fallback (urban3 not loaded) paints road.road's open fill.
         Color roadFill = blockFill("road.road", ROAD_FILL);
-        Color courtyardFill = blockFill("road.courtyard", COURTYARD_FILL);
+        String streetTileId = (genMapping == null) ? "urban3.street-square"
+                : genMapping.groundBlockId(CellTopology.GroundKind.STREET);
+
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (topology.isWall(x, y)) continue;
@@ -129,10 +152,8 @@ public final class GroundRenderSystem implements RenderSystem {
                 boolean wWall = isInBoundsWall(topology, x - 1, y);
 
                 CellTopology.GroundKind kind = topology.getGroundKind(x, y);
+                int ord = kind.ordinal();
                 switch (kind) {
-                    case RUBBLE:
-                        if (tileReg != null) urbanTile(blockFrame("urban.rubble", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
-                        break;
                     case STREET:
                         if (urbanTile3 != null) {
                             if (isSidewalkCell(grid, topology, x, y)) {
@@ -142,7 +163,7 @@ public final class GroundRenderSystem implements RenderSystem {
                                         !isSidewalkLikeCell(grid, topology, x + 1, y),
                                         !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
                             } else {
-                                if (tileReg != null) urbanTile3Frame(tileReg.tile("urban3.street-square"), x, y);
+                                if (tileReg != null) urbanTile3Frame(tileReg.tile(streetTileId), x, y);
                                 if (topology.isCrosswalk(x, y)) {
                                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                                 }
@@ -162,25 +183,6 @@ public final class GroundRenderSystem implements RenderSystem {
                             }
                         }
                         break;
-                    case COURTYARD:
-                        if (road != null && tileReg != null) {
-                            roadPerimeter("road.courtyard", courtyardFill, nWall, sWall, eWall, wWall, x, y);
-                        }
-                        break;
-                    case GRASS:
-                    case DIRT:
-                    case STONE:
-                    case SAND:
-                    case SNOW:
-                    case WATER:
-                        sameKindAutotile(kind, x, y);
-                        break;
-                    case TILE:
-                        if (road != null && tileReg != null) roadTile(blockFrame("road.tile", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
-                        break;
-                    case BRICK:
-                        if (tileReg != null) floorsTile(variantCell("floors.brick", x, y), x, y);
-                        break;
                     case SIDEWALK:
                         if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
                                 !isSidewalkLikeCell(grid, topology, x, y + 1),
@@ -188,15 +190,23 @@ public final class GroundRenderSystem implements RenderSystem {
                                 !isSidewalkLikeCell(grid, topology, x + 1, y),
                                 !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
                         break;
-                    case STRIPED:
-                        if (road != null && tileReg != null) roadTile(blockFrame("road.striped", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
+                    case GRASS:
+                    case DIRT:
+                        // Prefer the sliced nature sheet; the Floors variant block is the fallback.
+                        if (nature != null && tileReg != null) {
+                            natureTile(tileReg.tile(kind == CellTopology.GroundKind.GRASS
+                                    ? TileManifest.pickNatureGrassTileId(x, y)
+                                    : TileManifest.pickNatureDirtTileId(x, y)), x, y);
+                        } else {
+                            drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
+                        }
                         break;
-                    case LZ_MARKER:
-                        if (road != null && tileReg != null) roadTile(blockFrame("road.lz-marker", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
-                        break;
-                    case INDOOR:
+                    case SNOW:
+                        break; // defined in GroundKind but no generator emits it (dead)
                     default:
-                        if (tileReg != null) urbanTile(blockFrame("urban.floor", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/LZ_MARKER/STONE/SAND/WATER/BRICK:
+                        // generic resolve+draw from the kind's mapped block.
+                        drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
                         break;
                 }
 
@@ -259,40 +269,51 @@ public final class GroundRenderSystem implements RenderSystem {
 
     private void urbanTile(TileManifest.TileFrame f, int gridX, int gridY, int inset) {
         if (urban == null || f == null) return;
-        emitTileSize(urban, f.col, f.row, inset, gridX, gridY);
+        emitCellPx(urban, TileManifest.TILE_SIZE, f.col, f.row, inset, gridX, gridY);
     }
 
     private void roadTile(TileManifest.TileFrame f, int gridX, int gridY, int inset) {
         if (road == null || f == null) return;
-        emitTileSize(road, f.col, f.row, inset, gridX, gridY);
+        emitCellPx(road, TileManifest.TILE_SIZE, f.col, f.row, inset, gridX, gridY);
     }
 
-    /** {@code TileManifest.TILE_SIZE}-grid sheet (urban / road): col/row * TILE_SIZE, inset, cell-center dst. */
-    private void emitTileSize(SpriteAPI sheet, int col, int row, int inset, int gridX, int gridY) {
-        int srcX = col * TileManifest.TILE_SIZE + inset;
-        int srcY = row * TileManifest.TILE_SIZE + inset;
-        int srcW = TileManifest.TILE_SIZE - 2 * inset;
-        int srcH = TileManifest.TILE_SIZE - 2 * inset;
-        emitSheetCell(sheet, srcX, srcY, srcW, srcH, gridX, gridY);
+    /** The loaded sheet for a tileset block's {@code sheetPath}, or {@code null} if that sheet isn't loaded (sliced urban3/nature sheets use their own frame paths, not this). */
+    private SpriteAPI sheetFor(String sheetPath) {
+        switch (sheetPath) {
+            case TileManifest.SHEET:        return urban;
+            case TileManifest.ROAD_SHEET:   return road;
+            case TileManifest.FLOORS_SHEET: return floors;
+            case TileManifest.WATER_SHEET:  return water;
+            default:                        return null;
+        }
     }
 
-    private void floorsTile(TileManifest.TileFrame f, int gridX, int gridY) {
-        if (floors == null || f == null) return;
-        emitSmallTile(floors, f, gridX, gridY);
+    /**
+     * Generic data-driven ground draw: resolves {@code b} for this cell
+     * ({@link GridBlockDef#resolve} dispatches on the block's own type — autotile
+     * wall-mask, variant-pool {@code (x,y)} hash, or single), then emits it on the
+     * block's {@code sheet} at its {@code cellPx} + matching inset. The enclosed/
+     * open ({@code null}) case paints {@code fillIfNull} (a perimeter block's
+     * hoisted {@code fillRgb}).
+     */
+    private void drawGroundBlock(GridBlockDef b, SpriteAPI sheet, Color fillIfNull,
+                                 boolean n, boolean s, boolean e, boolean w, int x, int y) {
+        if (b == null || sheet == null) return;
+        int[] c = b.resolve(n, s, e, w, x, y);
+        if (c == null) {
+            if (fillIfNull != null) fillCell(x, y, fillIfNull);
+            return;
+        }
+        int inset = (b.cellPx >= TileManifest.TILE_SIZE) ? GROUND_TILE_EDGE_INSET_PX : GROUND_SMALL_TILE_EDGE_INSET_PX;
+        emitCellPx(sheet, b.cellPx, c[0], c[1], inset, x, y);
     }
 
-    private void waterTile(TileManifest.TileFrame f, int gridX, int gridY) {
-        if (water == null || f == null) return;
-        emitSmallTile(water, f, gridX, gridY);
-    }
-
-    /** {@code TileManifest.FLOORS_TILE_SIZE}-grid sheet (floors / water). */
-    private void emitSmallTile(SpriteAPI sheet, TileManifest.TileFrame f, int gridX, int gridY) {
-        int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
-        int srcX = f.col * TileManifest.FLOORS_TILE_SIZE + inset;
-        int srcY = f.row * TileManifest.FLOORS_TILE_SIZE + inset;
-        int srcW = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
-        int srcH = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
+    /** Source rect for a {@code cellPx}-grid sheet (32px urban/road, 16px floors/water): col/row * cellPx, inset, cell-center dst. */
+    private void emitCellPx(SpriteAPI sheet, int cellPx, int col, int row, int inset, int gridX, int gridY) {
+        int srcX = col * cellPx + inset;
+        int srcY = row * cellPx + inset;
+        int srcW = cellPx - 2 * inset;
+        int srcH = cellPx - 2 * inset;
         emitSheetCell(sheet, srcX, srcY, srcW, srcH, gridX, gridY);
     }
 
@@ -326,39 +347,6 @@ public final class GroundRenderSystem implements RenderSystem {
         float cy = cam.cellToScreenY(gridY + 0.5f);
         out.addSheetQuad(RenderLayer.GROUND, sheet, srcX, srcY, srcW, srcH,
                 cx, cy, cellPx, cellPx, 1f, 1f, 1f, alpha);
-    }
-
-    private void sameKindAutotile(CellTopology.GroundKind kind, int x, int y) {
-        if (tileReg == null) return;
-        // GRASS/DIRT prefer the sliced nature sheet; the Floors variant pool is
-        // the fallback when the nature sheet isn't loaded.
-        if (nature != null) {
-            if (kind == CellTopology.GroundKind.GRASS) {
-                natureTile(tileReg.tile(TileManifest.pickNatureGrassTileId(x, y)), x, y);
-                return;
-            }
-            if (kind == CellTopology.GroundKind.DIRT) {
-                natureTile(tileReg.tile(TileManifest.pickNatureDirtTileId(x, y)), x, y);
-                return;
-            }
-        }
-        String blockId;
-        switch (kind) {
-            case GRASS: blockId = "floors.grass"; break;
-            case DIRT:  blockId = "floors.dirt";  break;
-            case STONE: blockId = "floors.stone"; break;
-            case SAND:  blockId = "floors.sand";  break;
-            case WATER: blockId = "water.water";  break;
-            default: return; // SNOW is defined in GroundKind but no generator emits it (dead)
-        }
-        if (kind == CellTopology.GroundKind.WATER) waterTile(variantCell(blockId, x, y), x, y);
-        else floorsTile(variantCell(blockId, x, y), x, y);
-    }
-
-    /** Variant-pool block (Floors/Water center grounds) → its {@code (x,y)}-hashed cell. */
-    private TileManifest.TileFrame variantCell(String blockId, int x, int y) {
-        int[] c = tileReg.block(blockId).resolve(false, false, false, false, x, y);
-        return new TileManifest.TileFrame(c[0], c[1]);
     }
 
     // ---- solid fills ---------------------------------------------------------

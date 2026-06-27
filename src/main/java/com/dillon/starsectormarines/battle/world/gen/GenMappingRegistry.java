@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -10,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,6 +44,8 @@ public final class GenMappingRegistry {
 
     /** Pool id -> ordered doodad ids. Pool ids are arbitrary names (the {@link DistrictTheme} names, plus bespoke pools like {@code COMMERCIAL}). Resolved against the TileRegistry on access. */
     private final Map<String, List<String>> doodadPoolIds = new LinkedHashMap<>();
+    /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
+    private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
 
     /** The mapping installed at application load, or {@code null} if load failed / hasn't run. */
     public static GenMappingRegistry installed() { return installed; }
@@ -61,6 +65,22 @@ public final class GenMappingRegistry {
                 doodadPoolIds.put(poolId, ids);
             }
         }
+        JSONObject ground = root.optJSONObject("groundRender");
+        if (ground != null) {
+            for (Iterator<String> it = ground.keys(); it.hasNext(); ) {
+                String kindName = it.next();
+                groundRender.put(GroundKind.valueOf(kindName), ground.getString(kindName));
+            }
+        }
+    }
+
+    /**
+     * The tileset block/tile id {@code kind}'s primary surface renders as, or
+     * {@code null} if unmapped (e.g. the special-cased SIDEWALK / dead SNOW).
+     * {@code GroundRenderSystem} resolves it against the {@link TileRegistry}.
+     */
+    public String groundBlockId(GroundKind kind) {
+        return groundRender.get(kind);
     }
 
     /** The raw doodad ids for {@code poolId} (empty if none authored). */

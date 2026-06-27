@@ -1,4 +1,19 @@
 {
+  "groundRender": {
+    "INDOOR":    "urban.floor",
+    "RUBBLE":    "urban.rubble",
+    "STREET":    "urban3.street-square",
+    "COURTYARD": "road.courtyard",
+    "TILE":      "road.tile",
+    "STRIPED":   "road.striped",
+    "LZ_MARKER": "road.lz-marker",
+    "GRASS":     "floors.grass",
+    "DIRT":      "floors.dirt",
+    "STONE":     "floors.stone",
+    "SAND":      "floors.sand",
+    "BRICK":     "floors.brick",
+    "WATER":     "water.water"
+  },
   "doodadPools": {
     "MIXED": [
       "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",
