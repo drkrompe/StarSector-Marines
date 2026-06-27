@@ -106,20 +106,28 @@ doodads become data-with-cover; resolver/marker doodads (turret embankments via
   carries the 4 theme pools (order-preserved → seeded scatter unchanged). Wired
   into `onApplicationLoad`. `DoodadMappingParityTest` pins cover + ordered pool
   parity. **Additive — no consumer flipped.**
-- **Sub-slice 2 — flip consumers (NEXT):** `Doodad` gains a `from(DoodadDef)`
-  path; pool consumers (`UrbanMapGenerator` + ~10 BSP fillers) read
-  `GenMappingRegistry.doodadPool(theme)`; hardcoded prop sites (`BuildingLayouts`
-  shelves/desks/chests/crates, `Park`/`Plaza`/`WastelandRubble` fillers) resolve
-  defs by id; marker sites (LZ arrows/pad/vent) pass explicit cover; embankments
-  (`DefensePostStamper`) already pass explicit `COVER_HEAVY` — unchanged. Mechanical
-  → fan out to Sonnet subagents. Confirm the resolver-stays-code scope first.
-- **Sub-slice 3 — retire:** delete `Doodad.defaultCoverFor` + the cover-deriving
-  `TileFrame` ctors; delete `TileManifest.DOODAD_POOL`/`RESIDENTIAL_/WAREHOUSE_/SKYPORT_DOODADS`
-  + `doodadPoolFor`; update `TacticalScoringTest`. `DistrictTheme` stays.
+- **Sub-slices 2 + 3 — flip + retire ✅ `259a9b8e`** (gradle-green). Every doodad
+  consumer flipped (~14 fillers + `UrbanMapGenerator`): pool sites read
+  `GenMappingRegistry.doodadPool(...)`; `BuildingConfig` carries a String pool-id
+  resolved at scatter; hardcoded-prop sites resolve defs by id; marker sites pass
+  explicit cover; `DefensePostStamper` embankments keep explicit `COVER_HEAVY`.
+  `Doodad.defaultCoverFor` + the two cover-deriving `TileFrame` ctors + the 4
+  `TileManifest` pools + `doodadPoolFor` all **deleted**. Tests updated;
+  `DoodadMappingParityTest` is now a frozen golden. Behavior-preserving (pool
+  order kept → seeded scatter identical; def cover == old `defaultCoverFor`).
+  Authored via Sonnet subagent fan-out.
+  - **Refinement:** pools keyed by **String pool-id** (4 themes + `COMMERCIAL`)
+    because `BuildingCommercialFiller` has a bespoke pool; `doodadPool(String)`
+    primary + `doodadPool(DistrictTheme)` convenience.
 
-Follow-ups (story doc): cover-gap tuning (chairs/shelves/desks score `NONE` today —
-now a JSON edit); later Phase 2 slices = `GroundKind` render dispatch + per-`BlockKind`
-filler params, extending the same `*.mapping.json` + `GenMappingRegistry`.
+**The doodad-pools slice is done** — `TileManifest` no longer owns any doodad
+data; props are registry defs with cover, pools are `urban.mapping.json` data.
+
+Follow-ups (story doc): **cover-gap tuning** (chairs/shelves/desks score `NONE`
+today — preserved for parity, now a one-line JSON edit); resolver doodads
+(embankments/arrows) stay code unless a submod needs to reskin them; later Phase 2
+slices = `GroundKind` render dispatch + per-`BlockKind` filler params (groundPool/
+chances), extending the same `*.mapping.json` + `GenMappingRegistry`.
 
 Then **Phase 3** (mod-merge, deferred).
 

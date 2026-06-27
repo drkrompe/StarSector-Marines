@@ -60,20 +60,27 @@ Data:
 
 ## Sub-slices
 
-1. **Core + data (additive)** — `DoodadCover`, `DoodadDef`, registry parse,
-   `doodads` defs, `GenMappingRegistry` + mapping JSON, parity test
-   (`def.cover.level() == defaultCoverFor(col,row)`; pools resolve to the same
-   frames as the `TileManifest` pools). No consumer flipped yet.
-2. **Flip consumers** — `Doodad` gains a `from(DoodadDef)` path (frame + cover +
-   fromRoadSheet); pool consumers (`UrbanMapGenerator` + ~10 BSP fillers) read
-   `GenMappingRegistry.doodadPool(theme)`; hardcoded prop sites
-   (`BuildingLayouts`, `Park/Plaza/WastelandRubble` fillers) resolve defs by id;
-   marker sites (LZ arrows/pad/vent) pass explicit cover. (Mechanical — fan out
-   to Sonnet subagents per [[feedback_delegate_mechanical_sonnet]].)
-3. **Retire** — delete `Doodad.defaultCoverFor` + the cover-deriving `TileFrame`
-   ctors; delete `TileManifest.DOODAD_POOL` / `RESIDENTIAL_/WAREHOUSE_/SKYPORT_DOODADS`
-   + `doodadPoolFor`; update `TacticalScoringTest` (constructs doodads w/ frames)
-   to explicit cover / defs. `DistrictTheme` stays (used widely beyond doodads).
+1. **Core + data (additive) ✅ `fda40a33`** — `DoodadCover`, `DoodadDef`, registry
+   parse, 23 `doodads` defs, `GenMappingRegistry` + `urban.mapping.json`, parity
+   test. No consumer flipped.
+2. **Flip consumers ✅ `259a9b8e`** — `Doodad(int,int,DoodadDef)` ctor; pool
+   consumers (`UrbanMapGenerator` + ~10 BSP fillers) read
+   `GenMappingRegistry.doodadPool(...)`; hardcoded prop sites (`BuildingLayouts`,
+   `Park`/`Plaza`/`WastelandRubble`) resolve defs by id; marker sites (LZ
+   arrows/pad) pass explicit cover. Fanned out to Sonnet subagents per
+   [[feedback_delegate_mechanical_sonnet]].
+3. **Retire ✅ `259a9b8e`** — deleted `Doodad.defaultCoverFor` + the two
+   cover-deriving `TileFrame` ctors; deleted `TileManifest.DOODAD_POOL` /
+   `RESIDENTIAL_/WAREHOUSE_/SKYPORT_DOODADS` + `doodadPoolFor`; tests updated off
+   them; `DoodadMappingParityTest` converted to a frozen golden. `DistrictTheme`
+   stays (used widely).
+
+> **Refinement discovered mid-flip:** `BuildingCommercialFiller` has a bespoke
+> pool (used by tiny-commercial sparse scatter) that isn't a `DistrictTheme`. So
+> pools are keyed by a **String pool-id** (the 4 theme names + `COMMERCIAL`), with
+> `doodadPool(String)` primary and a `doodadPool(DistrictTheme)` convenience.
+> `BuildingShellCore.BuildingConfig` carries a `String doodadPoolId` resolved at
+> scatter. This generalizes cleanly for Phase 3 mod-merge (named pools).
 
 ## Follow-ups (don't lose)
 
