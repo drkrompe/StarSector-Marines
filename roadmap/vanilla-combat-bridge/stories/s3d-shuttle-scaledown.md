@@ -5,8 +5,9 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1–D3 shipped 2026-06-27 (scatter wave +
-> "land here" click DZ + AA shoot-down / threat-scaled spread); D4 (orbit window stake) next.**
+> spine, never scripted modes). Vision locked 2026-06-25; **D1–D4 shipped 2026-06-27 (scatter wave +
+> "land here" click DZ + AA shoot-down / threat-scaled spread + multi-wave orbit window + stake);
+> D5 (continuous logistics) next.**
 > Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
@@ -130,8 +131,15 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
     scatter-"safe" cell can still sit in a turret's AA bubble on approach (mitigated: LANDED is
     AA-exempt) — widen `THREAT_RADIUS_CELLS` toward AA range if "isolation = safety" should hold vs
     turrets.
-- **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
-  aboard → AA-suppression / air superiority becomes prep (ties to the skybattle feature).
+- **D4 — the orbit window + the stake (shipped 2026-06-27, `9378c0b3`).** The single-wave drop became a
+  multi-wave orbit window: the transport holds `INVASION_WAVES` waves, deploys one on arrival then one
+  per `WAVE_INTERVAL_SEC` while holding orbit, and peels off (`departCarrier` → off-grid) when the
+  manifest empties ("can't stay forever"). **The stake:** if the carrier dies mid-window, every
+  undeployed wave is forfeit (`forfeitUndeployed` logs the lost waves + ~marines) — the diegetic hard
+  failure that makes air-superiority / AA-suppression the prep that earns the drop. The death-forfeit is
+  **wired but latent in the probe** (the carrier has no death source until the skybattle feature
+  threatens it); the demonstrable beats today are the timed multi-wave deploy + the peel-off. Re-aim is
+  locked once the first wave commits.
 - **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
   waves over time replacing the fixed manifest; running-out → fight-to-the-end *emerges*.
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").

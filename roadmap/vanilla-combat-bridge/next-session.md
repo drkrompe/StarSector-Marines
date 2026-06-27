@@ -39,8 +39,8 @@ Decomposition:
 - **S3c — airspace banding / AI gating.** Parked → folded into the skybattle feature.
 - **S3d — drop-ship invasion.** Re-spec'd 2026-06-25 into the bridge's product core (transport
   orbits, sim-native dropships land marines, diegetic/scored/emergent). Vision + D1–D5 ladder
-  written; **D1–D3 shipped 2026-06-27 (scatter wave + "land here" click DZ + AA shoot-down `0751e013` /
-  threat-scaled spread `4fba6ea0`); D4 (orbit window stake) next.** See the S3d story.
+  written; **D1–D4 shipped 2026-06-27 (scatter + click DZ + AA shoot-down / threat-spread + orbit window
+  & stake `9378c0b3`); D5 (continuous logistics) next.** See the S3d story.
 
 ### Scale + real-map pass (done after S3b playtest; re-dialed 2026-06-27)
 - `WORLD_UNITS_PER_CELL` stepped **50 → 20 → 7** (`02c829b0`… → `2118b4b2`): at 7 the ground
@@ -227,9 +227,18 @@ The brain-target vs fresh-LZ centroid divergence (#4) was confirmed a non-bug, l
 - **Slice 2 — threat-scaled spread (`4fba6ea0`):** DZ radius = `ZONE_RADIUS_CELLS × (1 +
   HOT_SPREAD_PER_ENEMY × enemyCount)`, capped `ZONE_RADIUS_MAX_CELLS`. Cold = tight 30; hot fans toward 60.
 
-**Next — D4 (orbit window stake):** holding orbit is exposed; losing the transport loses the marines still
-aboard → AA-suppression / air superiority becomes the prep that earns the drop (ties to the skybattle
-feature). Then D5 (continuous logistics from the fleet marine pool).
+**D4 — orbit window + the stake ✅ shipped (`9378c0b3`).** Single-wave drop → multi-wave orbit window:
+the transport holds `INVASION_WAVES` (=3), deploys one on arrival then one per `WAVE_INTERVAL_SEC` while
+holding orbit, peels off when the manifest empties (`departCarrier` → off-grid). The stake: carrier death
+mid-window forfeits undeployed waves (`forfeitUndeployed`) — **wired but latent** (no carrier death source
+in the probe until the skybattle feature; demonstrable today = timed multi-wave deploy + peel-off). Re-aim
+locked once the first wave commits.
+
+**Next — D5 (continuous logistics):** replace the fixed `INVASION_WAVES` manifest with the fleet marine
+pool (depth) + transport capacity & cycling (throughput) — waves over time until marines or transports run
+out, so a fight-to-the-end *emerges*. ([[campaign_battle_bridge]] `TargetProfile` carries the per-battle
+marine count.) Plus the carried D3 follow-ups (M2 SABOTAGE-opener AA balance, L2 AA-vs-scatter radius,
+drone-hub AA, crash FX).
 
 **D1 playtest (2026-06-27): works okay** — carrier orbits, drops, deboards, dropship flies home. Remaining
 watch-items (the dev probe — Ctrl+Shift+K, press **L**): stale target as structures die (non-bug); ASSAULT
