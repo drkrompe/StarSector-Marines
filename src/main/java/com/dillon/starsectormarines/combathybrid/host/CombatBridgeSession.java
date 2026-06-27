@@ -62,7 +62,10 @@ public final class CombatBridgeSession {
         loader.setHyperspaceMode(false);
 
         loader.addPlugin(new S0CompletionPlugin());
-        loader.addPlugin(new SpectatorCanvasPlugin());
+        // Frame the whole ground plate at start, a touch wider than the map, regardless of
+        // cell density — the initial view derives from the map's world size, not a constant.
+        loader.addPlugin(new SpectatorCanvasPlugin(
+                config.gridW() * config.worldUnitsPerCell() * 1.3f));
     }
 
     /** Engine-ready phase: detach the player ship, install the backdrop + proxy mirror over the sim. */
@@ -70,8 +73,12 @@ public final class CombatBridgeSession {
         engine.setPlayerShipExternal(null);   // spectator: no ship is player-piloted
         // The sim is a live Conquest battle with its own win conditions — it governs its own
         // completion exactly as the standalone flow does; no never-end pin needed.
-        engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(config));
-        engine.addPlugin(new SimProxyMirror(config));
+        // The backdrop owns the ground renderer + its FX/sound presentation; the proxy mirror
+        // ticks the sim each frame, then drives the backdrop's presentation off that fresh tick
+        // (so shot/impact/death events are read in the same frame they're produced).
+        GroundSceneBackdrop backdrop = new GroundSceneBackdrop(config);
+        engine.addLayeredRenderingPlugin(backdrop);
+        engine.addPlugin(new SimProxyMirror(config, backdrop));
         // S3c (parked): a harmless one-shot ASSAULT order nudges the carriers onto the band.
         engine.addPlugin(new CarrierEngagementPlugin(config, FleetSide.PLAYER));
         // S3d foundation: press L in-combat to take over one carrier and fly it down to the band.

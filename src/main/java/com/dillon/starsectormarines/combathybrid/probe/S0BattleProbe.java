@@ -52,15 +52,18 @@ public final class S0BattleProbe {
     public static final int PLAYER_SUBSET_SIZE = 2;
 
     /**
-     * World units per sim cell when projecting the grid into vanilla combat. Lowered
-     * from the original 50 after the S3b playtest: at 50 the ground cells read too large
-     * relative to the spacecraft. At 20 the LARGE 240×160 Conquest map is 4800×3200 world
-     * units and ships tower over individual tiles, which reads right. Both the backdrop
-     * and the proxies derive from this constant, so they stay locked at any value. The
-     * right number is ultimately per-use (overhead-air vs on-the-ground) — this is the
-     * working default the canvas is built around.
+     * World units per sim cell when projecting the grid into vanilla combat. Stepped down
+     * over successive playtests (50 → 20 → 7) to shrink the ground footprint relative to the
+     * fleet: at 50 the cells read too large; at 20 ships towered over tiles but the ground
+     * still sprawled wider than the fight above it; at 7 the LARGE 240×160 Conquest map is a
+     * compact 1680×1120 world units, so the surface reads as a small battlefield far below a
+     * big fleet (a ~150wu frigate spans ~21 cells). Everything density-coupled derives from
+     * this constant — the backdrop camera, the proxy positions, the render-cull radius, and
+     * (now) the spectator camera's initial framing — so they stay locked at any value. The
+     * right number is ultimately per-use (overhead-air vs on-the-ground); this is the working
+     * default the canvas is built around.
      */
-    public static final float WORLD_UNITS_PER_CELL = 20f;
+    public static final float WORLD_UNITS_PER_CELL = 7f;
 
     /** Variant used if the player has no combat ships, so the probe still demos.
      *  Must be a real variant id from data/variants. */

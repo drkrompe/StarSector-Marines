@@ -40,13 +40,19 @@ public record GroundBattleConfig(
     /**
      * The render passes the bridge draws today: terrain + structure + ground units (S3f) +
      * objective / compound capture-state markers (S3g) + parked vehicles & convoys (S3h) +
-     * airborne dropships (S3d D1). Grows as the render-layers thread brings the remaining
-     * projection-agnostic passes over.
+     * airborne dropships (S3d D1) + combat FX: in-flight shot tracers/projectiles ({@link
+     * RenderLayer#SHOTS}) and shot-impact particles ({@link RenderLayer#IMPACT_FX}). Both FX passes
+     * are camera-projected (they drain through {@code ctx.camera}, like UNITS), so they join the set
+     * directly — unlike the screen-space FBO accumulators (DECALS, LIGHTING), which still need
+     * projection-retarget work and stay out (S3j; LIGHTING is also slated for removal). The
+     * presentation that spawns/ages these FX and plays the matching combat audio lives in
+     * {@code GroundSimPresentation}, driven by the proxy mirror's per-frame sim tick.
      */
     public static final EnumSet<RenderLayer> DEFAULT_SCENE_LAYERS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS,
                     RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
-                    RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES);
+                    RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES,
+                    RenderLayer.SHOTS, RenderLayer.IMPACT_FX);
 
     /**
      * Vanilla-damage → sim-damage divisor: maps ship-gun damage (hundreds/sec, bursty fighter

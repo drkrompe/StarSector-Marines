@@ -75,17 +75,20 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
     private final List<Entity> targetable;
     private final String proxyVariant;
     private final float damageScale;
+    /** Backdrop that owns the ground renderer; we hand it the post-tick frame to drive FX + audio. */
+    private final GroundSceneBackdrop backdrop;
 
     private final List<ProxyLink> links = new ArrayList<>();
     private CombatEngineAPI engine;
     private boolean initialized;
 
-    public SimProxyMirror(GroundBattleConfig cfg) {
+    public SimProxyMirror(GroundBattleConfig cfg, GroundSceneBackdrop backdrop) {
         this.cfg = cfg;
         this.sim = cfg.sim();
         this.targetable = new ArrayList<>(cfg.targetable());
         this.proxyVariant = cfg.proxyVariant();
         this.damageScale = cfg.damageScale();
+        this.backdrop = backdrop;
     }
 
     @Override
@@ -157,6 +160,11 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
         // One sim tick for the whole frame — drains the death mailbox, which flips
         // link.simDead via the subscriber for any unit that died this frame.
         sim.advance(amount);
+
+        // Drive combat FX + audio off this fresh tick: the sim's shot / impact / death event lists
+        // are populated by advance() above and cleared at the next tick, so the backdrop's
+        // presentation must read them now, in this same frame.
+        if (backdrop != null) backdrop.driveCombatFx(amount);
 
         // sim → vanilla: despawn proxies the sim reported dead this (or a prior) frame.
         for (ProxyLink link : links) {

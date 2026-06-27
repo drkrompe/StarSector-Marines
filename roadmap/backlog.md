@@ -116,6 +116,23 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 
 ## Architecture / refactor candidates
 
+- **Deprecate the LIGHTING layer / `WeaponLights`** — direction call (user,
+  2026-06-27): the pseudo time-of-day `LightAccumulator` + per-shot
+  `WeaponLights` (the `LIGHTING` `RenderLayer`) are slated for removal. Of the
+  FBO/overlay FX family, only **LoS shadowing** (fog-of-war vision) and
+  **DECALS** (impact craters / casings) survive. Implications: don't invest in
+  porting LIGHTING to new render hosts (the combat bridge already skips it —
+  `GroundSimPresentation` drives particles + sound only); the bridge's deferred
+  S3j FBO bucket narrows to DECALS alone. Scope the actual teardown (drop
+  `LightAccumulator`, `WeaponLights`, `LightKernel` calls from `BattleScreen`)
+  as its own slice.
+- **Share the combat FX/sound driver** — `BattleScreen.advance` (standalone) and
+  `combathybrid/.../GroundSimPresentation` (bridge) both dispatch per-weapon
+  impact-FX + fire/impact sounds off the sim's per-frame `ShotEvent` lists, in
+  different audio frames (`cell×30` abstract vs combat-world). The weapon→sound /
+  weapon→`ImpactProfile` dispatch is duplicated; extract a frame-parameterized
+  presenter both call when this next drifts (a new weapon added to one and not
+  the other is the failure mode to watch). [[feedback_followup_tasks]]
 - **Screen abstraction** — pull when the second screen (briefing) actually
   needs to transition. One screen is a guess; two informs the interface.
 - **Per-panel `WidgetRoot`** — current plugin rebuilds the entire widget

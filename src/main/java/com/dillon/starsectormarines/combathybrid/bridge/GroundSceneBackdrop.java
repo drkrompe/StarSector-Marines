@@ -59,6 +59,7 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
     private final float worldUnitsPerCell;
     private final EnumSet<RenderLayer> sceneLayers;
     private final float renderRadius;
+    private final GroundSimPresentation presentation;
 
     private BattleSprites sprites;
     private BattleRenderer renderer;
@@ -73,6 +74,19 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         this.worldUnitsPerCell = cfg.worldUnitsPerCell();
         this.sceneLayers = cfg.sceneLayers();
         this.renderRadius = (float) Math.hypot(gridW, gridH) * worldUnitsPerCell * 0.5f + 200f;
+        this.presentation = new GroundSimPresentation(cfg);
+    }
+
+    /**
+     * Drive one frame of combat FX + audio over the renderer this backdrop owns. Called by
+     * {@link SimProxyMirror} right after its per-frame {@code sim.advance()}, so the sim's shot /
+     * impact / death events are read in the frame they're produced. A no-op until the renderer has
+     * loaded on the GL thread (first {@link #render}), and until {@code SHOTS}/{@code IMPACT_FX} are
+     * in {@link #sceneLayers} the spawned particles + tracers simply aren't drawn.
+     */
+    public void driveCombatFx(float dt) {
+        if (renderer == null) return;
+        presentation.advance(renderer, sim, dt);
     }
 
     @Override

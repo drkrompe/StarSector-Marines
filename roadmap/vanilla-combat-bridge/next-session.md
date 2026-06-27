@@ -215,9 +215,18 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
 - **Playtest verdict (2026-06-25, partial):** ✅ a real ground battle **does play out under the
   fleet** (marines land + fight defenders, structures proxy + take strafe damage). ⚠️ but three
   things look broken in the bridge host — **follow-ups, not this slice's scope** ([[feedback_followup_tasks]]):
-    1. **Sound / SFX** — sim combat audio doesn't play (or vanilla audio misbehaves) under the
-       bridge host. The standalone `BattleScreen` drives positional audio; the bridge path may not
-       wire it (cf. [[starsector_positional_audio]] — listener-pos override outside CombatEngine).
+    1. ~~**Sound / SFX** — sim combat audio doesn't play under the bridge host.~~ ✅ **FIXED
+       (2026-06-27).** Root cause: the bridge split sim-tick (`SimProxyMirror`) from rendering
+       (`GroundSceneBackdrop`), and *neither* drove presentation — no FX spawn/age, no sound, no
+       listener; `SHOTS`/`IMPACT_FX` were also absent from `DEFAULT_SCENE_LAYERS`. Fix: added those
+       two (camera-projected) FX layers + a new `GroundSimPresentation` (particle FX + positional
+       combat audio, in the **combat-world** frame so ground + fleet audio share one spatial scale),
+       driven by `SimProxyMirror` right after `sim.advance()` (fresh event lists). Deliberately **no
+       lights/decals** — LIGHTING/`WeaponLights` is slated for removal (user, 2026-06-27); DECALS is
+       the still-deferred screen-space-FBO bucket (S3j). **Playtest watch-item:** does
+       `setListenerPosOverrideOneFrame` survive *inside* `CombatEngine`? (Only confirmed outside —
+       [[starsector_positional_audio]].) If vanilla stomps it, audio still plays (grid is origin-centered
+       where a spectator listener sits); only ideal panning is at risk.
     2. **Roof LoS hide / re-add** — the `ROOFS` layer's reveal-on-enter / re-cover-on-leave behavior
        (interiors hidden until a unit enters, roof re-added when it leaves) appears broken in
        `GroundSceneBackdrop`. Likely the bridge backdrop doesn't feed roof-occlusion the per-unit
@@ -241,8 +250,10 @@ never get a direct 1:1 proxy — they take *area* damage (architecture.md Decisi
 current proxies are turrets/structures (genuinely solid), so today's boundary model is fine.
 
 **Render-layers thread resolved (S3f–S3j):** S3f/S3g/S3h wired (build-clean; `DEFAULT_SCENE_LAYERS`
-now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY), S3i decided-skip (no fog in the
-orbital view; highlights blocked on a selection model), S3j deferred (no source + hard FBO retarget).
+now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY/SHUTTLES + **SHOTS/IMPACT_FX**
+(combat FX, added 2026-06-27 with the audio fix)), S3i decided-skip (no fog in the orbital view;
+highlights blocked on a selection model), S3j now narrowed to **DECALS + LIGHTING only** — the hard
+screen-space-FBO bucket, and LIGHTING is slated for removal anyway (keep LoS-shadow + DECALS).
 **Open:** S3f's Ctrl+Shift+K playtest verdict (code carried unchanged through the extraction), and
 **S3c — airspace/AI viability**, the independent load-bearing de-risk the render work doesn't touch.
 

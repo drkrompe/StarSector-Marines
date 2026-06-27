@@ -47,8 +47,8 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
     /** World units across the screen at max zoom-in / max zoom-out. */
     private static final float MIN_VISIBLE_WIDTH = 600f;
     private static final float MAX_VISIBLE_WIDTH = 40000f;
-    /** Initial view: a touch wider than the ~7200u MEDIUM plate so it's fully in frame. */
-    private static final float INITIAL_VISIBLE_WIDTH = 9000f;
+    /** Fallback initial view if no map-derived width is supplied (no-arg constructor). */
+    private static final float DEFAULT_VISIBLE_WIDTH = 2200f;
 
     /**
      * Seconds into the battle before re-attaching the stashed player fleet. Must be
@@ -66,9 +66,24 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
      * visible rectangle, so we own w/h explicitly via {@code viewport.set(...)} and
      * treat this width (plus the screen aspect) as the source of truth.
      */
-    private float visibleWidth = INITIAL_VISIBLE_WIDTH;
+    private float visibleWidth;
     private float combatTime;
     private boolean fleetRestored;
+
+    /**
+     * @param initialVisibleWidth world units across the screen at battle start. Derive it from
+     *     the ground map size ({@code gridW × worldUnitsPerCell × margin}) so the whole plate
+     *     frames at <em>any</em> cell density — the free-cam zoom takes over from there. Clamped
+     *     to the zoom bounds.
+     */
+    public SpectatorCanvasPlugin(float initialVisibleWidth) {
+        this.visibleWidth = clamp(initialVisibleWidth, MIN_VISIBLE_WIDTH, MAX_VISIBLE_WIDTH);
+    }
+
+    /** Fallback framing for callers without a map-size handle. */
+    public SpectatorCanvasPlugin() {
+        this(DEFAULT_VISIBLE_WIDTH);
+    }
 
     @Override
     public void init(CombatEngineAPI engine) {

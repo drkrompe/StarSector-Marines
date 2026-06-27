@@ -55,8 +55,10 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
 
     /**
      * Minimum descent leg (cells) for the launched drop-ship. The carrier settles within
-     * {@code ARRIVE_RADIUS} (400 wu = 20 cells) of the band centroid, so entry (carrier cell) and LZ
-     * (band cell) can land nearly on top of each other — and the altitude lerp is driven by leg
+     * {@code ARRIVE_RADIUS} (400 wu — a ship-physics arrival tolerance, deliberately <em>not</em>
+     * cell-scaled: it's sized to a real hull's mass/turn radius, so it stays in world units as the
+     * cell density changes; at 7 wu/cell that's ~57 cells) of the band centroid, so entry (carrier
+     * cell) and LZ (band cell) can land nearly on top of each other — and the altitude lerp is driven by leg
      * distance, so a zero-length leg shows no descent. When the gap is below this, the entry is
      * pushed back along the carrier→LZ bearing so the fall always reads.
      */
