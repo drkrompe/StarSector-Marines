@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.air.DropZoneScatter;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -20,9 +22,12 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -65,16 +70,28 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      */
     private static final float MIN_DROP_LEG_CELLS = 12f;
 
-    /** Cells past the grid edge the drop-ship egresses to when its host carrier has left the field. */
+    /** Cells past the grid edge a drop-ship egresses to when its host carrier has left the field. */
     private static final float OFFGRID_MARGIN_CELLS = 8f;
+
+    /** Radius (cells) of the hardcoded drop zone around the band centroid. D2-painted DZ supersedes this. */
+    private static final float ZONE_RADIUS_CELLS = 18f;
+    /** Dropships in a wave — the swarm size. */
+    private static final int DROP_COUNT = 5;
+    /** Minimum spacing (cells) between landing cells so squads scatter instead of stacking. */
+    private static final float MIN_SPACING_CELLS = 5f;
+    /** Enemy-density sample radius (cells) feeding the per-cell threat score. */
+    private static final float THREAT_RADIUS_CELLS = 6f;
+    /** Per-dropship launch stagger (sim-seconds) so the wave ejects in sequence, not all at once. */
+    private static final float STAGGER_SEC = 0.6f;
 
     private final GroundBattleConfig config;
     private final FleetSide carrierSide;
+    private final List<Shuttle> drops = new ArrayList<>();   // launched wave — exits track the carrier each frame
+    private final Random scatterRng = new Random();          // jitters the DZ scatter (transient battle → no seed needed)
     private CombatEngineAPI engine;
     private ShipAPI descending;          // the single carrier we've taken over (null until L is pressed)
     private CarrierDescentBrain brain;   // its installed brain — polled for the arrival cue
-    private boolean dropLaunched;        // one drop-ship sortie per takeover (D1b)
-    private Shuttle drop;                // the launched drop-ship — its exit tracks the carrier each frame
+    private boolean dropLaunched;        // one drop wave per takeover (D1b)
 
     public CarrierDescentPlugin(GroundBattleConfig config, FleetSide carrierSide) {
         this.config = config;
@@ -134,73 +151,98 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     }
 
     /**
-     * Keeps the drop-ship's exit pointed at its host carrier, so once it has deboarded it flies home
-     * and docks — the carrier holds a near-stationary orbit, so tracking its live cell each frame
-     * reads as a return-to-mothership rather than a fixed waypoint. If the carrier has left the field
-     * (destroyed / gone), the drop-ship instead egresses straight off the top of the grid: an
-     * alternative escape rather than vanishing where it stands. {@code exitX/exitY} are read live by
-     * AirSystem's DEPARTING tick, so this just re-steers the egress in flight.
+     * Keeps every launched dropship's exit pointed at the host carrier, so once a craft has deboarded
+     * it flies home and docks — the carrier holds a near-stationary orbit, so tracking its live cell
+     * each frame reads as a return-to-mothership rather than a fixed waypoint. If the carrier has left
+     * the field (destroyed / gone), the dropships instead egress straight off the top of the grid: an
+     * alternative escape rather than vanishing where they stand. GONE craft are pruned.
+     * {@code exitX/exitY} are read live by AirSystem's DEPARTING tick, so this just re-steers in flight.
      */
     private void retargetDropExit() {
-        if (drop == null || drop.mission.state == Shuttle.State.GONE) return;
-        if (descending != null && descending.isAlive()) {
-            Vector2f c = new Vector2f();
-            config.worldToCell(descending.getLocation().x, descending.getLocation().y, c);
-            drop.mission.exitX = c.x;
-            drop.mission.exitY = c.y;
-        } else {
-            drop.mission.exitX = drop.mission.lzX;
-            drop.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
+        if (drops.isEmpty()) return;
+        boolean carrierLive = descending != null && descending.isAlive();
+        Vector2f c = new Vector2f();
+        if (carrierLive) config.worldToCell(descending.getLocation().x, descending.getLocation().y, c);
+        for (Iterator<Shuttle> it = drops.iterator(); it.hasNext(); ) {
+            Shuttle s = it.next();
+            if (s.mission.state == Shuttle.State.GONE) {
+                it.remove();
+                continue;
+            }
+            if (carrierLive) {
+                s.mission.exitX = c.x;
+                s.mission.exitY = c.y;
+            } else {
+                s.mission.exitX = s.mission.lzX;
+                s.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
+            }
         }
     }
 
     /**
-     * Spawns one sim-native drop-ship from the orbiting carrier. Entry = the carrier's combat-world
-     * position projected to a cell; LZ = the ground-band centroid. A pure-transport
-     * {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's {@code AirSystem} flies
-     * it INCOMING (altitude-scaling down the leg), lands it, and deboards its squad onto the band.
-     * D2 replaces the single centroid LZ with a painted DZ + threat-scored scatter.
+     * Launches a scattered wave of sim-native dropships from the orbiting carrier. Entry = the
+     * carrier's combat-world position projected to a cell; the {@link DropZoneScatter} engine picks up
+     * to {@value #DROP_COUNT} low-threat, spaced landing cells across the zone around the band centroid.
+     * Each is a pure-transport {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's
+     * {@code AirSystem} flies it INCOMING (altitude-scaling down the leg), lands it, and deboards its
+     * squad. D2's commander-painted DZ supersedes the hardcoded centroid + {@link #ZONE_RADIUS_CELLS}.
      */
     private void launchDrop() {
         dropLaunched = true;
         BattleSimulation sim = config.sim();
+        NavigationGrid grid = sim.getGrid();
+        TacticalScoring scoring = sim.getTacticalScoring();
 
         Vector2f entry = new Vector2f();
         config.worldToCell(descending.getLocation().x, descending.getLocation().y, entry);
 
-        Vector2f lzWorld = new Vector2f();
-        config.targetableCentroid(lzWorld);
-        Vector2f lz = new Vector2f();
-        config.worldToCell(lzWorld.x, lzWorld.y, lz);
+        // Zone center = the band centroid, snapped to walkable ground.
+        Vector2f centerWorld = new Vector2f();
+        config.targetableCentroid(centerWorld);
+        Vector2f center = new Vector2f();
+        config.worldToCell(centerWorld.x, centerWorld.y, center);
+        int[] centerCell = nearestWalkableCell(grid, (int) Math.floor(center.x), (int) Math.floor(center.y));
 
-        // Snap the LZ to a walkable cell. The centroid is the structure centroid, which can land on a
-        // (non-walkable) structure cell or inside a walled compound; the deboard scan only reaches 5
-        // cells, so a dropship there would never deboard and would wedge in LANDED forever. Land the
-        // shuttle on the nearest walkable cell instead. (D2's threat-scored scatter supersedes this.)
-        int[] lzCell = nearestWalkableCell(sim.getGrid(), (int) Math.floor(lz.x), (int) Math.floor(lz.y));
-        lz.set(lzCell[0] + 0.5f, lzCell[1] + 0.5f);
+        // Scatter the wave: low-threat, spaced landing cells across the zone (paratrooper drop). Threat
+        // = enemy-combatant density at the cell; walkable filter keeps drops off walls/structures.
+        List<int[]> cells = DropZoneScatter.sample(
+                centerCell[0], centerCell[1], ZONE_RADIUS_CELLS, DROP_COUNT, MIN_SPACING_CELLS,
+                (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y),
+                (x, y) -> scoring.countCombatantsWithin(Faction.DEFENDER, x, y, THREAT_RADIUS_CELLS),
+                scatterRng);
+        if (cells.isEmpty()) cells = List.of(centerCell);   // degenerate zone — at least drop on the centroid
 
-        // Guarantee a visible descent leg (see MIN_DROP_LEG_CELLS): if the carrier settled almost on
-        // the LZ, push the entry back along the carrier→LZ bearing (or straight up if dead-on).
-        float dx = entry.x - lz.x, dy = entry.y - lz.y;
+        for (int i = 0; i < cells.size(); i++) {
+            spawnDrop(sim, entry.x, entry.y, cells.get(i)[0] + 0.5f, cells.get(i)[1] + 0.5f, i * STAGGER_SEC);
+        }
+        LOG.info("ground-bridge(descent): launched " + cells.size() + "-ship drop wave over zone cell ("
+                + centerCell[0] + ", " + centerCell[1] + ").");
+    }
+
+    /**
+     * Spawns one dropship from the carrier cell ({@code entryX},{@code entryY}) to LZ
+     * ({@code lzX},{@code lzY}) after {@code pendingDelay} sim-seconds (the wave stagger). The entry is
+     * pushed back along the carrier→LZ bearing to at least {@link #MIN_DROP_LEG_CELLS} so the
+     * altitude-lerp descent always reads (the lerp is leg-distance driven). Exit starts at the carrier
+     * and is retargeted live by {@link #retargetDropExit}.
+     */
+    private void spawnDrop(BattleSimulation sim, float entryX, float entryY, float lzX, float lzY, float pendingDelay) {
+        float ex = entryX, ey = entryY;
+        float dx = ex - lzX, dy = ey - lzY;
         float d = (float) Math.hypot(dx, dy);
         if (d < MIN_DROP_LEG_CELLS) {
             if (d < 1e-3f) {
-                entry.set(lz.x, lz.y + MIN_DROP_LEG_CELLS);
+                ex = lzX;
+                ey = lzY + MIN_DROP_LEG_CELLS;
             } else {
-                entry.set(lz.x + dx / d * MIN_DROP_LEG_CELLS, lz.y + dy / d * MIN_DROP_LEG_CELLS);
+                ex = lzX + dx / d * MIN_DROP_LEG_CELLS;
+                ey = lzY + dy / d * MIN_DROP_LEG_CELLS;
             }
         }
-
-        // Exit starts at the carrier cell; retargetDropExit() steers it to the carrier's live position
-        // each frame, so after deboarding the drop-ship flies home and docks (or egresses off-map if
-        // the carrier has gone). pendingDelay 0 = launch immediately.
-        Shuttle launched = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
-                lz.x, lz.y, entry.x, entry.y, entry.x, entry.y, 0f);
-        sim.addShuttle(launched);
-        this.drop = launched;
-        LOG.info("ground-bridge(descent): launched drop-ship from carrier cell ("
-                + (int) entry.x + ", " + (int) entry.y + ") to LZ (" + (int) lz.x + ", " + (int) lz.y + ").");
+        Shuttle s = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
+                lzX, lzY, ex, ey, ex, ey, pendingDelay);
+        sim.addShuttle(s);
+        drops.add(s);
     }
 
     /** First live, non-fighter ship on the carrier side. */
