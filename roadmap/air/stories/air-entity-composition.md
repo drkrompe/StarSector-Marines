@@ -1,5 +1,17 @@
 # Story — Air craft as composed entities (the air-tier ECS)
 
+> **Superseded for storage + identity (2026-06-27) by
+> [`air-entities-into-world.md`](../air-entities-into-world.md)** (COMPLETE).
+> Slices 1–3 below shipped as written, but their *storage decision* (sparse
+> `ComponentStore<T>`, "promote to dense later") and *identity* decision (a
+> disjoint air id space) were both realized differently and better by the
+> into-world epic: air craft are now real entities in the single archetype
+> `EntityWorld` (one id space, no `ComponentStore`, no `nextAirId`, no `Shuttle`
+> handle), and the `releaseAirEntity` seam folded into `world.destroy(id)`. Read
+> the into-world doc for the shipped end-state; the slices-4/5 ("fighters",
+> "dense-SoA + unified id space") framing below is largely subsumed — only the
+> *fighters* arm remains open (see [`fighter-air-entities.md`](fighter-air-entities.md)).
+
 > Shared-core member of the [`air/`](../overview.md) category, and the air-tier
 > arm of the battle [`ecs-migration`](../../ecs-migration/component-model.md).
 > Pulled into existence by the engine-FX work (thrust weighting +

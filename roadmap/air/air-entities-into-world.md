@@ -1,5 +1,10 @@
 # Air entities into the EntityWorld — one world, not two
 
+> **STATUS: COMPLETE (2026-06-27).** All five phases shipped — air craft are world
+> entities (id + components), the `Shuttle` handle / `nextAirId` / air
+> `ComponentStore`s are all gone. See the Progress section below for the commit
+> chain. This doc is retained as the design record.
+
 > **Design decision (2026-06-25): there should not be two separate entity
 > worlds.** Air craft and battle units belong in the *same* archetype
 > `EntityWorld`; "air vs ground" is a difference in *components*, not a reason
@@ -198,10 +203,38 @@ later ground `allocate` collision.)
   component — the `MECH_LOADOUT` survive-then-detach precedent; no `DeadBodySystem`
   change). New `DroneCrashSystemTest` case proves carry-while-alive + read-then-detach.
   Behavior-preserving, suite green at 777.
-- **Phase 5 (next)** — register `APPEARANCE` (altitudeT/flightPhase FLOAT columns),
-  move render state off `Shuttle`, migrate the 7 `getShuttles()` consumers to the
-  `airCraft` Query, `world.destroy(id)` at terminal GONE (reconciled with the FX
-  removes), delete the `Shuttle` handle class.
+- **Phase 5 ✓ — the finale (the `Shuttle` handle is gone).** Shipped as five
+  build-green sub-slices:
+  - **5a (`118a08e8`)** — registered the `APPEARANCE` component (FLOAT,FLOAT =
+    altitudeT/flightPhase, id 17) + has-gated `World` accessors; added it to the
+    air spawn archetype, seeded at spawn. Additive, nothing read it yet.
+  - **5b (`dd6b5549`)** — moved the render-state authority off `Shuttle` into
+    `APPEARANCE`. New `AirAppearance` helper owns the air visual-feel constants +
+    the pure derivations (`scaleMult`/`visualAltitudeOffsetCells`/
+    `engineIntensity`); `scaleMult` is derived on read, never stored. Faithful
+    (scaleMult at altitudeT=0 == 1.0; phase integrator unchanged).
+  - **5c (`b70955ac`)** — promoted `Shuttle.State` → top-level `ShuttleState`
+    (it had to outlive the handle). Mechanical rename across 7 files.
+  - **5d-i (`c5e94f9b`)** — flipped the external API to entity ids:
+    `getShuttles()`→`getAirEntityIds()` (walks the `airCraft` query),
+    `addShuttle(Shuttle)`→`spawnShuttle(...)`→id, `getThrusterGlow`/
+    `getAirTurretMounts`/`attachAirTurrets` retyped to `long`. All 7 consumers +
+    the 4 construction sites + `CarrierDescentPlugin`'s own drop list migrated to
+    ids; `Shuttle` became AirSystem-internal. Shared helpers extracted off the
+    handle: `MountedTurret.worldX/worldY`, `ShuttleMission.isVisible()`. Audio
+    loop key + light id rebased onto the (stable) `AirBody` instance / entity id.
+  - **5d-ii (`f83605e4`)** — rewrote `AirSystem` internals to `List<Long>`,
+    `entityWorld.destroy(id)` at terminal GONE via `reapGoneCraft()` at end of
+    `tick()` (gather-then-apply; one destroy supersedes the Phase-3 per-component
+    FX/turret removes — `releaseAirEntity` deleted; the reconciled GONE seam),
+    moved the surviving tunables to `ShuttleMission`, and **deleted `Shuttle.java`**.
+    Multi-sortie re-arm loops to PENDING (id reused), never reaped. Suite green.
+
+**Epic complete.** Air craft are world entities — one id space, one `EntityWorld`,
+no parallel handle / `ComponentStore` / `nextAirId`. "Air vs ground" is now purely
+a difference in components (air has `{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION,
+APPEARANCE}` + optional FX/turrets and no grid/combat components, so every grid
+system skips it for free).
 
 ### Watch-items (from the critic)
 
