@@ -197,7 +197,7 @@ its param block and resolves pools against the `TileRegistry`.
 | Phase | Story | What | Value without a submod |
 | --- | --- | --- | --- |
 | **1** *(1a, 1b ✅; 1c grid sheets pending)* | [`stories/phase-1-tile-registry.md`](stories/phase-1-tile-registry.md) | Build `TileRegistry`; render + gen read tiles by id. **1b done: sliced sheets fully data-driven, `NatureTile`/`UrbanTile3` deleted.** 1c = grid-sheet autotile blocks. | Kills "enum order = PNG order" + hardcoded `(col,row)` fragility. **This is the "tiles within a tileset" JSON.** |
-| **2** | _(to author)_ | Extract filler pools/chances + `GroundKind` render dispatch into the mapping JSON + `GenMappingRegistry`; fillers read params. | Tile recipes become data; re-tuning densities is a JSON edit. **This is the "mapping to generated things" JSON.** |
+| **2** *(in progress)* | [`stories/phase-2-doodad-pools.md`](stories/phase-2-doodad-pools.md) | `GenMappingRegistry` + `*.mapping.json` shipped. ✅ Doodad pools + cover (`DoodadDef`); ✅ `GroundKind`→block render dispatch (`groundRender` + generic `GroundRenderSystem.drawGroundBlock`). **Remaining:** per-`BlockKind` filler params (groundPool/chances) → `fillers` section. | Tile recipes become data; re-tuning densities/skins is a JSON edit. **This is the "mapping to generated things" JSON.** |
 | **3** | _(to author, deferred)_ | Mod-merge load order, id-override semantics, validation/diagnostics. | The actual submod story. Deferred until a second consumer exists. |
 
 ## Relationship to `GenRecipe` (don't design it twice)

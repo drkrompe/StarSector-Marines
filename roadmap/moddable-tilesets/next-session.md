@@ -122,14 +122,25 @@ doodads become data-with-cover; resolver/marker doodads (turret embankments via
 
 **The doodad-pools slice is done** — `TileManifest` no longer owns any doodad
 data; props are registry defs with cover, pools are `urban.mapping.json` data.
+**Cover-gap tuning ✅ `c78501b4`** (clean chairs/desks → MED, shelves → HEAVY;
+every prop now carries cover). Resolver doodads (embankments/arrows) stay code
+unless a submod needs to reskin them.
 
-Follow-ups (story doc): **cover-gap tuning ✅ `c78501b4`** (clean chairs/desks →
-MED, shelves → HEAVY; every prop now carries cover); resolver doodads
-(embankments/arrows) stay code unless a submod needs to reskin them; later Phase 2
-slices = `GroundKind` render dispatch + per-`BlockKind` filler params (groundPool/
-chances), extending the same `*.mapping.json` + `GenMappingRegistry`.
+- **GroundKind render dispatch ✅ `fdd757c8`** (gradle-green; chose the full
+  "generalize the draw path" scope). `urban.mapping.json` gains a `groundRender`
+  map (GroundKind → block/tile id); `GenMappingRegistry.groundBlockId(kind)`.
+  `GroundRenderSystem` collapses the ~10 regular kinds (+ GRASS/DIRT floors
+  fallback) into ONE generic `drawGroundBlock` path that resolves the kind's
+  mapped block via the block's own type and draws on the block's own
+  sheet/cellPx (`sheetFor` + `emitCellPx`); deleted `sameKindAutotile`/`variantCell`/
+  `floorsTile`/`waterTile`/`emitSmallTile`/`emitTileSize`. STREET/SIDEWALK/GRASS-DIRT-
+  nature stay code special-cases. **No pixel oracle** (the renderer needs GL) —
+  pinned by `GroundRenderMappingTest` (id + sheet/cellPx golden) + reasoning;
+  an in-game visual A/B is the final check.
 
-Then **Phase 3** (mod-merge, deferred).
+**Remaining Phase 2:** per-`BlockKind` filler params (groundPool / plant+rock
+chances / etc.) → the `fillers` section of `*.mapping.json`, fillers read their
+param block from `GenMappingRegistry`. Then **Phase 3** (mod-merge, deferred).
 
 > **Concurrent-session friction (recurring):** another session's drone/turret/
 > sim refactor has repeatedly left `battle/` main OR its test files
