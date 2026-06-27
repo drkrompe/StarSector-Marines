@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.air.engine;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
-import com.dillon.starsectormarines.battle.component.ComponentStore;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
  * Advances the smoothed engine-FX demand ({@link ThrusterFx}) for one air entity
@@ -13,9 +14,11 @@ import com.dillon.starsectormarines.battle.component.ComponentStore;
  * thrusters spool up quickly when called on and trail off gracefully — the
  * "ramp over time to a target thrust length" the visual needs.
  *
- * <p>System over a component set: the caller iterates its air entities and calls
- * {@link #advance} per entity, attaching / resizing the component lazily and
- * dropping it when the entity has no engine slots.
+ * <p>System over the world's {@code THRUSTER_FX} OBJECT column: the caller
+ * iterates its air entities and calls {@link #advance} per entity, attaching /
+ * resizing the component lazily (a {@code has}-gated read, then
+ * {@code addComponent}) and dropping it ({@code removeComponent}) when the entity
+ * has no engine slots.
  */
 public final class ThrusterFxSystem {
 
@@ -28,24 +31,29 @@ public final class ThrusterFxSystem {
 
     /**
      * Advances (or initializes) the {@link ThrusterFx} for {@code entityId} from
-     * the entity's current {@code body} + {@code handling} + engine {@code slots}.
-     * No-ops to a removed component when the entity has no engine slots.
+     * the entity's current {@code body} + {@code handling} + engine {@code slots},
+     * read from / written to the world's {@code THRUSTER_FX} OBJECT column.
+     * No-ops to a removed component when the entity has no engine slots. The id
+     * must be a live world entity (the lazy attach is an {@code addComponent}).
      *
      * @return the smoothed per-slot array (so a caller can use it immediately), or
      *         {@code null} if the entity carries no engine slots
      */
     public static float[] advance(long entityId, EngineSlotData[] slots,
                                   AirBody body, AirHandling handling,
-                                  ComponentStore<ThrusterFx> store, float dt) {
+                                  EntityWorld world, BattleComponents components, float dt) {
         if (slots == null || slots.length == 0) {
-            store.remove(entityId);
+            world.removeComponent(entityId, components.THRUSTER_FX);
             return null;
         }
 
-        ThrusterFx fx = store.get(entityId);
+        ThrusterFx fx = world.has(entityId, components.THRUSTER_FX)
+                ? (ThrusterFx) world.getObject(entityId, components.THRUSTER_FX, BattleComponents.THRUSTER_FX_STATE)
+                : null;
         if (fx == null || fx.smoothed.length != slots.length) {
             fx = new ThrusterFx(slots.length);
-            store.add(entityId, fx);
+            world.addComponent(entityId, components.THRUSTER_FX);
+            world.setObject(entityId, components.THRUSTER_FX, BattleComponents.THRUSTER_FX_STATE, fx);
         }
 
         float[] target = ThrusterDemand.compute(slots, body, handling);

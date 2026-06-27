@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -19,6 +18,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -73,11 +73,16 @@ public class AirSystem {
 
     private final List<Shuttle> shuttles = new ArrayList<>();
 
-    /** Smoothed per-slot engine-FX demand, keyed by air entity id. Advanced each tick by {@link ThrusterFxSystem}; read by the shuttle render + light passes. */
-    private final ComponentStore<ThrusterFx> thrusterFx = new ComponentStore<>();
-
-    /** Turret loadout per armed air craft, keyed by air entity id. Present only on craft with a fire-support role; pure transports carry no entry. */
-    private final ComponentStore<AirTurrets> airTurrets = new ComponentStore<>();
+    /**
+     * The raw entity world + its component registry, cached from {@link #roster}.
+     * Air FX/turret state lives in the world's {@code THRUSTER_FX}/{@code AIR_TURRETS}
+     * OBJECT columns (read via the {@link #world} facade's has-gated accessors);
+     * these two are passed straight to {@link ThrusterFxSystem#advance} for its
+     * lazy attach (avoiding a {@code battle.air.engine → battle.sim} cycle the
+     * {@code World} facade would introduce).
+     */
+    private final EntityWorld entityWorld;
+    private final BattleComponents components;
 
     /**
      * The air-craft spawn archetype {@code {AIR_IDENTITY, KINEMATICS,
@@ -97,8 +102,10 @@ public class AirSystem {
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
-        BattleComponents c = roster.components();
-        this.shuttleArchetype = new ComponentType[]{c.AIR_IDENTITY, c.KINEMATICS, c.SHUTTLE_MISSION};
+        this.entityWorld = roster.entityWorld();
+        this.components = roster.components();
+        this.shuttleArchetype = new ComponentType[]{
+                components.AIR_IDENTITY, components.KINEMATICS, components.SHUTTLE_MISSION};
     }
 
     public List<Shuttle> getShuttles() { return shuttles; }
@@ -130,7 +137,7 @@ public class AirSystem {
      * per-slot demand, so plumes ramp instead of snapping.
      */
     public float[] thrusterGlow(long entityId) {
-        ThrusterFx fx = thrusterFx.get(entityId);
+        ThrusterFx fx = world.thrusterFx(entityId);
         return fx == null ? null : fx.smoothed;
     }
 
@@ -141,13 +148,13 @@ public class AirSystem {
      */
     public void attachTurrets(long entityId, MountedTurret[] mounts) {
         if (mounts != null && mounts.length > 0) {
-            airTurrets.add(entityId, new AirTurrets(mounts));
+            world.attachAirTurrets(entityId, new AirTurrets(mounts));
         }
     }
 
     /** The craft's mounts, or {@code null} if it carries no turret component. Read by the shuttle render pass. */
     public MountedTurret[] mountsFor(long entityId) {
-        AirTurrets t = airTurrets.get(entityId);
+        AirTurrets t = world.airTurrets(entityId);
         return t == null ? null : t.mounts;
     }
 
@@ -157,13 +164,16 @@ public class AirSystem {
      * transition (DEPARTING → GONE). <b>Every</b> future removal path (AA
      * shoot-down — {@link ShuttleMission#hp} / {@link Shuttle#HOVER_HP_THRESHOLD}
      * are wired forward for it — or pruning GONE craft from the list) MUST funnel
-     * through here. Register each new air component store's removal in this one
-     * method and adding a component can't reintroduce an orphan leak.
+     * through here. Register each new optional air component's removal in this one
+     * method and adding a component can't reintroduce an orphan leak. The entity
+     * itself stays alive (its core {@code AIR_IDENTITY/KINEMATICS/SHUTTLE_MISSION}
+     * row persists); the terminal {@code world.destroy} is the handle-dissolution
+     * phase's job.
      */
     private void releaseAirEntity(long entityId) {
-        thrusterFx.remove(entityId);
-        airTurrets.remove(entityId);
-        // Future air component stores (mission, …) drop here too.
+        world.removeThrusterFx(entityId);
+        world.removeAirTurrets(entityId);
+        // Future optional air components drop here too.
     }
 
     /**
@@ -173,12 +183,12 @@ public class AirSystem {
      * "armed."
      */
     private boolean shouldHoverLoiter(Shuttle s) {
-        return s.mission.assignedRole != null && airTurrets.has(s.entityId);
+        return s.mission.assignedRole != null && world.hasAirTurrets(s.entityId);
     }
 
     /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
     private boolean allTurretsDry(Shuttle s) {
-        AirTurrets t = airTurrets.get(s.entityId);
+        AirTurrets t = world.airTurrets(s.entityId);
         return t == null || t.allDry();
     }
 
@@ -192,7 +202,7 @@ public class AirSystem {
      * Ramps each live shuttle's smoothed thruster demand toward the
      * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterDemand}
      * target (computed from the freshly-steered body). GONE craft drop their
-     * component so the store tracks only live air entities.
+     * component so the {@code THRUSTER_FX} column tracks only live air entities.
      */
     private void advanceThrusterFx(float dt) {
         for (Shuttle s : shuttles) {
@@ -203,7 +213,7 @@ public class AirSystem {
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
             EngineSlotData[] slots = EngineSlotResolver.resolve(s.type);
-            ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, thrusterFx, dt);
+            ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, entityWorld, components, dt);
         }
     }
 
@@ -333,7 +343,7 @@ public class AirSystem {
                             s.mission.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
-                            AirTurrets rearm = airTurrets.get(s.entityId);
+                            AirTurrets rearm = world.airTurrets(s.entityId);
                             if (rearm != null) {
                                 for (MountedTurret mt : rearm.mounts) {
                                     mt.ammo = mt.mount.kind.startingAmmo;
@@ -362,7 +372,7 @@ public class AirSystem {
         for (Shuttle s : shuttles) {
             if (!s.isVisible()) continue;
             // Presence: only armed craft carry an AirTurrets component.
-            AirTurrets t = airTurrets.get(s.entityId);
+            AirTurrets t = world.airTurrets(s.entityId);
             if (t == null) continue;
             float rad = (float) Math.toRadians(s.body.facingDegrees);
             float c = (float) Math.cos(rad);
@@ -510,7 +520,7 @@ public class AirSystem {
     }
 
     /**
-     * Recomputes {@link Shuttle#hoverPointX}/{@code hoverPointY} from the
+     * Recomputes {@link ShuttleMission#hoverPointX}/{@code hoverPointY} from the
      * alive squad centroid, pulled back by {@link Shuttle#HOVER_STANDOFF_CELLS}
      * along the LZ→centroid bearing (rear-overwatch standoff). Holds the
      * previous value if the squad is wiped (no alive squadmates) so the

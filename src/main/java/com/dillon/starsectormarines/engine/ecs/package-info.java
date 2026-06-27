@@ -16,8 +16,8 @@
  * <br>Boundary: pure storage + composition mechanism. No game components live here
  *           (the game registers those during the retrofit); no rendering, no
  *           reflection (component types are registered in code), no sprite /
- *           presentation state (that is render-tier). Replaces the transitional
- *           {@link com.dillon.starsectormarines.battle.component.ComponentStore}.
+ *           presentation state (that is render-tier). The sole composition
+ *           substrate now that the transitional {@code ComponentStore} is retired.
  * <br>Pointer: {@code roadmap/ecs-migration/archetype-storage.md} (committed design).
  */
 package com.dillon.starsectormarines.engine.ecs;
