@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -32,9 +33,6 @@ import java.util.Random;
  */
 public final class ParkFiller implements BlockFiller {
 
-    /** Bench tile on the urban-1 sheet — paired-seat doodad at (6, 7). */
-    private static final TileFrame BENCH = new TileFrame(6, 7);
-
     /** Minimum width/height to bother cutting a stone path through the park. */
     private static final int MIN_PATH_SIDE = 5;
 
@@ -47,6 +45,8 @@ public final class ParkFiller implements BlockFiller {
         CellTopology topology = ctx.topology;
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
+
+        DoodadDef bench = TileRegistry.installed().doodad("doodad.desk-dam");
 
         // Carve the leaf as walkable grass.
         for (int y = leaf.top; y <= leaf.bottom; y++) {
@@ -105,7 +105,7 @@ public final class ParkFiller implements BlockFiller {
                     y = leaf.top + rng.nextInt(leaf.height());
                     break;
             }
-            doodads.add(new Doodad(x, y, BENCH));
+            doodads.add(new Doodad(x, y, bench));
         }
     }
 }

@@ -14,6 +14,11 @@
     ],
     "SKY_PORT": [
       "doodad.box", "doodad.crate", "doodad.box-dam", "doodad.door-closed"
+    ],
+    "COMMERCIAL": [
+      "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
+      "doodad.desk-1", "doodad.desk-2", "doodad.chest-1", "doodad.chest-2",
+      "doodad.box", "doodad.crate"
     ]
   }
 }

@@ -316,7 +316,7 @@ public final class BattleSetup {
     /** Drops a yellow-striped landing-pad doodad under each LZ cell so the touchdown reads as a deliberate landing on a marked pad. Lives on the road sheet, drawn between floor and units. */
     private static void stampLzPads(BattleSimulation sim, List<int[]> lzCells) {
         for (int[] lz : lzCells) {
-            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true));
+            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
         }
     }
 

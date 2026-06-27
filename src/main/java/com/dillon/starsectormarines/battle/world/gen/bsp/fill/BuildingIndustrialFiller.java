@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
@@ -12,7 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_INDUSTRIAL} leaves. Carves
  * a hollow warehouse-style shell with the yellow safety-striped floor and
- * scatters cargo props from {@link TileManifest#WAREHOUSE_DOODADS}.
+ * scatters cargo props from the {@code "WAREHOUSE"} doodad pool.
  *
  * <p>Tagged as {@link PointOfInterest.Kind#DEPOT} so mission setups that look
  * for cargo objectives (loot crates, supply runs) anchor here naturally.
@@ -21,7 +20,7 @@ public final class BuildingIndustrialFiller implements BlockFiller {
 
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED,
-            TileManifest.WAREHOUSE_DOODADS,
+            "WAREHOUSE",
             PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE,
             BuildingKind.INDUSTRIAL);

@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
@@ -163,11 +165,10 @@ public final class FortifiedPostFiller implements BlockFiller {
                 interior.add(new int[]{x, y});
             }
         }
-        TileManifest.TileFrame[] pool = TileManifest.SKYPORT_DOODADS;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.SKY_PORT);
         for (int[] cell : interior) {
             if (rng.nextFloat() >= DOODAD_PER_CELL_CHANCE) continue;
-            TileManifest.TileFrame tile = pool[rng.nextInt(pool.length)];
-            doodads.add(new Doodad(cell[0], cell[1], tile));
+            doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
         }
     }
 }

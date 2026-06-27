@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -29,6 +31,10 @@ import java.util.Random;
  * skipping cells that are themselves doorways and the cell directly in front
  * of each doorway (so a marine entering doesn't materialize on top of a
  * shelf).
+ *
+ * <p>Pool-based recipes draw their props from the per-theme doodad pool resolved
+ * via {@link GenMappingRegistry}; literal-frame recipes resolve specific-cell
+ * doodads from the {@link TileRegistry} by id (shelves, desks).
  */
 final class BuildingLayouts {
 
@@ -52,8 +58,9 @@ final class BuildingLayouts {
     /**
      * Per-type layout strategy. Each value composes primitives to give the
      * building a distinctive read. Pool-based recipes draw their props from
-     * the per-type doodad pool; literal-frame recipes reach into
-     * {@link TileManifest} directly for specific cells (shelves, desks).
+     * the per-theme doodad pool via {@link GenMappingRegistry}; literal-frame
+     * recipes resolve specific doodads from the {@link TileRegistry} by id
+     * (shelves, desks).
      */
     enum LayoutRecipe {
         /** TINY/fallback. Sparse scatter from the per-type pool. */
@@ -76,22 +83,22 @@ final class BuildingLayouts {
      */
     static void applyLayout(NavigationGrid grid,
                             int bl, int bt, int br, int bb,
-                            TileManifest.TileFrame[] pool,
+                            String doodadPoolId,
                             LayoutRecipe recipe,
                             List<Doodad> doodads,
                             Random rng) {
         int interiorW = br - bl - 1;
         int interiorH = bb - bt - 1;
         if (interiorW < TINY_INTERIOR_DIM || interiorH < TINY_INTERIOR_DIM) {
-            sparseScatter(grid, bl, bt, br, bb, pool, doodads, rng, /*tiny*/ true);
+            sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ true);
             return;
         }
         switch (recipe) {
-            case HOME:      applyHome(grid, bl, bt, br, bb, pool, doodads, rng); break;
+            case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
             case SHOP:      applyShop(grid, bl, bt, br, bb, doodads, rng); break;
             case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
             case SHED:
-            default:        sparseScatter(grid, bl, bt, br, bb, pool, doodads, rng, /*tiny*/ false); break;
+            default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
         }
     }
 
@@ -107,16 +114,15 @@ final class BuildingLayouts {
      */
     private static void applyHome(NavigationGrid grid,
                                   int bl, int bt, int br, int bb,
-                                  TileManifest.TileFrame[] pool,
                                   List<Doodad> doodads,
                                   Random rng) {
-        TileManifest.TileFrame[] chairs = {
-                new TileManifest.TileFrame(6, 1),  // chair-south-yellow
-                new TileManifest.TileFrame(7, 1),  // chair-south-green
+        DoodadDef[] chairs = {
+                TileRegistry.installed().doodad("doodad.chair-south-yellow"),
+                TileRegistry.installed().doodad("doodad.chair-south-green"),
         };
-        TileManifest.TileFrame[] chests = {
-                new TileManifest.TileFrame(3, 3),  // chest-1
-                new TileManifest.TileFrame(4, 3),  // chest-2
+        DoodadDef[] chests = {
+                TileRegistry.installed().doodad("doodad.chest-1"),
+                TileRegistry.installed().doodad("doodad.chest-2"),
         };
         // Pick the longer pair of walls and run a chair line on one of them.
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
@@ -126,8 +132,7 @@ final class BuildingLayouts {
         wallLineMix(grid, bl, bt, br, bb, side, chairs, /*spacing*/ 2, doodads, rng);
 
         // Chest cluster — 1-2 free-placed, deliberately not chairs so the
-        // building has a non-seating prop type. Pool is unused for HOME;
-        // it's still passed for SHED/tiny fallback in the dispatcher.
+        // building has a non-seating prop type.
         int clusterPicks = 1 + rng.nextInt(2);
         for (int i = 0; i < clusterPicks; i++) {
             int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
@@ -141,11 +146,11 @@ final class BuildingLayouts {
                                   int bl, int bt, int br, int bb,
                                   List<Doodad> doodads,
                                   Random rng) {
-        TileManifest.TileFrame[] shelves = {
-                new TileManifest.TileFrame(5, 3),  // shelf-empty
-                new TileManifest.TileFrame(6, 3),  // shelf-1
-                new TileManifest.TileFrame(7, 3),  // shelf-2
-                new TileManifest.TileFrame(8, 3),  // shelf-3
+        DoodadDef[] shelves = {
+                TileRegistry.installed().doodad("doodad.shelf-empty"),
+                TileRegistry.installed().doodad("doodad.shelf-1"),
+                TileRegistry.installed().doodad("doodad.shelf-2"),
+                TileRegistry.installed().doodad("doodad.shelf-3"),
         };
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         if (wallsAreHorizontal) {
@@ -156,7 +161,7 @@ final class BuildingLayouts {
             wallLineMix(grid, bl, bt, br, bb, WallSide.E, shelves, WALL_LINE_SPACING, doodads, rng);
         }
 
-        TileManifest.TileFrame desk = new TileManifest.TileFrame(9, 2); // desk-1
+        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-1");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
     }
 
@@ -165,9 +170,9 @@ final class BuildingLayouts {
                                        int bl, int bt, int br, int bb,
                                        List<Doodad> doodads,
                                        Random rng) {
-        TileManifest.TileFrame[] crates = {
-                new TileManifest.TileFrame(8, 1),  // box
-                new TileManifest.TileFrame(9, 1),  // crate
+        DoodadDef[] crates = {
+                TileRegistry.installed().doodad("doodad.box"),
+                TileRegistry.installed().doodad("doodad.crate"),
         };
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         if (wallsAreHorizontal) {
@@ -178,7 +183,7 @@ final class BuildingLayouts {
             wallLineMix(grid, bl, bt, br, bb, WallSide.E, crates, WALL_LINE_SPACING, doodads, rng);
         }
 
-        TileManifest.TileFrame desk = new TileManifest.TileFrame(9, 3); // desk-2
+        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-2");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
     }
 
@@ -187,7 +192,7 @@ final class BuildingLayouts {
     /** Stamps a single prop along the inside-of-{@code side} cells of the building, every {@code spacing} cells, skipping doorway clearance zones and existing doodad cells. */
     private static void wallLine(NavigationGrid grid,
                                  int bl, int bt, int br, int bb,
-                                 WallSide side, TileManifest.TileFrame prop, int spacing,
+                                 WallSide side, DoodadDef prop, int spacing,
                                  List<Doodad> doodads) {
         switch (side) {
             case N: { // inside of north wall — cells at y = bb - 1
@@ -224,7 +229,7 @@ final class BuildingLayouts {
     /** Wall-line variant that picks a random prop from {@code variants} per cell. Same skip rules as {@link #wallLine}; gives a hand-stacked / varied-stock feel when the variants are visually distinct (crates, shelves). */
     private static void wallLineMix(NavigationGrid grid,
                                     int bl, int bt, int br, int bb,
-                                    WallSide side, TileManifest.TileFrame[] variants, int spacing,
+                                    WallSide side, DoodadDef[] variants, int spacing,
                                     List<Doodad> doodads, Random rng) {
         switch (side) {
             case N: {
@@ -268,7 +273,7 @@ final class BuildingLayouts {
      */
     private static void counterAtDoorway(NavigationGrid grid,
                                          int bl, int bt, int br, int bb,
-                                         TileManifest.TileFrame prop, List<Doodad> doodads) {
+                                         DoodadDef prop, List<Doodad> doodads) {
         // Scan the perimeter for the first doorway cell, then place the prop
         // 2 cells inward (1 cell of clearance + the cell to stand on for the
         // doorway, then the prop). Two cells in keeps the entry sightline
@@ -297,7 +302,7 @@ final class BuildingLayouts {
      * {@code onY=false}, {@code fixed} is the x coord and {@code along} is
      * the y coord. Skip rules from {@link #tryStamp} still apply.
      */
-    private static void tryStampDirect(int fixed, int along, TileManifest.TileFrame prop,
+    private static void tryStampDirect(int fixed, int along, DoodadDef prop,
                                        List<Doodad> doodads, NavigationGrid grid, boolean onY) {
         int x = onY ? along : fixed;
         int y = onY ? fixed : along;
@@ -306,7 +311,7 @@ final class BuildingLayouts {
 
     /** Stamps {@code prop} at {@code (x, y)} if the cell is walkable, not a doorway, not too close to one, and not already occupied. */
     private static void tryStamp(NavigationGrid grid, int x, int y,
-                                 TileManifest.TileFrame prop, List<Doodad> doodads) {
+                                 DoodadDef prop, List<Doodad> doodads) {
         if (!grid.inBounds(x, y)) return;
         if (!grid.isWalkable(x, y)) return;
         if (grid.isDoorway(x, y)) return;
@@ -354,19 +359,20 @@ final class BuildingLayouts {
         return free.get(rng.nextInt(free.size()));
     }
 
-    /** SHED / fallback scatter — picks 0-1 (TINY) or 1-2 (LARGE fallback) props from the per-type pool at random interior cells. */
+    /** SHED / fallback scatter — picks 0-1 (TINY) or 1-2 (LARGE fallback) props from the per-theme pool at random interior cells. */
     private static void sparseScatter(NavigationGrid grid,
                                       int bl, int bt, int br, int bb,
-                                      TileManifest.TileFrame[] pool,
+                                      String doodadPoolId,
                                       List<Doodad> doodads, Random rng,
                                       boolean tiny) {
-        if (pool == null || pool.length == 0) return;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(doodadPoolId);
+        if (pool.isEmpty()) return;
         if (tiny && rng.nextFloat() >= TINY_PROP_CHANCE) return;
         int picks = tiny ? 1 : (1 + rng.nextInt(2));
         for (int i = 0; i < picks; i++) {
             int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
             if (cell == null) break;
-            doodads.add(new Doodad(cell[0], cell[1], pool[rng.nextInt(pool.length)]));
+            doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
         }
     }
 }

@@ -4,10 +4,11 @@ import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -33,9 +34,9 @@ import java.util.Random;
  * sparse, and mutually non-adjacent so they never partition the apron or close
  * its sightlines — they're cover to fight <em>around</em>, not a maze.
  *
- * <p>Placeholder doodads come from {@link TileManifest#SKYPORT_DOODADS}; bespoke
- * pad gear (bowsers, loaders, light masts) is a later art pass — see the doodad
- * palette in {@code roadmap/economic-districts/overview.md}.
+ * <p>Placeholder doodads come from the {@link DistrictTheme#SKY_PORT} doodad pool
+ * (registry-driven); bespoke pad gear (bowsers, loaders, light masts) is a later
+ * art pass — see the doodad palette in {@code roadmap/economic-districts/overview.md}.
  */
 public final class SpaceportFiller implements BlockFiller {
 
@@ -166,7 +167,7 @@ public final class SpaceportFiller implements BlockFiller {
         int area = leaf.width() * leaf.height();
         int budget = Math.max(MIN_COVER_ISLANDS,
                 Math.min(MAX_COVER_ISLANDS, area / CELLS_PER_COVER_ISLAND));
-        TileFrame[] pool = TileManifest.SKYPORT_DOODADS;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.SKY_PORT);
         int placed = 0;
         while (placed < budget && !candidates.isEmpty()) {
             int idx = rng.nextInt(candidates.size());
@@ -179,7 +180,7 @@ public final class SpaceportFiller implements BlockFiller {
                 continue;
             }
             grid.setWalkable(x, y, false);
-            ctx.doodads.add(new Doodad(x, y, pool[rng.nextInt(pool.length)]));
+            ctx.doodads.add(new Doodad(x, y, pool.get(rng.nextInt(pool.size()))));
             placed++;
         }
     }
@@ -199,10 +200,10 @@ public final class SpaceportFiller implements BlockFiller {
 
         int area = leaf.width() * leaf.height();
         int budget = Math.min(MAX_APRON_DOODADS, Math.max(1, area / CELLS_PER_APRON_DOODAD));
-        TileFrame[] pool = TileManifest.SKYPORT_DOODADS;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.SKY_PORT);
         for (int i = 0; i < budget && !walkable.isEmpty(); i++) {
             int[] cell = walkable.remove(rng.nextInt(walkable.size()));
-            ctx.doodads.add(new Doodad(cell[0], cell[1], pool[rng.nextInt(pool.length)]));
+            ctx.doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
         }
     }
 

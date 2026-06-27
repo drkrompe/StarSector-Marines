@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -186,7 +188,8 @@ public final class WaterfrontFiller implements BlockFiller {
     private void scatterShoreDoodads(BlockLeaf leaf, Edge edge, int waterDepth,
                                      NavigationGrid grid, CellTopology topology,
                                      List<Doodad> doodads, Random rng) {
-        if (TileManifest.WAREHOUSE_DOODADS.length == 0) return;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.WAREHOUSE);
+        if (pool.isEmpty()) return;
         int crates = 1 + rng.nextInt(2);
         for (int i = 0; i < crates; i++) {
             int[] xy = shoreCell(leaf, edge, waterDepth, rng);
@@ -194,9 +197,7 @@ public final class WaterfrontFiller implements BlockFiller {
             int x = xy[0], y = xy[1];
             if (!grid.isWalkable(x, y) || topology.isWater(x, y)) continue;
             if (topology.getGroundKind(x, y) != GroundKind.SAND) continue;
-            TileManifest.TileFrame tile =
-                    TileManifest.WAREHOUSE_DOODADS[rng.nextInt(TileManifest.WAREHOUSE_DOODADS.length)];
-            doodads.add(new Doodad(x, y, tile));
+            doodads.add(new Doodad(x, y, pool.get(rng.nextInt(pool.size()))));
         }
     }
 

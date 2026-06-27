@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -29,35 +28,35 @@ public class BuildingShellCoreLabelTest {
 
     private static final BuildingShellCore.BuildingConfig ALWAYS_PARTITION_CONFIG =
             new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY},
                     new BinaryPartitionStrategy(1.0f));
 
     private static final BuildingShellCore.BuildingConfig NEVER_PARTITION_CONFIG =
             new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY},
                     new BinaryPartitionStrategy(0.0f));
 
     private static final BuildingShellCore.BuildingConfig TERNARY_CONFIG =
             new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
                     new TernaryPartitionStrategy(1.0f));
 
     private static final BuildingShellCore.BuildingConfig TERNARY_FALLBACK_CONFIG =
             new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
                     new TernaryPartitionStrategy(1.0f));
 
     private static final BuildingShellCore.BuildingConfig PLAIN_CONFIG =
             new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
+                    GroundKind.INDOOR, "RESIDENTIAL", PointOfInterest.Kind.RESIDENTIAL,
                     BuildingLayouts.LayoutRecipe.HOME, BuildingKind.RESIDENTIAL);
 
     private static NavigationGrid openGrid() {

@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -64,30 +65,20 @@ public class TacticalScoringTest {
     // ---------------------------------------------------------------------
 
     @Test
-    public void doodadDefaultCoverFromTile() {
-        // Crate doodad on row 1 col 8 — should report medium cover.
-        Doodad crate = new Doodad(3, 3, new TileManifest.TileFrame(8, 1));
-        assertEquals(Doodad.COVER_MED, crate.cover);
-
-        // Shelf doodad on row 7 col 4 — should report heavy cover.
-        Doodad shelf = new Doodad(4, 4, new TileManifest.TileFrame(4, 7));
-        assertEquals(Doodad.COVER_HEAVY, shelf.cover);
-
-        // Rubble decal — light cover.
-        Doodad rubble = new Doodad(5, 5, new TileManifest.TileFrame(0, 7));
-        assertEquals(Doodad.COVER_LIGHT, rubble.cover);
-
-        // LZ pad — no cover.
-        Doodad pad = new Doodad(6, 6, TileManifest.LZ_PAD, true);
-        assertEquals(Doodad.COVER_NONE, pad.cover);
+    public void doodadCoverFromDef() {
+        TileRegistry reg = TileRegistry.installed();
+        assertEquals(Doodad.COVER_MED,   new Doodad(3, 3, reg.doodad("doodad.box")).cover);
+        assertEquals(Doodad.COVER_HEAVY, new Doodad(4, 4, reg.doodad("doodad.shelf-dam-1")).cover);
+        assertEquals(Doodad.COVER_LIGHT, new Doodad(5, 5, reg.doodad("doodad.decal-rubble-1")).cover);
+        assertEquals(Doodad.COVER_NONE,  new Doodad(6, 6, TileManifest.LZ_PAD, true, Doodad.COVER_NONE).cover);
     }
 
     @Test
     public void simIndexReportsMaxCoverPerCell() {
         BattleSimulation sim = openArena(10, 10);
-        sim.addDoodad(new Doodad(4, 4, new TileManifest.TileFrame(8, 1))); // crate, COVER_MED
-        sim.addDoodad(new Doodad(4, 4, new TileManifest.TileFrame(4, 7))); // shelf, COVER_HEAVY
-        sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(0, 7))); // rubble, COVER_LIGHT
+        sim.addDoodad(new Doodad(4, 4, new TileManifest.TileFrame(8, 1), false, Doodad.COVER_MED)); // crate, COVER_MED
+        sim.addDoodad(new Doodad(4, 4, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY)); // shelf, COVER_HEAVY
+        sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(0, 7), false, Doodad.COVER_LIGHT)); // rubble, COVER_LIGHT
 
         assertEquals(Doodad.COVER_HEAVY, sim.getDoodadCoverAt(4, 4),
                 "stacked doodads on one cell collapse to the max cover");
@@ -111,7 +102,7 @@ public class TacticalScoringTest {
         // — same protection as the doodad cell itself, one step closer to
         // where we are. This is the Story G directional-cover signal: a
         // marine doesn't need to stand <em>on</em> the crate to be behind it.
-        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7)));
+        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
 
         int[] pick = sim.getTacticalScoring().bestCoverCell(15, 10, 10, 10, 4);
         assertNotNull(pick, "open arena with LOS should always pick something");
@@ -128,7 +119,7 @@ public class TacticalScoringTest {
         // should reflect that. Same scene as the east-threat test, different
         // threat direction.
         BattleSimulation sim = openArena(20, 20);
-        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7)));
+        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
         // Threat at (13, 5) (north), anchor at (13, 12) (south of doodad),
         // radius 3. (13, 10) is the doodad cell — iso cover 3. (13, 11) is
         // south of doodad — N-facing cover 3 (doodad is north of it, but the
@@ -155,8 +146,8 @@ public class TacticalScoringTest {
         // covers from the east threat) AND is closer to the anchor than the
         // doodad cell itself, so it wins the tie-break.
         for (int y = 4; y <= 6; y++) grid.setWalkable(8, y, false);
-        sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));   // heavy, blocked
-        sim.addDoodad(new Doodad(12, 5, new TileManifest.TileFrame(8, 1)));  // medium, visible
+        sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));   // heavy, blocked
+        sim.addDoodad(new Doodad(12, 5, new TileManifest.TileFrame(8, 1), false, Doodad.COVER_MED));  // medium, visible
 
         int[] pick = sim.getTacticalScoring().bestCoverCell(15, 5, 9, 5, 6);
         assertNotNull(pick);
@@ -252,7 +243,7 @@ public class TacticalScoringTest {
         // cell.
         BattleSimulation sim = openArena(20, 20);
         // Heavy doodad on (10, 10).
-        sim.addDoodad(new Doodad(10, 10, new TileManifest.TileFrame(4, 7)));
+        sim.addDoodad(new Doodad(10, 10, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
 
         Entity threat = unit(sim, Faction.DEFENDER, 18, 10);
         sim.world().setAttackRange(threat.entityId, 30f);

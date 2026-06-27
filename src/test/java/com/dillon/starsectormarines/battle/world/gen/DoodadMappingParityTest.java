@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
-import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
@@ -16,17 +14,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Parity oracle for moddable-tilesets Phase 2 sub-slice 1 (doodad pools as data).
- * Pins the data-driven {@link DoodadDef}s + {@link GenMappingRegistry} pools to
- * the hardcoded {@code TileManifest} pools + {@code Doodad.defaultCoverFor} they
- * replace, so the consumer flip in sub-slice 2 is provably behavior-preserving:
+ * Frozen-golden regression guard for the data-driven doodad system
+ * (moddable-tilesets Phase 2). The migration parity (def cover ==
+ * {@code Doodad.defaultCoverFor}; pools == the former {@code TileManifest}
+ * arrays) was proven at flip time; those sources are now deleted, so this pins
+ * the <em>shipped</em> values directly:
  * <ul>
- *   <li>every doodad def's {@link DoodadDef#cover} equals the cover the
- *       {@code (col,row)} table would have derived;</li>
- *   <li>each theme pool resolves to the same ordered {@code (col,row)} frames as
- *       its {@code TileManifest} array (order matters — scatter indexes the pool
- *       by {@code rng.nextInt(len)}, so a re-order would shift every seeded map).</li>
+ *   <li>each pool resolves (via {@link GenMappingRegistry}) to its frozen ordered
+ *       {@code (col,row)} sequence — order matters, scatter indexes the pool by
+ *       {@code rng.nextInt(len)}, so a re-order shifts every seeded map;</li>
+ *   <li>a representative cover golden — one prop per cover bucket — guards the
+ *       {@code "cover"} parse + the authored values.</li>
  * </ul>
+ * A bad doodad id in any pool fails loud at resolve time (and at the test
+ * bootstrap, which loads every sheet).
  */
 public class DoodadMappingParityTest {
 
@@ -39,35 +40,38 @@ public class DoodadMappingParityTest {
     }
 
     @Test
-    void doodadDefCoversMatchDefaultCoverFor() {
-        // TileRegistry (with the folded-in doodads) is installed by the global
-        // TileRegistryTestInstaller before any test runs.
-        TileRegistry reg = TileRegistry.installed();
-        assertNotNull(reg, "TileRegistry not installed");
-        assertNotNull(reg.doodad("doodad.crate"), "doodads not ingested");
-        for (DoodadDef d : reg.doodads()) {
-            int want = Doodad.defaultCoverFor(new TileManifest.TileFrame(d.col, d.row));
-            assertEquals(want, d.cover.level(),
-                    "cover drift for " + d.id + " @(" + d.col + "," + d.row + ")");
-        }
+    void poolsResolveToFrozenFrames() throws Exception {
+        GenMappingRegistry mapping = loadMapping();
+        assertPool(mapping, "MIXED",       new int[][]{{8,1},{9,1},{3,3},{4,3},{6,7},{7,7},{8,7},{9,7},{6,2}});
+        assertPool(mapping, "RESIDENTIAL", new int[][]{{6,1},{7,1},{3,3},{4,3}});
+        assertPool(mapping, "WAREHOUSE",   new int[][]{{8,1},{9,1},{3,3},{4,3}});
+        assertPool(mapping, "SKY_PORT",    new int[][]{{8,1},{9,1},{7,7},{6,2}});
+        assertPool(mapping, "COMMERCIAL",  new int[][]{{5,3},{6,3},{7,3},{8,3},{9,2},{9,3},{3,3},{4,3},{8,1},{9,1}});
     }
 
     @Test
-    void doodadPoolsMatchTileManifestPools() throws Exception {
-        GenMappingRegistry mapping = loadMapping();
-        assertPoolMatches(mapping, DistrictTheme.MIXED,       TileManifest.DOODAD_POOL);
-        assertPoolMatches(mapping, DistrictTheme.RESIDENTIAL, TileManifest.RESIDENTIAL_DOODADS);
-        assertPoolMatches(mapping, DistrictTheme.WAREHOUSE,   TileManifest.WAREHOUSE_DOODADS);
-        assertPoolMatches(mapping, DistrictTheme.SKY_PORT,    TileManifest.SKYPORT_DOODADS);
+    void coverGoldenPerBucket() {
+        TileRegistry reg = TileRegistry.installed();
+        assertNotNull(reg, "TileRegistry not installed");
+        assertCover(reg, "doodad.box",                 DoodadCover.MED);
+        assertCover(reg, "doodad.shelf-dam-1",         DoodadCover.HEAVY);
+        assertCover(reg, "doodad.decal-rubble-1",      DoodadCover.LIGHT);
+        assertCover(reg, "doodad.chair-south-yellow",  DoodadCover.NONE);
+        assertCover(reg, "doodad.door-closed",         DoodadCover.MED);
     }
 
-    private static void assertPoolMatches(GenMappingRegistry mapping, DistrictTheme theme,
-                                          TileManifest.TileFrame[] expected) {
-        List<DoodadDef> got = mapping.doodadPool(theme);
-        assertEquals(expected.length, got.size(), "pool size for " + theme);
+    private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {
+        List<DoodadDef> got = mapping.doodadPool(poolId);
+        assertEquals(expected.length, got.size(), "pool size for " + poolId);
         for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i].col, got.get(i).col, "pool " + theme + " entry " + i + " col");
-            assertEquals(expected[i].row, got.get(i).row, "pool " + theme + " entry " + i + " row");
+            assertEquals(expected[i][0], got.get(i).col, "pool " + poolId + " entry " + i + " col");
+            assertEquals(expected[i][1], got.get(i).row, "pool " + poolId + " entry " + i + " row");
         }
+    }
+
+    private static void assertCover(TileRegistry reg, String id, DoodadCover want) {
+        DoodadDef def = reg.doodad(id);
+        assertNotNull(def, "missing doodad " + id);
+        assertEquals(want, def.cover, "cover for " + id);
     }
 }

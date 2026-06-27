@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -156,7 +157,7 @@ public final class UrbanMapGenerator implements MapGenerator {
 
         List<Doodad> doodads = scatterDoodads(grid, pois, poiThemes, rng);
         for (int[] plaza : skyPortPlazas) {
-            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.LZ_PAD, true));
+            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
         }
 
         int[] marine   = pickSpawnAnchor(grid, skyPortPlazas, 1, 1, width / 2,        height - 1, rng);
@@ -235,7 +236,7 @@ public final class UrbanMapGenerator implements MapGenerator {
             if (interior.isEmpty()) continue;
 
             DistrictTheme theme = poiThemes.getOrDefault(poi, DistrictTheme.MIXED);
-            TileManifest.TileFrame[] pool = TileManifest.doodadPoolFor(theme);
+            List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(theme);
 
             // First placement is guaranteed; subsequent are a coin flip until
             // the cap is hit. Keeps small rooms from collecting four chairs.
@@ -243,8 +244,7 @@ public final class UrbanMapGenerator implements MapGenerator {
                 if (i > 0 && rng.nextFloat() >= DOODAD_EXTRA_CELL_CHANCE) break;
                 int pickIdx = rng.nextInt(interior.size());
                 int[] cell = interior.remove(pickIdx);
-                TileManifest.TileFrame tile = pool[rng.nextInt(pool.length)];
-                out.add(new Doodad(cell[0], cell[1], tile));
+                out.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
                 if (interior.isEmpty()) break;
             }
         }

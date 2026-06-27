@@ -162,54 +162,6 @@ public final class TileManifest {
     public static final TileFrame DOOR_OPEN = new TileFrame(7, 2);
 
     /**
-     * Pool of decorative props scattered through hollow building interiors.
-     * Visual-only — placed on walkable cells, never block movement. Mix of
-     * crates, chairs, a chest, and the closed-door panel to read as
-     * lived-in rooms. This is the {@link DistrictTheme#MIXED} fallback;
-     * themed districts pull from the narrower pools below.
-     */
-    public static final TileFrame[] DOODAD_POOL = {
-            new TileFrame(8, 1), new TileFrame(9, 1),       // tan + amber crates
-            new TileFrame(3, 3), new TileFrame(4, 3),       // gold + green crates
-            new TileFrame(6, 7),                            // bench / paired-seat
-            new TileFrame(7, 7),                            // brown chest
-            new TileFrame(8, 7), new TileFrame(9, 7),       // small stools
-            new TileFrame(6, 2),                            // closed-door panel (decoration only)
-    };
-
-    /** Homely furnishings — clean chairs + chests from urban-tileset rows 1-3. Used inside RESIDENTIAL districts. */
-    public static final TileFrame[] RESIDENTIAL_DOODADS = {
-            new TileFrame(6, 1),                            // chair-south-yellow
-            new TileFrame(7, 1),                            // chair-south-green
-            new TileFrame(3, 3),                            // chest-1
-            new TileFrame(4, 3),                            // chest-2
-    };
-
-    /** Stacked crates only — fills warehouse interiors with cargo. */
-    public static final TileFrame[] WAREHOUSE_DOODADS = {
-            new TileFrame(8, 1), new TileFrame(9, 1),
-            new TileFrame(3, 3), new TileFrame(4, 3),
-    };
-
-    /** Cargo + a chest + the marker panel — sky-port stations mix crates and freight. */
-    public static final TileFrame[] SKYPORT_DOODADS = {
-            new TileFrame(8, 1), new TileFrame(9, 1),
-            new TileFrame(7, 7),                            // chest
-            new TileFrame(6, 2),                            // marker panel
-    };
-
-    /** Returns the per-theme doodad pool. {@link DistrictTheme#MIXED} returns the full {@link #DOODAD_POOL}. */
-    public static TileFrame[] doodadPoolFor(DistrictTheme theme) {
-        switch (theme) {
-            case RESIDENTIAL: return RESIDENTIAL_DOODADS;
-            case WAREHOUSE:   return WAREHOUSE_DOODADS;
-            case SKY_PORT:    return SKYPORT_DOODADS;
-            case MIXED:
-            default:          return DOODAD_POOL;
-        }
-    }
-
-    /**
      * Returns the wall tile for a cell given which cardinal neighbors are also
      * walls (or out-of-bounds — treated identically). Returns {@code null} when
      * the cell is fully enclosed (all four neighbors are walls) — the caller

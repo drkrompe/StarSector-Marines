@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -36,24 +37,6 @@ public final class WastelandRubbleFiller implements BlockFiller {
     private static final int MIN_DOODADS = 3;
     private static final int MAX_DOODADS = 6;
 
-    /**
-     * Damaged-prop + rubble-decal mix from urban-tileset.png row 7. Cols 0-3
-     * are the rubble decals; cols 4-9 are the damaged props (shelves, desk,
-     * box, chairs).
-     */
-    private static final TileFrame[] WASTELAND_POOL = {
-            new TileFrame(0, 7), // decal-rubble-1
-            new TileFrame(1, 7), // decal-rubble-2
-            new TileFrame(2, 7), // decal-rubble-3
-            new TileFrame(3, 7), // decal-rubble-4
-            new TileFrame(4, 7), // shelf-dam-1
-            new TileFrame(5, 7), // shelf-dam-2
-            new TileFrame(6, 7), // desk-dam
-            new TileFrame(7, 7), // box-dam
-            new TileFrame(8, 7), // chair-s-yellow-dam
-            new TileFrame(9, 7), // chair-s-green-dam
-    };
-
     @Override
     public BlockKind kind() { return BlockKind.WASTELAND_RUBBLE; }
 
@@ -63,6 +46,20 @@ public final class WastelandRubbleFiller implements BlockFiller {
         CellTopology topology = ctx.topology;
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
+
+        TileRegistry reg = TileRegistry.installed();
+        DoodadDef[] wastelandPool = {
+            reg.doodad("doodad.decal-rubble-1"),
+            reg.doodad("doodad.decal-rubble-2"),
+            reg.doodad("doodad.decal-rubble-3"),
+            reg.doodad("doodad.decal-rubble-4"),
+            reg.doodad("doodad.shelf-dam-1"),
+            reg.doodad("doodad.shelf-dam-2"),
+            reg.doodad("doodad.desk-dam"),
+            reg.doodad("doodad.box-dam"),
+            reg.doodad("doodad.chair-s-yellow-dam"),
+            reg.doodad("doodad.chair-s-green-dam"),
+        };
 
         // Paint the whole leaf as rubble + walkable; no walls.
         for (int y = leaf.top; y <= leaf.bottom; y++) {
@@ -87,8 +84,8 @@ public final class WastelandRubbleFiller implements BlockFiller {
         while (placed < target && !walkable.isEmpty()) {
             int idx = rng.nextInt(walkable.size());
             int[] cell = walkable.remove(idx);
-            TileFrame tile = WASTELAND_POOL[rng.nextInt(WASTELAND_POOL.length)];
-            doodads.add(new Doodad(cell[0], cell[1], tile));
+            DoodadDef def = wastelandPool[rng.nextInt(wastelandPool.length)];
+            doodads.add(new Doodad(cell[0], cell[1], def));
             placed++;
         }
     }

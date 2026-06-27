@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -33,14 +34,6 @@ import java.util.Random;
  */
 public final class PlazaFiller implements BlockFiller {
 
-    /** Bench tile on the urban-1 sheet — paired-seat doodad at (6, 7). */
-    private static final TileFrame BENCH = new TileFrame(6, 7);
-    /** Small stool tiles at (8, 7) and (9, 7). */
-    private static final TileFrame STOOL_A = new TileFrame(8, 7);
-    private static final TileFrame STOOL_B = new TileFrame(9, 7);
-
-    private static final TileFrame[] PLAZA_DOODADS = { BENCH, BENCH, STOOL_A, STOOL_B };
-
     /** Minimum width/height for the stone perimeter ring — below this the
      *  whole leaf stays TILE so the ring wouldn't swallow the interior. */
     private static final int MIN_RING_SIDE = 5;
@@ -54,6 +47,14 @@ public final class PlazaFiller implements BlockFiller {
         CellTopology topology = ctx.topology;
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
+
+        TileRegistry reg = TileRegistry.installed();
+        DoodadDef[] plazaDoodads = {
+            reg.doodad("doodad.desk-dam"),
+            reg.doodad("doodad.desk-dam"),
+            reg.doodad("doodad.chair-s-yellow-dam"),
+            reg.doodad("doodad.chair-s-green-dam"),
+        };
 
         // Carve the leaf as walkable brick-paved plaza pavement.
         for (int y = leaf.top; y <= leaf.bottom; y++) {
@@ -109,8 +110,8 @@ public final class PlazaFiller implements BlockFiller {
             edgeCells.set(swapIdx, tmp);
 
             int[] cell = edgeCells.get(picked);
-            TileFrame frame = PLAZA_DOODADS[rng.nextInt(PLAZA_DOODADS.length)];
-            doodads.add(new Doodad(cell[0], cell[1], frame));
+            DoodadDef def = plazaDoodads[rng.nextInt(plazaDoodads.length)];
+            doodads.add(new Doodad(cell[0], cell[1], def));
         }
     }
 }

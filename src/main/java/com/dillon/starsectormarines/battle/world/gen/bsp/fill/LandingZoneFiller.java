@@ -110,6 +110,6 @@ public final class LandingZoneFiller implements BlockFiller {
         if (!grid.inBounds(x, y)) return;
         if (!grid.isWalkable(x, y)) return;
         if (x == centerX && y == centerY) return; // don't overlay the LZ marker
-        doodads.add(new Doodad(x, y, tile, true));
+        doodads.add(new Doodad(x, y, tile, true, Doodad.COVER_NONE));
     }
 }

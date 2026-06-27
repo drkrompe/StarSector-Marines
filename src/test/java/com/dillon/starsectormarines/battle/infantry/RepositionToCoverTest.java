@@ -55,7 +55,7 @@ public class RepositionToCoverTest {
         Entity threat = enemyAt(sim, 15, 5);
         sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         // Heavy cover right next to the marine.
-        sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));
+        sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
         // Cooldown set — the action must refuse to move.
         sim.world().setRepositionCooldown(marine.entityId, 0.5f);
 
@@ -82,7 +82,7 @@ public class RepositionToCoverTest {
         // anywhere else (no candidate has higher cover). Story G's
         // MG-in-cover-stays-put property.
         BattleSimulation sim = openArena(20, 20);
-        sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(4, 7)));
+        sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY));
         Entity marine = marineAt(sim, 5, 5);
         sim.world().setAttackRange(marine.entityId, 10f);
         Entity threat = enemyAt(sim, 12, 5);
@@ -105,7 +105,7 @@ public class RepositionToCoverTest {
         // marine's cell; current E-facing cover = 0. (6, 5) IS a direct
         // west-of-crate neighbor and gets E-facing cover 3. Marine should
         // shift one cell east.
-        sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7))); // heavy
+        sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7), false, Doodad.COVER_HEAVY)); // heavy
         Entity marine = marineAt(sim, 5, 5);
         sim.world().setAttackRange(marine.entityId, 10f);
         Entity threat = enemyAt(sim, 12, 5);

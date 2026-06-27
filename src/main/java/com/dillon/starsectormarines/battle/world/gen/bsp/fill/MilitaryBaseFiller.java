@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -81,18 +80,18 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * (distance 1) are used; ENTRY at distance 2 is unreachable.
      */
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+            GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
             BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
             new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
             TernaryPartitionStrategy.DEFAULT);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
+            GroundKind.INDOOR, "RESIDENTIAL", PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);
     private static final BuildingShellCore.BuildingConfig ARMORY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
     private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
 
     @Override

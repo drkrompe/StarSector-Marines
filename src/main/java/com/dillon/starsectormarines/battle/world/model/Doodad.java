@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 
 /**
  * Visual-only prop placed on a walkable cell — chairs, crates, chests, etc.
@@ -20,9 +22,11 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
  * the cell-grid cover only. Doodad cover is a planner-side hint that augments
  * but doesn't override the existing cell model.
  *
- * <p>Cover defaults are inferred from the source tile via
- * {@link #defaultCoverFor(TileManifest.TileFrame)} — concrete authoring sites
- * (mapgen fillers) don't have to repeat the literal value per tile kind.
+ * <p>Cover is intrinsic data on the {@link DoodadDef} (moddable-tilesets Phase 2):
+ * the {@link #Doodad(int, int, DoodadDef)} ctor reads it from the def, so every
+ * authoring site that scatters a registered prop gets a consistent value without
+ * repeating it. Marker/resolver doodads (LZ pads, embankments) that aren't defs
+ * pass an explicit cover via the 5-arg ctor.
  */
 public final class Doodad {
 
@@ -43,12 +47,15 @@ public final class Doodad {
     /** Cover quality 0..3. Stored so {@link TacticalScoring}-style queries don't need to re-derive from {@link #tile} per call. */
     public final int cover;
 
-    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile) {
-        this(cellX, cellY, tile, false, defaultCoverFor(tile));
-    }
-
-    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet) {
-        this(cellX, cellY, tile, fromRoadSheet, defaultCoverFor(tile));
+    /**
+     * Builds a doodad from its data-driven {@link DoodadDef} (moddable-tilesets
+     * Phase 2): frame from the def's source cell, cover from the def's intrinsic
+     * {@link DoodadCover}, and {@link #fromRoadSheet} from whether the def lives
+     * on {@link TileManifest#ROAD_SHEET}. The registry-fed prop ctor.
+     */
+    public Doodad(int cellX, int cellY, DoodadDef def) {
+        this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
+                TileManifest.ROAD_SHEET.equals(def.sheetPath), def.cover.level());
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -63,49 +70,5 @@ public final class Doodad {
         if (v < COVER_NONE)  return COVER_NONE;
         if (v > COVER_HEAVY) return COVER_HEAVY;
         return v;
-    }
-
-    /**
-     * Maps a doodad source tile to a sensible cover value. Centralized here so
-     * every authoring site reads the same defaults; per-site overrides can pass
-     * an explicit cover via the 5-arg constructor when the situation demands it
-     * (e.g., a "rubble pile" tile reused as a decorative bench in one filler).
-     *
-     * <p>Categories (sheet positions reference urban-tileset.png):
-     * <ul>
-     *   <li><b>Heavy (3)</b> — shelves and damaged-shelf doodads (row 7 cols 4-5).
-     *       Tall and dense; reads as full-cover terrain piece.</li>
-     *   <li><b>Medium (2)</b> — crates, chests, desks, benches, stools, marker
-     *       panels — anything a soldier could realistically duck behind.</li>
-     *   <li><b>Light (1)</b> — rubble decals (row 7 cols 0-3). Small piles that
-     *       break up sightlines slightly without offering real concealment.</li>
-     *   <li><b>None (0)</b> — LZ pads, grates, fl-tile markers. Visual paint
-     *       only.</li>
-     * </ul>
-     */
-    public static int defaultCoverFor(TileManifest.TileFrame tile) {
-        if (tile == null) return COVER_NONE;
-        final int c = tile.col;
-        final int r = tile.row;
-
-        // Row 7: damaged props + rubble decals.
-        if (r == 7) {
-            if (c >= 0 && c <= 3) return COVER_LIGHT; // rubble decals
-            if (c == 4 || c == 5) return COVER_HEAVY; // damaged shelves
-            if (c == 6) return COVER_MED;             // bench / desk
-            if (c == 7) return COVER_MED;             // chest / box-dam
-            if (c == 8 || c == 9) return COVER_MED;   // chairs / stools
-            return COVER_LIGHT;
-        }
-        // Row 1: tan + amber crate doodads (cols 8-9).
-        if (r == 1 && (c == 8 || c == 9)) return COVER_MED;
-        // Row 3: gold + green crates (cols 3-4).
-        if (r == 3 && (c == 3 || c == 4)) return COVER_MED;
-        // Row 2 col 6: closed-door panel reused as decorative prop. Reads as a
-        // standing fixture you can duck behind.
-        if (r == 2 && c == 6) return COVER_MED;
-        // Row 2 col 16: LZ grate / pad — flat decal, no cover.
-        if (r == 2 && c == 16) return COVER_NONE;
-        return COVER_NONE;
     }
 }

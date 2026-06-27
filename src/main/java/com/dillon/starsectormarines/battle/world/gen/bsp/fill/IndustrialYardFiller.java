@@ -1,9 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -26,9 +27,9 @@ import java.util.Random;
  *   <li>1-2 small 2x2 pads of {@link GroundKind#STRIPED} floor are stamped
  *       inside the leaf for "loading bay" flavor — kept fully within the
  *       rect so the road frame is never touched.</li>
- *   <li>4-8 doodads from {@link TileManifest#WAREHOUSE_DOODADS} are
- *       scattered on walkable cells. INDUSTRIAL_YARD is the "dense outdoor
- *       cover" archetype, so the doodad count skews high.</li>
+ *   <li>4-8 doodads from the {@link DistrictTheme#WAREHOUSE} doodad pool
+ *       (registry-driven) are scattered on walkable cells. INDUSTRIAL_YARD is
+ *       the "dense outdoor cover" archetype, so the doodad count skews high.</li>
  * </ul>
  *
  * <p>No POI is emitted — the leaf is intentionally a sea of low-cover crates
@@ -89,12 +90,11 @@ public final class IndustrialYardFiller implements BlockFiller {
 
         int target = MIN_DOODADS + rng.nextInt(MAX_DOODADS - MIN_DOODADS + 1);
         int placed = 0;
-        TileFrame[] pool = TileManifest.WAREHOUSE_DOODADS;
+        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.WAREHOUSE);
         while (placed < target && !walkable.isEmpty()) {
             int idx = rng.nextInt(walkable.size());
             int[] cell = walkable.remove(idx);
-            TileFrame tile = pool[rng.nextInt(pool.length)];
-            doodads.add(new Doodad(cell[0], cell[1], tile));
+            doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
             placed++;
         }
     }

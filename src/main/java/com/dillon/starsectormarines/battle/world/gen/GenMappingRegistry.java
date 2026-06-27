@@ -10,7 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +40,8 @@ public final class GenMappingRegistry {
 
     private static volatile GenMappingRegistry installed;
 
-    /** Theme -> ordered doodad ids. Resolved against the TileRegistry on access. */
-    private final Map<DistrictTheme, List<String>> doodadPoolIds = new EnumMap<>(DistrictTheme.class);
+    /** Pool id -> ordered doodad ids. Pool ids are arbitrary names (the {@link DistrictTheme} names, plus bespoke pools like {@code COMMERCIAL}). Resolved against the TileRegistry on access. */
+    private final Map<String, List<String>> doodadPoolIds = new LinkedHashMap<>();
 
     /** The mapping installed at application load, or {@code null} if load failed / hasn't run. */
     public static GenMappingRegistry installed() { return installed; }
@@ -52,42 +53,47 @@ public final class GenMappingRegistry {
     public void ingest(JSONObject root) throws JSONException {
         JSONObject pools = root.optJSONObject("doodadPools");
         if (pools != null) {
-            for (DistrictTheme theme : DistrictTheme.values()) {
-                JSONArray arr = pools.optJSONArray(theme.name());
-                if (arr == null) continue;
+            for (Iterator<String> it = pools.keys(); it.hasNext(); ) {
+                String poolId = it.next();
+                JSONArray arr = pools.getJSONArray(poolId);
                 List<String> ids = new ArrayList<>(arr.length());
                 for (int i = 0; i < arr.length(); i++) ids.add(arr.getString(i));
-                doodadPoolIds.put(theme, ids);
+                doodadPoolIds.put(poolId, ids);
             }
         }
     }
 
-    /** The raw doodad ids for {@code theme} (empty if none authored). */
-    public List<String> doodadPoolIds(DistrictTheme theme) {
-        return doodadPoolIds.getOrDefault(theme, List.of());
+    /** The raw doodad ids for {@code poolId} (empty if none authored). */
+    public List<String> doodadPoolIds(String poolId) {
+        return doodadPoolIds.getOrDefault(poolId, List.of());
     }
 
     /**
-     * The resolved doodad pool for {@code theme} — each id looked up in
+     * The resolved doodad pool for {@code poolId} — each id looked up in
      * {@link TileRegistry#installed()}. Throws if the registry isn't installed or
      * an id is unknown (an authored pool must resolve; a typo is a bug to surface).
      */
-    public List<DoodadDef> doodadPool(DistrictTheme theme) {
-        List<String> ids = doodadPoolIds(theme);
+    public List<DoodadDef> doodadPool(String poolId) {
+        List<String> ids = doodadPoolIds(poolId);
         if (ids.isEmpty()) return List.of();
         TileRegistry tiles = TileRegistry.installed();
         if (tiles == null) {
-            throw new IllegalStateException("GenMappingRegistry: TileRegistry not installed — cannot resolve doodad pool " + theme);
+            throw new IllegalStateException("GenMappingRegistry: TileRegistry not installed — cannot resolve doodad pool " + poolId);
         }
         List<DoodadDef> out = new ArrayList<>(ids.size());
         for (String id : ids) {
             DoodadDef def = tiles.doodad(id);
             if (def == null) {
-                throw new IllegalStateException("GenMappingRegistry: doodad pool " + theme + " references unknown doodad id '" + id + "'");
+                throw new IllegalStateException("GenMappingRegistry: doodad pool '" + poolId + "' references unknown doodad id '" + id + "'");
             }
             out.add(def);
         }
         return out;
+    }
+
+    /** Convenience for theme-keyed callers — the pool whose id is {@code theme.name()}. */
+    public List<DoodadDef> doodadPool(DistrictTheme theme) {
+        return doodadPool(theme.name());
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
@@ -12,7 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_RESIDENTIAL} leaves. Carves
  * a hollow shell with the beige INDOOR floor and scatters homely props
- * (benches, chests, stools) from {@link TileManifest#RESIDENTIAL_DOODADS}.
+ * (benches, chests, stools) from the {@code "RESIDENTIAL"} doodad pool.
  *
  * <p>All the actual carving lives in {@link BuildingShellCore} — this class
  * only wires the per-kind configuration (interior ground, doodad pool, POI
@@ -22,7 +21,7 @@ public final class BuildingResidentialFiller implements BlockFiller {
 
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR,
-            TileManifest.RESIDENTIAL_DOODADS,
+            "RESIDENTIAL",
             PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME,
             BuildingKind.RESIDENTIAL);

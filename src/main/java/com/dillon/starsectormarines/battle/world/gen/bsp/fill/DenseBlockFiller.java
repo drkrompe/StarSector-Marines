@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import java.util.Random;
  *   <li>Four sub-buildings in the leaf's quadrants. Each has its own
  *       perimeter wall and 1 doorway picked randomly from its four sides
  *       (so some doors face the alley, some face the outer road frame).</li>
- *   <li>1-2 doodads per sub-building from {@link TileManifest#RESIDENTIAL_DOODADS}.
+ *   <li>1-2 doodads per sub-building from the {@code "RESIDENTIAL"} doodad pool.
  *       Tighter density than a single residential building because rooms
  *       are smaller.</li>
  * </ul>
@@ -69,7 +71,7 @@ public final class DenseBlockFiller implements BlockFiller {
     /** Fallback config when the leaf is too small to subdivide — single residential shell. */
     private static final BuildingShellCore.BuildingConfig FALLBACK_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR,
-            TileManifest.RESIDENTIAL_DOODADS,
+            "RESIDENTIAL",
             PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME,
             BuildingKind.RESIDENTIAL);
@@ -206,9 +208,8 @@ public final class DenseBlockFiller implements BlockFiller {
                 int dy = t + 1 + rng.nextInt(interiorH);
                 if (dx == doorX && dy == doorY) continue;
                 if (!grid.isWalkable(dx, dy)) continue;
-                TileManifest.TileFrame tile = TileManifest.RESIDENTIAL_DOODADS[
-                        rng.nextInt(TileManifest.RESIDENTIAL_DOODADS.length)];
-                doodads.add(new Doodad(dx, dy, tile));
+                List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(DistrictTheme.RESIDENTIAL);
+                doodads.add(new Doodad(dx, dy, pool.get(rng.nextInt(pool.size()))));
             }
         }
 

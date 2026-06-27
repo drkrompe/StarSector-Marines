@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -53,8 +52,8 @@ final class BuildingShellCore {
     static final class BuildingConfig {
         /** Ground kind painted across the interior floor. */
         final GroundKind interiorGround;
-        /** Pool of doodad tiles used by the SHED/tiny fallback scatter and any recipe that draws from the per-type pool rather than literal frames. */
-        final TileManifest.TileFrame[] doodadPool;
+        /** Doodad pool id whose pool is resolved at scatter time — used by the SHED/tiny fallback scatter and any recipe that draws from the per-type pool rather than literal doodad ids. */
+        final String doodadPoolId;
         /** POI kind reported for the carved building (or {@code null} if too small). */
         final PointOfInterest.Kind poiKind;
         /** Layout strategy applied to LARGE buildings. TINY buildings always fall back to {@link BuildingLayouts.LayoutRecipe#SHED}. */
@@ -88,32 +87,32 @@ final class BuildingShellCore {
         final PartitionStrategy partitionStrategy;
 
         BuildingConfig(GroundKind interiorGround,
-                       TileManifest.TileFrame[] doodadPool,
+                       String doodadPoolId,
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind) {
-            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind, null);
+            this(interiorGround, doodadPoolId, poiKind, layoutRecipe, buildingKind, null);
         }
 
         BuildingConfig(GroundKind interiorGround,
-                       TileManifest.TileFrame[] doodadPool,
+                       String doodadPoolId,
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
-            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind,
+            this(interiorGround, doodadPoolId, poiKind, layoutRecipe, buildingKind,
                     chamberPurposesByAnchorDistance, BinaryPartitionStrategy.DEFAULT);
         }
 
         BuildingConfig(GroundKind interiorGround,
-                       TileManifest.TileFrame[] doodadPool,
+                       String doodadPoolId,
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance,
                        PartitionStrategy partitionStrategy) {
             this.interiorGround = interiorGround;
-            this.doodadPool = doodadPool;
+            this.doodadPoolId = doodadPoolId;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
             this.buildingKind = buildingKind;
@@ -207,7 +206,7 @@ final class BuildingShellCore {
         // Doodad layout — TINY buildings get sparse scatter (shed), LARGE
         // buildings apply the per-type recipe (warehouse / shop / home, etc.).
         BuildingLayouts.applyLayout(grid, bl, bt, br, bb,
-                config.doodadPool, config.layoutRecipe, doodads, rng);
+                config.doodadPoolId, config.layoutRecipe, doodads, rng);
 
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
