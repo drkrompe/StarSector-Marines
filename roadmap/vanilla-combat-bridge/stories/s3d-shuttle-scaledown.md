@@ -5,9 +5,10 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1–D4 shipped 2026-06-27 (scatter wave +
-> "land here" click DZ + AA shoot-down / threat-scaled spread + multi-wave orbit window + stake);
-> D5 (continuous logistics) next.**
+> spine, never scripted modes). Vision locked 2026-06-25; **D1–D5 all shipped 2026-06-27 — the full
+> drop-ship invasion is in (click DZ → orbit → AA-gauntlet timed waves → threat-scaled scatter →
+> fight; the fleet you brought is the depth, losing the transport is the stake). Only extraction/dustoff
+> remains as a later inverse.**
 > Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
@@ -146,8 +147,14 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
     battle; `departCarrier` now releases the takeover on window-close so a fresh click can launch
     another. LOW (noted, not fixed): the off-grid peel-off target can sit past the combat-arena edge
     (cosmetic loiter); `undeployedMarines()` uses nominal `DROP_COUNT` (log estimate only).
-- **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
-  waves over time replacing the fixed manifest; running-out → fight-to-the-end *emerges*.
+- **D5 — continuous logistics (shipped 2026-06-27, `3b4a6d3d`).** The fixed manifest became the fleet
+  you brought: `marinePool` (depth) = the player fleet's marine count (`readFleetMarines` off the
+  campaign fleet cargo — uncapped when present, `DEFAULT_PROBE_POOL` fallback when none). Each wave
+  deploys up to `DROP_COUNT` dropships × `AEROSHUTTLE.capacity` marines (throughput), last ship partial,
+  drawing from the pool until it runs dry → the transport peels off and the fight-to-the-end *emerges*.
+  `spawnDrop` carries a per-ship marine count; forfeit/peel-off read the pool. *Follow-up:* route the
+  pool through the campaign→battle bridge ([[campaign_battle_bridge]] `TargetProfile`) rather than the
+  probe's direct campaign read; derive throughput from actual fleet transports.
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
 
 ## Built so far — D1 complete (orbit takeover → drop-ship launch → render)
