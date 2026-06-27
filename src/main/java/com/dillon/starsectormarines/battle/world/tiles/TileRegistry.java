@@ -53,6 +53,8 @@ public final class TileRegistry {
     private final List<TileDef> byIndex = new ArrayList<>();
     /** Fixed-grid autotile/single blocks (grid sheets), addressed by id — separate namespace from the sliced {@link TileDef}s. */
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
+    /** Decorative props (Phase 2), addressed by id — one source cell + an intrinsic tactical cover. */
+    private final Map<String, DoodadDef> doodadsById = new LinkedHashMap<>();
     /**
      * Folded-in per-cell viewer annotations from each sheet's {@code "cells"}
      * array, keyed by {@code sheetPath} then a packed {@code (col,row)} key. The
@@ -85,6 +87,11 @@ public final class TileRegistry {
     public GridBlockDef block(String id)        { return blocksById.get(id); }
     public boolean hasBlock(String id)          { return blocksById.containsKey(id); }
     public Collection<GridBlockDef> blocks()    { return blocksById.values(); }
+
+    /** Doodad def by id (decorative props, Phase 2), or {@code null} if unknown. */
+    public DoodadDef doodad(String id)          { return doodadsById.get(id); }
+    public boolean hasDoodad(String id)         { return doodadsById.containsKey(id); }
+    public Collection<DoodadDef> doodads()      { return doodadsById.values(); }
 
     /**
      * The viewer annotation for one source cell of {@code sheetPath}, or
@@ -136,6 +143,21 @@ public final class TileRegistry {
         if (blocks != null) ingestBlocks(blocks, sheet, root.optInt("cellPx", 0));
         JSONArray cells = root.optJSONArray("cells");
         if (cells != null) ingestCells(cells, sheet);
+        JSONArray doodads = root.optJSONArray("doodads");
+        if (doodads != null) ingestDoodads(doodads, sheet);
+    }
+
+    /** Decorative-prop defs (id + source cell + intrinsic cover). See {@link #ingestSheet}. */
+    private void ingestDoodads(JSONArray doodads, String sheet) throws JSONException {
+        for (int i = 0; i < doodads.length(); i++) {
+            JSONObject o = doodads.getJSONObject(i);
+            String id = o.getString("id");
+            requireUniqueId(id, sheet);
+            int col = o.getInt("col");
+            int row = o.getInt("row");
+            DoodadCover cover = DoodadCover.fromJson(o.optString("cover", "none"));
+            doodadsById.put(id, new DoodadDef(id, sheet, col, row, cover));
+        }
     }
 
     /** Sliced-sheet tiles (frame-indexed). See {@link #ingestSheet}. */
@@ -216,9 +238,9 @@ public final class TileRegistry {
         }
     }
 
-    /** Ids share one namespace across sliced tiles and grid blocks — a collision is a bug to surface. */
+    /** Ids share one namespace across sliced tiles, grid blocks, and doodads — a collision is a bug to surface. */
     private void requireUniqueId(String id, String sheet) {
-        if (byId.containsKey(id) || blocksById.containsKey(id)) {
+        if (byId.containsKey(id) || blocksById.containsKey(id) || doodadsById.containsKey(id)) {
             throw new IllegalStateException("TileRegistry: duplicate id '" + id + "' (sheet " + sheet + ")");
         }
     }

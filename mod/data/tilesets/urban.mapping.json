@@ -1,0 +1,19 @@
+{
+  "doodadPools": {
+    "MIXED": [
+      "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",
+      "doodad.desk-dam", "doodad.box-dam", "doodad.chair-s-yellow-dam",
+      "doodad.chair-s-green-dam", "doodad.door-closed"
+    ],
+    "RESIDENTIAL": [
+      "doodad.chair-south-yellow", "doodad.chair-south-green",
+      "doodad.chest-1", "doodad.chest-2"
+    ],
+    "WAREHOUSE": [
+      "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2"
+    ],
+    "SKY_PORT": [
+      "doodad.box", "doodad.crate", "doodad.box-dam", "doodad.door-closed"
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -30,6 +31,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Tile catalog → id-addressed registry (moddable-tilesets Phase 1). Loaded
         // once, before any save; self-defensive so a bad sheet never blocks startup.
         TileRegistry.loadBuiltins();
+        // Generation mapping (moddable-tilesets Phase 2) — pools/dispatch as data.
+        // After TileRegistry so its doodad-id pools resolve against installed tiles.
+        GenMappingRegistry.loadBuiltins();
     }
 
     @Override
