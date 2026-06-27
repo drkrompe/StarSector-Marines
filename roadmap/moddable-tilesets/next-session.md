@@ -59,14 +59,13 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
 - **urban-tileset-2 (road sheet) ✅ `5a9402d2`** — `PERIMETER_3X3` + `STRIPED_3X3`
   layouts; STREET-fallback/COURTYARD/STRIPED/TILE/LZ_MARKER resolve `road.*`
   blocks; perimeter fill hoisted from `fillRgb`. 32px → road draw path.
-- **Floors_Tiles + Water_tiles ✅ `0e1df6c9`** (parity gradle run PENDING — tree
-  was red on a sibling refactor at commit time; verified via IntelliJ). Insight:
-  production is center-only → **variant pools** (`GridBlockDef` cells, hashed),
-  NOT autotiles; reuse the existing 16px `floorsTile`/`waterTile` path (no new
-  emitter). `SNOW` dropped (dead). **All four grid sheets flipped.**
-  → **First thing next session: run `GridBlockParityTest` once the tree compiles**
-  (`gradlew :test --tests "*GridBlockParityTest*"`, with the init-script if a
-  sibling's tests are red) to confirm the variant-pool hash parity.
+- **Floors_Tiles + Water_tiles ✅ `0e1df6c9`** (parity **confirmed green
+  2026-06-27** — `GridBlockParityTest` 7/7, incl.
+  `floorsAndWaterVariantPoolsMatchCenterPickers`; was IntelliJ-only at commit
+  time because a sibling refactor had the tree red). Insight: production is
+  center-only → **variant pools** (`GridBlockDef` cells, hashed), NOT autotiles;
+  reuse the existing 16px `floorsTile`/`waterTile` path (no new emitter). `SNOW`
+  dropped (dead). **All four grid sheets flipped.**
 - **Next (cleanup tail):** `TilesetDebugScreen` → `.tileset.json`; delete the
   `.catalog.json` dupes (carry labels); move the dev-tool preview tests
   (`FixedGridZonePreviewTest` etc.) off `TileManifest.pickXxx` onto block ids;
