@@ -87,6 +87,96 @@ geometry data model* (vanilla hull → `AirBody`); this decides *where the entit
 lives* (the one `EntityWorld`) and *how its capabilities are stored* (components,
 not a side `ComponentStore`). They meet at "air craft as real entities."
 
+## Implementation plan (LOCKED 2026-06-27)
+
+Designed via an ultracode understand-workflow (6 dimension maps → synthesis →
+adversarial critique). The critique caught that a *drone-first* pilot is not
+green (dropping `Drone.body` breaks 4 readers + hits the deferred-spawn seeding
+problem), so the pilot is **shuttle-first** (the handle aliases the same
+`AirBody` → zero reader churn), with the drone fold as its own scoped slice.
+
+### User decisions (the forks)
+
+- **Dissolve `Shuttle` fully** into components + an air `Query` — migrate all 7
+  `getShuttles()` consumers, add `world.destroy(id)` at terminal `GONE`, delete
+  the `Shuttle` handle class. (End-state, not a thin handle.)
+- **Dedicated `APPEARANCE` component now** for air render-state (`altitudeT`,
+  `flightPhase`; `scaleMult` derived) — not dumped on the mission bag. (NB: the
+  air *draw path* — a whole rotated hull texture vs ground's batched facing
+  frames — stays the separate unified-sprite-registry epic; this is the authored
+  render-*state* component, the [[feedback_appearance_authored_component]] pattern.)
+- **Transport-only air this epic** — no anti-air. `mission.hp` stays on the
+  `SHUTTLE_MISSION` payload; **no `HEALTH`/`COMBAT`/vision** on air. Keeps air
+  cleanly world-only so membership-narrowing skips it everywhere.
+
+### Component design
+
+| Component | id | kind | payload |
+|---|---|---|---|
+| `KINEMATICS` | 12 | OBJECT | the existing `AirBody` (shared with `Drone`/`FlybyOverlay`; zero churn to `AirSteeringSystem`/`ThrusterDemand`/renderers) |
+| `AIR_IDENTITY` | 13 | OBJECT,OBJECT | `ShuttleType`, `Faction` (separate from grid `IDENTITY`, which is consumed as a concrete `UnitType`) |
+| `SHUTTLE_MISSION` | 14 | OBJECT | the existing `ShuttleMission` bag verbatim (`mission.hp` lives here — air liveness is `mission.state`, not `HEALTH.hp`) |
+| `THRUSTER_FX` | 15 | OBJECT | `ThrusterFx` (re-keyed off its `ComponentStore`) |
+| `AIR_TURRETS` | 16 | OBJECT | `AirTurrets` (presence == "armed") |
+| `APPEARANCE` | 17 | FLOAT,FLOAT | `altitudeT`, `flightPhase` (authored render-state; lands in the dissolution phase — FLOAT can't alias the handle, unlike the OBJECT components) |
+
+Air archetype: `{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION, APPEARANCE}` +
+optional `THRUSTER_FX`/`AIR_TURRETS`. **No** `POSITION`/`HEALTH`/`COMBAT`/
+`MOVEMENT`/`AI_STATE`.
+
+**KINEMATICS = OBJECT (not decomposed floats):** `AirBody` is already a clean
+POJO, shared by `Drone` + the non-entity `FlybyOverlay` (the class must survive)
++ held by `CrashingComponent`; air is a tiny population so float-column cache
+density buys nothing, and decomposition would churn all 7 `AirSteeringSystem.steer`
+call sites. The CRASHING/MECH_LOADOUT precedent. **`has`-gate every air read** —
+`EntityWorld.getObject` throws on absent ids (unlike `ComponentStore.get`→null).
+
+**One id-mint:** `UnitRosterService.allocateAir(archetype)` mints from the single
+`nextId` authority and adopts via `createEntity(id, archetype)` **world-only — no
+dense `Entity[]` insert, no `unitIndex.add`**. Delete `AirSystem.nextAirId`.
+(Self-mint `createEntity(comps)` is unsafe — bumps `nextEntityId` not `nextId` →
+later ground `allocate` collision.)
+
+### Phases (each leaves build + tests green)
+
+1. **Foundation (additive).** Register `KINEMATICS`/`AIR_IDENTITY`/
+   `SHUTTLE_MISSION`/`THRUSTER_FX`/`AIR_TURRETS` (the OBJECT set) + `has`-gated
+   `World` accessors + `UnitRosterService.allocateAir`. Nothing calls it yet;
+   pure registration. Focused test: `allocateAir` mints monotonically, shares
+   `nextId` with `allocate` (no collision), and the entity is world-resident but
+   absent from the dense roster (`getOrNull`→null, not in `liveCount()`).
+2. **Adopt shuttles (serial path, aliasing).** `AirSystem.add` →
+   `allocateAir({AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION})`, seed the columns
+   with the **same** `AirBody`/`ShuttleMission`/type/faction instances the
+   `Shuttle` handle holds (aliasing → all 7 consumers compile unchanged). Delete
+   `nextAirId`. Closes the dual-mint trap.
+3. **Re-key air FX + delete `ComponentStore<T>`.** `ThrusterFx`/`AirTurrets` →
+   OBJECT columns (`has`-gated reads); `ThrusterFxSystem` walks the world; copy
+   `DroneCrashSystem` as the attach/table-walk template. Delete `ComponentStore`
+   + its test; rewrite `ThrusterFxSystemTest` against a real world harness.
+4. **Drone KINEMATICS fold (scoped slice).** Add `Entity.seedBody` (mirror
+   `seedSecondaryWeapon`); `allocate` conditionally adds `KINEMATICS` + seeds it;
+   drop `Drone.body`; reroute `DroneSwarmAction` + `DroneRenderSystem` +
+   `DroneCrashSystem.onDeath` + the `Drone` ctor; keep the body→cell/render sync
+   **after** `steer` ([[air_unit_render_sync]]). Decide `KINEMATICS` corpse-mask
+   membership (crash needs it post-death).
+5. **Dissolve the handle + render-state + death.** Register `APPEARANCE`; move
+   `altitudeT`/`flightPhase` off `Shuttle` into it (and the render/audio reads to
+   `world` by id); migrate the 7 `getShuttles()` consumers to an air `Query`;
+   `world.destroy(id)` at terminal `GONE` (one coherent change — supersedes the
+   per-component removes; the multi-sortie re-arm must NOT destroy); delete the
+   `Shuttle` handle class. Confirm occupancy/vision/win-counts never see air.
+
+### Watch-items (from the critic)
+
+- `getObject` throws vs `ComponentStore.get`→null: `has`-gate every migrated air
+  read (FX, turrets, render, **and the out-of-tick `BattleScreen` audio reads**).
+- The `GONE` seam is touched by both Phase 3 (FX remove) and Phase 5 (destroy) —
+  reconcile as one change so destroy supersedes the per-component removes.
+- Multi-sortie re-arm reuses the entity id across sorties — never destroy+recreate.
+- `KINEMATICS` is a *shared mutable* `AirBody` (aliased by handle + CrashingComponent);
+  accepted for zero-churn — the column is storage, not sole owner, for now.
+
 ## Cross-references
 
 - [`overview.md`](overview.md) — the air track; this is its storage/entity-world

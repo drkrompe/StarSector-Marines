@@ -24,11 +24,19 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * capability, no nullable field. Death is the transmute to the corpse archetype
  * (identity + cell ride the row-move; health, combat, and any movement, ai-state,
  * or secondary are removed); a crashing air unit then carries {@link #CRASHING}
- * over the corpse while it falls. The migration is complete: the standalone
+ * over the corpse while it falls. The ecs-migration is complete: the standalone
  * {@code MechLoadout} and {@code Crashing} stores folded into archetype
  * membership ({@link #MECH_LOADOUT} / {@link #CRASHING}), and the registry
  * dissolution is done — the dense roster lives on {@code UnitRosterService},
  * by-id access on {@code World}.
+ *
+ * <p><b>Air craft</b> (the air-into-world epic,
+ * {@code roadmap/air/air-entities-into-world.md}) are world entities too, with a
+ * disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}} (+
+ * optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) and <em>no</em>
+ * grid/combat components — so every grid system skips them for free
+ * (membership-narrowing). They are world-resident but never in the dense ground
+ * roster; walk them via {@link #airCraft}.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -117,6 +125,23 @@ public final class BattleComponents {
 
     /** {@link #MECH_LOADOUT} field 0: the {@link com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent} payload (OBJECT) — the chassis weapon/morale state bag. */
     public static final int MECH_LOADOUT_STATE = 0;
+
+    /** {@link #KINEMATICS} field 0: the {@link com.dillon.starsectormarines.battle.air.AirBody} payload (OBJECT) — continuous float position/velocity/facing for a flier (shuttle/drone). */
+    public static final int KINEMATICS_BODY = 0;
+
+    /** {@link #AIR_IDENTITY} field 0: the {@link com.dillon.starsectormarines.battle.air.ShuttleType} (OBJECT). */
+    public static final int AIR_IDENTITY_TYPE = 0;
+    /** {@link #AIR_IDENTITY} field 1: the {@link com.dillon.starsectormarines.battle.unit.Faction} (OBJECT). */
+    public static final int AIR_IDENTITY_FACTION = 1;
+
+    /** {@link #SHUTTLE_MISSION} field 0: the {@link com.dillon.starsectormarines.battle.air.ShuttleMission} payload (OBJECT) — the per-sortie delivery state bag (incl. {@code hp}; air liveness is {@code mission.state}, not a HEALTH component). */
+    public static final int SHUTTLE_MISSION_STATE = 0;
+
+    /** {@link #THRUSTER_FX} field 0: the {@link com.dillon.starsectormarines.battle.air.engine.ThrusterFx} payload (OBJECT) — per-slot smoothed engine-plume demand. */
+    public static final int THRUSTER_FX_STATE = 0;
+
+    /** {@link #AIR_TURRETS} field 0: the {@link com.dillon.starsectormarines.battle.air.AirTurrets} payload (OBJECT) — the mounted-turret array (presence == "armed"). */
+    public static final int AIR_TURRETS_STATE = 0;
 
     // ---- component types ----
 
@@ -231,6 +256,52 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType MECH_LOADOUT;
+    /**
+     * Continuous kinematics for a flier — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.air.AirBody} (float
+     * position/velocity/facing). The air analogue of {@link #POSITION} (which is
+     * an int grid cell): a shuttle has {@code KINEMATICS} and no grid
+     * {@code POSITION}; a drone has <em>both</em> (its cell synced from the body
+     * each tick). An OBJECT column (not decomposed floats) because {@code AirBody}
+     * is a small, shared POJO (drones, the non-entity {@code FlybyOverlay}, and
+     * {@code CrashingComponent} all hold one) and air is a tiny population — the
+     * CRASHING/MECH_LOADOUT precedent. The air-into-world epic
+     * ({@code roadmap/air/air-entities-into-world.md}).
+     */
+    public final ComponentType KINEMATICS;
+    /**
+     * Air-craft identity — {@code ShuttleType type, Faction faction}. Distinct
+     * from grid {@link #IDENTITY} (whose {@code type} is a concrete
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType} consumed by render
+     * + many systems); air craft are not units, so they get their own identity
+     * pair rather than widening {@code IDENTITY_TYPE} to {@code Object}.
+     */
+    public final ComponentType AIR_IDENTITY;
+    /**
+     * The per-sortie shuttle mission state — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.air.ShuttleMission} bag (delivery
+     * state machine, LZ/entry/exit, marines remaining, squad, hp, cycle schedule).
+     * {@code mission.hp} lives HERE, not in a {@link #HEALTH} component — a
+     * transport carries no grid/combat components, and air liveness is
+     * {@code mission.state}. The CRASHING/MECH_LOADOUT OBJECT-payload precedent.
+     */
+    public final ComponentType SHUTTLE_MISSION;
+    /**
+     * Optional engine-plume FX — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterFx} (per-slot
+     * smoothed thruster demand). Re-keyed off the standalone {@code ComponentStore}
+     * in the air-into-world epic; presence is attached lazily by
+     * {@code ThrusterFxSystem}. {@code has}-gate every read.
+     */
+    public final ComponentType THRUSTER_FX;
+    /**
+     * Optional mounted turrets — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.air.AirTurrets} (the
+     * {@code MountedTurret[]}). Presence == "armed"; an unarmed transport lacks it.
+     * Re-keyed off the standalone {@code ComponentStore} in the air-into-world
+     * epic. {@code has}-gate every read.
+     */
+    public final ComponentType AIR_TURRETS;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -259,6 +330,15 @@ public final class BattleComponents {
      */
     public final Query mechLoadouts;
 
+    /**
+     * Every air craft ({@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}}) — the
+     * adopted shuttles (and planned fighters), world-resident but never in the
+     * dense ground roster. The render + objective consumers walk this in place of
+     * the retired {@code List<Shuttle>}. Matches no grid query (air carries no
+     * POSITION/CORPSE/CRASHING/MECH_LOADOUT), so grid systems skip it for free.
+     */
+    public final Query airCraft;
+
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
@@ -278,9 +358,15 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
         MECH_LOADOUT    = world.register(11, "MechLoadout", FieldKind.OBJECT);
+        KINEMATICS      = world.register(12, "Kinematics", FieldKind.OBJECT);
+        AIR_IDENTITY    = world.register(13, "AirIdentity", FieldKind.OBJECT, FieldKind.OBJECT);
+        SHUTTLE_MISSION = world.register(14, "ShuttleMission", FieldKind.OBJECT);
+        THRUSTER_FX     = world.register(15, "ThrusterFx", FieldKind.OBJECT);
+        AIR_TURRETS     = world.register(16, "AirTurrets", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
+        airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);
     }
 }

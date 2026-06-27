@@ -1,8 +1,14 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirTurrets;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -198,4 +204,73 @@ public final class World {
     }
     /** Detach the loadout when the wreck spawns (a {@code removeComponent} row-move back to a plain corpse). Serial-only. */
     public void removeMechLoadout(long id) { entityWorld.removeComponent(id, components.MECH_LOADOUT); }
+
+    // ---- air craft (the air-into-world epic) ----
+    //
+    // Air entities are world-resident but NOT in the dense ground roster; their
+    // archetype {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION} (+ optional
+    // THRUSTER_FX/AIR_TURRETS) carries no grid/combat components, so every grid
+    // system skips them for free. Object reads here are has-gated null-returning
+    // (EntityWorld.getObject THROWS on an absent id, unlike a ComponentStore.get)
+    // so a render/audio frame straddling a despawn never throws. The set*
+    // seeders write a column already present from createEntity (the air spawn
+    // archetype); the attach*/remove* pairs add/drop the OPTIONAL capabilities.
+
+    /** The flier's continuous-position {@link AirBody}, or null if the entity has no KINEMATICS. */
+    public boolean hasKinematics(long id) { return entityWorld.has(id, components.KINEMATICS); }
+    public AirBody kinematics(long id) {
+        return entityWorld.has(id, components.KINEMATICS)
+                ? (AirBody) entityWorld.getObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY)
+                : null;
+    }
+    /** Seed KINEMATICS on an entity that already carries it (the air spawn archetype). */
+    public void setKinematics(long id, AirBody body) { entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, body); }
+    /** Grant KINEMATICS to an entity that lacks it — an {@code addComponent} row-move (a drone gaining a body). Serial-only. */
+    public void attachKinematics(long id, AirBody body) {
+        entityWorld.addComponent(id, components.KINEMATICS);
+        entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, body);
+    }
+
+    public ShuttleType airType(long id) { return (ShuttleType) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE); }
+    public Faction airFaction(long id) { return (Faction) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_FACTION); }
+    /** Seed AIR_IDENTITY (present from the air spawn archetype). */
+    public void setAirIdentity(long id, ShuttleType type, Faction faction) {
+        entityWorld.setObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE, type);
+        entityWorld.setObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_FACTION, faction);
+    }
+
+    /** The shuttle's {@link ShuttleMission} bag, or null if absent. */
+    public ShuttleMission mission(long id) {
+        return entityWorld.has(id, components.SHUTTLE_MISSION)
+                ? (ShuttleMission) entityWorld.getObject(id, components.SHUTTLE_MISSION, BattleComponents.SHUTTLE_MISSION_STATE)
+                : null;
+    }
+    /** Seed SHUTTLE_MISSION (present from the air spawn archetype). */
+    public void setMission(long id, ShuttleMission mission) { entityWorld.setObject(id, components.SHUTTLE_MISSION, BattleComponents.SHUTTLE_MISSION_STATE, mission); }
+
+    public boolean hasThrusterFx(long id) { return entityWorld.has(id, components.THRUSTER_FX); }
+    public ThrusterFx thrusterFx(long id) {
+        return entityWorld.has(id, components.THRUSTER_FX)
+                ? (ThrusterFx) entityWorld.getObject(id, components.THRUSTER_FX, BattleComponents.THRUSTER_FX_STATE)
+                : null;
+    }
+    /** Grant THRUSTER_FX (lazy attach by ThrusterFxSystem). Serial-only. */
+    public void attachThrusterFx(long id, ThrusterFx fx) {
+        entityWorld.addComponent(id, components.THRUSTER_FX);
+        entityWorld.setObject(id, components.THRUSTER_FX, BattleComponents.THRUSTER_FX_STATE, fx);
+    }
+    public void removeThrusterFx(long id) { entityWorld.removeComponent(id, components.THRUSTER_FX); }
+
+    public boolean hasAirTurrets(long id) { return entityWorld.has(id, components.AIR_TURRETS); }
+    public AirTurrets airTurrets(long id) {
+        return entityWorld.has(id, components.AIR_TURRETS)
+                ? (AirTurrets) entityWorld.getObject(id, components.AIR_TURRETS, BattleComponents.AIR_TURRETS_STATE)
+                : null;
+    }
+    /** Grant AIR_TURRETS ("armed") at setup. Serial-only. */
+    public void attachAirTurrets(long id, AirTurrets turrets) {
+        entityWorld.addComponent(id, components.AIR_TURRETS);
+        entityWorld.setObject(id, components.AIR_TURRETS, BattleComponents.AIR_TURRETS_STATE, turrets);
+    }
+    public void removeAirTurrets(long id) { entityWorld.removeComponent(id, components.AIR_TURRETS); }
 }

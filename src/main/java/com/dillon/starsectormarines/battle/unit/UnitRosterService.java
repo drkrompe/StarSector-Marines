@@ -290,6 +290,29 @@ public final class UnitRosterService {
     }
 
     /**
+     * Mints a world entity id for an AIR craft (shuttle / planned fighter) and
+     * adopts it into the entity world with the given {@code archetype}, <em>without</em>
+     * inserting it into the dense ground roster. Air craft are world-resident only —
+     * they never appear in {@link #denseArray()} / {@link #liveCount()} walks, the
+     * spatial index, or occupancy, so every grid system skips them for free (their
+     * archetype carries no POSITION/MOVEMENT/AI_STATE). The caller then seeds the
+     * archetype's OBJECT columns (identity / kinematics / mission) via the {@link World}
+     * setters.
+     *
+     * <p>Crucially this shares the single {@link #nextId} authority with
+     * {@link #allocate}, so a shuttle id can never collide with a ground id — the
+     * dual-mint trap the air-into-world migration closes (self-minting via
+     * {@code EntityWorld.createEntity(comps)} would bump the world's counter but not
+     * {@code nextId}, letting a later ground allocate reuse a shuttle's id). Serial-only
+     * (the air spawn path runs in serial phases).
+     */
+    public long allocateAir(ComponentType[] archetype) {
+        long id = nextId++;
+        entityWorld.createEntity(id, archetype);
+        return id;
+    }
+
+    /**
      * Hard-removes the entity with id {@code id} via swap-and-pop. The tail
      * entity moves into the freed slot and its id→index mapping updates. No-op if
      * {@code id} is unknown (duplicate-release safety) or {@code 0L} (the
