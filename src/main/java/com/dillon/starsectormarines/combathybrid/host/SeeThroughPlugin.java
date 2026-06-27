@@ -104,9 +104,16 @@ public final class SeeThroughPlugin extends BaseEveryFrameCombatPlugin {
 
     /** Mode ON: fade every player ship by its distance to the cursor-anchored reveal disk. */
     private void driveRevealDisk(ViewportAPI vp, float amount) {
-        float cx = vp.convertScreenXToWorldX(Mouse.getX());
-        float cy = vp.convertScreenYToWorldY(Mouse.getY());
-        float worldPerPixel = vp.getVisibleWidth() / Math.max(1, Display.getWidth());
+        // Cursor → world from the viewport's explicit rectangle (getLLX/getVisibleWidth), NOT
+        // convertScreenXToWorldX: under the spectator's setExternalControl camera the convert
+        // helpers read the engine's now-inert viewMult/scale, so they drift with zoom. The
+        // rectangle getters reflect our own vp.set(...), so this is exact at any zoom. Mouse
+        // (0,0) is the bottom-left = the lower-left corner the getters report.
+        float screenW = Math.max(1, Display.getWidth());
+        float screenH = Math.max(1, Display.getHeight());
+        float worldPerPixel = vp.getVisibleWidth() / screenW;
+        float cx = vp.getLLX() + Mouse.getX() * worldPerPixel;
+        float cy = vp.getLLY() + Mouse.getY() * (vp.getVisibleHeight() / screenH);
         float revealWorldRadius = Math.max(1f, REVEAL_SCREEN_RADIUS_PX * worldPerPixel);
 
         for (ShipAPI ship : engine.getShips()) {
