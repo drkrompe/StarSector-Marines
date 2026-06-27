@@ -54,6 +54,15 @@ public final class CarrierDescentBrain implements ShipAIPlugin {
         this.target.set(target);
     }
 
+    /**
+     * True once the carrier has settled over the handoff point. {@link CarrierDescentPlugin} polls
+     * this as the cue to launch the drop-ship sortie (S3d D1b): the mothership is in orbit, so the
+     * dropships fall.
+     */
+    public boolean hasArrived() {
+        return arrived;
+    }
+
     @Override
     public void advance(float amount) {
         if (ship == null || !ship.isAlive()) return;

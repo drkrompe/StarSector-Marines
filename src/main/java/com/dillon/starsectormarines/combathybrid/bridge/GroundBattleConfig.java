@@ -74,6 +74,18 @@ public record GroundBattleConfig(
     }
 
     /**
+     * Inverse of {@link #cellToWorld}: combat-world coords back to (fractional) cell coords. The air
+     * tier flies in cell-units (Y up, same frame as ground units), so a real vanilla ship's
+     * combat-world position projects to the cell a sim dropship spawns from (S3d D1: the orbiting
+     * carrier births a {@code Shuttle} at {@code worldToCell(carrier.getLocation())}). Writes
+     * fractional cells into {@code out} — callers floor when they need an integer cell.
+     */
+    public void worldToCell(float worldX, float worldY, Vector2f out) {
+        out.set(worldX / worldUnitsPerCell + gridW / 2f,
+                worldY / worldUnitsPerCell + gridH / 2f);
+    }
+
+    /**
      * Centroid of the live {@link #targetable} entities in combat-world coords — the "ground band"
      * the carriers steer toward (S3c {@code CarrierEngagementPlugin}) and a taken-over carrier
      * descends to (S3d {@code CarrierDescentPlugin}). Released units are skipped (their cell
