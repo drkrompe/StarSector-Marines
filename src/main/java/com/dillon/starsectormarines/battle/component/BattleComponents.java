@@ -32,9 +32,9 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  *
  * <p><b>Air craft</b> (the air-into-world epic,
  * {@code roadmap/air/air-entities-into-world.md}) are world entities too, with a
- * disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}} (+
- * optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) and <em>no</em>
- * grid/combat components — so every grid system skips them for free
+ * disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION,
+ * APPEARANCE}} (+ optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) and
+ * <em>no</em> grid/combat components — so every grid system skips them for free
  * (membership-narrowing). They are world-resident but never in the dense ground
  * roster; walk them via {@link #airCraft}.
  *
@@ -142,6 +142,11 @@ public final class BattleComponents {
 
     /** {@link #AIR_TURRETS} field 0: the {@link com.dillon.starsectormarines.battle.air.AirTurrets} payload (OBJECT) — the mounted-turret array (presence == "armed"). */
     public static final int AIR_TURRETS_STATE = 0;
+
+    /** {@link #APPEARANCE} field 0: cruise-altitude scalar {@code altitudeT} in [0,1] — 0 = on the LZ, 1 = at cruising height (FLOAT). */
+    public static final int APPEARANCE_ALTITUDE_T = 0;
+    /** {@link #APPEARANCE} field 1: accumulated phase (radians) for the in-flight scale wobble (FLOAT). */
+    public static final int APPEARANCE_FLIGHT_PHASE = 1;
 
     // ---- component types ----
 
@@ -302,6 +307,21 @@ public final class BattleComponents {
      * epic. {@code has}-gate every read.
      */
     public final ComponentType AIR_TURRETS;
+    /**
+     * Authored air render-state — {@code float altitudeT, flightPhase}. The
+     * altitude-driven visual feel of a flier: {@code altitudeT} (0 on the LZ, 1 at
+     * cruise) and {@code flightPhase} (the accumulated wobble phase). The derived
+     * {@code scaleMult} + altitude Y-offset + engine intensity are pure functions
+     * of these, computed on read by {@code AirAppearance} — not stored. A FLOAT
+     * pair (not an OBJECT payload) because, unlike {@link #KINEMATICS} /
+     * {@link #SHUTTLE_MISSION}, there is no pre-existing shared instance to alias;
+     * the render-state is genuinely <em>moved</em> here off the {@code Shuttle}
+     * handle. Part of the air spawn archetype (every craft has one); written by
+     * {@code AirSystem}'s state-machine tick, read by the render + audio passes by
+     * id. The [[feedback_appearance_authored_component]] pattern. See
+     * {@code roadmap/air/air-entities-into-world.md}.
+     */
+    public final ComponentType APPEARANCE;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -363,6 +383,7 @@ public final class BattleComponents {
         SHUTTLE_MISSION = world.register(14, "ShuttleMission", FieldKind.OBJECT);
         THRUSTER_FX     = world.register(15, "ThrusterFx", FieldKind.OBJECT);
         AIR_TURRETS     = world.register(16, "AirTurrets", FieldKind.OBJECT);
+        APPEARANCE      = world.register(17, "Appearance", FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

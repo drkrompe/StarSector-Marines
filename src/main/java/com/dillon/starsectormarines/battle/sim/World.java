@@ -273,4 +273,16 @@ public final class World {
         entityWorld.setObject(id, components.AIR_TURRETS, BattleComponents.AIR_TURRETS_STATE, turrets);
     }
     public void removeAirTurrets(long id) { entityWorld.removeComponent(id, components.AIR_TURRETS); }
+
+    // Authored air render-state (APPEARANCE) — altitudeT + flightPhase FLOAT
+    // columns, part of the air spawn archetype. Reads are TOLERANT (0 when the
+    // entity is gone / lacks the component) so a render/audio frame straddling a
+    // despawn never throws, mirroring renderX/renderY; the derived scaleMult /
+    // altitude offset / engine intensity are pure functions of these two, computed
+    // by AirAppearance (not stored).
+    public boolean hasAppearance(long id) { return entityWorld.has(id, components.APPEARANCE); }
+    public float altitudeT(long id) { return entityWorld.getFloat(id, components.APPEARANCE, BattleComponents.APPEARANCE_ALTITUDE_T, 0f); }
+    public void setAltitudeT(long id, float v) { entityWorld.setFloat(id, components.APPEARANCE, BattleComponents.APPEARANCE_ALTITUDE_T, v); }
+    public float flightPhase(long id) { return entityWorld.getFloat(id, components.APPEARANCE, BattleComponents.APPEARANCE_FLIGHT_PHASE, 0f); }
+    public void setFlightPhase(long id, float v) { entityWorld.setFloat(id, components.APPEARANCE, BattleComponents.APPEARANCE_FLIGHT_PHASE, v); }
 }

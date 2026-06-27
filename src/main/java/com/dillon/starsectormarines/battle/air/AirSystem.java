@@ -101,9 +101,9 @@ public class AirSystem {
 
     /**
      * The air-craft spawn archetype {@code {AIR_IDENTITY, KINEMATICS,
-     * SHUTTLE_MISSION}} — adopted into the one entity world by {@link #add}. Cached
-     * once (the component types are world-lifetime). No grid/combat components, so
-     * every grid walk skips air for free.
+     * SHUTTLE_MISSION, APPEARANCE}} — adopted into the one entity world by
+     * {@link #add}. Cached once (the component types are world-lifetime). No
+     * grid/combat components, so every grid walk skips air for free.
      */
     private final ComponentType[] shuttleArchetype;
 
@@ -120,7 +120,8 @@ public class AirSystem {
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
         this.shuttleArchetype = new ComponentType[]{
-                components.AIR_IDENTITY, components.KINEMATICS, components.SHUTTLE_MISSION};
+                components.AIR_IDENTITY, components.KINEMATICS, components.SHUTTLE_MISSION,
+                components.APPEARANCE};
     }
 
     public List<Shuttle> getShuttles() { return shuttles; }
@@ -141,6 +142,11 @@ public class AirSystem {
             world.setAirIdentity(s.entityId, s.type, s.faction);
             world.setKinematics(s.entityId, s.body);
             world.setMission(s.entityId, s.mission);
+            // Seed the authored render-state column to the Shuttle field defaults
+            // (cruise altitude, zero wobble phase). The state-machine tick drives it
+            // thereafter; the render/audio passes read it by id.
+            world.setAltitudeT(s.entityId, s.altitudeT);
+            world.setFlightPhase(s.entityId, s.flightPhase);
         }
         shuttles.add(s);
     }
