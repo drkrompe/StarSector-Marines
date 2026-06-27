@@ -13,13 +13,13 @@ import java.util.Map;
  * <p>This is the composition primitive of the ECS migration's component-model
  * phase: optional capabilities (a falling-crash, on-fire smoke, a vehicle body)
  * become components in their own store instead of nullable fields every unit
- * carries. Universal/hot columns stay on the dense {@code UnitRegistry} table;
+ * carries. Universal/hot columns stay on the dense {@code UnitRosterService} table;
  * sparse/optional ones live here.
  *
  * <p>Keyed by {@code long} entity id (monotonic, never recycled — so no
  * generation bits needed) rather than dense index, so a component survives its
  * entity's release from the live registry: a corpse / crashing wreck keeps its
- * components after it leaves {@code UnitRegistry}.
+ * components after it leaves {@code UnitRosterService}.
  *
  * <p>Iteration order is insertion order ({@link LinkedHashMap}), so systems run
  * deterministically. <b>Serial-only</b> — built for the single-threaded sim

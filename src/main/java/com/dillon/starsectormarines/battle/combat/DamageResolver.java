@@ -142,7 +142,7 @@ public final class DamageResolver {
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is
-            // effectively the death bookkeeping. See UnitRegistry class doc.
+            // effectively the death bookkeeping. See UnitRosterService class doc.
             roster.releaseFromRegistry(target.entityId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0

@@ -21,7 +21,8 @@
  *           systems that process them stay in their domain package. Archetype
  *           components are not classes at all: a {@code ComponentType} + typed
  *           columns, defined only in {@code BattleComponents}. The shared
- *           {@code UnitRegistry} dense table stays in {@code battle.unit} until
- *           live combat migrates onto the world.
+ *           {@code UnitRosterService} dense roster stays in {@code battle.unit};
+ *           live combat columns are world components reached by id via
+ *           {@code World}.
  */
 package com.dillon.starsectormarines.battle.component;

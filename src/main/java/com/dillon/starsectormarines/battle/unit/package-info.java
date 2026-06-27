@@ -3,9 +3,9 @@
  *
  * <p>Category: framework core (the shared entity store; no single feature
  *           owner).
- * <br>Charter:  {@code Entity} (the entity), {@code UnitRegistry} + SoA
- *           storage, roster services ({@code UnitRosterService},
- *           {@code FactionUnitRoster}), the spatial indices
+ * <br>Charter:  {@code Entity} (the entity), the dense SoA roster + id-mint
+ *           ({@code UnitRosterService}) and the faction roster
+ *           ({@code FactionUnitRoster}), the spatial indices
  *           ({@code UnitSpatialIndex}, {@code UnitDestinationSpatialIndex}),
  *           and the shared enums ({@code Faction}, {@code UnitRole},
  *           {@code UnitType}).
@@ -16,7 +16,7 @@
  *           being gutted into SoA arrays and is not yet an ECS id — which
  *           is why this package is still {@code unit/}, not {@code entity/}
  *           (rename deferred until the type has <em>become</em> an id).
- *           Field-lifecycle docs on {@code Entity}/{@code UnitRegistry} are
+ *           Field-lifecycle docs on {@code Entity}/{@code UnitRosterService} are
  *           mandated, not optional.
  *
  * <p>See {@code roadmap/battle-reorg/overview.md} and

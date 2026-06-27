@@ -69,7 +69,7 @@ public class MapTurret extends Entity {
         // (rather than in UnitType) keeps the per-kind balance in one place.
         // Pre-allocate construction seed: write the seed* fields directly
         // (registry is still null, so the accessors can't route yet).
-        // UnitRegistry.allocate later copies these into the SoA arrays.
+        // UnitRosterService.allocate later copies these into the SoA arrays.
         this.seedMaxHp = kind.maxHp;
         this.seedHp = kind.maxHp;
         this.seedAttackDamage = kind.damage;

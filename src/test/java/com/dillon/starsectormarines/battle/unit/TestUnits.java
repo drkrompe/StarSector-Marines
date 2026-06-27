@@ -13,7 +13,7 @@ import java.util.List;
  * Production death (in
  * {@link com.dillon.starsectormarines.battle.combat.DamageResolver} and the
  * drone-hub cascade) does two things: drives hp negative AND releases the
- * entity from the {@link UnitRegistry} via
+ * entity from the {@link UnitRosterService} via
  * {@link BattleSimulation#releaseFromRegistry}. Tests that only do the first
  * leave a dead-but-still-registered unit, which means readers using the long-id
  * resolve path ({@link BattleSimulation#targetOf}, {@link BattleSimulation#resolveUnit})

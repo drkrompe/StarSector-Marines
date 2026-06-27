@@ -13,7 +13,7 @@ package com.dillon.starsectormarines.battle.unit;
  * for the drone crash / turret + hub demolition / mech wreck), plus a snapshot
  * of the moment-of-death state those handlers read. The snapshot is captured at
  * publish time, while the unit is still live and registered — the unit is
- * released from the dense {@link UnitRegistry} immediately <em>after</em> the
+ * released from the dense {@link UnitRosterService} immediately <em>after</em> the
  * publish, after which its Group-C accessors are fail-loud (the {@code local*}
  * shadow for those columns is gone). So handlers must read the event's snapshot,
  * <b>not</b> the unit's accessors, for any post-release value.

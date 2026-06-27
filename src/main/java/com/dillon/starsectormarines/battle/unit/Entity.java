@@ -22,12 +22,11 @@ import java.util.Random;
  * (its identity) plus immutable archetype + a handful of POJO fields, but it no
  * longer self-routes into the simulation's mutable state. Every mutable per-unit
  * column is reached <em>by id</em> through the {@code World} facade
- * ({@code world.hp(id)}, {@code world.cellX(id)}, …) or the registry's API —
- * never through this object. Storage is mid-migration: hp and the logical cell
- * live in the battle {@code EntityWorld}'s HEALTH/POSITION components
- * (archetype tables, persisting per their capability lifecycle), while the
- * combat timers + target/burst/fallback ids are still {@link UnitRegistry}
- * dense-SoA columns until their capabilities migrate.
+ * ({@code world.hp(id)}, {@code world.cellX(id)}, …) — never through this
+ * object. Every per-unit datum lives in the battle {@code EntityWorld}'s
+ * components (HEALTH/POSITION, the combat timers, the target/burst/fallback
+ * ids, movement — archetype tables persisting per their capability lifecycle),
+ * reached by id.
  *
  * <p>Position is split: the logical cell (what pathfinding sees) is the world
  * POSITION component reached by id ({@code world.cellX(id)} /
@@ -40,7 +39,7 @@ import java.util.Random;
  *
  * <p>The world's MOVEMENT component (reached by id) holds the whole movement
  * step — the flat {@code int[]} path, the {@code pathIdx} cursor, and
- * move-progress. {@link #advanceAlongPath(UnitRegistry, float)} rebuilds nothing
+ * move-progress. {@link #advanceAlongPath(World, float)} rebuilds nothing
  * but lerps render position toward the next path cell as move-progress climbs
  * from 0 to 1; on arrival the logical cell advances, progress resets, and the
  * cursor steps forward.
@@ -51,7 +50,7 @@ public class Entity {
     public static final int NO_SQUAD = -1;
 
     /**
-     * Monotonic entity id assigned by {@link com.dillon.starsectormarines.battle.unit.UnitRegistry}
+     * Monotonic entity id assigned by {@link UnitRosterService}
      * on registration. {@code 0} means "not yet allocated" (matches the
      * registry's reserved sentinel); a non-zero value is stable for the
      * life of the unit and never recycled. This is the unit's identity — all
@@ -93,7 +92,7 @@ public class Entity {
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b>
-     * {@link UnitRegistry#allocate} copies these into the entity world's
+     * {@link UnitRosterService#allocate} copies these into the entity world's
      * {@code POSITION} component (migration step 3b) and the world is canonical
      * from then on, reached by id ({@code world.cellX(id)} /
      * {@code world.cellY(id)}). POSITION persists alive→dead — the corpse keeps
@@ -107,7 +106,7 @@ public class Entity {
 
     /**
      * <b>Don't read directly.</b> Smooth render-position <em>pre-allocate seed
-     * only</em>. {@link UnitRegistry#allocate} copies these into the entity
+     * only</em>. {@link UnitRosterService#allocate} copies these into the entity
      * world's universal {@code RENDER_POSITION} component, which is canonical from
      * then on and survives release (it rides the death transmute) — there is no
      * post-release snapshot back to these fields. Read/write by id via
@@ -154,22 +153,22 @@ public class Entity {
     public float moveSpeed;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> Same shape as
-     * {@link #seedMaxHp} and the cell pair: {@link UnitRegistry#allocate} copies
+     * {@link #seedMaxHp} and the cell pair: {@link UnitRosterService#allocate} copies
      * this into the entity world's {@code HEALTH} component (migration step 3)
      * and the world is canonical from then on. Reached by id
      * ({@code world.hp(id)} / {@code world.setHp(id, v)}); held-ref liveness
-     * goes through {@code world.isAlive(id)} / {@code registry.isAliveById(id)}
+     * goes through {@code world.isAlive(id)} / {@code roster.isAliveById(id)}
      * — "has {@code HEALTH} with {@code hp > 0}", so a corpse (transmuted on the
      * death drain) reports dead.
      *
-     * <p>Public so {@link UnitRegistry} (a sibling package) can seed the slot at
+     * <p>Public so {@link UnitRosterService} can seed the slot at
      * allocate time. Write-only construction input: the ctor archetype seed and
      * the subclass overrides (see {@code seed*}).
      */
     public float seedHp;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The Group-S stat
-     * columns (max HP + the three attack stats): {@link UnitRegistry#allocate}
+     * columns (max HP + the three attack stats): {@link UnitRosterService#allocate}
      * copies these into the SoA arrays and the registry is canonical from then
      * on, and {@code release} does NOT snapshot them back. Reached post-allocate
      * by id through the registry/World ({@code world.maxHp(id)},
@@ -188,7 +187,7 @@ public class Entity {
     public float seedAccuracy;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The optional secondary
-     * weapon a unit deboards with (null = no secondary). {@link UnitRegistry#allocate}
+     * weapon a unit deboards with (null = no secondary). {@link UnitRosterService#allocate}
      * consumes it: a non-null value makes the unit spawn with the
      * {@code SECONDARY_WEAPON} component (its capability IS that archetype
      * membership), seeded with this spec + {@link #seedSecondaryAmmo}. The live
@@ -196,7 +195,7 @@ public class Entity {
      * {@code world.hasSecondaryWeapon}/{@code secondaryWeapon}/{@code secondaryAmmo}.
      */
     public MarineSecondary seedSecondaryWeapon;
-    /** <b>Pre-allocate seed ONLY.</b> Starting rounds for {@link #seedSecondaryWeapon}; consumed by {@link UnitRegistry#allocate}. */
+    /** <b>Pre-allocate seed ONLY.</b> Starting rounds for {@link #seedSecondaryWeapon}; consumed by {@link UnitRosterService#allocate}. */
     public int seedSecondaryAmmo;
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
     public float visionRange;
@@ -279,7 +278,7 @@ public class Entity {
         this.localRenderX = cellX;
         this.localRenderY = cellY;
         this.moveSpeed = type.moveSpeed;
-        // Pre-allocate seed; UnitRegistry.allocate will read these into the
+        // Pre-allocate seed; UnitRosterService.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
         // setters can't route yet (the unit isn't registered).
         this.seedHp = type.maxHp;

@@ -100,7 +100,7 @@ public enum UnitType {
      * Whether this archetype is a static emplacement — a {@link #TURRET} or a
      * {@link #DRONE_HUB_STRUCTURE}. These are combatants (targetable, damageable)
      * but immobile and mindless: they neither path nor run a decision cadence, so
-     * {@code UnitRegistry.allocate} omits the {@code MOVEMENT} and {@code AI_STATE}
+     * {@code UnitRosterService.allocate} omits the {@code MOVEMENT} and {@code AI_STATE}
      * components for them (presence <em>is</em> the capability — "has MOVEMENT" =
      * mover, "has AI_STATE" = thinker). Every other type moves and decides
      * (infantry, mechs, wandering civilians, patrolling drones). If a future type

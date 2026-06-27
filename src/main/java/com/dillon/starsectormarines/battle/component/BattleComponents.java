@@ -24,9 +24,11 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * capability, no nullable field. Death is the transmute to the corpse archetype
  * (identity + cell ride the row-move; health, combat, and any movement, ai-state,
  * or secondary are removed); a crashing air unit then carries {@link #CRASHING}
- * over the corpse while it falls. The remaining migration work folds the
- * standalone {@code MechLoadout} component store into archetype membership (the
- * {@code Crashing} fold is done), then dissolves {@code UnitRegistry}.
+ * over the corpse while it falls. The migration is complete: the standalone
+ * {@code MechLoadout} and {@code Crashing} stores folded into archetype
+ * membership ({@link #MECH_LOADOUT} / {@link #CRASHING}), and the registry
+ * dissolution is done — the dense roster lives on {@code UnitRosterService},
+ * by-id access on {@code World}.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -140,9 +142,9 @@ public final class BattleComponents {
      * Live damageable state — {@code float hp, maxHp}. Live-only by design: a
      * corpse does NOT carry it (death removes it in the corpse transmute), so
      * "has {@code HEALTH} with {@code hp > 0}" <em>is</em> the liveness
-     * definition ({@code UnitRegistry.isAliveById}). Seeded at spawn by
-     * {@code UnitRegistry.allocate}; damage writes go through the registry's
-     * transitional by-id adapters until step 4 dissolves them.
+     * definition ({@code UnitRosterService.isAliveById}). Seeded at spawn by
+     * {@code UnitRosterService.allocate}; damage writes go through {@code World}'s
+     * by-id accessors.
      */
     public final ComponentType HEALTH;
     /**
@@ -165,7 +167,7 @@ public final class BattleComponents {
      * emplacement (a turret or drone hub;
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) never
      * paths and carries no MOVEMENT — the few all-unit readers (the occupancy-map
-     * and destination-index rebuilds) gate on {@code UnitRegistry.hasMovement};
+     * and destination-index rebuilds) gate on {@code World.hasMovement};
      * per-unit movement code only ever runs for movers. Removed in the corpse
      * transmute (a corpse does not move). See
      * {@code roadmap/ecs-migration/archetype-storage.md}.
@@ -184,7 +186,7 @@ public final class BattleComponents {
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) has no
      * decision cadence and carries no AI_STATE — the per-tick dispatch
      * ({@code UnitUpdateSystem}) and the per-hit fall-back roll
-     * ({@code HitResponseService}) gate on {@code UnitRegistry.hasAiState};
+     * ({@code HitResponseService}) gate on {@code World.hasAiState};
      * per-unit decision code only ever runs for thinkers. Removed in the corpse
      * transmute (a corpse does not think). See
      * {@code roadmap/ecs-migration/archetype-storage.md}.
