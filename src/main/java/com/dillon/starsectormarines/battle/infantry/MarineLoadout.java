@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
  * shuttle pointing at a specific charge site; everyone else stays
  * {@link UnitRole#COMBATANT}.
  *
- * <p>Held as an array on {@link Shuttle}; index N gets popped off when the
+ * <p>Held as an array on the air craft's {@code ShuttleMission}; index N gets popped off when the
  * N-th marine deboards. Null entries fall back to a plain combatant with
  * the default pulse-rifle primary and no secondary.
  */

@@ -294,9 +294,9 @@ public final class TacticalScoring {
 
     /**
      * Primitive-args overload — used by callers that aren't a {@link Entity}
-     * themselves (today: shuttle-mounted turrets, which live as data on a
-     * {@link com.dillon.starsectormarines.battle.air.Shuttle} rather than as
-     * grid entities). The selection logic is identical; pass {@link Entity#NO_SQUAD}
+     * themselves (today: shuttle-mounted turrets, which live as data on an air
+     * craft's {@code AIR_TURRETS} component rather than as grid entities). The
+     * selection logic is identical; pass {@link Entity#NO_SQUAD}
      * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
      * when the caller doesn't squad up and isn't itself in the unit list.
      */

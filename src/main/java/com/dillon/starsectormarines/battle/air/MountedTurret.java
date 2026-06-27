@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
- * Runtime state for one hardpoint on a {@link Shuttle}. Pairs with the
+ * Runtime state for one hardpoint on an air craft. Pairs with the
  * static {@link TurretMount} config — the mount describes "where + what",
  * this carries "what it's currently doing": facing, cooldown, ammo, locked
  * target.

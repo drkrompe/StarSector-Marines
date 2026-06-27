@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -82,7 +83,15 @@ public class AirSystem {
     private final Random rng;
     private final Consumer<Entity> addUnitSink;
 
-    private final List<Shuttle> shuttles = new ArrayList<>();
+    /**
+     * The air entity ids this system drives — the stable per-tick iteration
+     * backbone, independent of the world tables, so mid-tick component changes (FX
+     * attach/detach, turret attach) never hit a swap-pop trap on a live walk.
+     * Spawned ids are appended; terminal-GONE ids are reaped (world-destroyed +
+     * removed) at the end of {@link #tick} via {@link #reapGoneCraft}. The
+     * {@code airCraft} query mirrors this exact set for {@link #airEntityIds}.
+     */
+    private final List<Long> air = new ArrayList<>();
 
     /**
      * The raw entity world + its component registry, cached from {@link #roster}.
@@ -146,25 +155,26 @@ public class AirSystem {
      * returns the entity id. Callers configure the rest by id —
      * {@code world.mission(id)} for the mission bag (cycles, loadouts, garrison
      * node, …) and {@link BattleSimulation#attachAirTurrets} for the optional
-     * turret kit. Replaces the old {@code new Shuttle(...)} + {@code add(...)}: the
-     * handle is internal to this system now (it dissolves entirely in the air
-     * epic's final slice).
+     * turret kit. The craft is an entity-id + components — no handle object.
      */
     public long spawn(ShuttleType type, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay) {
-        Shuttle s = new Shuttle(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
-        s.entityId = roster.allocateAir(shuttleArchetype);
-        world.setAirIdentity(s.entityId, type, faction);
-        world.setKinematics(s.entityId, s.body);
-        world.setMission(s.entityId, s.mission);
+        AirBody body = new AirBody();
+        body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
+        ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
+                pendingDelay, type.capacity, type.maxHp);
+        long id = roster.allocateAir(shuttleArchetype);
+        world.setAirIdentity(id, type, faction);
+        world.setKinematics(id, body);
+        world.setMission(id, mission);
         // Seed the authored render-state column (cruise altitude, zero wobble
         // phase). The state-machine tick drives it thereafter; the render/audio
         // passes read it by id.
-        world.setAltitudeT(s.entityId, 1f);
-        world.setFlightPhase(s.entityId, 0f);
-        shuttles.add(s);
-        return s.entityId;
+        world.setAltitudeT(id, 1f);
+        world.setFlightPhase(id, 0f);
+        air.add(id);
+        return id;
     }
 
     /**
@@ -196,21 +206,25 @@ public class AirSystem {
     }
 
     /**
-     * The single authoritative release point for an air entity — drops every
-     * component this system holds for {@code entityId}. Called at the one death
-     * transition (DEPARTING → GONE). <b>Every</b> future removal path (AA
-     * shoot-down — {@link ShuttleMission#hp} / {@link Shuttle#HOVER_HP_THRESHOLD}
-     * are wired forward for it — or pruning GONE craft from the list) MUST funnel
-     * through here. Register each new optional air component's removal in this one
-     * method and adding a component can't reintroduce an orphan leak. The entity
-     * itself stays alive (its core {@code AIR_IDENTITY/KINEMATICS/SHUTTLE_MISSION}
-     * row persists); the terminal {@code world.destroy} is the handle-dissolution
-     * phase's job.
+     * Reaps every craft that reached terminal {@code GONE} this tick: destroys its
+     * world entity (one {@code world.destroy} drops <em>all</em> its components — the
+     * air core plus any {@code THRUSTER_FX}/{@code AIR_TURRETS} — superseding the
+     * per-component removes the death seam used pre-dissolution) and drops the id
+     * from the {@link #air} backbone. Runs once at end of {@link #tick}, after every
+     * pass: a craft that flips GONE mid-tick is skipped by the later passes (they
+     * gate on visibility / non-GONE) and torn down exactly once here —
+     * gather-then-apply, no structural change during a live walk. A multi-sortie
+     * re-arm loops back to PENDING, never reaching GONE, so it is never reaped.
      */
-    private void releaseAirEntity(long entityId) {
-        world.removeThrusterFx(entityId);
-        world.removeAirTurrets(entityId);
-        // Future optional air components drop here too.
+    private void reapGoneCraft() {
+        for (Iterator<Long> it = air.iterator(); it.hasNext(); ) {
+            long id = it.next();
+            ShuttleMission mission = world.mission(id);
+            if (mission == null || mission.state == ShuttleState.GONE) {
+                entityWorld.destroy(id);
+                it.remove();
+            }
+        }
     }
 
     /**
@@ -219,13 +233,13 @@ public class AirSystem {
      * immediate DEPARTING path. Presence of the {@link AirTurrets} component IS
      * "armed."
      */
-    private boolean shouldHoverLoiter(Shuttle s) {
-        return s.mission.assignedRole != null && world.hasAirTurrets(s.entityId);
+    private boolean shouldHoverLoiter(long id, ShuttleMission mission) {
+        return mission.assignedRole != null && world.hasAirTurrets(id);
     }
 
     /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
-    private boolean allTurretsDry(Shuttle s) {
-        AirTurrets t = world.airTurrets(s.entityId);
+    private boolean allTurretsDry(long id) {
+        AirTurrets t = world.airTurrets(id);
         return t == null || t.allDry();
     }
 
@@ -234,35 +248,39 @@ public class AirSystem {
         tickAirThreat(dt);
         tickShuttleTurrets(dt);
         advanceThrusterFx(dt);
+        reapGoneCraft();
     }
 
     /**
      * Anti-air: each airborne shuttle within range of an enemy defense post (turret) takes HP drain,
      * summed over every post in its AA bubble. At zero HP it's shot down — the marines still aboard are
      * lost, so a hot drop zone yields a partial-success wave (S3d D3). This is the first damage source
-     * for {@link ShuttleMission#hp}, so the {@link Shuttle#HOVER_HP_THRESHOLD} loiter-abort also goes
+     * for {@link ShuttleMission#hp}, so the {@link ShuttleMission#HOVER_HP_THRESHOLD} loiter-abort also goes
      * live here. Area drain, not lock-on projectiles — the same "structures threaten an area" model as
      * ground-vs-infantry. Posts come from the spatial index, so this is O(shuttles × small bucket).
      */
     private void tickAirThreat(float dt) {
-        if (shuttles.isEmpty()) return;
+        if (air.isEmpty()) return;
         ArrayList<Entity> scratch = new ArrayList<>();
-        for (Shuttle s : shuttles) {
-            if (!isAirborneHittable(s)) continue;
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            if (!isAirborneHittable(mission.state)) continue;
+            AirBody body = world.kinematics(id);
+            Faction faction = world.airFaction(id);
             scratch.clear();
-            navigation.getUnitIndex().gather(Math.round(s.body.x), Math.round(s.body.y),
+            navigation.getUnitIndex().gather(Math.round(body.x), Math.round(body.y),
                     AA_THREAT_RADIUS_CELLS, scratch);
             int posts = 0;
             for (int i = 0, n = scratch.size(); i < n; i++) {
                 Entity e = scratch.get(i);
-                if (e.faction == s.faction) continue;
+                if (e.faction == faction) continue;
                 if (!(e instanceof MapTurret)) continue;     // defense posts only — not infantry / mechs
                 if (!world.isAlive(e.entityId)) continue;
                 posts++;
             }
             if (posts == 0) continue;
-            s.mission.hp -= posts * AA_DPS_PER_POST * dt;
-            if (s.mission.hp <= 0f) shootDown(s, posts);
+            mission.hp -= posts * AA_DPS_PER_POST * dt;
+            if (mission.hp <= 0f) shootDown(id, mission, posts);
         }
     }
 
@@ -270,22 +288,20 @@ public class AirSystem {
      * Airborne states an AA post can hit — the descent gauntlet, the armed loiter, and the egress. A
      * LANDED shuttle deboarding on the ground is exempt (it's already "down").
      */
-    private static boolean isAirborneHittable(Shuttle s) {
-        ShuttleState st = s.mission.state;
+    private static boolean isAirborneHittable(ShuttleState st) {
         return st == ShuttleState.INCOMING || st == ShuttleState.HOVER_STATION
                 || st == ShuttleState.DEPARTING;
     }
 
     /**
      * Shoot-down: the shuttle dies in the air with its undelivered marines aboard. Terminal like the
-     * DEPARTING→GONE transition — set GONE and release its optional air components through the single
-     * death seam ({@link #releaseAirEntity}).
+     * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
+     * component) at end of tick.
      */
-    private void shootDown(Shuttle s, int posts) {
-        s.mission.state = ShuttleState.GONE;
-        releaseAirEntity(s.entityId);
-        LOG.info("air: shuttle " + s.type + " shot down by " + posts + " AA post(s) with "
-                + s.mission.marinesRemaining + " marine(s) still aboard.");
+    private void shootDown(long id, ShuttleMission mission, int posts) {
+        mission.state = ShuttleState.GONE;
+        LOG.info("air: shuttle " + world.airType(id) + " shot down by " + posts + " AA post(s) with "
+                + mission.marinesRemaining + " marine(s) still aboard.");
     }
 
     /**
@@ -295,15 +311,18 @@ public class AirSystem {
      * component so the {@code THRUSTER_FX} column tracks only live air entities.
      */
     private void advanceThrusterFx(float dt) {
-        for (Shuttle s : shuttles) {
-            // GONE craft already released their components at the death
-            // transition; skip (don't re-advance, which would resurrect them).
-            if (s.mission.state == ShuttleState.GONE) continue;
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            // GONE craft are reaped (destroyed) at end of tick; skip (don't
+            // re-advance, which would re-attach a THRUSTER_FX component onto a
+            // craft about to be torn down).
+            if (mission.state == ShuttleState.GONE) continue;
             // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
-            EngineSlotData[] slots = EngineSlotResolver.resolve(s.type);
-            ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, entityWorld, components, dt);
+            ShuttleType type = world.airType(id);
+            EngineSlotData[] slots = EngineSlotResolver.resolve(type);
+            ThrusterFxSystem.advance(id, slots, world.kinematics(id), type, entityWorld, components, dt);
         }
     }
 
@@ -320,51 +339,54 @@ public class AirSystem {
      * what kinematic-limited steering produces.
      */
     private void advanceShuttles(float dt) {
-        for (Shuttle s : shuttles) {
-            switch (s.mission.state) {
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            AirBody body = world.kinematics(id);
+            ShuttleType type = world.airType(id);
+            switch (mission.state) {
                 case PENDING:
-                    s.mission.pendingDelay -= dt;
-                    if (s.mission.pendingDelay <= 0f) {
-                        beginShuttleLeg(s, s.mission.lzX, s.mission.lzY);
-                        s.mission.state = ShuttleState.INCOMING;
+                    mission.pendingDelay -= dt;
+                    if (mission.pendingDelay <= 0f) {
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
                     }
                     break;
 
                 case INCOMING:
-                    AirSteeringSystem.steer(s.body, s.mission.lzX, s.mission.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
-                    updateShuttleAltitude(s, s.mission.lzX, s.mission.lzY, /*incoming=*/true, dt);
-                    if (s.body.distanceTo(s.mission.lzX, s.mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
-                        s.body.teleport(s.mission.lzX, s.mission.lzY, s.body.facingDegrees);
-                        world.setAltitudeT(s.entityId, 0f);
-                        s.mission.state = ShuttleState.LANDED;
-                        s.mission.deboardCountdown = s.type.deboardInterval;
+                    AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, type, dt);
+                    updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
+                    if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
+                        body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
+                        world.setAltitudeT(id, 0f);
+                        mission.state = ShuttleState.LANDED;
+                        mission.deboardCountdown = type.deboardInterval;
                     }
                     break;
 
                 case LANDED:
-                    s.mission.deboardCountdown -= dt;
-                    if (s.mission.deboardCountdown <= 0f && s.mission.marinesRemaining > 0) {
-                        if (tryDeboardMarine(s)) {
-                            s.mission.marinesRemaining--;
+                    mission.deboardCountdown -= dt;
+                    if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0) {
+                        if (tryDeboardMarine(mission, type, world.airFaction(id))) {
+                            mission.marinesRemaining--;
                         }
-                        s.mission.deboardCountdown = s.type.deboardInterval;
+                        mission.deboardCountdown = type.deboardInterval;
                     }
-                    if (s.mission.marinesRemaining == 0) {
-                        if (shouldHoverLoiter(s)) {
+                    if (mission.marinesRemaining == 0) {
+                        if (shouldHoverLoiter(id, mission)) {
                             // Lift off the LZ and station-keep above the squad
                             // for the type's fire-support window. Initial hover
                             // point is the LZ; each subsequent tick follows the
                             // squad centroid (leashed to LZ radius).
-                            s.mission.hoverPointX = s.mission.lzX;
-                            s.mission.hoverPointY = s.mission.lzY;
-                            s.mission.hoverTimerSec = s.type.fireSupportSec;
-                            s.mission.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
-                            world.setAltitudeT(s.entityId, 0f);   // smoothstep ramps from here
-                            s.mission.departingFromHover = false;
-                            s.mission.state = ShuttleState.HOVER_STATION;
+                            mission.hoverPointX = mission.lzX;
+                            mission.hoverPointY = mission.lzY;
+                            mission.hoverTimerSec = type.fireSupportSec;
+                            mission.takeoffTimer = ShuttleMission.T_TAKEOFF_SEC;
+                            world.setAltitudeT(id, 0f);   // smoothstep ramps from here
+                            mission.departingFromHover = false;
+                            mission.state = ShuttleState.HOVER_STATION;
                         } else {
-                            beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
-                            s.mission.state = ShuttleState.DEPARTING;
+                            beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+                            mission.state = ShuttleState.DEPARTING;
                         }
                     }
                     break;
@@ -374,69 +396,69 @@ public class AirSystem {
                     // centroid, clamped to a leash radius around the LZ so a
                     // wiped squad or a runaway scout doesn't drag the shuttle
                     // across the whole map.
-                    updateHoverFollow(s);
-                    AirSteeringSystem.steer(s.body, s.mission.hoverPointX, s.mission.hoverPointY, SteeringMode.STATION, s.type, dt);
-                    s.mission.hoverTimerSec -= dt;
+                    updateHoverFollow(mission);
+                    AirSteeringSystem.steer(body, mission.hoverPointX, mission.hoverPointY, SteeringMode.STATION, type, dt);
+                    mission.hoverTimerSec -= dt;
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
                     // T_TAKEOFF_SEC for a visible acceleration / deceleration
                     // climb instead of a one-tick pop into the air.
                     float hoverAltitudeT;
-                    if (s.mission.takeoffTimer > 0f) {
-                        s.mission.takeoffTimer -= dt;
-                        float u = 1f - Math.max(0f, s.mission.takeoffTimer / Shuttle.T_TAKEOFF_SEC);
+                    if (mission.takeoffTimer > 0f) {
+                        mission.takeoffTimer -= dt;
+                        float u = 1f - Math.max(0f, mission.takeoffTimer / ShuttleMission.T_TAKEOFF_SEC);
                         hoverAltitudeT = u * u * (3f - 2f * u);  // smoothstep
                     } else {
                         hoverAltitudeT = 1f;
                     }
-                    world.setAltitudeT(s.entityId, hoverAltitudeT);
-                    world.setFlightPhase(s.entityId, world.flightPhase(s.entityId)
+                    world.setAltitudeT(id, hoverAltitudeT);
+                    world.setFlightPhase(id, world.flightPhase(id)
                             + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
                     // Exit triggers — first-of (timer expired, all ammo dry,
                     // HP pressure). HP threshold is wired forward for AA work;
                     // today there's no damage source so it never trips.
-                    boolean fuelOut = s.mission.hoverTimerSec <= 0f;
-                    boolean ammoOut = allTurretsDry(s);
-                    boolean hpPressured = s.mission.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
+                    boolean fuelOut = mission.hoverTimerSec <= 0f;
+                    boolean ammoOut = allTurretsDry(id);
+                    boolean hpPressured = mission.hp <= type.maxHp * ShuttleMission.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
-                        beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
-                        s.mission.departingFromHover = true;
-                        s.mission.state = ShuttleState.DEPARTING;
+                        beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+                        mission.departingFromHover = true;
+                        mission.state = ShuttleState.DEPARTING;
                     }
                     break;
 
                 case DEPARTING:
-                    AirSteeringSystem.steer(s.body, s.mission.exitX, s.mission.exitY, SteeringMode.CRUISE, s.type, dt);
-                    updateShuttleAltitude(s, s.mission.exitX, s.mission.exitY, /*incoming=*/false, dt);
-                    if (s.body.distanceTo(s.mission.exitX, s.mission.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
-                        if (s.mission.currentCycle + 1 < s.mission.totalCycles) {
+                    AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, type, dt);
+                    updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY, /*incoming=*/false, dt);
+                    if (body.distanceTo(mission.exitX, mission.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
+                        if (mission.currentCycle + 1 < mission.totalCycles) {
                             // Recycle for another sortie. The shuttle drops out of
                             // view (PENDING is invisible + engine-silent) for
-                            // s.rearmDelay sim-seconds, then re-enters INCOMING.
+                            // rearmDelay sim-seconds, then re-enters INCOMING.
                             // Per-cycle loadout refreshes here so SABOTAGE planters
                             // target the next charge site on each return trip.
-                            s.mission.currentCycle++;
-                            if (s.mission.cycleLoadouts != null && s.mission.currentCycle < s.mission.cycleLoadouts.length) {
-                                s.mission.marineLoadout = s.mission.cycleLoadouts[s.mission.currentCycle];
+                            mission.currentCycle++;
+                            if (mission.cycleLoadouts != null && mission.currentCycle < mission.cycleLoadouts.length) {
+                                mission.marineLoadout = mission.cycleLoadouts[mission.currentCycle];
                             }
-                            s.mission.marinesRemaining = s.type.capacity;
-                            s.mission.pendingDelay = s.mission.rearmDelay;
+                            mission.marinesRemaining = type.capacity;
+                            mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —
                             // without this, AA damage (D3) carries across sorties and a cycling
                             // shuttle dies early on a later run despite "re-arming". Symmetric with
                             // the magazine refill below.
-                            s.mission.hp = s.type.maxHp;
+                            mission.hp = type.maxHp;
                             // Each sortie spawns an independent squad — without
                             // this reset, marines from cycle N+1 reinforce the
                             // surviving squad from cycle N instead of forming
                             // a fresh fireteam at the LZ.
-                            s.mission.squadId = Entity.NO_SQUAD;
-                            s.body.teleport(s.mission.entryX, s.mission.entryY,
-                                    AirBody.facingToward(s.mission.lzX - s.mission.entryX, s.mission.lzY - s.mission.entryY));
-                            world.setAltitudeT(s.entityId, 1f);
-                            s.mission.departingFromHover = false;
+                            mission.squadId = Entity.NO_SQUAD;
+                            body.teleport(mission.entryX, mission.entryY,
+                                    AirBody.facingToward(mission.lzX - mission.entryX, mission.lzY - mission.entryY));
+                            world.setAltitudeT(id, 1f);
+                            mission.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
-                            AirTurrets rearm = world.airTurrets(s.entityId);
+                            AirTurrets rearm = world.airTurrets(id);
                             if (rearm != null) {
                                 for (MountedTurret mt : rearm.mounts) {
                                     mt.ammo = mt.mount.kind.startingAmmo;
@@ -444,12 +466,11 @@ public class AirSystem {
                                     mt.cooldownTimer = 0f;
                                 }
                             }
-                            s.mission.state = ShuttleState.PENDING;
+                            mission.state = ShuttleState.PENDING;
                         } else {
-                            // Terminal — the craft is done. Release all its air
-                            // components in one place (the single death seam).
-                            s.mission.state = ShuttleState.GONE;
-                            releaseAirEntity(s.entityId);
+                            // Terminal — the craft is done; reapGoneCraft destroys
+                            // it (and every component) at end of tick.
+                            mission.state = ShuttleState.GONE;
                         }
                     }
                     break;
@@ -462,12 +483,15 @@ public class AirSystem {
     }
 
     private void tickShuttleTurrets(float dt) {
-        for (Shuttle s : shuttles) {
-            if (!s.mission.isVisible()) continue;
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            if (!mission.isVisible()) continue;
             // Presence: only armed craft carry an AirTurrets component.
-            AirTurrets t = world.airTurrets(s.entityId);
+            AirTurrets t = world.airTurrets(id);
             if (t == null) continue;
-            float rad = (float) Math.toRadians(s.body.facingDegrees);
+            AirBody body = world.kinematics(id);
+            Faction faction = world.airFaction(id);
+            float rad = (float) Math.toRadians(body.facingDegrees);
             float c = (float) Math.cos(rad);
             float si = (float) Math.sin(rad);
             for (MountedTurret mt : t.mounts) {
@@ -509,15 +533,15 @@ public class AirSystem {
                 // mounts sit at the real, fore-aft-spread hardpoints, each mount's
                 // LoS (resolved per-State below) differs front-to-rear. Same
                 // helper the render pass uses, so a round fires from where it's drawn.
-                float worldX = mt.worldX(s.body, c, si, 1f);
-                float worldY = mt.worldY(s.body, c, si, 1f);
+                float worldX = mt.worldX(body, c, si, 1f);
+                float worldY = mt.worldY(body, c, si, 1f);
 
                 TurretAim.State aim = new TurretAim.State();
                 aim.originCellX = (int) Math.floor(worldX);
                 aim.originCellY = (int) Math.floor(worldY);
                 aim.originX = worldX;
                 aim.originY = worldY;
-                aim.faction = s.faction;
+                aim.faction = faction;
                 aim.squadId = Entity.NO_SQUAD;
                 aim.excludeFromCrowding = null;
                 aim.facingDegrees = mt.facingDegrees;
@@ -542,7 +566,7 @@ public class AirSystem {
                 // Sim LOS / aim still use the ground-projection worldY above —
                 // that's the right cell for "what wall is this shuttle hovering
                 // over" decisions. This offset is purely a render-origin nudge.
-                float shotOriginY = worldY + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(s.entityId));
+                float shotOriginY = worldY + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
 
                 // Burst continuation runs ahead of fresh trigger pulls. The
                 // mount commits to its salvo target — closer enemies walking
@@ -550,7 +574,7 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        fireSink.fire(worldX, shotOriginY, s.faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
+                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
@@ -561,7 +585,7 @@ public class AirSystem {
                 }
 
                 if (aim.fireThisTick) {
-                    fireSink.fire(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
+                    fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot
@@ -583,8 +607,8 @@ public class AirSystem {
      * position is left untouched — it's already at the previous waypoint (the
      * entry point, or the LZ).
      */
-    private void beginShuttleLeg(Shuttle s, float toX, float toY) {
-        s.mission.legStartDist = Math.max(0.001f, s.body.distanceTo(toX, toY));
+    private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {
+        mission.legStartDist = Math.max(0.001f, body.distanceTo(toX, toY));
     }
 
     /**
@@ -594,42 +618,43 @@ public class AirSystem {
      * {@link AirAppearance#scaleMult(float, float)} (a sine wobble gated by
      * altitudeT so it dies cleanly on the ground), computed at render time.
      */
-    private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming, float dt) {
+    private void updateShuttleAltitude(long id, ShuttleMission mission, AirBody body,
+                                       float toX, float toY, boolean incoming, float dt) {
         float altitudeT;
-        if (!incoming && s.mission.departingFromHover) {
+        if (!incoming && mission.departingFromHover) {
             // Departing straight out of HOVER_STATION — the shuttle is already
             // at cruise altitude, so a distance-ratio lerp from "ground" would
             // make it visibly descend and re-climb. Hold at the top.
             altitudeT = 1f;
         } else {
-            float remaining = s.body.distanceTo(toX, toY);
-            float ratio = remaining / s.mission.legStartDist;
+            float remaining = body.distanceTo(toX, toY);
+            float ratio = remaining / mission.legStartDist;
             if (ratio < 0f) ratio = 0f;
             if (ratio > 1f) ratio = 1f;
             altitudeT = incoming ? ratio : (1f - ratio);
         }
-        world.setAltitudeT(s.entityId, altitudeT);
+        world.setAltitudeT(id, altitudeT);
         // Advance the wobble phase; the scale multiplier is derived from
         // altitudeT + flightPhase by AirAppearance at render time, not stored.
-        world.setFlightPhase(s.entityId, world.flightPhase(s.entityId)
+        world.setFlightPhase(id, world.flightPhase(id)
                 + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
     }
 
     /**
      * Recomputes {@link ShuttleMission#hoverPointX}/{@code hoverPointY} from the
-     * alive squad centroid, pulled back by {@link Shuttle#HOVER_STANDOFF_CELLS}
+     * alive squad centroid, pulled back by {@link ShuttleMission#HOVER_STANDOFF_CELLS}
      * along the LZ→centroid bearing (rear-overwatch standoff). Holds the
      * previous value if the squad is wiped (no alive squadmates) so the
      * shuttle doesn't snap back to the LZ on the last marine's death — it
      * stays where it was supporting.
      */
-    private void updateHoverFollow(Shuttle s) {
-        if (s.mission.squadId == Entity.NO_SQUAD) return;
+    private void updateHoverFollow(ShuttleMission mission) {
+        if (mission.squadId == Entity.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
         for (int i = 0, live = roster.liveCount(); i < live; i++) {
             Entity u = roster.get(i);
-            if (u.squadId != s.mission.squadId) continue;
+            if (u.squadId != mission.squadId) continue;
             sumX += world.cellX(u.entityId) + 0.5f;
             sumY += world.cellY(u.entityId) + 0.5f;
             n++;
@@ -637,22 +662,22 @@ public class AirSystem {
         if (n == 0) return;  // squad wiped — hold current hover point
         float cx = sumX / n;
         float cy = sumY / n;
-        float dx = cx - s.mission.lzX;
-        float dy = cy - s.mission.lzY;
+        float dx = cx - mission.lzX;
+        float dy = cy - mission.lzY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         // Rear-overwatch standoff: shift the hover point from centroid back
         // toward the LZ. Below the standoff radius there's no stable bearing,
         // so just hold over the LZ until the squad pushes out.
-        if (dist > Shuttle.HOVER_STANDOFF_CELLS) {
-            float k = (dist - Shuttle.HOVER_STANDOFF_CELLS) / dist;
-            cx = s.mission.lzX + dx * k;
-            cy = s.mission.lzY + dy * k;
+        if (dist > ShuttleMission.HOVER_STANDOFF_CELLS) {
+            float k = (dist - ShuttleMission.HOVER_STANDOFF_CELLS) / dist;
+            cx = mission.lzX + dx * k;
+            cy = mission.lzY + dy * k;
         } else {
-            cx = s.mission.lzX;
-            cy = s.mission.lzY;
+            cx = mission.lzX;
+            cy = mission.lzY;
         }
-        s.mission.hoverPointX = cx;
-        s.mission.hoverPointY = cy;
+        mission.hoverPointX = cx;
+        mission.hoverPointY = cy;
     }
 
     /**
@@ -662,18 +687,18 @@ public class AirSystem {
      * units or walls); caller leaves {@code marinesRemaining} unchanged and the
      * shuttle re-tries next interval.
      */
-    private boolean tryDeboardMarine(Shuttle s) {
-        int lzCellX = (int) Math.floor(s.mission.lzX);
-        int lzCellY = (int) Math.floor(s.mission.lzY);
+    private boolean tryDeboardMarine(ShuttleMission mission, ShuttleType type, Faction faction) {
+        int lzCellX = (int) Math.floor(mission.lzX);
+        int lzCellY = (int) Math.floor(mission.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
-        UnitType deboardType = (s.mission.deboardUnitType != null)
-                ? s.mission.deboardUnitType
-                : FactionUnitRoster.forFaction(s.faction).infantry();
-        Entity marine = new Entity(roster.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
-        int slot = s.type.capacity - s.mission.marinesRemaining;
-        MarineLoadout loadout = (s.mission.marineLoadout != null && slot < s.mission.marineLoadout.length)
-                ? s.mission.marineLoadout[slot] : null;
+        UnitType deboardType = (mission.deboardUnitType != null)
+                ? mission.deboardUnitType
+                : FactionUnitRoster.forFaction(faction).infantry();
+        Entity marine = new Entity(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
+        int slot = type.capacity - mission.marinesRemaining;
+        MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
+                ? mission.marineLoadout[slot] : null;
         if (loadout != null) {
             marine.role = loadout.role;
             marine.assignedObjective = loadout.objective;
@@ -691,19 +716,19 @@ public class AirSystem {
                 marine.seedSecondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        if (s.mission.squadId == Entity.NO_SQUAD) {
-            s.mission.squadId = roster.mintSquad(s.faction, marine);
+        if (mission.squadId == Entity.NO_SQUAD) {
+            mission.squadId = roster.mintSquad(faction, marine);
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than
             // idling until a commander assignment (and so the commander leaves
             // it on station — Pass 1/2 skip HOLD_NODE squads). See ShuttleMission#garrisonNode.
-            if (s.mission.garrisonNode != null) {
-                Squad garrison = roster.getSquad(s.mission.squadId);
-                if (garrison != null) garrison.assignHoldNode(s.mission.garrisonNode);
+            if (mission.garrisonNode != null) {
+                Squad garrison = roster.getSquad(mission.squadId);
+                if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
             }
         }
-        marine.squadId = s.mission.squadId;
-        Squad squad = roster.getSquad(s.mission.squadId);
+        marine.squadId = mission.squadId;
+        Squad squad = roster.getSquad(mission.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);
         return true;

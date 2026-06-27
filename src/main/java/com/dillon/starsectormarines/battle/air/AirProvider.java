@@ -10,7 +10,7 @@ package com.dillon.starsectormarines.battle.air;
  *
  * <ul>
  *   <li><b>{@link #INTERNAL}</b> (default) — the sim's own {@code AirSystem} ticks
- *       {@link Shuttle}s through the deboard state machine, and flyby passes draw
+ *       {@code Shuttle}s through the deboard state machine, and flyby passes draw
  *       from the installed {@code FlybyRoster}. The standalone {@code BattleScreen}
  *       host. All {@code createX} factories and tests run in this mode.</li>
  *   <li><b>{@link #EXTERNAL}</b> — the host owns the air. The internal air tick is

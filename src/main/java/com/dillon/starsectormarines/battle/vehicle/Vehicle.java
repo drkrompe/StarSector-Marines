@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.AirBody;
 
 /**
- * One ground transport — analog of {@link com.dillon.starsectormarines.battle.air.Shuttle}
+ * One ground transport — the air {@code Shuttle}'s ground analog
  * for trucks/APCs that path through the road network instead of flying. The
  * sim ticks its {@link GroundBody} (kinematic model selected per-variant by
  * {@link VehicleType#createBody()}); the renderer reads {@code body.x},

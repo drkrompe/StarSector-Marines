@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 /**
  * Air-drop reinforcement means. Picks a viable LZ near the rally via
  * {@link LandingZoneScorer} (walkable, outside building footprints, with a
- * little clearance), mints a single-cycle {@link Shuttle} that flies in from
+ * little clearance), spawns a single-cycle air craft that flies in from
  * the side-appropriate
  * off-map edge, lands, deboards its capacity into a fresh defender squad,
  * and departs. Reuses the existing shuttle state machine in

@@ -6,7 +6,7 @@ package com.dillon.starsectormarines.battle.air;
  * mission produces one {@code ShuttleAssignment(VALKYRIE, 3)}; the same mission
  * with three Aeroshuttles produces three {@code ShuttleAssignment(AEROSHUTTLE, 1)}
  * assignments. The sim cycles the shuttle through state machine the appropriate
- * number of times via the {@link Shuttle#totalCycles} field set from this.
+ * number of times via the {@link ShuttleMission#totalCycles} field set from this.
  */
 public final class ShuttleAssignment {
 

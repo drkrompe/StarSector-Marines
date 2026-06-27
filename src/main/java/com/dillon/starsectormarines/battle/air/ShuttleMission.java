@@ -7,13 +7,14 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
- * The troop-drop <b>mission</b> of a {@link Shuttle} — the delivery state machine
- * and all the per-sortie lifecycle state, peeled off the shuttle so the
- * shared air-entity core ({@code entityId}, {@link AirBody}, engine + turret
- * components, render state) stays mission-agnostic. A {@link Shuttle} composes
- * one of these; a fighter (planned) would compose a different mission component
- * over the same core. The behavior that drives this data is
- * {@link AirSystem}'s state-machine tick — this is pure data.
+ * The troop-drop <b>mission</b> of an air craft — the delivery state machine
+ * and all the per-sortie lifecycle state, the {@code SHUTTLE_MISSION} component
+ * of an air entity. The shared air-entity core ({@code entityId}, {@link AirBody}
+ * kinematics, {@code APPEARANCE}, engine + turret components) stays
+ * mission-agnostic: an air craft composes one of these by id; a fighter (planned)
+ * would compose a different mission component over the same core. The behavior
+ * that drives this data is {@link AirSystem}'s state-machine tick — this is pure
+ * data.
  *
  * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
  * entry to LZ) → LANDED (deboarding marines) → optional HOVER_STATION (armed
@@ -22,6 +23,15 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * flies another sortie.
  */
 public final class ShuttleMission {
+
+    /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
+    public static final float HOVER_HP_THRESHOLD = 0.4f;
+
+    /** Sim-seconds the LANDED → HOVER_STATION takeoff takes. */
+    public static final float T_TAKEOFF_SEC = 2.0f;
+
+    /** Standoff (cells) the hover point is pulled back from the squad centroid along the LZ→centroid bearing. */
+    public static final float HOVER_STANDOFF_CELLS = 5f;
 
     /** Current state-machine phase. Driven by {@link AirSystem}. */
     public ShuttleState state = ShuttleState.PENDING;
@@ -85,7 +95,7 @@ public final class ShuttleMission {
 
     /**
      * Current HP. Seeded from {@link ShuttleType#maxHp}. Drives the
-     * pressure-to-leave HOVER_STATION exit via {@link Shuttle#HOVER_HP_THRESHOLD};
+     * pressure-to-leave HOVER_STATION exit via {@link #HOVER_HP_THRESHOLD};
      * no damage source exists yet (anti-air is a follow-up) so it's effectively
      * constant today, wired forward.
      */
@@ -123,7 +133,7 @@ public final class ShuttleMission {
      */
     public float hoverPointX, hoverPointY;
 
-    /** Counts down from {@link Shuttle#T_TAKEOFF_SEC} on HOVER_STATION entry; drives the smoothstep altitude climb. */
+    /** Counts down from {@link #T_TAKEOFF_SEC} on HOVER_STATION entry; drives the smoothstep altitude climb. */
     public float takeoffTimer;
 
     /**

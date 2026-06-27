@@ -222,9 +222,8 @@ public class Entity {
      * fire OUT of the building it's directly above, and ground combatants can
      * fire UP at the drone through the same close walls. Both directions use
      * the same radius so the rule is symmetric. 0 (default) means standard
-     * grid LoS; only {@link Drone} sets this today, but {@link
-     * com.dillon.starsectormarines.battle.air.Shuttle}-mounted turrets pass
-     * their own equivalent radius through {@code TurretAim.State}.
+     * grid LoS; only {@link Drone} sets this today, but {@code Shuttle}-mounted
+     * turrets pass their own equivalent radius through {@code TurretAim.State}.
      */
     public float airLosRadius = 0f;
 
