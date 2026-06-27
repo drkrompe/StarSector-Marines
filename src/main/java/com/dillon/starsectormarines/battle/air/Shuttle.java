@@ -22,8 +22,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public class Shuttle {
 
-    public enum State { PENDING, INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE }
-
     /**
      * World entity id — a monotonic {@code long}, assigned by {@link AirSystem#add}
      * when this shuttle is registered (0 means "not yet registered"). Minted from
@@ -71,9 +69,9 @@ public class Shuttle {
     }
 
     public boolean isVisible() {
-        State s = mission.state;
-        return s == State.INCOMING || s == State.LANDED
-                || s == State.HOVER_STATION || s == State.DEPARTING;
+        ShuttleState s = mission.state;
+        return s == ShuttleState.INCOMING || s == ShuttleState.LANDED
+                || s == ShuttleState.HOVER_STATION || s == ShuttleState.DEPARTING;
     }
 
     /**
@@ -81,7 +79,7 @@ public class Shuttle {
      * global pixel density, scraped from the hull's {@code weaponSlots} by
      * {@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver})
      * rotated by the body facing and added to {@code body.x}. {@code extraScale}
-     * is the renderer's altitude zoom ({@link #scaleMult}); the sim passes 1.
+     * is the renderer's altitude zoom ({@link AirAppearance#scaleMult(float, float)}); the sim passes 1.
      * Shared by {@link AirSystem} and the render pass so a round fires from where
      * the turret is drawn.
      *

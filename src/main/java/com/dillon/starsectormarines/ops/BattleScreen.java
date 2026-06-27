@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
@@ -146,7 +147,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_ambient_helicopter_2",
     };
 
-    /** Volume scalar on a shuttle's engine loop, multiplied by {@link Shuttle#engineIntensity()} and the per-clip base in sounds.json. */
+    /** Volume scalar on a shuttle's engine loop, multiplied by {@link AirAppearance#engineIntensity(boolean, float)} and the per-clip base in sounds.json. */
     private static final float SHUTTLE_ENGINE_VOLUME = 0.9f;
     /** ±range of the per-shuttle pitch offset, so simultaneous shuttles playing the same engine clip don't beat against each other in lockstep. */
     private static final float SHUTTLE_ENGINE_PITCH_JITTER = 0.08f;
@@ -478,8 +479,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // halo off the ground — the shuttle stays a flying spotlight.
         World world = sim.world();
         for (Shuttle s : sim.getShuttles()) {
-            if (s.mission.state == Shuttle.State.PENDING
-                    || s.mission.state == Shuttle.State.GONE) continue;
+            if (s.mission.state == ShuttleState.PENDING
+                    || s.mission.state == ShuttleState.GONE) continue;
             float altitudeT = world.altitudeT(s.entityId);
             EngineFxRenderer.emitLights(
                     EngineSlotResolver.resolve(s.type),
@@ -721,7 +722,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
     private static Vector2f shuttleVelocity(Shuttle s) {
-        if (s.mission.state != Shuttle.State.INCOMING && s.mission.state != Shuttle.State.DEPARTING) {
+        if (s.mission.state != ShuttleState.INCOMING && s.mission.state != ShuttleState.DEPARTING) {
             return new Vector2f(0f, 0f);
         }
         return new Vector2f(s.body.vx * AUDIO_WORLD_UNITS_PER_CELL,

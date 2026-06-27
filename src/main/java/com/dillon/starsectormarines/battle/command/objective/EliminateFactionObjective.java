@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
@@ -40,8 +41,8 @@ public final class EliminateFactionObjective implements Objective {
         for (Shuttle s : sim.getShuttles()) {
             if (s.faction != target) continue;
             if (s.mission.marinesRemaining > 0
-                    && s.mission.state != Shuttle.State.DEPARTING
-                    && s.mission.state != Shuttle.State.GONE) {
+                    && s.mission.state != ShuttleState.DEPARTING
+                    && s.mission.state != ShuttleState.GONE) {
                 return;
             }
         }

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.combathybrid.host;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.DropZoneScatter;
 import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -181,7 +182,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      *  {@link #retargetDropExit} doesn't re-home a previous takeover's shuttles onto a fresh carrier. */
     private void flushOrphanedDrops() {
         for (Shuttle s : drops) {
-            if (s.mission.state != Shuttle.State.GONE) sendOffGrid(s);
+            if (s.mission.state != ShuttleState.GONE) sendOffGrid(s);
         }
         drops.clear();
     }
@@ -240,7 +241,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         if (carrierLive) config.worldToCell(descending.getLocation().x, descending.getLocation().y, c);
         for (Iterator<Shuttle> it = drops.iterator(); it.hasNext(); ) {
             Shuttle s = it.next();
-            if (s.mission.state == Shuttle.State.GONE) {
+            if (s.mission.state == ShuttleState.GONE) {
                 it.remove();
                 continue;
             }

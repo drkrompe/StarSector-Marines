@@ -24,7 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 public final class ShuttleMission {
 
     /** Current state-machine phase. Driven by {@link AirSystem}. */
-    public Shuttle.State state = Shuttle.State.PENDING;
+    public ShuttleState state = ShuttleState.PENDING;
 
     /** Stagger / re-arm countdown burned down during PENDING before launch. */
     public float pendingDelay;

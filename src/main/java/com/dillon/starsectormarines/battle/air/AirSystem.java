@@ -249,9 +249,9 @@ public class AirSystem {
      * LANDED shuttle deboarding on the ground is exempt (it's already "down").
      */
     private static boolean isAirborneHittable(Shuttle s) {
-        Shuttle.State st = s.mission.state;
-        return st == Shuttle.State.INCOMING || st == Shuttle.State.HOVER_STATION
-                || st == Shuttle.State.DEPARTING;
+        ShuttleState st = s.mission.state;
+        return st == ShuttleState.INCOMING || st == ShuttleState.HOVER_STATION
+                || st == ShuttleState.DEPARTING;
     }
 
     /**
@@ -260,7 +260,7 @@ public class AirSystem {
      * death seam ({@link #releaseAirEntity}).
      */
     private void shootDown(Shuttle s, int posts) {
-        s.mission.state = Shuttle.State.GONE;
+        s.mission.state = ShuttleState.GONE;
         releaseAirEntity(s.entityId);
         LOG.info("air: shuttle " + s.type + " shot down by " + posts + " AA post(s) with "
                 + s.mission.marinesRemaining + " marine(s) still aboard.");
@@ -276,7 +276,7 @@ public class AirSystem {
         for (Shuttle s : shuttles) {
             // GONE craft already released their components at the death
             // transition; skip (don't re-advance, which would resurrect them).
-            if (s.mission.state == Shuttle.State.GONE) continue;
+            if (s.mission.state == ShuttleState.GONE) continue;
             // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
@@ -304,7 +304,7 @@ public class AirSystem {
                     s.mission.pendingDelay -= dt;
                     if (s.mission.pendingDelay <= 0f) {
                         beginShuttleLeg(s, s.mission.lzX, s.mission.lzY);
-                        s.mission.state = Shuttle.State.INCOMING;
+                        s.mission.state = ShuttleState.INCOMING;
                     }
                     break;
 
@@ -314,7 +314,7 @@ public class AirSystem {
                     if (s.body.distanceTo(s.mission.lzX, s.mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
                         s.body.teleport(s.mission.lzX, s.mission.lzY, s.body.facingDegrees);
                         world.setAltitudeT(s.entityId, 0f);
-                        s.mission.state = Shuttle.State.LANDED;
+                        s.mission.state = ShuttleState.LANDED;
                         s.mission.deboardCountdown = s.type.deboardInterval;
                     }
                     break;
@@ -339,10 +339,10 @@ public class AirSystem {
                             s.mission.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
                             world.setAltitudeT(s.entityId, 0f);   // smoothstep ramps from here
                             s.mission.departingFromHover = false;
-                            s.mission.state = Shuttle.State.HOVER_STATION;
+                            s.mission.state = ShuttleState.HOVER_STATION;
                         } else {
                             beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
-                            s.mission.state = Shuttle.State.DEPARTING;
+                            s.mission.state = ShuttleState.DEPARTING;
                         }
                     }
                     break;
@@ -378,7 +378,7 @@ public class AirSystem {
                     if (fuelOut || ammoOut || hpPressured) {
                         beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
                         s.mission.departingFromHover = true;
-                        s.mission.state = Shuttle.State.DEPARTING;
+                        s.mission.state = ShuttleState.DEPARTING;
                     }
                     break;
 
@@ -422,11 +422,11 @@ public class AirSystem {
                                     mt.cooldownTimer = 0f;
                                 }
                             }
-                            s.mission.state = Shuttle.State.PENDING;
+                            s.mission.state = ShuttleState.PENDING;
                         } else {
                             // Terminal — the craft is done. Release all its air
                             // components in one place (the single death seam).
-                            s.mission.state = Shuttle.State.GONE;
+                            s.mission.state = ShuttleState.GONE;
                             releaseAirEntity(s.entityId);
                         }
                     }

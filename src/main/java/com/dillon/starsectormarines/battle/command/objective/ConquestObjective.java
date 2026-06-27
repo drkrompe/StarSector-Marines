@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -88,8 +89,8 @@ public final class ConquestObjective implements Objective {
         for (Shuttle s : sim.getShuttles()) {
             if (s.faction != Faction.MARINE) continue;
             if (s.mission.marinesRemaining > 0
-                    && s.mission.state != Shuttle.State.DEPARTING
-                    && s.mission.state != Shuttle.State.GONE) {
+                    && s.mission.state != ShuttleState.DEPARTING
+                    && s.mission.state != ShuttleState.GONE) {
                 return true;
             }
         }
