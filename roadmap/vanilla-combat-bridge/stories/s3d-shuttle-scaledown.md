@@ -5,7 +5,8 @@
 > of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
 > fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
 > **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
-> spine, never scripted modes). Vision locked 2026-06-25; **D1 shipped 2026-06-27 — D2 is next.**
+> spine, never scripted modes). Vision locked 2026-06-25; **D1 shipped; D2 in progress (scatter engine
+> landed 2026-06-27, commander-painted DZ next).**
 > Unblocked by S3e (`AirProvider`).
 >
 > *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
@@ -84,6 +85,13 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   The `SHUTTLES` layer draws it (plus the four pre-existing setup Aeroshuttles, which were already
   running invisibly). *The whole cinematic at its simplest — no AA yet.*
 - **D2 — painted DZ + scatter** via `TacticalScoring` sampling landing cells in the zone (cold spread first).
+  - **Slice 1 — scatter engine (`3d232392`, shipped).** `DropZoneScatter` (battle/air): pure,
+    dependency-inverted (walkable + threat lambdas), picks up to N walkable cells in the zone disc
+    safest-first with min-spacing. The carrier now launches a *wave* (`DROP_COUNT` staggered
+    `AEROSHUTTLE`s, threat = `countCombatantsWithin(DEFENDER)`) over a hardcoded centroid+radius zone.
+    Unit-tested (`DropZoneScatterTest`). Cold spread: threat ranks cells; radius fixed (D3 widens it).
+  - **Slice 2 — commander-painted DZ (next).** Replace the hardcoded centroid+radius with a zone the
+    player paints in the spectator canvas (open question: cell-paint vs radius brush).
 - **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
   widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
 - **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines

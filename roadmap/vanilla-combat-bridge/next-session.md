@@ -39,7 +39,8 @@ Decomposition:
 - **S3c — airspace banding / AI gating.** Parked → folded into the skybattle feature.
 - **S3d — drop-ship invasion.** Re-spec'd 2026-06-25 into the bridge's product core (transport
   orbits, sim-native dropships land marines, diegetic/scored/emergent). Vision + D1–D5 ladder
-  written; **D1 shipped 2026-06-27 (`02c829b0` render + `219b04ee` spawn) — D2 is next.** See the S3d story.
+  written; **D1 shipped 2026-06-27; D2 in progress — scatter engine landed (`3d232392`), painted DZ next.**
+  See the S3d story.
 
 ### Scale + real-map pass (done after S3b playtest)
 - `WORLD_UNITS_PER_CELL` lowered **50 → 20** (ground cells read too large vs ships at 50;
@@ -198,9 +199,19 @@ arrival latch that could never trip on a non-settling lumbering carrier → dwel
 (`ARRIVE_DWELL_SEC = 6s`, logged "dwell-timeout"); "one takeover per battle" doc → "one active at a time."
 The brain-target vs fresh-LZ centroid divergence (#4) was confirmed a non-bug, left as-is.
 
-**Next build — D2: painted DZ + scatter.** Replace the single (snapped) centroid LZ with a commander-painted
-zone; sample landing cells via `TacticalScoring`, spread ∝ threat (cold spread first). Then D3 (AA/hot drops),
-D4 (orbit window stake), D5 (continuous logistics).
+**D2 — painted DZ + scatter (in progress).**
+- **Slice 1 — scatter engine ✅ (`3d232392`):** `DropZoneScatter` (battle/air) — pure, dependency-inverted
+  (walkable + threat lambdas, no compile dep on grid/`TacticalScoring`, unit-tested). The carrier now
+  launches a *wave* (`DROP_COUNT = 5` staggered `AEROSHUTTLE`s) over a hardcoded centroid+radius zone:
+  safest-first, min-spaced landing cells; threat = `TacticalScoring.countCombatantsWithin(DEFENDER, …)`.
+  Cold spread (threat ranks cells, radius fixed). The single-drop ref became a wave list; retarget
+  tracks + prunes the whole wave.
+- **Slice 2 — commander-painted DZ (next):** replace the hardcoded centroid+`ZONE_RADIUS_CELLS` with a
+  zone the player paints in the spectator canvas. Open question: cell-paint vs radius brush (overview
+  fact-12 "starve, don't cover" overlay constraint applies).
+
+Then D3 (AA/hot drops — defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
+radius widens with threat), D4 (orbit window stake), D5 (continuous logistics).
 
 **D1 playtest (2026-06-27): works okay** — carrier orbits, drops, deboards, dropship flies home. Remaining
 watch-items (the dev probe — Ctrl+Shift+K, press **L**): stale target as structures die (non-bug); ASSAULT
