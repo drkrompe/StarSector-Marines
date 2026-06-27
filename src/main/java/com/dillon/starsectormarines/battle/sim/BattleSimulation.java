@@ -301,11 +301,11 @@ public class BattleSimulation implements BattleControl {
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         navigation.setRegistry(rosterService.getRegistry());
         rosterService.setDamageService(damageService);
-        // Entity-access facade — by-id primitive accessors over the dense registry
-        // + the archetype entity world. All optional capabilities are world
-        // components now (reached via typed accessors like world.mechLoadout); the
-        // old Class→ComponentStore cold-face map is gone.
-        this.world = new World(rosterService.getRegistry());
+        // Entity-access facade — by-id accessors that read the archetype entity
+        // world's component columns directly. All optional capabilities are world
+        // components (reached via typed accessors like world.mechLoadout); the old
+        // Class→ComponentStore cold-face map is gone.
+        this.world = new World(entityWorld, battleComponents);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);

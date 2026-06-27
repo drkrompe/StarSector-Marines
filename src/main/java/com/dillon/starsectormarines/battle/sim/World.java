@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
  * Entity-access facade — the artemis-shaped read layer over the battle's entity
@@ -11,35 +12,37 @@ import com.dillon.starsectormarines.battle.unit.UnitRegistry;
  * self-routes. This is the access half of the {@code world-facade} endgame (see
  * {@code roadmap/ecs-migration/stories/world-facade.md}).
  *
- * <p><b>By-id primitive accessors</b> ({@link #hp}/{@code setHp}, cell, combat,
- * movement, …) back directly onto the {@link UnitRegistry}'s {@code *ById}
- * adapters over the archetype {@code EntityWorld} — one location probe + column
- * read, <b>zero object construction</b>. Mandatory columns (hp/cell) are always
- * present; each optional capability exposes a presence check + typed accessor
- * ({@link #hasSecondaryWeapon}/{@link #secondaryWeapon},
+ * <p><b>By-id accessors</b> ({@link #hp}/{@code setHp}, cell, combat, movement, …)
+ * read the archetype {@link EntityWorld}'s component columns directly by id — one
+ * location probe + column read, <b>zero object construction</b>. This is the sole
+ * by-id facade; the dissolved {@code UnitRegistry}'s {@code *ById} adapter layer
+ * folded into these methods (migration step 4). Mandatory columns (hp/cell) are
+ * always present; each optional capability exposes a presence check + typed
+ * accessor ({@link #hasSecondaryWeapon}/{@link #secondaryWeapon},
  * {@link #hasMechLoadout}/{@link #mechLoadout}). The field reads are fail-loud
  * without the component, so gate on the presence check first (or use the
  * null-returning typed accessor where one is provided). Per-tick <b>bulk</b>
- * systems do not use this — they iterate the dense registry array or a world
- * {@code Query}'s columns directly; this is the random-access / held-ref path.
+ * systems still iterate the dense roster array or a world {@code Query}'s columns
+ * directly; this is the random-access / held-ref path.
+ *
+ * <p>Strict vs. tolerant reads mirror the columns' lifecycle: mandatory live
+ * columns (hp/cell/combat) are <b>fail-loud</b> once the death drain has
+ * transmuted the entity to a corpse; {@link #renderX}/{@link #renderY} are
+ * <b>tolerant</b> (0 when the entity is gone / lacks the component) because
+ * render code must not fail on a maybe-released ref, and {@code RENDER_POSITION}
+ * survives the transmute so a corpse still draws where it fell.
  *
  * <p>Serial-only — built for the single-threaded tick + render read.
  */
 public final class World {
 
-    private final UnitRegistry registry;
+    private final EntityWorld entityWorld;
+    private final BattleComponents components;
 
-    public World(UnitRegistry registry) {
-        this.registry = registry;
+    public World(EntityWorld entityWorld, BattleComponents components) {
+        this.entityWorld = entityWorld;
+        this.components = components;
     }
-
-    // ---- hot face: primitive by-id accessors over the dense SoA ----
-    //
-    // Each resolves the dense index once via UnitRegistry.requireLiveIndex(id)
-    // (fail-loud on a dead/unknown id — these serve live entities; use isAlive()/getOrNull
-    // for liveness on a maybe-released id) then reads the existing by-idx column
-    // accessor. No Entity dereference. Bulk per-tick systems do NOT use these —
-    // they iterate the dense arrays over [0, liveCount()).
 
     /**
      * Liveness for a held entity id — has a {@code HEALTH} component with
@@ -47,125 +50,133 @@ public final class World {
      * {@code HEALTH}), a never-allocated id, and {@code 0L}. The by-id
      * replacement for {@code Entity.isAlive()}: this is the <em>non</em>-fail-loud
      * face (unlike {@link #hp}), the defined "dead/never" answer for a
-     * maybe-released ref. Mirrors {@link UnitRegistry#isAliveById}.
+     * maybe-released ref. A tolerant probe (0 hp when the entity / component is
+     * gone) so it never throws — every release path zeroes hp first.
      */
-    public boolean isAlive(long id) { return registry.isAliveById(id); }
+    public boolean isAlive(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, 0f) > 0f; }
 
-    // hp lives in the entity world's HEALTH columns (migration step 3); these
-    // delegate to the registry's transitional by-id adapters so the facade
-    // surface is unchanged for its callers. Fail-loud once the death drain has
-    // transmuted the entity to a corpse (HEALTH gone).
-    public float hp(long id) { return registry.hpById(id); }
-    public void setHp(long id, float v) { registry.setHpById(id, v); }
+    // hp lives in the entity world's HEALTH columns. Fail-loud once the death
+    // drain has transmuted the entity to a corpse (HEALTH gone).
+    public float hp(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_HP); }
+    public void setHp(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, v); }
 
-    public float maxHp(long id) { return registry.maxHpById(id); }
-    public void setMaxHp(long id, float v) { registry.setMaxHpById(id, v); }
+    public float maxHp(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
+    public void setMaxHp(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
 
-    // The cell pair lives in the entity world's POSITION columns (migration
-    // step 3b) — same transitional-adapter routing as hp above. POSITION
+    // The cell pair lives in the entity world's POSITION columns. POSITION
     // persists alive→dead, so a corpse still answers cell reads.
-    public int cellX(long id) { return registry.cellXById(id); }
-    public int cellY(long id) { return registry.cellYById(id); }
-    public void setCellPos(long id, int x, int y) { registry.setCellPosById(id, x, y); }
+    public int cellX(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_X); }
+    public int cellY(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y); }
+    public void setCellPos(long id, int x, int y) {
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, x);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, y);
+    }
 
     // Smooth render position — the world's universal RENDER_POSITION component
     // (survives the death transmute, so a corpse draws where it fell). Reads are
     // TOLERANT (0 when the entity is gone / lacks it) — render code must not
     // fail-loud on a maybe-released ref, unlike the strict hp/cell accessors.
-    public float renderX(long id) { return registry.renderXById(id); }
-    public float renderY(long id) { return registry.renderYById(id); }
-    public void setRenderPos(long id, float x, float y) { registry.setRenderPosById(id, x, y); }
-    public void setRenderX(long id, float v) { registry.setRenderXById(id, v); }
-    public void setRenderY(long id, float v) { registry.setRenderYById(id, v); }
+    public float renderX(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, 0f); }
+    public float renderY(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, 0f); }
+    public void setRenderPos(long id, float x, float y) {
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, x);
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, y);
+    }
+    public void setRenderX(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, v); }
+    public void setRenderY(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, v); }
 
-    // Combat lives in the entity world's COMBAT columns (migration step 3) —
-    // same transitional by-id adapter routing as hp/cell above. Fail-loud once
-    // the death drain has transmuted the entity to a corpse (COMBAT gone).
-    public float cooldownTimer(long id) { return registry.cooldownTimerById(id); }
-    public void setCooldownTimer(long id, float v) { registry.setCooldownTimerById(id, v); }
+    // Combat lives in the entity world's COMBAT columns. Fail-loud once the death
+    // drain has transmuted the entity to a corpse (COMBAT gone).
+    public float cooldownTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
+    public void setCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER, v); }
 
-    // Movement lives in the entity world's OPTIONAL MOVEMENT component (migration
-    // step 3e) — same transitional by-id adapter routing as combat above, but
-    // narrowed to movers: a static emplacement (turret, drone hub) has no MOVEMENT.
+    // Movement lives in the entity world's OPTIONAL MOVEMENT component, narrowed
+    // to movers: a static emplacement (turret, drone hub) has no MOVEMENT.
     // hasMovement is the presence check; the field accessors are fail-loud on a
     // unit that lacks it (and once the death drain has transmuted to a corpse).
-    public boolean hasMovement(long id) { return registry.hasMovement(id); }
-    public float moveProgress(long id) { return registry.moveProgressById(id); }
-    public void setMoveProgress(long id, float v) { registry.setMoveProgressById(id, v); }
+    public boolean hasMovement(long id) { return entityWorld.has(id, components.MOVEMENT); }
+    public float moveProgress(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
+    public void setMoveProgress(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
 
     // The path reference + cursor live in the MOVEMENT component too. setPathRef
     // is the raw column write; the occupancy-bookkeeping path change goes through
     // BattleControl.setPath (NavigationService), which calls this under the hood.
-    public int[] path(long id) { return registry.pathById(id); }
-    public void setPathRef(long id, int[] p) { registry.setPathRefById(id, p); }
-    public int pathIdx(long id) { return registry.pathIdxById(id); }
-    public void setPathIdx(long id, int v) { registry.setPathIdxById(id, v); }
+    public int[] path(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
+    public void setPathRef(long id, int[] p) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, p); }
+    public int pathIdx(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
+    public void setPathIdx(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
 
-    public float attackDamage(long id) { return registry.attackDamageById(id); }
-    public void setAttackDamage(long id, float v) { registry.setAttackDamageById(id, v); }
+    public float attackDamage(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE); }
+    public void setAttackDamage(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, v); }
 
-    public float attackRange(long id) { return registry.attackRangeById(id); }
-    public void setAttackRange(long id, float v) { registry.setAttackRangeById(id, v); }
+    public float attackRange(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE); }
+    public void setAttackRange(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, v); }
 
-    public float accuracy(long id) { return registry.accuracyById(id); }
-    public void setAccuracy(long id, float v) { registry.setAccuracyById(id, v); }
+    public float accuracy(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY); }
+    public void setAccuracy(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, v); }
 
-    public long targetId(long id) { return registry.targetIdById(id); }
-    public void setTargetId(long id, long v) { registry.setTargetIdById(id, v); }
+    public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
+    public void setTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v); }
 
-    public int burstRemaining(long id) { return registry.burstRemainingById(id); }
-    public void setBurstRemaining(long id, int v) { registry.setBurstRemainingById(id, v); }
+    public int burstRemaining(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING); }
+    public void setBurstRemaining(long id, int v) { entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING, v); }
 
-    public float burstTimer(long id) { return registry.burstTimerById(id); }
-    public void setBurstTimer(long id, float v) { registry.setBurstTimerById(id, v); }
+    public float burstTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER); }
+    public void setBurstTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER, v); }
 
-    public long burstTargetId(long id) { return registry.burstTargetIdById(id); }
-    public void setBurstTargetId(long id, long v) { registry.setBurstTargetIdById(id, v); }
+    public long burstTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID); }
+    public void setBurstTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID, v); }
 
     // Secondary weapon is an OPTIONAL capability living in the world's
-    // SECONDARY_WEAPON component (migration step 3 — first optional live
-    // capability). hasSecondaryWeapon is the presence check that replaces the old
-    // `secondaryWeapon != null`; every other accessor is fail-loud on a unit that
-    // lacks the component, so callers MUST gate on hasSecondaryWeapon first.
-    public boolean hasSecondaryWeapon(long id) { return registry.hasSecondaryWeapon(id); }
-    public MarineSecondary secondaryWeapon(long id) { return registry.secondaryWeaponOf(id); }
-    public int secondaryAmmo(long id) { return registry.secondaryAmmoById(id); }
-    public void setSecondaryAmmo(long id, int v) { registry.setSecondaryAmmoById(id, v); }
+    // SECONDARY_WEAPON component. hasSecondaryWeapon is the presence check that
+    // replaces the old `secondaryWeapon != null`; every other accessor is
+    // fail-loud on a unit that lacks the component, so callers MUST gate on
+    // hasSecondaryWeapon first.
+    public boolean hasSecondaryWeapon(long id) { return entityWorld.has(id, components.SECONDARY_WEAPON); }
+    public MarineSecondary secondaryWeapon(long id) { return (MarineSecondary) entityWorld.getObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC); }
+    public int secondaryAmmo(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO); }
+    public void setSecondaryAmmo(long id, int v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, v); }
 
-    public float secondaryCooldownTimer(long id) { return registry.secondaryCooldownTimerById(id); }
-    public void setSecondaryCooldownTimer(long id, float v) { registry.setSecondaryCooldownTimerById(id, v); }
+    public float secondaryCooldownTimer(long id) { return entityWorld.getFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_COOLDOWN_TIMER); }
+    public void setSecondaryCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_COOLDOWN_TIMER, v); }
 
-    public float secondaryActionTimer(long id) { return registry.secondaryActionTimerById(id); }
-    public void setSecondaryActionTimer(long id, float v) { registry.setSecondaryActionTimerById(id, v); }
+    public float secondaryActionTimer(long id) { return entityWorld.getFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER); }
+    public void setSecondaryActionTimer(long id, float v) { entityWorld.setFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER, v); }
 
-    public long secondaryAimTargetId(long id) { return registry.secondaryAimTargetIdById(id); }
-    public void setSecondaryAimTargetId(long id, long v) { registry.setSecondaryAimTargetIdById(id, v); }
+    public long secondaryAimTargetId(long id) { return entityWorld.getLong(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID); }
+    public void setSecondaryAimTargetId(long id, long v) { entityWorld.setLong(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID, v); }
 
-    public boolean secondaryFired(long id) { return registry.secondaryFiredById(id); }
-    public void setSecondaryFired(long id, boolean v) { registry.setSecondaryFiredById(id, v); }
+    public boolean secondaryFired(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED) != 0; }
+    public void setSecondaryFired(long id, boolean v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED, v ? 1 : 0); }
 
-    /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only; see {@link UnitRegistry#attachSecondaryWeapon}. */
-    public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) { registry.attachSecondaryWeapon(id, spec, ammo); }
+    /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only — never mid-{@code Query} walk. */
+    public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) {
+        entityWorld.addComponent(id, components.SECONDARY_WEAPON);
+        entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec);
+        entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);
+    }
 
-    // AI-cadence state lives in the entity world's OPTIONAL AI_STATE component
-    // (migration step 3f) — same transitional by-id adapter routing as movement
-    // above, and likewise narrowed to thinkers: a static emplacement (turret,
-    // drone hub) has no decision cadence. hasAiState is the presence check; the
-    // field accessors are fail-loud on a unit that lacks it (and once the death
-    // drain has transmuted to a corpse).
-    public boolean hasAiState(long id) { return registry.hasAiState(id); }
-    public float repositionCooldown(long id) { return registry.repositionCooldownById(id); }
-    public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldownById(id, v); }
+    // AI-cadence state lives in the entity world's OPTIONAL AI_STATE component,
+    // narrowed to thinkers: a static emplacement (turret, drone hub) has no
+    // decision cadence. hasAiState is the presence check; the field accessors are
+    // fail-loud on a unit that lacks it (and once the death drain has transmuted
+    // to a corpse).
+    public boolean hasAiState(long id) { return entityWorld.has(id, components.AI_STATE); }
+    public float repositionCooldown(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN); }
+    public void setRepositionCooldown(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN, v); }
 
-    public float fallbackTimer(long id) { return registry.fallbackTimerById(id); }
-    public void setFallbackTimer(long id, float v) { registry.setFallbackTimerById(id, v); }
+    public float fallbackTimer(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER); }
+    public void setFallbackTimer(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER, v); }
 
-    public int fallbackCellX(long id) { return registry.fallbackCellXById(id); }
-    public int fallbackCellY(long id) { return registry.fallbackCellYById(id); }
-    public void setFallbackCell(long id, int x, int y) { registry.setFallbackCellById(id, x, y); }
+    public int fallbackCellX(long id) { return entityWorld.getInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X); }
+    public int fallbackCellY(long id) { return entityWorld.getInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y); }
+    public void setFallbackCell(long id, int x, int y) {
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, x);
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, y);
+    }
 
-    public float wanderDwellTimer(long id) { return registry.wanderDwellTimerById(id); }
-    public void setWanderDwellTimer(long id, float v) { registry.setWanderDwellTimerById(id, v); }
+    public float wanderDwellTimer(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER); }
+    public void setWanderDwellTimer(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER, v); }
 
     // Mech loadout is an OPTIONAL capability in the world's MECH_LOADOUT component
     // (one OBJECT column holding the MechLoadoutComponent state bag) — presence IS
@@ -174,8 +185,15 @@ public final class World {
     // spawn-time grant; the dead mech keeps the component until the wreck handler
     // detaches it. The live-mech bulk fire pass walks the MECH_LOADOUT query, not
     // these by-id accessors.
-    public boolean hasMechLoadout(long id) { return registry.hasMechLoadout(id); }
-    public MechLoadoutComponent mechLoadout(long id) { return registry.mechLoadoutOf(id); }
-    /** Grant the mech-loadout capability at spawn (archetype row-move). Serial-only; see {@link UnitRegistry#attachMechLoadout}. */
-    public void attachMechLoadout(long id, MechLoadoutComponent loadout) { registry.attachMechLoadout(id, loadout); }
+    public boolean hasMechLoadout(long id) { return entityWorld.has(id, components.MECH_LOADOUT); }
+    public MechLoadoutComponent mechLoadout(long id) {
+        return entityWorld.has(id, components.MECH_LOADOUT)
+                ? (MechLoadoutComponent) entityWorld.getObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE)
+                : null;
+    }
+    /** Grant the mech-loadout capability at spawn (archetype row-move). Serial-only — never mid-{@code Query} walk. */
+    public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
+        entityWorld.addComponent(id, components.MECH_LOADOUT);
+        entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
+    }
 }

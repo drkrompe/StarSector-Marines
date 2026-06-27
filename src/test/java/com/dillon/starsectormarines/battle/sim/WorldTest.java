@@ -30,7 +30,7 @@ public class WorldTest {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         long id = r.allocate(u);
-        World w = new World(r);
+        World w = new World(r.entityWorld(), r.components());
 
         // Seeded hp == type.maxHp, readable by id with no Entity deref —
         // backed by the entity world's HEALTH columns (migration step 3).
@@ -47,7 +47,7 @@ public class WorldTest {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         long id = r.allocate(u);
-        World w = new World(r);
+        World w = new World(r.entityWorld(), r.components());
 
         // Registry release alone no longer makes hp unreadable — HEALTH stays
         // on the world entity until the death drain transmutes it to a corpse
