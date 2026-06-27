@@ -6,9 +6,13 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
+import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -472,16 +476,18 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Engine glow halos per live shuttle/valk. Lights track the world
         // position (no altitude offset), so cruise altitude doesn't lift the
         // halo off the ground — the shuttle stays a flying spotlight.
-        for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
-            if (s.mission.state == com.dillon.starsectormarines.battle.air.Shuttle.State.PENDING
-                    || s.mission.state == com.dillon.starsectormarines.battle.air.Shuttle.State.GONE) continue;
-            com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
-                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
+        World world = sim.world();
+        for (Shuttle s : sim.getShuttles()) {
+            if (s.mission.state == Shuttle.State.PENDING
+                    || s.mission.state == Shuttle.State.GONE) continue;
+            float altitudeT = world.altitudeT(s.entityId);
+            EngineFxRenderer.emitLights(
+                    EngineSlotResolver.resolve(s.type),
                     s.body.x, s.body.y,
                     s.body.facingDegrees,
-                    s.scaleMult,
-                    s.visualAltitudeOffsetCells(),
-                    s.engineFxIntensity(),
+                    AirAppearance.scaleMult(altitudeT, world.flightPhase(s.entityId)),
+                    AirAppearance.visualAltitudeOffsetCells(altitudeT),
+                    AirAppearance.engineIntensity(true, altitudeT),
                     renderer.getLightAccumulator(),
                     ((long) System.identityHashCode(s)) << 16,
                     seenLightIds,
@@ -687,7 +693,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      * position every frame. The shuttle itself is the {@code playingEntity} key, so three
      * shuttles landing at once stay on three distinct voices even when they share a clip id.
      *
-     * <p>Volume scales by {@link Shuttle#engineIntensity()} so on-ground idle reads quiet and
+     * <p>Volume scales by {@link AirAppearance#engineIntensity(boolean, float)} so on-ground idle reads quiet and
      * cruise reads loud; pitch sweeps {@link #ENGINE_PITCH_IDLE} → {@link #ENGINE_PITCH_CRUISE}
      * across that range plus a small per-shuttle deterministic offset (from the identity hash,
      * stable frame-to-frame) so two craft on the same clip don't phase-lock. Velocity feeds
@@ -695,9 +701,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      * the call and the loops self-fade over Starsector's default loop hold.
      */
     private void driveShuttleEngineLoops(BattleSimulation sim) {
+        World world = sim.world();
         for (Shuttle s : sim.getShuttles()) {
             if (!s.isVisible()) continue;
-            float intensity = s.engineIntensity();
+            float intensity = AirAppearance.engineIntensity(true, world.altitudeT(s.entityId));
             if (intensity <= 0f) continue;
             EngineVoice voice = EngineVoiceResolver.resolve(s.type.renderHullId());
             int idHash = System.identityHashCode(s);

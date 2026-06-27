@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.List;
@@ -45,6 +47,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
         if (shuttles.isEmpty()) return;
 
         BattleCamera cam = ctx.camera;
+        World world = ctx.sim.world();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
 
@@ -53,7 +56,12 @@ public final class ShuttleRenderSystem implements RenderSystem {
             ShuttleSpriteCache cache = sprites.shuttleSprites().get(s.type);
             if (cache == null) continue;
 
-            float altOffset = s.visualAltitudeOffsetCells();
+            // Authored render-state is a world component now (read by id); the
+            // scale + altitude offset are pure derivations of altitudeT/flightPhase.
+            float altitudeT = world.altitudeT(s.entityId);
+            float scaleMult = AirAppearance.scaleMult(altitudeT, world.flightPhase(s.entityId));
+            float altOffset = AirAppearance.visualAltitudeOffsetCells(altitudeT);
+            float engineFxIntensity = AirAppearance.engineIntensity(true, altitudeT);
 
             // Engine FX (own GL) under the hull. The per-slot demand (smoothed
             // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
@@ -62,9 +70,9 @@ public final class ShuttleRenderSystem implements RenderSystem {
                     EngineSlotResolver.resolve(s.type),
                     s.body.x, s.body.y,
                     s.body.facingDegrees,
-                    s.scaleMult,
+                    scaleMult,
                     altOffset,
-                    s.engineFxIntensity(),
+                    engineFxIntensity,
                     alphaMult,
                     cam,
                     sprites.engineGlowSprite(), sprites.engineFlameSprite(),
@@ -74,7 +82,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // the one global pixel-density factor (HullFootprintResolver), not a
             // hand-authored per-type value.
             float hullLenCells = HullFootprintResolver.visualLengthCells(s.type.renderHullId());
-            float pxLen = hullLenCells * cellPx * s.scaleMult;
+            float pxLen = hullLenCells * cellPx * scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
             // Anchor the hull at its centre of gravity: offset the sprite's pixel
@@ -87,25 +95,25 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float rad = (float) Math.toRadians(s.body.facingDegrees);
             float pc = (float) Math.cos(rad);
             float psn = (float) Math.sin(rad);
-            float pvx = pivot[0] * s.scaleMult;
-            float pvy = pivot[1] * s.scaleMult;
+            float pvx = pivot[0] * scaleMult;
+            float pvy = pivot[1] * scaleMult;
             float cx = cam.cellToScreenX(s.body.x + (pvx * pc - pvy * psn));
             float cy = cam.cellToScreenY(s.body.y + (pvx * psn + pvy * pc) + altOffset);
             out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
                     cx, cy, pxW, pxH, s.body.facingDegrees,
                     1f, 1f, 1f, alphaMult);
 
-            emitTurrets(out, cam, cellPx, alphaMult, s, ctx.sim.getAirTurretMounts(s));
+            emitTurrets(out, cam, cellPx, alphaMult, s, scaleMult, altOffset,
+                    ctx.sim.getAirTurretMounts(s));
         }
     }
 
     private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult,
-                             Shuttle s, MountedTurret[] mounts) {
+                             Shuttle s, float scaleMult, float altOffset, MountedTurret[] mounts) {
         if (mounts == null) return;
         float rad = (float) Math.toRadians(s.body.facingDegrees);
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
-        float altOffset = s.visualAltitudeOffsetCells();
         for (MountedTurret mt : mounts) {
             ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
             if (base == null) continue;
@@ -113,13 +121,13 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // where the turret is drawn), with the render-only altitude zoom
             // (scaleMult) and the altitude Y-offset layered on top. The mount
             // offset is the real weapon-slot position; no per-ship factor.
-            float screenX = cam.cellToScreenX(s.turretWorldX(mt.mount, c, si, s.scaleMult));
-            float screenY = cam.cellToScreenY(s.turretWorldY(mt.mount, c, si, s.scaleMult) + altOffset);
+            float screenX = cam.cellToScreenX(s.turretWorldX(mt.mount, c, si, scaleMult));
+            float screenY = cam.cellToScreenY(s.turretWorldY(mt.mount, c, si, scaleMult) + altOffset);
             // Turret SIZE is intrinsic to the kind — an ARBALEST is the same
             // physical size on every hull, exactly like a ground MapTurret
             // (UnitRenderService draws it at visualCells flat). Only the altitude
             // visual zoom applies; the hull never scales turret size.
-            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult;
+            float layerVisualCells = mt.mount.kind.visualCells * scaleMult;
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {

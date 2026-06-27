@@ -4,15 +4,17 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * One troop-drop shuttle — an air entity: an {@code entityId}, kinematics
- * ({@link AirBody}), render state, and a composed {@link ShuttleMission} (the
- * delivery state machine + per-sortie lifecycle). Engine plumes and turrets are
- * components keyed by {@link #entityId} in {@link AirSystem}'s stores, not fields
- * here. Separate from a grid {@code Entity} because shuttles fly in fractional
- * world space, rotate freely, and don't pathfind or fight on the grid.
+ * ({@link AirBody}), and a composed {@link ShuttleMission} (the delivery state
+ * machine + per-sortie lifecycle). Render state ({@code altitudeT}/
+ * {@code flightPhase}), engine plumes, and turrets are all components keyed by
+ * {@link #entityId} in the world's columns ({@code APPEARANCE} / {@code THRUSTER_FX}
+ * / {@code AIR_TURRETS}), not fields here. Separate from a grid {@code Entity}
+ * because shuttles fly in fractional world space, rotate freely, and don't
+ * pathfind or fight on the grid.
  *
- * <p>The shared core (id + body + render) is mission-agnostic so a fighter
- * (planned) can compose the same core with a different mission component; the
- * shuttle-specific lifecycle lives entirely in {@link #mission}.
+ * <p>The shared core (id + body) is mission-agnostic so a fighter (planned) can
+ * compose the same core with a different mission component; the shuttle-specific
+ * lifecycle lives entirely in {@link #mission}.
  *
  * <p>Coord convention is cell-units with Y up (same frame as ground units).
  * Entry/exit points sit outside the grid so the shuttle reads as off-screen
@@ -47,23 +49,6 @@ public class Shuttle {
     /** Delivery mission — the state machine and per-sortie lifecycle. Every shuttle has one; the shared air-entity core above stays mission-agnostic. */
     public final ShuttleMission mission;
 
-    /**
-     * Render scale multiplier. 1.0 on the ground; rises to {@code CRUISE_SCALE}
-     * while at altitude so the shuttle reads as "bigger because higher." Driven
-     * by the sim from {@link #altitudeT}.
-     */
-    public float scaleMult = 1f;
-
-    /**
-     * Cruise altitude scalar in [0, 1]. 0 = on the LZ, 1 = at cruising height.
-     * Drives both {@link #scaleMult} and {@link #engineIntensity()} — one source
-     * of truth for "how high am I right now."
-     */
-    public float altitudeT = 1f;
-
-    /** Accumulated phase (radians) for the in-flight scale wobble. Advances while airborne. */
-    public float flightPhase = 0f;
-
     /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
     public static final float HOVER_HP_THRESHOLD = 0.4f;
 
@@ -72,9 +57,6 @@ public class Shuttle {
 
     /** Standoff (cells) the hover point is pulled back from the squad centroid along the LZ→centroid bearing. */
     public static final float HOVER_STANDOFF_CELLS = 5f;
-
-    /** Peak screen-Y offset (cells) at altitudeT = 1 to sell altitude in the top-down view. Render-only; sim-space position is unchanged. */
-    public static final float VISUAL_ALT_PEAK_CELLS = 3.0f;
 
     public Shuttle(ShuttleType type, Faction faction,
                    float lzX, float lzY,
@@ -117,39 +99,5 @@ public class Shuttle {
         float lx = m.localOffsetX * extraScale;
         float ly = m.localOffsetY * extraScale;
         return body.y + lx * facingSin + ly * facingCos;
-    }
-
-    /**
-     * Normalized engine loudness/pitch driver for the engine loop, in [0, 1].
-     * Full throttle at cruise, idles on the ground, blends via {@link #altitudeT}.
-     * PENDING and GONE return 0 so off-screen shuttles don't contribute. The
-     * {@code BattleScreen} loop takes the max across visible shuttles.
-     */
-    public float engineIntensity() {
-        if (mission.state == State.PENDING || mission.state == State.GONE) return 0f;
-        return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * altitudeT;
-    }
-
-    /**
-     * Master engine-FX throttle for the render pass, in {@code [0, 1]} — how lit
-     * the engines are <em>at all</em> (altitude-driven). <em>Which</em> thrusters
-     * glow and by how much is
-     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterDemand}'s job,
-     * smoothed per slot by {@code ThrusterFxSystem} and applied in the renderer.
-     */
-    public float engineFxIntensity() {
-        return engineIntensity();
-    }
-
-    /** Engine intensity while parked on the ground — quiet hum, not silent. */
-    private static final float IDLE_INTENSITY = 0.3f;
-
-    /**
-     * Render-only Y offset (cells) added to {@code body.y} to sell altitude in
-     * the top-down view. Sim-space position is the ground projection; the sprite
-     * floats above it scaled by altitudeT. Turrets read the same offset.
-     */
-    public float visualAltitudeOffsetCells() {
-        return altitudeT * VISUAL_ALT_PEAK_CELLS;
     }
 }

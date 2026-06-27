@@ -63,12 +63,6 @@ public class AirSystem {
      */
     private static final float AA_DPS_PER_POST = 6f;
 
-    /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Driven by {@link Shuttle#altitudeT}; ground scale is 1.0. */
-    private static final float SHUTTLE_CRUISE_SCALE = 1.5f;
-    /** Frequency (Hz) of the in-flight scale wobble. Slower than a heartbeat — reads as atmospheric drift, not a flicker. */
-    private static final float SHUTTLE_WOBBLE_HZ = 0.7f;
-    /** Peak amplitude of the wobble, in scale units. ±0.04 on top of a 1.5 cruise = ~2.7%; well inside the 5% target. */
-    private static final float SHUTTLE_WOBBLE_AMPLITUDE = 0.04f;
     /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
     /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
@@ -142,11 +136,11 @@ public class AirSystem {
             world.setAirIdentity(s.entityId, s.type, s.faction);
             world.setKinematics(s.entityId, s.body);
             world.setMission(s.entityId, s.mission);
-            // Seed the authored render-state column to the Shuttle field defaults
-            // (cruise altitude, zero wobble phase). The state-machine tick drives it
-            // thereafter; the render/audio passes read it by id.
-            world.setAltitudeT(s.entityId, s.altitudeT);
-            world.setFlightPhase(s.entityId, s.flightPhase);
+            // Seed the authored render-state column (cruise altitude, zero wobble
+            // phase). The state-machine tick drives it thereafter; the render/audio
+            // passes read it by id.
+            world.setAltitudeT(s.entityId, 1f);
+            world.setFlightPhase(s.entityId, 0f);
         }
         shuttles.add(s);
     }
@@ -319,8 +313,7 @@ public class AirSystem {
                     updateShuttleAltitude(s, s.mission.lzX, s.mission.lzY, /*incoming=*/true, dt);
                     if (s.body.distanceTo(s.mission.lzX, s.mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
                         s.body.teleport(s.mission.lzX, s.mission.lzY, s.body.facingDegrees);
-                        s.altitudeT = 0f;
-                        s.scaleMult = 1f;
+                        world.setAltitudeT(s.entityId, 0f);
                         s.mission.state = Shuttle.State.LANDED;
                         s.mission.deboardCountdown = s.type.deboardInterval;
                     }
@@ -344,8 +337,7 @@ public class AirSystem {
                             s.mission.hoverPointY = s.mission.lzY;
                             s.mission.hoverTimerSec = s.type.fireSupportSec;
                             s.mission.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
-                            s.altitudeT = 0f;       // smoothstep ramps from here
-                            s.scaleMult = 1f;
+                            world.setAltitudeT(s.entityId, 0f);   // smoothstep ramps from here
                             s.mission.departingFromHover = false;
                             s.mission.state = Shuttle.State.HOVER_STATION;
                         } else {
@@ -366,17 +358,17 @@ public class AirSystem {
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
                     // T_TAKEOFF_SEC for a visible acceleration / deceleration
                     // climb instead of a one-tick pop into the air.
+                    float hoverAltitudeT;
                     if (s.mission.takeoffTimer > 0f) {
                         s.mission.takeoffTimer -= dt;
                         float u = 1f - Math.max(0f, s.mission.takeoffTimer / Shuttle.T_TAKEOFF_SEC);
-                        s.altitudeT = u * u * (3f - 2f * u);  // smoothstep
+                        hoverAltitudeT = u * u * (3f - 2f * u);  // smoothstep
                     } else {
-                        s.altitudeT = 1f;
+                        hoverAltitudeT = 1f;
                     }
-                    s.flightPhase += dt * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
-                    float hoverWobble = (float) Math.sin(s.flightPhase)
-                            * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
-                    s.scaleMult = (1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT) + hoverWobble;
+                    world.setAltitudeT(s.entityId, hoverAltitudeT);
+                    world.setFlightPhase(s.entityId, world.flightPhase(s.entityId)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
                     // Exit triggers — first-of (timer expired, all ammo dry,
                     // HP pressure). HP threshold is wired forward for AA work;
                     // today there's no damage source so it never trips.
@@ -418,7 +410,7 @@ public class AirSystem {
                             s.mission.squadId = Entity.NO_SQUAD;
                             s.body.teleport(s.mission.entryX, s.mission.entryY,
                                     AirBody.facingToward(s.mission.lzX - s.mission.entryX, s.mission.lzY - s.mission.entryY));
-                            s.altitudeT = 1f;
+                            world.setAltitudeT(s.entityId, 1f);
                             s.mission.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
@@ -528,7 +520,7 @@ public class AirSystem {
                 // Sim LOS / aim still use the ground-projection worldY above —
                 // that's the right cell for "what wall is this shuttle hovering
                 // over" decisions. This offset is purely a render-origin nudge.
-                float shotOriginY = worldY + s.visualAltitudeOffsetCells();
+                float shotOriginY = worldY + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(s.entityId));
 
                 // Burst continuation runs ahead of fresh trigger pulls. The
                 // mount commits to its salvo target — closer enemies walking
@@ -574,28 +566,31 @@ public class AirSystem {
     }
 
     /**
-     * Per-tick altitude / scale update. {@code altitudeT} runs 1 → 0 on
-     * INCOMING (high at entry, ground at LZ) and 0 → 1 on DEPARTING. Drives
-     * {@link Shuttle#scaleMult} via {@link #SHUTTLE_CRUISE_SCALE} plus a small
-     * sine wobble that's gated by altitudeT so it dies cleanly on the ground.
+     * Per-tick altitude update. Writes the APPEARANCE {@code altitudeT} (1 → 0 on
+     * INCOMING — high at entry, ground at LZ — and 0 → 1 on DEPARTING) and advances
+     * the wobble {@code flightPhase}. The derived render scale is
+     * {@link AirAppearance#scaleMult(float, float)} (a sine wobble gated by
+     * altitudeT so it dies cleanly on the ground), computed at render time.
      */
     private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming, float dt) {
+        float altitudeT;
         if (!incoming && s.mission.departingFromHover) {
             // Departing straight out of HOVER_STATION — the shuttle is already
             // at cruise altitude, so a distance-ratio lerp from "ground" would
             // make it visibly descend and re-climb. Hold at the top.
-            s.altitudeT = 1f;
+            altitudeT = 1f;
         } else {
             float remaining = s.body.distanceTo(toX, toY);
             float ratio = remaining / s.mission.legStartDist;
             if (ratio < 0f) ratio = 0f;
             if (ratio > 1f) ratio = 1f;
-            s.altitudeT = incoming ? ratio : (1f - ratio);
+            altitudeT = incoming ? ratio : (1f - ratio);
         }
-        float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT;
-        s.flightPhase += dt * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
-        float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
-        s.scaleMult = baseScale + wobble;
+        world.setAltitudeT(s.entityId, altitudeT);
+        // Advance the wobble phase; the scale multiplier is derived from
+        // altitudeT + flightPhase by AirAppearance at render time, not stored.
+        world.setFlightPhase(s.entityId, world.flightPhase(s.entityId)
+                + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
     }
 
     /**
