@@ -85,6 +85,11 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /** Per-dropship launch stagger (sim-seconds) so the wave ejects in sequence, not all at once. */
     private static final float STAGGER_SEC = 0.6f;
 
+    /** Waves the transport carries — its invasion manifest, deployed over the orbit window (D4). */
+    private static final int INVASION_WAVES = 3;
+    /** Sim-seconds the transport holds orbit between waves — the cadence of the orbit window (D4). */
+    private static final float WAVE_INTERVAL_SEC = 6f;
+
     private final GroundBattleConfig config;
     private final FleetSide carrierSide;
     private final List<Shuttle> drops = new ArrayList<>();   // launched wave — exits track the carrier each frame
@@ -93,7 +98,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     private CombatEngineAPI engine;
     private ShipAPI descending;          // the single carrier we've taken over (null until first click)
     private CarrierDescentBrain brain;   // its installed brain — polled for the arrival cue
-    private boolean dropLaunched;        // one drop wave per takeover (D1b)
+    private int wavesRemaining;          // invasion manifest left to deploy this window (D4); < INVASION_WAVES once committed
+    private float waveTimer;             // sim-seconds until the next wave (counts down once the carrier is in orbit)
 
     public CarrierDescentPlugin(GroundBattleConfig config, FleetSide carrierSide) {
         this.config = config;
@@ -122,21 +128,21 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
 
     /**
      * "Land here": designate the drop zone at {@code worldTarget}. With no active takeover, takes over
-     * the first live carrier and aims a fresh {@link CarrierDescentBrain} at the point; with a carrier
-     * already en route (not yet dropped), re-aims it ("land there instead"). Ignored once the wave has
-     * dropped — that takeover is committed.
+     * the first live carrier and aims a fresh {@link CarrierDescentBrain} at the point, loading its
+     * invasion manifest; with a carrier already en route (no wave deployed yet), re-aims it ("land
+     * there instead"). Ignored once the first wave has dropped — the invasion is committed.
      */
     private void designateLandingZone(Vector2f worldTarget) {
         if (engine == null) return;
 
         if (descending != null && descending.isAlive()) {
-            if (dropLaunched || brain == null) {
+            if (brain == null || wavesRemaining < INVASION_WAVES) {
                 LOG.info("ground-bridge(descent): " + descending.getHullSpec().getHullId()
-                        + " has already committed its drop; ignoring re-designation.");
+                        + " is already deploying its invasion; ignoring re-designation.");
                 return;
             }
             dropZoneWorld.set(worldTarget);
-            brain.setTarget(worldTarget);   // re-aim mid-approach
+            brain.setTarget(worldTarget);   // re-aim mid-approach (before the first wave commits)
             LOG.info("ground-bridge(descent): re-aimed landing zone to ("
                     + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
             return;
@@ -154,9 +160,11 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         brain = new CarrierDescentBrain(carrier, worldTarget);
         carrier.setShipAI(brain);
         descending = carrier;
-        dropLaunched = false;
+        wavesRemaining = INVASION_WAVES;   // load the manifest; waveTimer 0 → first wave on arrival
+        waveTimer = 0f;
         LOG.info("ground-bridge(descent): took over " + carrier.getHullSpec().getHullId()
-                + " — landing zone designated at (" + (int) worldTarget.x + ", " + (int) worldTarget.y + ").");
+                + " — landing zone designated at (" + (int) worldTarget.x + ", " + (int) worldTarget.y
+                + "); " + INVASION_WAVES + "-wave manifest aboard.");
     }
 
     /** Sends any still-airborne drops from a prior (dead-carrier) wave off-grid and forgets them, so
@@ -188,11 +196,20 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
 
     @Override
     public void advance(float amount, List<InputEventAPI> events) {
-        // Once the carrier is in orbit, drop. The sim ticks in SimProxyMirror.advance (same frame,
-        // earlier in the plugin order), so addShuttle here never races the air state-machine loop.
-        if (!dropLaunched && brain != null && descending != null && descending.isAlive()
-                && brain.hasArrived()) {
-            launchDrop();
+        if (brain != null && descending != null) {
+            if (!descending.isAlive()) {
+                forfeitUndeployed();   // the stake (D4): transport lost mid-window → undeployed waves are forfeit
+            } else if (brain.hasArrived() && wavesRemaining > 0) {
+                // Orbit window: hold station and deploy the manifest one wave per WAVE_INTERVAL_SEC. The
+                // sim ticks in SimProxyMirror.advance (earlier in the plugin order), so addShuttle inside
+                // launchWave never races the air state-machine loop.
+                waveTimer -= amount;
+                if (waveTimer <= 0f) {
+                    launchWave(INVASION_WAVES - wavesRemaining + 1);
+                    waveTimer = WAVE_INTERVAL_SEC;
+                    if (--wavesRemaining == 0) departCarrier();   // manifest empty → the window closes
+                }
+            }
         }
         retargetDropExit();
     }
@@ -232,6 +249,37 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     }
 
     /**
+     * The stake (D4): the transport was lost mid-window, so every wave still in its belly is forfeit —
+     * those marines never reach the ground ("what got down is what you've got"). The diegetic hard
+     * failure that makes the sky fight matter. Wired for the skybattle feature that can actually kill
+     * the carrier; in the probe today the carrier has no death source, so this is latent.
+     */
+    private void forfeitUndeployed() {
+        if (wavesRemaining <= 0) return;
+        LOG.info("ground-bridge(descent): transport lost — " + wavesRemaining + " undeployed wave(s) (~"
+                + undeployedMarines() + " marines) forfeit with it.");
+        wavesRemaining = 0;
+    }
+
+    /** Marines still aboard the transport: undeployed waves × per-wave capacity (the at-risk count). */
+    private int undeployedMarines() {
+        return wavesRemaining * DROP_COUNT * ShuttleType.AEROSHUTTLE.capacity;
+    }
+
+    /**
+     * Orbit window closed — the manifest is empty, so the transport peels off ("can't stay forever").
+     * Steer it off the top of the grid; once it's leaving it's done its job. Re-aiming is already
+     * locked (wavesRemaining &lt; INVASION_WAVES), so it won't be re-tasked.
+     */
+    private void departCarrier() {
+        Vector2f exit = new Vector2f();
+        config.cellToWorld(config.gridW() / 2, config.gridH() + (int) OFFGRID_MARGIN_CELLS, exit);
+        brain.setTarget(exit);
+        LOG.info("ground-bridge(descent): orbit window closed — " + INVASION_WAVES
+                + " waves deployed; transport peeling off.");
+    }
+
+    /**
      * Launches a scattered wave of sim-native dropships from the orbiting carrier. Entry = the
      * carrier's combat-world position projected to a cell; the {@link DropZoneScatter} engine picks up
      * to {@value #DROP_COUNT} low-threat, spaced landing cells across the designated "land here" zone
@@ -240,8 +288,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's {@code AirSystem} flies it
      * INCOMING (altitude-scaling down the leg), lands it, and deboards its squad.
      */
-    private void launchDrop() {
-        dropLaunched = true;
+    private void launchWave(int waveNum) {
         // Requires AirProvider.INTERNAL — dropships are the sim's own shuttles, so addShuttle below
         // fail-louds under EXTERNAL. The bridge runs INTERNAL by design (S3d); see BattleSimulation.
         BattleSimulation sim = config.sim();
@@ -277,9 +324,9 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         for (int i = 0; i < cells.size(); i++) {
             spawnDrop(sim, entry.x, entry.y, cells.get(i)[0] + 0.5f, cells.get(i)[1] + 0.5f, i * STAGGER_SEC);
         }
-        LOG.info("ground-bridge(descent): launched " + cells.size() + "-ship drop wave over zone cell ("
-                + centerCell[0] + ", " + centerCell[1] + ") — threat " + zoneThreat
-                + ", spread radius " + (int) radius + ".");
+        LOG.info("ground-bridge(descent): wave " + waveNum + "/" + INVASION_WAVES + " — " + cells.size()
+                + "-ship drop over zone cell (" + centerCell[0] + ", " + centerCell[1] + "), threat "
+                + zoneThreat + ", spread radius " + (int) radius + ".");
     }
 
     /**
