@@ -14,6 +14,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -87,10 +88,15 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /** Per-dropship launch stagger (sim-seconds) so the wave ejects in sequence, not all at once. */
     private static final float STAGGER_SEC = 0.6f;
 
-    /** Waves the transport carries — its invasion manifest, deployed over the orbit window (D4). */
-    private static final int INVASION_WAVES = 3;
     /** Sim-seconds the transport holds orbit between waves — the cadence of the orbit window (D4). */
     private static final float WAVE_INTERVAL_SEC = 6f;
+    /**
+     * Marine pool (depth, D5) the invasion draws on when the player fleet carries none — a probe
+     * fallback so the demo always shows a multi-wave drop. A real fleet's marine count is used uncapped
+     * when present (pillar 2: the game never caps the invasion you engineered). ~3 full waves
+     * ({@code DROP_COUNT × AEROSHUTTLE.capacity}).
+     */
+    private static final int DEFAULT_PROBE_POOL = 60;
 
     private final GroundBattleConfig config;
     private final FleetSide carrierSide;
@@ -100,7 +106,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     private CombatEngineAPI engine;
     private ShipAPI descending;          // the single carrier we've taken over (null until first click)
     private CarrierDescentBrain brain;   // its installed brain — polled for the arrival cue
-    private int wavesRemaining;          // invasion manifest left to deploy this window (D4); < INVASION_WAVES once committed
+    private int marinePool;              // marines still aboard to deploy this invasion (depth, D5); 0 = exhausted / forfeit
+    private boolean committed;           // true once the first wave deploys — locks the re-aim
     private float waveTimer;             // sim-seconds until the next wave (counts down once the carrier is in orbit)
 
     public CarrierDescentPlugin(GroundBattleConfig config, FleetSide carrierSide) {
@@ -138,7 +145,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         if (engine == null) return;
 
         if (descending != null && descending.isAlive()) {
-            if (brain == null || wavesRemaining < INVASION_WAVES) {
+            if (brain == null || committed) {
                 LOG.info("ground-bridge(descent): " + descending.getHullSpec().getHullId()
                         + " is already deploying its invasion; ignoring re-designation.");
                 return;
@@ -162,11 +169,12 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         brain = new CarrierDescentBrain(carrier, worldTarget);
         carrier.setShipAI(brain);
         descending = carrier;
-        wavesRemaining = INVASION_WAVES;   // load the manifest; waveTimer 0 → first wave on arrival
+        marinePool = readFleetMarines();   // depth = the fleet you brought; waveTimer 0 → first wave on arrival
+        committed = false;
         waveTimer = 0f;
         LOG.info("ground-bridge(descent): took over " + carrier.getHullSpec().getHullId()
                 + " — landing zone designated at (" + (int) worldTarget.x + ", " + (int) worldTarget.y
-                + "); " + INVASION_WAVES + "-wave manifest aboard.");
+                + "); " + marinePool + " marines aboard to deploy.");
     }
 
     /** Sends any still-airborne drops from a prior (dead-carrier) wave off-grid and forgets them, so
@@ -200,16 +208,17 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     public void advance(float amount, List<InputEventAPI> events) {
         if (brain != null && descending != null) {
             if (!descending.isAlive()) {
-                forfeitUndeployed();   // the stake (D4): transport lost mid-window → undeployed waves are forfeit
-            } else if (brain.hasArrived() && wavesRemaining > 0) {
-                // Orbit window: hold station and deploy the manifest one wave per WAVE_INTERVAL_SEC. The
-                // sim ticks in SimProxyMirror.advance (earlier in the plugin order), so addShuttle inside
-                // launchWave never races the air state-machine loop.
+                forfeitUndeployed();   // the stake (D4): transport lost mid-window → marines still aboard are forfeit
+            } else if (brain.hasArrived() && marinePool > 0) {
+                // Orbit window: hold station and deploy the marine pool one wave per WAVE_INTERVAL_SEC
+                // until it's exhausted (D5 depth). The sim ticks in SimProxyMirror.advance (earlier in
+                // the plugin order), so addShuttle inside launchWave never races the air loop.
                 waveTimer -= amount;
                 if (waveTimer <= 0f) {
-                    launchWave(INVASION_WAVES - wavesRemaining + 1);
+                    launchWave();
+                    committed = true;
                     waveTimer = WAVE_INTERVAL_SEC;
-                    if (--wavesRemaining == 0) departCarrier();   // manifest empty → the window closes
+                    if (marinePool <= 0) departCarrier();   // pool exhausted → the window closes
                 }
             }
         }
@@ -257,28 +266,39 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * the carrier; in the probe today the carrier has no death source, so this is latent.
      */
     private void forfeitUndeployed() {
-        if (wavesRemaining <= 0) return;
-        LOG.info("ground-bridge(descent): transport lost — " + wavesRemaining + " undeployed wave(s) (~"
-                + undeployedMarines() + " marines) forfeit with it.");
-        wavesRemaining = 0;
-    }
-
-    /** Marines still aboard the transport: undeployed waves × per-wave capacity (the at-risk count). */
-    private int undeployedMarines() {
-        return wavesRemaining * DROP_COUNT * ShuttleType.AEROSHUTTLE.capacity;
+        if (marinePool <= 0) return;
+        LOG.info("ground-bridge(descent): transport lost — " + marinePool
+                + " marines still aboard forfeit with it.");
+        marinePool = 0;
     }
 
     /**
-     * Orbit window closed — the manifest is empty, so the transport peels off ("can't stay forever").
-     * Steer it off the top of the grid; once it's leaving it's done its job. Re-aiming is already
-     * locked (wavesRemaining &lt; INVASION_WAVES), so it won't be re-tasked.
+     * The invasion's depth (D5): marines aboard the player fleet — the diegetic currency, "the fleet you
+     * brought." Used uncapped when present (pillar 2 never caps the invasion you engineered); falls back
+     * to {@link #DEFAULT_PROBE_POOL} only when the fleet carries none, so the probe always shows a drop.
+     *
+     * <p>Read straight off the campaign fleet's cargo — {@link PlayerFleetStash} detaches ships, not
+     * cargo, so the count is intact during the spectator battle. Production should route this through the
+     * campaign→battle bridge (a {@code TargetProfile}-style field on {@link GroundBattleConfig}) rather
+     * than reaching back to the campaign from combat; direct read is fine for the {@code @DebugOnly} probe.
+     */
+    private static int readFleetMarines() {
+        CampaignFleetAPI fleet = Global.getSector() != null ? Global.getSector().getPlayerFleet() : null;
+        if (fleet == null || fleet.getCargo() == null) return DEFAULT_PROBE_POOL;
+        int marines = (int) fleet.getCargo().getMarines();
+        return marines > 0 ? marines : DEFAULT_PROBE_POOL;
+    }
+
+    /**
+     * Orbit window closed — the marine pool is exhausted, so the transport peels off ("can't stay
+     * forever"). Steer it off the top of the grid; once it's leaving it's done its job. Re-aiming is
+     * already locked ({@code committed}), so it won't be re-tasked.
      */
     private void departCarrier() {
         Vector2f exit = new Vector2f();
         config.cellToWorld(config.gridW() / 2, config.gridH() + (int) OFFGRID_MARGIN_CELLS, exit);
         brain.setTarget(exit);
-        LOG.info("ground-bridge(descent): orbit window closed — " + INVASION_WAVES
-                + " waves deployed; transport peeling off.");
+        LOG.info("ground-bridge(descent): orbit window closed — full manifest deployed; transport peeling off.");
         // Release the takeover so a fresh click can launch another invasion (with this carrier or a
         // sibling) — otherwise, with no carrier-death source in the probe, you'd get exactly one
         // invasion per battle. The carrier keeps its installed brain steering it off-grid; we just stop
@@ -297,7 +317,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's {@code AirSystem} flies it
      * INCOMING (altitude-scaling down the leg), lands it, and deboards its squad.
      */
-    private void launchWave(int waveNum) {
+    private void launchWave() {
         // Requires AirProvider.INTERNAL — dropships are the sim's own shuttles, so addShuttle below
         // fail-louds under EXTERNAL. The bridge runs INTERNAL by design (S3d); see BattleSimulation.
         BattleSimulation sim = config.sim();
@@ -321,31 +341,47 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         int zoneThreat = scoring.countCombatantsWithin(Faction.DEFENDER, centerCell[0], centerCell[1], ZONE_RADIUS_CELLS);
         float radius = Math.min(ZONE_RADIUS_MAX_CELLS, ZONE_RADIUS_CELLS * (1f + HOT_SPREAD_PER_ENEMY * zoneThreat));
 
+        // This wave's throughput: up to DROP_COUNT dropships, AEROSHUTTLE.capacity marines each, drawn
+        // from the pool. The pool (depth) caps the wave when it's nearly empty — the last wave is partial.
+        int capacity = ShuttleType.AEROSHUTTLE.capacity;
+        int waveMarines = Math.min(marinePool, DROP_COUNT * capacity);
+        int shipsWanted = (waveMarines + capacity - 1) / capacity;   // ceil — the last ship may be partial
+
         // Scatter the wave: low-threat, spaced landing cells across the zone. Per-cell threat =
         // enemy-combatant density; walkable filter keeps drops off walls/structures.
         List<int[]> cells = DropZoneScatter.sample(
-                centerCell[0], centerCell[1], radius, DROP_COUNT, MIN_SPACING_CELLS,
+                centerCell[0], centerCell[1], radius, shipsWanted, MIN_SPACING_CELLS,
                 (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y),
                 (x, y) -> scoring.countCombatantsWithin(Faction.DEFENDER, x, y, THREAT_RADIUS_CELLS),
                 scatterRng);
         if (cells.isEmpty()) cells = List.of(centerCell);   // degenerate zone — at least drop on the centroid
 
-        for (int i = 0; i < cells.size(); i++) {
-            spawnDrop(sim, entry.x, entry.y, cells.get(i)[0] + 0.5f, cells.get(i)[1] + 0.5f, i * STAGGER_SEC);
+        // Distribute the wave's marines across the scattered cells (capacity per ship, last ship partial).
+        // A tight zone may yield fewer cells than wanted — then fewer deploy and the rest stay aboard.
+        int deployed = 0, shipsOut = 0;
+        for (int[] cell : cells) {
+            if (deployed >= waveMarines) break;
+            int forShip = Math.min(capacity, waveMarines - deployed);
+            spawnDrop(sim, entry.x, entry.y, cell[0] + 0.5f, cell[1] + 0.5f, forShip, shipsOut * STAGGER_SEC);
+            deployed += forShip;
+            shipsOut++;
         }
-        LOG.info("ground-bridge(descent): wave " + waveNum + "/" + INVASION_WAVES + " — " + cells.size()
-                + "-ship drop over zone cell (" + centerCell[0] + ", " + centerCell[1] + "), threat "
-                + zoneThreat + ", spread radius " + (int) radius + ".");
+        marinePool -= deployed;
+        LOG.info("ground-bridge(descent): wave — " + shipsOut + "-ship drop (" + deployed
+                + " marines) over zone cell (" + centerCell[0] + ", " + centerCell[1] + "), threat "
+                + zoneThreat + ", spread radius " + (int) radius + "; " + marinePool + " marines remaining aboard.");
     }
 
     /**
      * Spawns one dropship from the carrier cell ({@code entryX},{@code entryY}) to LZ
-     * ({@code lzX},{@code lzY}) after {@code pendingDelay} sim-seconds (the wave stagger). The entry is
-     * pushed back along the carrier→LZ bearing to at least {@link #MIN_DROP_LEG_CELLS} so the
-     * altitude-lerp descent always reads (the lerp is leg-distance driven). Exit starts at the carrier
-     * and is retargeted live by {@link #retargetDropExit}.
+     * ({@code lzX},{@code lzY}) carrying {@code marineCount} marines (the last ship of a partial wave
+     * carries fewer than {@code capacity}), launching after {@code pendingDelay} sim-seconds (the wave
+     * stagger). The entry is pushed back along the carrier→LZ bearing to at least
+     * {@link #MIN_DROP_LEG_CELLS} so the altitude-lerp descent always reads (the lerp is leg-distance
+     * driven). Exit starts at the carrier and is retargeted live by {@link #retargetDropExit}.
      */
-    private void spawnDrop(BattleSimulation sim, float entryX, float entryY, float lzX, float lzY, float pendingDelay) {
+    private void spawnDrop(BattleSimulation sim, float entryX, float entryY, float lzX, float lzY,
+                           int marineCount, float pendingDelay) {
         float ex = entryX, ey = entryY;
         float dx = ex - lzX, dy = ey - lzY;
         float d = (float) Math.hypot(dx, dy);
@@ -360,6 +396,7 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         }
         Shuttle s = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
                 lzX, lzY, ex, ey, ex, ey, pendingDelay);
+        s.mission.marinesRemaining = Math.min(marineCount, ShuttleType.AEROSHUTTLE.capacity);
         sim.addShuttle(s);
         drops.add(s);
     }
