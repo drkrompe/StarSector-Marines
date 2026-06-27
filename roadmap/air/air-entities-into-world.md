@@ -175,8 +175,19 @@ later ground `allocate` collision.)
 - **Phase 2 ✓ (`1e3f92fd`)** — `AirSystem.add` adopts shuttles into the world
   (shared mint, columns alias the handle's `AirBody`/`ShuttleMission`/type/faction);
   `nextAirId` deleted, dual-mint trap closed. Behavior-preserving, suite green at 775.
-- **Phase 3 (next)** — re-key `ThrusterFx`/`AirTurrets` to OBJECT columns, delete
-  `ComponentStore<T>`.
+- **Phase 3 ✓ (`1ee6e8a0`)** — `ThrusterFx`/`AirTurrets` re-keyed off the two
+  standalone `ComponentStore`s onto the world's `THRUSTER_FX`/`AIR_TURRETS` OBJECT
+  columns (has-gated reads via the `World` facade). `ThrusterFxSystem.advance` now
+  takes `EntityWorld` + `BattleComponents` (the `DroneCrashSystem` precedent —
+  avoids a `battle.air.engine → battle.sim` cycle the `World` facade would add) and
+  lazily attaches/drops the column. `ComponentStore<T>` was its last user →
+  `ComponentStore.java` + `ComponentStoreTest.java` **deleted**, both package-info
+  charters updated (archetype table = sole composition substrate),
+  `ThrusterFxSystemTest` rewritten against a real world harness. The `GONE` seam
+  still leaves the entity alive (Phase 5 adds `destroy`). Behavior-preserving,
+  suite green at 768 (−7 `ComponentStoreTest`).
+- **Phase 4 (next)** — drone `KINEMATICS` fold: `Entity.seedBody`, conditional
+  `KINEMATICS` at `allocate`, drop `Drone.body`, reroute the drone consumers.
 
 ### Watch-items (from the critic)
 
