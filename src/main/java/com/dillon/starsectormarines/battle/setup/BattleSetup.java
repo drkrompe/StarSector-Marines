@@ -536,6 +536,20 @@ public final class BattleSetup {
                                                boolean enemyHasHeavyArmor, RiskLevel risk,
                                                TargetProfile profile) {
         MapScale scale = MapScale.forRisk(risk);
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, risk, profile,
+                scale.width, scale.height);
+    }
+
+    /**
+     * Explicit-dimensions overload — grid size decoupled from the risk→{@link MapScale} tier. A host
+     * that wants a battlefield larger than any standard tier (the combat bridge, pushing the ground
+     * scene bigger under the fleet) passes its own {@code gridW}/{@code gridH}; {@code risk} still
+     * drives the {@link DefenderRoster} density, <em>not</em> the map size. Standard callers use the
+     * risk-only overload above, which derives the tier dimensions.
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor, RiskLevel risk,
+                                               TargetProfile profile, int gridW, int gridH) {
         Random rng = new Random(seed);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
         // Generator uses its own seeded RNG — pass the same seed so different
@@ -543,7 +557,7 @@ public final class BattleSetup {
         // axis flips deterministically off the first bit of our wrapper RNG.
         // The target world's profile (planetary defenses, …) rides in so the
         // overwatch line reflects how fortified the planet is.
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis, profile);
+        MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         // Conquest defense posts come pre-stamped by the biome-aware
@@ -580,7 +594,7 @@ public final class BattleSetup {
             int[] lz = lzCells.get(i);
             float lzCenterX = lz[0] + 0.5f;
             float lzCenterY = lz[1] + 0.5f;
-            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, axis);
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
             Shuttle shuttle = new Shuttle(
                     a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,

@@ -50,9 +50,21 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     private static final Logger LOG = Global.getLogger(S0BattleCreationPlugin.class);
 
-    /** The bridge loads the real Conquest map at the LARGE (HIGH-risk siege) tier we actually play. */
-    private static final MapScale SIM_GRID = MapScale.LARGE;
-    /** Risk tier for the coupled battle; HIGH → {@link MapScale#LARGE}, kept in lockstep with {@link #SIM_GRID}. */
+    /**
+     * Bridge battlefield size, in cells — deliberately decoupled from the standalone {@link MapScale}
+     * tiers (via the explicit-dimensions {@link BattleSetup#createConquestBuild} overload) so we can
+     * push the ground scene bigger under the fleet without enlarging — and paying the world-sized
+     * decal-FBO cost of — standalone HIGH-risk battles. 2× the LARGE tier (240×160) today; the bridge
+     * renders no decals, so that FBO wall doesn't apply. The live ceilings are sim CPU (flat-A* path
+     * length, an O(W×H) zone rebuild ~3–4 ms on each wall-break) + per-cell arrays (~8 MB). Dial
+     * freely; if the generator or defender density misbehaves at this size, scale back. See the
+     * large-map-scaling design doc for the tiled-decal-FBO + camera-residency plan that unblocks
+     * going bigger (and bringing decals over).
+     */
+    private static final int BRIDGE_GRID_W = 480;
+    private static final int BRIDGE_GRID_H = 320;
+    /** Risk tier for the coupled battle — drives defender roster density, not map size (which is the
+     *  explicit {@link #BRIDGE_GRID_W}×{@link #BRIDGE_GRID_H} above). */
     private static final RiskLevel SIM_RISK = RiskLevel.HIGH;
 
     /** The vanilla carriers "above" whose fighters strafe the planet's defenses. */
@@ -111,7 +123,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         // Scenario content: the vanilla carriers "above" whose fighters strafe the planet's
         // defenses. The session owns the durable engine-side wiring (detach, backdrop, proxy
         // mirror, never-end objective).
-        float halfH = SIM_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+        float halfH = BRIDGE_GRID_H * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
         spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
         session.enterEngine(engine);
     }
@@ -135,14 +147,13 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
      * repeated {@code init}.
      */
     private GroundBattleConfig buildSimCoupledConfig() {
-        MapScale scale = SIM_GRID;   // must equal MapScale.forRisk(SIM_RISK)
-        int gridW = scale.width, gridH = scale.height;
+        int gridW = BRIDGE_GRID_W, gridH = BRIDGE_GRID_H;
 
         BattleSetup.MapBuild build = BattleSetup.createConquestBuild(
-                SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL);
+                SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL, gridW, gridH);
         BattleSimulation sim = build.sim();
         List<Entity> targetable = build.structures();
-        LOG.info("S3: live Conquest battle [" + scale + " " + gridW + "x" + gridH + "] — "
+        LOG.info("S3: live Conquest battle [" + gridW + "x" + gridH + "] — "
                 + targetable.size() + " targetable structures, INTERNAL air.");
 
         return new GroundBattleConfig(
