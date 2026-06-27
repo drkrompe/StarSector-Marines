@@ -140,6 +140,12 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   **wired but latent in the probe** (the carrier has no death source until the skybattle feature
   threatens it); the demonstrable beats today are the timed multi-wave deploy + the peel-off. Re-aim is
   locked once the first wave commits.
+  - **Critique pass:** fundamentally sound, no HIGH (wave count/labels/spacing, once-only forfeit,
+    peel-off coherence, re-aim lock, re-takeover-after-death, no NPE — all verified). Fixed the one
+    MEDIUM (`5a258ad3`): a completed-but-alive carrier blocked a second takeover → one invasion per
+    battle; `departCarrier` now releases the takeover on window-close so a fresh click can launch
+    another. LOW (noted, not fixed): the off-grid peel-off target can sit past the combat-arena edge
+    (cosmetic loiter); `undeployedMarines()` uses nominal `DROP_COUNT` (log estimate only).
 - **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
   waves over time replacing the fixed manifest; running-out → fight-to-the-end *emerges*.
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
