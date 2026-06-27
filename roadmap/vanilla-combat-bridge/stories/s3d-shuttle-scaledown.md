@@ -121,6 +121,15 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   - **Slice 2 — threat-scaled spread (`4fba6ea0`).** DZ radius widens with zone threat:
     `ZONE_RADIUS_CELLS × (1 + HOT_SPREAD_PER_ENEMY × enemyCount)`, capped at `ZONE_RADIUS_MAX_CELLS`.
     Cold = tight wide LZ (30); hot fans out toward 60 (isolating). Launch log reports threat + radius.
+  - **Critique pass:** correct + clean, no HIGH (AA gather, faction/turret filter, shoot-down
+    terminal-path reuse, tick ordering, slice-2 math all verified). Fixed **M1 (`e624d1bc`)** — the
+    multi-cycle re-arm refilled ammo but not HP, so AA damage carried across sorties (standalone
+    SABOTAGE multi-cycle drop); the recycle now repairs the hull. Carried as follow-ups: **M2** —
+    universal AA re-balances the standard SABOTAGE opener (playtest the turret-heavy opener
+    specifically); **L2** — AA radius (14) > the scatter's per-cell threat radius (6), so a
+    scatter-"safe" cell can still sit in a turret's AA bubble on approach (mitigated: LANDED is
+    AA-exempt) — widen `THREAT_RADIUS_CELLS` toward AA range if "isolation = safety" should hold vs
+    turrets.
 - **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
   aboard → AA-suppression / air superiority becomes prep (ties to the skybattle feature).
 - **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
