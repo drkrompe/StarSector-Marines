@@ -155,6 +155,15 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   `spawnDrop` carries a per-ship marine count; forfeit/peel-off read the pool. *Follow-up:* route the
   pool through the campaign→battle bridge ([[campaign_battle_bridge]] `TargetProfile`) rather than the
   probe's direct campaign read; derive throughput from actual fleet transports.
+  - **Critique pass:** correct + well-constructed, no HIGH (wave/partial-ship math, pool can't go
+    negative, guaranteed termination, `committed` lifecycle, `marinesRemaining` override sticking, the
+    fleet read safe during the stash window — all verified). Follow-ups (NOT this file — log only):
+    **MEDIUM** `AirSystem.tryDeboardMarine` derives the loadout slot as `type.capacity − marinesRemaining`,
+    which assumes a full shuttle; D5 is the first to ship *partial* shuttles, so a partial last ship would
+    read mis-aligned loadout entries — latent today (bridge drops have null `marineLoadout`), but fix
+    before per-marine loadouts are ever wired onto a bridge drop (track a dedicated deboard counter, or
+    store `initialMarines`). **LOW** uncapped pool has a long tail on a huge fleet (intentional for the
+    probe; clamp/awareness when productionised).
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
 
 ## Built so far — D1 complete (orbit takeover → drop-ship launch → render)
