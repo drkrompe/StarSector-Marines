@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -53,11 +54,21 @@ public class DoodadMappingParityTest {
     void coverGoldenPerBucket() {
         TileRegistry reg = TileRegistry.installed();
         assertNotNull(reg, "TileRegistry not installed");
-        assertCover(reg, "doodad.box",                 DoodadCover.MED);
-        assertCover(reg, "doodad.shelf-dam-1",         DoodadCover.HEAVY);
         assertCover(reg, "doodad.decal-rubble-1",      DoodadCover.LIGHT);
-        assertCover(reg, "doodad.chair-south-yellow",  DoodadCover.NONE);
+        assertCover(reg, "doodad.box",                 DoodadCover.MED);
         assertCover(reg, "doodad.door-closed",         DoodadCover.MED);
+        assertCover(reg, "doodad.shelf-dam-1",         DoodadCover.HEAVY);
+        // Cover-gap fix (formerly NONE): clean chairs/desks -> MED, shelves -> HEAVY,
+        // matching their damaged row-7 counterparts.
+        assertCover(reg, "doodad.chair-south-yellow",  DoodadCover.MED);
+        assertCover(reg, "doodad.desk-1",              DoodadCover.MED);
+        assertCover(reg, "doodad.shelf-empty",         DoodadCover.HEAVY);
+
+        // Invariant after the gap fix: every registered prop carries real cover —
+        // markers (LZ pads/arrows) are literal frames, not defs, so none reach here.
+        for (DoodadDef d : reg.doodads()) {
+            assertNotEquals(DoodadCover.NONE, d.cover, "prop doodad must carry cover: " + d.id);
+        }
     }
 
     private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {
