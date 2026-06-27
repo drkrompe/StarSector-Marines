@@ -126,10 +126,14 @@ returns `[0,360)` — so a small CW error read as ~350° and the ship braked ins
 
 **Playtest watch-items** (fine for a `@DebugOnly` probe): orbit/stall at the arrival boundary (no
 closing-velocity gate); target snapshotted at takeover (drifts as structures die); the parked
-`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war);
-**D1b LZ walkability** — the LZ is the raw structure centroid, which can land on a non-walkable cell; the
-deboard BFS scans radius 5 for a free cell, but a fully-walled centroid would drop no marines (D2's
-threat-scored scatter picks proper landing cells and removes this risk).
+`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war).
+
+**Critique pass (`16433ef5`):** a background review of D1b caught a real wedge — the LZ was the raw structure
+centroid, which can sit on a non-walkable cell; the deboard scan only reaches 5 cells, so a dropship there
+would stick in LANDED forever and deliver nothing. Fixed by snapping the LZ to the nearest walkable cell
+(BFS over `sim.getGrid()`) before the spawn. The rest of the slice (inverse-projection geometry, the
+min-leg pushback, the one-shot arrival latch, INTERNAL-air, add-vs-tick ordering) verified correct. D2's
+threat-scored scatter still supersedes the single-centroid LZ with proper landing-cell selection.
 
 ## Superseded alternative — kept for the reasoning
 

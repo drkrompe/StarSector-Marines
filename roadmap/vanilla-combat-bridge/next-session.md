@@ -184,10 +184,14 @@ cadence + `TacticalScoring` + defense-post proxies + the wired-forward `ShuttleM
   altitude-lerp descent always reads. INTERNAL air; sim ticks earlier in the frame (SimProxyMirror) so
   no race.
 
-**Next build — D2: painted DZ + scatter.** Replace the single centroid LZ with a commander-painted zone;
-sample landing cells via `TacticalScoring`, spread ∝ threat (cold spread first). This also removes the D1b
-**LZ-walkability** caveat (raw centroid can land on a walled cell; deboard BFS scans radius 5, but a fully
-walled centroid drops no marines). Then D3 (AA/hot drops), D4 (orbit window stake), D5 (continuous logistics).
+**D1b critique fix (`16433ef5`):** a background review caught a real wedge — the raw-centroid LZ could sit
+on a non-walkable cell, and the deboard scan only reaches 5 cells, so a dropship there would stick in
+LANDED forever and deliver nothing. Fixed by snapping the LZ to the nearest walkable cell before spawn. The
+rest of D1b (geometry, min-leg pushback, one-shot latch, INTERNAL-air, add-vs-tick ordering) verified correct.
+
+**Next build — D2: painted DZ + scatter.** Replace the single (snapped) centroid LZ with a commander-painted
+zone; sample landing cells via `TacticalScoring`, spread ∝ threat (cold spread first). Then D3 (AA/hot drops),
+D4 (orbit window stake), D5 (continuous logistics).
 
 **D1 playtest watch-items** (the dev probe — Ctrl+Shift+K, press **L**): does the launched dropship's
 descent read (leg long enough)? does it deboard onto the band (centroid walkable)? do the four setup
