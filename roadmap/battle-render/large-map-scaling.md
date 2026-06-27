@@ -97,8 +97,11 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
   opened cell in (weighted union of the interior zones it bridges + portal re-detect over a cached
   doorway list), dropping the per-breach cost from O(W×H) to O(smaller-merged-zone + doorways). The
   full `rebuild()` stays the initial build + oracle + kill-switch fallback
-  (`DevConfig.ZONE_INCREMENTAL_REBUILD`); equivalence (zone partition + portal reachability == full
-  rebuild) is asserted by `ZoneGraphIncrementalTest`. This removes the ~6–8 ms wall-break hitch at 4×.
+  (`DevConfig.ZONE_INCREMENTAL_REBUILD`). Absorbed zones leave tombstone slots (to keep
+  `zoneId == index` stable); a **self-healing compaction** folds via a full rebuild once dead slots
+  outnumber live ones, capping the slot list at ~2× the live-zone count (amortized to ~nothing).
+  Equivalence (zone partition + portal reachability == full rebuild) + the compaction bound are
+  asserted by `ZoneGraphIncrementalTest`. This removes the ~6–8 ms wall-break hitch at 4×.
 - **Hierarchical pathfinding** (HPA*/portal graph over the existing zone/portal structures, or
   flow-fields for many-units-one-goal) — still flat A* today; only needed once paths routinely span
   very large maps. Fine to ~2× linear. The remaining sim-side ceiling for going bigger.

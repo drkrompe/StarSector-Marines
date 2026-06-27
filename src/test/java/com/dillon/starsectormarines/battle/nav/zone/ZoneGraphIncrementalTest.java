@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The correctness oracle for {@link ZoneGraph#applyCellsOpened} (the incremental, merge-only
@@ -96,6 +97,41 @@ class ZoneGraphIncrementalTest {
                 assertEquivalent(inc, g);
             }
         }
+    }
+
+    @Test
+    void compactionBoundsTombstoneSlots() {
+        // Many isolated 1-cell rooms (even,even); breaching the bridges between them merges them,
+        // tombstoning a slot per merge. As the dead slots approach the live ones, compaction must
+        // fold via a full rebuild and reset them — so dead never runs away toward the slot count.
+        int w = 15, h = 15;
+        NavigationGrid g = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y += 2) for (int x = 0; x < w; x += 2) g.setWalkable(x, y, true);
+        ZoneGraph inc = built(g);
+        List<int[]> bridges = new ArrayList<>();
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            if (g.isWalkable(x, y)) continue;
+            boolean horiz = y % 2 == 0 && x % 2 == 1 && x + 1 < w;   // links rooms (x-1,y)/(x+1,y)
+            boolean vert  = x % 2 == 0 && y % 2 == 1 && y + 1 < h;   // links rooms (x,y-1)/(x,y+1)
+            if (horiz || vert) bridges.add(new int[]{x, y});
+        }
+        boolean compacted = false;
+        int prevSize = inc.getZones().size();
+        for (int[] b : bridges) {
+            breach(g, inc, b[0], b[1]);
+            assertEquivalent(inc, g);
+            int dead = deadZones(inc), size = inc.getZones().size();
+            assertTrue(2 * dead <= size + 6, "tombstones unbounded: dead=" + dead + " size=" + size);
+            if (size < prevSize) compacted = true;   // a rebuild compacted the slot list
+            prevSize = size;
+        }
+        assertTrue(compacted, "expected compaction to fire over many merges");
+    }
+
+    private static int deadZones(ZoneGraph z) {
+        int d = 0;
+        for (NavigationZone n : z.getZones()) if (n.getCellCount() == 0) d++;
+        return d;
     }
 
     // ---------------------------------------------------------------- grid setup helpers

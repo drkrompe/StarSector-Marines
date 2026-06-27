@@ -42,18 +42,23 @@ public final class ZoneGraph {
     /** Walkable doorway cells — static during a battle, cached at {@link #rebuild()} so the
      *  incremental portal re-detect is O(doorways) rather than an O(W×H) grid scan. */
     private int[] doorwayCells = new int[0];
+    /** Absorbed (emptied) zone slots kept to hold {@code zoneId == index} stable — see
+     *  {@link #applyCellsOpened}'s self-healing compaction, which bounds them. */
+    private int tombstoneCount = 0;
 
     public ZoneGraph(NavigationGrid grid) {
         this.grid = grid;
     }
 
-    /** Rebuilds the entire zone + portal graph from the current grid state (O(W×H)). */
+    /** Rebuilds the entire zone + portal graph from the current grid state (O(W×H)). Produces a
+     *  compact zone list (no tombstones), so it doubles as the compaction pass. */
     public void rebuild() {
         ZoneDetector.Result zr = ZoneDetector.detect(grid);
         this.zones = zr.zones;                     // ArrayList — mutated in place by applyCellsOpened
         this.cellToZoneId = zr.cellToZoneId;
         this.doorwayCells = PortalDetector.collectDoorwayCells(grid);
         this.portals = PortalDetector.detect(grid, cellToZoneId, doorwayCells);
+        this.tombstoneCount = 0;
         indexPortalsOnZones();
     }
 
@@ -63,9 +68,17 @@ public final class ZoneGraph {
      * over the cached doorway list. Produces the same zone <em>partition</em> + portal connectivity
      * as a full {@link #rebuild()} (asserted by {@code ZoneGraphIncrementalTest}); absorbed zones
      * remain as empty tombstones so {@code zoneId == index} stays stable.
+     *
+     * <p><b>Self-healing compaction.</b> Each merge tombstones a zone slot; once the dead slots
+     * outnumber the live ones, this folds via a full {@link #rebuild()} instead — which reads the
+     * (already-updated) grid, so it incorporates the opened cells <em>and</em> compacts the slot list
+     * in one O(W×H) pass. That caps the slot list at ~2× the live-zone count, so the per-zone
+     * scratch in {@code areConnected}/{@code adjacentZones} can't grow unbounded over a long battle.
+     * Compaction is amortized to roughly nothing: it costs one O(W×H) pass per ~live-zone-count merges.
      */
     public void applyCellsOpened(int[] openedCells) {
         if (cellToZoneId.length != grid.getWidth() * grid.getHeight()) { rebuild(); return; }
+        if (tombstoneCount * 2 > zones.size()) { rebuild(); return; }   // compact (rebuild folds the opened cells via the grid)
         for (int c : openedCells) openCell(c);
         this.portals = PortalDetector.detect(grid, cellToZoneId, doorwayCells);
         indexPortalsOnZones();
@@ -114,6 +127,7 @@ public final class ZoneGraph {
             for (int cell : cells) cellToZoneId[cell] = survivor;
             surv.absorb(cells);
             absorbed.clearCells();                  // tombstone — id slot kept so zoneId == index holds
+            tombstoneCount++;
         }
         cellToZoneId[c] = survivor;
         surv.addCell(c);
