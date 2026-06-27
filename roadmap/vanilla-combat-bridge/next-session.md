@@ -42,15 +42,21 @@ Decomposition:
   written; **D1 shipped 2026-06-27; D2 in progress — scatter engine landed (`3d232392`), painted DZ next.**
   See the S3d story.
 
-### Scale + real-map pass (done after S3b playtest)
-- `WORLD_UNITS_PER_CELL` lowered **50 → 20** (ground cells read too large vs ships at 50;
-  at 20 ships tower over tiles). Backdrop + proxies both derive from it, so they stay
-  locked. Still a visual knob — re-dial freely if scale feels off.
-- The `SIM_COUPLED` probe now loads the **real Conquest map at LARGE (240×160)** instead of
-  a generic MEDIUM city: `BspCityGenerator.generate(w,h,seed, axis, NEUTRAL)` (non-null axis
-  → `conquestRecipe` with biome bands + `DefensePostStamper`), `setBuildings`/`setDefensePosts`/
-  `setTacticalMap`/doodads, defense-post turrets spawned + mirrored as proxies (fighters
-  strafe the planet's actual defenses). `canvasGrid()` returns LARGE for SIM_COUPLED only.
+### Scale + real-map pass (done after S3b playtest; re-dialed 2026-06-27)
+- `WORLD_UNITS_PER_CELL` stepped **50 → 20 → 7** (`02c829b0`… → `2118b4b2`): at 7 the ground
+  footprint reads as a compact battlefield far below a big fleet. Backdrop + proxies both derive
+  from it, so they stay locked; the spectator cam's initial framing + the proxy collision
+  footprint ([[`FootprintCircleShape`]]) now derive from it too. Still a visual knob.
+- The `SIM_COUPLED` probe loads a **real Conquest map** via `BspCityGenerator.generate(w,h,seed,
+  axis, NEUTRAL)` (biome bands + `DefensePostStamper`); defense-post turrets/hubs spawned + mirrored
+  as proxies (fighters strafe the planet's actual defenses). **Grid is now the bridge's own
+  `BRIDGE_GRID_W/H = 480×320`** (2× LARGE), decoupled from the standalone `MapScale` tiers via the
+  explicit-dims `BattleSetup.createConquestBuild` overload (`1a2c87f4`) — so we push the battlefield
+  bigger without enlarging (or paying the world-sized decal-FBO cost of) standalone HIGH battles.
+  **Scaling gut-check + the tiled-FBO / camera-residency plan to go bigger:**
+  [`../battle-render/large-map-scaling.md`](../battle-render/large-map-scaling.md). Playtest
+  watch-items: BSP generator behavior past its 240×160 test size; HIGH-risk defender density spread
+  over 4× area.
   Map only — no marines/defenders/shuttles/reinforcement (that's the battle, not the map).
 
 ### S3a + S3b probe pieces (combathybrid)
