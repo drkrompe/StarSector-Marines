@@ -66,10 +66,30 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
   center-only → **variant pools** (`GridBlockDef` cells, hashed), NOT autotiles;
   reuse the existing 16px `floorsTile`/`waterTile` path (no new emitter). `SNOW`
   dropped (dead). **All four grid sheets flipped.**
-- **Next (cleanup tail):** `TilesetDebugScreen` → `.tileset.json`; delete the
-  `.catalog.json` dupes (carry labels); move the dev-tool preview tests
-  (`FixedGridZonePreviewTest` etc.) off `TileManifest.pickXxx` onto block ids;
-  then retire the pickers + dead `pickSnowTile` + unused edge resolvers. Story's 1c.
+- **Catalog fold-in ✅ `ab6e98ac`** (gradle `:test` PENDING — tree red on a
+  sibling's `UnitRegistry` refactor at commit time; all 4 of my main files +
+  2 test files IntelliJ-verified clean, fold node-verified lossless). User chose
+  **fold into tileset JSON** + **retire test-only pickers + oracle** (AskUserQuestion
+  2026-06-27). What landed: each grid sheet's `<sheet>.catalog.json` per-cell
+  labels folded into its `.tileset.json` as a read-only `"cells"` array (one file
+  per sheet); sliced sheets keep labels on their tile defs. `TileRegistry.cellLabel`
+  (grid cells + sliced fallback `frame==col`), new `CellLabel`, `TileDef` gains
+  `name`/`description`. `TilesetDebugScreen` → read-only viewer; the in-game catalog
+  editor (`TilesetCatalog`/`Normalizer`, saves/common round-trip, `pullCatalogs`
+  task, the 2 catalog tests) deleted. `TileRegistryCellLabelTest` pins the lookup.
+  → **Run once green:** `gradlew :test --tests "*TileRegistryCellLabelTest*" --tests "*TileRegistryParityTest*"`
+  (the parity test now also loads the new `cells` arrays at bootstrap).
+- **Thread A — picker retirement (queued, NOT started; needs a green tree):**
+  Per Q2 "retire test-only pickers + oracle": migrate the dev-tool preview tests
+  (`FixedGridZonePreviewTest`/`BuildingZonePreviewTest`/`BspMapSpritePreviewTest`)
+  off `TileManifest.pickXxx` onto block ids; flip `BattleRenderer` brick
+  (`BattleRenderer.java:442` `pickBrickTile`) to the `floors.brick` registry block;
+  then delete the test-only pickers (incl. dead `pickSnowTile` + unused edge
+  resolvers) AND the now-redundant `GridBlockParityTest` oracle. **Keep** the 3
+  production-live pickers: `pickNatureGrassTileId`, `pickNatureDirtTileId`,
+  `pickWallTile` (WallMasks registry-fallback). Do the migration + brick flip
+  first (keeps the oracle), verify against the oracle when green, THEN delete the
+  oracle/pickers — don't delete the safety net blind.
 
 Then **Phase 2** (gen mapping as data — incl. the doodad pools) and **Phase 3**
 (mod-merge, deferred).
