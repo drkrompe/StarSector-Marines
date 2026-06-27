@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -63,15 +64,23 @@ public final class NavigationService {
 
     /**
      * Set whenever the walkability layout changes during a tick (wall breach,
-     * turret demolish, hub demolish). Drained to a single
-     * {@link ZoneGraph#rebuild()} via {@link #flushZoneGraphIfDirty()} at the
-     * end of the tick so multiple breaches in the same tick collapse into one
-     * full graph rebuild. AI queries that run mid-tick see the previous
+     * turret demolish, hub demolish). Drained once at the end of the tick via
+     * {@link #flushZoneGraphIfDirty()} so multiple breaches in the same tick
+     * collapse into one update. AI queries that run mid-tick see the previous
      * tick's graph — fine in practice, since rubble stays walkable forever
      * (paths only ever gain shortcuts) and the new portal becomes visible
      * within 1/30s.
+     *
+     * <p>The opened cells are recorded ({@link #openedCells}) so the drain can take the
+     * <b>incremental</b> {@link ZoneGraph#applyCellsOpened} path (zones only ever merge — see that
+     * class) instead of an O(W×H) {@link ZoneGraph#rebuild()}. {@link #zoneForceFullRebuild} forces
+     * the full path for a cell-less dirty mark or when {@link DevConfig#ZONE_INCREMENTAL_REBUILD}
+     * is off (the kill-switch).
      */
     private boolean zoneGraphDirty = false;
+    private boolean zoneForceFullRebuild = false;
+    private int[] openedCells = new int[8];
+    private int openedCount = 0;
 
     /**
      * Dense entity store, for by-id current-cell reads in {@link #setPath} (the
@@ -128,22 +137,42 @@ public final class NavigationService {
 
     public void setOccupancyDeltaSink(DamageService.OccupancyApplier sink) { this.occupancyDeltaSink = sink; }
 
-    /** Flips the dirty flag — called by {@code MapService}'s runtime map-modification ops when a walkability change happens mid-tick. */
-    public void markZoneGraphDirty() { zoneGraphDirty = true; }
+    /**
+     * Records a just-opened cell (wall breach / structure→rubble) for the end-of-tick incremental
+     * zone-graph update — called by {@code MapService}'s runtime map-modification ops. Preferred
+     * over {@link #markZoneGraphDirty()}: it lets the drain take the O(smaller-zone)
+     * {@link ZoneGraph#applyCellsOpened} path instead of a full O(W×H) rebuild.
+     */
+    public void markCellOpened(int x, int y) {
+        zoneGraphDirty = true;
+        if (openedCount == openedCells.length) openedCells = Arrays.copyOf(openedCells, openedCount * 2);
+        openedCells[openedCount++] = grid.index(x, y);
+    }
+
+    /** Marks the zone graph dirty without a specific cell — forces a full rebuild on the next drain.
+     *  Prefer {@link #markCellOpened} when the changed cell is known. */
+    public void markZoneGraphDirty() { zoneGraphDirty = true; zoneForceFullRebuild = true; }
     public boolean isZoneGraphDirty() { return zoneGraphDirty; }
 
     /**
-     * Drains the zone-graph dirty flag at the end of a tick: rebuilds the
-     * graph once (collapsing multiple in-tick breaches into a single rebuild)
-     * and clears the vantage-point cache in lockstep so the next
-     * {@code findFiringPosition} stage-2 lookup recomputes against the new
-     * geometry. No-op when the flag is clear.
+     * Drains the zone-graph dirty state at the end of a tick (collapsing multiple in-tick breaches
+     * into one update) and clears the vantage-point cache in lockstep so the next
+     * {@code findFiringPosition} stage-2 lookup recomputes against the new geometry. No-op when
+     * clean. Takes the incremental {@link ZoneGraph#applyCellsOpened} path when the changed cells
+     * are known and {@link DevConfig#ZONE_INCREMENTAL_REBUILD} is on; otherwise a full
+     * {@link ZoneGraph#rebuild()}.
      */
     public void flushZoneGraphIfDirty() {
         if (!zoneGraphDirty) return;
-        zoneGraph.rebuild();
+        if (DevConfig.ZONE_INCREMENTAL_REBUILD && !zoneForceFullRebuild && openedCount > 0) {
+            zoneGraph.applyCellsOpened(Arrays.copyOf(openedCells, openedCount));
+        } else {
+            zoneGraph.rebuild();
+        }
         vantagePointsByTargetCell.clear();
         zoneGraphDirty = false;
+        zoneForceFullRebuild = false;
+        openedCount = 0;
     }
 
     /**

@@ -92,12 +92,16 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
 
 ### 3. Pathfinding ceilings (separate, sim-side)
 
-- **Incremental zone rebuild** — `ZoneDetector` recomputes the whole graph on any wall break;
-  it already notes incremental rebuild as future work. Localizing the reflood to the affected
-  region kills the per-breach O(W×H) spike.
+- ✅ **Incremental zone rebuild — SHIPPED.** Wall breaches / structure demolitions only ever make
+  cells walkable, so zones only **merge, never split** → `ZoneGraph.applyCellsOpened` folds each
+  opened cell in (weighted union of the interior zones it bridges + portal re-detect over a cached
+  doorway list), dropping the per-breach cost from O(W×H) to O(smaller-merged-zone + doorways). The
+  full `rebuild()` stays the initial build + oracle + kill-switch fallback
+  (`DevConfig.ZONE_INCREMENTAL_REBUILD`); equivalence (zone partition + portal reachability == full
+  rebuild) is asserted by `ZoneGraphIncrementalTest`. This removes the ~6–8 ms wall-break hitch at 4×.
 - **Hierarchical pathfinding** (HPA*/portal graph over the existing zone/portal structures, or
-  flow-fields for many-units-one-goal) — only needed once paths routinely span very large maps.
-  Flat A* is fine to ~2× linear.
+  flow-fields for many-units-one-goal) — still flat A* today; only needed once paths routinely span
+  very large maps. Fine to ~2× linear. The remaining sim-side ceiling for going bigger.
 
 ## Shipped / status
 
@@ -107,7 +111,8 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
   defender density too sparse spread over 4× area? (both → scale back or tune if bad).
 - ⏳ **Tiled decal FBO + camera residency** — the #1/#2 plan above; lands with/unblocks S3j
   (DECALS in the bridge) and removes the standalone's world-sized FBO ceiling.
-- ⏳ **Incremental zone rebuild / pathfinding hierarchy** — sim-side, needed before ~4× linear.
+- ✅ **Incremental zone rebuild** — shipped (see §3); kills the per-wall-break O(W×H) spike.
+- ⏳ **Pathfinding hierarchy** — sim-side, the remaining ceiling before ~4× linear (flat A* today).
 
 ## Pointers
 - `render2d/DecalAccumulator`, `render2d/LightAccumulator` — the world-sized FBOs.

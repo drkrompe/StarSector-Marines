@@ -86,6 +86,15 @@ public final class DevConfig {
     public static final int DECAL_SOURCE_CAP = 25_000;
 
     /**
+     * When {@code true} (default): a wall breach / structure demolition updates the navigation
+     * zone graph via the <b>incremental</b> {@code ZoneGraph.applyCellsOpened} path (zones only ever
+     * merge, so an opened cell unions the zones it bridges — O(smaller-zone + doorways)) instead of a
+     * full O(W×H) {@code rebuild()}. The kill-switch: flip to {@code false} to force full rebuilds
+     * (the correctness oracle) if the incremental graph is ever suspected of diverging in a battle.
+     */
+    public static final boolean ZONE_INCREMENTAL_REBUILD = true;
+
+    /**
      * When {@code true}: the top-left tick-profile HUD overlay renders, with
      * a DUMP button that writes the current per-phase averages to
      * {@code saves/common/starsector_marines/debug/}. The sim-side phase

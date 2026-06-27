@@ -63,7 +63,7 @@ public final class MapService {
         topology.setWall(x, y, false);
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
         peelRoofAround(x, y);
-        navigation.markZoneGraphDirty();
+        navigation.markCellOpened(x, y);
         return true;
     }
 
@@ -107,6 +107,6 @@ public final class MapService {
         grid.recomputeCoverAt(cellX - 1, cellY);
         grid.recomputeCoverAt(cellX, cellY + 1);
         grid.recomputeCoverAt(cellX, cellY - 1);
-        navigation.markZoneGraphDirty();
+        navigation.markCellOpened(cellX, cellY);
     }
 }
