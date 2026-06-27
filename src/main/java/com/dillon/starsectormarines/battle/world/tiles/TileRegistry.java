@@ -53,6 +53,15 @@ public final class TileRegistry {
     private final List<TileDef> byIndex = new ArrayList<>();
     /** Fixed-grid autotile/single blocks (grid sheets), addressed by id — separate namespace from the sliced {@link TileDef}s. */
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
+    /**
+     * Folded-in per-cell viewer annotations from each sheet's {@code "cells"}
+     * array, keyed by {@code sheetPath} then a packed {@code (col,row)} key. The
+     * successor to the old {@code .catalog.json} sidecars — doc-only, read solely
+     * by the dev viewer via {@link #cellLabel}.
+     */
+    private final Map<String, Map<Long, CellLabel>> cellsBySheet = new LinkedHashMap<>();
+
+    private static long cellKey(int col, int row) { return ((long) col << 32) | (row & 0xFFFFFFFFL); }
 
     public TileDef tile(String id)      { return byId.get(id); }
     public boolean has(String id)       { return byId.containsKey(id); }
@@ -76,6 +85,30 @@ public final class TileRegistry {
     public GridBlockDef block(String id)        { return blocksById.get(id); }
     public boolean hasBlock(String id)          { return blocksById.containsKey(id); }
     public Collection<GridBlockDef> blocks()    { return blocksById.values(); }
+
+    /**
+     * The viewer annotation for one source cell of {@code sheetPath}, or
+     * {@code null} if unlabelled. Grid sheets resolve from the folded-in
+     * {@code "cells"} array; sliced sheets fall back to the tile whose
+     * {@link TileDef#frame} equals {@code col} (their cells are a single
+     * left-to-right strip, {@code row == 0}). Doc-only — for the dev viewer.
+     */
+    public CellLabel cellLabel(String sheetPath, int col, int row) {
+        Map<Long, CellLabel> sheet = cellsBySheet.get(sheetPath);
+        if (sheet != null) {
+            CellLabel label = sheet.get(cellKey(col, row));
+            if (label != null) return label;
+        }
+        if (row == 0) {
+            for (TileDef def : byIndex) {
+                if (def.frame == col && sheetPath.equals(def.sheetPath)) {
+                    if (def.name.isEmpty() && def.description.isEmpty()) return null;
+                    return new CellLabel(def.name, def.description);
+                }
+            }
+        }
+        return null;
+    }
 
     /** The registry installed at application load, or {@code null} if load failed / hasn't run. */
     public static TileRegistry installed() { return installed; }
@@ -101,6 +134,8 @@ public final class TileRegistry {
         if (tiles != null) ingestTiles(tiles, sheet);
         JSONArray blocks = root.optJSONArray("blocks");
         if (blocks != null) ingestBlocks(blocks, sheet, root.optInt("cellPx", 0));
+        JSONArray cells = root.optJSONArray("cells");
+        if (cells != null) ingestCells(cells, sheet);
     }
 
     /** Sliced-sheet tiles (frame-indexed). See {@link #ingestSheet}. */
@@ -125,9 +160,27 @@ public final class TileRegistry {
             if (vo != null) {
                 for (int k = 0; k < vo.length(); k++) validOn.add(vo.getString(k));
             }
-            TileDef def = new TileDef(id, sheet, byIndex.size(), frame, layer, cover, passable, validOn);
+            String name = o.optString("name", "");
+            String description = o.optString("description", "");
+            TileDef def = new TileDef(id, sheet, byIndex.size(), frame, layer, cover, passable,
+                    validOn, name, description);
             byId.put(id, def);
             byIndex.add(def);
+        }
+    }
+
+    /**
+     * Per-cell viewer annotations (folded in from the former {@code .catalog.json}).
+     * Doc-only: not validated against block/tile coverage and never read by sim or
+     * render — only {@link #cellLabel}. Last duplicate {@code (col,row)} wins.
+     */
+    private void ingestCells(JSONArray cells, String sheet) throws JSONException {
+        Map<Long, CellLabel> bySheet = cellsBySheet.computeIfAbsent(sheet, k -> new LinkedHashMap<>());
+        for (int i = 0; i < cells.length(); i++) {
+            JSONObject o = cells.getJSONObject(i);
+            int col = o.getInt("col");
+            int row = o.getInt("row");
+            bySheet.put(cellKey(col, row), new CellLabel(o.optString("name", ""), o.optString("description", "")));
         }
     }
 

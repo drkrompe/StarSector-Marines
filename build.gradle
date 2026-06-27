@@ -81,17 +81,9 @@ dependencies {
 test {
     useJUnitPlatform()
     testLogging {
-        // Audit-style tests (e.g. TilesetCatalogAuditTest) print their report
-        // to stdout — stream it to the gradle console so devs don't have to
-        // dig through the XML report.
+        // Audit-style tests print their report to stdout — stream it to the
+        // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
-    }
-    // Forward dev-tool gates from the gradle command line into the forked
-    // test JVM. Used by TilesetCatalogNormalizeTest to opt in to a working-tree
-    // rewrite; everything else is a no-op when the property is unset.
-    ['tileset.normalize'].each { key ->
-        def v = System.getProperty(key)
-        if (v != null) systemProperty key, v
     }
     // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
     // game install; forward the project-level `starsectorDir` gradle property
@@ -144,16 +136,6 @@ tasks.register('deployMod', Sync) {
         // Saves and logs the user might drop in the mod folder while testing.
         include '.git/**'
     }
-}
-
-tasks.register('pullCatalogs', Copy) {
-    group = 'starsector'
-    description = "Pull in-game tileset catalog edits from saves/common back into the source repo"
-    // In-game catalog edits land here because Starsector's script sandbox
-    // forbids mod code from writing directly into the mod folder.
-    from new File(starsectorDir, "saves/common/${modId}/tilesets")
-    include '*.catalog.json'
-    into new File(modOutputDir, 'data/tilesets')
 }
 
 tasks.register('undeployMod', Delete) {

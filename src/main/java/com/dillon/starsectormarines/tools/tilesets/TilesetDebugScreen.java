@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.tools.tilesets;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.world.tiles.CellLabel;
 import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.ops.ScreenId;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
-import com.dillon.starsectormarines.ui.TextFieldWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -46,17 +45,19 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * Developer-facing tileset catalog. Loads one sheet at a time, slices it on a
- * fixed pixel grid, and lets the user click a non-empty cell to attach a
- * short {@code name} + {@code description} that persists to
- * {@code data/tilesets/<basename>.catalog.json} via {@link TilesetCatalog}.
+ * Developer-facing tileset viewer. Loads one sheet at a time, slices it on a
+ * fixed pixel grid, and shows the per-cell {@code name} + {@code description}
+ * labels for whichever non-empty cell is selected — read straight from the
+ * {@link TileRegistry} ({@link TileRegistry#cellLabel}), which folds those
+ * annotations in from each {@code data/tilesets/<basename>.tileset.json}.
  *
- * <p>Drives both: (a) browsing the grid with {@code (col, row)} overlays so
- * we can call out which cells are which without counting tiles in an external
- * editor, and (b) building a stable hand-curated note file we can reference
- * when wiring tiles into {@link com.dillon.starsectormarines.battle.world.model.TileManifest}.
+ * <p>Authoring is now done by editing the {@code .tileset.json} {@code "cells"}
+ * arrays in the repo directly; this screen is the read-only A/B for confirming
+ * slicing + which cell is which without counting tiles in an external editor.
+ * (It superseded an in-game catalog editor that round-tripped through
+ * {@code saves/common}; the labels live in one file per sheet now.)
  *
- * <p>Sheet list is hard-coded — there are four right now and a runtime
+ * <p>Sheet list is hard-coded — there are six right now and a runtime
  * directory scan adds latency for no benefit. Add a new sheet by appending
  * to {@link #SHEETS}.
  */
@@ -76,13 +77,9 @@ public class TilesetDebugScreen implements Screen {
     private static final float SIDEBAR_W        = 320f;
     private static final float SIDEBAR_GAP      = 12f;
 
-    private static final float FORM_FIELD_H     = 30f;
     private static final float FORM_LABEL_H     = 20f;
     private static final float FORM_ROW_GAP     = 8f;
-    private static final float SAVE_BTN_H       = 32f;
     private static final float PREVIEW_SIZE     = 96f;
-    private static final int   NAME_MAX_CHARS   = 48;
-    private static final int   DESC_MAX_CHARS   = 240;
 
     private static final Color HEADER_COLOR     = new Color(0xC8, 0xE0, 0xFF);
     private static final Color LABEL_COLOR      = new Color(0xFF, 0xE0, 0x70);
@@ -93,8 +90,6 @@ public class TilesetDebugScreen implements Screen {
     private static final Color FRAME_COLOR      = new Color(0x4A, 0x6B, 0x8C);
     private static final Color SELECT_COLOR     = new Color(0x7A, 0xB7, 0xFF);
     private static final Color CATALOG_BADGE    = new Color(0x4A, 0xCC, 0x88);
-    private static final Color SAVE_OK_COLOR    = new Color(0x9A, 0xE6, 0xB4);
-    private static final Color SAVE_ERR_COLOR   = new Color(0xFF, 0x9A, 0x88);
     private static final Color BODY_TEXT        = new Color(0xE0, 0xE8, 0xF4);
     private static final Color SUBHEAD_COLOR    = new Color(0xA8, 0xC0, 0xE0);
 
@@ -133,7 +128,6 @@ public class TilesetDebugScreen implements Screen {
     private int rows;
     private int sheetPxW;
     private int sheetPxH;
-    private TilesetCatalog catalog;
     /** Non-null when the active sheet is in slicer mode. {@code sliceFrames[col]} is the bounding box of the {@code col}-th detected sprite. */
     private SpriteSheetFrames.Frame[] sliceFrames;
 
@@ -145,14 +139,6 @@ public class TilesetDebugScreen implements Screen {
     // Selection — null until the user clicks a tile.
     private int selCol = -1;
     private int selRow = -1;
-
-    // Sidebar form widgets — re-bound on selection change so onChange writes
-    // back to the right catalog entry.
-    private TextFieldWidget nameField;
-    private TextFieldWidget descField;
-    private String saveStatus = "";
-    private boolean saveStatusError;
-    private float saveStatusTimer;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -223,9 +209,6 @@ public class TilesetDebugScreen implements Screen {
             cellHasContent = null;
             sliceFrames = null;
         }
-
-        catalog = new TilesetCatalog(spec.path);
-        catalog.load();
     }
 
     private boolean cellHasAnyOpaquePixel(int[] pixels, int col, int row, int tileSize) {
@@ -242,8 +225,6 @@ public class TilesetDebugScreen implements Screen {
 
     private void rebuild() {
         widgets.clear();
-        nameField = null;
-        descField = null;
         if (position == null || ctx == null) return;
 
         float xL = position.getX();
@@ -335,13 +316,11 @@ public class TilesetDebugScreen implements Screen {
     private void layoutSidebar(float sbX, float sbY, float sbH) {
         // Sidebar laid out top-down from sbTop:
         //   "Selected" header
-        //   preview swatch (PREVIEW_SIZE square) + (col,row) line beside it
-        //   "Name" label
-        //   name field
-        //   "Description" label
-        //   description field
-        //   Save button (anchored to bottom of sidebar so the gap between
-        //                description and Save grows with available height)
+        //   preview swatch (PREVIEW_SIZE square) + frame/(col,row) line beside it
+        //   "Name" label + read-only name value
+        //   "Description" label + read-only (word-wrapped) description
+        // All read-only — labels come from TileRegistry.cellLabel (folded in from
+        // the sheet's .tileset.json "cells"); authoring is done by editing JSON.
         float sbTop = sbY + sbH;
 
         float y = sbTop - 6f;
@@ -357,106 +336,80 @@ public class TilesetDebugScreen implements Screen {
         previewRectW = PREVIEW_SIZE;
         previewRectH = PREVIEW_SIZE;
 
+        TileRegistry reg = TileRegistry.installed();
         float textX = sbX + PREVIEW_SIZE + 10f;
-        String coord;
-        if (selCol < 0) {
-            coord = "(none)";
-        } else if (activeSheet != null && activeSheet.isSliced()) {
-            // Resolve the label from the TileRegistry by matching sheet + frame.
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                coordLabel(reg), textX, previewY + PREVIEW_SIZE - 6f, BODY_TEXT));
+        y = previewY - 12f;
+
+        CellLabel label = (selCol >= 0 && reg != null && activeSheet != null)
+                ? reg.cellLabel(activeSheet.path, selCol, selRow)
+                : null;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Name", sbX, y, SUBHEAD_COLOR));
+        y -= FORM_LABEL_H;
+        String nameText = (label != null && !label.name.isEmpty()) ? label.name : "(unlabelled)";
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, nameText, sbX, y, BODY_TEXT));
+        y -= FORM_LABEL_H + FORM_ROW_GAP;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Description", sbX, y, SUBHEAD_COLOR));
+        y -= FORM_LABEL_H;
+        String descText = label != null ? label.description : "";
+        for (String line : wrap(descText, SIDEBAR_W)) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, line, sbX, y, BODY_TEXT));
+            y -= FORM_LABEL_H;
+        }
+    }
+
+    /** Coordinate line for the selection: {@code "frame N — <id>"} for sliced sheets, {@code "(col, row)"} for grid sheets. */
+    private String coordLabel(TileRegistry reg) {
+        if (selCol < 0) return "(none)";
+        if (activeSheet != null && activeSheet.isSliced()) {
+            // Resolve the tile id from the registry by matching sheet + frame.
             // Falls back to a bare frame index when the registry is unavailable
             // (e.g. launched outside the game) or no tile maps to this frame.
-            String label = null;
-            TileRegistry reg = TileRegistry.installed();
-            if (reg != null && activeSheet != null) {
+            String id = null;
+            if (reg != null) {
                 final String sheetPath = activeSheet.path;
                 final int frameIdx = selCol;
-                label = reg.all().stream()
+                id = reg.all().stream()
                         .filter(d -> sheetPath.equals(d.sheetPath) && d.frame == frameIdx)
                         .map(d -> d.id)
                         .findFirst()
                         .orElse(null);
             }
-            coord = "frame " + selCol + (label != null ? " — " + label : "");
-        } else {
-            coord = "(" + selCol + ", " + selRow + ")";
+            return "frame " + selCol + (id != null ? " — " + id : "");
         }
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                coord, textX, previewY + PREVIEW_SIZE - 6f, BODY_TEXT));
-        y = previewY - 12f;
+        return "(" + selCol + ", " + selRow + ")";
+    }
 
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Name", sbX, y, SUBHEAD_COLOR));
-        y -= FORM_LABEL_H;
-        nameField = new TextFieldWidget(sbX, y - FORM_FIELD_H, SIDEBAR_W, FORM_FIELD_H,
-                Fonts.ORBITRON_20, NAME_MAX_CHARS, "(unnamed)");
-        widgets.add(nameField);
-        y -= FORM_FIELD_H + FORM_ROW_GAP;
-
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Description", sbX, y, SUBHEAD_COLOR));
-        y -= FORM_LABEL_H;
-        descField = new TextFieldWidget(sbX, y - FORM_FIELD_H, SIDEBAR_W, FORM_FIELD_H,
-                Fonts.ORBITRON_20, DESC_MAX_CHARS, "(short description)");
-        widgets.add(descField);
-        y -= FORM_FIELD_H + FORM_ROW_GAP;
-
-        // Save button at the bottom of the sidebar.
-        float saveY = sbY;
-        ButtonWidget save = new ButtonWidget(sbX, saveY, SIDEBAR_W, SAVE_BTN_H, this::commitSave);
-        widgets.add(save);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Save", sbX + 12f, saveY + SAVE_BTN_H - 6f, HEADER_COLOR));
-
-        // Repopulate fields from the catalog entry for the current selection.
-        if (selCol >= 0 && catalog != null) {
-            TilesetCatalog.Entry e = catalog.get(selCol, selRow);
-            if (e != null) {
-                nameField.setText(e.name);
-                descField.setText(e.description);
+    /** Greedy word-wrap of {@code text} to {@code maxWidth} px at the body font; empty list for blank text. */
+    private static List<String> wrap(String text, float maxWidth) {
+        List<String> lines = new ArrayList<>();
+        if (text == null || text.isEmpty()) return lines;
+        if (!Fonts.ORBITRON_20.ensureLoaded()) { lines.add(text); return lines; }
+        StringBuilder cur = new StringBuilder();
+        for (String word : text.split(" ")) {
+            String trial = cur.length() == 0 ? word : cur + " " + word;
+            if (cur.length() > 0 && Fonts.ORBITRON_20.measureWidth(trial) > maxWidth) {
+                lines.add(cur.toString());
+                cur = new StringBuilder(word);
+            } else {
+                cur = new StringBuilder(trial);
             }
         }
-
-        // Wire onChange to keep the in-memory catalog entry in sync with typing.
-        // Save still writes to disk; this just keeps the per-selection state coherent
-        // so cycling between selections within a session preserves edits.
-        nameField.setOnChange(s -> {
-            if (selCol < 0 || catalog == null) return;
-            TilesetCatalog.Entry e = catalog.getOrCreate(selCol, selRow);
-            e.name = s;
-        });
-        descField.setOnChange(s -> {
-            if (selCol < 0 || catalog == null) return;
-            TilesetCatalog.Entry e = catalog.getOrCreate(selCol, selRow);
-            e.description = s;
-        });
+        if (cur.length() > 0) lines.add(cur.toString());
+        return lines;
     }
 
     // Preview rect cached during rebuild so render() can draw it.
     private float previewRectX, previewRectY, previewRectW, previewRectH;
 
-    private void commitSave() {
-        if (catalog == null) return;
-        try {
-            catalog.save();
-            saveStatus = "Saved.";
-            saveStatusError = false;
-        } catch (Exception ex) {
-            LOG.error("TilesetDebugScreen: save failed", ex);
-            saveStatus = "Save failed: " + ex.getMessage();
-            saveStatusError = true;
-        }
-        saveStatusTimer = 4f;
-    }
-
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
-        if (saveStatusTimer > 0f) {
-            saveStatusTimer -= dt;
-            if (saveStatusTimer <= 0f) {
-                saveStatus = "";
-            }
-        }
     }
 
     @Override
@@ -475,18 +428,12 @@ public class TilesetDebugScreen implements Screen {
                 if (cellHasContent != null && cellHasContent[col][row]) {
                     selCol = col;
                     selRow = row;
-                    rebuild(); // re-bind sidebar fields to the new selection
+                    rebuild(); // re-resolve the read-only label for the new selection
                     e.consume();
                 }
             }
         }
         widgets.processInput(events);
-
-        // Keyboard delivery to the focused text field (whichever one captured
-        // focus from the last mouse-down). Both fields' processKey is a no-op
-        // when unfocused.
-        if (nameField != null) nameField.routeKeys(events);
-        if (descField != null) descField.routeKeys(events);
     }
 
     /** Returns {@code (row << 16) | col} or -1 on miss. */
@@ -513,7 +460,6 @@ public class TilesetDebugScreen implements Screen {
             renderSelectionPreview(alphaMult);
         }
         widgets.render(alphaMult);
-        renderSaveStatus(alphaMult);
     }
 
     private void renderGrid(float alphaMult) {
@@ -607,6 +553,7 @@ public class TilesetDebugScreen implements Screen {
 
         // Pass 5 — (col,row) labels per non-empty cell. Sliced sheets show
         // the frame index alone since row is always 0.
+        TileRegistry reg = TileRegistry.installed();
         for (int row = 0; row < rows; row++) {
             float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
             for (int col = 0; col < cols; col++) {
@@ -617,14 +564,11 @@ public class TilesetDebugScreen implements Screen {
                 Fonts.ORBITRON_20.drawString(label, lx + 1f, ly - 1f, LABEL_SHADOW, alphaMult);
                 Fonts.ORBITRON_20.drawString(label, lx,        ly,        LABEL_COLOR,  alphaMult);
 
-                // Catalog-badge dot in the corner of cells that have an entry.
-                if (catalog != null) {
-                    TilesetCatalog.Entry e = catalog.get(col, row);
-                    if (e != null && !e.isBlank()) {
-                        float dotX = gridOriginX + col * gridDisplayCell + gridDisplayCell - 6f;
-                        float dotY = y0 + 2f;
-                        drawCornerDot(dotX, dotY, alphaMult);
-                    }
+                // Corner badge on cells that carry a folded-in label.
+                if (reg != null && reg.cellLabel(activeSheet.path, col, row) != null) {
+                    float dotX = gridOriginX + col * gridDisplayCell + gridDisplayCell - 6f;
+                    float dotY = y0 + 2f;
+                    drawCornerDot(dotX, dotY, alphaMult);
                 }
             }
         }
@@ -713,15 +657,5 @@ public class TilesetDebugScreen implements Screen {
         glVertex2f(previewRectX + previewRectW,  previewRectY + previewRectH);
         glVertex2f(previewRectX,                 previewRectY + previewRectH);
         glEnd();
-    }
-
-    private void renderSaveStatus(float alphaMult) {
-        if (saveStatus.isEmpty()) return;
-        Color c = saveStatusError ? SAVE_ERR_COLOR : SAVE_OK_COLOR;
-        float fade = Math.min(1f, saveStatusTimer / 1f); // last second fades
-        Fonts.ORBITRON_20.drawString(saveStatus,
-                position.getX() + PAD + BACK_W + PAD,
-                position.getY() + PAD + BACK_H - 6f,
-                c, fade * alphaMult);
     }
 }

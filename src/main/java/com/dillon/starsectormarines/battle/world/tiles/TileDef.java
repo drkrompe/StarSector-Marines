@@ -43,9 +43,19 @@ public final class TileDef {
      * {@link #canOverlayOn}.
      */
     public final List<String> validOn;
+    /**
+     * Human-facing label for the dev tileset viewer (empty when unlabelled).
+     * Doc-only — sim/render never read it. For sliced sheets this is the per-tile
+     * annotation the former {@code .catalog.json} carried; it is what
+     * {@link TileRegistry#cellLabel} returns for a sliced cell.
+     */
+    public final String name;
+    /** Free-text note for the viewer (empty when none). Companion to {@link #name}. */
+    public final String description;
 
     public TileDef(String id, String sheetPath, int index, int frame, TileLayer layer,
-                   TileCover cover, boolean passable, List<String> validOn) {
+                   TileCover cover, boolean passable, List<String> validOn,
+                   String name, String description) {
         this.id = id;
         this.sheetPath = sheetPath;
         this.index = index;
@@ -54,6 +64,8 @@ public final class TileDef {
         this.cover = cover;
         this.passable = passable;
         this.validOn = validOn == null ? List.of() : List.copyOf(validOn);
+        this.name = name == null ? "" : name;
+        this.description = description == null ? "" : description;
     }
 
     public boolean isGround() { return layer.isGround(); }

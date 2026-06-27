@@ -30,8 +30,7 @@ import java.util.Map;
  * {@code saves/common/starsector_marines/debug/squad_<id>.json} via the
  * SettingsAPI common-folder write path (the only file I/O available to mod
  * code; {@link java.nio.file} and {@link java.io.File} are blocked by the
- * Starsector script sandbox — see {@code TilesetCatalog} for the prior
- * art).
+ * Starsector script sandbox).
  *
  * <p>Triggered manually from the {@link
  * com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel} when

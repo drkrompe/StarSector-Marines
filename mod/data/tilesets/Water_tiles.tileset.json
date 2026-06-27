@@ -3,5 +3,18 @@
   "cellPx": 16,
   "blocks": [
     { "id": "water.water", "cells": [[6, 7], [7, 7], [8, 7]] }
+  ],
+  "cells": [
+    { "col": 8, "row": 0, "name": "water-edge-s" },
+    { "col": 6, "row": 1, "name": "water-edge-se" },
+    { "col": 10, "row": 1, "name": "water-edge-sw" },
+    { "col": 6, "row": 2, "name": "water-edge-e" },
+    { "col": 10, "row": 2, "name": "water-edge-w" },
+    { "col": 6, "row": 3, "name": "water-edge-ne" },
+    { "col": 10, "row": 3, "name": "water-edge-nw" },
+    { "col": 8, "row": 4, "name": "water-edge-n" },
+    { "col": 6, "row": 7, "name": "water-1" },
+    { "col": 7, "row": 7, "name": "water-2" },
+    { "col": 8, "row": 7, "name": "water-3" }
   ]
 }
