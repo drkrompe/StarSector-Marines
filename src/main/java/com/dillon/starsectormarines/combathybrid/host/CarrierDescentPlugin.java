@@ -70,8 +70,12 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
     /** Cells past the grid edge a drop-ship egresses to when its host carrier has left the field. */
     private static final float OFFGRID_MARGIN_CELLS = 8f;
 
-    /** Radius (cells) of the "land here" drop zone around the clicked point — a wide LZ, not a pinpoint. */
+    /** Base "land here" drop-zone radius (cells) — the cold spread, a wide LZ, not a pinpoint. */
     private static final float ZONE_RADIUS_CELLS = 30f;
+    /** Cap on the threat-widened radius (cells) so a very hot DZ doesn't scatter across the whole map. */
+    private static final float ZONE_RADIUS_MAX_CELLS = 60f;
+    /** Fraction the DZ radius widens per enemy combatant in the base zone — hot drops scatter wider + more isolating (D3). */
+    private static final float HOT_SPREAD_PER_ENEMY = 0.05f;
     /** Dropships in a wave — the swarm size. */
     private static final int DROP_COUNT = 5;
     /** Minimum spacing (cells) between landing cells so squads scatter instead of stacking. */
@@ -231,7 +235,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      * Launches a scattered wave of sim-native dropships from the orbiting carrier. Entry = the
      * carrier's combat-world position projected to a cell; the {@link DropZoneScatter} engine picks up
      * to {@value #DROP_COUNT} low-threat, spaced landing cells across the designated "land here" zone
-     * (the clicked point + {@link #ZONE_RADIUS_CELLS}). Each is a pure-transport
+     * (the clicked point; the spread radius widens from {@link #ZONE_RADIUS_CELLS} with the zone's
+     * threat — hot DZs scatter wider + more isolating, D3). Each is a pure-transport
      * {@link ShuttleType#AEROSHUTTLE} on {@link Faction#MARINE} — the sim's {@code AirSystem} flies it
      * INCOMING (altitude-scaling down the leg), lands it, and deboards its squad.
      */
@@ -255,10 +260,15 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         int cy = Math.max(0, Math.min(config.gridH() - 1, (int) Math.floor(center.y)));
         int[] centerCell = nearestWalkableCell(grid, cx, cy);
 
-        // Scatter the wave: low-threat, spaced landing cells across the zone (paratrooper drop). Threat
-        // = enemy-combatant density at the cell; walkable filter keeps drops off walls/structures.
+        // Hot/cold spread: a DZ crowded with defenders scatters wider + more isolating (paratrooper
+        // chaos), a cold one lands tight. Zone threat = enemy density in the base radius.
+        int zoneThreat = scoring.countCombatantsWithin(Faction.DEFENDER, centerCell[0], centerCell[1], ZONE_RADIUS_CELLS);
+        float radius = Math.min(ZONE_RADIUS_MAX_CELLS, ZONE_RADIUS_CELLS * (1f + HOT_SPREAD_PER_ENEMY * zoneThreat));
+
+        // Scatter the wave: low-threat, spaced landing cells across the zone. Per-cell threat =
+        // enemy-combatant density; walkable filter keeps drops off walls/structures.
         List<int[]> cells = DropZoneScatter.sample(
-                centerCell[0], centerCell[1], ZONE_RADIUS_CELLS, DROP_COUNT, MIN_SPACING_CELLS,
+                centerCell[0], centerCell[1], radius, DROP_COUNT, MIN_SPACING_CELLS,
                 (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y),
                 (x, y) -> scoring.countCombatantsWithin(Faction.DEFENDER, x, y, THREAT_RADIUS_CELLS),
                 scatterRng);
@@ -268,7 +278,8 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             spawnDrop(sim, entry.x, entry.y, cells.get(i)[0] + 0.5f, cells.get(i)[1] + 0.5f, i * STAGGER_SEC);
         }
         LOG.info("ground-bridge(descent): launched " + cells.size() + "-ship drop wave over zone cell ("
-                + centerCell[0] + ", " + centerCell[1] + ").");
+                + centerCell[0] + ", " + centerCell[1] + ") — threat " + zoneThreat
+                + ", spread radius " + (int) radius + ".");
     }
 
     /**
