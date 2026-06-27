@@ -37,8 +37,13 @@ public final class ShuttleMission {
     public final float lzX, lzY;
     /** Off-map entry point the sortie flies in from (cells). */
     public final float entryX, entryY;
-    /** Off-map exit point the sortie departs to (cells). */
-    public final float exitX, exitY;
+    /**
+     * Exit point the sortie departs to (cells). Mutable so the owner can retarget the egress
+     * mid-sortie toward a moving point — e.g. a bridge drop-ship flying home to its (orbiting) host
+     * carrier, falling back to an off-map egress only once the carrier has left. {@link AirSystem}
+     * reads it live each DEPARTING tick, so a retarget just re-steers the egress in flight.
+     */
+    public float exitX, exitY;
 
     /**
      * Straight-line distance (cells) at the moment the current INCOMING or

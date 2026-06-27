@@ -64,12 +64,16 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
      */
     private static final float MIN_DROP_LEG_CELLS = 12f;
 
+    /** Cells past the grid edge the drop-ship egresses to when its host carrier has left the field. */
+    private static final float OFFGRID_MARGIN_CELLS = 8f;
+
     private final GroundBattleConfig config;
     private final FleetSide carrierSide;
     private CombatEngineAPI engine;
     private ShipAPI descending;          // the single carrier we've taken over (null until L is pressed)
     private CarrierDescentBrain brain;   // its installed brain — polled for the arrival cue
     private boolean dropLaunched;        // one drop-ship sortie per takeover (D1b)
+    private Shuttle drop;                // the launched drop-ship — its exit tracks the carrier each frame
 
     public CarrierDescentPlugin(GroundBattleConfig config, FleetSide carrierSide) {
         this.config = config;
@@ -125,6 +129,28 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
                 && brain.hasArrived()) {
             launchDrop();
         }
+        retargetDropExit();
+    }
+
+    /**
+     * Keeps the drop-ship's exit pointed at its host carrier, so once it has deboarded it flies home
+     * and docks — the carrier holds a near-stationary orbit, so tracking its live cell each frame
+     * reads as a return-to-mothership rather than a fixed waypoint. If the carrier has left the field
+     * (destroyed / gone), the drop-ship instead egresses straight off the top of the grid: an
+     * alternative escape rather than vanishing where it stands. {@code exitX/exitY} are read live by
+     * AirSystem's DEPARTING tick, so this just re-steers the egress in flight.
+     */
+    private void retargetDropExit() {
+        if (drop == null || drop.mission.state == Shuttle.State.GONE) return;
+        if (descending != null && descending.isAlive()) {
+            Vector2f c = new Vector2f();
+            config.worldToCell(descending.getLocation().x, descending.getLocation().y, c);
+            drop.mission.exitX = c.x;
+            drop.mission.exitY = c.y;
+        } else {
+            drop.mission.exitX = drop.mission.lzX;
+            drop.mission.exitY = config.gridH() + OFFGRID_MARGIN_CELLS;
+        }
     }
 
     /**
@@ -165,10 +191,13 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             }
         }
 
-        // Exit back the way it came (up to the carrier). pendingDelay 0 = launch immediately.
-        Shuttle drop = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
+        // Exit starts at the carrier cell; retargetDropExit() steers it to the carrier's live position
+        // each frame, so after deboarding the drop-ship flies home and docks (or egresses off-map if
+        // the carrier has gone). pendingDelay 0 = launch immediately.
+        Shuttle launched = new Shuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE,
                 lz.x, lz.y, entry.x, entry.y, entry.x, entry.y, 0f);
-        sim.addShuttle(drop);
+        sim.addShuttle(launched);
+        this.drop = launched;
         LOG.info("ground-bridge(descent): launched drop-ship from carrier cell ("
                 + (int) entry.x + ", " + (int) entry.y + ") to LZ (" + (int) lz.x + ", " + (int) lz.y + ").");
     }
