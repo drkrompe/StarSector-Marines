@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.combathybrid.host;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
@@ -18,7 +19,11 @@ import org.apache.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * S3d descent foundation — the in-combat trigger that hands one carrier over to a {@link
@@ -139,6 +144,13 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         Vector2f lz = new Vector2f();
         config.worldToCell(lzWorld.x, lzWorld.y, lz);
 
+        // Snap the LZ to a walkable cell. The centroid is the structure centroid, which can land on a
+        // (non-walkable) structure cell or inside a walled compound; the deboard scan only reaches 5
+        // cells, so a dropship there would never deboard and would wedge in LANDED forever. Land the
+        // shuttle on the nearest walkable cell instead. (D2's threat-scored scatter supersedes this.)
+        int[] lzCell = nearestWalkableCell(sim.getGrid(), (int) Math.floor(lz.x), (int) Math.floor(lz.y));
+        lz.set(lzCell[0] + 0.5f, lzCell[1] + 0.5f);
+
         // Guarantee a visible descent leg (see MIN_DROP_LEG_CELLS): if the carrier settled almost on
         // the LZ, push the entry back along the carrier→LZ bearing (or straight up if dead-on).
         float dx = entry.x - lz.x, dy = entry.y - lz.y;
@@ -167,5 +179,34 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
             if (ship != null && ship.isAlive()) return ship;
         }
         return null;
+    }
+
+    /**
+     * Nearest walkable cell to {@code (startX,startY)} by 4-neighbour BFS over the sim grid, falling
+     * back to the start cell if nothing walkable is reachable (impossible in a real battle — there's
+     * always walkable ground — so the fallback only guards a degenerate empty grid). One-shot per
+     * launch, so the unbounded expansion is cheap.
+     */
+    private static int[] nearestWalkableCell(NavigationGrid grid, int startX, int startY) {
+        if (grid.inBounds(startX, startY) && grid.isWalkable(startX, startY)) {
+            return new int[]{startX, startY};
+        }
+        Set<Long> seen = new HashSet<>();
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{startX, startY});
+        seen.add(((long) startX << 32) | (startY & 0xFFFFFFFFL));
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            for (int[] d : dirs) {
+                int nx = p[0] + d[0], ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                long k = ((long) nx << 32) | (ny & 0xFFFFFFFFL);
+                if (!seen.add(k)) continue;
+                if (grid.isWalkable(nx, ny)) return new int[]{nx, ny};
+                q.add(new int[]{nx, ny});
+            }
+        }
+        return new int[]{startX, startY};
     }
 }
