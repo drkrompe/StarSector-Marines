@@ -105,6 +105,11 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
     too fiddly for fast play — a wide single-click LZ reads as "land here-ish" (user call).*
     Cursor→world uses the viewport rectangle getters (not `convert*`, which drift under the
     spectator's `setExternalControl` camera — see `SeeThroughPlugin`).
+    - **Critique pass (`fc9037d4`):** substantially correct (cursor→world math, LMB-consume safety,
+      re-aim/defer timing all verified, no HIGH). Fixed: a re-home leak (an old wave got re-pointed
+      onto a freshly-taken-over carrier — now flushed off-grid + forgotten), an `engine` null-guard, a
+      premature `dropZoneWorld` write, and an off-map-click wedge (scatter center now clamped to the
+      grid). DZ-radius overlay-under-cursor remains the only D2 polish TODO.
 - **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
   widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
 - **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
