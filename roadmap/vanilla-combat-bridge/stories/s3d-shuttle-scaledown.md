@@ -157,13 +157,12 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
   probe's direct campaign read; derive throughput from actual fleet transports.
   - **Critique pass:** correct + well-constructed, no HIGH (wave/partial-ship math, pool can't go
     negative, guaranteed termination, `committed` lifecycle, `marinesRemaining` override sticking, the
-    fleet read safe during the stash window — all verified). Follow-ups (NOT this file — log only):
-    **MEDIUM** `AirSystem.tryDeboardMarine` derives the loadout slot as `type.capacity − marinesRemaining`,
-    which assumes a full shuttle; D5 is the first to ship *partial* shuttles, so a partial last ship would
-    read mis-aligned loadout entries — latent today (bridge drops have null `marineLoadout`), but fix
-    before per-marine loadouts are ever wired onto a bridge drop (track a dedicated deboard counter, or
-    store `initialMarines`). **LOW** uncapped pool has a long tail on a huge fleet (intentional for the
-    probe; clamp/awareness when productionised).
+    fleet read safe during the stash window — all verified). Follow-ups: **MEDIUM ✅ fixed (`256fe3ce`)** —
+    `AirSystem.tryDeboardMarine` derived the loadout slot as `type.capacity − marinesRemaining` (assumes a
+    full shuttle); D5 ships *partial* shuttles, so a partial last ship read mis-aligned loadout entries.
+    Now slot = `ShuttleMission.deboardedThisSortie` (a 0-based per-sortie counter, reset on re-arm),
+    correct for full + partial alike. **LOW** uncapped pool has a long tail on a huge fleet (intentional
+    for the probe; clamp/awareness when productionised).
 - *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
 
 ## Built so far — D1 complete (orbit takeover → drop-ship launch → render)
