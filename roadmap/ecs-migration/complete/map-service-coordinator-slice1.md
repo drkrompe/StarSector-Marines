@@ -1,7 +1,7 @@
 # Story: MapService coordinator — Slice 1 (runtime map-modification cycle)
 
 **Shipped `c49eea7`** (2026-05-28). First slice of the
-[`map-service-coordinator`](../stories/map-service-coordinator.md) story:
+[`map-service-coordinator`](map-service-coordinator.md) story:
 a new `MapService` (in `battle.world`) now owns the cross-domain runtime
 map-modification cycle, lifting it off `NavigationService` — which should
 own navigation, not topology mutation. Resolves the cross-domain-ownership
@@ -53,7 +53,7 @@ coordinator, everything else stays in subpackages.
   `UrbanMapGenerator` / `BspCityGenerator` grid+topology population into
   MapService. Larger surface, lower smell; scope as a follow-on only if the
   seam proves worth it. Still named in the
-  [story](../stories/map-service-coordinator.md#slice-2-stretch--generation-cycle).
+  [story](map-service-coordinator.md#slice-2-stretch--generation-cycle).
 
 ## Coverage
 

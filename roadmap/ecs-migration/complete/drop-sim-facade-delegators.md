@@ -1,5 +1,12 @@
 # Story: drop the BattleSimulation facade delegators (terminal migration story)
 
+> **SHIPPED (substantive scope).** Both tiers that reach the sim through a contract now
+> depend on `BattleView` (read) / `BattleControl` (mutate), not raw `BattleSimulation`:
+> the GOAP spine (terminal flip `61e322a`) and the command tier (`cb91e87`), ~55 files
+> narrowed total. The leftover upcasts (render/UI facade reads, the `decision/` per-unit
+> dispatch, a few GOAP callers) are **out-of-scope by design** — see the DECISION block
+> below; they are dispatch plumbing, not coupling-reduction wins.
+
 ## Context
 
 `BattleSimulation` is no longer a god class — it's a thin orchestrator

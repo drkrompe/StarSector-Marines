@@ -1,5 +1,13 @@
 # Components by capability, not by store/liveness (design correction)
 
+> **SHIPPED (realized).** This design-correction is now embodied in the archetype
+> world: components are decomposed by lifecycle-stable *capability*
+> (`IDENTITY`/`POSITION`/`HEALTH`/`COMBAT`/`MOVEMENT`/`AI_STATE`, with `SECONDARY_WEAPON`/
+> `MECH_LOADOUT`/`CRASHING`/`KINEMATICS` as optional presence), not by store/liveness —
+> death is a row-move that removes the live-only capabilities, exactly the axis below.
+> The live form lives in [`archetype-storage.md`](../archetype-storage.md) §component
+> decomposition + `BattleComponents`. Kept here as the reference for *why* that axis.
+
 > A correction to how we've been drawing component boundaries, surfaced in design
 > review (2026-06-03). Read [`component-model.md`](../component-model.md) first;
 > this sharpens its B1 ("group columns into `Position`, `Combat`, …") with the

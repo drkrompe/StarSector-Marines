@@ -1,5 +1,12 @@
 # Story: MapService coordinator — own the generation + runtime-modification cycles
 
+> **SHIPPED (Slice 1; Slice 2 deferred).** Slice 1 (`c49eea7`): `MapService` (in
+> `battle.world`) owns the runtime map-modification cycle — `damageWall` / `destroyRoof`
+> / `peelRoofAround` / `flipCellToRubble` + the roof-collapse FX sink — lifted off
+> `NavigationService`; `CellTopology` stayed a pure data holder. Slice 2 (folding the
+> generators' grid+topology population into `MapService`) was an **optional stretch, not
+> pursued** (larger surface, lower smell); reopen only if that seam proves worth it.
+
 ## Context
 
 `NavigationService` currently owns map-mutation behavior that isn't
@@ -95,7 +102,7 @@ Name it here so it isn't lost; don't lead with it.
 ## Sequencing
 
 - Independent of the SoA-promotion tail; a Service-extraction sibling to
-  the shipped [`path-mutation-to-navigation`](../complete/path-mutation-to-navigation.md).
+  the shipped [`path-mutation-to-navigation`](path-mutation-to-navigation.md).
 - Land **before or alongside** [`drop-sim-facade-delegators`](drop-sim-facade-delegators.md):
   MapService is a *new* service, so `sim.damageCell` becomes one more
   facade delegate. Better to introduce it before the facade cleanup

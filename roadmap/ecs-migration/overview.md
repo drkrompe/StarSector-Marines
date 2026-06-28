@@ -1,14 +1,30 @@
 # Battle-tier ECS migration
 
-Long-running refactor arc moving the battle simulation from
-god-class-with-context-interfaces toward a Services-and-Systems shape,
-with primitive-per-Unit state migrating into SoA (parallel arrays
-keyed by dense index) on `UnitRegistry`. Locked-in direction; not a
-proposal.
+> **Status (2026-06-28): the storage/topology half is DONE; the systems/identity/perf
+> half is open.** Read [`next-session.md`](next-session.md) § Status first for the live
+> state and the leverage-ordered backlog. This file is the arc's *framing*: the *why*,
+> the original **SoA-peel design rules** (historical — that peel is complete and its
+> `UnitRegistry`/`local*`/`denseIdx` machinery is deleted, but the storage principles
+> carry forward), and the naming north star (now *achieved* — `Unit` is `Entity`). The
+> committed storage engine and its **live** rules are in
+> [`archetype-storage.md`](archetype-storage.md); the next epic is
+> [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
+
+Long-running refactor arc that moved the battle simulation from
+god-class-with-context-interfaces toward a Services-and-Systems shape, and the
+per-unit state from a fat `Unit` POJO into an archetype `EntityWorld` (one SoA
+table per archetype, entity = `long` id). The first leg — the SoA *peel*, lifting
+primitive columns off `Unit` onto a dense `UnitRegistry` — was the stepping stone;
+it has since been **superseded by the archetype tables it was the prerequisite for**:
+`UnitRegistry` is deleted, every per-unit column lives in the `EntityWorld`, optional
+capabilities are archetype presence, and `Unit` was renamed `Entity`. What remains is
+the **systems** half — turning the registry-shaped consumers that still iterate an
+`Entity[]` and read columns by id into query-driven, column-walking systems (and
+measuring the cache-locality win the storage move was justified on).
 
 The campaign tier already runs under this shape ([`SoA primitives + behavior
-in Systems`](../campaign/architecture.md)); this work brings the battle
-tier closer to the same model.
+in Systems`](../campaign/architecture.md)); this work brought the battle tier to the
+same model on the storage side.
 
 ## Why
 
@@ -31,10 +47,21 @@ The user explicitly framed this as a "stepping stone toward ECS — not
 the destination, but the prerequisite refactor so a real
 component-storage move later has somewhere to land."
 
-## Design rules
+## Design rules (SoA-peel era — historical)
 
-These are the rules every future SoA promotion has to follow. Stop
-and re-check the doc if you find yourself wanting to break one.
+> **These governed the first leg** (peeling primitive-per-`Unit` columns onto the
+> dense `UnitRegistry`). That registry and the `local*` / `denseIdx` / release-snapshot
+> machinery they describe are **deleted** — columns now live in the archetype
+> `EntityWorld`, and the file/symbol links below (`Unit.java`, `UnitRegistryTest`,
+> `cellXArray()`/`hpArray()`) point at code that no longer exists. They are kept
+> verbatim (numbering intact — [`archetype-storage.md`](archetype-storage.md) cites
+> "rule 6") because the *principles* carry into the archetype world: **rule 5**
+> (parallel primitive columns, not interleaved), **rule 6** (capture the raw column
+> arrays once at the top of the hot loop — now per matched table), and **rule 7** (test
+> parity for every column) are exactly the archetype-table rules. See
+> [`archetype-storage.md`](archetype-storage.md) for their **live** form.
+
+These were the rules every SoA promotion had to follow.
 
 1. **Final accessors on `Unit`.** `getFoo() / setFoo()` are
    `public final` to keep HotSpot CHA monomorphic across subclasses
@@ -68,55 +95,51 @@ and re-check the doc if you find yourself wanting to break one.
 
 - **Spatial index payload shape.** See
   [`spatial-index-options.md`](spatial-index-options.md).
-- **Morton-sort the SoA arrays periodically.** Not worth at N=200.
+- **Morton-sort the archetype columns periodically.** Not worth at N=200.
 - **`MountedTurret` non-Unit migration.** Already done — targets route
-  through registry via `*targetId` fields.
+  through the world's `COMBAT.targetId` column by entity id.
 
-## Naming: defer `entity` until `Unit` *is* an id
+## Naming: `Unit` → `Entity` (DONE, with one caveat)
 
-A rename — `battle.unit` → `battle.entity`, with `Unit` itself eventually
-`Entity` — was prototyped locally and reverted (2026-05-28). The decision:
-**rename last, not first.** The name `Entity` (and the `entity` package)
-should describe an *achieved* reality, not an aspiration.
+The rename followed the **rename-last, not first** discipline — the name `Entity`
+should describe an *achieved* reality, not an aspiration — so it was held until the SoA
+peel + the registry dissolution had hollowed the type, then shipped (`a708ce8`,
+2026-06-02): `Unit.java` → `Entity.java`, 1729 usages across 185 files. Sibling types
+kept their `Unit*` names (`UnitType`, `UnitRosterService`, `UnitRole`,
+`UnitSpatialIndex`, `UnitBehavior`, `UnitUpdateSystem`).
 
-Today `Unit` is still a fat POJO whose primitives are being peeled into
-SoA arrays one at a time (see the promotions list in
-[`next-session.md`](next-session.md)). It is not yet an ECS entity — a
-bare id / handle over component storage owned by Systems and Services.
-Adopting ECS-entity naming now would overclaim the abstraction and burn
-the cleanest name on what is still an archetype object.
+**Caveat the naming north star did NOT fully reach:** `Entity` is *not yet* a bare
+`long` id — it is still a ~305-line heap object held in the roster's `Entity[]`,
+carrying immutable identity + `seed*` construction inputs + ~13 live behavior/capability
+fields (`role`, `assignedObjective`, `equipmentDropTarget`, `primaryWeapon`, …). The
+rename documents what the *storage* became (id-keyed columns in the `EntityWorld`),
+while the handle itself is the subject of the still-open identity-collapse epic
+([`next-session.md`](next-session.md) § Status, backlog item 3).
 
-**North star:** keep `battle.unit.Unit` until the SoA peel has hollowed it
-out enough that the remaining type genuinely *is* an id + thin accessor
-shim — at which point a rename to `Entity` documents what it has *become*.
-Until then the lever is data-model work (the Services-own-state peel,
-perf-gated on hot loops like `UnitUpdateSystem`), not naming.
+## What shipped, and what's next
 
-## Next phase: the component model
+The committed storage target — **archetype tables**
+([`archetype-storage.md`](archetype-storage.md), engine core built + green: one SoA
+table per archetype, entity = `long` id, structural change = row-move) — is **live and
+consuming all per-unit state.** The SoA-peel, the
+[facade-decoupling](complete/) (`BattleView`/`BattleControl`), the
+`collapse-unit-handle` registry dissolution + rename, and the optional-capability
+composition all shipped. [`component-model.md`](component-model.md) is the
+composition-phase **history**; its "keep one wide table" framing is superseded by
+archetype-storage.
 
-> **Committed storage target (2026-06-03): archetype tables** —
-> [`archetype-storage.md`](archetype-storage.md) (engine core built + green). One
-> SoA table per archetype, entity = bare `long` id, per-component primitive
-> columns, structural change = row-move. This **supersedes** `component-model.md`'s
-> "keep one wide table" framing below; that doc is now the composition-phase
-> history + shipped slices.
+The **identity + composition** gap is now *partially* closed — optional capabilities
+ARE presence components — and *partially* open: the `Entity` handle still carries live
+state, and the hot systems still read columns by id rather than walking a `Query`. The
+next epics, by leverage (full backlog in [`next-session.md`](next-session.md) § Status):
 
-The SoA-peel and the [facade-decoupling](stories/drop-sim-facade-delegators.md)
-work built the **storage + transform** half of ECS. The next phase closes
-the **identity + composition** gap — see [`component-model.md`](component-model.md)
-for the north star (engine-vs-game framing, the Artemis gap, the
-Valhalla-aligned target) and its two seeded stories:
-
-- [`collapse-unit-handle`](stories/collapse-unit-handle.md) — finish
-  hollowing `Unit` to an id handle; retire the `local*` duality; unblock
-  the `Entity` rename above.
-- [`component-grouping`](stories/component-grouping.md) — group SoA columns
-  into named component structs (Valhalla-aligned); model optional
-  capabilities (the incoming **vehicle HP / ground+air bodies / mounted
-  weapons**) as component *presence* over nullable-field if/else.
-
-These are pulled by the imminent vehicle-entity work — that's the forcing
-function that makes the optional-capability explosion concrete.
+- [`stories/systems-to-columns.md`](stories/systems-to-columns.md) — the **systems
+  half**: convert the combatant hot loop to `Query` + column iteration and *measure*
+  the cache-locality win. **The headline next step.**
+- Migrate the behavior-tier `Entity` fields onto world components (finishes
+  "entity = id").
+- Fold convoy ground `Vehicle` into the world (the air analog shipped; ground didn't).
+- Live authored-appearance (FacingSystem / `ANIMATION` component / FX child entities).
 
 ## Memory entries to read alongside
 

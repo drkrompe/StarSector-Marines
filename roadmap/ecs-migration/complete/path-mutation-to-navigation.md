@@ -51,7 +51,7 @@ lives in `DamageService`. Full suite green at `2f48c36`.
 With this done, every per-Unit hot-loop primitive worth promoting is off
 the POJO and the last substantive Service extraction is complete. The
 remaining ECS-migration work is the **terminal**
-[`drop-sim-facade-delegators`](../stories/drop-sim-facade-delegators.md)
+[`drop-sim-facade-delegators`](drop-sim-facade-delegators.md)
 story (sever the facade-delegate / `*SimContext` seam so consumers depend
 on services directly) plus the deferred low-payoff primitives
 (`attackCooldown` / `visionRange` / `moveSpeed`, `squadId` / `role`).

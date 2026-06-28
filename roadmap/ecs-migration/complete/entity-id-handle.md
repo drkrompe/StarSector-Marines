@@ -1,5 +1,12 @@
 # Story: entity-id handle — held refs → id, then delete `Unit.registry`
 
+> **SHIPPED.** Every held-ref→id slice landed (mech salvo targets `6f4e42b`,
+> `Squad.leader`→`leaderId` `5a3ffb3`, `Squad.droneHub`→`droneHubId` `38d25c8`,
+> pending-mutation POJOs `4c19bb7`); `localHp` was removed (`isAlive` redefined to a
+> registry-null short-circuit) and `Unit.registry`/`denseIdx` deleted (`335cce8`). The
+> dangling-self-route NPE class is structurally gone — a held `Entity` ref can no longer
+> reach mutable state. Continued in [`world-facade`](world-facade.md) (registry dissolution).
+
 Phase B identity work for the [component model](../component-model.md). The
 direct sequel to [`collapse-unit-handle`](collapse-unit-handle.md): that story
 collapsed the `local*` duality down to the pinned `localHp`; this one removes the

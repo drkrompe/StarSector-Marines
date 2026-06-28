@@ -1,12 +1,15 @@
 # Archetype-table storage (ECS migration — committed target)
 
-> **Status: locked direction (2026-06-03).** Chosen over the sparse-set path
-> after design review, under the build-it-right-up-front mandate
-> ([[feedback_storage_foundation_build_right]]). **This supersedes
+> **Status: BUILT + LIVE (retrofit complete 2026-06-27).** Locked 2026-06-03 over the
+> sparse-set path under the build-it-right-up-front mandate
+> ([[feedback_storage_foundation_build_right]]); the engine and the full game retrofit
+> have since shipped — the battle sim runs entirely on this `EntityWorld`, and
+> `UnitRegistry` + the transitional `ComponentStore<T>` are deleted. The Migration
+> section below records each shipped step. **This supersedes
 > [`component-model.md`](component-model.md)'s "keep the single-archetype dense
 > table" target** and the transitional `LinkedHashMap`-backed
 > `ComponentStore<T>`. Read [`overview.md`](overview.md) for the SoA design rules
-> that still apply, and [`components-by-capability.md`](stories/components-by-capability.md)
+> that still apply, and [`components-by-capability.md`](complete/components-by-capability.md)
 > for the decomposition axis.
 
 ## The model
@@ -394,12 +397,14 @@ Build order: (1) engine core `com.dillon.starsectormarines.engine.ecs` + tests;
 
 ## Cross-refs
 
-- [`components-by-capability.md`](stories/components-by-capability.md) — the
+- [`components-by-capability.md`](complete/components-by-capability.md) — the
   decomposition axis (rewritten to this model).
 - [`component-model.md`](component-model.md) — superseded target; needs the
   rewrite noted above.
-- `battle.unit.UnitRegistry` (the mega-table being dissolved),
-  `battle.component.ComponentStore` (transitional, being replaced).
+- `battle.unit.UnitRegistry` and `battle.component.ComponentStore` — **both deleted.**
+  The dense mega-table and the transitional store were fully folded into the archetype
+  `EntityWorld`; see [`complete/dissolve-unit-registry.md`](complete/dissolve-unit-registry.md)
+  and [`complete/store-folds-and-render-position.md`](complete/store-folds-and-render-position.md).
 - Memory: [[feedback_storage_foundation_build_right]],
   [[feedback_components_by_capability_not_store]], [[feedback_skip_generation_bits]],
   [[dense_registry_swap_pop_trap]], [[starsector_script_sandbox]],

@@ -1,5 +1,18 @@
 # Story: component grouping + optional capabilities as presence
 
+> **PARTIALLY SUPERSEDED — the "Context" below is stale.** When this was written the
+> world was "~22 SoA columns on `UnitRegistry` + nullable capability refs on `Unit`";
+> both are **gone** (`UnitRegistry` deleted, columns live in the archetype `EntityWorld`,
+> the nullable refs are now presence components). Its **B1** (group columns into named
+> components like `Position`/`Combat`) is **realized** by the archetype migration; the
+> capability axis it follows is recorded in
+> [`components-by-capability.md`](../complete/components-by-capability.md). What's still
+> **open** is its **B2 payoff** — making hot loops *touch only the columns they need*
+> (cold-column avoidance / value-type packing). That is unrealized because nothing
+> column-walks the hot path yet; it is now owned by
+> [`systems-to-columns.md`](systems-to-columns.md). Kept here for the Valhalla framing;
+> do not trust the storage description below as current.
+
 Phase B of the [component model](../component-model.md) — the conceptual
 centerpiece. Read that doc for the engine-vs-game framing and the Valhalla
 nuance.
@@ -102,7 +115,7 @@ Apply it to every component extracted from here on.
 ## Priority
 
 The centerpiece, but **gated** — pairs with / follows
-[`collapse-unit-handle`](collapse-unit-handle.md) (don't add component
+[`collapse-unit-handle`](../complete/collapse-unit-handle.md) (don't add component
 stores on top of the local* duality) and is **pulled by the vehicle work**.
 If vehicles land first, do the minimal B2 for the vehicle body as the
 forcing case and backfill B1/the rest after.

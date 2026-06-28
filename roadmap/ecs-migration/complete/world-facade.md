@@ -1,5 +1,12 @@
 # Story: World facade — two-faced component access, then delete `Unit.registry`
 
+> **SHIPPED.** `battle.sim.World` is the sole by-id access facade; `Unit.registry` and
+> `Unit.denseIdx` were deleted (`335cce8`), and the registry itself dissolved into
+> `UnitRosterService` (roster + id-mint + world owner) + `World` (`751458a0` / `5a79941a`).
+> The originally-planned "cold face" (`world.id(id).getOrNull(Cmp.class)` projection) was
+> later **removed** once every store folded into the archetype world — consumers use the
+> typed by-id accessors only. See [`complete/dissolve-unit-registry.md`](dissolve-unit-registry.md).
+
 The terminal phase the [`entity-id-handle`](entity-id-handle.md) story pointed
 at, and the access layer for [`component-model`](../component-model.md)'s
 component grouping. This is what finally dissolves `Unit.registry` and earns the

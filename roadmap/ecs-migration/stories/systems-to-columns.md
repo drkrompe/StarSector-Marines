@@ -33,7 +33,7 @@ never made that move.**
 
 **The cache-locality win the whole migration was justified on
 ([`overview.md`](../overview.md): "perf-gated on hot loops like `UnitUpdateSystem`";
-[`world-facade.md`](world-facade.md): cache-locality "is the whole point") is
+[`world-facade.md`](../complete/world-facade.md): cache-locality "is the whole point") is
 currently uncollected, and the hot path may even be *slower* than the old
 direct-field `Unit` POJO it replaced.**
 

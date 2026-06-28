@@ -1,5 +1,13 @@
 # Story: collapse the Unit / local* duality (Unit → id handle)
 
+> **SHIPPED.** The `local*` duality is fully collapsed (Group-N `c50e50d`, Group-S
+> `e038706`, cell-pair `31058bf`, then `localHp` removed — `getHp`/`setHp` fail-loud),
+> `Unit` was hollowed to the id handle and renamed `Entity` (`a708ce8`), and the
+> columns it delegated to now live in the archetype `EntityWorld`. **Caveat:** the
+> *full* "entity = bare `long` id" goal (dropping the `Entity` heap object + its
+> remaining behavior fields) is the still-open identity epic — see
+> [`next-session.md`](../next-session.md) § Status, backlog item 3.
+
 Phase A of the [component model](../component-model.md). Read that for the
 why; this is the how.
 
@@ -88,7 +96,7 @@ keep the tail-swap denseIdx test green at every step.
 **High / next.** The user called collapsing this "amazing," and the vehicle
 optional-component work is the deadline: do it before more promoted state
 ossifies the duality. Pairs naturally with — and slightly precedes —
-[`component-grouping`](component-grouping.md).
+[`component-grouping`](../stories/component-grouping.md).
 
 ## Progress
 

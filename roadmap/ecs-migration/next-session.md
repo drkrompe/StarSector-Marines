@@ -67,13 +67,15 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
 7. Live authored-appearance (FacingSystem / ANIMATION / FX child entities) — **epic**,
    lower leverage; sequence after #1.
 
-**Doc drift still to fix:** `overview.md` (the "read me first" doc) still describes
-SoA-on-`UnitRegistry` + "rename last" as current; `component-grouping.md` (listed
-*active* in `stories/`) describes the deleted `UnitRegistry`/`Unit` POJO as the live
-world; `archetype-storage.md` cross-refs list deleted classes as live. Stories that
-are actually shipped (collapse-unit-handle, world-facade, entity-id-handle,
-components-by-capability, drop-sim-facade-delegators, map-service-coordinator) should
-move to `complete/`.
+**Doc drift — CLEANED (2026-06-28):** `overview.md` (the "read me first" doc) was
+rewritten to the archetype reality (status banner; SoA-peel rules marked historical;
+the `Unit`→`Entity` rename marked achieved-with-caveat); `archetype-storage.md` marked
+BUILT+LIVE with its deleted-class cross-refs corrected; `component-grouping.md` got a
+PARTIALLY-SUPERSEDED banner (its B2 payoff is now owned by `systems-to-columns.md`);
+and the six shipped stories (collapse-unit-handle, world-facade, entity-id-handle,
+components-by-capability, drop-sim-facade-delegators, map-service-coordinator) moved to
+`complete/` with SHIPPED banners (all inbound/outbound links repointed). `stories/`
+now holds only the two open stories (`systems-to-columns`, `component-grouping`).
 
 ## Component class convention (locked 2026-06-03)
 
@@ -392,7 +394,7 @@ it is the systems half** ([`stories/systems-to-columns.md`](stories/systems-to-c
 
 User directive: **delete `Unit.registry` and stop holding `Unit` object refs —
 reference `entityId` instead** (the dangling-ref NPE class). New story:
-[`entity-id-handle`](stories/entity-id-handle.md). Pattern = the settled
+[`entity-id-handle`](complete/entity-id-handle.md). Pattern = the settled
 `getOrNull(id)` resolve (mirror `targetId`); `0L` = no-entity sentinel.
 
 **Shipped:** held-ref → id for the persistent dangling sources:
@@ -420,7 +422,7 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   suite green at 689.
 
 **Next (in priority order):**
-1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.**
+1. **Endgame: [`world-facade`](complete/world-facade.md) — delete `Unit.registry`.**
    - Slice 1 SHIPPED (`1e30bcf`): `battle.sim.World` introduced + wired, both faces
      proven by `WorldTest`.
    - Sweep prereq SHIPPED (`c69a24b`): complete by-id `World` surface +
@@ -665,7 +667,7 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   fallback (mech salvo / turret+vehicle aim / flyby / wiped-squad leader / damage
   queue) are safe via the redefined `isAlive()` (registry-null short-circuit), not
   a shadow. `localRenderX/Y` are seed-only (RenderPositionService survives release).
-  See [`entity-id-handle`](stories/entity-id-handle.md) Slice 5.
+  See [`entity-id-handle`](complete/entity-id-handle.md) Slice 5.
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.
@@ -698,7 +700,7 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
 ## Active stories (priority order)
 
 > **TL;DR for a cold start:** stories 1–4 + story 5 Slice 1 are shipped.
-> **Story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md))
+> **Story 6** ([`drop-sim-facade-delegators`](complete/drop-sim-facade-delegators.md))
 > — both substantive tiers **DONE**: the GOAP spine (`61e322a`) and the
 > command tier (`cb91e87`) now depend on `BattleView` (read) / `BattleControl`
 > (mutate), not raw `BattleSimulation`. ~55 files narrowed total; suite green.
@@ -820,7 +822,7 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
 > the identity/composition half remains. See [`component-model.md`](component-model.md)
 > (north star) + its two stories.
 >
-> **Phase A — [`collapse-unit-handle`](stories/collapse-unit-handle.md)** is
+> **Phase A — [`collapse-unit-handle`](complete/collapse-unit-handle.md)** is
 > sliced N → S → C after auditing the spawn + corpse seams (see the story's
 > Progress block):
 > - **Slice 1 (Group N) SHIPPED** (`c50e50d`): the 14 mid-combat-only columns
@@ -877,7 +879,7 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    thin sim delegates kept so the ~28 AI call sites are unchanged. Rode
    along a sim-surface trim (dead `rollFallbackOnHit` deleted, four
    `flushPending*` privatized).
-5. [`map-service-coordinator`](stories/map-service-coordinator.md) —
+5. [`map-service-coordinator`](complete/map-service-coordinator.md) —
    **Service** extraction. **Slice 1 SHIPPED** (`c49eea7`,
    [complete](complete/map-service-coordinator-slice1.md)): `MapService`
    (in `battle.world`) now owns the runtime map-modification cycle
@@ -890,7 +892,7 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    stretch: fold the generators' grid+topology population into MapService;
    larger surface, lower smell. Pick it up only if the seam proves worth
    it, else go straight to the facade cleanup ↓.
-6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
+6. [`drop-sim-facade-delegators`](complete/drop-sim-facade-delegators.md) —
    **Terminal** migration story. **GOAP spine + command tier both DONE.**
    Goal: consumers depend on a scoped contract
    (`BattleView`/`BattleControl`), not the whole orchestrator. Full

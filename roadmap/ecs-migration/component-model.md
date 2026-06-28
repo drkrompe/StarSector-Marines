@@ -149,7 +149,7 @@ Existing components were retrofitted to this convention (2026-06-03):
 
 ## Staged plan
 
-- **Phase A — [`collapse-unit-handle`](stories/collapse-unit-handle.md).**
+- **Phase A — [`collapse-unit-handle`](complete/collapse-unit-handle.md).**
   Finish hollowing `Unit` to an id + thin accessor shim; make the registry
   the sole truth; retire the `local*` duality down to the minimal lifecycle
   seed/snapshot. Unblocks the `Unit` → `Entity` rename
