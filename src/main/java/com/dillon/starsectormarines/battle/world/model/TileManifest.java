@@ -57,11 +57,22 @@ public final class TileManifest {
      * plus a culvert/bench doodad set. Variable-width frames separated by
      * alpha gutters, indexed by tile ids in the form {@code "urban3.*"} via
      * {@link com.dillon.starsectormarines.battle.world.tiles.TileRegistry}.
-     * Loaded by {@link com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset};
+     * Loaded as a sliced sheet via
+     * {@link com.dillon.starsectormarines.battle.world.tiles.SheetTexture};
      * the renderer dispatches STREET cells through this sheet when it's
      * loaded and falls back to the {@link #ROAD_SHEET} autotile otherwise.
      */
     public static final String STREET3_SHEET = "graphics/tilesets/urban-tileset-3.png";
+
+    /**
+     * Sixth sheet — the nature strip (grass / dirt / sand / water ground
+     * variants plus plant / rock overlay frames). Variable-width frames
+     * separated by alpha gutters, indexed by {@code "nature.*"} ids via
+     * {@link com.dillon.starsectormarines.battle.world.tiles.TileRegistry};
+     * loaded as a sliced sheet via
+     * {@link com.dillon.starsectormarines.battle.world.tiles.SheetTexture}.
+     */
+    public static final String NATURE_SHEET = "graphics/tilesets/nature-tiles.png";
 
     /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). Verified by {@code TileManifestFillColorTest}. */
     public static final int ROAD_FILL_RGB = 0x7983A1; // 121, 131, 161

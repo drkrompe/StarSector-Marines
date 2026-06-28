@@ -1,12 +1,11 @@
 package com.dillon.starsectormarines.tools.tilesets;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.CellLabel;
-import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
 import com.dillon.starsectormarines.ops.Screen;
@@ -111,8 +110,8 @@ public class TilesetDebugScreen implements Screen {
         SHEETS.add(new SheetSpec("Urban-2", "graphics/tilesets/urban-tileset-2.png", 32));
         SHEETS.add(new SheetSpec("Floors",  "graphics/tilesets/Floors_Tiles.png",    16));
         SHEETS.add(new SheetSpec("Water",   "graphics/tilesets/Water_tiles.png",     16));
-        SHEETS.add(new SheetSpec("Nature",  NatureTileset.SHEET_PATH,                 0));
-        SHEETS.add(new SheetSpec("Urban-3", UrbanTile3Tileset.SHEET_PATH,             0));
+        SHEETS.add(new SheetSpec("Nature",  TileManifest.NATURE_SHEET,                0));
+        SHEETS.add(new SheetSpec("Urban-3", TileManifest.STREET3_SHEET,              0));
     }
 
     private final WidgetRoot widgets = new WidgetRoot();

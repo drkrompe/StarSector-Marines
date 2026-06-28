@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -70,7 +71,7 @@ public class NatureZonePreviewTest {
         SpriteSheetFrames sliced = SpriteSheetSlicer.slice(sheetImg);
 
         int expected = (int) reg.all().stream()
-                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
+                .filter(d -> TileManifest.NATURE_SHEET.equals(d.sheetPath))
                 .count();
 
         // Always write the debug overlay first — even on assertion failure
@@ -176,7 +177,7 @@ public class NatureZonePreviewTest {
         g.fillRect(0, 0, imgW, imgH);
 
         int regCount = (int) reg.all().stream()
-                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
+                .filter(d -> TileManifest.NATURE_SHEET.equals(d.sheetPath))
                 .count();
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -205,7 +206,7 @@ public class NatureZonePreviewTest {
             // Resolve by frame index from the registry.
             final int frameIdx = i;
             TileDef tile = reg.all().stream()
-                    .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath) && d.frame == frameIdx)
+                    .filter(d -> TileManifest.NATURE_SHEET.equals(d.sheetPath) && d.frame == frameIdx)
                     .findFirst()
                     .orElse(null);
 

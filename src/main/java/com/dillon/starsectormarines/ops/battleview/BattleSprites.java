@@ -7,11 +7,9 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
+import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -90,38 +88,15 @@ public class BattleSprites {
     private boolean droneSpriteLoadAttempted;
 
     // ---- tile sheets --------------------------------------------------------
+    // One generic SheetTexture handle per PNG (grid = no slicing; sliced =
+    // SpriteSheetSlicer + TileRegistry count-check with legacy fallback).
 
-    private SpriteAPI tileSheet;
-    private int tileSheetPxW;
-    private int tileSheetPxH;
-    private boolean tileSheetLoadAttempted;
-
-    private SpriteAPI roadSheet;
-    private int roadSheetPxW;
-    private int roadSheetPxH;
-    private boolean roadSheetLoadAttempted;
-
-    private SpriteAPI floorsSheet;
-    private int floorsSheetPxW;
-    private int floorsSheetPxH;
-    private boolean floorsSheetLoadAttempted;
-
-    private SpriteAPI waterSheet;
-    private int waterSheetPxW;
-    private int waterSheetPxH;
-    private boolean waterSheetLoadAttempted;
-
-    private SpriteAPI urbanTile3Sheet;
-    private int urbanTile3SheetPxW;
-    private int urbanTile3SheetPxH;
-    private boolean urbanTile3SheetLoadAttempted;
-    private SpriteSheetFrames urbanTile3Frames;
-
-    private SpriteAPI natureSheet;
-    private int natureSheetPxW;
-    private int natureSheetPxH;
-    private boolean natureSheetLoadAttempted;
-    private SpriteSheetFrames natureFrames;
+    private final SheetTexture tileTex       = SheetTexture.grid(TileManifest.SHEET);
+    private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
+    private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
+    private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
+    private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
+    private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
 
     // ---- shuttle sprites ----------------------------------------------------
 
@@ -164,26 +139,26 @@ public class BattleSprites {
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
     public ShuttleSpriteCache droneSprite()        { return droneSprite; }
-    public SpriteAPI tileSheet()                   { return tileSheet; }
-    public int tileSheetPxW()                      { return tileSheetPxW; }
-    public int tileSheetPxH()                      { return tileSheetPxH; }
-    public SpriteAPI roadSheet()                   { return roadSheet; }
-    public int roadSheetPxW()                      { return roadSheetPxW; }
-    public int roadSheetPxH()                      { return roadSheetPxH; }
-    public SpriteAPI floorsSheet()                 { return floorsSheet; }
-    public int floorsSheetPxW()                    { return floorsSheetPxW; }
-    public int floorsSheetPxH()                    { return floorsSheetPxH; }
-    public SpriteAPI waterSheet()                  { return waterSheet; }
-    public int waterSheetPxW()                     { return waterSheetPxW; }
-    public int waterSheetPxH()                     { return waterSheetPxH; }
-    public SpriteAPI urbanTile3Sheet()             { return urbanTile3Sheet; }
-    public int urbanTile3SheetPxW()                { return urbanTile3SheetPxW; }
-    public int urbanTile3SheetPxH()                { return urbanTile3SheetPxH; }
-    public SpriteSheetFrames urbanTile3Frames()    { return urbanTile3Frames; }
-    public SpriteAPI natureSheet()                 { return natureSheet; }
-    public int natureSheetPxW()                    { return natureSheetPxW; }
-    public int natureSheetPxH()                    { return natureSheetPxH; }
-    public SpriteSheetFrames natureFrames()        { return natureFrames; }
+    public SpriteAPI tileSheet()                   { return tileTex.sprite(); }
+    public int tileSheetPxW()                      { return tileTex.pxW(); }
+    public int tileSheetPxH()                      { return tileTex.pxH(); }
+    public SpriteAPI roadSheet()                   { return roadTex.sprite(); }
+    public int roadSheetPxW()                      { return roadTex.pxW(); }
+    public int roadSheetPxH()                      { return roadTex.pxH(); }
+    public SpriteAPI floorsSheet()                 { return floorsTex.sprite(); }
+    public int floorsSheetPxW()                    { return floorsTex.pxW(); }
+    public int floorsSheetPxH()                    { return floorsTex.pxH(); }
+    public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
+    public int waterSheetPxW()                     { return waterTex.pxW(); }
+    public int waterSheetPxH()                     { return waterTex.pxH(); }
+    public SpriteAPI urbanTile3Sheet()             { return urbanTile3Tex.sprite(); }
+    public int urbanTile3SheetPxW()                { return urbanTile3Tex.pxW(); }
+    public int urbanTile3SheetPxH()                { return urbanTile3Tex.pxH(); }
+    public SpriteSheetFrames urbanTile3Frames()    { return urbanTile3Tex.frames(); }
+    public SpriteAPI natureSheet()                 { return natureTex.sprite(); }
+    public int natureSheetPxW()                    { return natureTex.pxW(); }
+    public int natureSheetPxH()                    { return natureTex.pxH(); }
+    public SpriteSheetFrames natureFrames()        { return natureTex.frames(); }
     public java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() { return shuttleSprites; }
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
@@ -197,234 +172,37 @@ public class BattleSprites {
     // =========================================================================
 
     /**
-     * Lazy-loads the battle tileset on first attach. Reads the raw PNG to
-     * capture content dimensions — {@code SpriteAPI.getTextureWidth()} reports
-     * the POT-padded texture size, but per-tile UV math needs the content
-     * width to compute texture-fraction coords correctly. Cached across attach
-     * calls; survives screen re-entry without re-decoding the PNG.
+     * Lazy-loads the indoor tileset (urban-tileset.png). The handle captures
+     * content dimensions for the per-tile UV math and caches across attach
+     * calls; see {@link SheetTexture} for the load/fallback contract shared by
+     * all six tile sheets.
      */
-    public void ensureTileSheet() {
-        if (tileSheetLoadAttempted) return;
-        tileSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.SHEET);
-            tileSheet = Global.getSettings().getSprite(TileManifest.SHEET);
-            if (tileSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + TileManifest.SHEET);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(TileManifest.SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + TileManifest.SHEET);
-                    tileSheet = null;
-                    return;
-                }
-                tileSheetPxW = img.getWidth();
-                tileSheetPxH = img.getHeight();
-                LOG.info("BattleSprites: loaded tileset " + TileManifest.SHEET
-                        + " (" + tileSheetPxW + "x" + tileSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load tileset " + TileManifest.SHEET, e);
-            tileSheet = null;
-        }
-    }
+    public void ensureTileSheet()       { tileTex.ensureLoaded(); }
 
-    /** Same lazy-load pattern as {@link #ensureTileSheet} — the road sheet is its own PNG so updates don't churn the indoor floor cache. */
-    public void ensureRoadSheet() {
-        if (roadSheetLoadAttempted) return;
-        roadSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.ROAD_SHEET);
-            roadSheet = Global.getSettings().getSprite(TileManifest.ROAD_SHEET);
-            if (roadSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + TileManifest.ROAD_SHEET);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(TileManifest.ROAD_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + TileManifest.ROAD_SHEET);
-                    roadSheet = null;
-                    return;
-                }
-                roadSheetPxW = img.getWidth();
-                roadSheetPxH = img.getHeight();
-                LOG.info("BattleSprites: loaded road tileset " + TileManifest.ROAD_SHEET
-                        + " (" + roadSheetPxW + "x" + roadSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load road tileset " + TileManifest.ROAD_SHEET, e);
-            roadSheet = null;
-        }
-    }
+    /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
+    public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
+
+    /** Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source cells, upscaled 2x to the 32px nav grid. */
+    public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
+
+    /** Lazy-loads the Water_tiles sheet (16px cells, upscaled 2x like the floors sheet). */
+    public void ensureWaterSheet()      { waterTex.ensureLoaded(); }
 
     /**
-     * Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source
-     * cells — the renderer upscales 2x to fit the 32px nav grid. Same pattern
-     * as {@link #ensureRoadSheet}.
+     * Lazy-loads the nature-tiles sheet — a sliced strip (grass / dirt / sand /
+     * water grounds plus plant/rock overlays). On a slicer-vs-registry count
+     * mismatch the handle nulls itself so the renderer falls back to the legacy
+     * Floors_Tiles grass/dirt; {@link #natureFrames()} is null in that case.
      */
-    public void ensureFloorsSheet() {
-        if (floorsSheetLoadAttempted) return;
-        floorsSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.FLOORS_SHEET);
-            floorsSheet = Global.getSettings().getSprite(TileManifest.FLOORS_SHEET);
-            if (floorsSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + TileManifest.FLOORS_SHEET);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(TileManifest.FLOORS_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + TileManifest.FLOORS_SHEET);
-                    floorsSheet = null;
-                    return;
-                }
-                floorsSheetPxW = img.getWidth();
-                floorsSheetPxH = img.getHeight();
-                LOG.info("BattleSprites: loaded floors tileset " + TileManifest.FLOORS_SHEET
-                        + " (" + floorsSheetPxW + "x" + floorsSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load floors tileset " + TileManifest.FLOORS_SHEET, e);
-            floorsSheet = null;
-        }
-    }
-
-    /** Lazy-loads the Water_tiles sheet. Same setup as {@link #ensureFloorsSheet}. */
-    public void ensureWaterSheet() {
-        if (waterSheetLoadAttempted) return;
-        waterSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.WATER_SHEET);
-            waterSheet = Global.getSettings().getSprite(TileManifest.WATER_SHEET);
-            if (waterSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + TileManifest.WATER_SHEET);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(TileManifest.WATER_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + TileManifest.WATER_SHEET);
-                    waterSheet = null;
-                    return;
-                }
-                waterSheetPxW = img.getWidth();
-                waterSheetPxH = img.getHeight();
-                LOG.info("BattleSprites: loaded water tileset " + TileManifest.WATER_SHEET
-                        + " (" + waterSheetPxW + "x" + waterSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load water tileset " + TileManifest.WATER_SHEET, e);
-            waterSheet = null;
-        }
-    }
+    public void ensureNatureSheet()     { natureTex.ensureLoaded(); }
 
     /**
-     * Lazy-loads the nature-tiles sheet — sliced strip with grass / dirt /
-     * sand / water ground variants plus overlay frames. Same shape as
-     * {@link #ensureUrbanTile3Sheet}. On success the slicer frames live in
-     * {@link #natureFrames} and the per-sheet batch is built so GRASS and
-     * DIRT cells can dispatch through it.
+     * Lazy-loads the urban-tileset-3 sheet — a sliced strip (modern road +
+     * sidewalk look). On a slicer-vs-registry count mismatch the handle nulls
+     * itself so STREET cells fall back to the legacy road autotile;
+     * {@link #urbanTile3Frames()} is null in that case.
      */
-    public void ensureNatureSheet() {
-        if (natureSheetLoadAttempted) return;
-        natureSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(NatureTileset.SHEET_PATH);
-            natureSheet = Global.getSettings().getSprite(NatureTileset.SHEET_PATH);
-            if (natureSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + NatureTileset.SHEET_PATH);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(NatureTileset.SHEET_PATH)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + NatureTileset.SHEET_PATH);
-                    natureSheet = null;
-                    return;
-                }
-                natureSheetPxW = img.getWidth();
-                natureSheetPxH = img.getHeight();
-                natureFrames = SpriteSheetSlicer.slice(img);
-                TileRegistry reg = TileRegistry.installed();
-                int expected = (reg == null) ? natureFrames.frames.length
-                        : (int) reg.all().stream()
-                                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
-                                .count();
-                if (reg != null && natureFrames.frames.length != expected) {
-                    LOG.warn("BattleSprites: nature-tiles slicer returned "
-                            + natureFrames.frames.length + " frames but TileRegistry expects "
-                            + expected + " — falling back to legacy Floors_Tiles grass/dirt");
-                    natureSheet = null;
-                    natureFrames = null;
-                    return;
-                }
-                LOG.info("BattleSprites: loaded nature-tiles " + NatureTileset.SHEET_PATH
-                        + " (" + natureSheetPxW + "x" + natureSheetPxH + "), "
-                        + natureFrames.frames.length + " frames sliced");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load nature-tiles "
-                    + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH, e);
-            natureSheet = null;
-            natureFrames = null;
-        }
-    }
-
-    /**
-     * Lazy-loads the urban-tileset-3 sheet — sliced strip with variable-width
-     * cells separated by alpha gutters, so the frame bboxes are computed by
-     * {@link SpriteSheetSlicer} rather than read off a fixed grid. Same
-     * lazy-load shape as {@link #ensureRoadSheet}; on success the slicer
-     * frames live in {@link #urbanTile3Frames} and the per-sheet batch is
-     * built so STREET cells can dispatch through it.
-     */
-    public void ensureUrbanTile3Sheet() {
-        if (urbanTile3SheetLoadAttempted) return;
-        urbanTile3SheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.STREET3_SHEET);
-            urbanTile3Sheet = Global.getSettings().getSprite(TileManifest.STREET3_SHEET);
-            if (urbanTile3Sheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + TileManifest.STREET3_SHEET);
-                return;
-            }
-            try (InputStream stream = Global.getSettings().openStream(TileManifest.STREET3_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for " + TileManifest.STREET3_SHEET);
-                    urbanTile3Sheet = null;
-                    return;
-                }
-                urbanTile3SheetPxW = img.getWidth();
-                urbanTile3SheetPxH = img.getHeight();
-                urbanTile3Frames = SpriteSheetSlicer.slice(img);
-                TileRegistry reg = TileRegistry.installed();
-                int expected = (reg == null) ? urbanTile3Frames.frames.length
-                        : (int) reg.all().stream()
-                                .filter(d -> UrbanTile3Tileset.SHEET_PATH.equals(d.sheetPath))
-                                .count();
-                if (reg != null && urbanTile3Frames.frames.length != expected) {
-                    LOG.warn("BattleSprites: urban-tileset-3 slicer returned "
-                            + urbanTile3Frames.frames.length + " frames but TileRegistry expects "
-                            + expected + " — falling back to legacy road autotile");
-                    urbanTile3Sheet = null;
-                    urbanTile3Frames = null;
-                    return;
-                }
-                LOG.info("BattleSprites: loaded urban-tileset-3 " + TileManifest.STREET3_SHEET
-                        + " (" + urbanTile3SheetPxW + "x" + urbanTile3SheetPxH + "), "
-                        + urbanTile3Frames.frames.length + " frames sliced");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleSprites: failed to load urban-tileset-3 " + TileManifest.STREET3_SHEET, e);
-            urbanTile3Sheet = null;
-            urbanTile3Frames = null;
-        }
-    }
+    public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(); }
 
     /**
      * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
