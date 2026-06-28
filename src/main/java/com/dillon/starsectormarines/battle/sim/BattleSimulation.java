@@ -959,9 +959,13 @@ public class BattleSimulation implements BattleControl {
         }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Tick barrier for the entity world: apply structural changes queued on
-        // its command buffer during this tick's query walks. Nothing queues yet
-        // (the corpse spawn is a walk-safe create); the barrier is established
-        // here so the first deferred consumer doesn't have to plumb it.
+        // its command buffer during this tick's query walks. Today's structural
+        // changes (corpse spawn is a walk-safe create; death transmute, air reap
+        // and drone-crash run serially at their own barriers) don't queue — so this
+        // drains an empty buffer. The barrier stays here intentionally: its first
+        // real consumer is a column-walking system that destroys/transmutes
+        // mid-Query-walk and MUST defer (the swap-pop-during-iteration trap). See
+        // roadmap/ecs-migration/stories/systems-to-columns.md § CommandBuffer.
         entityWorld.flush();
         tickProfile.endTick(simTickIndex, tickInnerProfile);
         // Clear the inner-profile slot so any stray call outside the tick

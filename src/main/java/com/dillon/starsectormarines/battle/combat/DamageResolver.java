@@ -86,10 +86,10 @@ public final class DamageResolver {
      *
      * <p>The early-out is also a fail-loud guard: a lethal entry runs
      * {@link UnitRosterService#releaseFromRegistry} in the cascade below, which
-     * removes the unit from the registry. Stacked damage against the same target
+     * removes the unit from the live roster. Stacked damage against the same target
      * in one parallel UPDATE_UNITS flush means a later entry sees a released
-     * unit, whose by-id cell reads ({@code registry.cellXById(id)}/{@code
-     * registry.cellYById(id)}, read just below for the cover lookup) would
+     * unit, whose by-id cell reads ({@code world.cellX(id)}/{@code
+     * world.cellY(id)}, read just below for the cover lookup) would
      * otherwise run against a corpse. Death and registry-release are atomic
      * inside this method, so {@code !wasAlive} means the target is already dead
      * — and the damage is moot anyway.

@@ -3,6 +3,72 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Status (2026-06-28) — storage done, systems half open
+
+**Read this before trusting the "THE MIGRATION IS DONE" banner further down — that
+banner is about STORAGE only.** A 9-agent audit (2026-06-28) confirmed the storage
+half is genuinely, cleanly shipped and contradicted nothing about it. But the word
+"done" was being applied to the whole migration; it isn't. Honest scope:
+
+**DONE — the storage / engine half (on-vision, verified against code):**
+- A real, game-agnostic archetype engine: `engine.ecs` (`EntityWorld` /
+  `ArchetypeTable` / `Column` / `ComponentType` / `Query` / `CommandBuffer`), 21
+  synthetic tests, zero game imports, `transmute` built beyond the design sketch.
+- Every dense per-unit numeric column lives in one `EntityWorld`. `UnitRegistry` is
+  deleted; `UnitRosterService` owns roster + id-mint + world; `World` is the sole
+  by-id facade with no surviving `*ById` adapters.
+- Optional capabilities are real archetype presence (SECONDARY_WEAPON / MECH_LOADOUT
+  / CRASHING / KINEMATICS), plus MOVEMENT/AI_STATE membership-narrowing.
+- The **air-into-world epic SHIPPED** (see the corrected note below) — shuttles AND
+  drones are entities in the one world; **`ComponentStore<T>` is DELETED**.
+
+**NOT done — the systems / identity / perf half (the reason an ECS is worth building):**
+- **The systems are not query-shaped.** Only ~4 game files iterate a `Query` over
+  columns (all tiny/optional populations: mechLoadouts, crashing, airCraft, corpses).
+  The mainline N≈200 combatant/AI/vision/squad loops iterate the dense `Entity[]` and
+  read component data **by id — one map probe per field per unit** (the surface
+  `EntityWorld.java` itself labels "off-hot-path"). `UnitUpdateSystem` is still "the
+  single named for-loop a future ECS refactor needs to find" (its own javadoc). The
+  cache-locality win the whole migration was justified on is **uncollected**.
+- **Perf was never measured.** No before/after benchmark exists; the SoA premise is
+  unvalidated and the hot path may even be slower than the old direct-field POJO.
+- **`Entity` is still a ~305-line heap object** in the roster carrying ~13 live
+  mutable behavior/capability fields the world doesn't own (`role`, `assignedObjective`,
+  `equipmentDropTarget`, `primaryWeapon` spec, `homeCell`, `lastReprioTickIndex`,
+  `deathPoseIdx`, `squadId`, `moveSpeed`/`visionRange`/`attackCooldown`/`airLosRadius`).
+  So "entity = bare long id" is true for storage, false for the systems layer.
+- **Convoy ground `Vehicle` never entered the world** — it's a plain POJO in
+  `GroundSystem.List<Vehicle>` (a third storage space the air analog closed but the
+  ground one didn't).
+- **Authored-appearance is corpse-only** — SPRITE is real but live units derive
+  facing per-frame; no FacingSystem/AnimationSystem/FX-child-entities.
+
+**The remaining backlog, by leverage** (full design in the new epic story
+[`stories/systems-to-columns.md`](stories/systems-to-columns.md)):
+1. Convert the combatant hot loop (`UnitUpdateSystem` + per-role behaviors) to
+   `Query` + column-array iteration — **epic** (the stated justification; biggest
+   unrealized win).
+2. Measure it — TickProfile A/B at N=200, column-walk vs by-id — **M** (the SoA
+   premise is currently faith).
+3. Migrate the behavior-tier `Entity` fields onto world components — **epic** (finishes
+   "entity = id").
+4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
+5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
+   infra under the build-it-right mandate, and the systems-half epic (#1) is its
+   consumer.** See [`stories/systems-to-columns.md`](stories/systems-to-columns.md)
+   § CommandBuffer.
+6. Combatant-narrow COMBAT membership (civilians carry an unused COMBAT column) — **S**.
+7. Live authored-appearance (FacingSystem / ANIMATION / FX child entities) — **epic**,
+   lower leverage; sequence after #1.
+
+**Doc drift still to fix:** `overview.md` (the "read me first" doc) still describes
+SoA-on-`UnitRegistry` + "rename last" as current; `component-grouping.md` (listed
+*active* in `stories/`) describes the deleted `UnitRegistry`/`Unit` POJO as the live
+world; `archetype-storage.md` cross-refs list deleted classes as live. Stories that
+are actually shipped (collapse-unit-handle, world-facade, entity-id-handle,
+components-by-capability, drop-sim-facade-delegators, map-service-coordinator) should
+move to `complete/`.
+
 ## Component class convention (locked 2026-06-03)
 
 Before extracting any new component: data components are named `XxxComponent`
@@ -261,9 +327,14 @@ is now **built and consuming real game state**:
   drone hub can no longer roll a fall-back it had no behavior to execute (the old
   gate only excluded `MapTurret`). Suite green at 772.
 
-**Step 4 — COMPLETE (2026-06-27). THE MIGRATION IS DONE.** The store folds
+**Step 4 — COMPLETE (2026-06-27). THE STORAGE MIGRATION IS DONE.** (Scope: this
+"done" is storage + topology, NOT the systems/identity/perf half — see the
+**Status (2026-06-28)** section at the top of this file. `Entity` is still a heap
+object held in the roster, and the hot loops still read columns by id rather than
+walking a `Query`.) The store folds
 first (part A), then the registry dissolution (part B). `UnitRegistry` is
-**DELETED**: the entity is its `long` id, every per-entity datum lives in the
+**DELETED**: the entity is its `long` id *as the storage key* (a thin `Entity`
+handle still rides the roster), every **numeric per-unit column** lives in the
 archetype `EntityWorld`, `UnitRosterService` is the live `Entity[]` roster +
 id-mint + world owner, and `World` is the sole by-id access facade. See
 [`complete/dissolve-unit-registry.md`](complete/dissolve-unit-registry.md).
@@ -298,18 +369,18 @@ id-mint + world owner, and `World` is the sole by-id access facade. See
   component + test deleted. **Every battle-unit component now lives in the
   EntityWorld** — the full Part A (folds + cold-face removal) is done; see
   [`complete/store-folds-and-render-position.md`](complete/store-folds-and-render-position.md).
-  `ComponentStore<T>` now backs ONLY the air-FX stores (`ThrusterFx`/`AirTurrets`),
-  a separate entity space — it dies in the air-into-world epic, not here.
-**NEXT — air entities into the world (epic, now UNBLOCKED 2026-06-27).**
-`ComponentStore<T>` survives the migration ONLY for the **air** subsystem
-(`ThrusterFx`/`AirTurrets`), which keys a *separate* entity space (`Shuttle` +
-`AirSystem.nextAirId`), not the battle world. The decision — **unify air into the
-one `EntityWorld`** (air-vs-ground is a component difference, not a separate
-world; drones already straddle) — is captured in
-[`roadmap/air/air-entities-into-world.md`](../air/air-entities-into-world.md). It
-was gated on step 4 (it adopts air craft into the sim-owned world the dissolution
-left behind); **step 4 is done, so this is the next epic.** It is where
-`ComponentStore<T>` finally dies.
+  At the time this was written, `ComponentStore<T>` still backed the air-FX stores
+  (`ThrusterFx`/`AirTurrets`) — that has since changed (see below).
+**~~NEXT — air entities into the world~~ — SHIPPED (2026-06-27).** This epic is
+**complete**, ahead of where this log left it. Shuttles AND drones are now real
+entities in the single `EntityWorld` (one id space via
+`UnitRosterService.allocateAir`; air-FX are world OBJECT columns `THRUSTER_FX`/
+`AIR_TURRETS`), and **`ComponentStore<T>` is DELETED** (commit `1ee6e8a0`). The
+`Shuttle` handle and `AirSystem.nextAirId` separate id space are gone. Full record:
+[`roadmap/air/air-entities-into-world.md`](../air/air-entities-into-world.md)
+(marked COMPLETE, all five phases shipped). `ComponentStore<T>` did finally die —
+just in the air epic's own commits, not a later one. **The next epic is NOT air —
+it is the systems half** ([`stories/systems-to-columns.md`](stories/systems-to-columns.md)).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 

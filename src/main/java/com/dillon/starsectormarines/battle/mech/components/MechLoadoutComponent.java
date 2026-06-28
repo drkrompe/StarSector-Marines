@@ -6,10 +6,12 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
- * Per-unit mutable state for the three-weapon mech loadout. Attached as a
- * presence component (in a {@code ComponentStore<MechLoadoutComponent>}) when a
- * mech-class unit spawns; absent on every other unit — a mech is an entity that
- * <em>has</em> this component, not one with a non-null {@code mech} field.
+ * Per-unit mutable state for the three-weapon mech loadout. Held in the world's
+ * {@code MECH_LOADOUT} OBJECT column (an optional archetype-presence component)
+ * when a mech-class unit spawns; absent on every other unit — a mech is an entity
+ * that <em>has</em> this component, not one with a non-null {@code mech} field.
+ * (Was a {@code ComponentStore<MechLoadoutComponent>} before that transitional
+ * store was folded into the archetype world and deleted.)
  * Holds the three {@link MechWeapon} slot references plus per-slot
  * ammo / cooldown / salvo trackers — concurrent fire across all three tracks
  * is the whole point of the mech, so each weapon's state is independent.
