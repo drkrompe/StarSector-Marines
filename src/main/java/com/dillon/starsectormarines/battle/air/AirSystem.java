@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -82,6 +83,7 @@ public class AirSystem {
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Entity> addUnitSink;
+    private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
 
     /**
      * The air entity ids this system drives — the stable per-tick iteration
@@ -114,7 +116,7 @@ public class AirSystem {
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
-                     Random rng, Consumer<Entity> addUnitSink) {
+                     Random rng, Consumer<Entity> addUnitSink, EffectsService effects) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -122,6 +124,7 @@ public class AirSystem {
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
+        this.effects = effects;
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
         this.shuttleArchetype = new ComponentType[]{
@@ -299,6 +302,17 @@ public class AirSystem {
      * component) at end of tick.
      */
     private void shootDown(long id, ShuttleMission mission, int posts) {
+        // Crash FX: a smoke plume at the air-burst point + a burning wreck on the ground below, so a
+        // shot-down dropship reads as a flaming crash site instead of just vanishing. Both feed the
+        // smoke/fire puff lists the renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same
+        // path turret/mech/hub wrecks use — so it shows in the bridge and standalone alike.
+        AirBody body = world.kinematics(id);
+        effects.spawnSmokePlume(body.x, body.y);
+        NavigationGrid grid = navigation.getGrid();
+        int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
+        int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
+        effects.spawnSmokingWreck(wx, wy);
+
         mission.state = ShuttleState.GONE;
         LOG.info("air: shuttle " + world.airType(id) + " shot down by " + posts + " AA post(s) with "
                 + mission.marinesRemaining + " marine(s) still aboard.");

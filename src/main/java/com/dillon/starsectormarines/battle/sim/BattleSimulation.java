@@ -343,7 +343,7 @@ public class BattleSimulation implements BattleControl {
                 damageService, hitResponse, shots);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit, effects);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
         mapService.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
