@@ -119,7 +119,9 @@ sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
     marines aboard lost → partial-success wave). First damage source for `ShuttleMission.hp`, so the
     `HOVER_HP_THRESHOLD` loiter-abort also went live. Area drain (not lock-on), spatial-indexed.
     **Universal** (standalone arrival shuttles feel it too) — gentle tuning vs `AEROSHUTTLE` maxHp=60;
-    *watch standalone balance.* Follow-ups: drone-hub AA, a crash FX (vs instant disappear).
+    *watch standalone balance.* Follow-ups: drone-hub AA (open); **crash FX ✅ done (`0100afb3`)** — a
+    shot-down shuttle now leaves a smoke plume + burning wreck (`EffectsService` → `ImpactFx`) instead
+    of vanishing, rendered in bridge + standalone.
   - **Slice 2 — threat-scaled spread (`4fba6ea0`).** DZ radius widens with zone threat:
     `ZONE_RADIUS_CELLS × (1 + HOT_SPREAD_PER_ENEMY × enemyCount)`, capped at `ZONE_RADIUS_MAX_CELLS`.
     Cold = tight wide LZ (30); hot fans out toward 60 (isolating). Launch log reports threat + radius.
