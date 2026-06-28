@@ -283,7 +283,7 @@ public class AirSystem {
             }
             if (posts == 0) continue;
             mission.hp -= posts * AA_DPS_PER_POST * dt;
-            if (mission.hp <= 0f) shootDown(id, mission, posts);
+            if (mission.hp <= 0f) shootDown(id, body, mission, posts);
         }
     }
 
@@ -301,16 +301,16 @@ public class AirSystem {
      * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
      * component) at end of tick.
      */
-    private void shootDown(long id, ShuttleMission mission, int posts) {
-        // Crash FX: a smoke plume at the air-burst point + a burning wreck on the ground below, so a
-        // shot-down dropship reads as a flaming crash site instead of just vanishing. Both feed the
-        // smoke/fire puff lists the renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same
-        // path turret/mech/hub wrecks use — so it shows in the bridge and standalone alike.
-        AirBody body = world.kinematics(id);
-        effects.spawnSmokePlume(body.x, body.y);
+    private void shootDown(long id, AirBody body, ShuttleMission mission, int posts) {
+        // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
+        // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
+        // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
+        // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
+        // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
         NavigationGrid grid = navigation.getGrid();
         int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
         int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
+        effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
         effects.spawnSmokingWreck(wx, wy);
 
         mission.state = ShuttleState.GONE;
