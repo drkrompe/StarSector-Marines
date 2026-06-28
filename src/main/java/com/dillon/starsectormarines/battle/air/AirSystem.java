@@ -368,6 +368,7 @@ public class AirSystem {
                     if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0) {
                         if (tryDeboardMarine(mission, type, world.airFaction(id))) {
                             mission.marinesRemaining--;
+                            mission.deboardedThisSortie++;
                         }
                         mission.deboardCountdown = type.deboardInterval;
                     }
@@ -441,6 +442,7 @@ public class AirSystem {
                                 mission.marineLoadout = mission.cycleLoadouts[mission.currentCycle];
                             }
                             mission.marinesRemaining = type.capacity;
+                            mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —
                             // without this, AA damage (D3) carries across sorties and a cycling
@@ -696,7 +698,7 @@ public class AirSystem {
                 ? mission.deboardUnitType
                 : FactionUnitRoster.forFaction(faction).infantry();
         Entity marine = new Entity(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
-        int slot = type.capacity - mission.marinesRemaining;
+        int slot = mission.deboardedThisSortie;   // 0-based deboard index — correct even for a partial sortie
         MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
                 ? mission.marineLoadout[slot] : null;
         if (loadout != null) {

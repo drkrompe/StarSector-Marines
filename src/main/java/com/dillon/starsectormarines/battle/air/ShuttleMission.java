@@ -42,6 +42,13 @@ public final class ShuttleMission {
     public float deboardCountdown;
     /** Marines still aboard for the current sortie. */
     public int marinesRemaining;
+    /**
+     * Marines that have already deboarded this sortie — the {@link #marineLoadout} index for the next
+     * one to leave. Kept independent of {@link #marinesRemaining} so a <em>partial</em> sortie (fewer
+     * than {@link ShuttleType#capacity} aboard, e.g. the last ship of a D5 wave) still indexes loadouts
+     * from 0 rather than from {@code capacity − marinesRemaining}. Reset to 0 at each sortie.
+     */
+    public int deboardedThisSortie;
 
     /** LZ touchdown point (cells). */
     public final float lzX, lzY;
@@ -65,10 +72,9 @@ public final class ShuttleMission {
 
     /**
      * Per-deboard loadouts for the <em>current</em> sortie. {@code marineLoadout[i]}
-     * is the spec for the (i+1)-th marine to leave (index =
-     * {@code type.capacity - marinesRemaining}). Null entries / a null array fall
-     * back to a plain {@link MarineLoadout#COMBATANT}. Refreshed from
-     * {@link #cycleLoadouts} on each new sortie when cycling.
+     * is the spec for the (i+1)-th marine to leave (index = {@link #deboardedThisSortie}).
+     * Null entries / a null array fall back to a plain {@link MarineLoadout#COMBATANT}.
+     * Refreshed from {@link #cycleLoadouts} on each new sortie when cycling.
      */
     public MarineLoadout[] marineLoadout;
 
