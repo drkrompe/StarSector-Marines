@@ -57,7 +57,13 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    infra under the build-it-right mandate, and the systems-half epic (#1) is its
    consumer.** See [`stories/systems-to-columns.md`](stories/systems-to-columns.md)
    § CommandBuffer.
-6. Combatant-narrow COMBAT membership (civilians carry an unused COMBAT column) — **S**.
+6. ~~Combatant-narrow COMBAT membership (civilians carry an unused COMBAT column)~~
+   — **SHIPPED `74c565d1`.** COMBAT is now added only to `u.type.combatant` units, so
+   "has COMBAT" defines a combatant (the last presence≠capability gap closed). New
+   `World.hasCombat`; reader-audit gates on the two all-roster passes
+   (`AttackerIndexService`/`InfantryWeapons`) + render facing/cooldown; the corpse
+   transmute already tolerated an absent COMBAT. `CivilianCombatMembershipTest` added
+   (a full-tick test drives the all-roster readers over the 8 ambient civilians).
 7. Live authored-appearance (FacingSystem / ANIMATION / FX child entities) — **epic**,
    lower leverage; sequence after #1.
 
