@@ -304,10 +304,11 @@ public final class UnitRenderService implements RenderSystem {
     private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u,
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
         // cooldown, this unit's cell, and the target cell all read via world by-id
-        // adapters (COMBAT cooldown + POSITION cells).
+        // adapters (COMBAT cooldown + POSITION cells). A non-combatant carries no
+        // COMBAT — its cooldown is moot (weaponUp gates on combatant too).
         World world = sim.world();
         SpriteSheetFrames frames = cache.frames;
-        float cooldown = world.cooldownTimer(u.entityId);
+        float cooldown = u.type.combatant ? world.cooldownTimer(u.entityId) : 0f;
         boolean weaponUp = inAim || (u.type.combatant
                 && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
                 && cooldown > 0f);
@@ -392,7 +393,9 @@ public final class UnitRenderService implements RenderSystem {
     private enum Facing { WEST, NORTH, EAST, SOUTH }
 
     private static Facing computeFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        Entity target = sim != null ? sim.targetOf(u) : null;
+        // Non-combatants carry no COMBAT.targetId — sim.targetOf would fail-loud.
+        // They have no target anyway; fall through to path-based facing.
+        Entity target = (sim != null && u.type.combatant) ? sim.targetOf(u) : null;
         if (target != null) {
             World world = sim.world();
             int dx = world.cellX(target.entityId) - selfCellX;
@@ -439,7 +442,10 @@ public final class UnitRenderService implements RenderSystem {
     private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
 
     private static EightWayFacing computeEightWayFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        Entity target = sim != null ? sim.targetOf(u) : null;
+        // Defensive: only EIGHT_WAY units (heavy mech, a combatant) reach here today,
+        // but gate on combatant anyway so a future non-combatant 8-way sprite can't
+        // fail-loud on the missing COMBAT.targetId.
+        Entity target = (sim != null && u.type.combatant) ? sim.targetOf(u) : null;
         if (target != null) {
             World world = sim.world();
             int dx = world.cellX(target.entityId) - selfCellX;

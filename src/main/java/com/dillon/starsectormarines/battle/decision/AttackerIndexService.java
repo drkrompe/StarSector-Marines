@@ -67,6 +67,7 @@ public final class AttackerIndexService {
         World world = rosterService.world();
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
             Entity u = rosterService.get(i);
+            if (!u.type.combatant) continue; // non-combatants carry no COMBAT.targetId
             Entity target = rosterService.getOrNull(world.targetId(u.entityId));
             if (target == null) continue;
             ArrayList<Entity> bucket = attackersByTarget.get(target);

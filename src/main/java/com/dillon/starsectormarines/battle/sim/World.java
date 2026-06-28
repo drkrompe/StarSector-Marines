@@ -91,8 +91,13 @@ public final class World {
     public void setRenderX(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, v); }
     public void setRenderY(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, v); }
 
-    // Combat lives in the entity world's COMBAT columns. Fail-loud once the death
-    // drain has transmuted the entity to a corpse (COMBAT gone).
+    // Combat lives in the entity world's OPTIONAL COMBAT component, narrowed to
+    // combatants: a non-combatant (civilian/engineer/scientist) carries none.
+    // hasCombat is the presence check; the field accessors below are fail-loud on a
+    // unit that lacks COMBAT (a non-combatant, or once the death drain has
+    // transmuted the entity to a corpse — COMBAT gone). A caller that can see a
+    // non-combatant id MUST gate on hasCombat / u.type.combatant first.
+    public boolean hasCombat(long id) { return entityWorld.has(id, components.COMBAT); }
     public float cooldownTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
     public void setCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER, v); }
 

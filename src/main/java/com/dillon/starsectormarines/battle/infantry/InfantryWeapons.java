@@ -76,6 +76,7 @@ public class InfantryWeapons {
         World world = roster.world();
         Entity[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            if (!dense[i].type.combatant) continue; // non-combatants carry no COMBAT (no burst)
             if (world.burstRemaining(dense[i].entityId) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {

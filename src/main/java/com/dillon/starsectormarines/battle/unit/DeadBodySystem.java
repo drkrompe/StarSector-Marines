@@ -8,11 +8,11 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, COMBAT}}
- * archetype (plus the optional {@code MOVEMENT}, {@code AI_STATE}, and
- * {@code SECONDARY_WEAPON} a mobile/armed unit carries) to the corpse archetype
- * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH},
- * {@code COMBAT}, and any {@code MOVEMENT}, {@code AI_STATE}, or
+ * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH}} archetype (plus
+ * the optional {@code COMBAT} a combatant carries, and the {@code MOVEMENT},
+ * {@code AI_STATE}, {@code SECONDARY_WEAPON} a mobile/armed unit carries) to the
+ * corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
+ * {@code HEALTH} and any {@code COMBAT}, {@code MOVEMENT}, {@code AI_STATE}, or
  * {@code SECONDARY_WEAPON} are removed (a corpse neither lives, fights, moves,
  * nor thinks — and "lacks HEALTH" is half the liveness definition);
  * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
@@ -51,10 +51,11 @@ public final class DeadBodySystem {
         // RENDER_POSITION is universal on the live archetype now, so it rides the
         // row-move (no add) — the corpse only gains SPRITE + the CORPSE tag.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
-        // MOVEMENT, AI_STATE, and SECONDARY_WEAPON are all optional (a static
-        // turret/hub has no MOVEMENT/AI_STATE; only armed units carry a secondary)
-        // and removed when present — transmute treats a remove of a component the
-        // entity lacks as a no-op, so listing them unconditionally is safe.
+        // COMBAT, MOVEMENT, AI_STATE, and SECONDARY_WEAPON are all optional (a
+        // non-combatant civilian has no COMBAT; a static turret/hub has no
+        // MOVEMENT/AI_STATE; only armed units carry a secondary) and removed when
+        // present — transmute treats a remove of a component the entity lacks as a
+        // no-op, so listing them unconditionally is safe.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON};

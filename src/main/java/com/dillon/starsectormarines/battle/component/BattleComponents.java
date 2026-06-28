@@ -180,12 +180,14 @@ public final class BattleComponents {
     /**
      * Live-combat state — {@code float attackDamage, attackRange, accuracy,
      * cooldownTimer; long targetId; int burstRemaining; float burstTimer; long
-     * burstTargetId}. The primary-weapon capability, universal to every live unit
-     * (seeded at spawn like {@link #HEALTH}); the attack stats are seed-only, the
-     * rest are mid-combat scalars that start at zero. Removed in the corpse
-     * transmute (a corpse does not fight), so a live unit is
-     * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}. The optional <em>secondary</em>
-     * weapon is a separate presence component (a later migration slice), not a
+     * burstTargetId}. The primary-weapon capability. <em>Optional</em>: added at
+     * spawn only for combatants ({@code UnitType.combatant}), so "has COMBAT"
+     * defines a combatant — a non-combatant (civilian / engineer / scientist) never
+     * fires or is targeted and carries none. Seeded at spawn like {@link #HEALTH}
+     * when present; the attack stats are seed-only, the rest are mid-combat scalars
+     * that start at zero. Removed in the corpse transmute (a corpse does not fight),
+     * so a live combatant is {@code {IDENTITY, POSITION, HEALTH, COMBAT}}. The
+     * optional <em>secondary</em> weapon is a separate presence component, not a
      * field here — see {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType COMBAT;

@@ -224,7 +224,13 @@ public final class UnitRosterService {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world. Every live unit is at least
-        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, COMBAT}; on top of that:
+        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH}; on top of that:
+        //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
+        //     engineer / scientist; UnitType.combatant == false) never fires and is
+        //     never targeted, so "has COMBAT" defines a combatant — presence IS the
+        //     capability (like MOVEMENT/AI_STATE; no inert attack/cooldown columns on
+        //     a fleeing civilian). Readers that walk the whole roster must gate on
+        //     u.type.combatant before any COMBAT read (the accessors are fail-loud).
         //   - MOVEMENT + AI_STATE iff the unit is mobile. A static emplacement (a
         //     turret or drone hub; UnitType.isStatic) neither paths nor decides, so
         //     "has MOVEMENT" defines a mover and "has AI_STATE" a thinker — presence
@@ -233,11 +239,13 @@ public final class UnitRosterService {
         //   - SECONDARY_WEAPON iff the unit carries one.
         // Identity is written once here and persists alive→dead (the corpse
         // transmute's row-move carries it — as does the cell, which IS the death cell
-        // by the time the corpse forms); Position, Health and Combat seed from the
+        // by the time the corpse forms); Position and Health seed from the
         // write-only seed* fields and are canonical thereafter — "has HEALTH with
-        // hp > 0" is the liveness definition (isAliveById). The corpse transmute
-        // removes HEALTH, COMBAT, and any MOVEMENT / AI_STATE / SECONDARY_WEAPON.
+        // hp > 0" is the liveness definition (isAliveById). Combat seeds the same way
+        // when present. The corpse transmute removes HEALTH and any COMBAT /
+        // MOVEMENT / AI_STATE / SECONDARY_WEAPON.
         boolean mobile = !u.type.isStatic();
+        boolean combatant = u.type.combatant;
         boolean hasSecondary = u.seedSecondaryWeapon != null;
         // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
         // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
@@ -246,13 +254,13 @@ public final class UnitRosterService {
         // crash handler to read before it detaches it.
         boolean hasBody = u.seedBody != null;
         ComponentType[] archetype = new ComponentType[
-                5 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
+                4 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
         archetype[c++] = components.RENDER_POSITION;
         archetype[c++] = components.HEALTH;
-        archetype[c++] = components.COMBAT;
+        if (combatant) archetype[c++] = components.COMBAT;
         if (mobile) {
             archetype[c++] = components.MOVEMENT;
             archetype[c++] = components.AI_STATE;
@@ -266,12 +274,15 @@ public final class UnitRosterService {
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
-        // Seed the COMBAT stat columns from the unit's pre-allocation seed* fields;
-        // the mid-combat COMBAT scalars start at zero (a fresh world row appends
+        // Seed the COMBAT stat columns from the unit's pre-allocation seed* fields
+        // (only for combatants — a non-combatant has no COMBAT component); the
+        // mid-combat COMBAT scalars start at zero (a fresh world row appends
         // zero-initialised — no slot-reuse reset needed).
-        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, u.seedAttackDamage);
-        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
-        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
+        if (combatant) {
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, u.seedAttackDamage);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
+        }
         if (hasSecondary) {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
