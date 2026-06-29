@@ -49,7 +49,18 @@ on the handle until a number says otherwise.
 
 ## Staged plan (measurement-gated)
 
-### Phase 0 — measure first (do this before any conversion)
+### Phase 0 — measure first (do this before any conversion) — DONE (2026-06-29)
+
+**Result recorded in [`phase0-measurement.md`](../phase0-measurement.md); harness is
+`EcsAccessBenchTest`.** Headline: at N=200 the by-id path is ~20× the access cost of a
+column-walk (~7.6 µs vs ~0.38 µs/tick) — so the gate's literal "within noise → stop"
+trigger did **not** fire (column-walk really is faster) — **but** the absolute saving
+is only ~7.3 µs/tick ≈ **0.022% of a 30 Hz frame**, and churn barely changes it. So
+the win is real-but-architectural, not a frame-time necessity. Recommendation (pending
+user direction): do Phase 1 as ECS-idiom completion + `Query`/`CommandBuffer`'s first
+combatant-loop consumer, report the tiny number honestly, and **park Phase 3** (deep
+behavior-body conversion) — it is not justified on perf. The rest of this section is
+the original Phase-0 plan, now satisfied.
 
 Build the A/B harness so every later phase is judged by a number, not faith.
 
@@ -125,8 +136,10 @@ real consumer instead of reading as speculative dead code. Do **not** delete
 
 ## Acceptance criteria
 
-- A measurement exists comparing column-walk vs by-id access for the hot loop at
-  N=200, recorded in this directory (no more faith-based perf claims).
+- ~~A measurement exists comparing column-walk vs by-id access for the hot loop at
+  N=200, recorded in this directory (no more faith-based perf claims).~~ **MET
+  (2026-06-29)** — [`phase0-measurement.md`](../phase0-measurement.md): ~20× access
+  ratio, but ~7.3 µs/tick absolute ≈ 0.02% of a 30 Hz frame.
 - At least the Phase-1 arithmetic sub-passes iterate via `Query` + raw column arrays,
   with a before/after number.
 - Any structural change a column-walking system performs goes through `world.cmd()` +

@@ -48,8 +48,13 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
 1. Convert the combatant hot loop (`UnitUpdateSystem` + per-role behaviors) to
    `Query` + column-array iteration — **epic** (the stated justification; biggest
    unrealized win).
-2. Measure it — TickProfile A/B at N=200, column-walk vs by-id — **M** (the SoA
-   premise is currently faith).
+2. ~~Measure it — TickProfile A/B at N=200, column-walk vs by-id — **M** (the SoA
+   premise is currently faith).~~ **DONE (2026-06-29, Phase 0 of the systems epic):**
+   [`phase0-measurement.md`](phase0-measurement.md) + `EcsAccessBenchTest`. By-id is
+   ~20× the access cost of a column-walk, **but** the absolute saving is ~7.3 µs/tick
+   ≈ 0.02% of a 30 Hz frame at N=200 (churn-insensitive). Verdict: the SoA premise is
+   confirmed in relative terms but the systems conversion is **optional polish on
+   perf grounds** — recommend Phase 1 as idiom-completion, park Phase 3. See the doc.
 3. Migrate the behavior-tier `Entity` fields onto world components — **epic** (finishes
    "entity = id").
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.

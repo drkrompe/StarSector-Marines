@@ -90,6 +90,10 @@ test {
     // so the test can find them. Same source of truth the build.gradle root
     // uses for compileOnly + deployMod (resolved at line 13).
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // Opt-in gate for the ecs-migration Phase-0 access micro-bench
+    // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
+    // concurrent sessions; run on demand with `-Decs.bench=true`.
+    systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
 }
 
 // The default `jar` task only produces the thin jar (our classes), which we
