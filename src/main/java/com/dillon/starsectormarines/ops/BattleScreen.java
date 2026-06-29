@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
@@ -1169,12 +1170,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
-        com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
-        if (buildings == null || buildings.isEmpty()) return;
-        float lerpAmount = Math.min(1f, dt * 3f);
-        for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
-            b.currentAlpha += (b.targetAlpha - b.currentAlpha) * lerpAmount;
-        }
+        BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
     }
 
     /** Amber underline under whichever speed button is currently active. */

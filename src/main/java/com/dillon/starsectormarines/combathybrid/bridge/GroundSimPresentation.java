@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.util.vector.Vector2f;
@@ -73,6 +74,12 @@ public final class GroundSimPresentation {
         if (renderer == null || sim == null) return;
 
         parkListener(sim);
+
+        // Roof LoS reveal: the sim's vision tick writes each building's targetAlpha, but the lerp
+        // of currentAlpha → targetAlpha is a render-host job (the standalone does it in
+        // BattleScreen.advance). The bridge never ran it, so roofs stayed frozen opaque and
+        // interiors never revealed — drive it here off the real combat frame dt. (bridge-host-parity)
+        BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
 
         ImpactFx fx = renderer.getImpactFx();
         NavigationGrid grid = sim.getGrid();

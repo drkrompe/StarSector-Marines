@@ -282,10 +282,17 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
        `setListenerPosOverrideOneFrame` survive *inside* `CombatEngine`? (Only confirmed outside —
        [[starsector_positional_audio]].) If vanilla stomps it, audio still plays (grid is origin-centered
        where a spectator listener sits); only ideal panning is at risk.
-    2. **Roof LoS hide / re-add** — the `ROOFS` layer's reveal-on-enter / re-cover-on-leave behavior
+    2. ~~**Roof LoS hide / re-add** — the `ROOFS` layer's reveal-on-enter / re-cover-on-leave behavior
        (interiors hidden until a unit enters, roof re-added when it leaves) appears broken in
-       `GroundSceneBackdrop`. Likely the bridge backdrop doesn't feed roof-occlusion the per-unit
-       occupancy the standalone screen does (or the spectator camera has no "viewer" unit to drive it).
+       `GroundSceneBackdrop`.~~ ✅ **FIXED (2026-06-29).** Root cause was *not* the doc's "no viewer
+       unit" hypothesis — the sim's vision tick (`VisionService` → `BuildingVisibilityPass.update`)
+       writes each building's `targetAlpha` correctly under the bridge (it runs inside `sim.advance()`,
+       which `SimProxyMirror` drives). The gap was the *render-side* fade: the per-frame
+       `currentAlpha → targetAlpha` lerp lived only in `BattleScreen.advance`, so the bridge left every
+       roof frozen at its initial opaque `currentAlpha = 1f`. Fix: extracted the lerp to
+       `BuildingVisibilityPass.advanceAlpha(buildings, dt)` (shared fade-rate constant; standalone
+       delegates to it, behavior-preserving) and drove it from the bridge's `GroundSimPresentation.advance`.
+       **Playtest watch-item:** confirm roofs fade as marines enter buildings under Ctrl+Shift+K.
     3. (Carried) the older audio observation folds into #1.
   These are render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
   the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.

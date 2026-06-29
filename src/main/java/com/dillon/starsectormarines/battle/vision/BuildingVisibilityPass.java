@@ -30,6 +30,9 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
  */
 public final class BuildingVisibilityPass {
 
+    /** Per-frame roof fade rate (1/sec): {@code dt × this} is the {@link #advanceAlpha} lerp fraction. */
+    private static final float ALPHA_FADE_RATE = 3f;
+
     private BuildingVisibilityPass() {}
 
     public static void update(Buildings buildings, boolean[] cellRevealed,
@@ -38,6 +41,22 @@ public final class BuildingVisibilityPass {
 
         for (Building b : buildings.all()) {
             b.targetAlpha = anyInteriorCellRevealed(b, cellRevealed, gridWidth, gridHeight) ? 0f : 1f;
+        }
+    }
+
+    /**
+     * Animate each building's {@link Building#currentAlpha} toward the {@link Building#targetAlpha}
+     * the reveal {@link #update} last wrote, on real frame {@code dt} — decoupled from the ~10 Hz
+     * reveal cadence so the fade reads smooth. The render path reads {@code currentAlpha}, so
+     * <em>every</em> render host must call this once per frame; a host that skips it leaves roofs
+     * frozen at their initial opaque {@code currentAlpha} and interiors never reveal. No-op on a
+     * null/empty registry.
+     */
+    public static void advanceAlpha(Buildings buildings, float dt) {
+        if (buildings == null || buildings.isEmpty()) return;
+        float lerpAmount = Math.min(1f, dt * ALPHA_FADE_RATE);
+        for (Building b : buildings.all()) {
+            b.currentAlpha += (b.targetAlpha - b.currentAlpha) * lerpAmount;
         }
     }
 
