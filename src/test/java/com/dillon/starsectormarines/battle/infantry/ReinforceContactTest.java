@@ -43,7 +43,7 @@ public class ReinforceContactTest {
                 Math.round(cx), Math.round(cy));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.DEFENDER, leader);
-        leader.squadId = sid;
+        sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 4;
         squad.originalSize = 4;
@@ -73,7 +73,7 @@ public class ReinforceContactTest {
         Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE, 35, 5);
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
-        leader.squadId = sid;
+        sim.squad().assignSquad(leader.entityId, sid);
         Squad s = sim.getSquad(sid);
         s.alertLevel = SquadAlertLevel.SUSPICIOUS;
         s.lastSeenEnemyX = 20;

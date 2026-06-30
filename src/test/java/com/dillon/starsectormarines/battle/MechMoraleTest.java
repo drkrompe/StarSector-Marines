@@ -53,14 +53,14 @@ public class MechMoraleTest {
     private static Squad mechSquad(BattleSimulation sim, int size, MechRole role) {
         Entity first = new Entity("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1);
         int squadId = sim.mintSquad(Faction.DEFENDER, first);
-        first.squadId = squadId;
+        first.seedSquadId = squadId;
         sim.addUnit(first);
         // Loadout is a presence component, attached by id after the unit is
         // added (mirrors BattleSetup's spawn path).
         sim.world().attachMechLoadout(first.entityId, MechLoadoutComponent.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
             Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
-            u.squadId = squadId;
+            u.seedSquadId = squadId;
             sim.addUnit(u);
             sim.world().attachMechLoadout(u.entityId, MechLoadoutComponent.defaultLoadout(role));
         }

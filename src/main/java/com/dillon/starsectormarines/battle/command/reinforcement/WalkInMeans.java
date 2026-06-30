@@ -109,7 +109,7 @@ public final class WalkInMeans implements ReinforcementMeans {
                 squad = sim.getSquad(sid);
                 if (squad != null) squad.assignedNode = anchor;
             }
-            if (squad != null) unit.squadId = squad.id;
+            if (squad != null) unit.seedSquadId = squad.id;
             sim.addUnit(unit);
             spawned++;
         }

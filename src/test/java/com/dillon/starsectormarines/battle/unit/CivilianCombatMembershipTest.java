@@ -64,7 +64,7 @@ public class CivilianCombatMembershipTest {
         BattleSimulation sim = openSim();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.squadId = sid;
+        marine.seedSquadId = sid;
         Entity civilian = new Entity("c", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10);
         Entity engineer = new Entity("e", Faction.CIVILIAN, UnitType.ENGINEER, 11, 11);
         Entity scientist = new Entity("s", Faction.CIVILIAN, UnitType.SCIENTIST, 12, 12);

@@ -171,7 +171,7 @@ public class GroundSystem {
         if (v.squadId == Entity.NO_SQUAD) {
             v.squadId = roster.mintSquad(v.faction, marine);
         }
-        marine.squadId = v.squadId;
+        marine.seedSquadId = v.squadId;
         Squad squad = roster.getSquad(v.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);

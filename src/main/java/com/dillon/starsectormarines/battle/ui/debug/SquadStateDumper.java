@@ -136,7 +136,7 @@ public final class SquadStateDumper {
         // carries attrition. The per-member "alive" field is now always true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             JSONObject o = new JSONObject();
             o.put("id", u.id);
             if (selectedUnitId != null && selectedUnitId.equals(u.id)) {
@@ -206,7 +206,7 @@ public final class SquadStateDumper {
         List<Entity> squadmates = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId == squad.id) squadmates.add(u);
+            if (sim.squad().hasSquad(u.entityId) && sim.squad().squadId(u.entityId) == squad.id) squadmates.add(u);
         }
 
         JSONArray enemies = new JSONArray();

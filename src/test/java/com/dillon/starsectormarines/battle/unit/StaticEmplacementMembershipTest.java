@@ -62,7 +62,7 @@ public class StaticEmplacementMembershipTest {
         BattleSimulation sim = openSim();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.squadId = sid;
+        marine.seedSquadId = sid;
         MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
         DroneHubUnit hub = new DroneHubUnit("h", Faction.DEFENDER, 21, 2);
         sim.addUnit(marine);

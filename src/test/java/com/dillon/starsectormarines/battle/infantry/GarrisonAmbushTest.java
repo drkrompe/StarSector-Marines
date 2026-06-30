@@ -124,7 +124,7 @@ public class GarrisonAmbushTest {
         // a realistic squad layout (the relevance check itself only consults
         // squad.holdsFireUntilKillZone + the live units for "enemy known").
         Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6);
-        defender.squadId = squad.id;
+        defender.seedSquadId = squad.id;
         sim.addUnit(defender);
         sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
@@ -141,9 +141,9 @@ public class GarrisonAmbushTest {
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
-        d2.squadId = squad.id;
+        d2.seedSquadId = squad.id;
         sim.addUnit(d1);
         sim.addUnit(d2);
         sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
@@ -168,9 +168,9 @@ public class GarrisonAmbushTest {
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
-        d2.squadId = squad.id;
+        d2.seedSquadId = squad.id;
         sim.addUnit(d1);
         sim.addUnit(d2);
         sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));

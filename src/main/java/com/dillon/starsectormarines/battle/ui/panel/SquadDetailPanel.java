@@ -122,7 +122,7 @@ public final class SquadDetailPanel implements HudPanel {
         List<Entity> live = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squadId) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squadId) continue;
             live.add(u);
         }
         // Leader first (if set + alive), then stable by unit id so the row

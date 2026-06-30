@@ -49,8 +49,7 @@ public final class InfantryCohesion {
      * the battlefield. See {@code memory/squad_leader_cohesion.md}.
      */
     public static int[] cohesionOverride(Entity self, BattleView sim) {
-        if (self.squadId == Entity.NO_SQUAD) return null;
-        Squad squad = sim.getSquad(self.squadId);
+        Squad squad = sim.squadOf(self.entityId);
         if (squad == null || squad.aliveMembers <= 1) return null;
 
         // Engagement override — committed to a fight, don't drift back

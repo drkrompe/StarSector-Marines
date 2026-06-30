@@ -256,7 +256,9 @@ public final class TacticalScoring {
     public Entity findBestTarget(Entity self) {
         World world = roster.world();
         return findBestTarget(world.cellX(self.entityId), world.cellY(self.entityId),
-                self.faction, self.squadId, self, roster.vision().airLosRadius(self.entityId));
+                self.faction,
+                roster.squad().hasSquad(self.entityId) ? roster.squad().squadId(self.entityId) : Entity.NO_SQUAD,
+                self, roster.vision().airLosRadius(self.entityId));
     }
 
     /**
@@ -564,11 +566,12 @@ public final class TacticalScoring {
     private float projectedRocketDamageOnTarget(Entity shooter, Entity target) {
         World world = roster.world();
         float total = 0f;
-        if (shooter.squadId != Entity.NO_SQUAD) {
+        if (roster.squad().hasSquad(shooter.entityId)) {
+            int shooterSquadId = roster.squad().squadId(shooter.entityId);
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 Entity u = roster.get(i);
                 if (u == shooter) continue;
-                if (u.squadId != shooter.squadId) continue;
+                if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != shooterSquadId) continue;
                 if (!world.hasSecondaryWeapon(u.entityId)) continue;
                 if (world.secondaryActionTimer(u.entityId) <= 0f) continue;
                 if (world.secondaryAimTargetId(u.entityId) != target.entityId) continue;
@@ -796,7 +799,8 @@ public final class TacticalScoring {
             if (u == exclude || !roster.isAliveById(u.entityId)) continue;
             if (u.faction != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
-            if (selfSquadId != Entity.NO_SQUAD && u.squadId == selfSquadId) {
+            if (selfSquadId != Entity.NO_SQUAD && roster.squad().hasSquad(u.entityId)
+                    && roster.squad().squadId(u.entityId) == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
             }
         }

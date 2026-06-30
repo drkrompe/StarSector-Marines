@@ -93,7 +93,7 @@ public class ChokePointHoldTest {
         assertEquals(-1, squad.chokePointPortalId);
 
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         // LOS cell at the marine's current cell so execute won't try to path away.
@@ -114,7 +114,7 @@ public class ChokePointHoldTest {
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         List<int[]> cells = List.of(new int[]{5, 5});
@@ -135,7 +135,7 @@ public class ChokePointHoldTest {
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         // Attacker stepping onto the doorway cell.
@@ -165,9 +165,9 @@ public class ChokePointHoldTest {
 
         Squad squad = defenderSquad(1, 6f, 6f, 2);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
-        d2.squadId = squad.id;
+        d2.seedSquadId = squad.id;
         sim.addUnit(d1);
         sim.addUnit(d2);
         Entity attacker = new Entity("a1", Faction.MARINE, UnitType.MARINE, 6, 3);
@@ -200,7 +200,7 @@ public class ChokePointHoldTest {
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         // Pretend the member had a stale path queued before getting to post.
         sim.addUnit(d1);
 
@@ -221,7 +221,7 @@ public class ChokePointHoldTest {
         Squad squad = defenderSquad(1, 6f, 6f, 1);
         // Start the marine away from the LOS cell so they have to move.
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         List<int[]> cells = List.of(new int[]{5, 5});

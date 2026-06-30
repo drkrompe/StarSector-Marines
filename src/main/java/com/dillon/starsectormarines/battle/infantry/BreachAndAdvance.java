@@ -191,7 +191,7 @@ public final class BreachAndAdvance implements Action {
         int near = 0;
         float r2 = STACKUP_ARRIVAL_RADIUS * STACKUP_ARRIVAL_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
                 float dx = sim.world().cellX(u.entityId) - stackUpX[i2];
@@ -212,7 +212,7 @@ public final class BreachAndAdvance implements Action {
         // and currentStep() under parallel dispatch.
         if (step == null) return false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             String name = step.slotOf(u);
             if (name == null) continue;
             int s = parseSlotIndex(name);

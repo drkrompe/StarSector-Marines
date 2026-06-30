@@ -144,7 +144,7 @@ public final class BreachToEngage implements Goal {
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (u.squadId == squad.id) aliveCount++;
+            if (sim.squad().hasSquad(u.entityId) && sim.squad().squadId(u.entityId) == squad.id) aliveCount++;
         }
         if (aliveCount <= 0) return null;
 
@@ -305,7 +305,7 @@ public final class BreachToEngage implements Goal {
      */
     private static Entity effectiveTarget(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             Entity t = sim.targetOf(u);
             if (t != null) return t;
         }
@@ -329,7 +329,7 @@ public final class BreachToEngage implements Goal {
             if (enemy.faction == squad.faction) continue;
             if (zones.zoneIdAt(sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId)) != squadZone) continue;
             for (int mi = 0; mi < liveN; mi++) { Entity member = sim.liveUnitAt(mi);
-                if (member.squadId != squad.id) continue;
+                if (!sim.squad().hasSquad(member.entityId) || sim.squad().squadId(member.entityId) != squad.id) continue;
                 if (grid.hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId))) {
                     return true;
                 }

@@ -56,7 +56,7 @@ public final class BackstopAssignedSquadGoal implements Goal {
         boolean hasArmored = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
             if (m != null && m.role == MechRole.ARMORED_SUPPORT) {
                 hasArmored = true;

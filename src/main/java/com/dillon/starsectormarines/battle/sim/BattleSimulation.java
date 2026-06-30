@@ -395,6 +395,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the VISION component (sight stats) — {@code sim.vision().airLosRadius(id)}. */
     public VisionService vision() { return rosterService.vision(); }
 
+    /** Data owner for the SQUAD component (membership) — {@code sim.squad().hasSquad(id)} / {@code squadId(id)}. Distinct from {@link #getSquad(int)} (the squad-object registry). */
+    public SquadService squad() { return rosterService.squad(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

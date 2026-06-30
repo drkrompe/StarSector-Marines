@@ -48,7 +48,7 @@ import java.util.Random;
  */
 public class Entity {
 
-    /** Sentinel value for {@link #squadId} when the unit isn't part of a squad — defenders, solo combatants, anyone not deboarded from a marine shuttle. */
+    /** Sentinel for {@link #seedSquadId} when the unit isn't part of a squad — defenders, solo combatants, anyone not deboarded from a marine shuttle. Never a stored value once the unit is live: a non-member simply carries no {@code SQUAD} component (presence IS membership). */
     public static final int NO_SQUAD = -1;
 
     /**
@@ -78,8 +78,20 @@ public class Entity {
     public final Faction faction;
     /** Archetype — drives sprite + base stat block. Set once at construction. */
     public final UnitType type;
-    /** Squad identity. Set to a positive int when this unit deboarded as part of a fireteam; {@link #NO_SQUAD} for solo units. */
-    public int squadId = NO_SQUAD;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Squad membership key — a
+     * positive squad id when this unit spawns as part of a fireteam, {@link #NO_SQUAD}
+     * for a solo unit (defender / civilian / unsquadded turret).
+     * {@link UnitRosterService#allocate} consumes it: a value {@code != NO_SQUAD} makes
+     * the unit spawn with the {@code SQUAD} component (presence IS membership), seeded
+     * with this key; a {@code NO_SQUAD} seed means no SQUAD component at all. The live
+     * membership thereafter lives in the world component, reached by id via the
+     * {@code SquadService} data owner ({@code sim.squad().hasSquad(id)} /
+     * {@code squadId(id)}); the post-spawn join seam is {@code SquadService.assignSquad}.
+     * Write-only construction input (the deboard / setup / reinforcement / drone-spawn
+     * paths). Mirrors {@link #seedSecondaryWeapon}.
+     */
+    public int seedSquadId = NO_SQUAD;
     /**
      * Per-unit RNG owned by the thread processing this unit during UPDATE_UNITS.
      * Replaces sim-shared {@code BattleSimulation.rng} for parallel-decide-phase

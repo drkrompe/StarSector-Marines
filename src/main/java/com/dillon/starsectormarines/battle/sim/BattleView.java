@@ -107,6 +107,15 @@ public interface BattleView {
     /** Data owner for the VISION component (sight stats) — {@code vision().airLosRadius(id)} / {@code visionRange(id)}. The per-component Service that lands VISION off the {@link World} god-facade. */
     VisionService vision();
 
+    /** Data owner for the SQUAD component (membership) — {@code squad().hasSquad(id)} / {@code squadId(id)}. Distinct from {@link #getSquad(int)} (the squad-object registry); {@link #squadOf(long)} composes the two. */
+    SquadService squad();
+
+    /** The {@link Squad} object {@code id} belongs to, or {@code null} if it's in no squad — composes the {@link #squad()} membership gate with {@link #getSquad(int)}. Replaces the old {@code u.squadId == NO_SQUAD ? null : getSquad(u.squadId)} idiom. */
+    default Squad squadOf(long id) {
+        SquadService squad = squad();
+        return squad.hasSquad(id) ? getSquad(squad.squadId(id)) : null;
+    }
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

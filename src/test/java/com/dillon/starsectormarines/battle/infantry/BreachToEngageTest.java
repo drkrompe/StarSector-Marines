@@ -53,11 +53,11 @@ public class BreachToEngageTest {
         int ly = Math.round(cy);
         Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, lx, ly);
         int sid = sim.mintSquad(Faction.MARINE, first);
-        first.squadId = sid;
+        first.seedSquadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
             Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, lx + i, ly);
-            u.squadId = sid;
+            u.seedSquadId = sid;
             sim.addUnit(u);
         }
         Squad sq = sim.getSquad(sid);

@@ -1038,7 +1038,7 @@ public final class BattleSetup {
                     // not in a fire-suppression flag on the squad.
                     squad.holdsFireUntilKillZone = (mechRole == null);
                 }
-                unit.squadId = squad.id;
+                unit.seedSquadId = squad.id;
                 sim.addUnit(unit);
                 attachMechLoadout(sim, unit, mechRole);
                 spawned++;
@@ -1085,7 +1085,7 @@ public final class BattleSetup {
                     squad = sim.getSquad(sid);
                     squad.assignedNode = anchor;
                 }
-                unit.squadId = squad.id;
+                unit.seedSquadId = squad.id;
                 sim.addUnit(unit);
                 attachMechLoadout(sim, unit, mechRole);
                 spawned++;
@@ -1141,7 +1141,7 @@ public final class BattleSetup {
                     // No assignedNode — PatrolRoute falls back to the
                     // squad centroid as its wander seed when this is null.
                 }
-                unit.squadId = squad.id;
+                unit.seedSquadId = squad.id;
                 sim.addUnit(unit);
                 attachMechLoadout(sim, unit, mechRole);
                 spawned++;

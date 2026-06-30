@@ -73,7 +73,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         // Squad member exists but with no assignedObjective.
         Entity u = new Entity("m1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        u.squadId = 1;
+        u.seedSquadId = 1;
         sim.addUnit(u);
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -88,7 +88,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
@@ -105,7 +105,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
@@ -122,7 +122,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
@@ -152,7 +152,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
@@ -175,7 +175,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
@@ -197,7 +197,7 @@ public class SecureObjectiveZoneTest {
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.squadId = 1;
+        planter.seedSquadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);

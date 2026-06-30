@@ -94,7 +94,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity unit, BattleSimulation sim) {
-        Squad squad = unit.squadId == Entity.NO_SQUAD ? null : sim.getSquad(unit.squadId);
+        Squad squad = sim.squadOf(unit.entityId);
         if (squad == null) return;
 
         if (!prepareForAction(unit, sim)) return;
@@ -214,7 +214,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // and the same call here distributes members per slot.
             List<Entity> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-                if (u.squadId != squad.id) continue;
+                if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
                 aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {

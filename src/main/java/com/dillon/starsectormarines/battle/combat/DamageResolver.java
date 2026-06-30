@@ -122,8 +122,8 @@ public final class DamageResolver {
             // where the old one fell, so followers don't get yanked
             // sideways when the leader dies mid-maneuver. NO_SQUAD units
             // (turrets, civilians, etc.) skip — no leader to promote.
-            if (target.squadId != Entity.NO_SQUAD) {
-                Squad ls = squads.get(target.squadId);
+            if (roster.squad().hasSquad(target.entityId)) {
+                Squad ls = squads.get(roster.squad().squadId(target.entityId));
                 if (ls != null && ls.leaderId == target.entityId) {
                     Entity promoted = pickPromotionCandidate(ls, target);
                     ls.leaderId = (promoted != null) ? promoted.entityId : 0L;
@@ -167,7 +167,7 @@ public final class DamageResolver {
                 // transmutes it to a corpse, but a dead mech's threshold morale is
                 // moot, so keep the guard.
                 if (!died) applyMechHpThresholdDrain(target);
-            } else if (target.squadId != Entity.NO_SQUAD) {
+            } else if (roster.squad().hasSquad(target.entityId)) {
                 applySquadMoraleDrain(target, moraleImpact, died);
             }
         }
@@ -196,7 +196,7 @@ public final class DamageResolver {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            if (u == deadLeader || u.squadId != squad.id) continue;
+            if (u == deadLeader || !roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
             int dx = world.cellX(u.entityId) - lx;
             int dy = world.cellY(u.entityId) - ly;
             float d2 = dx * dx + dy * dy;
@@ -220,7 +220,7 @@ public final class DamageResolver {
      * mid-volley.
      */
     private void applySquadMoraleDrain(Entity target, float moraleImpact, boolean died) {
-        Squad sq = squads.get(target.squadId);
+        Squad sq = squads.get(roster.squad().squadId(target.entityId));
         if (sq == null) return;
         float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
                 ? (float) sq.aliveMembers / sq.originalSize

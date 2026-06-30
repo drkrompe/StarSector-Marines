@@ -72,7 +72,7 @@ public final class HitResponseSystem {
         // fallbackTimer read below, which is fail-loud without AI_STATE.
         if (!world.hasAiState(target.entityId)) return;
         if (world.fallbackTimer(target.entityId) > 0f) return;
-        if (target.squadId != Entity.NO_SQUAD) return;
+        if (roster.squad().hasSquad(target.entityId)) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
         if (fallback[0] == world.cellX(target.entityId) && fallback[1] == world.cellY(target.entityId)) return;

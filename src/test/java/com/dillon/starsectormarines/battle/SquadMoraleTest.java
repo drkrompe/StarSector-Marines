@@ -72,11 +72,11 @@ public class SquadMoraleTest {
     private static Squad marineSquad(BattleSimulation sim, int size) {
         Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1);
         int squadId = sim.mintSquad(Faction.MARINE, first);
-        first.squadId = squadId;
+        first.seedSquadId = squadId;
         sim.addUnit(first);
         for (int i = 1; i < size; i++) {
             Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, 1 + i, 1);
-            u.squadId = squadId;
+            u.seedSquadId = squadId;
             sim.addUnit(u);
         }
         Squad sq = sim.getSquad(squadId);
@@ -486,7 +486,7 @@ public class SquadMoraleTest {
         float before = sq.morale;
 
         Entity civilian = new Entity("c", Faction.DEFENDER, UnitType.MARINE, 8, 8);
-        civilian.squadId = Entity.NO_SQUAD;
+        civilian.seedSquadId = Entity.NO_SQUAD;
         sim.addUnit(civilian);
         sim.applyDamage(civilian, sim.world().hp(civilian.entityId) + 1000f, 1f);
 

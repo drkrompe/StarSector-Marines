@@ -36,7 +36,7 @@ public class BackstopAssignedSquadGoalTest {
     private static Squad armoredSquadWithFriendlyInfantry(BattleSimulation sim) {
         Entity mech = new Entity("ar0", Faction.MARINE, UnitType.HEAVY_MECH, 3, 3);
         int mechSid = sim.mintSquad(Faction.MARINE, mech);
-        mech.squadId = mechSid;
+        mech.seedSquadId = mechSid;
         sim.addUnit(mech);
         sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         Squad mechSquad = sim.getSquad(mechSid);
@@ -44,7 +44,7 @@ public class BackstopAssignedSquadGoalTest {
 
         Entity grunt = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
         int infSid = sim.mintSquad(Faction.MARINE, grunt);
-        grunt.squadId = infSid;
+        grunt.seedSquadId = infSid;
         sim.addUnit(grunt);
         Squad infSquad = sim.getSquad(infSid);
         infSquad.aliveMembers = 1;

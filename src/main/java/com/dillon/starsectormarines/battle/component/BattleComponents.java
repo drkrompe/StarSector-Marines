@@ -118,6 +118,9 @@ public final class BattleComponents {
     /** {@link #VISION} field 1: close-wall "air" line-of-sight radius in cells, {@code 0} = standard grid LoS (FLOAT). */
     public static final int VISION_AIR_LOS_RADIUS = 1;
 
+    /** {@link #SQUAD} field 0: the squad id this unit belongs to (INT) — a key into the roster's squad registry. Presence IS membership: a non-member carries no SQUAD, so {@code NO_SQUAD} is never a stored value. */
+    public static final int SQUAD_ID = 0;
+
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
     /** {@link #SECONDARY_WEAPON} field 1: rounds remaining on the secondary (INT). */
@@ -255,6 +258,24 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 3).
      */
     public final ComponentType VISION;
+    /**
+     * Optional squad membership — one INT field, the {@code squadId} key into the
+     * roster's squad registry ({@code UnitRosterService.getSquad}). The first
+     * <em>universal-domain</em> capability modeled as archetype presence rather than
+     * a sentinel: a unit carries SQUAD <em>iff</em> it belongs to a squad, so "has
+     * SQUAD" <em>is</em> membership and the old {@code Entity.NO_SQUAD} sentinel is
+     * never a stored value — a solo defender / civilian / unsquadded turret simply
+     * has no SQUAD (the SECONDARY_WEAPON presence precedent, applied to a field that
+     * used to default to a sentinel on every unit). Set once at spawn (seeded at
+     * {@code allocate} from {@code Entity.seedSquadId}; the post-spawn join seam is
+     * {@code SquadService.assignSquad}); never reassigned on a live unit. The data
+     * owner is {@code battle.sim.SquadService} ({@code hasSquad} presence + the
+     * fail-loud {@code squadId} read), distinct from the squad <em>objects</em> the
+     * roster owns. Removed in the corpse transmute (a corpse is not a squad member;
+     * the death cascade reads membership pre-transmute). See
+     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 5).
+     */
+    public final ComponentType SQUAD;
     /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
@@ -433,6 +454,7 @@ public final class BattleComponents {
         AIR_TURRETS     = world.register(16, "AirTurrets", FieldKind.OBJECT);
         APPEARANCE      = world.register(17, "Appearance", FieldKind.FLOAT, FieldKind.FLOAT);
         VISION          = world.register(18, "Vision", FieldKind.FLOAT, FieldKind.FLOAT);
+        SQUAD           = world.register(19, "Squad", FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

@@ -38,7 +38,7 @@ public class EnemyInKillZoneEvaluatorTest {
 
     private static Entity defenderAt(int x, int y, int squadId) {
         Entity u = new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
-        u.squadId = squadId;
+        u.seedSquadId = squadId;
         return u;
     }
 

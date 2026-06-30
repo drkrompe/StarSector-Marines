@@ -43,7 +43,7 @@ public class HitResponseSystemTest {
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 3, 5);
         int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.squadId = sid;
+        marine.seedSquadId = sid;
         sim.addUnit(marine);
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine);
@@ -58,7 +58,7 @@ public class HitResponseSystemTest {
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity mech = new Entity("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
-        mech.squadId = sid;
+        mech.seedSquadId = sid;
         sim.addUnit(mech);
         sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
@@ -74,7 +74,7 @@ public class HitResponseSystemTest {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity civilian = new Entity("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8);
-        civilian.squadId = Entity.NO_SQUAD;
+        civilian.seedSquadId = Entity.NO_SQUAD;
         sim.addUnit(civilian);
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
 

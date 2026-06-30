@@ -39,11 +39,11 @@ public class BreachAndAdvanceTest {
     private static Squad squad(BattleSimulation sim, int memberCount, int startX, int startY) {
         Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, startX, startY);
         int sid = sim.mintSquad(Faction.MARINE, first);
-        first.squadId = sid;
+        first.seedSquadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
             Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY);
-            u.squadId = sid;
+            u.seedSquadId = sid;
             sim.addUnit(u);
         }
         Squad sq = sim.getSquad(sid);
@@ -59,7 +59,7 @@ public class BreachAndAdvanceTest {
         int slotIdx = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(u)));
             slotIdx++;
         }
@@ -100,8 +100,8 @@ public class BreachAndAdvanceTest {
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 8, 5);
         Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 8, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.squadId = sid;
-        m1.squadId = sid;
+        m0.seedSquadId = sid;
+        m1.seedSquadId = sid;
         sim.addUnit(m0);
         sim.addUnit(m1);
         Squad sq = sim.getSquad(sid);
@@ -153,8 +153,8 @@ public class BreachAndAdvanceTest {
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
         Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.squadId = sid;
-        m1.squadId = sid;
+        m0.seedSquadId = sid;
+        m1.seedSquadId = sid;
         sim.addUnit(m0);
         sim.addUnit(m1);
         Squad sq = sim.getSquad(sid);
@@ -184,8 +184,8 @@ public class BreachAndAdvanceTest {
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
         Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.squadId = sid;
-        m1.squadId = sid;
+        m0.seedSquadId = sid;
+        m1.seedSquadId = sid;
         sim.addUnit(m0);
         sim.addUnit(m1);
         Squad sq = sim.getSquad(sid);

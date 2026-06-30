@@ -218,7 +218,7 @@ public class TacticalScoringTest {
         squad.centroidY = 10f;
 
         Entity marine = unit(sim, Faction.MARINE, 5, 10);
-        marine.squadId = squadId;
+        sim.squad().assignSquad(marine.entityId, squadId);
         sim.world().setAttackRange(marine.entityId, 60f);
 
         Entity farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
@@ -698,11 +698,11 @@ public class TacticalScoringTest {
         int squadId = sim.mintSquad(Faction.MARINE, null);
 
         Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
-        m0.squadId = squadId;
+        sim.squad().assignSquad(m0.entityId, squadId);
         Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
-        m1.squadId = squadId;
+        sim.squad().assignSquad(m1.entityId, squadId);
         Entity m2 = rocketeer(sim, Faction.MARINE, 5, 7);
-        m2.squadId = squadId;
+        sim.squad().assignSquad(m2.entityId, squadId);
 
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
         float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage
@@ -731,9 +731,9 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(20, 20);
         int squadId = sim.mintSquad(Faction.MARINE, null);
         Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
-        m0.squadId = squadId;
+        sim.squad().assignSquad(m0.entityId, squadId);
         Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
-        m1.squadId = squadId;
+        sim.squad().assignSquad(m1.entityId, squadId);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         sim.world().setSecondaryActionTimer(m0.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
@@ -808,9 +808,9 @@ public class TacticalScoringTest {
         int squadB = sim.mintSquad(Faction.MARINE, null);
 
         Entity mA = rocketeer(sim, Faction.MARINE, 5, 5);
-        mA.squadId = squadA;
+        sim.squad().assignSquad(mA.entityId, squadA);
         Entity mB = rocketeer(sim, Faction.MARINE, 5, 6);
-        mB.squadId = squadB;
+        sim.squad().assignSquad(mB.entityId, squadB);
 
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 

@@ -53,14 +53,27 @@ public final class DroneSpawner {
             Squad squad = sim.getSquad(squadId);
             squad.droneHubId = hub.entityId;
             hub.droneSquad = squad;
-            drone.squadId = squadId;
+            joinDroneSquad(sim, drone, squadId);
         } else {
-            drone.squadId = hub.droneSquad.id;
+            joinDroneSquad(sim, drone, hub.droneSquad.id);
             if (sim.resolveUnit(hub.droneSquad.leaderId) == null) {
                 hub.droneSquad.leaderId = drone.entityId;
             }
         }
         return drone;
+    }
+
+    /**
+     * Records the drone's squad membership. {@link BattleSimulation#queueSpawn}
+     * allocated the drone inline in a serial phase (its {@code entityId} is set) but
+     * only QUEUED it in the parallel UPDATE_UNITS dispatch ({@code entityId} still 0;
+     * the APPLY_SPAWNS flush allocates it later). So assign the live SQUAD membership
+     * if the drone is already allocated, otherwise seed it for the flush's
+     * {@code allocate} to consume — both land the same SQUAD component.
+     */
+    private static void joinDroneSquad(BattleSimulation sim, Drone drone, int squadId) {
+        if (drone.entityId != 0L) sim.squad().assignSquad(drone.entityId, squadId);
+        else drone.seedSquadId = squadId;
     }
 
     /**

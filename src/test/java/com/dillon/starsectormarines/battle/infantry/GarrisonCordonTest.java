@@ -112,7 +112,7 @@ public class GarrisonCordonTest {
         // Pick the first post and place the defender across the room from it.
         var post = posts.get(0);
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         // Verify the guard cell is inside the defender zone (sanity for the test fixture).
@@ -150,7 +150,7 @@ public class GarrisonCordonTest {
 
         // Defender already on the guard cell.
         Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY);
-        d1.squadId = squad.id;
+        d1.seedSquadId = squad.id;
         sim.addUnit(d1);
 
         // Place an attacker visible from the guard cell (just inside the room).

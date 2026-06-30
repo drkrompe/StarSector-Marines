@@ -85,7 +85,7 @@ public final class SquadFallbackSystem {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             Entity u = roster.get(i);
-            if (u.squadId != squad.id) continue;
+            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
             if (u.homeCellX < 0) continue;
             float dx = u.homeCellX - world.cellX(u.entityId);
             float dy = u.homeCellY - world.cellY(u.entityId);
@@ -106,7 +106,7 @@ public final class SquadFallbackSystem {
         memberScratch.clear();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             Entity u = roster.get(i);
-            if (u.squadId == squad.id) memberScratch.add(u);
+            if (roster.squad().hasSquad(u.entityId) && roster.squad().squadId(u.entityId) == squad.id) memberScratch.add(u);
         }
         memberScratch.sort((a, b) -> Long.compare(a.entityId, b.entityId));
         return memberScratch;

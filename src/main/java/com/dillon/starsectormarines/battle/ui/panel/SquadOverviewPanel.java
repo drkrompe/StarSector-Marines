@@ -83,8 +83,8 @@ public final class SquadOverviewPanel implements HudPanel {
         Map<Integer, int[]> weaponCounts = new HashMap<>(); // 0: RIF, 1: SMG, 2: DMR, 3: RKT
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.faction != Faction.MARINE || u.squadId == Entity.NO_SQUAD) continue;
-            int[] counts = weaponCounts.computeIfAbsent(u.squadId, k -> new int[4]);
+            if (u.faction != Faction.MARINE || !sim.squad().hasSquad(u.entityId)) continue;
+            int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u.entityId), k -> new int[4]);
             MarineWeapon weapon = sim.combat().primaryWeapon(u.entityId);
             if (weapon != null) {
                 switch (weapon) {

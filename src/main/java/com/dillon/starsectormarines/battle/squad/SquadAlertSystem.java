@@ -129,8 +129,8 @@ public final class SquadAlertSystem {
         // tighter "close + visible" predicate for the kill-zone gate.
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            if (u.squadId == Entity.NO_SQUAD) continue;
-            Squad squad = roster.getSquad(u.squadId);
+            if (!roster.squad().hasSquad(u.entityId)) continue;
+            Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
             if (squad == null) continue;
             float uAir = vision.airLosRadius(u.entityId);
             squad.aliveMembers++;
@@ -190,8 +190,8 @@ public final class SquadAlertSystem {
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
                 Entity u = dense[i];
-                if (u.squadId == Entity.NO_SQUAD) continue;
-                Squad squad = roster.getSquad(u.squadId);
+                if (!roster.squad().hasSquad(u.entityId)) continue;
+                Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
                 int uCellX = world.cellX(u.entityId);
                 int uCellY = world.cellY(u.entityId);
@@ -218,8 +218,8 @@ public final class SquadAlertSystem {
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
                 Entity u = dense[i];
-                if (u.squadId == Entity.NO_SQUAD) continue;
-                Squad squad = roster.getSquad(u.squadId);
+                if (!roster.squad().hasSquad(u.entityId)) continue;
+                Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
                 if (squad == null || !squad.holdsFireUntilKillZone) continue;
                 if (squad._underFireAtLosThisTick) continue;
                 int uCellX = world.cellX(u.entityId);
@@ -322,7 +322,8 @@ public final class SquadAlertSystem {
     private void clearSquadMemberTargets(int squadId, UnitRosterService roster, Entity[] dense, int liveCount) {
         World world = roster.world();
         for (int i = 0; i < liveCount; i++) {
-            if (dense[i].squadId == squadId) world.setTargetId(dense[i].entityId, 0L);
+            if (roster.squad().hasSquad(dense[i].entityId) && roster.squad().squadId(dense[i].entityId) == squadId)
+                world.setTargetId(dense[i].entityId, 0L);
         }
     }
 }

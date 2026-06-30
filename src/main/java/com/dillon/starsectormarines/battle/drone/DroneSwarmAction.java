@@ -93,7 +93,7 @@ public final class DroneSwarmAction implements Action {
         s.originX = body.x;
         s.originY = body.y;
         s.faction = d.faction;
-        s.squadId = d.squadId;
+        s.squadId = sim.squad().hasSquad(d.entityId) ? sim.squad().squadId(d.entityId) : Entity.NO_SQUAD;
         s.excludeFromCrowding = d;
         s.facingDegrees = body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
@@ -256,7 +256,8 @@ public final class DroneSwarmAction implements Action {
     private static Entity tryAgroScan(Drone d, BattleView sim) {
         float dAir = sim.vision().airLosRadius(d.entityId);
         Entity candidate = sim.getTacticalScoring().findBestTarget(
-                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction, d.squadId, d, dAir);
+                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction,
+                sim.squad().hasSquad(d.entityId) ? sim.squad().squadId(d.entityId) : Entity.NO_SQUAD, d, dAir);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
                 sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));

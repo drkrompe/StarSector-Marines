@@ -64,8 +64,8 @@ public final class WorldPicker implements HudPanel {
             }
 
             Entity picked = nearestUnit(sim, worldX, worldY);
-            if (picked != null && picked.squadId != Entity.NO_SQUAD) {
-                ctx.getSelection().selectUnit(picked.squadId, picked.id);
+            if (picked != null && sim.squad().hasSquad(picked.entityId)) {
+                ctx.getSelection().selectUnit(sim.squad().squadId(picked.entityId), picked.id);
             } else {
                 ctx.getSelection().clear();
             }

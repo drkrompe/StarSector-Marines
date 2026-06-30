@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
+import com.dillon.starsectormarines.battle.sim.SquadService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -116,6 +117,7 @@ public final class UnitRosterService {
     private final CombatService combatService = new CombatService(entityWorld, components);
     private final MovementService movementService = new MovementService(entityWorld, components);
     private final VisionService visionService = new VisionService(entityWorld, components);
+    private final SquadService squadService = new SquadService(entityWorld, components);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -216,6 +218,9 @@ public final class UnitRosterService {
     /** Data owner for the VISION component (sight stats) — inject into consumers that read/mutate visionRange/airLosRadius. */
     public VisionService vision() { return visionService; }
 
+    /** Data owner for the SQUAD component (membership) — inject into consumers that gate on hasSquad / read squadId. Distinct from {@link #getSquad(int)} (the squad-object registry). */
+    public SquadService squad() { return squadService; }
+
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
@@ -271,8 +276,14 @@ public final class UnitRosterService {
         // (DeadBodySystem), so a dead drone's body rides the death transmute for the
         // crash handler to read before it detaches it.
         boolean hasBody = u.seedBody != null;
+        // SQUAD iff the unit spawns in a squad. Presence IS membership — a solo unit
+        // (NO_SQUAD seed) carries no SQUAD component, so the old sentinel never lands
+        // in the world (the SECONDARY_WEAPON precedent). Live-only: removed on the
+        // corpse transmute (the death cascade reads membership pre-transmute).
+        boolean inSquad = u.seedSquadId != Entity.NO_SQUAD;
         ComponentType[] archetype = new ComponentType[
-                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
+                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                  + (hasBody ? 1 : 0) + (inSquad ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -286,6 +297,7 @@ public final class UnitRosterService {
         }
         if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
         if (hasBody) archetype[c++] = components.KINEMATICS;
+        if (inSquad) archetype[c++] = components.SQUAD;
         entityWorld.createEntity(id, archetype);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
@@ -320,6 +332,11 @@ public final class UnitRosterService {
         // steering reads (zero-churn, the shuttle-KINEMATICS precedent).
         if (hasBody) {
             entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, u.seedBody);
+        }
+        // Seed the squad-membership key (the SQUAD component was attached above iff
+        // the unit spawns in a squad).
+        if (inSquad) {
+            entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, u.seedSquadId);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative

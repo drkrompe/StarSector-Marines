@@ -670,7 +670,7 @@ public class AirSystem {
         int n = 0;
         for (int i = 0, live = roster.liveCount(); i < live; i++) {
             Entity u = roster.get(i);
-            if (u.squadId != mission.squadId) continue;
+            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != mission.squadId) continue;
             sumX += world.cellX(u.entityId) + 0.5f;
             sumY += world.cellY(u.entityId) + 0.5f;
             n++;
@@ -743,7 +743,7 @@ public class AirSystem {
                 if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
             }
         }
-        marine.squadId = mission.squadId;
+        marine.seedSquadId = mission.squadId;
         Squad squad = roster.getSquad(mission.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);

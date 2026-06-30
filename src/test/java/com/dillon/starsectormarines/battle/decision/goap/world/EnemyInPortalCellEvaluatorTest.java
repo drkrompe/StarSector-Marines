@@ -108,7 +108,7 @@ public class EnemyInPortalCellEvaluatorTest {
         // A friendly on the doorway must not trigger — the predicate is
         // "enemy in portal cell," scoped by faction.
         Entity friendly = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, WALL_COL, 5);
-        friendly.squadId = squad.id;
+        friendly.seedSquadId = squad.id;
         sim.addUnit(friendly);
 
         WorldState ws = WorldStateBuilder.build(squad, sim);

@@ -133,7 +133,7 @@ public final class WorldStateBuilder {
         List<Entity> members = new ArrayList<>(4);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId == squad.id) members.add(u);
+            if (sim.squad().hasSquad(u.entityId) && sim.squad().squadId(u.entityId) == squad.id) members.add(u);
         }
         if (members.isEmpty()) return false;
 
@@ -157,7 +157,7 @@ public final class WorldStateBuilder {
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
         for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
             Entity member = sim.liveUnitAt(mi);
-            if (member.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(member.entityId) || sim.squad().squadId(member.entityId) != squad.id) continue;
             for (int ei = 0; ei < n; ei++) {
                 Entity enemy = sim.liveUnitAt(ei);
                 if (!enemy.type.combatant) continue;
@@ -196,7 +196,7 @@ public final class WorldStateBuilder {
     private static boolean evalCanReposition(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             if (sim.world().repositionCooldown(u.entityId) <= 0f) return true;
         }
         return false;
@@ -207,7 +207,7 @@ public final class WorldStateBuilder {
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             float dx = sim.world().cellX(u.entityId) - squad.centroidX;
             float dy = sim.world().cellY(u.entityId) - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;
@@ -285,7 +285,7 @@ public final class WorldStateBuilder {
         int range2 = SquadAlertSystem.KILL_ZONE_RANGE_CELLS * SquadAlertSystem.KILL_ZONE_RANGE_CELLS;
         for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
             Entity member = sim.liveUnitAt(mi);
-            if (member.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(member.entityId) || sim.squad().squadId(member.entityId) != squad.id) continue;
             for (int ei = 0; ei < n; ei++) {
                 Entity enemy = sim.liveUnitAt(ei);
                 if (!enemy.type.combatant) continue;
@@ -326,7 +326,7 @@ public final class WorldStateBuilder {
             if (shot.shooterFaction == squad.faction) continue;
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 Entity member = sim.liveUnitAt(i);
-                if (member.squadId != squad.id) continue;
+                if (!sim.squad().hasSquad(member.entityId) || sim.squad().squadId(member.entityId) != squad.id) continue;
                 float dx = shot.toX - (sim.world().cellX(member.entityId) + 0.5f);
                 float dy = shot.toY - (sim.world().cellY(member.entityId) + 0.5f);
                 if (dx * dx + dy * dy > 4f) continue; // 2 cells squared

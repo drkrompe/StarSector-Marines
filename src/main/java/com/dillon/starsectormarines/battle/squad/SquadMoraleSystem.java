@@ -220,7 +220,7 @@ public final class SquadMoraleSystem {
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             // Dense iteration excludes released units — no isAlive() needed.
-            if (u.squadId != squad.id) continue;
+            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
             // Capability-as-presence: a mech is an entity with a loadout
             // component (was the nullable u.mech field). Null-safe by-id read off
             // the MECH_LOADOUT world component.
@@ -273,7 +273,7 @@ public final class SquadMoraleSystem {
             for (int i = 0; i < liveCount; i++) {
                 Entity member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
-                if (member.squadId != sq.id) continue;
+                if (!roster.squad().hasSquad(member.entityId) || roster.squad().squadId(member.entityId) != sq.id) continue;
                 float dx = shot.toX - (world.cellX(member.entityId) + 0.5f);
                 float dy = shot.toY - (world.cellY(member.entityId) + 0.5f);
                 if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;

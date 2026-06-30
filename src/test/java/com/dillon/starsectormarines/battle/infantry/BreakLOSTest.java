@@ -43,7 +43,7 @@ public class BreakLOSTest {
 
     private static Entity marineAt(int x, int y, int squadId) {
         Entity u = new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
-        u.squadId = squadId;
+        u.seedSquadId = squadId;
         return u;
     }
 

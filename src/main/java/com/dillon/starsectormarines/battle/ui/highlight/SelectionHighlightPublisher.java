@@ -36,7 +36,7 @@ public final class SelectionHighlightPublisher {
         List<CellHighlight> members = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squadId) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squadId) continue;
             members.add(new CellHighlight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), HighlightOverlay.COLOR_SELECTED_UNIT));
         }
         overlay.put(HighlightOverlay.SRC_SELECTED_SQUAD, members);

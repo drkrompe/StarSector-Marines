@@ -113,11 +113,11 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         int squadId = sim.mintSquad(Faction.MARINE, null);
         Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
-        marineA.squadId = squadId;
+        sim.squad().assignSquad(marineA.entityId, squadId);
         Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);
-        marineB.squadId = squadId;
+        sim.squad().assignSquad(marineB.entityId, squadId);
         Entity marineC = rocketeer(sim, Faction.MARINE, 5, 4);
-        marineC.squadId = squadId;
+        sim.squad().assignSquad(marineC.entityId, squadId);
         turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 28, 5);
 
         assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));
@@ -134,9 +134,9 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         int squadId = sim.mintSquad(Faction.MARINE, null);
         Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
-        marineA.squadId = squadId;
+        sim.squad().assignSquad(marineA.entityId, squadId);
         Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);
-        marineB.squadId = squadId;
+        sim.squad().assignSquad(marineB.entityId, squadId);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));

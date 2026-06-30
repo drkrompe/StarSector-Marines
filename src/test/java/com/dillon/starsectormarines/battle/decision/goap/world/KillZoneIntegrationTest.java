@@ -47,7 +47,7 @@ public class KillZoneIntegrationTest {
         defSquad.holdsFireUntilKillZone = true;
 
         Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.squadId = defSquadId;
+        defender.seedSquadId = defSquadId;
         sim.addUnit(defender);
 
         // Marine inside KILL_ZONE_RANGE_CELLS (8). Open floor → LOS clear.
@@ -95,7 +95,7 @@ public class KillZoneIntegrationTest {
         defSquad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD / 2;
 
         Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.squadId = defSquadId;
+        defender.seedSquadId = defSquadId;
         sim.addUnit(defender);
         // No marines anywhere → no close-LOS sighting this tick → counter resets.
 
@@ -115,7 +115,7 @@ public class KillZoneIntegrationTest {
         defSquad.holdsFireUntilKillZone = false;
 
         Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.squadId = defSquadId;
+        defender.seedSquadId = defSquadId;
         sim.addUnit(defender);
         Entity marine = new Entity("m1", Faction.MARINE, UnitType.MARINE, 10, 5);
         sim.addUnit(marine);
@@ -144,7 +144,7 @@ public class KillZoneIntegrationTest {
         defSquad.holdsFireUntilKillZone = true;
 
         Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.squadId = defSquadId;
+        defender.seedSquadId = defSquadId;
         sim.addUnit(defender);
         // Tank up so the marine's return fire doesn't kill us before the
         // ambush-blown threshold lands — the accumulator only ticks while at

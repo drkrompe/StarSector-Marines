@@ -114,7 +114,7 @@ public class ConquestCommandTest {
                 Math.round(centroidX), Math.round(centroidY));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
-        leader.squadId = sid;
+        sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.centroidX = centroidX;

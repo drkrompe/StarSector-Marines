@@ -114,7 +114,7 @@ public final class SabotageCommand implements MissionCommand {
     private static boolean hasLivePlanter(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
+            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs && !cs.isComplete()) {
                 return true;
