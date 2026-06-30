@@ -139,8 +139,25 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
    consumer** — its weapon read AND all three burst-column writes are COMBAT — so 14
    callers threaded `sim.world()`→`sim.combat()`. `CombatServiceTest` covers seed→read,
    null-default, setter, and fail-loud-on-corpse.
-5. **`squadId` → SQUAD component** — universal; large reader set (dispatch, squad
-   systems). Big mechanical sweep.
+5. ~~**`squadId` → SQUAD component**~~ **— SHIPPED (`32a00239`, 2026-06-30).** Modeled
+   as a **presence component** (id 19, one INT), NOT universal-with-sentinel — the user
+   picked presence + strict gate over the two alternatives. Presence IS membership (the
+   SECONDARY_WEAPON precedent), so the old `NO_SQUAD` sentinel is **never a stored value**:
+   a solo unit carries no SQUAD. `Entity.squadId`→write-only `seedSquadId`, seeded at
+   `allocate` iff `!= NO_SQUAD`; **live-only** (corpse-removed like COMBAT — the death
+   cascade reads membership pre-transmute, since `releaseFromRegistry` only drops the
+   dense slot and the corpse transmute is buffered to the drain). Data owner
+   `battle.sim.SquadService` (`hasSquad` presence + the fail-loud `squadId` read +
+   `assignSquad` post-spawn join, a row-move mirroring `World.attachSecondaryWeapon`);
+   `BattleView.squadOf(id)` composes the gate + `getSquad` (it owns the membership *key*;
+   the `Squad` *objects* stay on `UnitRosterService`). **No `World` delegator**
+   (Service-direct). ~45 production reads across ~30 files went by-id with an explicit
+   `hasSquad` gate — the member-gather `!= squad.id` loops, the death cascade,
+   `TacticalScoring` (incl. a hoisted `shooterSquadId`), the GOAP `squadOf` lookups, the
+   squad alert/fallback/morale systems, the UI panels/picker/highlight, and the
+   `TurretAim.State` shadow-copies. `DroneSpawner`'s post-`queueSpawn` write became a
+   serial/parallel seed-or-assign branch. `SquadServiceTest` + ~28 test files swept (two
+   Sonnet agents; seed pre-`addUnit`, `assignSquad` post-`addUnit`).
 6. **`role` → dispatch component** — universal. Unblocks `systems-to-columns` Phase 2
    (dispatch by presence, not enum) and is the prerequisite to keying the spatial
    indices by id (the index column-walk follow-on).

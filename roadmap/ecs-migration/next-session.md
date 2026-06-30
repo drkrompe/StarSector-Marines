@@ -3,6 +3,38 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Status (2026-06-30) — entity-field-migration slice 5: squadId → SQUAD (presence)
+
+Squad membership left the `Entity` heap object for a new **`SQUAD` component** (id 19,
+one INT). The shape was a genuine fork the user picked: **presence component + strict
+gate**, NOT universal-with-sentinel. Presence IS membership (the SECONDARY_WEAPON
+precedent) — a unit carries SQUAD iff it's in a squad, so the old `Entity.NO_SQUAD`
+sentinel is **never a stored value** (a solo unit carries no component). One commit:
+
+- **squadId slice `32a00239`:** `Entity.squadId`→write-only `seedSquadId`, seeded at
+  `allocate` iff `!= NO_SQUAD`; **live-only** (corpse-removed like COMBAT — the death
+  cascade reads membership pre-transmute, since `releaseFromRegistry` only drops the
+  dense slot and the transmute is buffered to the drain). Data owner is the new
+  **`battle.sim.SquadService`** (`hasSquad(id)` presence + the **fail-loud** `squadId(id)`
+  read + `assignSquad(id, sid)` post-spawn join — a row-move mirroring
+  `World.attachSecondaryWeapon`); `BattleView.squadOf(id)` composes the gate +
+  `getSquad`. **No `World` delegator** (Service-direct, the slice-3/4 precedent). ~45
+  production reads across ~30 files went by-id with an explicit `hasSquad` gate — the
+  member-gather `!= squad.id` loops, the death cascade (`DamageResolver`), `TacticalScoring`
+  (incl. a hoisted `shooterSquadId`), the GOAP `squadOf` lookups, the squad
+  alert/fallback/morale systems, the UI panels/picker/highlight, and the `TurretAim.State`
+  shadow-copies (which keep their own `NO_SQUAD` sentinel). `DroneSpawner`'s
+  post-`queueSpawn` write became a serial/parallel **seed-or-assign** branch (preserving
+  the leader-mint timing). `SquadServiceTest` + ~28 test files swept (two Sonnet agents;
+  seed for pre-`addUnit`, `assignSquad` for post-`addUnit`). Build + full suite green.
+
+**Distinction worth keeping straight:** `SquadService` owns the per-unit membership
+*key* (the `squadId`); the `Squad` *objects* the key indexes into stay on
+`UnitRosterService` (`getSquad(int)`/`mintSquad`). `sim.squad()` (the Service) vs
+`sim.getSquad(int)` (the object). **Next slice: `role` → dispatch component** (universal;
+unblocks `systems-to-columns` Phase 2 + the spatial-index id-keying), then the decision
+cluster.
+
 ## Status (2026-06-30) — entity-field-migration slice 4: primaryWeapon → COMBAT
 
 The combatant loadout left the `Entity` heap object: `Entity.primaryWeapon` → the
@@ -135,12 +167,13 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
   cache-locality win the whole migration was justified on is **uncollected**.
 - **Perf was never measured.** No before/after benchmark exists; the SoA premise is
   unvalidated and the hot path may even be slower than the old direct-field POJO.
-- **`Entity` is still a ~305-line heap object** in the roster, but the stat columns
-  have moved: `moveSpeed`/`visionRange`/`attackCooldown`/`airLosRadius`/`primaryWeapon`
-  are now world-owned (the live value lives in their component; `Entity` keeps only
-  the write-only `seed*` construction input). The live behavior/capability fields the
-  world does **not** yet own are `role`, `assignedObjective`, `equipmentDropTarget`,
-  `homeCell`, `lastReprioTickIndex`, `deathPoseIdx`, and `squadId`.
+- **`Entity` is still a ~305-line heap object** in the roster, but the per-unit columns
+  have moved: the stats `moveSpeed`/`visionRange`/`attackCooldown`/`airLosRadius`/`primaryWeapon`
+  are world-owned (live value in their component; `Entity` keeps only the write-only
+  `seed*` input), and **`squadId` is now the presence-based SQUAD component** (membership,
+  not a stored sentinel). The live behavior fields the world does **not** yet own are
+  `role`, `assignedObjective`, `equipmentDropTarget`, `homeCell`, `lastReprioTickIndex`,
+  and `deathPoseIdx`.
   So "entity = bare long id" is true for storage, false for the systems layer.
 - **Convoy ground `Vehicle` never entered the world** — it's a plain POJO in
   `GroundSystem.List<Vehicle>` (a third storage space the air analog closed but the
@@ -196,7 +229,11 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    **Slice 4 SHIPPED:** `primaryWeapon`→`COMBAT` OBJECT field 9 (`4835bd42`); data
    owner `CombatService` (no `World` delegator — Service-direct, the slice-3 precedent),
    and `beginBurst` dropped its `World` param to become a pure `CombatService` consumer.
-   **Next slice: `squadId`→SQUAD component**, then `role`.
+   **Slice 5 SHIPPED:** `squadId`→new **presence-based `SQUAD` component** (id 19,
+   `32a00239`); data owner `SquadService` (`hasSquad`/fail-loud `squadId`/`assignSquad`),
+   `BattleView.squadOf` convenience. User chose presence + strict gate over
+   universal-sentinel; ~45 production reads gated, ~28 test files swept (2 Sonnet agents).
+   **Next slice: `role`→dispatch component** (universal), then the decision cluster.
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its
