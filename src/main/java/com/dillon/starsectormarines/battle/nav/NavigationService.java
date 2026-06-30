@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.Arrays;
@@ -211,22 +214,36 @@ public final class NavigationService {
      * the freshest information.
      */
     public void rebuildOccupancyMap(UnitRosterService roster) {
-        World world = roster.world();
+        EntityWorld world = roster.entityWorld();
+        BattleComponents comps = roster.components();
         Arrays.fill(occupancyMap, (byte) 0);
-        for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            Entity u = roster.get(i);
-            int curX = world.cellX(u.entityId);
-            int curY = world.cellY(u.entityId);
-            incrementOccupancy(curX, curY);
-            // Static emplacements (turrets, hubs) have no MOVEMENT — they claim
-            // their current cell above but carry no path destination to reserve.
-            if (!world.hasMovement(u.entityId)) continue;
-            int[] path = world.path(u.entityId);
-            int destX = Paths.destX(path);
-            if (destX != Integer.MIN_VALUE) {
-                int destY = Paths.destY(path);
-                if (destX != curX || destY != curY) {
-                    incrementOccupancy(destX, destY);
+        // Column-walk the live grid population instead of per-id reads off the
+        // roster — the systems-half ECS idiom (grab the raw cell arrays once per
+        // matched table, then a tight row loop; no per-unit location probe). The
+        // archetype partitions movers from statics for free: a table carries
+        // MOVEMENT iff its rows are movers, so the path-destination reservation is
+        // gated by a per-table has(MOVEMENT), not a per-row probe. Static
+        // emplacements (turrets, hubs) live in MOVEMENT-less tables and only claim
+        // their current cell. Order-independent — occupancy is a saturating sum.
+        for (ArchetypeTable t : world.matched(comps.gridOccupants)) {
+            int[] cellX = t.ints(comps.POSITION, BattleComponents.POSITION_CELL_X).array();
+            int[] cellY = t.ints(comps.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            boolean mover = t.has(comps.MOVEMENT);
+            Object[] paths = mover
+                    ? t.objects(comps.MOVEMENT, BattleComponents.MOVEMENT_PATH).array()
+                    : null;
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                int curX = cellX[r];
+                int curY = cellY[r];
+                incrementOccupancy(curX, curY);
+                if (!mover) continue;
+                int[] path = (int[]) paths[r];
+                int destX = Paths.destX(path);
+                if (destX != Integer.MIN_VALUE) {
+                    int destY = Paths.destY(path);
+                    if (destX != curX || destY != curY) {
+                        incrementOccupancy(destX, destY);
+                    }
                 }
             }
         }

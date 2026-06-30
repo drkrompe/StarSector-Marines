@@ -361,6 +361,20 @@ public final class BattleComponents {
      */
     public final Query airCraft;
 
+    /**
+     * Every <em>live</em> grid-resident entity ({@code {POSITION}} minus
+     * {@code {CORPSE}}) — the dense roster's live set: movers, static emplacements
+     * (turrets / hubs), and drones, exactly the units
+     * {@code NavigationService.rebuildOccupancyMap} bins into the occupancy grid.
+     * Corpses carry POSITION but are excluded (a body claims no cell); air craft
+     * carry no POSITION and never match. A matched table carries {@code MOVEMENT}
+     * iff its rows are movers, so a per-table {@code has(MOVEMENT)} check (not a
+     * per-row probe) partitions path-reserving movers from cell-claiming statics —
+     * the first per-tick combatant-population {@code Query} consumer (the systems
+     * half, {@code roadmap/ecs-migration/stories/systems-to-columns.md}).
+     */
+    public final Query gridOccupants;
+
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
@@ -391,5 +405,6 @@ public final class BattleComponents {
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);
+        gridOccupants = world.query(new ComponentType[]{POSITION}, new ComponentType[]{CORPSE});
     }
 }

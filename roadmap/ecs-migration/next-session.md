@@ -47,7 +47,18 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
 [`stories/systems-to-columns.md`](stories/systems-to-columns.md)):
 1. Convert the combatant hot loop (`UnitUpdateSystem` + per-role behaviors) to
    `Query` + column-array iteration — **epic** (the stated justification; biggest
-   unrealized win).
+   unrealized win). **Started (2026-06-29) as the systems epic, but RE-SCOPED by a
+   code finding:** the per-role timers (`cooldownTimer`/`reposition`/`fallback`/
+   `wanderDwell`/`moveProgress`) are NOT uniform sweeps — each is advanced inside
+   deliberate per-role control flow (cooldown freezes during rocket-aim; fallback
+   only ticks while falling back; moveProgress reset at ~20 freeze sites), so
+   centralizing them is a behavior change, not a lift — and Phase 0 gives no perf
+   reason to risk it. Phase 1 re-scoped to the clean, behavior-neutral *column
+   scans*. **First slice SHIPPED:** `NavigationService.rebuildOccupancyMap`
+   column-walks the new `BattleComponents.gridOccupants` query (`{POSITION}` minus
+   `{CORPSE}`) — the first per-tick combatant-population `Query` consumer; archetype
+   partitions movers/statics via a per-table `has(MOVEMENT)`. Full design +
+   rationale: [`stories/systems-to-columns.md`](stories/systems-to-columns.md) § Phase 1.
 2. ~~Measure it — TickProfile A/B at N=200, column-walk vs by-id — **M** (the SoA
    premise is currently faith).~~ **DONE (2026-06-29, Phase 0 of the systems epic):**
    [`phase0-measurement.md`](phase0-measurement.md) + `EcsAccessBenchTest`. By-id is

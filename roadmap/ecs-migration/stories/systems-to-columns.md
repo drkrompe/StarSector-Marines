@@ -76,20 +76,45 @@ Build the A/B harness so every later phase is judged by a number, not faith.
   finding is that nobody knows which world we're in. Find out first.
   ([`jfr_analysis_workflow`](../../../) is the profiling precedent.)
 
-### Phase 1 — convert the universal arithmetic sub-passes
+### Phase 1 — convert the per-tick column scans — IN PROGRESS (re-scoped 2026-06-29)
 
-The parts of the per-unit tick that ARE tight numeric kernels over a universal/near-
-universal component set — the best SoA candidates, lowest behavior risk:
+> **Finding that re-scoped this phase (2026-06-29):** the doc's original premise —
+> that the timers below are "universal arithmetic sub-passes" liftable mechanically
+> into uniform column kernels — **does not hold against the code.** None of
+> `cooldownTimer` / `repositionCooldown` / `fallbackTimer` / `wanderDwellTimer` /
+> `moveProgress` is a uniform per-tick countdown: each is advanced inside *deliberate*
+> per-role control flow. `cooldownTimer` alone is decremented at 5+ gated sites and
+> reset at ~12 more; the infantry cooldown decrement is **skipped during the rocket-aim
+> window** (`GoapInfantryBehavior.prepareForAction` short-circuits on
+> `tickAimAndShortCircuit` *before* `tickCooldowns`) and for solo / falling-back units;
+> `fallbackTimer`/`wanderDwellTimer` only tick *while in that state* by design;
+> `moveProgress` is movement state reset to 0 at ~20 freeze sites, not a countdown.
+> Centralizing any of them into one unconditional sweep would be a **behavior change**,
+> not a mechanical lift — and Phase 0 says there is no perf reason to take that risk.
+>
+> **So Phase 1 is re-scoped to what IS cleanly column-walkable and behavior-neutral:
+> the per-tick *scans* that read only column data + entity id (not the `Entity`
+> object) and are order-insensitive.** The occupancy rebuild is the first such slice;
+> the destination-index and vision-position scans are the same shape if continued.
 
-- AI-cadence countdowns (`AI_STATE`: `fallbackTimer`, `repositionCooldown`,
-  `wanderDwellTimer`) — decrement-toward-zero over the `MOVEMENT`+`AI_STATE` archetype.
-- `MOVEMENT` `moveProgress` advance.
-- `COMBAT` `cooldownTimer` / burst timers advance.
+- **Slice 1 — `NavigationService.rebuildOccupancyMap` ✓ SHIPPED.** The per-tick
+  occupancy grid rebuild stopped iterating the roster with by-id `cellX`/`cellY`/
+  `hasMovement`/`path` probes and now column-walks the new `BattleComponents.gridOccupants`
+  query (`{POSITION}` minus `{CORPSE}` = the dense roster's live set; air carries no
+  POSITION → skipped for free). Per matched table it grabs the raw `cellX`/`cellY`
+  arrays once; the archetype partitions movers from statics **for free** — a per-*table*
+  `has(MOVEMENT)` (not a per-row probe) gates the path-destination reservation. Behavior-
+  neutral (occupancy is a saturating sum → order-independent), full suite green. This is
+  the **first per-tick combatant-population `Query` consumer** — the idiom the engine was
+  built for, now with a real adopter. Justified on idiom/clarity, **not** frame-time (the
+  ~1.5 µs/tick it removes is Phase-0-negligible).
 
-Pattern: a `Query` for the required component set, then per matched table grab the raw
-column arrays once and run `for (int r = 0; r < rowCount; r++)` — the archetype analog
-of `overview.md` rule 6. Leave the role-branching decision *logic* on the `Entity[]`
-walk for now; only the arithmetic moves. Re-measure after each.
+The original (now-falsified) framing, kept for the record: *"AI-cadence countdowns,
+`moveProgress`, `cooldownTimer`/burst timers — a `Query` for the required component set,
+then per matched table grab the raw column arrays and run a row loop; leave the role-
+branching decision logic on the `Entity[]` walk, only the arithmetic moves."* The
+"grab arrays per matched table, tight row loop" **pattern** is exactly what Slice 1
+uses — it's the *targets* (entangled timers) that were wrong, not the technique.
 
 ### Phase 2 — dispatch by presence, not by `role` enum
 
