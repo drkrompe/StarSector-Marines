@@ -220,7 +220,7 @@ public class Drone extends Entity {
         this.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
         this.visionRange = 44f;
         this.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
-        this.attackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
+        this.seedAttackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
         this.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
         this.moveSpeed = 0f;
         this.airLosRadius = DRONE_AIR_LOS_RADIUS;

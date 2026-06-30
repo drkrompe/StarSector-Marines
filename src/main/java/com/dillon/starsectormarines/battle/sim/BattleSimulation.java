@@ -80,7 +80,7 @@ import java.util.Random;
  * <ul>
  *   <li>Each alive unit refreshes its target to the nearest alive enemy.</li>
  *   <li>If a target is in {@code world.attackRange(id)}, the unit stops moving and
- *       fires on {@link Entity#attackCooldown}, dealing {@code world.attackDamage(id)}.</li>
+ *       fires on {@code world.attackCooldown(id)}, dealing {@code world.attackDamage(id)}.</li>
  *   <li>Otherwise the unit re-pathfinds (only when between cells, to avoid a
  *       visual jump mid-step) and advances {@code moveProgress} along the path
  *       at {@link Entity#moveSpeed} cells/sec.</li>

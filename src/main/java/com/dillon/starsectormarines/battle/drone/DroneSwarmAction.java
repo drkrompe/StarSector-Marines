@@ -100,7 +100,7 @@ public final class DroneSwarmAction implements Action {
         s.attackRange = sim.world().attackRange(d.entityId);
         s.minRange = 0f;
         s.cooldownTimer = sim.world().cooldownTimer(d.entityId);
-        s.attackCooldown = d.attackCooldown;
+        s.attackCooldown = sim.world().attackCooldown(d.entityId);
         s.target = sim.targetOf(d);
         s.ignoreCloseWalls = true;
         s.closeWallRadius = d.airLosRadius;

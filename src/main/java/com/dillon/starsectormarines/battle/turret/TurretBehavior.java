@@ -62,7 +62,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.attackRange = sim.world().attackRange(t.entityId);
         s.minRange = t.kind.minRange;
         s.cooldownTimer = sim.world().cooldownTimer(t.entityId);
-        s.attackCooldown = t.attackCooldown;
+        s.attackCooldown = sim.world().attackCooldown(t.entityId);
         s.target = sim.targetOf(t);
         s.indirectFire = t.kind.indirectFire;
 

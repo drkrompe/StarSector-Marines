@@ -194,7 +194,7 @@ public final class PatrolMotion {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (dist <= sim.world().attackRange(member.entityId) && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target, FireStance.MOVING);
-            sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
+            sim.world().setCooldownTimer(member.entityId, sim.world().attackCooldown(member.entityId));
             member.beginBurst(sim.world(), target);
         }
     }

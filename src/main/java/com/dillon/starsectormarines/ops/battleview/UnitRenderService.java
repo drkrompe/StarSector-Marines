@@ -310,7 +310,7 @@ public final class UnitRenderService implements RenderSystem {
         SpriteSheetFrames frames = cache.frames;
         float cooldown = u.type.combatant ? world.cooldownTimer(u.entityId) : 0f;
         boolean weaponUp = inAim || (u.type.combatant
-                && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
+                && cooldown > (world.attackCooldown(u.entityId) - WEAPON_UP_TIME)
                 && cooldown > 0f);
         int selfCellX = world.cellX(u.entityId);
         int selfCellY = world.cellY(u.entityId);

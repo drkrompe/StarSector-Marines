@@ -74,7 +74,7 @@ public class MapTurret extends Entity {
         this.seedHp = kind.maxHp;
         this.seedAttackDamage = kind.damage;
         this.seedAttackRange = kind.range;
-        this.attackCooldown = kind.cooldown;
+        this.seedAttackCooldown = kind.cooldown;
         this.seedAccuracy = kind.accuracy;
         this.moveSpeed = 0f;
         this.role = UnitRole.TURRET;

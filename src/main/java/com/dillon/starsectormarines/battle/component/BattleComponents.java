@@ -88,6 +88,8 @@ public final class BattleComponents {
     public static final int COMBAT_BURST_TIMER = 6;
     /** {@link #COMBAT} field 7: entity id captured when the burst was queued, 0L = idle (LONG). */
     public static final int COMBAT_BURST_TARGET_ID = 7;
+    /** {@link #COMBAT} field 8: per-unit primary-weapon cooldown reset value, sim-seconds — the value {@link #COMBAT_COOLDOWN_TIMER} is reset to on a fire (FLOAT). Seed-only stat like attack damage/range/accuracy. */
+    public static final int COMBAT_ATTACK_COOLDOWN = 8;
 
     /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
     public static final int MOVEMENT_MOVE_PROGRESS = 0;
@@ -180,7 +182,8 @@ public final class BattleComponents {
     /**
      * Live-combat state — {@code float attackDamage, attackRange, accuracy,
      * cooldownTimer; long targetId; int burstRemaining; float burstTimer; long
-     * burstTargetId}. The primary-weapon capability. <em>Optional</em>: added at
+     * burstTargetId; float attackCooldown}. The primary-weapon capability.
+     * <em>Optional</em>: added at
      * spawn only for combatants ({@code UnitType.combatant}), so "has COMBAT"
      * defines a combatant — a non-combatant (civilian / engineer / scientist) never
      * fires or is targeted and carries none. Seeded at spawn like {@link #HEALTH}
@@ -384,7 +387,8 @@ public final class BattleComponents {
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT);
         COMBAT          = world.register(6, "Combat",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
+                FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG,
+                FieldKind.FLOAT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);

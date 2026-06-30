@@ -263,7 +263,7 @@ public final class ChokePointHold implements Action {
         // identically (machine guns rip a burst when the trigger fires).
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
         sim.world().setTargetId(member.entityId, Entity.idOf(portalIntruder));
-        sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
+        sim.world().setCooldownTimer(member.entityId, sim.world().attackCooldown(member.entityId));
         member.beginBurst(sim.world(), portalIntruder);
         return ActionStatus.RUNNING;
     }

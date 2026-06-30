@@ -100,6 +100,8 @@ public final class World {
     public boolean hasCombat(long id) { return entityWorld.has(id, components.COMBAT); }
     public float cooldownTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
     public void setCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER, v); }
+    /** Per-unit primary cooldown reset value (seed-only stat); {@code setCooldownTimer(id, attackCooldown(id))} on a fire. */
+    public float attackCooldown(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN); }
 
     // Movement lives in the entity world's OPTIONAL MOVEMENT component, narrowed
     // to movers: a static emplacement (turret, drone hub) has no MOVEMENT.

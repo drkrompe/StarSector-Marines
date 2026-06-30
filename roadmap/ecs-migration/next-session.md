@@ -67,7 +67,14 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    confirmed in relative terms but the systems conversion is **optional polish on
    perf grounds** — recommend Phase 1 as idiom-completion, park Phase 3. See the doc.
 3. Migrate the behavior-tier `Entity` fields onto world components — **epic** (finishes
-   "entity = id").
+   "entity = id"). **STARTED (2026-06-29):** story
+   [`stories/entity-field-migration.md`](stories/entity-field-migration.md) with the
+   full live-field inventory + capability mapping + slice order. **Slice 1 SHIPPED:**
+   `attackCooldown` → `COMBAT` (field 8) — `Entity.attackCooldown` is now the
+   write-only `seedAttackCooldown`, live value reached via `world.attackCooldown(id)`;
+   ~15 reader sites converted; seeded in `allocate` (combatant block). Suite green.
+   Next slices: `moveSpeed`→MOVEMENT, then `visionRange`+`airLosRadius`→new VISION
+   (the first scan-unblocker — lets `VisionService` column-walk).
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its

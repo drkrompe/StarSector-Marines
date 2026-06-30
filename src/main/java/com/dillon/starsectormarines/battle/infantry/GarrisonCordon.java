@@ -143,7 +143,7 @@ public final class GarrisonCordon implements Action {
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
         sim.fireShot(member, target, stance);
-        sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
+        sim.world().setCooldownTimer(member.entityId, sim.world().attackCooldown(member.entityId));
         member.beginBurst(sim.world(), target);
     }
 

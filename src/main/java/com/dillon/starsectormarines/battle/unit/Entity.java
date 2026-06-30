@@ -212,7 +212,17 @@ public class Entity {
     public AirBody seedBody;
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
     public float visionRange;
-    public float attackCooldown;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The per-unit primary
+     * cooldown reset value (sim-seconds). {@link UnitRosterService#allocate} copies
+     * it into the entity world's {@code COMBAT} component (field
+     * {@link BattleComponents#COMBAT_ATTACK_COOLDOWN}) for combatants, canonical
+     * thereafter; reached by id via {@code world.attackCooldown(id)}. Same shape as
+     * the other COMBAT seed-stats ({@link #seedAttackDamage}/{@link #seedAttackRange}/
+     * {@link #seedAccuracy}) — write-only construction input (ctor archetype default,
+     * subclass overrides, deboard loadout).
+     */
+    public float seedAttackCooldown;
 
     /**
      * Close-wall radius for "air" line-of-sight, in cells. When &gt; 0, walls
@@ -299,7 +309,7 @@ public class Entity {
         this.seedAttackRange = type.attackRange;
         this.seedAccuracy = type.accuracy;
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
-        this.attackCooldown = type.attackCooldown;
+        this.seedAttackCooldown = type.attackCooldown;
     }
 
 }

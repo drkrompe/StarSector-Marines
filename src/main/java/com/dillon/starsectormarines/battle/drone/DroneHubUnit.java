@@ -71,7 +71,7 @@ public class DroneHubUnit extends Entity {
         this.seedHp = HUB_MAX_HP;
         this.seedAttackDamage = 0f;
         this.seedAttackRange = 0f;
-        this.attackCooldown = 1f;
+        this.seedAttackCooldown = 1f;
         this.seedAccuracy = 0f;
         this.moveSpeed = 0f;
         this.role = UnitRole.DRONE_HUB;
