@@ -97,7 +97,7 @@ public final class ClearZone extends AbstractZoneAction {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (inRange && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target);
-            sim.world().setCooldownTimer(member.entityId, sim.world().attackCooldown(member.entityId));
+            sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
             member.beginBurst(sim.world(), target);
             return ActionStatus.RUNNING;
         }

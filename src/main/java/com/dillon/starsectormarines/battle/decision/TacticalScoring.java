@@ -1364,7 +1364,7 @@ public final class TacticalScoring {
 
         int scanRange = Math.max(FALLBACK_SCAN_RANGE_MIN,
                        Math.min(FALLBACK_SCAN_RANGE_MAX,
-                                Math.round(world.moveSpeed(self.entityId) * FALLBACK_SCAN_SECONDS)));
+                                Math.round(roster.movement().moveSpeed(self.entityId) * FALLBACK_SCAN_SECONDS)));
 
         // Pre-gather every enemy that could threaten any candidate cell, once.
         // The radius bound is "candidate-furthest-from-self" + "enemy with the

@@ -100,7 +100,7 @@ public final class HoldPost implements Action {
         if (inRange && visible) {
             if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
-                sim.world().setCooldownTimer(member.entityId, sim.world().attackCooldown(member.entityId));
+                sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
                 member.beginBurst(sim.world(), target);
             }
             hold(member, sim);

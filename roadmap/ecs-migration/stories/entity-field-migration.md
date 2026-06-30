@@ -48,6 +48,37 @@ lifecycle-stable capability, not by current storage. A field's home is "what
 capability is it part of," and presence = membership for genuinely-optional ones
 (the `SECONDARY_WEAPON` precedent) rather than a nullable field on a shared bag.
 
+## Access model — per-component Services, not the `World` god-facade (decided 2026-06-29)
+
+The user drew the distinction that governs HOW migrated fields are reached:
+
+- **System** = a per-tick processor over *all entities matching an aspect* (the
+  column-walk; stateless). The Artemis `IteratingSystem`.
+- **Service** = a *data owner* — it holds a component's state and exposes the
+  read/mutate methods for it. The Artemis `ComponentMapper`, with mutators.
+
+The flat `battle.sim.World` is **neither** — it's a ~60-method passthrough that owns
+nothing and spans every component (`hp`, `cellX`, `attackCooldown`, `moveSpeed`, …).
+Piling the behavior-tier fields onto it makes the god-facade worse. **So each
+migrated field's by-id access lands on a per-component Service** (`CombatService`
+owns COMBAT, `MovementService` owns MOVEMENT, …; one per component). Consumers are
+**constructor-injected** with the Service they need (or reach `sim.combat()` /
+`roster.movement()` where they only hold the sim/roster handle) and call
+`combat.attackCooldown(id)` — **no `World` hop, no stutter**. This is the existing
+constructor-injected Services pattern ([[battle_services_systems]]); `World` was a
+storage-migration expedient and is being **retired incrementally**: it now
+*delegates* its COMBAT/MOVEMENT accessors to the Services, so the ~hundreds of
+existing `world.<x>(id)` callers stay green while consumers move off it per-slice.
+
+Per-tick bulk consumers eventually become real **Systems** that column-walk the
+component table (the [`systems-to-columns`](systems-to-columns.md) epic); the
+Service by-id methods are for the random-access / held-ref / cold paths.
+
+**Shipped (`b77e45a8`):** `CombatService` + `MovementService` (own all COMBAT /
+MOVEMENT access), `World` delegates, wired through `UnitRosterService.combat()/
+movement()` + `BattleView`/`BattleSimulation`. Slices 1–2's consumers reroute onto
+them next; slice 3 (VISION) lands as `VisionService` from the start.
+
 ## Slice order (cleanest first; scan-unblockers prioritized)
 
 Each slice follows the storage-migration playbook: add the column, seed it at
