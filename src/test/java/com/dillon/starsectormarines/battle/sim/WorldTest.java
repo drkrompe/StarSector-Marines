@@ -36,7 +36,7 @@ public class WorldTest {
         UnitRosterService r = roster();
         Entity u = unit("u");
         long id = r.allocate(u);
-        World w = new World(r.entityWorld(), r.components());
+        World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Seeded hp == type.maxHp, readable by id with no Entity deref —
         // backed by the entity world's HEALTH columns.
@@ -53,7 +53,7 @@ public class WorldTest {
         UnitRosterService r = roster();
         Entity u = unit("u");
         long id = r.allocate(u);
-        World w = new World(r.entityWorld(), r.components());
+        World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Roster release alone no longer makes hp unreadable — HEALTH stays
         // on the world entity until the death drain transmutes it to a corpse

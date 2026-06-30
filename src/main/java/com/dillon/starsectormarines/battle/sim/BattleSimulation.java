@@ -378,6 +378,12 @@ public class BattleSimulation implements BattleControl {
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
 
+    /** Data owner for the COMBAT component (the World decomposition) — consumers reach it here as {@code sim.combat().attackCooldown(id)}. */
+    public CombatService combat() { return rosterService.combat(); }
+
+    /** Data owner for the MOVEMENT component — {@code sim.movement().moveSpeed(id)}. */
+    public MovementService movement() { return rosterService.movement(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

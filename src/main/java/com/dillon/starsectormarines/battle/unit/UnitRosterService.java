@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.CombatService;
+import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -108,7 +110,11 @@ public final class UnitRosterService {
      */
     private final EntityWorld entityWorld = new EntityWorld();
     private final BattleComponents components = new BattleComponents(entityWorld);
-    private final World world = new World(entityWorld, components);
+    // Per-component data-owner Services (the World decomposition). World delegates
+    // its COMBAT/MOVEMENT accessors to these; consumers inject them via combat()/movement().
+    private final CombatService combatService = new CombatService(entityWorld, components);
+    private final MovementService movementService = new MovementService(entityWorld, components);
+    private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
      * Dense, primitive-keyed squad lookup. fastutil's {@link Int2ObjectOpenHashMap}
@@ -198,6 +204,12 @@ public final class UnitRosterService {
 
     /** The by-id entity-access facade over {@link #entityWorld()}. */
     public World world() { return world; }
+
+    /** Data owner for the COMBAT component — inject into consumers that read/mutate combat state. */
+    public CombatService combat() { return combatService; }
+
+    /** Data owner for the MOVEMENT component — inject into consumers that read/mutate movement state. */
+    public MovementService movement() { return movementService; }
 
     // ---- allocate / release (the spawn + death seam) ----
 

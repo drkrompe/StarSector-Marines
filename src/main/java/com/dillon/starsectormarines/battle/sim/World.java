@@ -44,10 +44,19 @@ public final class World {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    // World no longer owns COMBAT / MOVEMENT access — it delegates to the
+    // per-component Services (the data owners). Held here only so the legacy
+    // world.<combat/movement>(id) call sites keep working during the incremental
+    // retirement of this facade; new consumers inject the Service directly.
+    private final CombatService combat;
+    private final MovementService movement;
 
-    public World(EntityWorld entityWorld, BattleComponents components) {
+    public World(EntityWorld entityWorld, BattleComponents components,
+                 CombatService combat, MovementService movement) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.combat = combat;
+        this.movement = movement;
     }
 
     /**
@@ -97,50 +106,50 @@ public final class World {
     // unit that lacks COMBAT (a non-combatant, or once the death drain has
     // transmuted the entity to a corpse — COMBAT gone). A caller that can see a
     // non-combatant id MUST gate on hasCombat / u.type.combatant first.
-    public boolean hasCombat(long id) { return entityWorld.has(id, components.COMBAT); }
-    public float cooldownTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
-    public void setCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER, v); }
+    public boolean hasCombat(long id) { return combat.has(id); }
+    public float cooldownTimer(long id) { return combat.cooldownTimer(id); }
+    public void setCooldownTimer(long id, float v) { combat.setCooldownTimer(id, v); }
     /** Per-unit primary cooldown reset value (seed-only stat); {@code setCooldownTimer(id, attackCooldown(id))} on a fire. */
-    public float attackCooldown(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN); }
+    public float attackCooldown(long id) { return combat.attackCooldown(id); }
 
     // Movement lives in the entity world's OPTIONAL MOVEMENT component, narrowed
     // to movers: a static emplacement (turret, drone hub) has no MOVEMENT.
     // hasMovement is the presence check; the field accessors are fail-loud on a
     // unit that lacks it (and once the death drain has transmuted to a corpse).
-    public boolean hasMovement(long id) { return entityWorld.has(id, components.MOVEMENT); }
-    public float moveProgress(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
-    public void setMoveProgress(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
+    public boolean hasMovement(long id) { return movement.has(id); }
+    public float moveProgress(long id) { return movement.moveProgress(id); }
+    public void setMoveProgress(long id, float v) { movement.setMoveProgress(id, v); }
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #hasMovement}. */
-    public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
+    public float moveSpeed(long id) { return movement.moveSpeed(id); }
 
     // The path reference + cursor live in the MOVEMENT component too. setPathRef
     // is the raw column write; the occupancy-bookkeeping path change goes through
     // BattleControl.setPath (NavigationService), which calls this under the hood.
-    public int[] path(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
-    public void setPathRef(long id, int[] p) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, p); }
-    public int pathIdx(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
-    public void setPathIdx(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
+    public int[] path(long id) { return movement.path(id); }
+    public void setPathRef(long id, int[] p) { movement.setPathRef(id, p); }
+    public int pathIdx(long id) { return movement.pathIdx(id); }
+    public void setPathIdx(long id, int v) { movement.setPathIdx(id, v); }
 
-    public float attackDamage(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE); }
-    public void setAttackDamage(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, v); }
+    public float attackDamage(long id) { return combat.attackDamage(id); }
+    public void setAttackDamage(long id, float v) { combat.setAttackDamage(id, v); }
 
-    public float attackRange(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE); }
-    public void setAttackRange(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, v); }
+    public float attackRange(long id) { return combat.attackRange(id); }
+    public void setAttackRange(long id, float v) { combat.setAttackRange(id, v); }
 
-    public float accuracy(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY); }
-    public void setAccuracy(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, v); }
+    public float accuracy(long id) { return combat.accuracy(id); }
+    public void setAccuracy(long id, float v) { combat.setAccuracy(id, v); }
 
-    public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
-    public void setTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v); }
+    public long targetId(long id) { return combat.targetId(id); }
+    public void setTargetId(long id, long v) { combat.setTargetId(id, v); }
 
-    public int burstRemaining(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING); }
-    public void setBurstRemaining(long id, int v) { entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING, v); }
+    public int burstRemaining(long id) { return combat.burstRemaining(id); }
+    public void setBurstRemaining(long id, int v) { combat.setBurstRemaining(id, v); }
 
-    public float burstTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER); }
-    public void setBurstTimer(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER, v); }
+    public float burstTimer(long id) { return combat.burstTimer(id); }
+    public void setBurstTimer(long id, float v) { combat.setBurstTimer(id, v); }
 
-    public long burstTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID); }
-    public void setBurstTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID, v); }
+    public long burstTargetId(long id) { return combat.burstTargetId(id); }
+    public void setBurstTargetId(long id, long v) { combat.setBurstTargetId(id, v); }
 
     // Secondary weapon is an OPTIONAL capability living in the world's
     // SECONDARY_WEAPON component. hasSecondaryWeapon is the presence check that

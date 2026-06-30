@@ -98,6 +98,12 @@ public interface BattleView {
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
     World world();
 
+    /** Data owner for the COMBAT component — {@code combat().attackCooldown(id)} etc. The per-component Service that replaces piling combat accessors onto {@link World}. */
+    CombatService combat();
+
+    /** Data owner for the MOVEMENT component — {@code movement().moveSpeed(id)} etc. */
+    MovementService movement();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 
