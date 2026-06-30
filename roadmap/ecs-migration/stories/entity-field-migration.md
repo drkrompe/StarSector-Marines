@@ -172,6 +172,19 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
 - **Spatial-index column-walk is a follow-on, not free.** The field migration removes
   the *reason* the index holds `Entity` refs, but flipping the bucket payload
   `Entity`→id (and the `gather` callers) is its own slice in `systems-to-columns`.
+- **Moving a nullable field into an optional component trades null-safe reads for
+  fail-loud ones (slice-4 follow-up).** A plain nullable `Entity` field is readable on
+  any entity, alive or dead, combatant or not. Once it lives in COMBAT (combatant-only,
+  removed on death), `combat.primaryWeapon(id)` *throws* on a non-combatant / corpse —
+  fine for every reader today (verified: the squad panels + `scoreWeaponAffinity` only
+  read live MARINE-faction squad members, which are always combatants; non-combatants
+  spawn as `Faction.CIVILIAN` with no squad). **The latent trap:** `SquadDetailPanel`'s
+  own javadoc anticipates rendering non-combatant slots (VIP / escort). If a future
+  feature spawns a non-combatant *type* as a `Faction.MARINE` squad member, the panel's
+  `sim.combat().primaryWeapon(id)` read fail-louds where the old plain-field read showed
+  a harmless null primary. Gate that read on `sim.combat().has(id)` (or render those
+  slots from non-COMBAT data) when VIP/escort rendering lands. Same caution for any later
+  nullable→optional-component move.
 
 ## Cross-refs
 
