@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
@@ -399,7 +400,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // each frame so the fog bitmap always reflects the latest positions.
         // Cleared + re-pushed every frame; VisionService only processes them
         // on vision-tick frames (every 3rd sim tick).
-        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
+        FogOfWarService vis = sim.getFogOfWar();
         vis.clearEphemeralSources();
         renderer.getFlybyOverlay().pushFighterVision(vis, sim.getVisionState());
         World airWorld = sim.world();
@@ -457,7 +458,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
         advanceRoofAlphaLerp(sim, dt);
-        if (sim != null) sim.getVision().advanceFade(dt);
+        if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom

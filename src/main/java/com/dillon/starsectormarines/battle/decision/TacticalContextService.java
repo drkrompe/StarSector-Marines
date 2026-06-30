@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  *
  * <p>Owned by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation};
  * sibling slice to {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
- * {@link com.dillon.starsectormarines.battle.vision.VisionService},
+ * {@link FogOfWarService},
  * {@link com.dillon.starsectormarines.battle.combat.ShotService},
  * {@link CommanderService},
  * {@link com.dillon.starsectormarines.battle.command.objective.ObjectivesService}.

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.sim.PendingOccupancyDelta;
 import com.dillon.starsectormarines.battle.sim.PendingTargetMutation;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +36,7 @@ import java.util.function.LongFunction;
  * SoA wouldn't pay off.
  *
  * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
- * {@link com.dillon.starsectormarines.battle.vision.VisionService},
+ * {@link FogOfWarService},
  * {@link com.dillon.starsectormarines.battle.combat.ShotService},
  * {@link com.dillon.starsectormarines.battle.command.CommanderService},
  * {@link com.dillon.starsectormarines.battle.command.objective.ObjectivesService}.

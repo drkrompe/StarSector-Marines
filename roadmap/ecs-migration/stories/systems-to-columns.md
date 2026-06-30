@@ -120,7 +120,7 @@ uses — it's the *targets* (entangled timers) that were wrong, not the techniqu
 > on the identity epic.** The other per-tick all-unit scans are NOT clean column-walk
 > slices, because they need the **`Entity` object**, not just column-data + id:
 > `UnitSpatialIndex` / `UnitDestinationSpatialIndex` store `Entity` refs in their
-> buckets and `gather` hands `Entity` back to many callers; `VisionService`'s sweep
+> buckets and `gather` hands `Entity` back to many callers; `FogOfWarService`'s sweep
 > reads per-`Entity` fields (`visionRange`). A column-walk gives `entityAt(row)` (a
 > `long` id), so converting any of them means changing the payload to ids — which
 > ripples across all `gather` callers and is really the **behavior-tier `Entity`-field

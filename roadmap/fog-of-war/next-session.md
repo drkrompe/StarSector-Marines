@@ -5,7 +5,7 @@ Shipped work is in [`complete/`](complete/).
 
 ## State of play
 
-- **V1 fog-of-war: shipped & live.** `VisionService` owns reveal state; the
+- **V1 fog-of-war: shipped & live.** `FogOfWarService` owns reveal state; the
   render gate and ephemeral vision sources are in `BattleScreen`. See
   [`complete/fog-of-war-v1.md`](complete/fog-of-war-v1.md) for the architecture
   and tuning knobs (commits `cce5e26`, `a883bd3`).
@@ -19,7 +19,7 @@ Shipped work is in [`complete/`](complete/).
 
 1. ~~**Time of day Slice 1** — `TimeOfDay` value + lightmap-multiply pass.~~ ✅ removed 2026-06-29;
    see [`stories/time-of-day.md`](stories/time-of-day.md) for revised status.
-2. ~~**Time of day Slice 2** — night `visionRange` multiplier through `VisionService`.~~ Blocked
+2. ~~**Time of day Slice 2** — night `visionRange` multiplier through `FogOfWarService`.~~ Blocked
    on Slice 1 (feature unimplemented).
 3. **Backlog cleanup** — the three follow-ups in [`overview.md`](overview.md)
    (building-visibility merge, last-known-position ghosts, shot gating) when a

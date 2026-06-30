@@ -35,7 +35,7 @@ real combat power (S3), or meta-progression (S5) work.
   command-tier region of the tick loop (after `commanders.tick`).
 - `BattleScreen.advance` — projects each `ActivePing` into the fog via the
   existing `VisionService.addEphemeralSource` seam, right after the shuttle
-  loop. **No `VisionService` change** — the sim owns the ping state + TTL, the
+  loop. **No `FogOfWarService` change** — the sim owns the ping state + TTL, the
   view layer projects it (same pattern shuttles/fighters use).
 
 **UI — `battle/ui/panel/CommandPowerPanel`:**

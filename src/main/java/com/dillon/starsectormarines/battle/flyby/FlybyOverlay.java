@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -222,7 +223,7 @@ public final class FlybyOverlay {
      * Pushes active player-faction fighter positions into the fog-of-war as
      * ephemeral vision sources. Fighters at altitude see a wide area below.
      */
-    public void pushFighterVision(com.dillon.starsectormarines.battle.vision.VisionService vision,
+    public void pushFighterVision(FogOfWarService vision,
                                   com.dillon.starsectormarines.battle.vision.PlayerVisionState pvs) {
         for (Fighter f : fighters) {
             if (!pvs.isContributor(f.side)) continue;

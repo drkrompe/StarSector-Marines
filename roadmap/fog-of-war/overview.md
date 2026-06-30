@@ -10,7 +10,7 @@ when a contributor unit has line-of-sight to their cell.
 fighter vision sources all landed. Full architecture record in
 [`complete/fog-of-war-v1.md`](complete/fog-of-war-v1.md).
 
-The fog/vision spine is in `VisionService`; queries route through it (don't
+The fog/vision spine is in `FogOfWarService`; queries route through it (don't
 iterate `sim.getUnits()` for reveal state). See the memory note
 [`project_fog_of_war`](../../) for the one-line gotcha index.
 

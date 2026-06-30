@@ -124,7 +124,7 @@ this is a per-group sweep, not one commit.
      they already receive. 5 Sonnet agents, disjoint buckets, green at 705.
      **Decision-cadence only.** Out of this wave (deliberately): hot per-frame/
      per-tick loops (renderers, combat resolvers `DamageResolver`/`HeavyWeapons`/
-     `HitResponseSystem`/`Detonations`, bulk systems `VisionService`/
+     `HitResponseSystem`/`Detonations`, bulk systems `FogOfWarService`/
      `UnitSpatialIndex`/`InfantryWeapons`), render accessors (`getRenderX/Y`), and
      optional-capability fields (`mech`). Leftover decision sites with no `World`
      handle in scope, pending a wired field/param: `InfantryUnitPrep.tickCooldowns`,

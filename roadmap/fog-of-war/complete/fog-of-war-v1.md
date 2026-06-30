@@ -3,7 +3,7 @@
 Per-cell fog-of-war driven by player-faction unit vision. Enemies only render
 when a contributor unit has line-of-sight to their cell.
 
-**Shipped:** `cce5e26` (extract `VisionService` — fog state + visibility tick),
+**Shipped:** `cce5e26` (extract `FogOfWarService` — fog state + visibility tick),
 `a883bd3` (V1 — per-cell shadowcast vision + unit visibility gate). Earlier
 LOS-driven reveal groundwork landed in `786a3e4` (building roofs + LOS reveal).
 

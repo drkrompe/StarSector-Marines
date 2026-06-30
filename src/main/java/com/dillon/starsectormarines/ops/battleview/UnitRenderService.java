@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.vision.VisionService;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -264,15 +264,15 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
-        VisionService vis = sim.getVision();
+        FogOfWarService vis = sim.getFogOfWar();
 
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
             if (RenderAppearance.of(u.type).spriteKind != RenderAppearance.SpriteKind.SHEET) continue;
             byte uv = vis.getUnitVisibility(i);
-            if (uv == VisionService.VIS_HIDDEN) continue;
+            if (uv == FogOfWarService.VIS_HIDDEN) continue;
             float unitAlpha = alphaMult;
-            if (uv == VisionService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
+            if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
 
             boolean inAim = world.hasSecondaryWeapon(u.entityId) && world.secondaryActionTimer(u.entityId) > 0f;
             UnitSpriteCache cache = sprites.unitSprites().get(u.type);
@@ -363,15 +363,15 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
-        VisionService vis = ctx.sim.getVision();
+        FogOfWarService vis = ctx.sim.getFogOfWar();
 
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsHpBar) continue;
             byte uv = vis.getUnitVisibility(i);
-            if (uv == VisionService.VIS_HIDDEN) continue;
+            if (uv == FogOfWarService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
-            if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
+            if (uv == FogOfWarService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
             float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
             float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);

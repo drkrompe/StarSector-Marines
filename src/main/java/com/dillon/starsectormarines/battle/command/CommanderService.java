@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
  *
  * <p>Owned by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation};
  * sibling slice to {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
- * {@link com.dillon.starsectormarines.battle.vision.VisionService}, and
+ * {@link FogOfWarService}, and
  * {@link com.dillon.starsectormarines.battle.combat.ShotService}.
  *
  * <p>{@link #tick(float, Consumer)} owns the COMMANDER_TICK_PERIOD cadence;

@@ -5,13 +5,13 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 
 /**
  * Periodic pass that decides which buildings reveal their interiors to the
- * player. Driven by {@link VisionService} at roughly 10 Hz (every 3rd 30 Hz
+ * player. Driven by {@link FogOfWarService} at roughly 10 Hz (every 3rd 30 Hz
  * tick) — the render path lerps {@code currentAlpha → targetAlpha} per frame so
  * the cadence stutter doesn't pop visibly.
  *
  * <p><strong>Reveal rule:</strong> a building reveals (roof alpha → 0) iff any of
  * its <em>interior</em> cells is currently revealed in the fog-of-war bitmap
- * ({@link VisionService#cellRevealedArray()}) — the same per-cell shadowcast
+ * ({@link FogOfWarService#cellRevealedArray()}) — the same per-cell shadowcast
  * visibility that gates unit rendering. A building's {@link Building#cellsX}/
  * {@link Building#cellsY} are interior floor cells only (the flood-fill seed
  * set, walls excluded), so a cell is revealed exactly when a contributor can

@@ -285,7 +285,7 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
     2. ~~**Roof LoS hide / re-add** — the `ROOFS` layer's reveal-on-enter / re-cover-on-leave behavior
        (interiors hidden until a unit enters, roof re-added when it leaves) appears broken in
        `GroundSceneBackdrop`.~~ ✅ **FIXED (2026-06-29).** Root cause was *not* the doc's "no viewer
-       unit" hypothesis — the sim's vision tick (`VisionService` → `BuildingVisibilityPass.update`)
+       unit" hypothesis — the sim's vision tick (`FogOfWarService` → `BuildingVisibilityPass.update`)
        writes each building's `targetAlpha` correctly under the bridge (it runs inside `sim.advance()`,
        which `SimProxyMirror` drives). The gap was the *render-side* fade: the per-frame
        `currentAlpha → targetAlpha` lerp lived only in `BattleScreen.advance`, so the bridge left every

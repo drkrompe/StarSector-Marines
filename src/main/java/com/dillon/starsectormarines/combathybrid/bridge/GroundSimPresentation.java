@@ -80,7 +80,7 @@ public final class GroundSimPresentation {
         // never revealed) and out-of-LoS units stuck mid-fade instead of hiding. Drive both off the
         // real combat frame dt. (bridge-host-parity)
         BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
-        sim.getVision().advanceFade(dt);
+        sim.getFogOfWar().advanceFade(dt);
 
         ImpactFx fx = renderer.getImpactFx();
         NavigationGrid grid = sim.getGrid();

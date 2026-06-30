@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.vision.VisionService;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -50,7 +50,7 @@ public final class DroneRenderSystem implements RenderSystem {
         ShuttleSpriteCache cache = sprites.droneSprite();
         if (cache == null) return;
 
-        VisionService vis = ctx.sim.getVision();
+        FogOfWarService vis = ctx.sim.getFogOfWar();
         World world = ctx.sim.world();
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
@@ -88,14 +88,14 @@ public final class DroneRenderSystem implements RenderSystem {
             if (!(u instanceof Drone)) continue;
             Drone d = (Drone) u;
             byte uv = vis.getUnitVisibility(i);
-            if (uv == VisionService.VIS_HIDDEN) continue;
+            if (uv == FogOfWarService.VIS_HIDDEN) continue;
 
             // The drone's body is a world KINEMATICS component now (read by id).
             AirBody body = world.kinematics(d.entityId);
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
             float drawAlpha = alphaMult;
-            if (uv == VisionService.VIS_FADING) {
+            if (uv == FogOfWarService.VIS_FADING) {
                 drawAlpha *= vis.getFadeAlpha(i);
             }
 

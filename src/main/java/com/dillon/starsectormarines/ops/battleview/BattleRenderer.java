@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
@@ -15,7 +16,6 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
-import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LineBatch;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
@@ -364,7 +364,7 @@ public class BattleRenderer {
     }
 
     private void collectFogOverlay(BattleSimulation sim, DrawList out, float alphaMult) {
-        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
+        FogOfWarService vis = sim.getFogOfWar();
         if (!vis.isInitialized()) return;
 
         boolean[] revealed = vis.cellRevealedArray();

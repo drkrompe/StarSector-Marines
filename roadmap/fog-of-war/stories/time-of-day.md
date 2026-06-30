@@ -54,7 +54,7 @@ presets selectable at battle start.
 
 ### Slice 2: vision multiplier
 
-Night multiplies `visionRange` down through `VisionService`. The multiplier
+Night multiplies `visionRange` down through `FogOfWarService`. The multiplier
 reads from the same `TimeOfDay` value so an animated cycle later tightens fog
 continuously rather than per-preset.
 
@@ -68,7 +68,7 @@ deadline becomes mechanical. Blocked on the reinforcement orchestration layer.
 
 - [`../overview.md`](../overview.md) — fog-of-war feature this plugs into.
 - [`../complete/fog-of-war-v1.md`](../complete/fog-of-war-v1.md) — the
-  `VisionService` / `visionRange` surface the night multiplier hooks.
+  `FogOfWarService` / `visionRange` surface the night multiplier hooks.
 - [`render2d` batching][render2d-batching] — the lightmap-multiply pass slots
   into this pipeline.
 - [`../../conquest/`](../../conquest/README.md) /

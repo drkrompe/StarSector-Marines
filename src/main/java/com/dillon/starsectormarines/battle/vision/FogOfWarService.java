@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * cell is revealed → VISIBLE, otherwise FADING (if previously visible) or
  * HIDDEN. The renderer reads this array + {@link #fadeAlpha} to gate drawing.
  */
-public final class VisionService {
+public final class FogOfWarService {
 
     public static final byte VIS_HIDDEN  = 0;
     public static final byte VIS_VISIBLE = 1;

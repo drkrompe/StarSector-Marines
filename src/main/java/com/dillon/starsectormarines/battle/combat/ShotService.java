@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.combat;
 
 
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ import java.util.List;
  *
  * <p>Sibling slice to
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService} and
- * {@link com.dillon.starsectormarines.battle.vision.VisionService}.
+ * {@link FogOfWarService}.
  * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} owns one
  * instance and delegates the {@code postShot} / {@code queueProjectile} /
  * accessor surface here; the SHOTS and PROJECTILES tick phases call

@@ -59,7 +59,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.vision.VisionService;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
@@ -114,7 +114,7 @@ public class BattleSimulation implements BattleControl {
     private final AirSystem airSystem;
     private final GroundSystem groundSystem;
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
-    private final VisionService vision = new VisionService();
+    private final FogOfWarService fogOfWar = new FogOfWarService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
@@ -205,7 +205,7 @@ public class BattleSimulation implements BattleControl {
     /** Shared scoring service for target selection, firing-position, fallback, and cover queries. Constructor-injected with NavigationService, UnitRosterService, AttackerIndexService, ShotService, DoodadService. */
     private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
 
-    /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
+    /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #fogOfWar}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
     /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
@@ -362,7 +362,7 @@ public class BattleSimulation implements BattleControl {
             effects.addDecal(new com.dillon.starsectormarines.battle.combat.fx.Decal(
                     jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
         });
-        vision.init(grid, 256);
+        fogOfWar.init(grid, 256);
     }
 
     public NavigationGrid getGrid() { return grid; }
@@ -411,18 +411,18 @@ public class BattleSimulation implements BattleControl {
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
-    public com.dillon.starsectormarines.battle.world.model.Buildings getBuildings() { return vision.getBuildings(); }
+    public com.dillon.starsectormarines.battle.world.model.Buildings getBuildings() { return fogOfWar.getBuildings(); }
     /** Faction-contributor set for the fog-of-war reveal. */
-    public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return vision.getVisionState(); }
+    public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return fogOfWar.getVisionState(); }
     /** Fog-of-war service — per-cell reveal state + per-unit visibility. The renderer reads this for the fog overlay and unit visibility gate. */
-    public VisionService getVision() { return vision; }
+    public FogOfWarService getFogOfWar() { return fogOfWar; }
     /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
-        vision.setBuildings(buildings);
+        fogOfWar.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) { doodadService.addDoodad(d); }
 
@@ -568,8 +568,8 @@ public class BattleSimulation implements BattleControl {
 
     public void addUnit(Entity u) {
         rosterService.addUnit(u);
-        if (vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u, rosterService);
+        if (fogOfWar.getVisionState().isContributor(u.faction)) {
+            fogOfWar.addContributor(u, rosterService);
         }
     }
 
@@ -584,8 +584,8 @@ public class BattleSimulation implements BattleControl {
         long idBefore = u.entityId;
         rosterService.queueSpawn(u);
         if (idBefore == 0L && u.entityId != 0L
-                && vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u, rosterService);
+                && fogOfWar.getVisionState().isContributor(u.faction)) {
+            fogOfWar.addContributor(u, rosterService);
         }
     }
 
@@ -597,8 +597,8 @@ public class BattleSimulation implements BattleControl {
         Entity[] snapshot = pending.toArray(new Entity[0]);
         rosterService.flushPendingSpawns();
         for (Entity u : snapshot) {
-            if (vision.getVisionState().isContributor(u.faction)) {
-                vision.addContributor(u, rosterService);
+            if (fogOfWar.getVisionState().isContributor(u.faction)) {
+                fogOfWar.addContributor(u, rosterService);
             }
         }
     }
@@ -785,7 +785,7 @@ public class BattleSimulation implements BattleControl {
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
         // are pushed by BattleScreen.advance() each frame before this call.
-        vision.tick(simTickIndex, rosterService);
+        fogOfWar.tick(simTickIndex, rosterService);
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);

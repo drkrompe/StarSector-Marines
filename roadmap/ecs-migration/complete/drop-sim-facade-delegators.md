@@ -21,7 +21,7 @@ through the sim instead of holding it directly. Two flavors:
   `resolveUnit`, `targetOf`, `detonateNow`, `addUnit` / `queueSpawn`.
 - **Service getters** — `getTacticalScoring`, `getHitResponseSystem`,
   `getReinforcementService`, `getCompoundService`, `getBattleResources`,
-  `getUnitRegistry`, `getUnitIndex`, `getDestIndex`, `getVision`,
+  `getUnitRegistry`, `getUnitIndex`, `getDestIndex`, `getFogOfWar`,
   `getDoodadCoverAt*`, `getVantagePointsFor`, `getAttackersOf`.
 
 These are the residue of the old `*SimContext` interface pattern: every

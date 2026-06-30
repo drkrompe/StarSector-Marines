@@ -40,7 +40,7 @@ ensureFbo:  fboPxW = gridW × DECAL_FBO_PX_PER_CELL,  fboPxH = gridH × …   (=
 - **The FBO is lazy** (`ensureFbo` on first decal draw). The **bridge renders no decals**
   today (`DEFAULT_SCENE_LAYERS` omits DECALS — S3j), so it pays **$0** of this. The
   standalone pays it now; the bridge will pay it the moment DECALS comes over on a big map.
-- Per-cell CPU arrays (`NavigationGrid` 17 B + `CellTopology` 16 B + `VisionService` 3 B +
+- Per-cell CPU arrays (`NavigationGrid` 17 B + `CellTopology` 16 B + `FogOfWarService` 3 B +
   occupancy/cost ≈ ~50 B/cell total) are trivial: ~2 MB at LARGE, ~8 MB at 2×, ~32 MB at 4×.
 
 **Bottom line:** the only memory wall is the **world-sized decal FBO**. It is O(map area)
