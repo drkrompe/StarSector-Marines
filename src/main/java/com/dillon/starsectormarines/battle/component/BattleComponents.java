@@ -97,6 +97,8 @@ public final class BattleComponents {
     public static final int MOVEMENT_PATH = 1;
     /** {@link #MOVEMENT} field 2: index of the next cell along the path to step into (INT). */
     public static final int MOVEMENT_PATH_IDX = 2;
+    /** {@link #MOVEMENT} field 3: per-unit movement speed in cells/sec — the mover stat {@code advanceAlongPath} steps by (FLOAT). Seed-only like the COMBAT stats. */
+    public static final int MOVEMENT_MOVE_SPEED = 3;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -196,8 +198,9 @@ public final class BattleComponents {
     public final ComponentType COMBAT;
     /**
      * Movement state — {@code float moveProgress} (the [0,1] lerp factor toward
-     * the next path cell), {@code int[] path} (the flat path reference), and
-     * {@code int pathIdx} (the cursor along it). <em>Optional</em>: added at spawn
+     * the next path cell), {@code int[] path} (the flat path reference),
+     * {@code int pathIdx} (the cursor along it), and {@code float moveSpeed} (the
+     * per-unit cells/sec step rate — a seed-only stat). <em>Optional</em>: added at spawn
      * only for mobile units, so "has MOVEMENT" defines a mover. A static
      * emplacement (a turret or drone hub;
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) never
@@ -393,7 +396,7 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement",
-                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT);
+                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);

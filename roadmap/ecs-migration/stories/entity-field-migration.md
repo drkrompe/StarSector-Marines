@@ -54,10 +54,15 @@ Each slice follows the storage-migration playbook: add the column, seed it at
 `allocate`, expose a by-id accessor on `World`, convert the readers (compiler
 backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite green.
 
-1. **`attackCooldown` → COMBAT** — the proving slice. Exact mirror of the existing
-   COMBAT seed-stats; ~13 `setCooldownTimer(id, attackCooldown)` readers. Lowest risk,
-   unambiguous home. **← start here.**
-2. **`moveSpeed` → MOVEMENT** — mover-only stat, read in `advanceAlongPath`.
+1. ~~**`attackCooldown` → COMBAT**~~ **— SHIPPED (`93602bbf`, 2026-06-29).** The
+   proving slice; exact mirror of the COMBAT seed-stats. Field 8
+   `COMBAT_ATTACK_COOLDOWN`; `Entity.attackCooldown`→`seedAttackCooldown`; ~15 readers
+   (the `setCooldownTimer` resets + render gate + turret/drone aim-state seed) → `world.attackCooldown(id)`.
+2. ~~**`moveSpeed` → MOVEMENT**~~ **— SHIPPED (2026-06-29).** Mover-only stat (field 3
+   `MOVEMENT_MOVE_SPEED`); `Entity.moveSpeed`→`seedMoveSpeed`; readers `advanceAlongPath`
+   + `TacticalScoring.findFallbackPositionImpl` (audited: all `findFallbackPosition`
+   callers are movers — the `HitResponseService` one is AI_STATE-gated, and AI_STATE
+   ⟺ MOVEMENT) → `world.moveSpeed(id)`. Valid mover-narrowing.
 3. **`visionRange` + `airLosRadius` → new VISION component** (universal `{float,
    float}`). **The first scan-unblocker:** with `visionRange` a column, `VisionService`'s
    per-tick sweep can column-walk a VISION query. Convert the sweep in the same slice.

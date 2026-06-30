@@ -110,6 +110,8 @@ public final class World {
     public boolean hasMovement(long id) { return entityWorld.has(id, components.MOVEMENT); }
     public float moveProgress(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
     public void setMoveProgress(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
+    /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #hasMovement}. */
+    public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
 
     // The path reference + cursor live in the MOVEMENT component too. setPathRef
     // is the raw column write; the occupancy-bookkeeping path change goes through

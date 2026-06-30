@@ -303,6 +303,7 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
+            entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, u.seedMoveSpeed);
         }
         // Seed the smooth render position from the unit's pre-allocation seed.
         // RENDER_POSITION is universal and kept OFF the corpse-remove mask, so it

@@ -83,7 +83,7 @@ import java.util.Random;
  *       fires on {@code world.attackCooldown(id)}, dealing {@code world.attackDamage(id)}.</li>
  *   <li>Otherwise the unit re-pathfinds (only when between cells, to avoid a
  *       visual jump mid-step) and advances {@code moveProgress} along the path
- *       at {@link Entity#moveSpeed} cells/sec.</li>
+ *       at {@code world.moveSpeed(id)} cells/sec.</li>
  *   <li>When one faction runs out of alive units, the sim flags
  *       {@link #isComplete()} and records the winner.</li>
  * </ul>

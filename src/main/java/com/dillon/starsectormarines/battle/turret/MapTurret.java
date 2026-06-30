@@ -76,7 +76,7 @@ public class MapTurret extends Entity {
         this.seedAttackRange = kind.range;
         this.seedAttackCooldown = kind.cooldown;
         this.seedAccuracy = kind.accuracy;
-        this.moveSpeed = 0f;
+        this.seedMoveSpeed = 0f;
         this.role = UnitRole.TURRET;
     }
 }

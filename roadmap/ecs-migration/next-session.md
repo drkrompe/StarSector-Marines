@@ -73,8 +73,11 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    `attackCooldown` → `COMBAT` (field 8) — `Entity.attackCooldown` is now the
    write-only `seedAttackCooldown`, live value reached via `world.attackCooldown(id)`;
    ~15 reader sites converted; seeded in `allocate` (combatant block). Suite green.
-   Next slices: `moveSpeed`→MOVEMENT, then `visionRange`+`airLosRadius`→new VISION
-   (the first scan-unblocker — lets `VisionService` column-walk).
+   **Slice 2 SHIPPED:** `moveSpeed` → `MOVEMENT` (field 3, mover-only narrowing);
+   `Entity.moveSpeed`→`seedMoveSpeed`, readers (`advanceAlongPath` +
+   `TacticalScoring` fallback scan) → `world.moveSpeed(id)`. Suite green.
+   Next: `visionRange`+`airLosRadius`→new VISION component (the first scan-unblocker —
+   lets `VisionService` column-walk), then `primaryWeapon`→COMBAT, `squadId`, `role`.
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its

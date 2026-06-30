@@ -137,7 +137,7 @@ public class Entity {
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { world.setPathIdx(entityId, pathIdx + 1); return; }
-        float mp = world.moveProgress(entityId) + (moveSpeed * dt) / cellDist;
+        float mp = world.moveProgress(entityId) + (world.moveSpeed(entityId) * dt) / cellDist;
         if (mp >= 1f) {
             world.setCellPos(entityId, nextX, nextY);
             world.setRenderPos(entityId, nextX, nextY);
@@ -151,7 +151,16 @@ public class Entity {
 
     // Stats — initialized from UnitType, then mutable per-unit so captain traits
     // and mission modifiers can adjust an individual without changing the archetype.
-    public float moveSpeed;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Per-unit movement speed
+     * (cells/sec). {@link UnitRosterService#allocate} copies it into the entity
+     * world's {@code MOVEMENT} component (field
+     * {@link BattleComponents#MOVEMENT_MOVE_SPEED}) for movers, canonical
+     * thereafter; reached by id via {@code world.moveSpeed(id)}. A static
+     * emplacement has no MOVEMENT, so its seed (0) is simply not consumed —
+     * the seedAttack* / seedAttackCooldown shape. Write-only construction input.
+     */
+    public float seedMoveSpeed;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> Same shape as
      * {@link #seedMaxHp} and the cell pair: {@link UnitRosterService#allocate} copies
@@ -299,7 +308,7 @@ public class Entity {
         this.seedCellY = cellY;
         this.localRenderX = cellX;
         this.localRenderY = cellY;
-        this.moveSpeed = type.moveSpeed;
+        this.seedMoveSpeed = type.moveSpeed;
         // Pre-allocate seed; UnitRosterService.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
         // setters can't route yet (the unit isn't registered).

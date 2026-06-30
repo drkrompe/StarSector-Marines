@@ -222,7 +222,7 @@ public class Drone extends Entity {
         this.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
         this.seedAttackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
         this.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
-        this.moveSpeed = 0f;
+        this.seedMoveSpeed = 0f;
         this.airLosRadius = DRONE_AIR_LOS_RADIUS;
         this.role = UnitRole.DRONE_PATROL;
         // Build + position the kinematic body and hand it to the world-adoption seam.

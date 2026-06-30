@@ -170,7 +170,7 @@ public final class TacticalScoring {
 
     /**
      * Seconds of unit travel that govern the fall-back candidate scan radius.
-     * Multiplied by {@link Entity#moveSpeed} (cells/sec) and clamped to
+     * Multiplied by {@code world.moveSpeed(id)} (cells/sec) and clamped to
      * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}].
      * Fast units sprint farther for cover; slow units (mechs) stay short.
      * A baseline 2.0-speed marine lands at 10, slightly farther than the
@@ -1293,7 +1293,7 @@ public final class TacticalScoring {
      * Scans cells around {@code self} for a walkable hide cell, scored by
      * {@code distFromSelf + occupancyPenalty - gridCoverBonus - doodadCoverBonus
      * - zoneControlBonus - threatAwayBonus + exposurePenalty}. Scan radius is
-     * {@code self.moveSpeed * FALLBACK_SCAN_SECONDS} clamped to
+     * {@code world.moveSpeed(self) * FALLBACK_SCAN_SECONDS} clamped to
      * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}], so
      * fast units sprint farther.
      *
@@ -1364,7 +1364,7 @@ public final class TacticalScoring {
 
         int scanRange = Math.max(FALLBACK_SCAN_RANGE_MIN,
                        Math.min(FALLBACK_SCAN_RANGE_MAX,
-                                Math.round(self.moveSpeed * FALLBACK_SCAN_SECONDS)));
+                                Math.round(world.moveSpeed(self.entityId) * FALLBACK_SCAN_SECONDS)));
 
         // Pre-gather every enemy that could threaten any candidate cell, once.
         // The radius bound is "candidate-furthest-from-self" + "enemy with the
