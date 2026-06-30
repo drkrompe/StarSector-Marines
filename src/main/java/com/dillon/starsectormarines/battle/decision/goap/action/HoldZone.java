@@ -194,7 +194,7 @@ public final class HoldZone extends AbstractZoneAction {
         if (inRange && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target);
             sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-            member.beginBurst(sim.world(), target);
+            member.beginBurst(sim.combat(), target);
             return ActionStatus.RUNNING;
         }
 

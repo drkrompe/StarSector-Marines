@@ -166,7 +166,7 @@ public final class GuardPostPatrol implements Action {
             if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
                 sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-                member.beginBurst(sim.world(), target);
+                member.beginBurst(sim.combat(), target);
             }
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;

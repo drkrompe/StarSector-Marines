@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -294,25 +295,38 @@ public class Entity {
     public int homeCellX = -1;
     public int homeCellY = -1;
 
-    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} attack-stat defaults. Assigned at deboard time for marines. */
-    public MarineWeapon primaryWeapon;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The primary handheld
+     * weapon a unit spawns/deboards with (null = a legacy/non-marine unit with no
+     * per-weapon profile — fire stats fall back to the {@link UnitType} attack-stat
+     * defaults). {@link UnitRosterService#allocate} copies it into the entity
+     * world's {@code COMBAT} component (field
+     * {@link BattleComponents#COMBAT_PRIMARY_WEAPON}) for combatants, canonical
+     * thereafter; reached by id via the {@code CombatService} data owner
+     * ({@code sim.combat().primaryWeapon(id)} / {@code roster.combat()...}),
+     * reassigned via {@code combat.setPrimaryWeapon}. Same shape as the other COMBAT seed-stats
+     * ({@link #seedAttackDamage} etc.) — write-only construction input (the
+     * {@code Drone} ctor default + the marine deboard loadout).
+     */
+    public MarineWeapon seedPrimaryWeapon;
 
     /**
      * Queue the burst follow-up rounds after the AI has already fired round 1.
-     * No-op for single-shot weapons or units without a {@link #primaryWeapon}
-     * profile (militia / aliens / turrets — those use their own burst paths or
-     * are intrinsically single-shot). Centralizes the trigger pattern so every
+     * No-op for single-shot weapons or combatants without a primary-weapon profile
+     * (militia / aliens / turrets — those use their own burst paths or are
+     * intrinsically single-shot). Centralizes the trigger pattern so every
      * fireShot callsite — stanced, moving, opportunity, garrison — gets bursts
-     * consistently. Reads this unit's own immutable {@link #primaryWeapon}
-     * profile, then writes the three burst columns by id through {@code world}.
-     * Called at most once per shot per unit (not a per-tick bulk path), so the
-     * three by-id probes are fine.
+     * consistently. Everything it touches is COMBAT — the primary-weapon profile
+     * read and all three burst-column writes — so it consumes {@link CombatService}
+     * directly (no {@code World} hop). Called at most once per shot per unit (not a
+     * per-tick bulk path), so the by-id probes are fine.
      */
-    public void beginBurst(World world, Entity target) {
-        if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
-        world.setBurstRemaining(entityId, primaryWeapon.burstCount - 1);
-        world.setBurstTimer(entityId, primaryWeapon.burstSpacing);
-        world.setBurstTargetId(entityId, Entity.idOf(target));
+    public void beginBurst(CombatService combat, Entity target) {
+        MarineWeapon weapon = combat.primaryWeapon(entityId);
+        if (weapon == null || weapon.burstCount <= 1) return;
+        combat.setBurstRemaining(entityId, weapon.burstCount - 1);
+        combat.setBurstTimer(entityId, weapon.burstSpacing);
+        combat.setBurstTargetId(entityId, Entity.idOf(target));
     }
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */

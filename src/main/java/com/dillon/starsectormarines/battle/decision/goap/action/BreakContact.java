@@ -95,6 +95,6 @@ public final class BreakContact implements Action {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
         sim.fireShot(member, target, stance);
         sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-        member.beginBurst(sim.world(), target);
+        member.beginBurst(sim.combat(), target);
     }
 }

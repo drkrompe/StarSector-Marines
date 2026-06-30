@@ -306,6 +306,10 @@ public final class UnitRosterService {
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN, u.seedAttackCooldown);
+            // primaryWeapon is the OBJECT stat — null for a combatant with no
+            // per-weapon profile (militia/aliens/turrets); a fresh row appends null,
+            // so this seed is what makes a marine's deboard loadout canonical.
+            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, u.seedPrimaryWeapon);
         }
         if (hasSecondary) {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);

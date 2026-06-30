@@ -468,7 +468,7 @@ public class TacticalScoringTest {
         // the mech — the affinity bonus overcomes the distance gap.
         BattleSimulation sim = openArena(30, 10);
         Entity rocketeer = unit(sim, Faction.MARINE, 5, 5);
-        rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
+        sim.combat().setPrimaryWeapon(rocketeer.entityId, MarineWeapon.PULSE_RIFLE);
         sim.world().setAttackRange(rocketeer.entityId, 40f);
         sim.world().attachSecondaryWeapon(rocketeer.entityId, MarineSecondary.ROCKET_LAUNCHER, 3);
 
@@ -485,7 +485,7 @@ public class TacticalScoringTest {
         // infantry. No rocket, so suitability against the mech is poor.
         BattleSimulation sim = openArena(30, 10);
         Entity smg = unit(sim, Faction.MARINE, 5, 5);
-        smg.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.SMG;
+        sim.combat().setPrimaryWeapon(smg.entityId, MarineWeapon.SMG);
         sim.world().setAttackRange(smg.entityId, 40f);
 
         Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
@@ -504,7 +504,7 @@ public class TacticalScoringTest {
         // infantry wins on distance.
         BattleSimulation sim = openArena(30, 10);
         Entity dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
-        dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
+        sim.combat().setPrimaryWeapon(dryRocketeer.entityId, MarineWeapon.PULSE_RIFLE);
         sim.world().setAttackRange(dryRocketeer.entityId, 40f);
         sim.world().attachSecondaryWeapon(dryRocketeer.entityId, MarineSecondary.ROCKET_LAUNCHER, 0);
 
@@ -522,7 +522,7 @@ public class TacticalScoringTest {
         // not a hard filter.
         BattleSimulation sim = openArena(30, 10);
         Entity rifleMarine = unit(sim, Faction.MARINE, 5, 5);
-        rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
+        sim.combat().setPrimaryWeapon(rifleMarine.entityId, MarineWeapon.PULSE_RIFLE);
         sim.world().setAttackRange(rifleMarine.entityId, 40f);
 
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
@@ -621,8 +621,8 @@ public class TacticalScoringTest {
 
     private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         Entity u = unit(sim, f, x, y);
-        u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
-        sim.world().setAttackRange(u.entityId, u.primaryWeapon.range);
+        sim.combat().setPrimaryWeapon(u.entityId, MarineWeapon.PULSE_RIFLE);
+        sim.world().setAttackRange(u.entityId, MarineWeapon.PULSE_RIFLE.range);
         sim.world().attachSecondaryWeapon(u.entityId, MarineSecondary.ROCKET_LAUNCHER,
                 MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
         return u;

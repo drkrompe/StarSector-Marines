@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -449,7 +450,10 @@ public final class TacticalScoring {
         if (self == null) return 0f;
         if (!isHardened(target)) return 0f;
         World world = roster.world();
-        float primary = self.primaryWeapon != null ? self.primaryWeapon.vsTurretMult : 0.3f;
+        // self is the scoring combatant (non-Entity callers returned above), so its
+        // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
+        MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self.entityId);
+        float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult : 0.3f;
         float secondary = (world.hasSecondaryWeapon(self.entityId) && world.secondaryAmmo(self.entityId) > 0)
                 ? world.secondaryWeapon(self.entityId).vsTurretMult : 0f;
         float bestMult = Math.max(primary, secondary);

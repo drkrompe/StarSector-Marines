@@ -264,7 +264,7 @@ public final class ChokePointHold implements Action {
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
         sim.world().setTargetId(member.entityId, Entity.idOf(portalIntruder));
         sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-        member.beginBurst(sim.world(), portalIntruder);
+        member.beginBurst(sim.combat(), portalIntruder);
         return ActionStatus.RUNNING;
     }
 

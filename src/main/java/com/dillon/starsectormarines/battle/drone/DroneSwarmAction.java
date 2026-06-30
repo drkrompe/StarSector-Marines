@@ -143,7 +143,7 @@ public final class DroneSwarmAction implements Action {
 
         if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);
-            d.beginBurst(sim.world(), s.target);
+            d.beginBurst(sim.combat(), s.target);
         }
         return ActionStatus.RUNNING;
     }

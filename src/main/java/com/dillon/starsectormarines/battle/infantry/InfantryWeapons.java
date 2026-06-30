@@ -83,12 +83,15 @@ public class InfantryWeapons {
             Entity u = burstScratch.get(i);
             if (!roster.isAliveById(u.entityId)) continue; // killed earlier this pass
             long id = u.entityId;
+            // Alive + in burstScratch ⟹ combatant (gather gated on type.combatant),
+            // so the COMBAT primary-weapon read is safe by id.
+            MarineWeapon weapon = roster.combat().primaryWeapon(id);
             if (world.burstRemaining(id) <= 0) continue; // cleared earlier this pass
             float timer = world.burstTimer(id) - BattleSimulation.TICK_DT;
             world.setBurstTimer(id, timer);
             if (timer > 0f) continue;
             Entity burstTarget = roster.getOrNull(world.burstTargetId(id));
-            if (burstTarget == null || u.primaryWeapon == null) {
+            if (burstTarget == null || weapon == null) {
                 world.setBurstRemaining(id, 0);
                 world.setBurstTargetId(id, 0L);
                 continue;
@@ -114,7 +117,7 @@ public class InfantryWeapons {
             // invalidate these post-fire writes — no slot re-resolve needed.
             int remaining = world.burstRemaining(id) - 1;
             world.setBurstRemaining(id, remaining);
-            world.setBurstTimer(id, u.primaryWeapon.burstSpacing);
+            world.setBurstTimer(id, weapon.burstSpacing);
             if (remaining == 0) world.setBurstTargetId(id, 0L);
         }
         burstScratch.clear();
@@ -133,6 +136,9 @@ public class InfantryWeapons {
      */
     public void fireShot(Entity shooter, Entity target, FireStance stance) {
         World world = roster.world();
+        // A shooter firing its primary is a combatant — the COMBAT primary-weapon
+        // read is safe by id (null = militia/alien/turret, fall back to baked stats).
+        MarineWeapon weapon = roster.combat().primaryWeapon(shooter.entityId);
         float accuracy = world.accuracy(shooter.entityId);
         float damage   = world.attackDamage(shooter.entityId);
         float vsTurretMult = 1f;
@@ -144,12 +150,11 @@ public class InfantryWeapons {
         float dist = RangeFalloff.dist(world.cellX(shooter.entityId), world.cellY(shooter.entityId),
                 world.cellX(target.entityId), world.cellY(target.entityId));
         float effectiveSpread = 0f;
-        if (shooter.primaryWeapon != null) {
-            MarineWeapon w = shooter.primaryWeapon;
-            accuracy = RangeFalloff.accuracy(w.accuracy, w.accuracyFalloff, dist, w.range);
-            damage   = w.damage;
-            vsTurretMult = w.vsTurretMult;
-            effectiveSpread = RangeFalloff.spread(w.hitSpread, dist, w.range);
+        if (weapon != null) {
+            accuracy = RangeFalloff.accuracy(weapon.accuracy, weapon.accuracyFalloff, dist, weapon.range);
+            damage   = weapon.damage;
+            vsTurretMult = weapon.vsTurretMult;
+            effectiveSpread = RangeFalloff.spread(weapon.hitSpread, dist, weapon.range);
         }
         accuracy *= stance.accuracyMult;
         boolean hit = shooter.rng.nextFloat() < accuracy;
@@ -177,12 +182,11 @@ public class InfantryWeapons {
         // the weapon's flightSec so a slow round visibly travels — line tracers
         // keep the default SHOT_LIFETIME since they're drawn full-length instantly.
         float lifetime = SHOT_LIFETIME;
-        if (shooter.primaryWeapon != null && shooter.primaryWeapon.projectileSpritePath != null
-                && shooter.primaryWeapon.flightSec > 0f) {
-            lifetime = shooter.primaryWeapon.flightSec;
+        if (weapon != null && weapon.projectileSpritePath != null && weapon.flightSec > 0f) {
+            lifetime = weapon.flightSec;
         }
         shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
-                tk, shooter.primaryWeapon, null, null, moraleImpact));
+                tk, weapon, null, null, moraleImpact));
     }
 
     /**

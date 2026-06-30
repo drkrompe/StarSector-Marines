@@ -216,7 +216,7 @@ public class Drone extends Entity {
         this.homeHub = homeHub;
         this.seedMaxHp = DRONE_MAX_HP;
         this.seedHp = DRONE_MAX_HP;
-        this.primaryWeapon = MarineWeapon.DRONE_PULSE;
+        this.seedPrimaryWeapon = MarineWeapon.DRONE_PULSE;
         this.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
         this.seedVisionRange = 44f;
         this.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
