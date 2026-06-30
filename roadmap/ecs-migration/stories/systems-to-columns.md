@@ -116,6 +116,20 @@ branching decision logic on the `Entity[]` walk, only the arithmetic moves."* Th
 "grab arrays per matched table, tight row loop" **pattern** is exactly what Slice 1
 uses — it's the *targets* (entangled timers) that were wrong, not the technique.
 
+> **Second finding — Phase 1's clean surface is nearly exhausted; the rest is gated
+> on the identity epic.** The other per-tick all-unit scans are NOT clean column-walk
+> slices, because they need the **`Entity` object**, not just column-data + id:
+> `UnitSpatialIndex` / `UnitDestinationSpatialIndex` store `Entity` refs in their
+> buckets and `gather` hands `Entity` back to many callers; `VisionService`'s sweep
+> reads per-`Entity` fields (`visionRange`). A column-walk gives `entityAt(row)` (a
+> `long` id), so converting any of them means changing the payload to ids — which
+> ripples across all `gather` callers and is really the **behavior-tier `Entity`-field
+> migration** (the sibling epic: move `role`/`visionRange`/… onto world components).
+> **So: Slice 1 (occupancy) is likely the only fully-clean per-tick scan slice
+> available before that epic lands.** Sequence the identity-field migration next if
+> the systems half is to continue; the spatial-index/vision conversions fall out of it
+> for free. Until then, Phase 1 is effectively complete at Slice 1.
+
 ### Phase 2 — dispatch by presence, not by `role` enum
 
 Where `UnitUpdateSystem` branches on `u.role`, prefer component-presence gates
