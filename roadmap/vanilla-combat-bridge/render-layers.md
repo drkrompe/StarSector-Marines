@@ -32,7 +32,7 @@ rendering.
 |---|---|---|
 | **Drop-in** (projection-agnostic command passes) | `UNITS`, `OBJECTIVES`, `COMPOUND`, `VEHICLES`, `CONVOY`, `FOG`, `HIGHLIGHTS` | Grow `SCENE_LAYERS` + ensure sheets + handle `RenderContext` inputs. |
 | **No-op under EXTERNAL air** | `SHUTTLES`, sim-sourced `FLYBY` | The host owns the air (`airSystem` doesn't tick), so there's nothing to draw. **Belongs to S3d**, not this thread. |
-| **FBO / screen-space** | `DECALS`, `LIGHTING`, `IMPACT_FX` | Accumulator FBOs blit in *screen* space — they bypass the world camera, so they can't just join the EnumSet. Real retarget work (`s3j`). |
+| **FBO / screen-space** | `DECALS`, `IMPACT_FX` | Accumulator FBOs blit in *screen* space — they bypass the world camera, so they can't just join the EnumSet. Real retarget work (`s3j`). (`LIGHTING` removed 2026-06-29.) |
 
 ## Shared gotchas (apply to every story below)
 
@@ -66,5 +66,5 @@ rendering.
   **null-`selection` NPE** gotcha (CONVOY debug overlays).
 - **`s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. Both carry **design calls** (does a
   fleet-commander view want fog? where do highlights come from with no on-screen selection?).
-- **`s3j-fx-fbo-retarget.md`** — `DECALS`, `LIGHTING`, `IMPACT_FX`. The hard bucket: retarget the
+- **`s3j-fx-fbo-retarget.md`** — `DECALS` (~~`LIGHTING`~~ removed 2026-06-29; `IMPACT_FX` shipped). The hard bucket: retarget the
   screen-space FBO blits to the combat world projection. Presentation polish; lowest priority.

@@ -6,6 +6,13 @@
 > mission into a meatgrinder if mishandled. The visual cycle is the
 > diegetic clock telling the player how long they've been fighting.
 
+> **Status (2026-06-29): UNIMPLEMENTED.** The V1 lightmap-multiply implementation
+> (`LightAccumulator`, `Light`, `LightKernel`, `WeaponLights`, `TimeOfDay`) was
+> removed 2026-06-29 — it was a fun experiment but was hard-coded to DAY (bypass)
+> and dormant in every shipped battle. The day/night *feature* design below is
+> still the direction; if revived, the lightmap approach is recoverable from git
+> history. Not a near-term priority.
+
 Time of day is a **gameplay system, not just a render effect** — it lives in
 this feature dir because night shrinks vision (the fog/vision tie-in). It is
 [world-reactive, not expressive][world-reactive]: the clock is a mechanical

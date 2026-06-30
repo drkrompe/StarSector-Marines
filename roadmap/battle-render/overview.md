@@ -42,11 +42,11 @@ renderer.flush(drawList);   // inside the existing scissor bracket
 
 - **Pass order is semantic, not a depth sort.** `render()` is a carefully
   reasoned stack — roofs over units, drones over roofs, fog between,
-  lightmap-multiply dead last, all inside one scissor bracket. The inline
+  flyby dead last, all inside one scissor bracket. The inline
   comments there are load-bearing. A naive "global Renderable + sort by Y"
   throws this away. → Encode order as an explicit ordered `RenderLayer`.
-- **Not everything is a textured quad.** `DecalAccumulator` / `LightAccumulator`
-  are FBO blits; the lightmap pass is a multiply-blend; contrails are ribbon
+- **Not everything is a textured quad.** `DecalAccumulator`
+  is an FBO blit; contrails are ribbon
   strips; HP bars / capture arcs / crosswalk stripes are solid geometry. → The
   command model needs a `Custom`/callback escape hatch, not just `SpriteQuad`.
 - **GL state is hostile.** Starsector hands UI hooks a polluted GL state
@@ -67,7 +67,7 @@ renderer.flush(drawList);   // inside the existing scissor bracket
   tagged with a `RenderLayer`.
 - **DrawCommand** — `SpriteQuad` (sheet ref, srcRect, dstCenter, size,
   rotation, rgba), `SolidRect`, `Ribbon`, `Custom` (a callback that does its
-  own GL bracket — the FBO/lightmap escape hatch).
+  own GL bracket — the FBO escape hatch).
 - **RenderSystem** — stateless consumer. `collect(ctx, drawList)` reads
   services/camera/vision and appends commands into the right layer. The
   render-side analog of a sim System. (Producer lives in the system, **not** on
@@ -81,7 +81,7 @@ renderer.flush(drawList);   // inside the existing scissor bracket
 
 `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS →
 DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX →
-FLYBY → LIGHTING`
+FLYBY`
 
 (Lift verbatim from the call sequence + comments in `BattleScreen.render()` so
 no ordering reasoning is lost in translation.)
@@ -102,7 +102,7 @@ Deliberately **not** a big-bang. Each slice is independently shippable.
   validation of the command/batch/flush path on a single layer, including the
   `Custom` escape hatch on at least one accumulator pass.
 - **D…N — One pass per slice** into `RenderSystem`s. Tiles, units, vehicles,
-  doodads, shuttles, drones, objectives, fog, impact-fx, flyby, lighting.
+  doodads, shuttles, drones, objectives, fog, impact-fx, flyby.
 - **Final — Collapse `render()`** to the systems-loop + renderer-flush + scissor
   bracket. Delete the per-pass methods as their systems land.
 
@@ -115,8 +115,8 @@ expressing them *as data*. Phase 2 dissolves the **migratable** ones into the
 command model, using SHOTS/FX as the worked template: apply Story J's flyweight
 (`ShotAppearance`) + capability tags + stateless per-stratum sweep
 (`ShotRenderService`) one tier earlier, add a `LINE` `DrawCommand` primitive, and
-split stateful FX (contrail lifecycle) into services. FBO blits (decals,
-lightmap) *stay* `Custom` — the goal is that every `Custom` is a genuine own-GL
+split stateful FX (contrail lifecycle) into services. FBO blits (decals)
+*stay* `Custom` — the goal is that every `Custom` is a genuine own-GL
 escape, not geometry hiding from the drain. Design + slices:
 [`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
 

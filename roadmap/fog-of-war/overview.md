@@ -18,9 +18,8 @@ iterate `sim.getUnits()` for reveal state). See the memory note
 
 - [`stories/time-of-day.md`](stories/time-of-day.md) — day/night as a
   **gameplay system**, not just a render effect: night shrinks `visionRange`
-  (the fog tie-in) and a dawn threshold drives reinforcement triggers. V1 is a
-  battle-start ambient preset; the type is shaped so an animated cycle slots
-  in without rework.
+  (the fog tie-in) and a dawn threshold drives reinforcement triggers. **V1 lightmap
+  impl removed 2026-06-29** (see story doc); feature is currently UNIMPLEMENTED.
 
 ## Backlog
 
@@ -47,8 +46,7 @@ Smaller follow-ups, not yet sliced into stories:
 ## Cross-refs
 
 - [`battle-render/`](../battle-render/overview.md) — the layered draw-list
-  pipeline the fog overlay and unit gate render through; the time-of-day
-  lightmap-multiply pass slots in here too.
+  pipeline the fog overlay and unit gate render through.
 - [`ecs-migration/`](../ecs-migration/overview.md) — `unitVisibility` /
   `fadeAlpha` are keyed by dense index, sharing the SoA registry seam.
 - [`conquest/`](../conquest/README.md) / [`../reinforcement/`](../reinforcement/) —

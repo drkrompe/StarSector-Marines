@@ -29,20 +29,21 @@ ensureFbo:  fboPxW = gridW × DECAL_FBO_PX_PER_CELL,  fboPxH = gridH × …   (=
 | | LARGE (38.4k) | 2× linear (153.6k) | 4× linear (614k) |
 |---|---|---|---|
 | Decal FBO @32px/cell | 157 MB | 630 MB | 2.5 GB |
-| + `LightAccumulator` twin | +157 MB | +630 MB | +2.5 GB |
+| ~~+ `LightAccumulator` twin~~ | ~~+157 MB~~ | ~~+630 MB~~ | ~~+2.5 GB~~ | ✅ removed 2026-06-29 |
 
 - The decal **source list** is a non-issue: `EffectsService.decals` is an `ArrayDeque`
   capped at `DECAL_SOURCE_CAP = 25,000` with FIFO eviction (~1 MB). The **FBO** is the cost.
-- `LightAccumulator` is an identical world-sized twin — **killing LIGHTING (already
-  planned) immediately frees the whole twin**, halving the standalone's big-FBO footprint
-  today. (Keep LoS-shadow + DECALS; see backlog "Deprecate the LIGHTING layer".)
+- ~~`LightAccumulator` is an identical world-sized twin — **killing LIGHTING (already
+  planned) immediately frees the whole twin**~~. ✅ **LIGHTING removed 2026-06-29** — the
+  `LightAccumulator` world-sized FBO twin is gone, halving the standalone's big-FBO
+  footprint. (LoS-shadow + DECALS kept; see backlog "Deprecate the LIGHTING layer" — completed.)
 - **The FBO is lazy** (`ensureFbo` on first decal draw). The **bridge renders no decals**
   today (`DEFAULT_SCENE_LAYERS` omits DECALS — S3j), so it pays **$0** of this. The
   standalone pays it now; the bridge will pay it the moment DECALS comes over on a big map.
 - Per-cell CPU arrays (`NavigationGrid` 17 B + `CellTopology` 16 B + `VisionService` 3 B +
   occupancy/cost ≈ ~50 B/cell total) are trivial: ~2 MB at LARGE, ~8 MB at 2×, ~32 MB at 4×.
 
-**Bottom line:** the only memory wall is the **world-sized decal/light FBO**. It is O(map area)
+**Bottom line:** the only memory wall is the **world-sized decal FBO**. It is O(map area)
 *because it's one monolithic surface*. That's the thing to redesign, not a reason to cap maps.
 
 ### CPU — flat A* and an O(W×H) zone rebuild
@@ -118,8 +119,8 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
 - ⏳ **Pathfinding hierarchy** — sim-side, the remaining ceiling before ~4× linear (flat A* today).
 
 ## Pointers
-- `render2d/DecalAccumulator`, `render2d/LightAccumulator` — the world-sized FBOs.
+- `render2d/DecalAccumulator` — the world-sized decal FBO. (`LightAccumulator` removed 2026-06-29.)
 - `DevConfig.DECAL_FBO_PX_PER_CELL` (32), `DECAL_SOURCE_CAP` (25k).
 - `battle/nav/GridPathfinder` (flat A*), `battle/.../ZoneDetector` (O(W×H) rebuild).
 - `roadmap/vanilla-combat-bridge/stories/s3j-fx-fbo-retarget.md` — the deferred DECALS retarget.
-- `roadmap/backlog.md` — "Deprecate the LIGHTING layer" (frees the twin FBO).
+- ~~`roadmap/backlog.md` — "Deprecate the LIGHTING layer" (frees the twin FBO).~~ ✅ completed 2026-06-29.

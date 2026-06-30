@@ -22,7 +22,7 @@ command" draw-list model.
 ## Open questions (the spike)
 
 - **Invalidation.** What dirties the cache? Map load, destructible-terrain
-  edits (rubble?), day/night lighting if it bakes into ground, fog (no — fog is
+  edits (rubble?), ~~day/night lighting if it bakes into ground~~ (lightmap removed 2026-06-29), fog (no — fog is
   a separate overlay layer). Need a cheap dirty flag + re-bake trigger.
 - **Resolution / zoom.** Bake at world resolution (large texture, crisp at all
   zooms but VRAM-heavy on 100×100 maps) vs. at a reference zoom (cheaper,

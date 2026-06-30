@@ -277,7 +277,7 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
        two (camera-projected) FX layers + a new `GroundSimPresentation` (particle FX + positional
        combat audio, in the **combat-world** frame so ground + fleet audio share one spatial scale),
        driven by `SimProxyMirror` right after `sim.advance()` (fresh event lists). Deliberately **no
-       lights/decals** — LIGHTING/`WeaponLights` is slated for removal (user, 2026-06-27); DECALS is
+       lights/decals** — ~~LIGHTING/`WeaponLights` is slated for removal~~ ✅ LIGHTING/`WeaponLights` removed 2026-06-29; DECALS is
        the still-deferred screen-space-FBO bucket (S3j). **Playtest watch-item:** does
        `setListenerPosOverrideOneFrame` survive *inside* `CombatEngine`? (Only confirmed outside —
        [[starsector_positional_audio]].) If vanilla stomps it, audio still plays (grid is origin-centered
@@ -319,7 +319,7 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
   These were render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
   the S3d descent thread. **The bridge-host-parity pass is now done** (2026-06-29): audio + roof-fade
   + unit-fade fixed in code, engine-loop decided-skip. The only remaining host gap is the
-  deliberately-deferred FBO screen-space bucket (`DECALS`/`LIGHTING`, S3j). **Pending playtest
+  deliberately-deferred FBO screen-space bucket (`DECALS`, S3j). **Pending playtest
   confirmation** (Ctrl+Shift+K): the roof/unit-fade watch-items above, and S3f's units-layer verdict.
 
 ### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
@@ -344,8 +344,8 @@ current proxies are turrets/structures (genuinely solid), so today's boundary mo
 **Render-layers thread resolved (S3f–S3j):** S3f/S3g/S3h wired (build-clean; `DEFAULT_SCENE_LAYERS`
 now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY/SHUTTLES + **SHOTS/IMPACT_FX**
 (combat FX, added 2026-06-27 with the audio fix)), S3i decided-skip (no fog in the orbital view;
-highlights blocked on a selection model), S3j now narrowed to **DECALS + LIGHTING only** — the hard
-screen-space-FBO bucket, and LIGHTING is slated for removal anyway (keep LoS-shadow + DECALS).
+highlights blocked on a selection model), S3j now narrowed to **DECALS only** — the hard
+screen-space-FBO bucket (~~LIGHTING slated for removal~~ → ✅ LIGHTING removed 2026-06-29; keep LoS-shadow + DECALS).
 **Open:** S3f's Ctrl+Shift+K playtest verdict (code carried unchanged through the extraction), and
 **S3c — airspace/AI viability**, the independent load-bearing de-risk the render work doesn't touch.
 
@@ -375,10 +375,9 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
   wiring).** FOG skipped — orbital fleet-commander POV reveals the surface; fog stays a
   ground-commander mechanic on `BattleScreen`. HIGHLIGHTS deferred — no selection model in the bridge
   to source `ctx.highlights` (its own thread). `DEFAULT_SCENE_LAYERS` unchanged.
-- **`stories/s3j-fx-fbo-retarget.md`** — `DECALS`/`LIGHTING`/`IMPACT_FX`. ⏸ **DEFERRED** (last item).
-  No source in the map-only bridge (all are sim-side shot/lightmap events — nothing until live sim
-  combat post-`deliverSquad`/S3d) **and** it's the hard FBO screen-space retarget bucket with a
-  LIGHTING design call. Pick up when the bridge actually fights. (`SHUTTLES` shipped in S3d D1a;
+- **`stories/s3j-fx-fbo-retarget.md`** — `DECALS` (~~`LIGHTING`~~ removed 2026-06-29; `IMPACT_FX` shipped). ⏸ **DEFERRED** (last item).
+  No source in the map-only bridge (all are sim-side shot events — nothing until live sim
+  combat post-`deliverSquad`/S3d). Pick up when the bridge actually fights. (`SHUTTLES` shipped in S3d D1a;
   `FLYBY` is S3d's too, not here.)
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.

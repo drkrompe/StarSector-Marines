@@ -304,7 +304,7 @@ perf spike.
   first-touched. A migrated system must therefore emit in paint order, and emit
   each sheet's quads contiguously to batch them (one flush per contiguous run).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
-- FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
+- FBO accumulators (decal) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate. The UNITS service contract
   is named "emit render *tasks*" because the same sweep eventually emits a second
   stream (decal-accumulator writes) alongside `DrawCommand`s — but units drop no
@@ -323,7 +323,7 @@ perf spike.
   deploy is resolved (build green). Final (collapse) verified in-game
   (zones overlay, decals/craters, fog edges, roofs over unseen interiors, objective
   pulses, compound rings, convoy debug paths, shots/contrails, impact FX, flyby,
-  day/night lightmap all correct). Every story — SHOTS (C), DOODADS (D), GROUND (E),
+  ~~day/night lightmap~~ all correct — lightmap removed 2026-06-29). Every story — SHOTS (C), DOODADS (D), GROUND (E),
   VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J), Final — verified;
   fallbacks deleted. **The battle-render structural reorg is complete** — only the
   deferred `QuadBatch.flush` perf spike remains.

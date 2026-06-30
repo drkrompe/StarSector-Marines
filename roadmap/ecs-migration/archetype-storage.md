@@ -250,7 +250,7 @@ Child entities are `createEntity`/`destroy` — cheap, no archetype thrash (born
 they don't transition).
 
 **Scope.** Only *sprite-quad* FX become entities. Ribbon contrails and FBO
-decals/lightmap aren't quads — they stay specialized render passes (battle-render's
+decals aren't quads — they stay specialized render passes (battle-render's
 `Custom` escape hatch). And two things stay **derived per-frame** by the collector,
 never stored: interpolated screen position and vision-fade alpha (a damage-*flash*
 tint, being authored, would be a `Sprite` field / small `Tint` component if a flash
