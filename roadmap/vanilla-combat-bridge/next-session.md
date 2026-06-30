@@ -292,7 +292,12 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
        roof frozen at its initial opaque `currentAlpha = 1f`. Fix: extracted the lerp to
        `BuildingVisibilityPass.advanceAlpha(buildings, dt)` (shared fade-rate constant; standalone
        delegates to it, behavior-preserving) and drove it from the bridge's `GroundSimPresentation.advance`.
-       **Playtest watch-item:** confirm roofs fade as marines enter buildings under Ctrl+Shift+K.
+       **Discovered sibling, fixed in the same pass:** the per-unit visibility fade
+       (`VisionService.advanceFade`) had the *identical* gap — a real-dt fade driver that lived only
+       in `BattleScreen.advance` — so out-of-LoS enemy units froze mid-fade (ghosts) instead of
+       hiding. Both real-dt vision fades now run in `GroundSimPresentation.advance`. **Playtest
+       watch-item:** confirm roofs fade as marines enter buildings, and defenders fade out as the
+       player loses sight of them, under Ctrl+Shift+K.
     3. (Carried) the older audio observation folds into #1.
   These are render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
   the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.

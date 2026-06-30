@@ -75,11 +75,13 @@ public final class GroundSimPresentation {
 
         parkListener(sim);
 
-        // Roof LoS reveal: the sim's vision tick writes each building's targetAlpha, but the lerp
-        // of currentAlpha → targetAlpha is a render-host job (the standalone does it in
-        // BattleScreen.advance). The bridge never ran it, so roofs stayed frozen opaque and
-        // interiors never revealed — drive it here off the real combat frame dt. (bridge-host-parity)
+        // Real-dt vision fades: the sim's vision tick decides the target state (building targetAlpha,
+        // per-unit VIS_FADING), but the smooth fade toward it is a render-host job that lived only in
+        // BattleScreen.advance. The bridge never ran it, so roofs stayed frozen opaque (interiors
+        // never revealed) and out-of-LoS units stuck mid-fade instead of hiding. Drive both off the
+        // real combat frame dt. (bridge-host-parity)
         BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
+        sim.getVision().advanceFade(dt);
 
         ImpactFx fx = renderer.getImpactFx();
         NavigationGrid grid = sim.getGrid();
