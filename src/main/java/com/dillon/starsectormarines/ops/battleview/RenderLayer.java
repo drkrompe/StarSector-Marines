@@ -7,8 +7,8 @@ package com.dillon.starsectormarines.ops.battleview;
  * method-call sequence.
  *
  * <p>The order here is semantic, not a depth sort: roofs paint over units,
- * drones over roofs, fog between ground and units, the lightmap multiply dead
- * last so darkness covers everything. See the inline comments in
+ * drones over roofs, fog between ground and units, the flyby overlay last so
+ * fighters draw above everything ground-side. See the inline comments in
  * {@code renderWorld} for the per-seam reasoning — do not re-derive this order.
  *
  * <p>Every world pass is now command-driven: {@code BattleRenderer.renderWorld}
@@ -51,7 +51,5 @@ public enum RenderLayer {
     /** Sparks / dust / smoke at shot endpoints. */
     IMPACT_FX,
     /** Vanilla fighters flying overhead — above everything ground-side. */
-    FLYBY,
-    /** Lightmap multiply — dead last so darkness covers everything. */
-    LIGHTING
+    FLYBY
 }

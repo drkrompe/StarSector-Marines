@@ -43,8 +43,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       variable-length geometry carrier rather than inline fields. Replayed into
  *       the shared {@link SolidQuadBatch} at drain (coalesces with
  *       {@code SOLID_RECT}).</li>
- *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (FBO blits, the
- *       lightmap multiply); the drain just runs it.</li>
+ *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (e.g. the decal
+ *       FBO blit); the drain just runs it.</li>
  * </ul>
  *
  * <p>Written through the public {@code set*} methods (called cross-package by the

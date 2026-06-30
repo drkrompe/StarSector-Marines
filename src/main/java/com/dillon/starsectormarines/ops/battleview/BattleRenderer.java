@@ -10,14 +10,12 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
-import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LineBatch;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
@@ -168,18 +166,6 @@ public class BattleRenderer {
     private final DecalAccumulator decalAccumulator =
             new DecalAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
 
-    /**
-     * Lightmap accumulator driving the pseudo time-of-day pass.
-     */
-    private final LightAccumulator lightAccumulator =
-            new LightAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
-
-    /**
-     * Current ambient lighting preset.
-     */
-//    private TimeOfDay timeOfDay = TimeOfDay.NIGHT;
-    private TimeOfDay timeOfDay = TimeOfDay.DAY;
-
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
 
@@ -250,25 +236,16 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
                         out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
                 RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
-                        out.addCustom(RenderLayer.FLYBY, () -> flybyOverlay.render(ctx.camera, ctx.alphaMult))),
-                RenderSystem.of(RenderLayer.LIGHTING, (ctx, out) ->
-                        out.addCustom(RenderLayer.LIGHTING, () -> {
-                            TimeOfDay tod = timeOfDay.evaluateAt(0f);
-                            if (!tod.bypass)
-                                lightAccumulator.render(ctx.camera, tod,
-                                        ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight(),
-                                        ctx.alphaMult);
-                        })));
+                        out.addCustom(RenderLayer.FLYBY, () -> flybyOverlay.render(ctx.camera, ctx.alphaMult))));
     }
 
     // ---- lifecycle -----------------------------------------------------------
 
     /**
-     * Wires the lightmap sink into the flyby overlay and ensures impact-FX sprites.
-     * Called from {@code BattleScreen.attach()} after all {@code sprites.ensureX()} calls.
+     * Ensures impact-FX sprites. Called from {@code BattleScreen.attach()} after
+     * all {@code sprites.ensureX()} calls.
      */
     public void onAttach() {
-        flybyOverlay.setLightAccumulator(lightAccumulator);
         impactFx.ensureSprites();
     }
 
@@ -341,7 +318,6 @@ public class BattleRenderer {
     public CompoundMarkerRenderer getCompoundMarkers() { return compoundMarkers; }
 
     /** Accessor for {@code BattleScreen.advance()} — tick transient lights + retain persistent halos. */
-    public LightAccumulator getLightAccumulator() { return lightAccumulator; }
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }

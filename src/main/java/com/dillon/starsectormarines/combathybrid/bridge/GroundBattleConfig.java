@@ -43,8 +43,8 @@ public record GroundBattleConfig(
      * airborne dropships (S3d D1) + combat FX: in-flight shot tracers/projectiles ({@link
      * RenderLayer#SHOTS}) and shot-impact particles ({@link RenderLayer#IMPACT_FX}). Both FX passes
      * are camera-projected (they drain through {@code ctx.camera}, like UNITS), so they join the set
-     * directly — unlike the screen-space FBO accumulators (DECALS, LIGHTING), which still need
-     * projection-retarget work and stay out (S3j; LIGHTING is also slated for removal). The
+     * directly — unlike the screen-space FBO accumulator DECALS, which still needs
+     * projection-retarget work and stays out (S3j). The
      * presentation that spawns/ages these FX and plays the matching combat audio lives in
      * {@code GroundSimPresentation}, driven by the proxy mirror's per-frame sim tick.
      */

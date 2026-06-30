@@ -28,12 +28,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * a different subset of layers and lives in a different audio frame, so a verbatim reuse wouldn't
  * fit:
  * <ul>
- *   <li><b>No lights, no decals.</b> The standalone interleaves {@code WeaponLights} (LIGHTING) and
- *       {@code ImpactDecals} (DECALS) spawns with the particle spawns. The bridge draws neither pass
- *       ({@link GroundBattleConfig#DEFAULT_SCENE_LAYERS} omits them — they're screen-space FBO
- *       accumulators awaiting projection-retarget, S3j; LIGHTING is also slated for removal), so we
- *       feed only the camera-projected {@link ImpactFx} particle system + the {@code SHOTS}/contrail
- *       FX that draw with it.</li>
+ *   <li><b>No decals.</b> The standalone interleaves {@code ImpactDecals} (DECALS) spawns with the
+ *       particle spawns. The bridge draws no DECALS pass ({@link GroundBattleConfig#DEFAULT_SCENE_LAYERS}
+ *       omits it — it's a screen-space FBO accumulator awaiting projection-retarget, S3j), so we feed
+ *       only the camera-projected {@link ImpactFx} particle system + the {@code SHOTS}/contrail FX that
+ *       draw with it. (The night-battle lightmap is gone entirely — removed 2026-06-29.)</li>
  *   <li><b>Combat-world audio frame.</b> The standalone positions SFX in an abstract {@code cell×30}
  *       frame against a self-driven listener. Here the sim shares the vanilla combat world, so SFX
  *       are positioned in that frame ({@code cellToWorld}, the same projection the proxies use) and

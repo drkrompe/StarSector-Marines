@@ -116,16 +116,16 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 
 ## Architecture / refactor candidates
 
-- **Deprecate the LIGHTING layer / `WeaponLights`** — direction call (user,
-  2026-06-27): the pseudo time-of-day `LightAccumulator` + per-shot
-  `WeaponLights` (the `LIGHTING` `RenderLayer`) are slated for removal. Of the
-  FBO/overlay FX family, only **LoS shadowing** (fog-of-war vision) and
-  **DECALS** (impact craters / casings) survive. Implications: don't invest in
-  porting LIGHTING to new render hosts (the combat bridge already skips it —
-  `GroundSimPresentation` drives particles + sound only); the bridge's deferred
-  S3j FBO bucket narrows to DECALS alone. Scope the actual teardown (drop
-  `LightAccumulator`, `WeaponLights`, `LightKernel` calls from `BattleScreen`)
-  as its own slice.
+- ~~**Deprecate the LIGHTING layer / `WeaponLights`**~~ ✅ **DONE (2026-06-29).** The pseudo
+  time-of-day lightmap is gone: deleted `LightAccumulator`, `Light`, `LightKernel`,
+  `WeaponLights`, `TimeOfDay`; stripped `EngineFxRenderer.emitLights` (the plume `draw` stays),
+  the `LIGHTING` `RenderLayer`, `BattleRenderer`'s accumulator field/pass/getter, `BattleScreen`'s
+  light-pass drive, and `FlybyOverlay`'s `pumpEngineLights` + fighter light calls. Full project
+  build green. What survived (it was never the lightmap): the muzzle-flash / impact / smoke
+  **particles** (`ImpactFx`, the daylight burst pop), engine **plumes** (`EngineFxRenderer.draw`),
+  LoS shadowing, and **DECALS**. The system only ever rendered in DUSK/NIGHT, and the game was
+  hard-coded to DAY (bypass), so removal is visually a no-op. The bridge's S3j FBO bucket now
+  narrows to **DECALS alone**. Recoverable from git history if night battles ever return.
 - **Share the combat FX/sound driver** — `BattleScreen.advance` (standalone) and
   `combathybrid/.../GroundSimPresentation` (bridge) both dispatch per-weapon
   impact-FX + fire/impact sounds off the sim's per-frame `ShotEvent` lists, in

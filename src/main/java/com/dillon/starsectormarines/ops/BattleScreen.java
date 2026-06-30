@@ -5,14 +5,11 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
-import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
-import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -34,15 +31,12 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
-import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
-import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
-import com.dillon.starsectormarines.render2d.LightKernel;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -459,52 +453,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         // green cells track members as they move; clears itself when the
         // selection drops or the squad is wiped out.
         SelectionHighlightPublisher.publish(selection, sim, highlights);
-        // Light pass — tick transient lights and re-assert persistent lights
-        // for every emitter that lives across frames (burning wrecks, air
-        // vehicle engines). All persistent ids accumulate into seenLightIds;
-        // retainPersistent at the end evicts anything that disappeared this
-        // tick.
-        renderer.getLightAccumulator().advance(dt * speedMultiplier);
-        java.util.HashSet<Long> seenLightIds = new java.util.HashSet<>();
-        for (SmokingWreck w : sim.getSmokingWrecks()) {
-            float age = w.totalLifetime - w.remainingLifetime;
-            if (age >= EffectsService.WRECK_BURN_DURATION) continue;
-            float burnRemaining = EffectsService.WRECK_BURN_DURATION - age;
-            float intensity = (burnRemaining < EffectsService.WRECK_FIRE_FADE_DURATION)
-                    ? burnRemaining / EffectsService.WRECK_FIRE_FADE_DURATION
-                    : 1f;
-            long id = ((long) w.cellX << 32) | (w.cellY & 0xffffffffL);
-            seenLightIds.add(id);
-            renderer.getLightAccumulator().putPersistent(id, w.cellX + 0.5f, w.cellY + 0.5f,
-                    2.8f, LightKernel.WRECK_FIRE,
-                    1.0f, 0.55f, 0.20f, intensity);
-        }
-        // Engine glow halos per live shuttle/valk. Lights track the world
-        // position (no altitude offset), so cruise altitude doesn't lift the
-        // halo off the ground — the shuttle stays a flying spotlight.
-        World world = sim.world();
-        for (long id : sim.getAirEntityIds()) {
-            ShuttleMission mission = world.mission(id);
-            if (mission == null || mission.state == ShuttleState.PENDING
-                    || mission.state == ShuttleState.GONE) continue;
-            AirBody body = world.kinematics(id);
-            float altitudeT = world.altitudeT(id);
-            EngineFxRenderer.emitLights(
-                    EngineSlotResolver.resolve(world.airType(id)),
-                    body.x, body.y,
-                    body.facingDegrees,
-                    AirAppearance.scaleMult(altitudeT, world.flightPhase(id)),
-                    AirAppearance.visualAltitudeOffsetCells(altitudeT),
-                    AirAppearance.engineIntensity(true, altitudeT),
-                    renderer.getLightAccumulator(),
-                    id << 16,
-                    seenLightIds,
-                    sim.getThrusterGlow(id));
-        }
-        // Fighter engine halos — FlybyOverlay owns the fighter list, so it
-        // pumps directly into our seen-id set.
-        renderer.getFlybyOverlay().pumpEngineLights(seenLightIds);
-        renderer.getLightAccumulator().retainPersistent(seenLightIds);
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
@@ -526,7 +474,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
         renderer.getDecalAccumulator().dispose();
-        renderer.getLightAccumulator().dispose();
 
         if (!audioActive) return;
         audioActive = false;
@@ -803,26 +750,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 float fireBearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
                 renderer.getImpactFx().spawnLaunchBackblast(s.fromX, s.fromY, fireBearing);
             }
-            // Light emission — turret / mech chaingun / marine small arms /
-            // generic infantry line tracer, all dispatched in one place.
+            // Line tracers (no projectile sprite) land their impact instantly;
+            // projectile-sprite shots defer it to arrival (handled below).
             boolean projectile = hasProjectileSprite(s);
-            WeaponLights.shotMuzzleFlash(renderer.getLightAccumulator(), s, projectile);
             if (projectile) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
                     ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
             renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
-            WeaponLights.impactBurst(renderer.getLightAccumulator(), profile, s.toX, s.toY);
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
-            // Line-tracer beam path — stamp the tracer color along the
-            // shot line so the multiply pass doesn't darken pulse-rifle /
-            // railgun / militia tracer beams. Marines use their per-weapon
-            // tracerColor; other factions fall back to the same palette
-            // BattleRenderer.drawTracers reads.
-            Color tracerColor = (s.marineWeapon != null)
-                    ? s.marineWeapon.tracerColor
-                    : com.dillon.starsectormarines.ops.battleview.ShotFx.defaultTracerColor(s.shooterFaction);
-            WeaponLights.laserPath(renderer.getLightAccumulator(), s.fromX, s.fromY, s.toX, s.toY, tracerColor);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!hasProjectileSprite(s)) continue;
@@ -831,7 +767,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.turretKind != null) {
                 profile = s.turretKind.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
-                WeaponLights.impactBurst(renderer.getLightAccumulator(), profile, s.toX, s.toY);
                 // Any HE-profile turret round (mortar, grenade launcher,
                 // LOCUST artillery) pairs the flame plume with the explosion
                 // clip — matches the mech HE branch below. Previously gated
@@ -847,7 +782,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineSecondary != null) {
                 profile = s.marineSecondary.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
-                WeaponLights.impactBurst(renderer.getLightAccumulator(), profile, s.toX, s.toY);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
@@ -856,14 +790,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineWeapon != null) {
                 profile = s.marineWeapon.impactProfile;
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
-                WeaponLights.impactBurst(renderer.getLightAccumulator(), profile, s.toX, s.toY);
             } else if (s.mechWeapon != null) {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
                 // clip on arrival; chainguns are kinetic, no extra audio (the
                 // burst itself is loud enough at fire time).
                 profile = s.mechWeapon.impactProfile;
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
-                WeaponLights.impactBurst(renderer.getLightAccumulator(), profile, s.toX, s.toY);
                 if (profile == ImpactProfile.HE) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(

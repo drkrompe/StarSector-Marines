@@ -10,9 +10,7 @@ import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -185,13 +183,6 @@ public final class FlybyOverlay {
     private static final float IMPACT_FLASH_LIFETIME = 0.22f;
 
     // ---- Live state -----------------------------------------------------------
-    /**
-     * Lightmap sink for muzzle flashes and engine glows. Set once at
-     * battle-screen attach time; null-checks at the call sites keep us
-     * safe if the screen ever wires up out of order. Persistent engine
-     * lights are pumped via {@link #pumpEngineLights(java.util.Set)}.
-     */
-    private LightAccumulator lightAccumulator;
     private final List<Fighter> fighters = new ArrayList<>();
     private final List<Tracer> tracers = new ArrayList<>();
     private final List<Particle> particles = new ArrayList<>();
@@ -228,22 +219,6 @@ public final class FlybyOverlay {
     private int[] sortiesSpawned = new int[0];
 
     /**
-     * Wire the lightmap accumulator the overlay should emit into. Called
-     * once at battle-screen attach time. Safe to pass null (disables light
-     * emission); call sites null-check defensively.
-     */
-    public void setLightAccumulator(LightAccumulator la) {
-        this.lightAccumulator = la;
-    }
-
-    /**
-     * Emit one persistent engine-glow light per slot on every live fighter.
-     * Mirrors the shuttle pump in {@code BattleScreen.update}: ids are
-     * pushed into {@code seenIds} so the screen's single
-     * {@code retainPersistent} call evicts fighters that despawned this
-     * tick (off-map, despawn-on-explode, etc.).
-     */
-    /**
      * Pushes active player-faction fighter positions into the fog-of-war as
      * ephemeral vision sources. Fighters at altitude see a wide area below.
      */
@@ -254,25 +229,6 @@ public final class FlybyOverlay {
             int cx = (int) f.worldX;
             int cy = (int) f.worldY;
             vision.addEphemeralSource(cx, cy, 40, 5.0f);
-        }
-    }
-
-    public void pumpEngineLights(java.util.Set<Long> seenIds) {
-        if (lightAccumulator == null) return;
-        for (Fighter f : fighters) {
-            com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] slots =
-                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(
-                            f.profile.hullId, f.profile.visualLengthCells);
-            com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
-                    slots,
-                    f.worldX, f.worldY,
-                    f.facingDeg - 90f,   // vanilla 0°=+X → our 0°=+Y, same as drawEngineGlow
-                    1f,                  // fighters don't scale-lerp
-                    0f,                  // fighters don't have altitude lift
-                    FIGHTER_ENGINE_INTENSITY,
-                    lightAccumulator,
-                    ((long) System.identityHashCode(f)) << 16,
-                    seenIds);
         }
     }
 
@@ -631,8 +587,6 @@ public final class FlybyOverlay {
         float endY = f.worldY + ndy * len;
         spawnTracer(f, endX, endY);
         spawnMuzzleFlash(f);
-        WeaponLights.fighterMuzzleFlash(lightAccumulator, f.worldX, f.worldY);
-        WeaponLights.laserPath(lightAccumulator, f.worldX, f.worldY, endX, endY, f.profile.tracerColor);
         if (sim != null) {
             // AoE at the tracer endpoint — every alive enemy within
             // BURST_AOE_RADIUS_CELLS takes the per-tracer damage. Friendly fire
@@ -704,8 +658,6 @@ public final class FlybyOverlay {
         float endY = f.worldY + ndy * RUN_TRACER_RANGE_CELLS;
         spawnTracer(f, endX, endY);
         spawnMuzzleFlash(f);
-        WeaponLights.fighterMuzzleFlash(lightAccumulator, f.worldX, f.worldY);
-        WeaponLights.laserPath(lightAccumulator, f.worldX, f.worldY, endX, endY, f.profile.tracerColor);
 
         // AoE damage check — anyone close to the tracer endpoint catches a round.
         boolean anyHit = false;
