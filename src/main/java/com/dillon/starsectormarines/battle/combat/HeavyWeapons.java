@@ -42,7 +42,7 @@ public class HeavyWeapons {
     private final UnitRosterService roster;
     private final NavigationGrid grid;
     private final DamageService damageService;
-    private final HitResponseService hitResponse;
+    private final HitResponseSystem hitResponse;
     private final ShotService shots;
     private final Detonations detonations;
 
@@ -56,7 +56,7 @@ public class HeavyWeapons {
     private final List<Entity> mechScratch = new ArrayList<>();
 
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
-                        DamageService damageService, HitResponseService hitResponse,
+                        DamageService damageService, HitResponseSystem hitResponse,
                         ShotService shots, Detonations detonations) {
         this.roster = roster;
         this.grid = grid;

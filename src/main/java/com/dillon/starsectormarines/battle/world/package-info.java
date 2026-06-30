@@ -2,13 +2,13 @@
  * Feature domain (cross-actor) — the battlefield itself.
  *
  * <p>Category: feature domain (the map: data + generation + rendering).
- * The top level hosts only {@code MapService} — the runtime map-modification
+ * The top level hosts only {@code MapEditor} — the runtime map-modification
  * coordinator (wall breach / roof crack / structure-to-rubble), which spans
  * data ({@code model/}) and navigation, so it belongs to neither alone.
  * Everything else lives in a subpackage.
  * <br>Charter + routing — when making a change, it goes in:
  * <ul>
- *   <li>top level — {@code MapService}: cross-domain runtime map mutation
+ *   <li>top level — {@code MapEditor}: cross-domain runtime map mutation
  *       (and, later, generation orchestration). Sequences topology writes +
  *       navigation walkability/zone-graph writes + the roof-collapse FX sink.</li>
  *   <li>{@code model/} — map DATA structures (buildings, cell topology,

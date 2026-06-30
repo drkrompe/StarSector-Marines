@@ -5,7 +5,7 @@
  * <br>Charter:  turrets and defense posts ({@code MapTurret},
  *           {@code DefensePost}, {@code TurretKind}, {@code TurretRole},
  *           {@code DefensePostKind}), their fire path
- *           ({@code TurretFireService}, {@code TurretFireSink},
+ *           ({@code TurretFireSystem}, {@code TurretFireSink},
  *           {@code TurretAim}), demolition
  *           ({@code TurretDemolitionSystem}), and the emplacement
  *           behaviors ({@code TurretBehavior}, {@code StructureBehavior}).

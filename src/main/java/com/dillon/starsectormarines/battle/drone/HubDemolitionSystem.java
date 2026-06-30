@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
-import com.dillon.starsectormarines.battle.world.MapService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -45,16 +45,16 @@ import java.util.List;
  */
 public final class HubDemolitionSystem {
 
-    private final MapService mapService;
+    private final MapEditor mapEditor;
     private final EffectsService effects;
     private final UnitRosterService roster;
     private final DeathDispatcher deathDispatcher;
 
-    public HubDemolitionSystem(MapService mapService,
+    public HubDemolitionSystem(MapEditor mapEditor,
                                EffectsService effects,
                                UnitRosterService roster,
                                DeathDispatcher deathDispatcher) {
-        this.mapService = mapService;
+        this.mapEditor = mapEditor;
         this.effects = effects;
         this.roster = roster;
         this.deathDispatcher = deathDispatcher;
@@ -74,7 +74,7 @@ public final class HubDemolitionSystem {
         // Death cell from the event snapshot — the hub is released by drain time.
         int cx = event.cellX();
         int cy = event.cellY();
-        mapService.flipCellToRubble(cx, cy);
+        mapEditor.flipCellToRubble(cx, cy);
         h.demolished = true;
         effects.spawnSmokingWreck(cx, cy);
         cascadeKillDrones(h);

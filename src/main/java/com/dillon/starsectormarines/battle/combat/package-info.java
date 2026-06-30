@@ -6,7 +6,7 @@
  * <br>Charter:  shot emission + raycast ({@code ShotService},
  *           {@code ShotRaycast}, {@code ShotEvent}, {@code Projectile}),
  *           damage resolution ({@code DamageService},
- *           {@code DamageResolver}, {@code HitResponseService}),
+ *           {@code DamageResolver}, {@code HitResponseSystem}),
  *           detonations, the shared chassis-weapon firing mechanism
  *           ({@code HeavyWeapons}), range/stance rules, and the single
  *           visual-effects sink ({@code fx/EffectsService}).

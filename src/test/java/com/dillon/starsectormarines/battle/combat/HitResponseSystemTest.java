@@ -14,16 +14,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for the {@link HitResponseService#rollFallbackOnHit} gate that
+ * Coverage for the {@link HitResponseSystem#rollFallbackOnHit} gate that
  * skips GOAP-driven targets — every squad member, infantry or mech.
  * Infantry retreats via {@code SurviveContact}/{@code BreakContact};
  * mech squads run implacable with no flinch. Civilians (no-squad units)
  * keep the legacy roll — {@code FleeBehavior} depends on it.
  *
  * <p>Uses a real {@link BattleSimulation} for world setup but exercises the
- * extracted {@link HitResponseService} directly.
+ * extracted {@link HitResponseSystem} directly.
  */
-public class HitResponseServiceTest {
+public class HitResponseSystemTest {
 
     private static final int W = 12;
     private static final int H = 12;
@@ -40,7 +40,7 @@ public class HitResponseServiceTest {
     @Test
     public void squadMemberInfantrySkipsLegacyFallback() {
         BattleSimulation sim = openSim();
-        HitResponseService hitResponse = sim.getHitResponseService();
+        HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 3, 5);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.squadId = sid;
@@ -55,7 +55,7 @@ public class HitResponseServiceTest {
     @Test
     public void squadMemberMechSkipsLegacyFallback() {
         BattleSimulation sim = openSim();
-        HitResponseService hitResponse = sim.getHitResponseService();
+        HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity mech = new Entity("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
@@ -72,7 +72,7 @@ public class HitResponseServiceTest {
     @Test
     public void civilianKeepsLegacyFallback() {
         BattleSimulation sim = openSim();
-        HitResponseService hitResponse = sim.getHitResponseService();
+        HitResponseSystem hitResponse = sim.getHitResponseSystem();
         Entity civilian = new Entity("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8);
         civilian.squadId = Entity.NO_SQUAD;
         sim.addUnit(civilian);

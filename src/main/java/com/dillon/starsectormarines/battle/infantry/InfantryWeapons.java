@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.combat.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -42,7 +42,7 @@ public class InfantryWeapons {
 
     private final UnitRosterService roster;
     private final DamageService damageService;
-    private final HitResponseService hitResponse;
+    private final HitResponseSystem hitResponse;
     private final ShotService shots;
 
     /**
@@ -56,7 +56,7 @@ public class InfantryWeapons {
     private final List<Entity> burstScratch = new ArrayList<>();
 
     public InfantryWeapons(UnitRosterService roster,
-                           DamageService damageService, HitResponseService hitResponse,
+                           DamageService damageService, HitResponseSystem hitResponse,
                            ShotService shots) {
         this.roster = roster;
         this.damageService = damageService;

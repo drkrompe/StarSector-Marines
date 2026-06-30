@@ -15,8 +15,14 @@ import java.util.function.IntSupplier;
  * triggered when a unit takes damage. Extracted from BattleSimulation so the
  * sim doesn't own gameplay decision logic.
  *
+ * <p>A stateless per-hit <b>System</b> — it owns no state (every field is an
+ * injected collaborator), reading unit/world state and routing writes through
+ * {@link DamageService}. Named {@code *System}, not {@code *Service}, under the
+ * Service(data-owner)/System(processor) convention — see
+ * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ *
  * <p>Both methods are called from the parallel UPDATE_UNITS dispatch (via
- * InfantryWeapons / HeavyWeapons / TurretFireService). Thread safety:
+ * InfantryWeapons / HeavyWeapons / TurretFireSystem). Thread safety:
  * <ul>
  *   <li>{@link #rollFallbackOnHit} — reads immutable service refs + per-unit
  *       fields; writes go through {@link DamageService#applyFallback} which
@@ -26,7 +32,7 @@ import java.util.function.IntSupplier;
  *       writes go through {@link DamageService#applyReprio}.</li>
  * </ul>
  */
-public final class HitResponseService {
+public final class HitResponseSystem {
 
     private static final float FALLBACK_CHANCE = 0.25f;
     /** Sim seconds a unit stays in fall-back state once entered. */
@@ -44,10 +50,10 @@ public final class HitResponseService {
     private final DamageService damageService;
     private final IntSupplier tickIndexSupplier;
 
-    public HitResponseService(NavigationGrid grid, UnitRosterService roster,
-                              TacticalScoring tacticalScoring,
-                              DamageService damageService,
-                              IntSupplier tickIndexSupplier) {
+    public HitResponseSystem(NavigationGrid grid, UnitRosterService roster,
+                             TacticalScoring tacticalScoring,
+                             DamageService damageService,
+                             IntSupplier tickIndexSupplier) {
         this.grid = grid;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;

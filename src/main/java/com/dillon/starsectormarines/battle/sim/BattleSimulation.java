@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
@@ -58,7 +60,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
-import com.dillon.starsectormarines.battle.combat.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
 import java.util.ArrayList;
@@ -104,7 +106,7 @@ public class BattleSimulation implements BattleControl {
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
-    private final com.dillon.starsectormarines.battle.world.MapService mapService;
+    private final MapEditor mapEditor;
     /** Roster service: live unit registry + squad registry + spawn queue + ID counters. */
     private final UnitRosterService rosterService;
     private final AirSystem airSystem;
@@ -201,9 +203,9 @@ public class BattleSimulation implements BattleControl {
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
     /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
-    private final com.dillon.starsectormarines.battle.turret.TurretFireService turretFire;
+    private final TurretFireSystem turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
-    private final com.dillon.starsectormarines.battle.combat.HitResponseService hitResponse;
+    private final HitResponseSystem hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Entity> deathsThisFrame = new ArrayList<>();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
@@ -262,7 +264,7 @@ public class BattleSimulation implements BattleControl {
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.navigation = new NavigationService(grid, topology);
-        this.mapService = new com.dillon.starsectormarines.battle.world.MapService(navigation);
+        this.mapEditor = new MapEditor(navigation);
         // Alias-fields share the same instances as the service so the sim's
         // 80+ internal `grid.*`/`topology.*`/`zoneGraph.*`/`occupancyMap[...]`
         // reads stay direct (no per-call accessor hop).
@@ -306,10 +308,10 @@ public class BattleSimulation implements BattleControl {
         // owns the world it reads); the sim aliases it for its world() getter.
         this.world = rosterService.world();
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
-                mapService, effects, tactical, rosterService);
+                mapEditor, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
-                mapService, effects, rosterService, deathDispatcher);
+                mapEditor, effects, rosterService, deathDispatcher);
         deathDispatcher.subscribe(hubDemolition::onDeath);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects, entityWorld, battleComponents);
@@ -330,12 +332,12 @@ public class BattleSimulation implements BattleControl {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
-        this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
+        this.hitResponse = new HitResponseSystem(
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
-                mapService, effects);
-        this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
+                mapEditor, effects);
+        this.turretFire = new TurretFireSystem(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world);
@@ -345,7 +347,7 @@ public class BattleSimulation implements BattleControl {
                 shots, detonations);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit, effects);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
-        mapService.setRoofCollapseSink((x, y) -> {
+        mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             int rubbleIdx = rng.nextFloat() < 0.5f
@@ -364,7 +366,7 @@ public class BattleSimulation implements BattleControl {
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
     public boolean damageCell(int x, int y, int amount) {
-        return mapService.damageWall(x, y, amount);
+        return mapEditor.damageWall(x, y, amount);
     }
 
     public boolean isRoofShielded(Entity target) {
@@ -537,7 +539,7 @@ public class BattleSimulation implements BattleControl {
     /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
     public com.dillon.starsectormarines.battle.decision.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
-    public com.dillon.starsectormarines.battle.combat.HitResponseService getHitResponseService() { return hitResponse; }
+    public HitResponseSystem getHitResponseSystem() { return hitResponse; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
@@ -680,7 +682,7 @@ public class BattleSimulation implements BattleControl {
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Entity target, int fbX, int fbY) {
         world.setFallbackCell(target.entityId, fbX, fbY);
-        world.setFallbackTimer(target.entityId, HitResponseService.FALLBACK_DURATION);
+        world.setFallbackTimer(target.entityId, HitResponseSystem.FALLBACK_DURATION);
         clearPath(target);
     }
 
@@ -1106,13 +1108,13 @@ public class BattleSimulation implements BattleControl {
         infantry.fireSecondary(shooter, target);
     }
 
-    /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
+    /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Entity target, boolean aerialShooter) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter);
     }
 
-    /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. */
+    /** Delegates to {@link TurretFireSystem}. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Entity target, boolean aerialShooter, boolean hasLos) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);

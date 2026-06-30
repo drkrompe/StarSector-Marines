@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.combat.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@link BattleSimulation#advance} loop (which drives {@code rebuildOccupancyMap},
  * the destination-index rebuild, and the parallel per-unit dispatch — every one
  * an all-live-units walk), and through the per-hit fall-back roll
- * ({@link HitResponseService#rollFallbackOnHit}, called whenever any unit takes
+ * ({@link HitResponseSystem#rollFallbackOnHit}, called whenever any unit takes
  * damage). Each of those read a MOVEMENT/AI_STATE field unconditionally before
  * the narrowing.
  */
@@ -86,7 +86,7 @@ public class StaticEmplacementMembershipTest {
     @Test
     public void rollFallbackOnHitSkipsStaticEmplacements() {
         BattleSimulation sim = openSim();
-        HitResponseService hitResponse = sim.getHitResponseService();
+        HitResponseSystem hitResponse = sim.getHitResponseSystem();
         MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8);
         DroneHubUnit hub = new DroneHubUnit("h", Faction.DEFENDER, 9, 9);
         sim.addUnit(turret);

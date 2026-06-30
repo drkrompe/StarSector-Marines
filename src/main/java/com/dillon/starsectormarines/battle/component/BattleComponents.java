@@ -224,7 +224,7 @@ public final class BattleComponents {
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) has no
      * decision cadence and carries no AI_STATE — the per-tick dispatch
      * ({@code UnitUpdateSystem}) and the per-hit fall-back roll
-     * ({@code HitResponseService}) gate on {@code World.hasAiState};
+     * ({@code HitResponseSystem}) gate on {@code World.hasAiState};
      * per-unit decision code only ever runs for thinkers. Removed in the corpse
      * transmute (a corpse does not think). See
      * {@code roadmap/ecs-migration/archetype-storage.md}.

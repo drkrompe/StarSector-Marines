@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.world.MapService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -40,7 +40,7 @@ public class Detonations {
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final DamageService damageService;
-    private final MapService mapService;
+    private final MapEditor mapEditor;
     private final EffectsService effects;
 
     /**
@@ -53,13 +53,13 @@ public class Detonations {
     private final List<Entity> aoeScratch = new ArrayList<>();
 
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
-                       DamageService damageService, MapService mapService,
+                       DamageService damageService, MapEditor mapEditor,
                        EffectsService effects) {
         this.roster = roster;
         this.grid = grid;
         this.topology = topology;
         this.damageService = damageService;
-        this.mapService = mapService;
+        this.mapEditor = mapEditor;
         this.effects = effects;
     }
 
@@ -150,7 +150,7 @@ public class Detonations {
                     if (topology.getBuildingId(cx, cy) == 0) continue;
                     if (topology.isRoofDestroyed(cx, cy)) continue;
                     if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
-                    mapService.destroyRoof(cx, cy);
+                    mapEditor.destroyRoof(cx, cy);
                 }
             }
         }
@@ -167,7 +167,7 @@ public class Detonations {
                         float cdx = (cx + 0.5f) - det.endpointX;
                         float cdy = (cy + 0.5f) - det.endpointY;
                         if (cdx * cdx + cdy * cdy > wr2) continue;
-                        if (mapService.damageWall(cx, cy, det.wallDamage)) {
+                        if (mapEditor.damageWall(cx, cy, det.wallDamage)) {
                             if (det.spawnDustOnWallBreak) {
                                 effects.spawnDustBurst(cx + 0.5f, cy + 0.5f);
                             }
@@ -175,7 +175,7 @@ public class Detonations {
                     }
                 }
             } else if (grid.inBounds(targetCx, targetCy)) {
-                if (mapService.damageWall(targetCx, targetCy, det.wallDamage)
+                if (mapEditor.damageWall(targetCx, targetCy, det.wallDamage)
                         && det.spawnDustOnWallBreak) {
                     effects.spawnDustBurst(targetCx + 0.5f, targetCy + 0.5f);
                 }

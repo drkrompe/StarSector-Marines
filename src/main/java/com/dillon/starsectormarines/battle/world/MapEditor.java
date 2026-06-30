@@ -5,38 +5,43 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
- * Owns the runtime map-modification cycle — the cross-domain operations that
- * fire when the battlefield changes shape mid-battle: a wall breached by a
+ * Coordinates the runtime map-modification cycle — the cross-domain operations
+ * that fire when the battlefield changes shape mid-battle: a wall breached by a
  * detonation, a roof cracked open above it, a destroyed turret-mount or drone
  * hub flipped to walkable rubble.
  *
  * <p>Each op is inherently cross-domain — it touches navigation walkability,
  * {@link CellTopology} state, and (for roof cave-ins) a decal FX sink — so
  * neither {@link NavigationService} nor {@link CellTopology} is the natural
- * owner of the whole sequence. MapService is the thin coordinator that
+ * owner of the whole sequence. MapEditor is the thin coordinator that
  * sequences each domain's slice: it mutates topology directly (CellTopology
  * stays a data holder) and delegates the walkability + zone-graph writes to
  * the navigation service ({@code grid.*} + {@link NavigationService#markZoneGraphDirty()}).
  *
  * <p>The {@link #roofCollapseSink} (a rubble-decal effect, not topology and
- * not navigation) lives here because it's the cross-cutting glue this service
- * is the right home for. Setter-injected at sim construction.
+ * not navigation) lives here because it's the cross-cutting glue this
+ * coordinator is the right home for. Setter-injected at sim construction.
  *
- * <p>Sibling service to {@link NavigationService},
+ * <p>Owns no component state of its own — the {@code grid}/{@code topology}
+ * fields are aliases of state the {@link NavigationService} owns. It is a
+ * stateless cross-domain mutation coordinator, hence {@code MapEditor}, not
+ * {@code *Service}, under the Service(data-owner)/System(processor) convention.
+ *
+ * <p>Sits alongside the {@link NavigationService},
  * {@link com.dillon.starsectormarines.battle.combat.DamageService},
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService}, et al.
  * Slice 1 of the map-service-coordinator story owns runtime modification;
  * generation orchestration is a later slice.
  */
-public final class MapService {
+public final class MapEditor {
 
     private final NavigationService navigation;
     /** Walkability + cover layer. Aliased from {@link NavigationService#getGrid()} so the sequenced walkability writes stay direct. */
     private final NavigationGrid grid;
-    /** Per-cell topology data (walls, ground kinds, roof state). Aliased from {@link NavigationService#getTopology()}; MapService is the only behavior owner that mutates it. */
+    /** Per-cell topology data (walls, ground kinds, roof state). Aliased from {@link NavigationService#getTopology()}; MapEditor is the only behavior owner that mutates it. */
     private final CellTopology topology;
 
-    public MapService(NavigationService navigation) {
+    public MapEditor(NavigationService navigation) {
         this.navigation = navigation;
         this.grid = navigation.getGrid();
         this.topology = navigation.getTopology();

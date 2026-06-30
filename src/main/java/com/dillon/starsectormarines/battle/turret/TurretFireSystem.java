@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.combat.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -23,10 +23,16 @@ import java.util.Random;
  * GroundSystem, TurretBehavior) receive the same functional interface they
  * already depend on.
  *
+ * <p>A stateless per-shot <b>System</b> — it owns no state (every field is an
+ * injected collaborator), resolving one shot per {@link #fire} call. Named
+ * {@code *System}, not {@code *Service}, under the
+ * Service(data-owner)/System(processor) convention — see
+ * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ *
  * <p>Hit-response is delegated to the constructor-injected
- * {@link HitResponseService}.
+ * {@link HitResponseSystem}.
  */
-public final class TurretFireService implements TurretFireSink {
+public final class TurretFireSystem implements TurretFireSink {
 
     private static final float SHOT_LIFETIME = 0.15f;
     private static final float MISS_OFFSET_MIN = 0.5f;
@@ -38,7 +44,7 @@ public final class TurretFireService implements TurretFireSink {
     private final ShotService shots;
     private final DamageService damageService;
     private final DetonationSink detonationSink;
-    private final HitResponseService hitResponse;
+    private final HitResponseSystem hitResponse;
     private final World world;
 
     @FunctionalInterface
@@ -46,10 +52,10 @@ public final class TurretFireService implements TurretFireSink {
         void queue(PendingDetonation det);
     }
 
-    public TurretFireService(Random rng, NavigationGrid grid, CellTopology topology,
-                             ShotService shots, DamageService damageService,
-                             DetonationSink detonationSink,
-                             HitResponseService hitResponse, World world) {
+    public TurretFireSystem(Random rng, NavigationGrid grid, CellTopology topology,
+                            ShotService shots, DamageService damageService,
+                            DetonationSink detonationSink,
+                            HitResponseSystem hitResponse, World world) {
         this.rng = rng;
         this.grid = grid;
         this.topology = topology;

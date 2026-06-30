@@ -142,7 +142,7 @@ public final class NavigationService {
 
     /**
      * Records a just-opened cell (wall breach / structure→rubble) for the end-of-tick incremental
-     * zone-graph update — called by {@code MapService}'s runtime map-modification ops. Preferred
+     * zone-graph update — called by {@code MapEditor}'s runtime map-modification ops. Preferred
      * over {@link #markZoneGraphDirty()}: it lets the drain take the O(smaller-zone)
      * {@link ZoneGraph#applyCellsOpened} path instead of a full O(W×H) rebuild.
      */
