@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -176,9 +177,11 @@ public class BattleSimulation implements BattleControl {
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
 
-    /** Reinforcement orchestration — trigger registry + means provider list + request queue. Mission setup registers triggers/means; the slow-tick polls them. Full design: {@code roadmap/reinforcement/architecture.md}. */
-    private final ReinforcementService reinforcement =
-            new ReinforcementService(battleResources);
+    /** Reinforcement data owner — trigger registry + means provider list + request queue. Mission setup registers triggers/means. Full design: {@code roadmap/reinforcement/architecture.md}. */
+    private final ReinforcementService reinforcement = new ReinforcementService();
+    /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
+    private final ReinforcementSystem reinforcementSystem =
+            new ReinforcementSystem(reinforcement, battleResources);
 
     /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the central-keep design ({@code roadmap/conquest/central-keep.md}). */
     private final CompoundService compoundService = new CompoundService();
@@ -939,7 +942,7 @@ public class BattleSimulation implements BattleControl {
         // Reinforcement slow-tick: poll triggers, drain the request queue, and
         // dispatch via the first feasible means provider. Dispatch debits
         // resource tickets; insufficient balance defers the request.
-        reinforcement.tick(TICK_DT, this);
+        reinforcementSystem.tick(TICK_DT, this);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         // Internal air only — under AirProvider.EXTERNAL the host's real ships own the
