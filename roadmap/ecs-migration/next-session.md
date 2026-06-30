@@ -3,6 +3,47 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Status (2026-06-30) — Service/System naming convention swept across existing classes
+
+The access-model distinction (System = stateless per-tick/-event **processor**;
+Service = **data owner** + read/mutate API; full rule in
+[`stories/entity-field-migration.md`](stories/entity-field-migration.md) §
+"Access model") was applied to the EXISTING `battle.*` classes — not just the new
+ECS Services. A 39-class audit of every `*Service`/`*System` found 3 clear
+name↔role mismatches + 3 hybrids; all fixed, suite green at each step.
+
+- **Renames (stateless processors mislabeled `*Service`) — `3aa514ad`:**
+  `HitResponseService` → `HitResponseSystem` (per-hit fallback/reprio rolls; owns
+  zero state), `TurretFireService` → `TurretFireSystem` (per-shot `fire()`;
+  implements `TurretFireSink`). Plus `MapService` → **`MapEditor`** — owns no
+  component state (its `grid`/`topology` are aliases `NavigationService` owns), so
+  it's a stateless cross-domain mutation **coordinator**, not a Service.
+  Field/accessor names (`mapService`→`mapEditor`, `getHitResponseService`→
+  `getHitResponseSystem`) + the package-info charters updated; a one-line
+  convention note added to each renamed class. IDE rename-in-comments collateral on
+  the historical `complete/` docs was reverted (rename commits are code-only — the
+  [[battle_component_naming_convention]] gotcha).
+- **Hybrid splits (own state AND run a per-tick sweep → Service + System):**
+  - `EquipmentDropService` → Service (owns the drop list: `getEquipmentDrops`,
+    `emitIfApplicable`, new `removeConsumed`) + **`EquipmentDropSystem`** (the
+    pickup/assign sweep + the `clearPath` path-clearer) — `f4d76046`.
+  - `ReinforcementService` → Service (trigger/means registries + pending queue) +
+    **`ReinforcementSystem`** (cadence poll-drain-dispatch; now holds
+    `BattleResources`) — `0c864bf7`. Mirrors the gold-standard
+    `CommandPowerService`/`CommandPowerSystem` pair; System-facing accessors are
+    package-private.
+  - `RecaptureTargetService` → Service (target set + contested/open results +
+    dispatch-layer readers) + **`RecaptureTargetSystem`** (cadence + debounce
+    machine + recompute; `PRESENCE_DEBOUNCE_TICKS` moved here) — `32500b7e`. Not
+    yet sim-wired (slice-2, test-only); `RecaptureTargetServiceTest` now drives the
+    System for the dynamic parts (Service reads stay on the Service).
+
+Left as-is, with reason: **`GroundSystem`** owns its vehicle population inline (the
+mirror violation) — but the real fix is the `vehicle-into-world` backlog item (#4),
+not a rename; **`AirSystem`** / **`CompoundGarrisonSystem`** are borderline but
+correctly System-shaped (shuttle state lives in world components / a private dedup
+ledger the audit accepts). All other `*Service`/`*System` names match their role.
+
 ## Status (2026-06-28) — storage done, systems half open
 
 **Read this before trusting the "THE MIGRATION IS DONE" banner further down — that
