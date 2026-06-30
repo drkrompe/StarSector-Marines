@@ -73,11 +73,18 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    `attackCooldown` → `COMBAT` (field 8) — `Entity.attackCooldown` is now the
    write-only `seedAttackCooldown`, live value reached via `world.attackCooldown(id)`;
    ~15 reader sites converted; seeded in `allocate` (combatant block). Suite green.
-   **Slice 2 SHIPPED:** `moveSpeed` → `MOVEMENT` (field 3, mover-only narrowing);
-   `Entity.moveSpeed`→`seedMoveSpeed`, readers (`advanceAlongPath` +
-   `TacticalScoring` fallback scan) → `world.moveSpeed(id)`. Suite green.
-   Next: `visionRange`+`airLosRadius`→new VISION component (the first scan-unblocker —
-   lets `VisionService` column-walk), then `primaryWeapon`→COMBAT, `squadId`, `role`.
+   **Slice 2 SHIPPED:** `moveSpeed` → `MOVEMENT` (field 3, mover-only narrowing).
+   **ACCESS MODEL DECIDED + SHIPPED (user steer):** the flat `World` god-facade is
+   being decomposed into **per-component data-owner Services** (System = per-tick
+   processor; Service = data owner + mutators). `CombatService` + `MovementService`
+   own COMBAT/MOVEMENT access, `World` delegates (so untouched callers stay green),
+   wired via `roster.combat()/movement()` + `BattleView`/`sim.combat()` (`b77e45a8`);
+   slices 1–2 consumers reshaped onto them — `sim.combat().attackCooldown(id)`,
+   `roster.movement().moveSpeed(id)` (`ac80a9b9`). Full rationale in the story §
+   "Access model". Next: every new slice lands its field on a per-component Service.
+   Next slice: `visionRange`+`airLosRadius`→new VISION component + **`VisionService`,
+   converting the `VisionService` sweep to a column-walk** (the first scan-unblocker —
+   the epic's headline payoff), then `primaryWeapon`→COMBAT, `squadId`, `role`.
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its
