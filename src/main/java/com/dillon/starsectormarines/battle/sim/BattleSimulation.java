@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
+import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -123,6 +124,7 @@ public class BattleSimulation implements BattleControl {
     private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
+    private final EquipmentDropSystem equipmentDropSystem;
     /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
@@ -286,7 +288,8 @@ public class BattleSimulation implements BattleControl {
         // sim aliases them for its tick barrier + getters.
         this.entityWorld = rosterService.entityWorld();
         this.battleComponents = rosterService.components();
-        this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
+        this.equipmentDropService = new EquipmentDropService(rosterService);
+        this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
                 deathsThisFrame::add, deathDispatcher, rng);
@@ -949,7 +952,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
-        equipmentDropService.tick();
+        equipmentDropSystem.tick();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
