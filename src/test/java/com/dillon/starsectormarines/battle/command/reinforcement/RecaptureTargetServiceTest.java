@@ -25,10 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Slice-2 coverage for {@link RecaptureTargetService}: node bucketing by
- * biome, the open/held derivation from squad assignment, the debounced
- * contested-slice (frontline) detection, and the dispatch-dedup / reopen
- * lifecycle.
+ * Slice-2 coverage for {@link RecaptureTargetService} and its driver
+ * {@link RecaptureTargetSystem}: node bucketing by biome (Service), the
+ * open/held derivation from squad assignment, the debounced contested-slice
+ * (frontline) detection, and the dispatch-dedup / reopen lifecycle (all driven
+ * by the System ticking the Service).
  *
  * <p>Slices are derived from {@link BiomeMap#biomeAt} rather than hard-coded,
  * so the tests stay robust to the map's per-column boundary jitter — they only
@@ -131,17 +132,18 @@ public class RecaptureTargetServiceTest {
         BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
         Entity defender = presence(sim, "city-def", 10, 55);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "slice seeds contested with a defender present");
 
         TestUnits.kill(sim, defender);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "still contested 1 tick after the last defender died (debounce)");
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "still contested 2 ticks after");
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(reg.isContested(cs), "conceded after PRESENCE_DEBOUNCE_TICKS of absence");
     }
 
@@ -155,22 +157,23 @@ public class RecaptureTargetServiceTest {
         assertNotEquals(fs, cs, "precondition: fortress and the seed-defender slice are distinct");
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(fort)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
         // A defender elsewhere on the seed tick so the registry locks its seed
         // with the fortress slice conceded — otherwise the first-ever defender
         // sighting would seed (not debounce) the slice it appears in.
         presence(sim, "city-def", 10, 55);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(reg.isContested(fs), "fortress seeds conceded with no defender present");
 
         // A defender now enters the fortress slice post-seed — the activation
         // must ramp through the debounce, not flip on the first tick.
         presence(sim, "fort-def", 10, 87);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(reg.isContested(fs), "not yet contested 1 tick after a defender entered");
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(reg.isContested(fs), "not yet contested 2 ticks after");
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.isContested(fs), "contested after PRESENCE_DEBOUNCE_TICKS of presence");
     }
 
@@ -186,6 +189,7 @@ public class RecaptureTargetServiceTest {
 
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city, port)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
         // Both garrisons wiped → both nodes open. City slice has a live
         // defender (contested); port slice has none (conceded).
@@ -193,7 +197,7 @@ public class RecaptureTargetServiceTest {
         garrison(sim, port, 0, 4);
         presence(sim, "city-def", 10, 55);
 
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
 
         assertTrue(targetFor(reg, city).isOpen());
         assertTrue(targetFor(reg, port).isOpen());
@@ -212,10 +216,11 @@ public class RecaptureTargetServiceTest {
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
         garrison(sim, city, 0, 4);                     // original garrison dead → open
         presence(sim, "city-def", 10, 53);             // keeps the slice contested throughout
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
 
         RecaptureTarget t = targetFor(reg, city);
         assertNotNull(t);
@@ -223,14 +228,14 @@ public class RecaptureTargetServiceTest {
 
         // Dispatch a reinforcement: dedup suppresses re-dispatch while en route.
         reg.markDispatched(t);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.eligibleTargets().isEmpty(), "dispatched target is no longer eligible");
 
         // A DISTINCT replacement squad spawns and is assigned to the node at
         // deboard (the real arrival path — not a revived corpse). The original
         // wiped squad stays at 0; aggregate alive on the node is now > 0.
         Squad replacement = garrison(sim, city, 3, 3);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(t.isOpen(), "held once an alive squad is assigned");
         assertFalse(t.isDispatched(), "dispatch flag clears on arrival so a later wipe re-opens");
         assertTrue(reg.eligibleTargets().isEmpty(), "held target is not eligible");
@@ -238,7 +243,7 @@ public class RecaptureTargetServiceTest {
         // Replacement is wiped (the en-route/at-post failure H1 guards) → the
         // node re-opens with no timer because its assigned-alive drops to 0.
         replacement.aliveMembers = 0;
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(t.isOpen(), "re-opens when the replacement is wiped");
         assertEquals(1, reg.eligibleTargets().size(), "eligible again");
     }
@@ -251,16 +256,17 @@ public class RecaptureTargetServiceTest {
         BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
         // Ticks during sim-init before any defender is placed must not lock the
         // front to "conceded".
-        reg.tick(TICK, sim);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertFalse(reg.isContested(cs));
 
         // First defender sighting seeds contested immediately — no debounce ramp.
         presence(sim, "late-def", 10, 55);
-        reg.tick(TICK, sim);
+        sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs),
                 "seeds contested on first defender sighting, not after a debounce ramp");
     }

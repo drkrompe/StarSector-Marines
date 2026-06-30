@@ -6,9 +6,10 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 /**
  * A defender tactical position the reinforcement layer wants re-manned. One
  * per eligible defender node ({@code defaultGuard == DEFENDER},
- * {@code garrisonSize > 0}, non-AIRBASE). Owned by
- * {@link RecaptureTargetService}; its mutable state is written only by the
- * service's per-tick pass.
+ * {@code garrisonSize > 0}, non-AIRBASE). Held by
+ * {@link RecaptureTargetService}; its mutable {@code open}/{@code dispatched}
+ * flags are written by the per-tick recompute in {@link RecaptureTargetSystem}
+ * (and {@code dispatched} also by {@link RecaptureTargetService#markDispatched}).
  *
  * <p>Design: {@code roadmap/conquest/stories/progressive-reinforcement.md}.
  * The node's anchor is the squad-assignment coordinate (the objective in the
