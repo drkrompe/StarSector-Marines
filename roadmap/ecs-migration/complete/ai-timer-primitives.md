@@ -28,7 +28,7 @@ primitive-group promotions.**
   allocate-seed unchanged.
 - **Consumers migrated to accessors:** `FallbackBehavior`, `FleeBehavior`,
   `TacticalScoring.fallbackDestinationNeedsRefresh`, `UnitUpdateSystem`,
-  `SquadAlertSystem`, `HitResponseService`,
+  `SquadAlertSystem`, `HitResponseSystem`,
   `BattleSimulation.writeFallbackInline` (the lone Unit-write site — now
   one `setFallbackCell` + one `setFallbackTimer`), and the
   `BreakContact` / `BreakLOS` / `MechBreakContact` GOAP actions. The

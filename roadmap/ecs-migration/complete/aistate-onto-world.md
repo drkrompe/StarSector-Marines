@@ -65,11 +65,11 @@ untouched (they'd otherwise each need a `hasAiState` presence gate, and
   signatures unchanged, so every `sim.world().X` consumer is untouched.
 - **Four by-index production sites → by-id**: `TacticalScoring
   .fallbackDestinationNeedsRefresh` (drops its `requireLiveIndex`),
-  `HitResponseService.rollFallbackOnHit` (drops `tIdx`), `SquadAlertSystem`
+  `HitResponseSystem.rollFallbackOnHit` (drops `tIdx`), `SquadAlertSystem`
   (dense loop → `registry.fallbackTimerById(u.entityId)`, one world probe per
   member — the accepted bounded-N step-back), `BattleSimulation
   .writeFallbackInline` (drops `idx`, and swaps the inline
-  `…combat.HitResponseService.FALLBACK_DURATION` FQN for an import + simple
+  `…combat.HitResponseSystem.FALLBACK_DURATION` FQN for an import + simple
   name).
 - **Tests**: the 8 AiState column tests rewritten to the by-id world-component
   contract (mirror the `cooldownTimer` pair: defaults + undisturbed-by-dense-

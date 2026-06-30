@@ -65,7 +65,7 @@ A full sweep of every `MOVEMENT`/`AI_STATE` production reader split them cleanly
   - `UnitUpdateSystem.updateUnit` — the per-tick fall-back override
     `hasAiState && fallbackTimer > 0` short-circuits before the fail-loud read;
     static roles route straight to their behavior.
-  - `HitResponseService.rollFallbackOnHit` — gates on `hasAiState`, **replacing**
+  - `HitResponseSystem.rollFallbackOnHit` — gates on `hasAiState`, **replacing**
     the `instanceof MapTurret` check (kept only in `rollReprioritizeOnHit`).
 
 ## Behavior change (intended)

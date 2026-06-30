@@ -189,7 +189,7 @@ Existing components were retrofitted to this convention (2026-06-03):
     death/draw state, this is the first *live-behavior* capability done as
     composition: the mech-fire pass iterates the component-set (`HeavyWeapons`
     over the store's `entries()`, not a registry scan for `u.mech != null`), and
-    every nullable-field null-check (`DamageResolver`, `HitResponseService`,
+    every nullable-field null-check (`DamageResolver`, `HitResponseSystem`,
     `SquadMoraleSystem`, the mech GOAP behaviors, `CombatantBehavior` dispatch) is
     now a store presence lookup. Meets the `component-grouping` acceptance: **zero
     nullable-field if/else for the mech capability.** Validated the cold-face

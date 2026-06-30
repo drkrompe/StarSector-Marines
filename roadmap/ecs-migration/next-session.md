@@ -20,9 +20,13 @@ name↔role mismatches + 3 hybrids; all fixed, suite green at each step.
   it's a stateless cross-domain mutation **coordinator**, not a Service.
   Field/accessor names (`mapService`→`mapEditor`, `getHitResponseService`→
   `getHitResponseSystem`) + the package-info charters updated; a one-line
-  convention note added to each renamed class. IDE rename-in-comments collateral on
-  the historical `complete/` docs was reverted (rename commits are code-only — the
-  [[battle_component_naming_convention]] gotcha).
+  convention note added to each renamed class. The historical `complete/` (and
+  reference) docs' references to the old names were **updated** to the new names so
+  future lookups on the current name find the historic record — a deliberate
+  refinement of the [[battle_component_naming_convention]] gotcha (for a class
+  rename, updating name references in docs beats blanket-reverting the IDE
+  rename-in-comments). The two `map-service-coordinator` docs carry a naming note
+  recording that the class shipped as `MapService`.
 - **Hybrid splits (own state AND run a per-tick sweep → Service + System):**
   - `EquipmentDropService` → Service (owns the drop list: `getEquipmentDrops`,
     `emitIfApplicable`, new `removeConsumed`) + **`EquipmentDropSystem`** (the

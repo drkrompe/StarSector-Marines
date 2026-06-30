@@ -124,11 +124,11 @@ this is a per-group sweep, not one commit.
      they already receive. 5 Sonnet agents, disjoint buckets, green at 705.
      **Decision-cadence only.** Out of this wave (deliberately): hot per-frame/
      per-tick loops (renderers, combat resolvers `DamageResolver`/`HeavyWeapons`/
-     `HitResponseService`/`Detonations`, bulk systems `VisionService`/
+     `HitResponseSystem`/`Detonations`, bulk systems `VisionService`/
      `UnitSpatialIndex`/`InfantryWeapons`), render accessors (`getRenderX/Y`), and
      optional-capability fields (`mech`). Leftover decision sites with no `World`
      handle in scope, pending a wired field/param: `InfantryUnitPrep.tickCooldowns`,
-     `TurretAim`/`TurretFireService` statics, `DroneSwarmAction.tickPursue`/
+     `TurretAim`/`TurretFireSystem` statics, `DroneSwarmAction.tickPursue`/
      `clampGoalToLeash`, `SquadFallbackSystem.allMembersHome`, `SquadAlertSystem`.
    - **2b — no-sim-param services SHIPPED (2026-06-02, `00f2e1d` + `3d96e5a`).**
      Key refinement vs. the original "field-wire World everywhere" plan: most of
@@ -146,7 +146,7 @@ this is a per-group sweep, not one commit.
        `VisionService.tickFogCohort`/`addContributor` + `NavigationService.setPath`
        (by-id; NavigationService gains a setter-injected `registry` field —
        built before `World`).
-     - Part 2 (`3d96e5a`): turret aim/fire statics — `TurretFireService` (World
+     - Part 2 (`3d96e5a`): turret aim/fire statics — `TurretFireSystem` (World
        ctor field, resolve target cell once in `fire`), `TurretAim.tick` (World
        param; safe fail-loud since callers recreate `State` each tick so the
        target is always freshly acquired/live). Callers `TurretBehavior` +
@@ -208,7 +208,7 @@ this is a per-group sweep, not one commit.
        by-index cell/hp, snapshot death cell; promotion loop already dense-array;
        mech-drain by index), `Detonations.detonate` AoE gather (bulk loop →
        dense-array, `ucx/ucy` hoisted — was 4-5 `getCellX()` per iteration),
-       `HitResponseService` (parallel-phase; resolve target + `expectedTarget`
+       `HitResponseSystem` (parallel-phase; resolve target + `expectedTarget`
        index once), `HeavyWeapons.fireMechWeapon` + LRM-salvo LoS (indices once).
        Deferred to task #14: `FireStance.stanceFor` (static) +
        `DamageService:248` `getTargetId()` (holds only the id resolver by design).

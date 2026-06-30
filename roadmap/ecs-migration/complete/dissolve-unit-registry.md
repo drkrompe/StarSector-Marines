@@ -49,7 +49,7 @@ battle.sim` was an existing dependency — `UnitRosterService` (in `battle.unit`
 owning + exposing `World` (in `battle.sim`) added **no new package cycle**. That
 let every service reach `World` through its existing `roster` ref
 (`roster.world()`) with no new ctor params. Six services that took a bare
-`UnitRegistry` in their ctor (`HitResponseService`, `Detonations`,
+`UnitRegistry` in their ctor (`HitResponseSystem`, `Detonations`,
 `HeavyWeapons`, `InfantryWeapons`, `UnitUpdateSystem`, `MechWreckSystem`) changed
 to take `UnitRosterService`; everyone else already had `roster`/`sim`.
 

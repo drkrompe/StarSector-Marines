@@ -92,7 +92,7 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
 2. ~~**`moveSpeed` → MOVEMENT**~~ **— SHIPPED (2026-06-29).** Mover-only stat (field 3
    `MOVEMENT_MOVE_SPEED`); `Entity.moveSpeed`→`seedMoveSpeed`; readers `advanceAlongPath`
    + `TacticalScoring.findFallbackPositionImpl` (audited: all `findFallbackPosition`
-   callers are movers — the `HitResponseService` one is AI_STATE-gated, and AI_STATE
+   callers are movers — the `HitResponseSystem` one is AI_STATE-gated, and AI_STATE
    ⟺ MOVEMENT) → `world.moveSpeed(id)`. Valid mover-narrowing.
 3. **`visionRange` + `airLosRadius` → new VISION component** (universal `{float,
    float}`). **The first scan-unblocker:** with `visionRange` a column, `VisionService`'s

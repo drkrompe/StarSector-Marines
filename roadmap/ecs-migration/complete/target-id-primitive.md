@@ -13,7 +13,7 @@ per-unit cross-reference.
   `setTarget(Unit)` routes through the setter; `targetOf()` stays a
   delegate over `getOrNull(getTargetId())`. 3 new UnitRegistryTest cases.
 - **~17 consumer sites** migrated field→accessor across AI/GOAP actions,
-  damage (`DamageService` reprio race-check, `HitResponseService`),
+  damage (`DamageService` reprio race-check, `HitResponseSystem`),
   squad (`SquadAlertSystem.clearSquadTargets`), and sim
   (`writeReprioInline`, `targetOf`). The mechanical sweep was fanned out
   to a Sonnet subagent; the registry/accessor design + tests stayed on

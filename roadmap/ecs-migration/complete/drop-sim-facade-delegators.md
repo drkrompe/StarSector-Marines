@@ -19,7 +19,7 @@ through the sim instead of holding it directly. Two flavors:
   `fireSecondary` / `fireMechWeapon` / `fireShotFrom`, `applyDamage`,
   `postShot`, `queueProjectile`, `setPath` / `clearPath`, `mintSquad`,
   `resolveUnit`, `targetOf`, `detonateNow`, `addUnit` / `queueSpawn`.
-- **Service getters** — `getTacticalScoring`, `getHitResponseService`,
+- **Service getters** — `getTacticalScoring`, `getHitResponseSystem`,
   `getReinforcementService`, `getCompoundService`, `getBattleResources`,
   `getUnitRegistry`, `getUnitIndex`, `getDestIndex`, `getVision`,
   `getDoodadCoverAt*`, `getVantagePointsFor`, `getAttackersOf`.
@@ -138,7 +138,7 @@ GOAP-bound → blocked on the spine decision (do these last):
 - **`getCompoundService`** — ~8 main consumers incl. GOAP `HoldZone` +
   `SecureCompoundGoal`, plus UI panels and a wall of tests. Hardest;
   needs the `sim`-param mechanism settled first.
-- **`getTacticalScoring` / `getHitResponseService` / `getUnitRegistry` /
+- **`getTacticalScoring` / `getHitResponseSystem` / `getUnitRegistry` /
   `getAttackersOf` / `getVantagePointsFor`** — heavily consumed by GOAP
   actions/postures via `sim`. Spine-gated.
 

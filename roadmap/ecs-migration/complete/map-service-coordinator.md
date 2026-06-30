@@ -1,11 +1,16 @@
-# Story: MapService coordinator — own the generation + runtime-modification cycles
+# Story: MapEditor coordinator — own the generation + runtime-modification cycles
 
-> **SHIPPED (Slice 1; Slice 2 deferred).** Slice 1 (`c49eea7`): `MapService` (in
+> **SHIPPED (Slice 1; Slice 2 deferred).** Slice 1 (`c49eea7`): `MapEditor` (in
 > `battle.world`) owns the runtime map-modification cycle — `damageWall` / `destroyRoof`
 > / `peelRoofAround` / `flipCellToRubble` + the roof-collapse FX sink — lifted off
 > `NavigationService`; `CellTopology` stayed a pure data holder. Slice 2 (folding the
-> generators' grid+topology population into `MapService`) was an **optional stretch, not
+> generators' grid+topology population into `MapEditor`) was an **optional stretch, not
 > pursued** (larger surface, lower smell); reopen only if that seam proves worth it.
+
+> **Naming note (2026-06-30):** the class shipped as `MapService` (the name in
+> `c49eea7`); renamed to **`MapEditor`** in the Service/System naming sweep — it
+> owns no component state (a stateless cross-domain mutation coordinator), not a
+> data-owner `*Service`. References below use the current name `MapEditor`.
 
 ## Context
 
@@ -38,33 +43,33 @@ to hold both references.
 
 ## Proposed shape
 
-Introduce a **`MapService`** that owns the map lifecycle and coordinates
+Introduce a **`MapEditor`** that owns the map lifecycle and coordinates
 the two domain services, delegating to each for its own slice rather than
 holding cell state itself:
 
 - **`NavigationService`** keeps its real domain: grid walkability,
   occupancy map, spatial indices, the zone graph + dirty flag,
   LOS/vantage cache, and `setPath`/`clearPath`. It exposes the walkability
-  primitives MapService sequences (`grid.damageCell`, `flipCell*`
+  primitives MapEditor sequences (`grid.damageCell`, `flipCell*`
   walkability side, `markZoneGraphDirty`).
 - **`CellTopology`** keeps owning per-cell topology data. Whether it stays
-  a data holder that MapService mutates directly, or is promoted to a
+  a data holder that MapEditor mutates directly, or is promoted to a
   `CellTopologyService` that owns the topology-mutation *behavior*
   (`setRoofDestroyed` + a `peelRoof`/`wall→rubble` transition method), is
   the open sub-decision below.
-- **`MapService`** owns the cross-domain orchestration:
+- **`MapEditor`** owns the cross-domain orchestration:
   - **Runtime-modification cycle** — `damageWall`, `damageCell`,
     `destroyRoof`, `peelRoofAround`, `flipCellToRubble`. Each sequences
     the topology write(s) + the nav walkability/zone-graph write(s) + the
     roof-collapse FX sink. The `roofCollapseSink` (a decal effect, not
     topology and not navigation) moves here — it's the cross-cutting glue
-    MapService is the right home for.
+    MapEditor is the right home for.
   - **Generation cycle** (see scope) — accept generator output, populate
     grid + topology, run the post-carve sweeps (`tagDefaultWalls`,
     building flood-fill).
 
 This is the **thin-coordinator** answer to the cross-domain-ownership
-fork raised when path-mutation shipped: MapService is the seam where
+fork raised when path-mutation shipped: MapEditor is the seam where
 "a wall comes down" is one call, and the two services each do their part.
 
 ## Scope
@@ -73,27 +78,27 @@ fork raised when path-mutation shipped: MapService is the seam where
 
 Small, well-bounded. Move `damageWall` / `damageCell` / `destroyRoof` /
 `peelRoofAround` / `flipCellToRubble` orchestration + the `roofCollapseSink`
-onto `MapService`; NavigationService retains only its walkability +
+onto `MapEditor`; NavigationService retains only its walkability +
 zone-graph primitives. Consumers to repoint (~6 sites):
 `Detonations` (wall damage + roof crack), `TurretDemolitionSystem` +
 `HubDemolitionSystem` (`flipCellToRubble`), `FlybyOverlay` +
 `BattleScreen` (`damageCell`). `BattleSimulation.damageCell` stays a thin
-delegate (now → `mapService`); the demolition systems + `Detonations`,
-which hold a `navigation` ref today, get a `MapService` ref injected.
+delegate (now → `mapEditor`); the demolition systems + `Detonations`,
+which hold a `navigation` ref today, get a `MapEditor` ref injected.
 
 ### Slice 2 (stretch) — generation cycle
 
 Larger surface: the generators and the BSP fill stampers write grid +
 topology directly across many sites. Folding generation orchestration
-into MapService is real churn and lower-smell than the runtime ops, so
+into MapEditor is real churn and lower-smell than the runtime ops, so
 scope it as a follow-on only if slice 1 makes the seam obviously worth it.
 Name it here so it isn't lost; don't lead with it.
 
 ## Open sub-decisions (pin before coding)
 
 1. **`CellTopology` → `CellTopologyService`?** It's currently data
-   (parallel to `NavigationGrid` / `UnitRegistry`). If MapService is the
-   only behavior owner, CellTopology can stay a data holder MapService
+   (parallel to `NavigationGrid` / `UnitRegistry`). If MapEditor is the
+   only behavior owner, CellTopology can stay a data holder MapEditor
    mutates. Promote it to a service only if topology-mutation behavior
    accumulates enough to warrant its own owner — don't mint a service
    that's a one-method passthrough.
@@ -104,7 +109,7 @@ Name it here so it isn't lost; don't lead with it.
 - Independent of the SoA-promotion tail; a Service-extraction sibling to
   the shipped [`path-mutation-to-navigation`](path-mutation-to-navigation.md).
 - Land **before or alongside** [`drop-sim-facade-delegators`](drop-sim-facade-delegators.md):
-  MapService is a *new* service, so `sim.damageCell` becomes one more
+  MapEditor is a *new* service, so `sim.damageCell` becomes one more
   facade delegate. Better to introduce it before the facade cleanup
   enumerates the surface than to add a delegate the cleanup then has to
   revisit.
@@ -112,10 +117,10 @@ Name it here so it isn't lost; don't lead with it.
 
 ## Acceptance
 
-- `MapService` owns the runtime map-modification ops; `NavigationService`
+- `MapEditor` owns the runtime map-modification ops; `NavigationService`
   no longer writes topology state; `CellTopology`'s mutation is reached
   only through its owner.
-- The roof-collapse FX sink lives on MapService, not NavigationService.
+- The roof-collapse FX sink lives on MapEditor, not NavigationService.
 - `gradlew.bat compileJava` clean; full suite green.
 
 ## Priority
