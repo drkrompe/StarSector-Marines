@@ -299,19 +299,28 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
        watch-item:** confirm roofs fade as marines enter buildings, and defenders fade out as the
        player loses sight of them, under Ctrl+Shift+K.
     3. (Carried) the older audio observation folds into #1.
-    4. **Shuttle engine-loop audio — open follow-up (found 2026-06-29 during the parity pass).**
-       `BattleScreen.driveShuttleEngineLoops` plays each visible shuttle's continuous engine-loop SFX
-       (altitude-pitched `playLoop`, voice-keyed on the `AirBody` instance); the bridge's
-       `GroundSimPresentation` never ported it, so S3d dropships + the setup Aeroshuttles descend
-       silently under the fleet. Not fixed here because it's more than the fade one-liners: the loop
-       must be repositioned into the bridge's combat-world audio frame (`cfg.worldUnitsPerCell()`, like
-       `GroundSimPresentation.playAtCell`) rather than the standalone's abstract
-       `AUDIO_WORLD_UNITS_PER_CELL`, and there's a playtest call on whether engine hum is even wanted
-       under the fleet din / at what volume. (`playCombatEventSounds` is *not* a gap — the 2026-06-27
+    4. **Shuttle engine-loop audio — DECIDED-SKIP (2026-06-29).** `BattleScreen.driveShuttleEngineLoops`
+       plays each visible shuttle's continuous engine-loop SFX; the bridge's `GroundSimPresentation`
+       never ported it, so S3d dropships + the setup Aeroshuttles descend silent-engined under the
+       fleet. **Deliberately not porting it.** The engine loop is a vanilla `sounds/sfx_engines/` clip
+       — the *same clip family* the real carriers/fighters are already droning in that airspace — so
+       unlike the surface-combat audio (rifles/explosions, which had *no* vanilla analogue and filled a
+       real silence), this isn't filling silence, it's adding redundant drone to an already-busy
+       soundscape. The dropships already read as powered craft via the engine-FX plumes (`SHUTTLES`
+       layer, shipped S3d D1), so the audio would be additive flavor, not feedback; and
+       `GroundSimPresentation` is explicitly a slim, purposeful subset of the standalone driver (it
+       drops lights/decals too), so omitting one redundant ambience fits the charter. Cost was never
+       the blocker (~15 lines; `playLoop` voices self-expire when un-pumped). **Escape hatch:** if a
+       descent ever feels conspicuously dead under the fleet in playtest, the lever is to mirror
+       `driveShuttleEngineLoops` into the combat-world audio frame (`cfg.worldUnitsPerCell()`, like
+       `GroundSimPresentation.playAtCell`). (`playCombatEventSounds` is *not* a gap — the 2026-06-27
        audio fix already ports it as `GroundSimPresentation.playFireSounds`/`spawnImpactFxAndSounds`/
        `playDeathVoice`.)
-  These are render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
-  the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.
+  These were render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
+  the S3d descent thread. **The bridge-host-parity pass is now done** (2026-06-29): audio + roof-fade
+  + unit-fade fixed in code, engine-loop decided-skip. The only remaining host gap is the
+  deliberately-deferred FBO screen-space bucket (`DECALS`/`LIGHTING`, S3j). **Pending playtest
+  confirmation** (Ctrl+Shift+K): the roof/unit-fade watch-items above, and S3f's units-layer verdict.
 
 ### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
 Two sub-points. (a) ~~**Hitbox size/shape**: size each proxy to its ground footprint.~~ ✅
