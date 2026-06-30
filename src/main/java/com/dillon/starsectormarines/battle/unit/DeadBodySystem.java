@@ -55,10 +55,11 @@ public final class DeadBodySystem {
         // non-combatant civilian has no COMBAT; a static turret/hub has no
         // MOVEMENT/AI_STATE; only armed units carry a secondary) and removed when
         // present — transmute treats a remove of a component the entity lacks as a
-        // no-op, so listing them unconditionally is safe.
+        // no-op, so listing them unconditionally is safe. VISION is universal but
+        // live-only (a corpse does not see), so it's removed too.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
-                components.AI_STATE, components.SECONDARY_WEAPON};
+                components.AI_STATE, components.SECONDARY_WEAPON, components.VISION};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

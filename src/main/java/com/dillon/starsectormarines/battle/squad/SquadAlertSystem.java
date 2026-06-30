@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
@@ -102,6 +103,7 @@ public final class SquadAlertSystem {
     public void tick(float dt) {
         NavigationGrid grid = navigation.getGrid();
         World world = roster.world();
+        VisionService vision = roster.vision();
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
@@ -130,6 +132,7 @@ public final class SquadAlertSystem {
             if (u.squadId == Entity.NO_SQUAD) continue;
             Squad squad = roster.getSquad(u.squadId);
             if (squad == null) continue;
+            float uAir = vision.airLosRadius(u.entityId);
             squad.aliveMembers++;
             squad.centroidX += world.cellX(u.entityId);
             squad.centroidY += world.cellY(u.entityId);
@@ -153,7 +156,7 @@ public final class SquadAlertSystem {
                     int dy = otherCellY - uCellY;
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
                     if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                            u.airLosRadius, other.airLosRadius)) continue;
+                            uAir, vision.airLosRadius(other.entityId))) continue;
                     squad._killZoneSightedThisTick = true;
                     break;
                 }
@@ -171,7 +174,7 @@ public final class SquadAlertSystem {
                 int otherCellX = world.cellX(other.entityId);
                 int otherCellY = world.cellY(other.entityId);
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                        u.airLosRadius, other.airLosRadius)) continue;
+                        uAir, vision.airLosRadius(other.entityId))) continue;
                 squad._engagedThisTick = true;
                 squad.lastSeenEnemyX = otherCellX;
                 squad.lastSeenEnemyY = otherCellY;

@@ -104,6 +104,9 @@ public interface BattleView {
     /** Data owner for the MOVEMENT component — {@code movement().moveSpeed(id)} etc. */
     MovementService movement();
 
+    /** Data owner for the VISION component (sight stats) — {@code vision().airLosRadius(id)} / {@code visionRange(id)}. The per-component Service that lands VISION off the {@link World} god-facade. */
+    VisionService vision();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

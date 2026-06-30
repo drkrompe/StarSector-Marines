@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -114,6 +115,7 @@ public final class UnitRosterService {
     // its COMBAT/MOVEMENT accessors to these; consumers inject them via combat()/movement().
     private final CombatService combatService = new CombatService(entityWorld, components);
     private final MovementService movementService = new MovementService(entityWorld, components);
+    private final VisionService visionService = new VisionService(entityWorld, components);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -211,6 +213,9 @@ public final class UnitRosterService {
     /** Data owner for the MOVEMENT component — inject into consumers that read/mutate movement state. */
     public MovementService movement() { return movementService; }
 
+    /** Data owner for the VISION component (sight stats) — inject into consumers that read/mutate visionRange/airLosRadius. */
+    public VisionService vision() { return visionService; }
+
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
@@ -236,7 +241,8 @@ public final class UnitRosterService {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world. Every live unit is at least
-        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH}; on top of that:
+        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION} (VISION universal —
+        // sight stats; removed on death); on top of that:
         //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
         //     engineer / scientist; UnitType.combatant == false) never fires and is
         //     never targeted, so "has COMBAT" defines a combatant — presence IS the
@@ -266,12 +272,13 @@ public final class UnitRosterService {
         // crash handler to read before it detaches it.
         boolean hasBody = u.seedBody != null;
         ComponentType[] archetype = new ComponentType[
-                4 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
+                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0) + (hasBody ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
         archetype[c++] = components.RENDER_POSITION;
         archetype[c++] = components.HEALTH;
+        archetype[c++] = components.VISION;
         if (combatant) archetype[c++] = components.COMBAT;
         if (mobile) {
             archetype[c++] = components.MOVEMENT;
@@ -286,6 +293,10 @@ public final class UnitRosterService {
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
+        // VISION is universal — sight stats seeded from the unit's write-only seeds
+        // (a ground unit's airLosRadius just seeds to 0). Removed on death.
+        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, u.seedVisionRange);
+        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, u.seedAirLosRadius);
         // Seed the COMBAT stat columns from the unit's pre-allocation seed* fields
         // (only for combatants — a non-combatant has no COMBAT component); the
         // mid-combat COMBAT scalars start at zero (a fresh world row appends

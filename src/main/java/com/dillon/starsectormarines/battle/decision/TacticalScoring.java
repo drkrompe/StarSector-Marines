@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -254,7 +255,7 @@ public final class TacticalScoring {
     public Entity findBestTarget(Entity self) {
         World world = roster.world();
         return findBestTarget(world.cellX(self.entityId), world.cellY(self.entityId),
-                self.faction, self.squadId, self, self.airLosRadius);
+                self.faction, self.squadId, self, roster.vision().airLosRadius(self.entityId));
     }
 
     /**
@@ -377,6 +378,7 @@ public final class TacticalScoring {
         // excludes released slots (no isAlive() filter inside the loop).
 
         World world = roster.world();
+        VisionService vision = roster.vision();
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
@@ -401,7 +403,7 @@ public final class TacticalScoring {
                 bestAny = other;
             }
             boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, other.airLosRadius);
+                    shooterAirRadius, vision.airLosRadius(other.entityId));
             if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding);
             float density = scoreThreatDensity(other, ox, oy, selfFaction);
@@ -647,12 +649,13 @@ public final class TacticalScoring {
     public boolean shouldKeepPursuing(Entity self, Entity currentTarget) {
         World world = roster.world();
         if (currentTarget == null || !roster.isAliveById(currentTarget.entityId)) return false;
+        VisionService vision = roster.vision();
         int sx = world.cellX(self.entityId);
         int sy = world.cellY(self.entityId);
         int tx = world.cellX(currentTarget.entityId);
         int ty = world.cellY(currentTarget.entityId);
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
-                self.airLosRadius, currentTarget.airLosRadius);
+                vision.airLosRadius(self.entityId), vision.airLosRadius(currentTarget.entityId));
 
         // "Meaningfully closer visible enemy" check — runs whether or not the
         // current target is visible. If current is invisible and a visible
@@ -705,10 +708,12 @@ public final class TacticalScoring {
         float bestDist = Float.MAX_VALUE;
 
         World world = roster.world();
+        VisionService vision = roster.vision();
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         int sx = world.cellX(self.entityId);
         int sy = world.cellY(self.entityId);
+        float selfAir = vision.airLosRadius(self.entityId);
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             if (u == exclude || u == self) continue;
@@ -716,7 +721,7 @@ public final class TacticalScoring {
             int ux = world.cellX(u.entityId);
             int uy = world.cellY(u.entityId);
             if (!canSeePair(grid, sx, sy, ux, uy,
-                    self.airLosRadius, u.airLosRadius)) continue;
+                    selfAir, vision.airLosRadius(u.entityId))) continue;
             float d = cellDistance(sx, sy, ux, uy);
             if (d < bestDist) {
                 bestDist = d;
@@ -746,6 +751,8 @@ public final class TacticalScoring {
         int sx = world.cellX(self.entityId);
         int sy = world.cellY(self.entityId);
         float range = world.attackRange(self.entityId);
+        VisionService vision = roster.vision();
+        float selfAir = vision.airLosRadius(self.entityId);
 
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
@@ -760,7 +767,7 @@ public final class TacticalScoring {
             int oy = world.cellY(other.entityId);
             float d = cellDistance(sx, sy, ox, oy);
             if (d > range || d >= bestDist) continue;
-            if (!canSeePair(grid, sx, sy, ox, oy, self.airLosRadius, other.airLosRadius)) continue;
+            if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other.entityId))) continue;
             bestDist = d;
             best = other;
         }
@@ -949,6 +956,9 @@ public final class TacticalScoring {
         int ty = world.cellY(target.entityId);
         int sx = world.cellX(self.entityId);
         int sy = world.cellY(self.entityId);
+        VisionService vision = roster.vision();
+        float selfAir = vision.airLosRadius(self.entityId);
+        float targetAir = vision.airLosRadius(target.entityId);
 
         // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
         // otherwise an out-of-rifle-range marine paths into rifle range before
@@ -968,7 +978,7 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
@@ -1011,6 +1021,9 @@ public final class TacticalScoring {
         int ty = world.cellY(target.entityId);
         int sx = world.cellX(self.entityId);
         int sy = world.cellY(self.entityId);
+        VisionService vision = roster.vision();
+        float selfAir = vision.airLosRadius(self.entityId);
+        float targetAir = vision.airLosRadius(target.entityId);
 
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
         float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self.entityId));
@@ -1028,7 +1041,7 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
                 int alliesNear = alliesNearForSpread(self, cx, cy);
@@ -1235,6 +1248,9 @@ public final class TacticalScoring {
         int sy = world.cellY(self.entityId);
         float selfRange = world.attackRange(self.entityId);
         int range = Math.max(1, (int) Math.floor(selfRange));
+        VisionService vision = roster.vision();
+        float selfAir = vision.airLosRadius(self.entityId);
+        float targetAir = vision.airLosRadius(target.entityId);
         // Self's current cover against the target — per-facing, so a
         // marine already in heavy cover from this threat direction won't
         // downgrade to a cell that lacks that specific facing.
@@ -1257,7 +1273,7 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > selfRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
 
                 int fdx = tx - cx;
                 int fdy = ty - cy;

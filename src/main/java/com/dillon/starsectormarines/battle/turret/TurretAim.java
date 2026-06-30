@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 /**
@@ -97,7 +98,7 @@ public final class TurretAim {
      * cooldown. The caller fires the actual shot using the appropriate
      * sim path (sim.fireShot for Units; sim.fireShotFrom for mounts).
      */
-    public static void tick(State s, TacticalScoring scoring, NavigationGrid grid, World world, float dt) {
+    public static void tick(State s, TacticalScoring scoring, NavigationGrid grid, World world, VisionService vision, float dt) {
         s.fireThisTick = false;
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
@@ -118,7 +119,7 @@ public final class TurretAim {
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canSeePair(grid,
                 s.originCellX, s.originCellY, tcx, tcy,
-                shooterAirR, s.target.airLosRadius);
+                shooterAirR, vision.airLosRadius(s.target.entityId));
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
         // hide attackers from artillery that's been ranged in) and only drop

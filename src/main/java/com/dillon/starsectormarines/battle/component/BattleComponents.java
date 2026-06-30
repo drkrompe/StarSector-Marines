@@ -16,15 +16,15 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
  * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
  * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #MOVEMENT},
- * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), and the optional post-death
- * {@link #CRASHING}. Every unit spawns into the world as
- * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #MOVEMENT} +
- * {@link #AI_STATE} iff it is mobile (a static turret/hub carries neither) and
- * {@link #SECONDARY_WEAPON} iff it carries one — so presence <em>is</em> the
- * capability, no nullable field. Death is the transmute to the corpse archetype
- * (identity + cell ride the row-move; health, combat, and any movement, ai-state,
- * or secondary are removed); a crashing air unit then carries {@link #CRASHING}
- * over the corpse while it falls. The ecs-migration is complete: the standalone
+ * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), the universal {@link #VISION}
+ * sight stats, and the optional post-death {@link #CRASHING}. Every unit spawns
+ * into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, VISION}}, plus
+ * {@link #MOVEMENT} + {@link #AI_STATE} iff it is mobile (a static turret/hub
+ * carries neither) and {@link #SECONDARY_WEAPON} iff it carries one — so presence
+ * <em>is</em> the capability, no nullable field. Death is the transmute to the
+ * corpse archetype (identity + cell ride the row-move; health, combat, vision, and
+ * any movement, ai-state, or secondary are removed); a crashing air unit then
+ * carries {@link #CRASHING} over the corpse while it falls. The ecs-migration is complete: the standalone
  * {@code MechLoadout} and {@code Crashing} stores folded into archetype
  * membership ({@link #MECH_LOADOUT} / {@link #CRASHING}), and the registry
  * dissolution is done — the dense roster lives on {@code UnitRosterService},
@@ -110,6 +110,11 @@ public final class BattleComponents {
     public static final int AI_STATE_FALLBACK_CELL_Y = 3;
     /** {@link #AI_STATE} field 4: FLEE-role idle pause between wander legs, sim-seconds (FLOAT). */
     public static final int AI_STATE_WANDER_DWELL_TIMER = 4;
+
+    /** {@link #VISION} field 0: how far this unit can see in cells — drives its fog-of-war shadowcast radius (FLOAT). */
+    public static final int VISION_RANGE = 0;
+    /** {@link #VISION} field 1: close-wall "air" line-of-sight radius in cells, {@code 0} = standard grid LoS (FLOAT). */
+    public static final int VISION_AIR_LOS_RADIUS = 1;
 
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
@@ -230,6 +235,21 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType AI_STATE;
+    /**
+     * Sight stats — {@code float visionRange} (how far the unit sees, in cells —
+     * its fog-of-war shadowcast radius) and {@code float airLosRadius} (the
+     * close-wall "air" line-of-sight radius; {@code 0} = standard grid LoS, &gt;0
+     * for fliers that see/shoot over the walls they hover above). <em>Universal</em>
+     * (every live unit has one — both are seeded from {@code UnitType}, a ground
+     * unit's {@code airLosRadius} just defaulting to 0), but <b>live-only</b>: a
+     * corpse does not see, so the death transmute removes VISION (the COMBAT
+     * precedent — accessors are fail-loud on a corpse). The data owner is
+     * {@code battle.sim.VisionService} (the per-component Service mirroring
+     * {@code CombatService}/{@code MovementService}); {@code FogOfWarService}'s
+     * shadowcast + the decision/combat LoS checks read these by id off it. See
+     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 3).
+     */
+    public final ComponentType VISION;
     /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
@@ -407,6 +427,7 @@ public final class BattleComponents {
         THRUSTER_FX     = world.register(15, "ThrusterFx", FieldKind.OBJECT);
         AIR_TURRETS     = world.register(16, "AirTurrets", FieldKind.OBJECT);
         APPEARANCE      = world.register(17, "Appearance", FieldKind.FLOAT, FieldKind.FLOAT);
+        VISION          = world.register(18, "Vision", FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

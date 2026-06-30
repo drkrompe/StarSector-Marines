@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
@@ -145,14 +146,15 @@ public final class FogOfWarService {
             }
         }
 
+        VisionService vision = roster.vision();
         ContributorEntry entry = new ContributorEntry();
         entry.unitId = u.entityId;
         entry.lastCellX = world.cellX(u.entityId);
         entry.lastCellY = world.cellY(u.entityId);
 
-        int range = Math.min(MAX_VISION_RANGE, (int) u.visionRange);
+        int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(u.entityId));
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
-                range, u.airLosRadius, shadowScratch, 0);
+                range, vision.airLosRadius(u.entityId), shadowScratch, 0);
         entry.previousCells = new int[count];
         System.arraycopy(shadowScratch, 0, entry.previousCells, 0, count);
         entry.previousCellCount = count;
@@ -311,14 +313,17 @@ public final class FogOfWarService {
 
     private void tickFogCohort(UnitRosterService roster) {
         World world = roster.world();
+        VisionService vision = roster.vision();
         FogCohort cohort = cohorts[cohortCursor % COHORT_COUNT];
         cohortCursor++;
 
         for (int i = cohort.contributors.size() - 1; i >= 0; i--) {
             ContributorEntry e = cohort.contributors.get(i);
-            Entity u = roster.getOrNull(e.unitId);
 
-            if (u == null || !roster.isAliveById(e.unitId)) {
+            // No Entity materialization: a dead/released contributor has no HEALTH
+            // (isAliveById false), and an alive one's sight stats are read by id off
+            // the VISION component — the field migration drops the getOrNull hop here.
+            if (!roster.isAliveById(e.unitId)) {
                 decrementFootprint(e);
                 cohort.contributors.remove(i);
                 continue;
@@ -330,9 +335,9 @@ public final class FogOfWarService {
 
             decrementFootprint(e);
 
-            int range = Math.min(MAX_VISION_RANGE, (int) u.visionRange);
+            int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(e.unitId));
             int count = Shadowcast.castFrom(grid, cx, cy,
-                    range, u.airLosRadius, shadowScratch, 0);
+                    range, vision.airLosRadius(e.unitId), shadowScratch, 0);
 
             if (count > e.previousCells.length) {
                 e.previousCells = new int[count];

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -91,10 +92,11 @@ public final class HitResponseSystem {
         Entity expectedTarget = roster.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
+        VisionService vision = roster.vision();
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
                 world.cellX(target.entityId), world.cellY(target.entityId),
                 world.cellX(expectedTarget.entityId), world.cellY(expectedTarget.entityId),
-                target.airLosRadius, expectedTarget.airLosRadius);
+                vision.airLosRadius(target.entityId), vision.airLosRadius(expectedTarget.entityId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);

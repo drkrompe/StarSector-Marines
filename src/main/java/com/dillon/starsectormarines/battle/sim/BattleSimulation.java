@@ -392,6 +392,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the MOVEMENT component — {@code sim.movement().moveSpeed(id)}. */
     public MovementService movement() { return rosterService.movement(); }
 
+    /** Data owner for the VISION component (sight stats) — {@code sim.vision().airLosRadius(id)}. */
+    public VisionService vision() { return rosterService.vision(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

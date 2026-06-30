@@ -103,9 +103,9 @@ public final class DroneSwarmAction implements Action {
         s.attackCooldown = sim.combat().attackCooldown(d.entityId);
         s.target = sim.targetOf(d);
         s.ignoreCloseWalls = true;
-        s.closeWallRadius = d.airLosRadius;
+        s.closeWallRadius = sim.vision().airLosRadius(d.entityId);
 
-        TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), BattleSimulation.TICK_DT);
+        TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
         sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
         sim.world().setTargetId(d.entityId, Entity.idOf(s.target));
@@ -254,15 +254,16 @@ public final class DroneSwarmAction implements Action {
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
     private static Entity tryAgroScan(Drone d, BattleView sim) {
+        float dAir = sim.vision().airLosRadius(d.entityId);
         Entity candidate = sim.getTacticalScoring().findBestTarget(
-                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction, d.squadId, d, d.airLosRadius);
+                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction, d.squadId, d, dAir);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
                 sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));
         if (dist > Drone.AGGRO_RANGE_CELLS) return null;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId),
-                d.airLosRadius, candidate.airLosRadius);
+                dAir, sim.vision().airLosRadius(candidate.entityId));
         return visible ? candidate : null;
     }
 

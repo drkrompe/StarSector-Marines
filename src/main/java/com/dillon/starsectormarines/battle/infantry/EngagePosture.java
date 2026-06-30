@@ -87,7 +87,7 @@ public final class EngagePosture implements Action {
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
-                member.airLosRadius, target.airLosRadius);
+                sim.vision().airLosRadius(member.entityId), sim.vision().airLosRadius(target.entityId));
 
         if (inRange && visible) {
             boolean startedSecondary = false;

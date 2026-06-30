@@ -260,7 +260,7 @@ public class GroundSystem {
             aim.attackCooldown = kind.cooldown;
             aim.target = (v.turretTargetId != 0L) ? roster.getOrNull(v.turretTargetId) : null;
 
-            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, dt);
+            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
             v.turretFacingDeg = aim.facingDegrees;
             v.turretCooldownTimer = aim.cooldownTimer;

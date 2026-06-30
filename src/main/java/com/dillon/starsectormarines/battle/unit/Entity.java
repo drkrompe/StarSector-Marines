@@ -219,8 +219,18 @@ public class Entity {
      * syncs the grid cell + render position from. Mirrors {@link #seedSecondaryWeapon}.
      */
     public AirBody seedBody;
-    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
-    public float visionRange;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> How far this unit can see
+     * (cells) — drives the fog-of-war shadowcast radius. {@link UnitRosterService#allocate}
+     * copies it into the entity world's universal {@code VISION} component (field
+     * {@link BattleComponents#VISION_RANGE}), canonical thereafter; reached by id via
+     * the {@code VisionService} data owner ({@code sim.vision().visionRange(id)} /
+     * {@code roster.vision()...}). Initialized from {@link UnitType#visionRange}; 0
+     * falls back to the unit's attack-range stat. Write-only construction input (the
+     * ctor archetype default + the {@code Drone} override). The planned night
+     * multiplier mutates the live value via {@code VisionService.setVisionRange}.
+     */
+    public float seedVisionRange;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The per-unit primary
      * cooldown reset value (sim-seconds). {@link UnitRosterService#allocate} copies
@@ -234,17 +244,25 @@ public class Entity {
     public float seedAttackCooldown;
 
     /**
-     * Close-wall radius for "air" line-of-sight, in cells. When &gt; 0, walls
-     * within this many cells of this unit's position are treated as transparent
-     * for LoS checks involving this unit — both as shooter and as target.
-     * Models flying mounts that hover above building footprints: a drone can
-     * fire OUT of the building it's directly above, and ground combatants can
-     * fire UP at the drone through the same close walls. Both directions use
-     * the same radius so the rule is symmetric. 0 (default) means standard
-     * grid LoS; only {@link Drone} sets this today, but {@code Shuttle}-mounted
-     * turrets pass their own equivalent radius through {@code TurretAim.State}.
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Close-wall radius for
+     * "air" line-of-sight, in cells. When &gt; 0, walls within this many cells of
+     * this unit's position are treated as transparent for LoS checks involving this
+     * unit — both as shooter and as target. Models flying mounts that hover above
+     * building footprints: a drone can fire OUT of the building it's directly above,
+     * and ground combatants can fire UP at the drone through the same close walls.
+     * Both directions use the same radius so the rule is symmetric. 0 (default)
+     * means standard grid LoS; only {@link Drone} sets this today, but
+     * {@code Shuttle}-mounted turrets pass their own equivalent radius through
+     * {@code TurretAim.State}.
+     *
+     * <p>{@link UnitRosterService#allocate} copies it into the entity world's
+     * universal {@code VISION} component (field
+     * {@link BattleComponents#VISION_AIR_LOS_RADIUS}), canonical thereafter; reached
+     * by id via the {@code VisionService} data owner
+     * ({@code sim.vision().airLosRadius(id)} / {@code roster.vision()...}). Write-only
+     * construction input.
      */
-    public float airLosRadius = 0f;
+    public float seedAirLosRadius = 0f;
 
     /** Role drives behavior dispatch in the sim. Default {@link UnitRole#COMBATANT} matches pre-role behavior. */
     public UnitRole role = UnitRole.COMBATANT;
@@ -317,7 +335,7 @@ public class Entity {
         this.seedAttackDamage = type.attackDamage;
         this.seedAttackRange = type.attackRange;
         this.seedAccuracy = type.accuracy;
-        this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
+        this.seedVisionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.seedAttackCooldown = type.attackCooldown;
     }
 

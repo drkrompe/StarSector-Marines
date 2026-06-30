@@ -570,7 +570,7 @@ public class AirSystem {
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
-                TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, dt);
+                TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
