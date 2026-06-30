@@ -299,6 +299,17 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
        watch-item:** confirm roofs fade as marines enter buildings, and defenders fade out as the
        player loses sight of them, under Ctrl+Shift+K.
     3. (Carried) the older audio observation folds into #1.
+    4. **Shuttle engine-loop audio — open follow-up (found 2026-06-29 during the parity pass).**
+       `BattleScreen.driveShuttleEngineLoops` plays each visible shuttle's continuous engine-loop SFX
+       (altitude-pitched `playLoop`, voice-keyed on the `AirBody` instance); the bridge's
+       `GroundSimPresentation` never ported it, so S3d dropships + the setup Aeroshuttles descend
+       silently under the fleet. Not fixed here because it's more than the fade one-liners: the loop
+       must be repositioned into the bridge's combat-world audio frame (`cfg.worldUnitsPerCell()`, like
+       `GroundSimPresentation.playAtCell`) rather than the standalone's abstract
+       `AUDIO_WORLD_UNITS_PER_CELL`, and there's a playtest call on whether engine hum is even wanted
+       under the fleet din / at what volume. (`playCombatEventSounds` is *not* a gap — the 2026-06-27
+       audio fix already ports it as `GroundSimPresentation.playFireSounds`/`spawnImpactFxAndSounds`/
+       `playDeathVoice`.)
   These are render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
   the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.
 
