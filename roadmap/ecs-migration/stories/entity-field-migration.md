@@ -80,7 +80,10 @@ MOVEMENT access), `World` delegates, wired through `UnitRosterService.combat()/
 movement()` + `BattleView`/`BattleSimulation`. Slices 1–2's consumers reroute onto
 them next; slice 3 (VISION) **shipped** as `VisionService` from the start
 (`b7ed44e8`) — never touching `World` — after the pre-existing fog-of-war
-`VisionService` was renamed `FogOfWarService` (`a171f12c`) to free the name.
+`VisionService` was renamed `FogOfWarService` (`a171f12c`) to free the name. Slice 4
+(`primaryWeapon`→COMBAT, `4835bd42`) held the line: Service-direct, no
+`World.primaryWeapon` delegator, and `beginBurst` moved fully onto `CombatService`
+(dropping its `World` param).
 
 ## Slice order (cleanest first; scan-unblockers prioritized)
 
@@ -122,8 +125,20 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
      `Entity` materialization (`isAliveById` gates; sight stats by id) — the genuine
      "object no longer needed mid-scan" win, just on the cohort path rather than a
      headline column-walk.
-4. **`primaryWeapon` → COMBAT** (OBJECT field) — the combatant loadout; read by
-   `beginBurst` + `InfantryWeapons.fireShot`.
+4. ~~**`primaryWeapon` → COMBAT** (OBJECT field)~~ **— SHIPPED (`4835bd42`,
+   2026-06-30).** The combatant loadout: COMBAT field 9 `COMBAT_PRIMARY_WEAPON` (the
+   nullable `MarineWeapon` flyweight — militia/aliens/turrets carry none and fall back
+   to the baked attack stats); `Entity.primaryWeapon`→`seedPrimaryWeapon`, seeded at
+   `allocate` (combatant block). Data owner is the existing `CombatService`
+   (`primaryWeapon(id)` getter + `setPrimaryWeapon(id, w)` setter); readers go by-id
+   off it — `InfantryWeapons` (fireShot + the burst pass, one hoisted `MarineWeapon`
+   local each), `TacticalScoring.scoreWeaponAffinity`, both squad UI panels. **No
+   `World` delegator** (Service-direct, the slice-3 precedent — flagged by the user
+   mid-slice when an interim delegator crept in). The payoff beyond the relocation:
+   `beginBurst` dropped its `World` param to become a **pure `CombatService`
+   consumer** — its weapon read AND all three burst-column writes are COMBAT — so 14
+   callers threaded `sim.world()`→`sim.combat()`. `CombatServiceTest` covers seed→read,
+   null-default, setter, and fail-loud-on-corpse.
 5. **`squadId` → SQUAD component** — universal; large reader set (dispatch, squad
    systems). Big mechanical sweep.
 6. **`role` → dispatch component** — universal. Unblocks `systems-to-columns` Phase 2

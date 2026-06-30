@@ -3,6 +3,32 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Status (2026-06-30) — entity-field-migration slice 4: primaryWeapon → COMBAT
+
+The combatant loadout left the `Entity` heap object: `Entity.primaryWeapon` → the
+COMBAT component's new OBJECT field 9 `COMBAT_PRIMARY_WEAPON` (the nullable
+`MarineWeapon` flyweight — militia/aliens/turrets carry none and fall back to the
+baked attack stats). Seeded at `allocate` (combatant-gated) from the new write-only
+`Entity.seedPrimaryWeapon`; the data owner is the existing **`CombatService`** with a
+`primaryWeapon(id)` getter + `setPrimaryWeapon(id, w)` setter. One commit:
+
+- **primaryWeapon slice `4835bd42`:** `Entity.primaryWeapon`→`seedPrimaryWeapon`;
+  writers seed it (`Drone` ctor, `AirSystem`/`GroundSystem` deboard — still
+  pre-allocate). Readers by-id off the Service: `InfantryWeapons` (fireShot + the
+  burst pass each hoist one `MarineWeapon` local), `TacticalScoring.scoreWeaponAffinity`,
+  both squad UI panels (`sim.combat().primaryWeapon`). **`beginBurst` became a pure
+  `CombatService` consumer** — its weapon read AND all three burst-column writes are
+  COMBAT, so it dropped the `World` param (`beginBurst(CombatService, target)`; 14
+  callers threaded `sim.world()`→`sim.combat()`). `CombatServiceTest` covers
+  seed→read, null-default, setter, fail-loud-on-corpse. Build + full suite green.
+
+**Decision (user-flagged mid-slice):** no `World.primaryWeapon` delegator. Slice 1
+(attackCooldown) added a `world.X` accessor, but slice 3 (VISION) set the newer
+precedent — go Service-direct, never grow the facade being retired. Followed here:
+consumers reach `sim.combat()` / `roster.combat()` directly and `World` is untouched
+(net-zero diff). **Next slice: `squadId` → SQUAD component** (universal; the large
+mechanical reader sweep — dispatch + squad systems), then `role`.
+
 ## Status (2026-06-30) — entity-field-migration slice 3: VISION component + fog-class rename
 
 The last two **universal** live stat fields left the `Entity` heap object for a new
@@ -109,10 +135,12 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
   cache-locality win the whole migration was justified on is **uncollected**.
 - **Perf was never measured.** No before/after benchmark exists; the SoA premise is
   unvalidated and the hot path may even be slower than the old direct-field POJO.
-- **`Entity` is still a ~305-line heap object** in the roster carrying ~13 live
-  mutable behavior/capability fields the world doesn't own (`role`, `assignedObjective`,
-  `equipmentDropTarget`, `primaryWeapon` spec, `homeCell`, `lastReprioTickIndex`,
-  `deathPoseIdx`, `squadId`, `moveSpeed`/`visionRange`/`attackCooldown`/`airLosRadius`).
+- **`Entity` is still a ~305-line heap object** in the roster, but the stat columns
+  have moved: `moveSpeed`/`visionRange`/`attackCooldown`/`airLosRadius`/`primaryWeapon`
+  are now world-owned (the live value lives in their component; `Entity` keeps only
+  the write-only `seed*` construction input). The live behavior/capability fields the
+  world does **not** yet own are `role`, `assignedObjective`, `equipmentDropTarget`,
+  `homeCell`, `lastReprioTickIndex`, `deathPoseIdx`, and `squadId`.
   So "entity = bare long id" is true for storage, false for the systems layer.
 - **Convoy ground `Vehicle` never entered the world** — it's a plain POJO in
   `GroundSystem.List<Vehicle>` (a third storage space the air analog closed but the
@@ -164,8 +192,11 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    `VisionService` renamed `FogOfWarService` to free the name (`a171f12c`). The
    "column-walk" payoff was narrower than billed (no all-units VISION sweep exists —
    see the new top status block + the story) — realized as by-id Service reads +
-   dropping the fog cohort path's `Entity` materialization. **Next slice:
-   `primaryWeapon`→COMBAT** (OBJECT field), then `squadId`, `role`.
+   dropping the fog cohort path's `Entity` materialization.
+   **Slice 4 SHIPPED:** `primaryWeapon`→`COMBAT` OBJECT field 9 (`4835bd42`); data
+   owner `CombatService` (no `World` delegator — Service-direct, the slice-3 precedent),
+   and `beginBurst` dropped its `World` param to become a pure `CombatService` consumer.
+   **Next slice: `squadId`→SQUAD component**, then `role`.
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its
