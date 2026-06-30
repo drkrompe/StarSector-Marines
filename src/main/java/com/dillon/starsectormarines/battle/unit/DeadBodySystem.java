@@ -8,13 +8,14 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH}} archetype (plus
- * the optional {@code COMBAT} a combatant carries, and the {@code MOVEMENT},
+ * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION}} archetype
+ * (plus the optional {@code COMBAT} a combatant carries, and the {@code MOVEMENT},
  * {@code AI_STATE}, {@code SECONDARY_WEAPON} a mobile/armed unit carries) to the
  * corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
- * {@code HEALTH} and any {@code COMBAT}, {@code MOVEMENT}, {@code AI_STATE}, or
- * {@code SECONDARY_WEAPON} are removed (a corpse neither lives, fights, moves,
- * nor thinks — and "lacks HEALTH" is half the liveness definition);
+ * {@code HEALTH}, the universal {@code VISION}, and any {@code COMBAT},
+ * {@code MOVEMENT}, {@code AI_STATE}, or {@code SECONDARY_WEAPON} are removed (a
+ * corpse neither lives, sees, fights, moves, nor thinks — and "lacks HEALTH" is
+ * half the liveness definition);
  * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
  * row-move ("the corpse keeps its cell" is literal: nothing moves a unit after
  * the kill zeroes its hp, so the live POSITION + RENDER_POSITION already are the
