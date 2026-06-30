@@ -10,6 +10,11 @@ mod/jars/*.jar
 mod/sounds/**
 !mod/sounds/.gitkeep
 
+### Raw proprietary game-audio extraction (local reference only — never commit) ###
+# MechWarrior 4: Mercenaries rip. The two tracks we actually ship live (copied) under
+# asset-pipeline/.../audio/music/; this raw dump stays out of the public repo.
+asset-pipeline/src/tool/resources/audio/mw4mercs/
+
 ### Extracted API sources for IDE attachment (regenerate with unzip starfarer.api.zip) ###
 .api/
 

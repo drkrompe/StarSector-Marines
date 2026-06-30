@@ -15,8 +15,11 @@
 {
   "clips": [
     // ----- music -----
-    { "id": "marines_intel_music",  "source": "music/9-next-move.mp3", "kind": "music", "out": "battle/music" },
-    { "id": "marines_battle_music",    "source": "music/1-behemoths.mp3",                                              "kind": "music", "out": "battle/music" },
+    // DEPRECATION (slated for removal before a stable public release): the two tracks below are
+    // proprietary MechWarrior 4: Mercenaries audio, kept only as placeholders. Replace with
+    // CC-licensed equivalents. See mod/CREDITS "Game Audio (proprietary — unofficial fan use)".
+    { "id": "marines_intel_music",  "source": "music/next-move.ogg", "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music",    "source": "music/behemoths.ogg",                                                "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_02", "source": "music/DavidKBD - InterstellarPack - 01 - Interstellar.ogg",          "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_03", "source": "music/DavidKBD - InterstellarPack - 02 - Plasma Storm.ogg",          "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_04", "source": "music/DavidKBD - InterstellarPack - 03 - Temple of Madness.ogg",     "kind": "music", "out": "battle/music" },
