@@ -3,6 +3,38 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Status (2026-06-30) — entity-field-migration slice 3: VISION component + fog-class rename
+
+The last two **universal** live stat fields left the `Entity` heap object for a new
+`VISION` component `{visionRange, airLosRadius}` (id 18) in the archetype
+`EntityWorld`, with a per-component **`battle.sim.VisionService`** data owner
+mirroring `CombatService`/`MovementService` (roster-owned; `roster.vision()` /
+`sim.vision()` / `BattleView.vision()`). Two commits:
+
+- **Fog-class rename `a171f12c`:** the pre-existing fog-of-war `VisionService`
+  (reveal bitmap + cohorts + the visibility sweep) → **`FogOfWarService`** — a
+  name↔role fix that also frees `VisionService` for the per-component data owner
+  (the user picked this over folding VISION into the fog class or a third name).
+  Also `BattleSimulation.getVision()`→`getFogOfWar()` + field `vision`→`fogOfWar`.
+  IntelliJ rename; doc refs to the fog class updated to the new name, the two
+  ecs-migration planning docs reverted + rewritten by hand.
+- **VISION slice `b7ed44e8`:** component registered (universal, seeded at
+  `allocate`, removed on the corpse transmute — live-only), `Entity.visionRange/
+  airLosRadius`→`seedVisionRange/seedAirLosRadius`, ~20 reader sites across 7 files
+  by-id off the Service. `TacticalScoring`'s 14 sites hoist the loop-invariant
+  `self`/`target` air radius out of the firing-position + vantage scans (the hot
+  loops do **zero** per-candidate probes); `TurretAim` gains a `VisionService` param
+  (4 callers threaded). `VisionServiceTest` covers seed→read parity + fail-loud-on-
+  corpse. Build + full suite green.
+
+**Finding (recorded in the story):** the "scan-unblocker / column-walk" framing was
+narrower than billed — the sight-stat reads live in the curated contributor *cohort*
+path + held-ref decision code, not an all-units sweep, so **no VISION `Query` was
+added** (no consumer; the big visibility sweep reads POSITION). The realized win:
+all reads by-id off the Service + `FogOfWarService.tickFogCohort` drops its
+per-contributor `Entity` materialization. **Next slice: `primaryWeapon`→COMBAT**
+(OBJECT field; `beginBurst` + `InfantryWeapons.fireShot`), then `squadId`, `role`.
+
 ## Status (2026-06-30) — Service/System naming convention swept across existing classes
 
 The access-model distinction (System = stateless per-tick/-event **processor**;
@@ -127,9 +159,13 @@ half is genuinely, cleanly shipped and contradicted nothing about it. But the wo
    slices 1–2 consumers reshaped onto them — `sim.combat().attackCooldown(id)`,
    `roster.movement().moveSpeed(id)` (`ac80a9b9`). Full rationale in the story §
    "Access model". Next: every new slice lands its field on a per-component Service.
-   Next slice: `visionRange`+`airLosRadius`→new VISION component + **`VisionService`,
-   converting the `VisionService` sweep to a column-walk** (the first scan-unblocker —
-   the epic's headline payoff), then `primaryWeapon`→COMBAT, `squadId`, `role`.
+   **Slice 3 SHIPPED:** `visionRange`+`airLosRadius`→new `VISION` component + new
+   `battle.sim.VisionService` data owner (`b7ed44e8`); the pre-existing fog-of-war
+   `VisionService` renamed `FogOfWarService` to free the name (`a171f12c`). The
+   "column-walk" payoff was narrower than billed (no all-units VISION sweep exists —
+   see the new top status block + the story) — realized as by-id Service reads +
+   dropping the fog cohort path's `Entity` materialization. **Next slice:
+   `primaryWeapon`→COMBAT** (OBJECT field), then `squadId`, `role`.
 4. Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype — **L**.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep): it is committed engine
    infra under the build-it-right mandate, and the systems-half epic (#1) is its

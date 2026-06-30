@@ -16,9 +16,10 @@
    doesn't own. Until those move, the storage migration's "the entity is its id" is
    true for storage and false for the systems layer.
 2. **Unblock the systems-half scan conversions.** Most per-tick all-unit scans
-   (`UnitSpatialIndex`, `UnitDestinationSpatialIndex`, `VisionService`) can't
-   column-walk today because they need the `Entity` object (for `visionRange`,
-   `role`, faction, etc.). Move those reads onto components and the object is no
+   (`UnitSpatialIndex`, `UnitDestinationSpatialIndex`, `FogOfWarService`) can't
+   column-walk today because they need the `Entity` object (for `role`, faction,
+   etc.; `visionRange`/`airLosRadius` are now off it — slice 3). Move those reads
+   onto components and the object is no
    longer needed mid-scan — the column-walk falls out (with a follow-on payload
    change for the indices; directly for vision).
 
@@ -77,7 +78,9 @@ Service by-id methods are for the random-access / held-ref / cold paths.
 **Shipped (`b77e45a8`):** `CombatService` + `MovementService` (own all COMBAT /
 MOVEMENT access), `World` delegates, wired through `UnitRosterService.combat()/
 movement()` + `BattleView`/`BattleSimulation`. Slices 1–2's consumers reroute onto
-them next; slice 3 (VISION) lands as `VisionService` from the start.
+them next; slice 3 (VISION) **shipped** as `VisionService` from the start
+(`b7ed44e8`) — never touching `World` — after the pre-existing fog-of-war
+`VisionService` was renamed `FogOfWarService` (`a171f12c`) to free the name.
 
 ## Slice order (cleanest first; scan-unblockers prioritized)
 
@@ -94,9 +97,31 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
    + `TacticalScoring.findFallbackPositionImpl` (audited: all `findFallbackPosition`
    callers are movers — the `HitResponseSystem` one is AI_STATE-gated, and AI_STATE
    ⟺ MOVEMENT) → `world.moveSpeed(id)`. Valid mover-narrowing.
-3. **`visionRange` + `airLosRadius` → new VISION component** (universal `{float,
-   float}`). **The first scan-unblocker:** with `visionRange` a column, `VisionService`'s
-   per-tick sweep can column-walk a VISION query. Convert the sweep in the same slice.
+3. ~~**`visionRange` + `airLosRadius` → new VISION component**~~ **— SHIPPED
+   (`b7ed44e8`, 2026-06-30).** Universal `{float, float}` component (id 18), seeded
+   at `allocate`, removed on the corpse transmute (live-only — a corpse does not
+   see). Data owner is a new **`battle.sim.VisionService`** mirroring
+   `CombatService`/`MovementService` (roster-owned; `roster.vision()` / `sim.vision()`
+   / `BattleView.vision()`). `Entity.visionRange`/`airLosRadius` →
+   `seedVisionRange`/`seedAirLosRadius`. ~20 reader sites across 7 files went by-id:
+   `TacticalScoring` (14 sites — the loop-invariant `self`/`target` air radius hoisted
+   out of the firing-position + vantage scans, so the hot loops do **zero**
+   per-candidate probes), `HitResponseSystem`, `SquadAlertSystem`, `EngagePosture`,
+   `DroneSwarmAction`, and `TurretAim` (gains a `VisionService` param; its 4 callers
+   thread it). **The name collision** with the pre-existing fog-of-war `VisionService`
+   was resolved by renaming that class **`FogOfWarService`** (`a171f12c`) — it owns the
+   reveal bitmap + visibility sweep, which that name describes; `VisionService` is now
+   free for the per-component data owner.
+   - **Finding — the "scan-unblocker" was narrower than billed.** The `visionRange`/
+     `airLosRadius` reads are NOT an all-units sweep: they live in the *curated
+     contributor cohort* path (keyed by held unit id) + held-ref decision/combat LoS
+     code. So there is no "all units with VISION" `Query` to column-walk (the big
+     `FogOfWarService.sweepUnitVisibility` loop reads POSITION, not VISION), and **no
+     VISION `Query` was added** (no consumer). The realized payoff: every reader is by-id
+     off the Service, and `FogOfWarService.tickFogCohort` drops its per-contributor
+     `Entity` materialization (`isAliveById` gates; sight stats by id) — the genuine
+     "object no longer needed mid-scan" win, just on the cohort path rather than a
+     headline column-walk.
 4. **`primaryWeapon` → COMBAT** (OBJECT field) — the combatant loadout; read by
    `beginBurst` + `InfantryWeapons.fireShot`.
 5. **`squadId` → SQUAD component** — universal; large reader set (dispatch, squad
