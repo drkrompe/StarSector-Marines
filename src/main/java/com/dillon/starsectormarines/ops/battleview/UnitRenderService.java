@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -41,11 +42,17 @@ import java.awt.Color;
  * sprite, hub pad, hub sprite). Pads are ground decals meant to sit under the
  * structures, so a turret sprite overhanging an adjacent hub's pad now correctly
  * paints on top of it.
+ *
+ * <p><b>Live-appearance Phase 2.</b> {@link #sweepLiveSprites} is now a pure
+ * {@code Query} collector over {@link BattleComponents#liveSprites}, reading the
+ * facing/pose frame {@code battle.appearance.FacingSystem} authors into
+ * {@code SPRITE} every tick instead of deriving it per render — the epic's
+ * "render is a pure collector" shape, extending the {@link #sweepDeadSprites}
+ * pattern to the live side. The remaining sweeps still walk the dense roster
+ * ({@code sim.liveUnitAt}); each converts to a {@code Query} column walk on its
+ * own schedule as the systems-to-columns migration reaches it.
  */
 public final class UnitRenderService implements RenderSystem {
-
-    /** Window (s) after a unit fires during which the weapon-up pose shows. */
-    private static final float WEAPON_UP_TIME = 0.25f;
 
     // Faction-colored quad fallback when a unit's sprite sheet is missing/unloaded.
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
@@ -244,94 +251,139 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /**
-     * Live infantry/civilians: facing-indexed sheet frame as a batched
+     * Live infantry/civilians/mechs: the authored {@code SPRITE} frame as a batched
      * {@code SHEET_QUAD} (the SOUTH-weapon-up pose flipped vertically via the
-     * engine's {@link DrawList#addSheetQuadFlippedV} mirror). Faithful port of the
-     * inline live-sprite loop + {@code renderUnitSprite}: same VIS_HIDDEN/VIS_FADING
-     * gating + fade alpha, same secondary-aim sheet override, same weapon-up window,
-     * same frame selection, same {@code renderScale} sizing. The per-frame sheet
-     * {@code setColor}/tint-reset bookkeeping is gone — color is explicit per quad.
+     * engine's {@link DrawList#addSheetQuadFlippedV} mirror). A pure {@code Query}
+     * column walk over {@link BattleComponents#liveSprites} — the facing/frame
+     * derivation ({@code computeFacing}/{@code pickFrame}/weapon-up) is gone from
+     * this class; {@code battle.appearance.FacingSystem} authors
+     * {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} once per tick
+     * and this sweep just reads them, the {@link #sweepDeadSprites} pattern
+     * extended to the live side. Membership itself is the sheet-drawn gate — every
+     * matched row already is a
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()} type
+     * (no {@code RenderAppearance.spriteKind} check needed), and requiring
+     * {@code HEALTH} excludes corpses without a separate check.
      *
-     * <p>Claims exactly the {@link RenderAppearance.SpriteKind#SHEET} types (every
-     * type that is not a turret/hub whole-sprite or a drone), the tag-driven
-     * equivalent of the inline {@code !(instanceof MapTurret|DroneHubUnit|Drone)}
-     * excludes. The colored-quad fallback covers a missing/unloaded sheet.
+     * <p>Two gates, in this order:
+     * <ol>
+     *   <li><b>{@code hp <= 0} first.</b> A unit killed <em>after</em> this tick's
+     *   death-dispatcher drain (air-strafe damage, a convoy turret, a shot arrival)
+     *   keeps its {@code HEALTH} row — hp &le; 0 — until the <em>next</em> tick's
+     *   drain transmutes it to a corpse, so a released-but-not-yet-transmuted row
+     *   still matches {@code liveSprites} for one frame (the old dense-roster walk
+     *   got this filter for free — release already emptied the roster slot — so a
+     *   {@code Query} walk must state it). This must run <em>before</em> the
+     *   visibility lookup below: such a row's {@link UnitRosterService#indexOf}
+     *   resolves to {@code INVALID_INDEX} (already released from the roster), and
+     *   {@link FogOfWarService#getUnitVisibility} tolerantly returns
+     *   {@code VIS_VISIBLE} for an out-of-range index — checking visibility first
+     *   would draw the corpse-to-be's stale last live frame.</li>
+     *   <li><b>Visibility</b>, unchanged: {@code VIS_HIDDEN} skips, {@code VIS_FADING}
+     *   multiplies in the fade alpha.</li>
+     * </ol>
+     *
+     * <p>Cache resolution: the base cache is {@code sprites.unitSprites().get(type)}.
+     * When the authored selector is {@code SPRITE_SHEET ==
+     * LiveAppearance.SHEET_SECONDARY_AIM} and the row carries a
+     * {@code SECONDARY_WEAPON}, the aim cache is looked up by <em>that weapon's own
+     * spec</em> — {@code sprites.marineSecondaryAimSheets().get(spec)}, joined off
+     * the row's {@code SECONDARY_WEAPON_SPEC} column, not the unit's type (aim
+     * sheets are keyed by weapon kind, so resolving off {@code IDENTITY_TYPE} would
+     * draw the wrong — or no — aim sheet the moment a second secondary with aim art
+     * exists) — and used only if it's non-null with loaded frames; otherwise the
+     * base cache stands in (the fall-back-to-base-on-missing-aim-art behavior,
+     * preserved from the old {@code emitLiveSprite}). The colored-quad fallback
+     * covers a missing/unloaded base sheet.
+     *
+     * <p><b>One accepted seam.</b> A unit spawned during battle setup (before the
+     * first sim tick) draws its seeded south-idle frame
+     * ({@code UnitRosterService.allocate}'s {@code SPRITE_INDEX} seed) for its
+     * first render(s), until the first {@code FacingSystem} pass authors real
+     * facing — the old per-frame derivation would have shown path-facing one frame
+     * earlier. Imperceptible; accepted in
+     * {@code roadmap/ecs-migration/stories/live-appearance.md}.
      */
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
+        BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
-        BattleSimulation sim = ctx.sim;
-        World world = sim.world();
+        UnitRosterService roster = ctx.sim.getRoster();
+        FogOfWarService vis = ctx.sim.getFogOfWar();
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
-        FogOfWarService vis = sim.getFogOfWar();
 
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (RenderAppearance.of(u.type).spriteKind != RenderAppearance.SpriteKind.SHEET) continue;
-            byte uv = vis.getUnitVisibility(i);
-            if (uv == FogOfWarService.VIS_HIDDEN) continue;
-            float unitAlpha = alphaMult;
-            if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
+        for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
+            Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
+            Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
+            float[] hp = t.floats(c.HEALTH, BattleComponents.HEALTH_HP).array();
+            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
+            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            int[] sheetSel = t.ints(c.SPRITE, BattleComponents.SPRITE_SHEET).array();
+            int[] frameIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
+            int[] flipV = t.ints(c.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
+            boolean hasSecondary = t.has(c.SECONDARY_WEAPON);
+            Object[] secSpec = hasSecondary
+                    ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
 
-            boolean inAim = world.hasSecondaryWeapon(u.entityId) && world.secondaryActionTimer(u.entityId) > 0f;
-            UnitSpriteCache cache = sprites.unitSprites().get(u.type);
-            if (inAim) {
-                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(world.secondaryWeapon(u.entityId));
-                if (aim != null && aim.sheet != null && aim.frames != null
-                        && aim.frames.frames.length > 0) {
-                    cache = aim;
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                // Gate 1: a released-but-not-yet-transmuted row (see the class doc
+                // above) — must precede the visibility lookup.
+                if (hp[r] <= 0f) continue;
+
+                // Gate 2: visibility, keyed by this row's dense roster slot.
+                int denseIdx = roster.indexOf(t.entityAt(r));
+                byte uv = vis.getUnitVisibility(denseIdx);
+                if (uv == FogOfWarService.VIS_HIDDEN) continue;
+                float unitAlpha = alphaMult;
+                if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(denseIdx);
+
+                UnitType type = (UnitType) types[r];
+                UnitSpriteCache cache = sprites.unitSprites().get(type);
+                if (sheetSel[r] == LiveAppearance.SHEET_SECONDARY_AIM && secSpec != null) {
+                    UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get((MarineSecondary) secSpec[r]);
+                    if (aim != null && aim.sheet != null && aim.frames != null
+                            && aim.frames.frames.length > 0) {
+                        cache = aim;
+                    }
                 }
+                if (cache == null || cache.sheet == null || cache.frames == null
+                        || cache.frames.frames.length == 0) {
+                    Faction faction = (Faction) factions[r];
+                    Color col = faction == Faction.MARINE ? MARINE_COLOR
+                            : faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
+                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
+                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    emitSolidQuad(out, cx, cy, half, col, unitAlpha);
+                    continue;
+                }
+                emitLiveSprite(out, cam, type, cache, frameIdx[r], flipV[r] != 0,
+                        rx[r], ry[r], unitSize, unitAlpha);
             }
-            if (cache == null || cache.sheet == null || cache.frames == null
-                    || cache.frames.frames.length == 0) {
-                Color c = u.faction == Faction.MARINE ? MARINE_COLOR
-                        : u.faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
-                float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
-                float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
-                emitSolidQuad(out, cx, cy, half, c, unitAlpha);
-                continue;
-            }
-            emitLiveSprite(out, cam, sim, u, cache, unitSize, unitAlpha, inAim);
         }
     }
 
     /**
-     * Selects the facing/weapon-up frame and emits it (vertically flipped for the
-     * SOUTH-weapon-up pose). Sizing: {@code renderScale}d cell height, width by the
-     * frame's aspect — matching the inline {@code renderUnitSprite}.
+     * Emits the authored {@code SPRITE} frame — {@code frameIdx}/{@code flipV} are
+     * read straight off the {@link BattleComponents#SPRITE} columns
+     * {@code battle.appearance.FacingSystem} wrote last tick; no facing/weapon-up
+     * derivation happens here anymore. Sizing: {@code renderScale}d cell height,
+     * width by the frame's aspect — unchanged from the old {@code renderUnitSprite}.
      */
-    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u,
-                                UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
-        // cooldown, this unit's cell, and the target cell all read via world by-id
-        // adapters (COMBAT cooldown + POSITION cells). A non-combatant carries no
-        // COMBAT — its cooldown is moot (weaponUp gates on combatant too).
-        World world = sim.world();
+    private static void emitLiveSprite(DrawList out, BattleCamera cam, UnitType type,
+                                       UnitSpriteCache cache, int frameIdx, boolean flipV,
+                                       float rx, float ry, float unitSize, float alphaMult) {
         SpriteSheetFrames frames = cache.frames;
-        float cooldown = u.type.combatant ? world.cooldownTimer(u.entityId) : 0f;
-        boolean weaponUp = inAim || (u.type.combatant
-                && cooldown > (sim.combat().attackCooldown(u.entityId) - WEAPON_UP_TIME)
-                && cooldown > 0f);
-        int selfCellX = world.cellX(u.entityId);
-        int selfCellY = world.cellY(u.entityId);
-
-        int frameIdx;
-        boolean flipV;
-        if (u.type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
-            frameIdx = pickFrameEightWay(computeEightWayFacing(u, sim, selfCellX, selfCellY));
-            flipV = false;
-        } else {
-            Facing facing = computeFacing(u, sim, selfCellX, selfCellY);
-            frameIdx = pickFrame(facing, weaponUp);
-            flipV = weaponUp && facing == Facing.SOUTH;
-        }
+        // Sheet-cache-dependent clamp stays render-side — FacingSystem deliberately
+        // authors the unclamped logical frame (the render tier owns defending
+        // against whatever the currently-loaded cache's frame count is).
         if (frameIdx >= frames.frames.length) frameIdx = 0;
         SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-        float targetH = unitSize * u.type.renderScale;
+        float targetH = unitSize * type.renderScale;
         float targetW = targetH * f.w / (float) f.h;
-        float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
-        float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
+        float cx = cam.cellToScreenX(rx + 0.5f);
+        float cy = cam.cellToScreenY(ry + 0.5f);
         if (flipV) {
             out.addSheetQuadFlippedV(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
                     cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
@@ -386,110 +438,5 @@ public final class UnitRenderService implements RenderSystem {
             HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
                     world.hp(u.entityId) / world.maxHp(u.entityId), barAlpha);
         }
-    }
-
-    // ---- frame selection (game-side; moved verbatim from BattleRenderer) ------
-
-    private enum Facing { WEST, NORTH, EAST, SOUTH }
-
-    private static Facing computeFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        // Non-combatants carry no COMBAT.targetId — sim.targetOf would fail-loud.
-        // They have no target anyway; fall through to path-based facing.
-        Entity target = (sim != null && u.type.combatant) ? sim.targetOf(u) : null;
-        if (target != null) {
-            World world = sim.world();
-            int dx = world.cellX(target.entityId) - selfCellX;
-            int dy = world.cellY(target.entityId) - selfCellY;
-            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
-        }
-        World world = sim != null ? sim.world() : null;
-        if (world != null) {
-            int[] path = world.path(u.entityId);
-            int pathIdx = world.pathIdx(u.entityId);
-            if (pathIdx < Paths.cellCount(path)) {
-                int dx = Paths.cellX(path, pathIdx) - selfCellX;
-                int dy = Paths.cellY(path, pathIdx) - selfCellY;
-                if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
-            }
-        }
-        return Facing.SOUTH;
-    }
-
-    private static Facing facingFromDelta(int dx, int dy) {
-        if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? Facing.EAST : Facing.WEST;
-        return dy > 0 ? Facing.NORTH : Facing.SOUTH;
-    }
-
-    private static int pickFrame(Facing facing, boolean weaponUp) {
-        if (weaponUp) {
-            switch (facing) {
-                case WEST:  return 4;
-                case EAST:  return 5;
-                case NORTH: return 6;
-                case SOUTH: return 6; // vertical mirror applied at draw time
-            }
-        } else {
-            switch (facing) {
-                case WEST:  return 0;
-                case NORTH: return 1;
-                case EAST:  return 2;
-                case SOUTH: return 3;
-            }
-        }
-        return 3;
-    }
-
-    private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
-
-    private static EightWayFacing computeEightWayFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        // Defensive: only EIGHT_WAY units (heavy mech, a combatant) reach here today,
-        // but gate on combatant anyway so a future non-combatant 8-way sprite can't
-        // fail-loud on the missing COMBAT.targetId.
-        Entity target = (sim != null && u.type.combatant) ? sim.targetOf(u) : null;
-        if (target != null) {
-            World world = sim.world();
-            int dx = world.cellX(target.entityId) - selfCellX;
-            int dy = world.cellY(target.entityId) - selfCellY;
-            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
-        }
-        World world = sim != null ? sim.world() : null;
-        if (world != null) {
-            int[] path = world.path(u.entityId);
-            int pathIdx = world.pathIdx(u.entityId);
-            if (pathIdx < Paths.cellCount(path)) {
-                int dx = Paths.cellX(path, pathIdx) - selfCellX;
-                int dy = Paths.cellY(path, pathIdx) - selfCellY;
-                if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
-            }
-        }
-        return EightWayFacing.S;
-    }
-
-    private static EightWayFacing eightWayFromDelta(int dx, int dy) {
-        int adx = Math.abs(dx);
-        int ady = Math.abs(dy);
-        boolean diag = Math.min(adx, ady) * 1000 >= Math.max(adx, ady) * 414;
-        if (diag) {
-            if (dx > 0 && dy > 0) return EightWayFacing.NE;
-            if (dx > 0 && dy < 0) return EightWayFacing.SE;
-            if (dx < 0 && dy > 0) return EightWayFacing.NW;
-            return EightWayFacing.SW;
-        }
-        if (adx > ady) return dx > 0 ? EightWayFacing.E : EightWayFacing.W;
-        return dy > 0 ? EightWayFacing.N : EightWayFacing.S;
-    }
-
-    private static int pickFrameEightWay(EightWayFacing f) {
-        switch (f) {
-            case W:  return 0;
-            case NW: return 1;
-            case SE: return 2;
-            case S:  return 3;
-            case SW: return 4;
-            case NE: return 5;
-            case E:  return 6;
-            case N:  return 1; // no dedicated N — borrow NW
-        }
-        return 3;
     }
 }
