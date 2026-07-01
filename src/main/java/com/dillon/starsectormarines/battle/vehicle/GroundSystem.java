@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -46,6 +47,8 @@ public class GroundSystem {
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Entity> addUnitSink;
+    /** Adopts each vehicle into the entity world (identity + kinematics) at {@link #add} and reaps it at terminal GONE. */
+    private final ConvoyService convoy;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
 
@@ -59,12 +62,17 @@ public class GroundSystem {
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
+        this.convoy = roster.convoy();
     }
 
     public List<Vehicle> getVehicles() { return vehicles; }
 
     public void add(Vehicle v) {
         v.controller = new VehicleController(v, navigation);
+        // Adopt as a world entity (ground archetype) — identity + kinematics aliased
+        // into GROUND_IDENTITY/GROUND_KINEMATICS; this handle stays authoritative for
+        // lifecycle state through the aliasing phase. See ConvoyService.
+        convoy.spawn(v);
         vehicles.add(v);
     }
 
@@ -118,6 +126,10 @@ public class GroundSystem {
                     v.controller.tick(dt, false);
                     if (v.controller.consumeArrived()) {
                         v.state = Vehicle.State.GONE;
+                        // Terminal state — destroy the world entity (one destroy drops all
+                        // its columns). The handle lingers in the list as an inert GONE row
+                        // (skipped by tick / render); its entityId is now dead.
+                        convoy.despawn(v.entityId);
                     }
                     break;
 

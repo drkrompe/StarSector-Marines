@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.sim.SquadService;
 import com.dillon.starsectormarines.battle.sim.RoleService;
 import com.dillon.starsectormarines.battle.sim.HomeService;
 import com.dillon.starsectormarines.battle.sim.TaskService;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -124,6 +125,10 @@ public final class UnitRosterService {
     private final RoleService roleService = new RoleService(entityWorld, components);
     private final HomeService homeService = new HomeService(entityWorld, components);
     private final TaskService taskService = new TaskService(entityWorld, components);
+    // Data owner for the convoy-vehicle world entities (ground archetype). Takes `this`
+    // because adoption must mint through the shared allocateVehicle; the ref is stored,
+    // not dereferenced during construction (used at spawn time).
+    private final ConvoyService convoyService = new ConvoyService(this);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -235,6 +240,9 @@ public final class UnitRosterService {
 
     /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
     public TaskService task() { return taskService; }
+
+    /** Data owner for convoy-vehicle world entities (ground archetype) — {@code GroundSystem} adopts / reaps vehicles and reads their identity + pose by id through it. */
+    public ConvoyService convoy() { return convoyService; }
 
     // ---- allocate / release (the spawn + death seam) ----
 

@@ -110,28 +110,36 @@ than air, where `AirSystem` conflated owner + processor.
    **deferred to Phase 2** — no service before it has a consumer
    ([[feedback_ship_then_optimize]]); the test seeds/reads columns via `entityWorld`
    directly.
-2. **Extract `VehicleMission` + adopt (serial, aliasing).** Extract a `VehicleMission`
-   bag from `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
-   `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
-   inputs, `controller`) — `Vehicle` embeds + delegates to it (mechanical, behavior-
-   identical; this is the precondition air already had via `ShuttleMission`). Register
-   `VEHICLE_MISSION` + the `groundCraft` query. **Introduce `ConvoyService`** here (its
-   first consumer) — data owner for the ground columns + the vehicle-id `List<Long>`
-   backbone + `spawn`/`reap`. `GroundSystem.add` →
-   `allocateVehicle({GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION})`, seeding the
-   columns with the **same** `GroundBody`/`VehicleMission`/type/faction instances the
-   `Vehicle` handle holds (aliasing → all consumers compile unchanged). Give `Vehicle` an
-   `entityId`. `GroundSystem`'s tick reads through `ConvoyService` by id.
+2. **Adopt (serial, aliasing). ✓ SHIPPED (2026-07-01).** `Vehicle` gets `entityId`;
+   `ConvoyService` (in `battle.sim`, owned by the roster, reached via `roster.convoy()`)
+   is its own first consumer — `spawn(v)` mints via `allocateVehicle({GROUND_IDENTITY,
+   GROUND_KINEMATICS})` and seeds the columns with the **same** `VehicleType`/`Faction`/
+   `GroundBody` instances the handle holds (aliasing → all consumers compile unchanged),
+   stamps `v.entityId`; `despawn(id)` destroys the entity. `GroundSystem.add` calls
+   `convoy.spawn`; the `DEPARTING→GONE` transition calls `convoy.despawn` (the one GONE
+   site — serial, so `destroy` at the barrier needs no `CommandBuffer`; the GONE handle
+   lingers inert in the list). `ConvoyServiceTest` (4) proves aliased adoption,
+   world-resident-but-off-roster, has-gated reads, destroy-drops-columns.
+   **The `VehicleMission` bag extraction + `VEHICLE_MISSION` + `groundCraft` query are
+   deferred to Phase 4** — extracting the bag now, then re-pointing every reader at
+   dissolution, would touch each reader twice; the handle stays authoritative for
+   lifecycle state until dissolution, which is exactly when its readers get migrated to
+   ids. So the world entity carries identity + live pose only for now (dormant until a
+   consumer switches to it, the air-Phase-2 pattern).
 3. **Turret onto a component.** Move the inline turret state into `GROUND_TURRET`
    (presence == armed; APC only) — or fold into `VehicleMission` if the separate component
    earns nothing. `tickVehicleTurrets` reads it by id.
-4. **Dissolve the handle.** Migrate the `getConvoyVehicles()` consumers (`ConvoyRenderSystem`,
-   `WorldPicker`/`Selection`, `TurretFireSystem` hookups, `VehicleStateDumper`,
-   `BattleView`/`BattleControl`) to the `groundCraft` `Query` / by-id `ConvoyService`
-   reads; `entityWorld.destroy(id)` at terminal `GONE` via a `reapGoneVehicles()`
-   gather-then-apply at end of `GroundSystem.tick` (serial → no `CommandBuffer` needed);
-   move debug history + surviving tunables onto `VehicleMission`; **delete `Vehicle.java`**.
-   Confirm occupancy/vision/win-counts never see vehicles.
+4. **Extract `VehicleMission` + dissolve the handle.** Extract a `VehicleMission` bag from
+   `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
+   `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
+   inputs, `controller`, debug history); register `VEHICLE_MISSION` + the `groundCraft`
+   query and add the column to the spawn archetype (aliasing the bag). Migrate the
+   `getConvoyVehicles()` consumers (`ConvoyRenderSystem`, `WorldPicker`/`Selection`,
+   `TurretFireSystem` hookups, `VehicleStateDumper`, `BattleView`/`BattleControl`) to the
+   `groundCraft` `Query` / by-id `ConvoyService` reads (add `sim.convoy()` /
+   `BattleView.convoy()` here, their first sim-level consumers); the `GroundSystem` tick
+   reads mission state by id; **delete `Vehicle.java`**. Confirm occupancy/vision/win-counts
+   never see vehicles. (The `despawn`-at-GONE reap already shipped in Phase 2.)
 
 ## Watch-items (carried from the air critic)
 

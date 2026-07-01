@@ -32,6 +32,20 @@ public class Vehicle {
     public final VehicleType type;
     public final Faction faction;
 
+    /**
+     * World entity id, assigned when this vehicle is adopted into the battle
+     * {@link com.dillon.starsectormarines.battle.sim.ConvoyService} at
+     * {@link GroundSystem#add}; {@code 0L} before adoption. The vehicle's identity
+     * ({@link #type}/{@link #faction}) and kinematics ({@link #body}) are aliased into
+     * the world's {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} columns under
+     * this id, while this handle stays authoritative for lifecycle / turret / deboard
+     * state through the aliasing phases of the convoy-{@code Vehicle}-into-world epic
+     * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}). The world entity is
+     * destroyed at terminal {@link State#GONE}, after which this id is dead (nothing
+     * reads a GONE vehicle by id).
+     */
+    public long entityId = 0L;
+
     /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. Mutable — may be replaced by a re-plan. */
     public float[] inboundX;
     public float[] inboundY;
