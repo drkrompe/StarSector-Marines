@@ -105,7 +105,7 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
    holds fire where `canSeePair`'s airLos leniency previously fired (conservative
    direction; ground-vs-ground is byte-identical). Original slice plan: intent columns +
    accessors + system + flip `EngagePosture` only + cadence/gate/consume-once tests.
-   **Critique-fix follow-up (same day, pre-merge-of-next-story):** a review pass on
+   **Critique-fix follow-up (`426f21db`, same day):** a review pass on
    `c07a11ef` found the inline-during-FIRING damage resolution had silently repealed
    three semantics the old parallel-dispatch path preserved (doomed-unit final action,
    both-shooters-overkill, queued-guarded reprio) and let a rocketeer fire one tick early
