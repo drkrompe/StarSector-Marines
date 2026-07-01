@@ -187,9 +187,11 @@ goap, campaign) interleave on HEAD.
   COMPLETE; intent contract DECIDED (explicit consume-once fire-intent on COMBAT;
   decrement stays in `InfantryUnitPrep`; infantry-family scope — turret/drone/mech out).
   Full findings + phases: [`stories/firing-system.md`](stories/firing-system.md).
-  **Next: the proving slice** (intent columns + `FiringSystem` + `EngagePosture` flip +
-  cadence golden test). Then the sweep (11 sites + KitRetriever, deletes the THREE
-  double-tick cooldown bugs — HoldPost, GuardPostPatrol, PatrolMotion). Queued after:
+  **Proving slice SHIPPED `c07a11ef`** (intent columns + `FiringSystem` + `EngagePosture`
+  flip + cadence golden). **Next: the sweep** — flip the remaining 11 sites +
+  KitRetriever, delete the THREE double-tick cooldown decrements (HoldPost,
+  GuardPostPatrol, PatrolMotion — garrison cadence ~2× faster, playtest after), route
+  KitRetriever through `tickCooldowns`, ChokePointHold selection-refactor. Queued after:
   **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

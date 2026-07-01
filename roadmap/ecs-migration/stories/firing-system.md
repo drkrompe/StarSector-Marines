@@ -76,9 +76,17 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
 
 ## Phases
 
-1. **Proving slice** — intent columns + `CombatService` accessors + `FiringSystem`
-   (new phase, wired before `infantry.tick()`) + flip **`EngagePosture` only** + cadence
-   golden test (shots per N ticks unchanged) + gate/consume-once/dead-target tests.
+1. ~~**Proving slice**~~ — **SHIPPED `c07a11ef` (2026-07-01; Sonnet-implemented,
+   main-thread reviewed; full suite green).** Intent columns (COMBAT fields 10–12) +
+   `CombatService.setFireIntent`/reads/clear + `battle.combat.FiringSystem` (serial
+   FIRING phase after unit dispatch + spawn flush, before `infantry.tick()`'s burst
+   continuation) + `EngagePosture` flipped + 10 tests incl. the 120-tick cadence golden
+   (30-tick reset spacing == attackCooldown). LoS verification: `hasLineOfSight ⟹
+   canSeePair` proven, so the system's stricter re-check can never authorize a new fire;
+   **one accepted narrow delta** — a marine engaging a DRONE across a close wall now
+   holds fire where `canSeePair`'s airLos leniency previously fired (conservative
+   direction; ground-vs-ground is byte-identical). Original slice plan: intent columns +
+   accessors + system + flip `EngagePosture` only + cadence/gate/consume-once tests.
 2. **The sweep** — flip the remaining 11 sites + KitRetriever; delete the three
    double-tick decrements (fires the backlog bug fix — garrison cadence ~2× faster,
    verify in playtest) + KitRetriever prep routing; ChokePointHold selection-refactor
