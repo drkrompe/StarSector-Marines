@@ -86,7 +86,7 @@ public class SabotageCommandTest {
         Squad squad = addSquad(sim, 2f, 4f);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 4);
         planter.seedSquadId = squad.id;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = site;
         sim.addUnit(planter);
 
@@ -156,7 +156,7 @@ public class SabotageCommandTest {
         // Plant a planter on top + tick once so isComplete() flips true
         // without needing the rest of the sim to be set up properly.
         Entity p = new Entity("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y);
-        p.role = UnitRole.PLANTER;
+        p.seedRole = UnitRole.PLANTER;
         p.assignedObjective = cs;
         sim.addUnit(p);
         sim.world().setMoveProgress(p.entityId, 0f);

@@ -115,7 +115,7 @@ public final class HoldPortalCordon implements Action {
         slots.add(new RoleAssigner.Slot<>(
                 PLANTER_SLOT,
                 1,
-                c -> c.role == UnitRole.PLANTER ? PLANTER_SCORE : 0f));
+                c -> sim.role().role(c.entityId) == UnitRole.PLANTER ? PLANTER_SCORE : 0f));
         for (GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),

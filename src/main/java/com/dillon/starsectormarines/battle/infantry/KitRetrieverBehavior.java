@@ -30,7 +30,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
     public void update(Entity u, BattleSimulation sim) {
         EquipmentDrop drop = u.equipmentDropTarget;
         if (drop == null || drop.consumed) {
-            u.role = UnitRole.COMBATANT;
+            sim.role().setRole(u.entityId, UnitRole.COMBATANT);
             u.equipmentDropTarget = null;
             CombatantBehavior.INSTANCE.update(u, sim);
             return;

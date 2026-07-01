@@ -54,10 +54,14 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  *       movement — the combat path is identical.</li>
  * </ul>
  *
- * <p>Mission setup assigns roles when populating the simulation. Roles can
- * change at runtime if a future mission wants it (e.g., capture → switch from
- * COMBATANT to OBJECTIVE_CAMPER once a flag is taken), but nothing in the
- * current code paths writes to {@code Entity.role} after spawn.
+ * <p>The role lives on the world {@code ROLE} component (the {@code UnitRole}
+ * ordinal), reached by id through the {@code battle.sim.RoleService} data owner.
+ * Mission setup seeds it at spawn ({@code Entity.seedRole}, consumed by
+ * {@code UnitRosterService.allocate}); it is reassigned on a <em>live</em> unit via
+ * {@code RoleService.setRole} — the equipment-drop flow does exactly this today (a
+ * marine picking up a kit is promoted to {@link #KIT_RETRIEVER} / {@link #PLANTER},
+ * then {@code KitRetrieverBehavior} reverts it to {@link #COMBATANT} once the drop is
+ * gone).
  */
 public enum UnitRole {
     COMBATANT,

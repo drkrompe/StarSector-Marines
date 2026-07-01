@@ -116,6 +116,9 @@ public interface BattleView {
         return squad.hasSquad(id) ? getSquad(squad.squadId(id)) : null;
     }
 
+    /** Data owner for the ROLE component (behavior-dispatch role) — {@code role().role(id)} / {@code setRole(id, r)}. The per-component Service that lands ROLE off the {@link World} god-facade. */
+    RoleService role();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

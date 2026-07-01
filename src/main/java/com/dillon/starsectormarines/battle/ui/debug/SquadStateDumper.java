@@ -143,7 +143,7 @@ public final class SquadStateDumper {
                 o.put("selected", true);
             }
             o.put("alive", sim.world().isAlive(u.entityId));
-            o.put("role", u.role != null ? u.role.name() : null);
+            o.put("role", sim.role().role(u.entityId).name());
             o.put("cellX", sim.world().cellX(u.entityId));
             o.put("cellY", sim.world().cellY(u.entityId));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,

@@ -103,7 +103,7 @@ public final class WalkInMeans implements ReinforcementMeans {
         int spawned = 0;
         for (int[] cell : spawnCells) {
             Entity unit = new Entity("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
-            unit.role = UnitRole.PATROL;
+            unit.seedRole = UnitRole.PATROL;
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, unit);
                 squad = sim.getSquad(sid);

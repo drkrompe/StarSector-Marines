@@ -48,9 +48,12 @@ public final class EquipmentDropService {
      */
     public void emitIfApplicable(Entity dead) {
         Objective carried = null;
-        if (dead.role == UnitRole.PLANTER) {
+        // Called from DamageResolver.resolve's died branch before release + the
+        // buffered corpse transmute, so ROLE is still present — read it by id.
+        UnitRole role = rosterService.role().role(dead.entityId);
+        if (role == UnitRole.PLANTER) {
             carried = dead.assignedObjective;
-        } else if (dead.role == UnitRole.KIT_RETRIEVER && dead.equipmentDropTarget != null
+        } else if (role == UnitRole.KIT_RETRIEVER && dead.equipmentDropTarget != null
                 && !dead.equipmentDropTarget.consumed) {
             // Retriever was carrying nothing in-hand, but their target kit
             // is still on the ground. We don't emit a new drop — the existing

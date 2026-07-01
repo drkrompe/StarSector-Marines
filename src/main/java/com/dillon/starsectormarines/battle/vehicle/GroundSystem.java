@@ -152,7 +152,7 @@ public class GroundSystem {
         MarineLoadout loadout = (v.marineLoadout != null && slot < v.marineLoadout.length)
                 ? v.marineLoadout[slot] : null;
         if (loadout != null) {
-            marine.role = loadout.role;
+            marine.seedRole = loadout.role;
             marine.assignedObjective = loadout.objective;
             if (loadout.primary != null) {
                 // Pre-allocate seed (marine not yet added to the registry).

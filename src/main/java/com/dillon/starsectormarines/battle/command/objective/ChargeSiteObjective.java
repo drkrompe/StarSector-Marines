@@ -50,7 +50,7 @@ public final class ChargeSiteObjective implements Objective {
         planterOnSiteThisTick = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.role != UnitRole.PLANTER) continue;
+            if (sim.role().role(u.entityId) != UnitRole.PLANTER) continue;
             if (u.assignedObjective != this) continue;
             if (sim.world().cellX(u.entityId) == cellX && sim.world().cellY(u.entityId) == cellY && sim.world().moveProgress(u.entityId) == 0f) {
                 planterOnSiteThisTick = true;

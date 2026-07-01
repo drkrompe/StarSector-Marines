@@ -140,8 +140,9 @@ public final class UnitUpdateSystem {
             FallbackBehavior.INSTANCE.update(u, sim);
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {
-            behaviorFor(u.role).update(u, sim);
-            bucket = innerBucketForRole(u.role);
+            UnitRole role = sim.role().role(u.entityId);
+            behaviorFor(role).update(u, sim);
+            bucket = innerBucketForRole(role);
         }
         // Route through TickInnerProfile.current() so workers in the parallel
         // dispatch write to their per-thread profile (ThreadLocal auto-init),

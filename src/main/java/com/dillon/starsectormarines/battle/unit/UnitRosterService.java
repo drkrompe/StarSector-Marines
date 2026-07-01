@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.SquadService;
+import com.dillon.starsectormarines.battle.sim.RoleService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -118,6 +119,7 @@ public final class UnitRosterService {
     private final MovementService movementService = new MovementService(entityWorld, components);
     private final VisionService visionService = new VisionService(entityWorld, components);
     private final SquadService squadService = new SquadService(entityWorld, components);
+    private final RoleService roleService = new RoleService(entityWorld, components);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -221,6 +223,9 @@ public final class UnitRosterService {
     /** Data owner for the SQUAD component (membership) — inject into consumers that gate on hasSquad / read squadId. Distinct from {@link #getSquad(int)} (the squad-object registry). */
     public SquadService squad() { return squadService; }
 
+    /** Data owner for the ROLE component (behavior-dispatch role) — inject into consumers that read/reassign a unit's role. */
+    public RoleService role() { return roleService; }
+
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
@@ -246,8 +251,9 @@ public final class UnitRosterService {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world. Every live unit is at least
-        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION} (VISION universal —
-        // sight stats; removed on death); on top of that:
+        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
+        // universal — sight stats + the behavior-dispatch role; both removed on
+        // death); on top of that:
         //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
         //     engineer / scientist; UnitType.combatant == false) never fires and is
         //     never targeted, so "has COMBAT" defines a combatant — presence IS the
@@ -282,7 +288,7 @@ public final class UnitRosterService {
         // corpse transmute (the death cascade reads membership pre-transmute).
         boolean inSquad = u.seedSquadId != Entity.NO_SQUAD;
         ComponentType[] archetype = new ComponentType[
-                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
@@ -290,6 +296,7 @@ public final class UnitRosterService {
         archetype[c++] = components.RENDER_POSITION;
         archetype[c++] = components.HEALTH;
         archetype[c++] = components.VISION;
+        archetype[c++] = components.ROLE;
         if (combatant) archetype[c++] = components.COMBAT;
         if (mobile) {
             archetype[c++] = components.MOVEMENT;
@@ -309,6 +316,10 @@ public final class UnitRosterService {
         // (a ground unit's airLosRadius just seeds to 0). Removed on death.
         entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, u.seedVisionRange);
         entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, u.seedAirLosRadius);
+        // ROLE is universal — the behavior-dispatch role seeded from the unit's
+        // write-only seedRole ordinal. Mutable on a live unit thereafter via
+        // RoleService.setRole (kit-pickup promotion/revert); removed on death.
+        entityWorld.setInt(id, components.ROLE, BattleComponents.ROLE_ORDINAL, u.seedRole.ordinal());
         // Seed the COMBAT stat columns from the unit's pre-allocation seed* fields
         // (only for combatants — a non-combatant has no COMBAT component); the
         // mid-combat COMBAT scalars start at zero (a fresh world row appends

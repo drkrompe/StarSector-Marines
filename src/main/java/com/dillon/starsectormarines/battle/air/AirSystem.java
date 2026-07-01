@@ -716,7 +716,7 @@ public class AirSystem {
         MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
                 ? mission.marineLoadout[slot] : null;
         if (loadout != null) {
-            marine.role = loadout.role;
+            marine.seedRole = loadout.role;
             marine.assignedObjective = loadout.objective;
             if (loadout.primary != null) {
                 // Pre-allocate seed (marine not yet added to the registry).

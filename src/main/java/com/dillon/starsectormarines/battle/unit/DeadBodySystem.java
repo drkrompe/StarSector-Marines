@@ -8,15 +8,15 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION}} archetype
- * (plus the optional {@code COMBAT} a combatant carries, and the {@code MOVEMENT},
- * {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a mobile/armed/squadded
- * unit carries) to the
+ * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE}}
+ * archetype (plus the optional {@code COMBAT} a combatant carries, and the
+ * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a
+ * mobile/armed/squadded unit carries) to the
  * corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
- * {@code HEALTH}, the universal {@code VISION}, and any {@code COMBAT},
+ * {@code HEALTH}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, or {@code SQUAD} are
- * removed (a corpse neither lives, sees, fights, moves, thinks, nor belongs to a
- * squad — and "lacks HEALTH" is half the liveness definition);
+ * removed (a corpse neither lives, sees, acts, fights, moves, thinks, nor belongs to
+ * a squad — and "lacks HEALTH" is half the liveness definition);
  * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
  * row-move ("the corpse keeps its cell" is literal: nothing moves a unit after
  * the kill zeroes its hp, so the live POSITION + RENDER_POSITION already are the
@@ -58,13 +58,14 @@ public final class DeadBodySystem {
         // MOVEMENT/AI_STATE; only armed units carry a secondary; only squad members
         // carry SQUAD) and removed when present — transmute treats a remove of a
         // component the entity lacks as a no-op, so listing them unconditionally is
-        // safe. VISION is universal but live-only (a corpse does not see), so it's
-        // removed too. SQUAD is live-only as well (a corpse is not a squad member —
-        // the death cascade reads membership pre-transmute, in resolve()).
+        // safe. VISION and ROLE are universal but live-only (a corpse neither sees nor
+        // acts), so they're removed too. SQUAD and ROLE are read pre-transmute by the
+        // death cascade in resolve() (squad membership; the drop-carrier role check),
+        // which runs before releaseFromRegistry and this buffered transmute.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
-                components.SQUAD};
+                components.SQUAD, components.ROLE};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

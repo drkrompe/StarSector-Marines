@@ -277,8 +277,20 @@ public class Entity {
      */
     public float seedAirLosRadius = 0f;
 
-    /** Role drives behavior dispatch in the sim. Default {@link UnitRole#COMBATANT} matches pre-role behavior. */
-    public UnitRole role = UnitRole.COMBATANT;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The behavior-dispatch role a
+     * unit spawns with — default {@link UnitRole#COMBATANT} (matches pre-role behavior),
+     * overridden by the subclass ctors ({@code Drone}/{@code DroneHubUnit}/{@code MapTurret}),
+     * the deboard loadout, and the setup/reinforcement spawn code before
+     * {@link UnitRosterService#allocate} consumes it into the universal {@code ROLE}
+     * component (the {@code UnitRole} ordinal). The live role thereafter lives in the
+     * world component, reached by id via the {@code RoleService} data owner
+     * ({@code sim.role().role(id)}); the runtime-reassignment seam (a kit pickup
+     * promotes a marine to {@code KIT_RETRIEVER}/{@code PLANTER}, then reverts) is
+     * {@code RoleService.setRole}. Write-only construction input; mirrors
+     * {@link #seedSquadId}.
+     */
+    public UnitRole seedRole = UnitRole.COMBATANT;
     /** Objective this unit is acting on, when the role requires one (charge site for a planter, exfil zone for a VIP, position to camp for an objective camper). Null for plain combatants. */
     public Objective assignedObjective;
     /** {@link UnitRole#KIT_RETRIEVER} target — the dropped kit this unit is heading to recover. Cleared when picked up or when the drop is consumed by someone else. */

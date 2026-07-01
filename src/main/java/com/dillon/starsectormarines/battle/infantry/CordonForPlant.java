@@ -98,7 +98,7 @@ public final class CordonForPlant implements Goal {
     private static ChargeSiteObjective findActiveChargeObjective(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            if (u.role != UnitRole.PLANTER) continue;
+            if (sim.role().role(u.entityId) != UnitRole.PLANTER) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs) {
                 if (cs.isComplete()) continue;
                 return cs;

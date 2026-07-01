@@ -1024,7 +1024,7 @@ public final class BattleSetup {
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.role = UnitRole.GARRISON;
+                unit.seedRole = UnitRole.GARRISON;
                 unit.homeCellX = cell[0];
                 unit.homeCellY = cell[1];
                 if (squad == null) {
@@ -1079,7 +1079,7 @@ public final class BattleSetup {
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.role = UnitRole.PATROL;
+                unit.seedRole = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);
@@ -1134,7 +1134,7 @@ public final class BattleSetup {
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.role = UnitRole.PATROL;
+                unit.seedRole = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);
@@ -1318,7 +1318,7 @@ public final class BattleSetup {
             if (cell == null) continue;
             UnitType type = roles[rng.nextInt(roles.length)];
             Entity u = new Entity("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]);
-            u.role = UnitRole.FLEE;
+            u.seedRole = UnitRole.FLEE;
             sim.addUnit(u);
             claimed.add(key(cell[0], cell[1]));
             spawned++;

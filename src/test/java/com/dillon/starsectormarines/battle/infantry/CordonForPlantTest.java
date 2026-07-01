@@ -86,7 +86,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 1f, 1f, 2);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 1, 1);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -111,7 +111,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -128,7 +128,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -174,7 +174,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
         TestUnits.kill(sim, planter);
@@ -192,7 +192,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 6, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
         sim.world().setMoveProgress(planter.entityId, 0f);
@@ -213,7 +213,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -241,7 +241,7 @@ public class CordonForPlantTest {
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 

@@ -17,8 +17,9 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
  * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #MOVEMENT},
  * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), the universal {@link #VISION}
- * sight stats, and the optional post-death {@link #CRASHING}. Every unit spawns
- * into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, VISION}}, plus
+ * sight stats and {@link #ROLE} dispatch tag, and the optional post-death
+ * {@link #CRASHING}. Every unit spawns
+ * into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, VISION, ROLE}}, plus
  * {@link #MOVEMENT} + {@link #AI_STATE} iff it is mobile (a static turret/hub
  * carries neither) and {@link #SECONDARY_WEAPON} iff it carries one — so presence
  * <em>is</em> the capability, no nullable field. Death is the transmute to the
@@ -120,6 +121,9 @@ public final class BattleComponents {
 
     /** {@link #SQUAD} field 0: the squad id this unit belongs to (INT) — a key into the roster's squad registry. Presence IS membership: a non-member carries no SQUAD, so {@code NO_SQUAD} is never a stored value. */
     public static final int SQUAD_ID = 0;
+
+    /** {@link #ROLE} field 0: the {@link com.dillon.starsectormarines.battle.unit.UnitRole} ordinal (INT) driving per-tick behavior dispatch. Stored as the ordinal rather than an OBJECT ref so it's a plain primitive column ({@code RoleService} reconstructs the enum). */
+    public static final int ROLE_ORDINAL = 0;
 
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
@@ -276,6 +280,25 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 5).
      */
     public final ComponentType SQUAD;
+    /**
+     * Behavior-dispatch role — one INT field, the {@link
+     * com.dillon.starsectormarines.battle.unit.UnitRole} ordinal ({@code RoleService}
+     * hides the ordinal↔enum round-trip). <em>Universal</em> (every live unit has a
+     * role — the default is {@code COMBATANT}), but <b>live-only</b>: a corpse does
+     * not act, so the death transmute removes ROLE (the COMBAT/SQUAD precedent — the
+     * accessor is fail-loud on a corpse; the death cascade reads the role
+     * pre-transmute). Stored as an ordinal INT rather than an OBJECT enum ref because
+     * a role is fundamentally a small enumerated value — a plain primitive column that
+     * later lets dispatch branch on / partition by the ordinal without materializing
+     * the {@code Entity}. Unlike SQUAD it is <b>mutable on a live unit</b> (a marine is
+     * promoted to {@code KIT_RETRIEVER}/{@code PLANTER} on a kit pickup and reverts to
+     * {@code COMBATANT}), so {@code RoleService} carries a live {@code setRole} seam
+     * beside the {@code allocate}-time seed from {@code Entity.seedRole}. The data owner
+     * is {@code battle.sim.RoleService}; the per-tick dispatch ({@code UnitUpdateSystem})
+     * reads it by id. See {@code roadmap/ecs-migration/stories/entity-field-migration.md}
+     * (slice 6).
+     */
+    public final ComponentType ROLE;
     /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
@@ -455,6 +478,7 @@ public final class BattleComponents {
         APPEARANCE      = world.register(17, "Appearance", FieldKind.FLOAT, FieldKind.FLOAT);
         VISION          = world.register(18, "Vision", FieldKind.FLOAT, FieldKind.FLOAT);
         SQUAD           = world.register(19, "Squad", FieldKind.INT);
+        ROLE            = world.register(20, "Role", FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

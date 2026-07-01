@@ -398,6 +398,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the SQUAD component (membership) — {@code sim.squad().hasSquad(id)} / {@code squadId(id)}. Distinct from {@link #getSquad(int)} (the squad-object registry). */
     public SquadService squad() { return rosterService.squad(); }
 
+    /** Data owner for the ROLE component (behavior-dispatch role) — {@code sim.role().role(id)} / {@code setRole(id, r)}. */
+    public RoleService role() { return rosterService.role(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

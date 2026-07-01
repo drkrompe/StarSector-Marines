@@ -89,7 +89,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -106,7 +106,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -123,7 +123,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -153,7 +153,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -176,7 +176,7 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
@@ -198,14 +198,14 @@ public class SecureObjectiveZoneTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
-        planter.role = UnitRole.PLANTER;
+        planter.seedRole = UnitRole.PLANTER;
         planter.assignedObjective = charge;
         sim.addUnit(planter);
 
         // Advance objective progress past its duration so isComplete() flips true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u.role == UnitRole.PLANTER) {
+            if (sim.role().role(u.entityId) == UnitRole.PLANTER) {
                 sim.world().setCellPos(u.entityId, 8, 3);
                 sim.world().setMoveProgress(u.entityId, 0f);
             }
