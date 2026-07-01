@@ -65,8 +65,8 @@ base type.
 |---|---|---|---|
 | `GROUND_IDENTITY` | 23 | OBJECT,OBJECT | `VehicleType`, `Faction` (separate from grid `IDENTITY`/`AIR_IDENTITY`) |
 | `GROUND_KINEMATICS` | 24 | OBJECT | the existing `GroundBody` (`BicycleBody` today; shared with the renderer + turret loop — aliasing gives zero reader churn) |
-| `VEHICLE_MISSION` | 25 | OBJECT | a `VehicleMission` bag (extracted from `Vehicle`'s inline lifecycle state — see Phase 2). Liveness is `mission.state == GONE`, no `HEALTH` (vehicles have no hp) |
-| `GROUND_TURRET` | 26 | OBJECT | *(optional, presence == "armed")* a `GroundTurret` bag (facing/cooldown/ammo/target/burst). The `AIR_TURRETS` precedent. Only the APC has one; the truck carries no `GROUND_TURRET`. Alternatively fold into `VehicleMission` — decide at Phase 3. |
+| `GROUND_TURRET` | 25 | OBJECT | *(optional, presence == "armed")* a `GroundTurret` bag (facing/cooldown/ammo/target/burst). The `AIR_TURRETS` precedent. Only the APC has one; the truck carries no `GROUND_TURRET`. **Shipped Phase 3** as a separate component (not folded into the mission bag). |
+| `VEHICLE_MISSION` | 26 | OBJECT | *(Phase 4)* a `VehicleMission` bag (extracted from `Vehicle`'s inline lifecycle state). Liveness is `mission.state == GONE`, no `HEALTH` (vehicles have no hp) |
 
 Ground archetype: `{GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION}` + optional
 `GROUND_TURRET`. **No** `POSITION`/`HEALTH`/`COMBAT`/`MOVEMENT`/`AI_STATE` — so every grid
