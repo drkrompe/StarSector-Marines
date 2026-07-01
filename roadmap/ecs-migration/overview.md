@@ -7,10 +7,12 @@
 > too, not just storage. The systems-half epic (query-driven, column-walking systems)
 > shipped its one genuine win (occupancy) and is otherwise
 > [closed at terminus](stories/systems-to-columns.md#terminus-2026-07-01) — the remaining
-> slices are lateral or Phase-0-parked (~0.02%/frame). **The active next epic is folding
-> the ground `Vehicle`/`MapVehicle` POJO — the last non-ECS storage space — into the world
-> as a ground archetype** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)),
-> following the shipped air-into-world template. Read [`next-session.md`](next-session.md) §
+> slices are lateral or Phase-0-parked (~0.02%/frame). The **convoy-`Vehicle`-into-world
+> epic shipped (2026-07-01)** — the ground `Vehicle` POJO (the last non-ECS storage space)
+> is **deleted**; convoy vehicles are ground-archetype entities reached `ConvoyService`-direct
+> ([`complete/vehicle-into-world.md`](complete/vehicle-into-world.md)), following the shipped
+> air-into-world template. **No ECS-migration epic is currently active.** Read
+> [`next-session.md`](next-session.md) §
 > Status first for the live state and the leverage-ordered backlog. This file is the arc's *framing*: the *why*,
 > the original **SoA-peel design rules** (historical — that peel is complete and its
 > `UnitRegistry`/`local*`/`denseIdx` machinery is deleted, but the storage principles
@@ -141,9 +143,10 @@ ARE presence components — and *partially* open: the `Entity` handle still carr
 state, and the hot systems still read columns by id rather than walking a `Query`. The
 next epics, by leverage (full backlog in [`next-session.md`](next-session.md) § Status):
 
-- **Fold convoy ground `Vehicle` into the world** (the air analog shipped; ground didn't)
-  — [`stories/vehicle-into-world.md`](stories/vehicle-into-world.md). **The active next
-  step**: the last non-ECS storage space.
+- ~~**Fold convoy ground `Vehicle` into the world**~~ — **DONE (2026-07-01)**: the
+  `Vehicle` POJO is deleted; convoy vehicles are ground-archetype entities reached
+  `ConvoyService`-direct ([`complete/vehicle-into-world.md`](complete/vehicle-into-world.md)).
+  The last non-ECS storage space is closed.
 - ~~Migrate the behavior-tier `Entity` fields onto world components~~ — **DONE (2026-07-01)**
   (all 8 slices; finishes "entity = id" for mutable state).
 - ~~[`stories/systems-to-columns.md`](stories/systems-to-columns.md) — the **systems

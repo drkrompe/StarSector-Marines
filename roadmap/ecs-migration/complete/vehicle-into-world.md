@@ -1,10 +1,13 @@
 # Convoy `Vehicle` into the EntityWorld — one world, not three
 
-> **STATUS: design stage (seeded 2026-07-01).** The active ECS-migration epic after
-> the entity-field migration (DONE) and systems-to-columns (closed at terminus). This
-> folds the live convoy `Vehicle` — the **last non-ECS storage space** in the battle
-> tier — into the one archetype `EntityWorld`, following the shipped **air-into-world**
-> template ([`../../air/air-entities-into-world.md`](../../air/air-entities-into-world.md)).
+> **STATUS: ✓ SHIPPED — DONE (2026-07-01).** All four phases landed; `Vehicle.java` is
+> deleted and the convoy vehicle is a world entity like every other unit. Commit chain:
+> Phase 1 `321cc047` → 2 `730713d6` → 3 `963d7987` → 4a+4b `1e128ce0` → 4c `88bf85c6` →
+> 4d-1 `80d2e55d` → 4d-2 `f1ad8753` (the deletion) → javadoc sweep `35840353`. Both 4d
+> critiques cleared clean. This folded the live convoy `Vehicle` — the **last non-ECS
+> storage space** in the battle tier — into the one archetype `EntityWorld`, following the
+> shipped **air-into-world** template
+> ([`../../air/air-entities-into-world.md`](../../air/air-entities-into-world.md)).
 > Read [`../overview.md`](../overview.md) for the arc framing and
 > [`../archetype-storage.md`](../archetype-storage.md) for the engine.
 
@@ -141,7 +144,7 @@ than air, where `AirSystem` conflated owner + processor.
    bag (their gates — `turretFrame >= 0`, ungated dump — are broader than `hasTurretWeapon`),
    `BattleRenderer`'s debug overlay reads it under the `hasTurretWeapon` gate. `ConvoyServiceTest`
    +2. Full suite green.
-4. **Dissolve the handle — decomposed into 4a–4d (each green), 4a–4c SHIPPED (2026-07-01).**
+4. **Dissolve the handle — decomposed into 4a–4d, ALL SHIPPED ✓ (2026-07-01). `Vehicle.java` deleted.**
    - **4a ✓** promoted `Vehicle.State` → top-level `VehicleState` (outlives the handle).
    - **4b ✓** re-keyed vehicle selection off positional index onto **entity id**
      (`Selection.selectedVehicleId`; `WorldPicker`/`BattleScreen`/`BattleRenderer` resolve by
@@ -166,22 +169,25 @@ than air, where `AirSystem` conflated owner + processor.
        `convoy.vehicleType/faction/body/turret(id)`; mission-ish reads stay on the
        `convoy.vehicle(id)` handle. `Vehicle` untouched — isolates the broad presentation
        churn. (`TurretFireSystem` is a **non**-consumer — it targets grid `Entity`s by id.)
-     - **4d-2 (dissolution)** — extract a pure-data `VehicleMission` bag (state, countdowns,
-       in/outbound paths, LZ, `marinesRemaining`, overwatch, `marineLoadout`,
-       `deboardUnitType`, `squadId`, route inputs, `controller`, debug history) and **drop the
-       now-redundant `type`/`faction`/`body`/`turret`/`entityId`** (they live in components /
-       are keyed by id); re-point `VEHICLE_MISSION`'s payload `Vehicle` → `VehicleMission`
-       (`convoy.vehicle(id)` → `convoy.mission(id)`). Make `ConvoyService.spawn` a factory
-       (build body+turret+mission from type/faction/paths, seed columns). Rewire
-       `GroundSystem` (tick reads mission + body by id), `VehicleController` (constructor holds
-       `VehicleMission`/`GroundBody`/`VehicleType` refs, not a `Vehicle` — a ref swap, **not**
-       statelessification), and the two construction sites (`ConvoyMeans:223`,
-       `BattleSetup:832`) + `ConvoyMeans.activeConvoyDestinations` (a `BattleView` consumer —
-       add a read path); drop `getConvoyVehicles()`; **delete `Vehicle.java`**. Confirm
-       occupancy/vision/win-counts never see vehicles.
-     - **Follow-up (NOT 4d):** statelessify `VehicleController` into components + a system —
-       the air side has no per-craft controller (stateless `AirSteeringSystem` over `AirBody`).
-       A separate epic; 4d-2 keeps the controller stateful, only swapping its back-ref.
+     - **4d-2 ✓ SHIPPED (`f1ad8753`)** — extracted the pure-data `VehicleMission` bag (state,
+       countdowns, in/outbound paths, LZ, `marinesRemaining`, overwatch, `marineLoadout`,
+       `deboardUnitType`, `squadId`, route inputs, `controller`, debug history) with **no**
+       `type`/`faction`/`body`/`turret`/`entityId` (the `ShuttleMission` shape); re-pointed
+       `VEHICLE_MISSION`'s payload → `VehicleMission` (`convoy.vehicle(id)` → `convoy.mission(id)`).
+       `ConvoyService.spawn` is a **factory** (builds body + turret from the variant, seeds
+       columns, returns id — the double-adopt guard fell out, missions are single-use).
+       `GroundSystem` tick/deboard/reap/turret resolve mission + identity + kinematics by id;
+       `add(type, faction, mission)`. `VehicleController` holds `VehicleMission`/`GroundBody`/
+       `VehicleType` refs (a ref-swap, **not** statelessification). `getConvoyVehicles()` →
+       `getConvoyVehicleIds()` + `convoyMission(id)` on `BattleView`;
+       `addConvoyVehicle(type, faction, mission)`. `ConvoyMeans` + `BattleSetup` build the
+       mission; `ConvoyServiceTest` reworked to the factory shape. **`Vehicle.java` deleted.**
+       Full suite green; a background critique cleared all six vectors (field-swap aliasing,
+       marinesRemaining seeding, the removed guard, null-invariants, sole `BattleView`
+       implementor, factory teleport). Stale `{@link Vehicle}` javadoc swept (`35840353`).
+     - **Follow-up (NOT this epic):** statelessify `VehicleController` into components + a
+       system — the air side has no per-craft controller (stateless `AirSteeringSystem` over
+       `AirBody`). A separate epic; 4d-2 keeps the controller stateful, only swapping its back-ref.
    - **This phase also unblocks the reap sweep + list-removal (Phase-2 critique A/B).**
      `WorldPicker`/`Selection`/`BattleScreen` select a vehicle by its **positional index**
      into `getConvoyVehicles()` (`getSelectedVehicleIdx()` → `.get(idx)`), so Phase 2

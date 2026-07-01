@@ -24,6 +24,10 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
   CRASHING / KINEMATICS / SQUAD), plus MOVEMENT / AI_STATE membership-narrowing.
 - The **air-into-world epic shipped** — shuttles AND drones are entities in the one
   world; `ComponentStore<T>` is **deleted**.
+- The **convoy-vehicle epic shipped (2026-07-01)** — convoy vehicles are ground-archetype
+  entities (`{GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION}` + optional
+  `GROUND_TURRET`), reached `ConvoyService`-direct; the `Vehicle` POJO is **deleted**. The
+  last non-ECS storage space in the battle tier is closed.
 
 ## What's NOT done — the open half (why an ECS is worth building)
 
@@ -38,9 +42,9 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
    [`stories/entity-field-migration.md`](stories/entity-field-migration.md) shipped;
    `Entity` now holds no mutable per-unit state (id + immutable identity + write-only
    `seed*` inputs). See the "entity-field-migration — DONE" section below.
-3. **Convoy ground `Vehicle` never entered the world** — a plain POJO in
-   `GroundSystem.List<Vehicle>` (a third storage space; the air analog closed, ground
-   didn't).
+3. ~~**Convoy ground `Vehicle` never entered the world.**~~ **DONE (2026-07-01).** The
+   `Vehicle` POJO is deleted; convoy vehicles are world entities like every other unit.
+   See [`complete/vehicle-into-world.md`](complete/vehicle-into-world.md).
 4. **Authored-appearance is corpse-only** — SPRITE is real, but live units derive
    facing per-frame; no FacingSystem / AnimationSystem / FX child entities.
 
@@ -71,66 +75,22 @@ identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction inputs 
 path/burst methods. Every migrated field's by-id access is Service-direct
 ([[feedback_world_facade_deprecated]]).
 
-**ACTIVE — fold convoy `Vehicle` into the world** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)):
-the live convoy `Vehicle` POJO in `GroundSystem`'s `List<Vehicle>` is the **last non-ECS
-storage space** in the battle tier — a third storage home the air analog (shuttles/drones
-as `{AIR_IDENTITY, KINEMATICS, …}` entities) already closed on its side. Bring ground
-vehicles into the one `EntityWorld` as a ground archetype, following the shipped air
-template phase-for-phase. (`MapVehicle` — static render-only map decoration — is explicitly
-out of scope.)
+**DONE — convoy `Vehicle` folded into the world** ([`complete/vehicle-into-world.md`](complete/vehicle-into-world.md)):
+the live convoy `Vehicle` POJO — the **last non-ECS storage space** in the battle tier — is
+**deleted**. Convoy vehicles are now world entities (`{GROUND_IDENTITY, GROUND_KINEMATICS,
+VEHICLE_MISSION}` + optional `GROUND_TURRET`), reached by id through `ConvoyService`
+(Service-direct, no `World` delegator), mirroring the air template. A pure-data
+`VehicleMission` bag carries lifecycle/path state only (the `ShuttleMission` shape — no
+identity/kinematics/turret/id); `ConvoyService.spawn` is the factory. All 4 phases shipped
+2026-07-01 — chain `321cc047` → `730713d6` → `963d7987` → `1e128ce0` → `88bf85c6` →
+`80d2e55d` (4d-1) → `f1ad8753` (4d-2, the deletion) → `35840353` (javadoc sweep); both 4d
+critiques cleared clean. Full per-phase record in the story doc. `MapVehicle` (static
+render-only decoration) was explicitly out of scope.
 
-- **Phase 1 ✓ SHIPPED (2026-07-01):** `GROUND_IDENTITY` (23) + `GROUND_KINEMATICS` (24)
-  registered; `UnitRosterService.allocateVehicle` mints from the shared `nextId`, world-only
-  (mirrors `allocateAir`); `VehicleEntityAllocationTest` (3). Additive, suite green.
-- **Phase 2 ✓ SHIPPED (2026-07-01):** `Vehicle.entityId` + `ConvoyService` (`battle.sim`,
-  owned by roster, `roster.convoy()`). `spawn(v)` adopts as a world entity aliasing the
-  handle's type/faction/body into `{GROUND_IDENTITY, GROUND_KINEMATICS}`; `despawn(id)`
-  destroys it. `GroundSystem.add`→`spawn`, `DEPARTING→GONE`→`despawn` (serial; no
-  CommandBuffer). Handle stays authoritative for lifecycle. `ConvoyServiceTest` (4). Full
-  suite green. **The `VehicleMission` bag + `VEHICLE_MISSION` + `groundCraft` query moved to
-  Phase 4** (dissolution) — extracting the bag now then re-pointing readers at dissolution
-  would touch each reader twice.
-- **Phase 3 ✓ SHIPPED (2026-07-01):** the 7 inline `turret*` fields → a `GroundTurret` bag
-  in a new `GROUND_TURRET` component (id 25, presence == armed). `Vehicle.turret` (null if
-  unarmed); `ConvoyService.spawn` conditionally adds+seeds it, `convoy.turret(id)` accessor.
-  `tickVehicleTurrets` drives it **by id** (first tick consumer of a ground component — the
-  entity is no longer dormant); the 3 presentation readers stay on the aliased handle bag
-  (null-guarded) until Phase 4. `ConvoyServiceTest` +2. Full suite green.
-- **Phase 4 IN PROGRESS (the big one, dissolution)** — decomposed into 4a–4d, each green:
-  - **4a ✓ SHIPPED:** promoted `Vehicle.State` → top-level `VehicleState` (must outlive the
-    handle); ~12 sites across 5 files.
-  - **4b ✓ SHIPPED:** re-keyed vehicle selection off positional index onto **entity id**
-    (`Selection.selectedVehicleId`, `WorldPicker`/`BattleScreen`/`BattleRenderer` resolve by
-    id), and added the end-of-tick `reapGoneVehicles()` sweep (despawn + remove GONE from the
-    list) — closes Phase-2 critique A/B. Full suite green.
-  - **4c ✓ SHIPPED:** converted `GroundSystem`'s `List<Vehicle>` backbone → `List<Long>`
-    (`vehicleIds`); the handle now lives in the new `VEHICLE_MISSION` component (id 26, always
-    present), reached via `convoy.vehicle(id)`. `getVehicles()` materializes handles from ids
-    (N≈1–4, negligible); tick/turret/reap resolve by id; `despawn` drops VEHICLE_MISSION.
-    **Vehicles are now fully world-resident — no separate `List<Vehicle>` storage** (the epic's
-    core structural goal). Consumers unchanged (`getConvoyVehicles()` still returns
-    `List<Vehicle>`). `ConvoyServiceTest` +2. Full suite green.
-  - **4d (finale, dissolution) — split into 4d-1 / 4d-2, each green:**
-    - **4d-1 ✓ SHIPPED (`80d2e55d`):** migrated the read-only convoy consumers off the
-      `List<Vehicle>` API onto entity ids resolved `ConvoyService`-direct — the air
-      `getAirEntityIds()` shape (added `BattleSimulation.convoy()` + `getConvoyVehicleIds()`,
-      `GroundSystem.vehicleEntityIds()`). `ConvoyRenderSystem`/`WorldPicker`/`BattleRenderer`
-      (docking + selected-vehicle debug)/`VehicleStateDumper`/`BattleScreen` F5 walk `long[]`
-      ids, resolve type/faction/body/turret by id; mission-ish reads stay on the
-      `convoy.vehicle(id)` handle (→ `convoy.mission(id)` in 4d-2). `Vehicle` untouched;
-      isolates the broad-but-shallow presentation churn. Build + convoy/vehicle tests green.
-    - **NEXT — 4d-2 (dissolution):** extract a pure-data `VehicleMission` bag (the air
-      `ShuttleMission` shape — **no** `type`/`faction`/`body`/`turret`/`entityId`), make
-      `ConvoyService.spawn` a factory (build body+turret+mission), rewire `GroundSystem` +
-      `VehicleController` (hold `VehicleMission`/`GroundBody`/`VehicleType` refs, **not** a
-      `Vehicle`) + the two construction sites (`ConvoyMeans:223`, `BattleSetup:832`) +
-      `ConvoyMeans.activeConvoyDestinations`, drop `getConvoyVehicles()`, **delete
-      `Vehicle.java`**. Deepest coupler is `VehicleController` (mutates `body` pose + reassigns
-      path arrays on reroute, **untested** by full-tick — only static-method tests). Follow-up
-      (NOT 4d): statelessify `VehicleController` into components + a system (air's
-      `AirSteeringSystem` has no per-craft controller). NB: the epic's PRIMARY goal
-      (world-resident, one storage space) is already met at 4c; 4d-2 removes the
-      type/faction/body dual-homing and the handle class.
+**Follow-up (separate epic, NOT this one):** statelessify `VehicleController` into components
++ a system — air has no per-craft controller (stateless `AirSteeringSystem` over `AirBody`);
+4d kept the controller stateful, only swapping its `Vehicle` back-ref for
+`VehicleMission`/`GroundBody`/`VehicleType` refs.
 
 ### Access model (in force for every new slice)
 
@@ -160,9 +120,10 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 2. ~~Measure it (TickProfile A/B at N=200)~~ — **DONE** ([`phase0-measurement.md`](phase0-measurement.md)).
 3. ~~**Migrate the behavior-tier `Entity` fields onto components**~~ — **DONE
    (2026-07-01):** all 8 slices shipped; `Entity` carries no mutable per-unit state.
-4. **Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype** — L.
-   **← ACTIVE (2026-07-01).** The last non-ECS storage space; follows the shipped
-   air-into-world template. [`stories/vehicle-into-world.md`](stories/vehicle-into-world.md).
+4. ~~**Fold convoy `Vehicle` into the world as a ground archetype**~~ — **DONE
+   (2026-07-01).** `Vehicle.java` deleted; convoy vehicles are world entities reached by id
+   via `ConvoyService`. (`MapVehicle` stayed out of scope — render-only decoration.)
+   [`complete/vehicle-into-world.md`](complete/vehicle-into-world.md).
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep):** committed engine infra;
    the systems-half epic is its consumer.
 6. ~~Combatant-narrow COMBAT membership~~ — **SHIPPED (`74c565d1`):** "has COMBAT" now
@@ -173,16 +134,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+35840353 docs(vehicle-into-world): sweep stale {@link Vehicle} javadoc after handle deletion
+f1ad8753 ecs-migration: vehicle-into-world 4d-2 — dissolve Vehicle into VehicleMission (handle DELETED)
 80d2e55d ecs-migration: vehicle-into-world 4d-1 — convoy read consumers to by-id
 88bf85c6 ecs-migration: vehicle-into-world Phase 4c — List<Long> backbone + VEHICLE_MISSION
 1e128ce0 ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
 963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
 730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
 321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
-1d5ce956 docs(ecs-migration): close systems-to-columns at terminus, open vehicle-into-world
 ```
-(The `<pending>` line's hash lands at this commit; next boundary fills it in. Doc hash-fill
-+ Phase-2 critique micro-commits are elided from this window.)
+(Doc hash-fill + critique micro-commits are elided from this window.)
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
 goap, campaign) interleave on HEAD.
@@ -190,8 +151,12 @@ goap, campaign) interleave on HEAD.
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean, full suite green (`:test` BUILD SUCCESSFUL at
-  vehicle-into-world Phase 4c). Vehicles are fully world-resident: `GroundSystem` backbone is
-  `List<Long> vehicleIds`, handles live in `VEHICLE_MISSION` (`convoy.vehicle(id)`). Only 4d
-  (delete the handle class + shred redundant identity/kinematics) remains.
-- `git log --oneline -5` shows `6f528fc8` (slice 8 — deathPoseIdx fold, epic finale) or
-  your own recent work at the top.
+  vehicle-into-world 4d-2 / javadoc sweep). `Vehicle.java` is **gone**: convoy vehicles are
+  world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
+  `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
+- `git log --oneline -5` shows `35840353` (javadoc sweep) / `f1ad8753` (the deletion) or your
+  own recent work at the top.
+- **No ECS-migration epic is currently active** — storage/identity/vehicle halves are all
+  done. Next candidates: live authored-appearance (FacingSystem/ANIMATION/FX child entities)
+  or the identity-collapse epic (reopens systems-to-columns as a byproduct). Confirm scope
+  with the user before starting.
