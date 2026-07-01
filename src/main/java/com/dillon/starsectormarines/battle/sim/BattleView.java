@@ -119,6 +119,9 @@ public interface BattleView {
     /** Data owner for the ROLE component (behavior-dispatch role) — {@code role().role(id)} / {@code setRole(id, r)}. The per-component Service that lands ROLE off the {@link World} god-facade. */
     RoleService role();
 
+    /** Data owner for the HOME component (garrison idle-post) — {@code home().hasHome(id)} / {@code homeCellX(id)}. The per-component Service that lands HOME off the {@link World} god-facade. */
+    HomeService home();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

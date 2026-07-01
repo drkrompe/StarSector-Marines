@@ -150,8 +150,9 @@ public final class SquadStateDumper {
             // patrols). Emit anyway so the dump distinguishes "no home" from
             // "home but drifted off" — key signal for diagnosing why a
             // garrison unit's findFiringPositionWithin returned null.
-            o.put("homeCellX", u.homeCellX);
-            o.put("homeCellY", u.homeCellY);
+            boolean hasHome = sim.home().hasHome(u.entityId);
+            o.put("homeCellX", hasHome ? sim.home().homeCellX(u.entityId) : -1);
+            o.put("homeCellY", hasHome ? sim.home().homeCellY(u.entityId) : -1);
             o.put("currentZone", sim.getZoneGraph().zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)));
             o.put("hp", sim.world().hp(u.entityId));
             o.put("maxHp", sim.world().maxHp(u.entityId));

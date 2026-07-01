@@ -59,8 +59,9 @@ public final class HoldPost implements Action {
 
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        int homeX = member.homeCellX >= 0 ? member.homeCellX : sim.world().cellX(member.entityId);
-        int homeY = member.homeCellY >= 0 ? member.homeCellY : sim.world().cellY(member.entityId);
+        boolean hasHome = sim.home().hasHome(member.entityId);
+        int homeX = hasHome ? sim.home().homeCellX(member.entityId) : sim.world().cellX(member.entityId);
+        int homeY = hasHome ? sim.home().homeCellY(member.entityId) : sim.world().cellY(member.entityId);
 
         // Squad retreating to a new post — every member walks home regardless
         // of alert level. updateSquadFallback drops the flag once everyone

@@ -401,6 +401,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the ROLE component (behavior-dispatch role) — {@code sim.role().role(id)} / {@code setRole(id, r)}. */
     public RoleService role() { return rosterService.role(); }
 
+    /** Data owner for the HOME component (garrison idle-post) — {@code sim.home().hasHome(id)} / {@code homeCellX(id)}. */
+    public HomeService home() { return rosterService.home(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

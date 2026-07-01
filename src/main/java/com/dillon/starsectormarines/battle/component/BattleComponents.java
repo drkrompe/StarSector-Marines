@@ -125,6 +125,11 @@ public final class BattleComponents {
     /** {@link #ROLE} field 0: the {@link com.dillon.starsectormarines.battle.unit.UnitRole} ordinal (INT) driving per-tick behavior dispatch. Stored as the ordinal rather than an OBJECT ref so it's a plain primitive column ({@code RoleService} reconstructs the enum). */
     public static final int ROLE_ORDINAL = 0;
 
+    /** {@link #HOME} field 0: the garrison idle-post cell x (INT). */
+    public static final int HOME_CELL_X = 0;
+    /** {@link #HOME} field 1: the garrison idle-post cell y (INT). */
+    public static final int HOME_CELL_Y = 1;
+
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
     /** {@link #SECONDARY_WEAPON} field 1: rounds remaining on the secondary (INT). */
@@ -299,6 +304,20 @@ public final class BattleComponents {
      * (slice 6).
      */
     public final ComponentType ROLE;
+    /**
+     * Optional garrison idle-post — two INT fields, the "home" cell a
+     * {@link com.dillon.starsectormarines.battle.unit.UnitRole#GARRISON} unit returns
+     * to and holds while its squad is UNAWARE. <em>Optional</em>: added at spawn only
+     * for garrison defenders (seeded from {@code Entity.seedHomeCell*} when {@code >= 0}),
+     * so "has HOME" <em>is</em> "has a post" — the old {@code -1} sentinel is never a
+     * stored value (a roaming marine / patrol simply carries no HOME). The runtime
+     * reassignment ({@code SquadFallbackSystem} redistributes posts when a garrison
+     * squad retreats to a new node) is a serial-phase write on units that already carry
+     * HOME. Live-only (a corpse holds no post) — removed on the corpse transmute. Data
+     * owner {@code battle.sim.HomeService}. See
+     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 7).
+     */
+    public final ComponentType HOME;
     /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
@@ -479,6 +498,7 @@ public final class BattleComponents {
         VISION          = world.register(18, "Vision", FieldKind.FLOAT, FieldKind.FLOAT);
         SQUAD           = world.register(19, "Squad", FieldKind.INT);
         ROLE            = world.register(20, "Role", FieldKind.INT);
+        HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

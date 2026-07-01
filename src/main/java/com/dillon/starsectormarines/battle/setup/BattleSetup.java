@@ -1025,8 +1025,8 @@ public final class BattleSetup {
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
                 unit.seedRole = UnitRole.GARRISON;
-                unit.homeCellX = cell[0];
-                unit.homeCellY = cell[1];
+                unit.seedHomeCellX = cell[0];
+                unit.seedHomeCellY = cell[1];
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);

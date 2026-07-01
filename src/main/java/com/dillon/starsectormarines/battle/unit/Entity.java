@@ -310,14 +310,19 @@ public class Entity {
     public volatile int lastReprioTickIndex = -1;
 
     /**
-     * Cell this unit returns to when nothing else is happening — the
-     * "post" they were assigned at spawn. Used by {@link UnitRole#GARRISON}
-     * for idle behavior: members path to their home and idle there while
-     * their squad is UNAWARE. -1 sentinel = no home assigned (units that
-     * roam, e.g. patrols and marines, don't set this).
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The garrison idle-post cell
+     * a {@link UnitRole#GARRISON} unit returns to and holds while its squad is UNAWARE.
+     * {@link UnitRosterService#allocate} consumes it: a value {@code >= 0} makes the
+     * unit spawn with the {@code HOME} component (presence IS "has a post"), seeded with
+     * this cell; a {@code -1} seed (the default — roaming marines / patrols) means no
+     * HOME component at all. The live post thereafter lives in the world component,
+     * reached by id via the {@code HomeService} data owner ({@code sim.home().hasHome(id)}
+     * / {@code homeCellX(id)}); the runtime reassignment seam ({@code SquadFallbackSystem}
+     * redistributing posts on retreat) is {@code HomeService.setHome}. Write-only
+     * construction input; mirrors {@link #seedSquadId}.
      */
-    public int homeCellX = -1;
-    public int homeCellY = -1;
+    public int seedHomeCellX = -1;
+    public int seedHomeCellY = -1;
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The primary handheld

@@ -86,9 +86,9 @@ public final class SquadFallbackSystem {
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             Entity u = roster.get(i);
             if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
-            if (u.homeCellX < 0) continue;
-            float dx = u.homeCellX - world.cellX(u.entityId);
-            float dy = u.homeCellY - world.cellY(u.entityId);
+            if (!roster.home().hasHome(u.entityId)) continue;
+            float dx = roster.home().homeCellX(u.entityId) - world.cellX(u.entityId);
+            float dy = roster.home().homeCellY(u.entityId) - world.cellY(u.entityId);
             if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS_SQ) return false;
         }
         return true;
@@ -133,8 +133,7 @@ public final class SquadFallbackSystem {
                 continue;
             }
             int[] cell = cells.get(idx++);
-            u.homeCellX = cell[0];
-            u.homeCellY = cell[1];
+            roster.home().setHome(u.entityId, cell[0], cell[1]);
             // Wipe stale path — next garrison tick re-paths to the new home.
             pathClearer.accept(u);
         }
