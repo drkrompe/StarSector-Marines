@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -17,14 +18,19 @@ import com.dillon.starsectormarines.battle.nav.Paths;
  * squad-wide WorldState says someone has LOS and someone is in range — i.e.
  * "we can fight from here."
  *
- * <p>Per-member execution: members who personally have LOS + range open fire
- * (primary, with rocket-secondary priority against turrets; bursts + reposition
- * rolls intact); members who don't continue advancing toward a firing position
- * via the inline cohesion-override fallback. Mixed-state behavior in a single
- * tick — kept here because Stage 1 plans are squad-wide single-action, so the
- * "in-range marines fire while out-of-range squadmates close" rhythm has
- * nowhere else to live. Stage 2 with per-member action assignment is where
- * this fallback retires; see {@code roadmap/ai/README.md}.
+ * <p>Per-member execution: members who personally have LOS + range author a
+ * primary-fire intent on {@code COMBAT} (rocket-secondary still gets fired
+ * directly here — it's a separate weapon with its own aim window, out of
+ * scope for the proving slice); {@code battle.combat.FiringSystem} picks up
+ * the intent later this same tick and applies the uniform cooldown/range/LoS
+ * gate, fires, resets cooldown, starts the burst, and (this posture only)
+ * chains the post-fire reposition. Members who don't have LOS/range continue
+ * advancing toward a firing position via the inline cohesion-override
+ * fallback. Mixed-state behavior in a single tick — kept here because Stage 1
+ * plans are squad-wide single-action, so the "in-range marines fire while
+ * out-of-range squadmates close" rhythm has nowhere else to live. Stage 2
+ * with per-member action assignment is where this fallback retires; see
+ * {@code roadmap/ai/README.md}.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} during normal engagement;
  * invalidates with {@link ActionStatus#FAILURE} when the target evaporates,
@@ -105,18 +111,17 @@ public final class EngagePosture implements Action {
                 sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
                 startedSecondary = true;
             }
-            if (!startedSecondary && sim.world().cooldownTimer(member.entityId) <= 0f
-                    && dist <= sim.world().attackRange(member.entityId)) {
-                sim.fireShot(member, target);
-                sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-                member.beginBurst(sim.combat(), target);
-                // Story G — cooldown-gated cover-aware reposition replaces
-                // the old 30% per-shot RNG. A unit in heavy cover whose
-                // current cell already wins cover-preferred no-ops out;
-                // exposed members move when their cooldown expires. The
-                // cooldown is per-unit (Entity.getRepositionCooldown()), so squad
-                // members visibly shift at different times.
-                RepositionToCover.tryReposition(member, sim);
+            if (!startedSecondary) {
+                // Author intent instead of firing inline — FiringSystem
+                // applies the uniform cooldown/range/LoS gate (the old inline
+                // `cooldownTimer<=0 && dist<=attackRange` check) and executes
+                // the shot later this same tick. reposition=true: EngagePosture
+                // is the only fire site that chains Story G's cooldown-gated
+                // cover-aware reposition (a unit in heavy cover whose current
+                // cell already wins cover-preferred no-ops out; exposed
+                // members move when their cooldown expires — see
+                // RepositionToCover).
+                sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, true);
             }
             int[] memberPath = sim.world().path(member.entityId);
             if (sim.world().pathIdx(member.entityId) < Paths.cellCount(memberPath)) {

@@ -63,6 +63,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
+import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
@@ -119,6 +120,16 @@ public class BattleSimulation implements BattleControl {
     private final FogOfWarService fogOfWar = new FogOfWarService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry;
+    /**
+     * Consumes the per-tick {@code COMBAT} fire intent behaviors queue
+     * instead of firing inline — the FiringSystem proving slice
+     * ({@code roadmap/ecs-migration/stories/firing-system.md}), wired for
+     * {@code EngagePosture} only today. Ticked after the spawn flush and
+     * before {@link #infantry}'s burst continuation, so the continuation
+     * sees this tick's {@code beginBurst} state exactly as it did when
+     * postures fired inline.
+     */
+    private final FiringSystem firingSystem;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
     private final HeavyWeapons heavy;
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
@@ -354,6 +365,7 @@ public class BattleSimulation implements BattleControl {
                 hitResponse, world);
         this.infantry = new InfantryWeapons(rosterService,
                 damageService, hitResponse, shots);
+        this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit, effects);
@@ -881,6 +893,14 @@ public class BattleSimulation implements BattleControl {
         // already run in serial phases.
         flushPendingSpawns();
         tickProfile.lap(TickProfile.Phase.APPLY_SPAWNS);
+        // Execute the fire intent behaviors queued this tick (EngagePosture
+        // today; the sweep phase flips the rest) — cooldown/range/LoS gate,
+        // fireShot, cooldown reset, beginBurst, optional reposition. Must
+        // run before infantry.tick()'s burst continuation below so it sees
+        // this tick's beginBurst state exactly as it did when postures fired
+        // inline. See FiringSystem's class doc for the full contract.
+        firingSystem.tick(this);
+        tickProfile.lap(TickProfile.Phase.FIRING);
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model. Lives on the InfantryWeapons

@@ -34,6 +34,9 @@ public enum FireStance {
     /** Accuracy multiplier applied to {@code shooter.getAccuracy()} / weapon accuracy at fire time. */
     public final float accuracyMult;
 
+    /** Cached array — lets an ordinal-keyed column ({@code COMBAT.fireStance}) round-trip to the enum without the {@code values()} clone on every read. */
+    public static final FireStance[] VALUES = values();
+
     FireStance(float accuracyMult) {
         this.accuracyMult = accuracyMult;
     }

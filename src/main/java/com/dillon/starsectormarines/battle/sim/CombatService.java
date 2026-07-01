@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -69,4 +70,30 @@ public final class CombatService {
 
     public long burstTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID); }
     public void setBurstTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID, v); }
+
+    /**
+     * Writes the consume-once fire-intent a behavior queues instead of firing
+     * inline: {@code targetId} to shoot this tick, the {@code stance} for the
+     * shot (stored as its ordinal), and whether a successful fire should
+     * chain into {@code RepositionToCover} same-tick. {@code
+     * battle.combat.FiringSystem} is the sole reader; it clears {@link
+     * #fireTargetId} every tick whether or not it fired.
+     */
+    public void setFireIntent(long id, long targetId, FireStance stance, boolean repositionAfter) {
+        entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, targetId);
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE, stance.ordinal());
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION, repositionAfter ? 1 : 0);
+    }
+
+    /** The consume-once fire-intent target, {@code 0L} = no intent (hold fire). */
+    public long fireTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID); }
+
+    /** The queued shot's stance, decoded from the stored ordinal via {@link FireStance#VALUES}. Meaningless without a live {@link #fireTargetId}. */
+    public FireStance fireStance(long id) { return FireStance.VALUES[entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE)]; }
+
+    /** Whether a successful fire this tick should chain into a post-fire reposition. Meaningless without a live {@link #fireTargetId}. */
+    public boolean fireRepositionAfter(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION) != 0; }
+
+    /** Consumes the fire intent — zeroes {@code fireTargetId} only; {@code fireStance}/{@code fireReposition} are meaningless without a target and get overwritten by the next {@link #setFireIntent}. */
+    public void clearFireIntent(long id) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, 0L); }
 }

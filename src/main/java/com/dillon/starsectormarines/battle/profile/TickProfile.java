@@ -44,6 +44,7 @@ public final class TickProfile {
         UPDATE_UNITS,
         APPLY_OCCUPANCY,
         APPLY_SPAWNS,
+        FIRING,
         INFANTRY_TICK,
         HEAVY_TICK,
         PROJECTILES,

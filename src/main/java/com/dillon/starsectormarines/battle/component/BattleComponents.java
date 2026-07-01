@@ -107,6 +107,12 @@ public final class BattleComponents {
     public static final int COMBAT_ATTACK_COOLDOWN = 8;
     /** {@link #COMBAT} field 9: the {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon} primary-weapon flyweight (OBJECT); {@code null} = no per-weapon profile (militia/aliens/turrets fall back to the baked attack stats). Seed-only stat like the attack stats. */
     public static final int COMBAT_PRIMARY_WEAPON = 9;
+    /** {@link #COMBAT} field 10: consume-once fire-intent target entity id (LONG), {@code 0L} = no intent = hold fire. Written by a behavior that decided to shoot (e.g. {@code EngagePosture}) instead of firing inline; cleared every tick by {@code battle.combat.FiringSystem} whether or not the shot actually fired, so a stale intent can never re-fire. Distinct from {@link #COMBAT_TARGET_ID} ("who I'm engaging," which can stay live while fire is held). */
+    public static final int COMBAT_FIRE_TARGET_ID = 10;
+    /** {@link #COMBAT} field 11: the {@link com.dillon.starsectormarines.battle.combat.FireStance} ordinal for the queued shot (INT). Meaningless without a live {@link #COMBAT_FIRE_TARGET_ID}; overwritten by the next {@code setFireIntent}. */
+    public static final int COMBAT_FIRE_STANCE = 11;
+    /** {@link #COMBAT} field 12: run {@code battle.infantry.RepositionToCover} after this fire, as 0/1 (INT) — {@code EngagePosture}'s post-fire hook, gated so it only fires same-tick as a successful shot. */
+    public static final int COMBAT_FIRE_REPOSITION = 12;
 
     /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
     public static final int MOVEMENT_MOVE_PROGRESS = 0;
@@ -258,6 +264,19 @@ public final class BattleComponents {
      * so a live combatant is {@code {IDENTITY, POSITION, HEALTH, COMBAT}}. The
      * optional <em>secondary</em> weapon is a separate presence component, not a
      * field here — see {@code roadmap/ecs-migration/archetype-storage.md}.
+     *
+     * <p><b>Fire-intent (consume-once):</b> {@code long fireTargetId; int
+     * fireStance; int fireReposition}. A behavior that decides to shoot writes
+     * these instead of firing inline — {@code fireTargetId} is the entity to
+     * shoot <em>this tick</em> ({@code 0L} = no intent = hold fire),
+     * {@code fireStance} is the {@link com.dillon.starsectormarines.battle.combat.FireStance}
+     * ordinal for the shot, and {@code fireReposition} flags the post-fire
+     * {@code RepositionToCover} call. Target <em>selection</em> and every
+     * posture-specific pre-gate stay with the behavior; {@code
+     * battle.combat.FiringSystem} consumes the intent every tick (clearing
+     * {@code fireTargetId} whether or not it fired) and applies the uniform
+     * cooldown/range/LoS execution gate. See
+     * {@code roadmap/ecs-migration/stories/firing-system.md}.
      */
     public final ComponentType COMBAT;
     /**
@@ -584,6 +603,16 @@ public final class BattleComponents {
      */
     public final Query gridOccupants;
 
+    /**
+     * Every live combatant ({@code {COMBAT}}) — the fire-intent column walk
+     * {@code battle.combat.FiringSystem} drives, consuming each row's
+     * {@code fireTargetId}/{@code fireStance}/{@code fireReposition} and
+     * applying the uniform cooldown/range/LoS gate. No exclusion mask needed:
+     * {@code COMBAT} itself is removed in the corpse transmute, so a corpse
+     * never matches.
+     */
+    public final Query combatants;
+
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
@@ -594,7 +623,8 @@ public final class BattleComponents {
         COMBAT          = world.register(6, "Combat",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG,
-                FieldKind.FLOAT, FieldKind.OBJECT);
+                FieldKind.FLOAT, FieldKind.OBJECT,
+                FieldKind.LONG, FieldKind.INT, FieldKind.INT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
@@ -627,5 +657,6 @@ public final class BattleComponents {
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);
         gridOccupants = world.query(new ComponentType[]{POSITION}, new ComponentType[]{CORPSE});
+        combatants = world.query(new ComponentType[]{COMBAT}, null);
     }
 }
