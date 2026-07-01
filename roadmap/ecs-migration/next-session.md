@@ -128,8 +128,29 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    the systems-half epic is its consumer.
 6. ~~Combatant-narrow COMBAT membership~~ — **SHIPPED (`74c565d1`):** "has COMBAT" now
    defines a combatant.
-7. **Live authored-appearance** (FacingSystem / ANIMATION / FX child entities) — epic,
-   lower leverage; sequence after #1.
+7. **Live authored-appearance** (FacingSystem / `ANIMATION` component / FX child entities) —
+   **← ACTIVE (2026-07-01).** The "sprites/rendering → ECS" epic on the *data* side: live-unit
+   sprite state (facing, animation frame, aim pose) becomes authored **component** data written
+   by presentation systems, and the renderer becomes a pure `Query` collector — the pattern the
+   corpse `SPRITE` component + `RenderAppearance`/`ShotFx` already prove for dead units / FX.
+   Today live units still have the renderer *derive* facing per-frame. Design doc + slice
+   decomposition being drafted. [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
+8. **FiringSystem** — extract the duplicated fire mechanics (~12 GOAP postures + turret/drone
+   aim variants; the canonical cooldown-gate → `fireShot` → reset → burst → reposition block,
+   plus the scattered cooldown *decrement* across ~5 sites) into one System reading COMBAT.
+   **Unblocked** now that entity-field-migration consolidated the COMBAT state it reads; also
+   fixes the `HoldPost` double-tick cooldown bug (see `backlog.md` § Bugs) and targets the
+   fattest sim CPU path. The concrete motivating case of the (closed) systems-to-columns epic.
+   Design: [`stories/firing-system.md`](stories/firing-system.md). Candidate — high ready value.
+9. **Identity-collapse (`Entity` handle → bare `long` id)** — dissolve the ~305-line `Entity`
+   heap object (now only immutable identity + `seed*` inputs + path/burst methods) so entity =
+   id everywhere; the spatial index goes id-native and **reopens systems-to-columns as a
+   byproduct**. Large, foundational; touches many call sites. See
+   [`spatial-index-options.md`](spatial-index-options.md). Candidate.
+10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
+    per-craft handle with mutable motion state) into components + a stateless system, the air
+    `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
+    low leverage (N≈1–4). Candidate.
 
 ## Recent ECS-track commits
 
@@ -156,7 +177,8 @@ goap, campaign) interleave on HEAD.
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
 - `git log --oneline -5` shows `35840353` (javadoc sweep) / `f1ad8753` (the deletion) or your
   own recent work at the top.
-- **No ECS-migration epic is currently active** — storage/identity/vehicle halves are all
-  done. Next candidates: live authored-appearance (FacingSystem/ANIMATION/FX child entities)
-  or the identity-collapse epic (reopens systems-to-columns as a byproduct). Confirm scope
-  with the user before starting.
+- **ACTIVE epic: live authored-appearance** (backlog item 7 — user-picked 2026-07-01). The
+  storage half is fully closed; this is the presentation-data half. Design doc + slice plan
+  being drafted from a data-flow map of the current live-unit render path. Other queued
+  candidates if this stalls: **FiringSystem** (item 8, unblocked, high ready value),
+  **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
