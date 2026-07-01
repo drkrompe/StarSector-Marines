@@ -137,14 +137,13 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
-<pending> ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
+730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
 321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
 1d5ce956 docs(ecs-migration): close systems-to-columns at terminus, open vehicle-into-world
 6f528fc8 ecs-migration: fold Entity.deathPoseIdx into the DeathEvent (slice 8, FINALE)
 7537de69 ecs-migration: move Entity task fields onto a TASK component (slice 7c)
 84d0625c ecs-migration: lift the reprio gate off Entity into HitResponseSystem (slice 7b)
 ```
-(The `<pending>` line's hash lands at this commit; next boundary fills it in.)
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
 goap, campaign) interleave on HEAD.
