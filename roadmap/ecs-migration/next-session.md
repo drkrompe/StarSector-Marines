@@ -133,8 +133,11 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    sprite state (facing, animation frame, aim pose) becomes authored **component** data written
    by presentation systems, and the renderer becomes a pure `Query` collector — the pattern the
    corpse `SPRITE` component + `RenderAppearance`/`ShotFx` already prove for dead units / FX.
-   Today live units still have the renderer *derive* facing per-frame. Design doc + slice
-   decomposition being drafted. [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
+   Today live units still have the renderer *derive* facing per-frame. Design + slice plan:
+   [`stories/live-appearance.md`](stories/live-appearance.md) (extend `SPRITE` to live units,
+   author it from a sim-tick `FacingSystem`, flip the renderer to a pure collector; walk-cycle
+   `ANIMATION` + FX-child-entities are later/art-gated phases).
+   [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
 8. **FiringSystem** — extract the duplicated fire mechanics (~12 GOAP postures + turret/drone
    aim variants; the canonical cooldown-gate → `fireShot` → reset → burst → reposition block,
    plus the scattered cooldown *decrement* across ~5 sites) into one System reading COMBAT.
