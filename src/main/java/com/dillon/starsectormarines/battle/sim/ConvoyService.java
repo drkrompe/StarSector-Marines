@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -75,7 +76,7 @@ public final class ConvoyService {
     }
 
     /**
-     * Destroys the vehicle's world entity — called at terminal {@link Vehicle.State#GONE}.
+     * Destroys the vehicle's world entity — called at terminal {@link VehicleState#GONE}.
      * One {@code destroy} drops all its columns. No-op on {@code 0L} (never adopted) or an
      * already-destroyed id.
      */

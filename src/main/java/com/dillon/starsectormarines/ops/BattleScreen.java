@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
@@ -971,12 +973,16 @@ public class BattleScreen implements Screen, BattleUiContext {
                 e.consume();
             }
             if (e.isKeyDownEvent() && e.getEventValue() == org.lwjgl.input.Keyboard.KEY_F5) {
-                int vIdx = getSelection().getSelectedVehicleIdx();
-                com.dillon.starsectormarines.battle.sim.BattleSimulation bsim = getSim();
-                if (vIdx >= 0 && bsim != null && vIdx < bsim.getConvoyVehicles().size()) {
-                    com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper.dump(
-                            bsim.getConvoyVehicles().get(vIdx), bsim.getGrid());
-                    e.consume();
+                long vId = getSelection().getSelectedVehicleId();
+                BattleSimulation bsim = getSim();
+                if (vId != 0L && bsim != null) {
+                    for (Vehicle v : bsim.getConvoyVehicles()) {
+                        if (v.entityId == vId) {
+                            VehicleStateDumper.dump(v, bsim.getGrid());
+                            e.consume();
+                            break;
+                        }
+                    }
                 }
             }
         }

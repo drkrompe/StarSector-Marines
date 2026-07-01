@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -86,13 +87,13 @@ public class GroundSystem {
             switch (v.state) {
                 case PENDING:
                     v.pendingDelay -= dt;
-                    if (v.pendingDelay <= 0f) v.state = Vehicle.State.INCOMING;
+                    if (v.pendingDelay <= 0f) v.state = VehicleState.INCOMING;
                     break;
 
                 case INCOMING:
                     v.controller.tick(dt, true);
                     if (v.controller.consumeArrived()) {
-                        v.state = Vehicle.State.LANDED;
+                        v.state = VehicleState.LANDED;
                         v.deboardCountdown = v.type.deboardInterval;
                     }
                     break;
@@ -107,10 +108,10 @@ public class GroundSystem {
                     }
                     if (v.marinesRemaining == 0) {
                         if (v.type.departsAfterDeboard) {
-                            v.state = Vehicle.State.DEPARTING;
+                            v.state = VehicleState.DEPARTING;
                         } else {
                             v.overwatchCountdown = v.type.overwatchDurationSec;
-                            v.state = Vehicle.State.OVERWATCH;
+                            v.state = VehicleState.OVERWATCH;
                         }
                     }
                     break;
@@ -118,18 +119,14 @@ public class GroundSystem {
                 case OVERWATCH:
                     v.overwatchCountdown -= dt;
                     if (v.overwatchCountdown <= 0f) {
-                        v.state = Vehicle.State.DEPARTING;
+                        v.state = VehicleState.DEPARTING;
                     }
                     break;
 
                 case DEPARTING:
                     v.controller.tick(dt, false);
                     if (v.controller.consumeArrived()) {
-                        v.state = Vehicle.State.GONE;
-                        // Terminal state — destroy the world entity (one destroy drops all
-                        // its columns). The handle lingers in the list as an inert GONE row
-                        // (skipped by tick / render); its entityId is now dead.
-                        convoy.despawn(v.entityId);
+                        v.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
                     }
                     break;
 
@@ -142,6 +139,26 @@ public class GroundSystem {
             }
         }
         tickVehicleTurrets(dt);
+        reapGoneVehicles();
+    }
+
+    /**
+     * End-of-tick reap: destroys the world entity of every {@link VehicleState#GONE}
+     * vehicle and drops the handle from the list — the air {@code reapGoneCraft} shape.
+     * Gather-then-apply at the tick barrier (serial phase, so no {@code CommandBuffer};
+     * {@code destroy} is idempotent). Bounds the list to live vehicles and covers any
+     * terminal path in one place. Safe to remove from the list now that selection is
+     * id-keyed (not a positional index), so removal shifts nothing — see the Phase-2
+     * critique in {@code roadmap/ecs-migration/stories/vehicle-into-world.md}.
+     */
+    private void reapGoneVehicles() {
+        for (Iterator<Vehicle> it = vehicles.iterator(); it.hasNext(); ) {
+            Vehicle v = it.next();
+            if (v.state == VehicleState.GONE) {
+                convoy.despawn(v.entityId);
+                it.remove();
+            }
+        }
     }
 
 

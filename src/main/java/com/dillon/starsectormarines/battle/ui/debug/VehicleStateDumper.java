@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.debug;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -82,7 +83,7 @@ public final class VehicleStateDumper {
             tick.put("facing", round(v.histFacing[idx]));
             tick.put("speed", round(v.histSpeed[idx]));
             tick.put("stuck", round(v.histStuck[idx]));
-            tick.put("state", Vehicle.State.values()[v.histState[idx]].name());
+            tick.put("state", VehicleState.values()[v.histState[idx]].name());
             a.put(tick);
         }
         return a;

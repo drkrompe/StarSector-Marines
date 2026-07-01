@@ -27,8 +27,6 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  */
 public class Vehicle {
 
-    public enum State { PENDING, INCOMING, LANDED, OVERWATCH, DEPARTING, GONE }
-
     public final VehicleType type;
     public final Faction faction;
 
@@ -41,7 +39,7 @@ public class Vehicle {
      * this id, while this handle stays authoritative for lifecycle / turret / deboard
      * state through the aliasing phases of the convoy-{@code Vehicle}-into-world epic
      * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}). The world entity is
-     * destroyed at terminal {@link State#GONE}, after which this id is dead (nothing
+     * destroyed at terminal {@link VehicleState#GONE}, after which this id is dead (nothing
      * reads a GONE vehicle by id).
      */
     public long entityId = 0L;
@@ -57,7 +55,7 @@ public class Vehicle {
     public final float lzX;
     public final float lzY;
 
-    public State state = State.PENDING;
+    public VehicleState state = VehicleState.PENDING;
     public float pendingDelay;
     public float deboardCountdown;
     public int marinesRemaining;
@@ -177,7 +175,7 @@ public class Vehicle {
 
     /** True when the vehicle is on-map and rendered. */
     public boolean isVisible() {
-        return state == State.INCOMING || state == State.LANDED
-                || state == State.OVERWATCH || state == State.DEPARTING;
+        return state == VehicleState.INCOMING || state == VehicleState.LANDED
+                || state == VehicleState.OVERWATCH || state == VehicleState.DEPARTING;
     }
 }

@@ -56,9 +56,9 @@ public final class WorldPicker implements HudPanel {
             float worldX = camera.screenToCellX(e.getX());
             float worldY = camera.screenToCellY(e.getY());
 
-            int vehicleIdx = nearestVehicle(sim, worldX, worldY);
-            if (vehicleIdx >= 0) {
-                ctx.getSelection().selectVehicle(vehicleIdx);
+            long vehicleId = nearestVehicle(sim, worldX, worldY);
+            if (vehicleId != 0L) {
+                ctx.getSelection().selectVehicle(vehicleId);
                 e.consume();
                 continue;
             }
@@ -75,9 +75,10 @@ public final class WorldPicker implements HudPanel {
 
     private static final float VEHICLE_PICK_RADIUS_CELLS = 1.5f;
 
-    private static int nearestVehicle(BattleSimulation sim, float worldX, float worldY) {
+    /** Entity id of the nearest visible convoy vehicle within the pick radius, or {@code 0L} if none. */
+    private static long nearestVehicle(BattleSimulation sim, float worldX, float worldY) {
         List<Vehicle> vehicles = sim.getConvoyVehicles();
-        int bestIdx = -1;
+        long bestId = 0L;
         float bestDistSq = VEHICLE_PICK_RADIUS_CELLS * VEHICLE_PICK_RADIUS_CELLS;
         for (int i = 0; i < vehicles.size(); i++) {
             Vehicle v = vehicles.get(i);
@@ -87,10 +88,10 @@ public final class WorldPicker implements HudPanel {
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
-                bestIdx = i;
+                bestId = v.entityId;
             }
         }
-        return bestIdx;
+        return bestId;
     }
 
     private static Entity nearestUnit(BattleSimulation sim, float worldX, float worldY) {

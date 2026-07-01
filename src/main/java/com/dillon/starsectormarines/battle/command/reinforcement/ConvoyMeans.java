@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -347,7 +348,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static List<int[]> activeConvoyDestinations(BattleView sim) {
         List<int[]> out = new ArrayList<>();
         for (Vehicle v : sim.getConvoyVehicles()) {
-            if (v.state == Vehicle.State.DEPARTING || v.state == Vehicle.State.GONE) continue;
+            if (v.state == VehicleState.DEPARTING || v.state == VehicleState.GONE) continue;
             out.add(new int[]{(int) v.lzX, (int) v.lzY});
         }
         return out;

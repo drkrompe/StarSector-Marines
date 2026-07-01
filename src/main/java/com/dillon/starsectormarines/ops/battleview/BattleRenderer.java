@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleController;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
@@ -518,10 +521,14 @@ public class BattleRenderer {
         // Hosts without a selection model (the combat bridge passes selection=null) have no
         // selected vehicle and no use for this dev overlay — skip rather than NPE.
         if (rc.selection == null) return;
-        int idx = rc.selection.getSelectedVehicleIdx();
-        if (idx < 0 || idx >= convoy.size()) return;
-        com.dillon.starsectormarines.battle.vehicle.Vehicle v = convoy.get(idx);
-        com.dillon.starsectormarines.battle.vehicle.VehicleController ctrl = v.controller;
+        long selId = rc.selection.getSelectedVehicleId();
+        if (selId == 0L) return;
+        Vehicle v = null;
+        for (Vehicle candidate : convoy) {
+            if (candidate.entityId == selId) { v = candidate; break; }
+        }
+        if (v == null) return;
+        VehicleController ctrl = v.controller;
         int wp = (ctrl != null) ? ctrl.waypointIndex() : 1;
         float stuckSecs = (ctrl != null) ? ctrl.wallStuckTime() : 0f;
         float trajProg = (ctrl != null) ? ctrl.trajectoryProgress() : 0f;
@@ -538,9 +545,9 @@ public class BattleRenderer {
                 org.lwjgl.opengl.GL11.GL_SRC_ALPHA,
                 org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        float[] xs = (v.state == com.dillon.starsectormarines.battle.vehicle.Vehicle.State.DEPARTING)
+        float[] xs = (v.state == VehicleState.DEPARTING)
                 ? v.outboundX : v.inboundX;
-        float[] ys = (v.state == com.dillon.starsectormarines.battle.vehicle.Vehicle.State.DEPARTING)
+        float[] ys = (v.state == VehicleState.DEPARTING)
                 ? v.outboundY : v.inboundY;
 
         org.lwjgl.opengl.GL11.glLineWidth(2f);

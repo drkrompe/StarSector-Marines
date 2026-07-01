@@ -25,7 +25,9 @@ public final class Selection {
 
     private int selectedSquadId = NONE;
     private String selectedUnitId;
-    private int selectedVehicleIdx = NONE;
+    /** Selected convoy vehicle by world entity id; {@code 0L} == none. Id-keyed (not a list
+     *  index) so it stays valid as the convoy list mutates — GONE vehicles are reaped. */
+    private long selectedVehicleId = 0L;
 
     public int getSelectedSquadId() {
         return selectedSquadId;
@@ -47,10 +49,10 @@ public final class Selection {
         this.selectedUnitId = unitId;
     }
 
-    public int getSelectedVehicleIdx() { return selectedVehicleIdx; }
+    public long getSelectedVehicleId() { return selectedVehicleId; }
 
-    public void selectVehicle(int vehicleIdx) {
-        this.selectedVehicleIdx = vehicleIdx;
+    public void selectVehicle(long vehicleId) {
+        this.selectedVehicleId = vehicleId;
         this.selectedSquadId = NONE;
         this.selectedUnitId = null;
     }
@@ -58,7 +60,7 @@ public final class Selection {
     public void clear() {
         this.selectedSquadId = NONE;
         this.selectedUnitId = null;
-        this.selectedVehicleIdx = NONE;
+        this.selectedVehicleId = 0L;
     }
 
     public boolean hasSquadSelection() {
@@ -66,6 +68,6 @@ public final class Selection {
     }
 
     public boolean hasVehicleSelection() {
-        return selectedVehicleIdx != NONE;
+        return selectedVehicleId != 0L;
     }
 }
