@@ -50,6 +50,12 @@ public final class ConvoyService {
      * {@link Vehicle#entityId}. Returns the minted id (shared {@code nextId} authority).
      */
     public long spawn(Vehicle v) {
+        // Fail loud on a double-adopt (parity with UnitRosterService.allocate): a second
+        // spawn would mint a fresh id, overwrite entityId, and orphan the first world
+        // entity (no longer reachable to despawn → leak). One handle == one adoption.
+        if (v.entityId != 0L) {
+            throw new IllegalStateException("vehicle already adopted (entityId=" + v.entityId + ") — double spawn");
+        }
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
         long id = roster.allocateVehicle(new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS});

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -82,6 +83,17 @@ public class ConvoyServiceTest {
         UnitRosterService r = roster();
         // 0L (never adopted) is a silent no-op — the seeded default entityId.
         r.convoy().despawn(0L);
+    }
+
+    @Test
+    public void doubleSpawnOfTheSameHandleFailsLoud() {
+        UnitRosterService r = roster();
+        ConvoyService convoy = r.convoy();
+        Vehicle v = vehicle();
+        convoy.spawn(v);
+        // A second adoption would orphan the first world entity (leak) — parity with
+        // UnitRosterService.allocate's double-allocate guard: bite loud, don't leak.
+        assertThrows(IllegalStateException.class, () -> convoy.spawn(v));
     }
 
     @Test

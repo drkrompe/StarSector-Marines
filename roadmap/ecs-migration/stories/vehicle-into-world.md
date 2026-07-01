@@ -125,7 +125,9 @@ than air, where `AirSystem` conflated owner + processor.
    dissolution, would touch each reader twice; the handle stays authoritative for
    lifecycle state until dissolution, which is exactly when its readers get migrated to
    ids. So the world entity carries identity + live pose only for now (dormant until a
-   consumer switches to it, the air-Phase-2 pattern).
+   consumer switches to it, the air-Phase-2 pattern). A background critique verified no
+   correctness defects; its one actioned finding is the fail-loud double-adopt guard on
+   `spawn` (the list-removal + reap-sweep findings are Phase-4-coupled — see Phase 4).
 3. **Turret onto a component.** Move the inline turret state into `GROUND_TURRET`
    (presence == armed; APC only) — or fold into `VehicleMission` if the separate component
    earns nothing. `tickVehicleTurrets` reads it by id.
@@ -139,7 +141,16 @@ than air, where `AirSystem` conflated owner + processor.
    `groundCraft` `Query` / by-id `ConvoyService` reads (add `sim.convoy()` /
    `BattleView.convoy()` here, their first sim-level consumers); the `GroundSystem` tick
    reads mission state by id; **delete `Vehicle.java`**. Confirm occupancy/vision/win-counts
-   never see vehicles. (The `despawn`-at-GONE reap already shipped in Phase 2.)
+   never see vehicles.
+   - **This phase also unblocks the reap sweep + list-removal (Phase-2 critique A/B).**
+     `WorldPicker`/`Selection`/`BattleScreen` select a vehicle by its **positional index**
+     into `getConvoyVehicles()` (`getSelectedVehicleIdx()` → `.get(idx)`), so Phase 2
+     deliberately did NOT remove GONE vehicles from the list (index-shift would re-target
+     the selection) and inlined `despawn` at the single `DEPARTING→GONE` site instead. Once
+     selection is keyed by entity id here, replace the inline despawn with an end-of-tick
+     `reapGoneVehicles()` sweep that despawns **and** removes GONE handles (the air
+     `reapGoneCraft` shape) — bounding the list and covering any future second terminal path
+     in one place.
 
 ## Watch-items (carried from the air critic)
 
@@ -155,6 +166,12 @@ than air, where `AirSystem` conflated owner + processor.
   VehicleController(v, navigation)`). The controller holds a back-ref to `Vehicle`; when the
   handle dissolves (Phase 4), the controller reads pose/mission via the service or keeps its
   own refs. Sequence the controller's `Vehicle` back-ref removal into Phase 4.
+- **Selection is by list-position, not id** — `WorldPicker`/`Selection`/`BattleScreen`
+  hold a positional index into `getConvoyVehicles()`. This is why GONE handles must linger
+  in the list (removing them shifts indices) until Phase 4 re-keys selection by entity id.
+  Any pre-Phase-4 change that removes from the list will silently mis-target the selection.
+- **`ConvoyService.spawn` is fail-loud on double-adopt** (a second `spawn` on the same
+  handle would orphan the first world entity → leak). Parity with `allocate`'s guard.
 - **Deboard spawns marines into the dense roster** mid-tick (`addUnitSink` → `addUnit`);
   that path is unchanged — vehicles are disjoint, but their *product* (militia) is a normal
   ground unit.
