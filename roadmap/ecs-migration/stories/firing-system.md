@@ -1,12 +1,92 @@
-# FiringSystem — centralize the duplicated firing mechanics (future epic)
+# FiringSystem — centralize the duplicated firing mechanics
 
-> **Status: captured, NOT started (2026-06-29).** Surfaced during the per-component
-> Service decomposition: the behavior tier duplicates the firing mechanics across
-> ~12 postures. Sequenced **after** the [`entity-field-migration`](entity-field-migration.md)
-> slices (user decision 2026-06-29) — the field migration consolidates the COMBAT
-> state this System reads, so do it first. This is the concrete, motivating case of
-> the [`systems-to-columns`](systems-to-columns.md) epic's "convert the combatant hot
-> loop to Systems."
+> **Status: ACTIVE (picked up 2026-07-01). Audit COMPLETE; contract DECIDED (see
+> § The decision). Next: the proving slice (intent columns + FiringSystem +
+> EngagePosture flip).** Surfaced during the per-component Service decomposition:
+> the behavior tier duplicates the firing mechanics across ~12 postures. Sequenced
+> after [`entity-field-migration`](entity-field-migration.md) (user decision
+> 2026-06-29), which consolidated the COMBAT state this System reads. The concrete,
+> motivating case of the [`systems-to-columns`](systems-to-columns.md) epic.
+
+## Audit findings (2026-07-01 — three parallel extraction agents, full tabulations in session)
+
+**14 trigger sites**, all sharing the fire→reset→burst tail verbatim; the gates differ:
+
+| Site | Extra trigger gate beyond cooldown/range/LoS | Hold-fire w/ live target? | Stance | Local decrement |
+|---|---|---|---|---|
+| EngagePosture | rocket-branch suppression (`startedSecondary`) | no | 2-arg STANCED | — |
+| HoldZone / ClearZone | — | no | 2-arg STANCED | — |
+| AbstractZoneAction (main) | — | no | `haltOnContact ? STANCED : MOVING` | — |
+| AbstractZoneAction (opportune) | fires an **ephemeral non-`targetId`** enemy | no | MOVING | — |
+| BreakContact | — | no | MOVING transit / STANCED in-position | — |
+| GarrisonCordon / HoldPortalCordon | — | no | MOVING transit / STANCED at-post | — |
+| ChokePointHold | squad `ENEMY_IN_PORTAL_CELL` trigger (selection-fusable: intruder stands ON the gated cell) | **yes (by design)** | STANCED | — |
+| GuardPostPatrol | **`withinLeash`** — holds fire while KEEPING the target | **yes** | 2-arg STANCED | **yes — double-tick** |
+| HoldPost | — | no | 2-arg STANCED | **yes — double-tick (backlog bug)** |
+| PatrolMotion.fireIfAble | — | no | MOVING **always** (even dwelling) | **yes — double-tick** |
+| KitRetrieverBehavior | — | no | MOVING always | yes — **sole** decrement (bypasses GOAP prep) |
+
+Decrement architecture: `InfantryUnitPrep.tickCooldowns` is the canonical GOAP-path
+decrement — once per unit per tick, **skipped during the rocket-aim window**
+(`tickAimAndShortCircuit` short-circuits first: cooldowns freeze mid-aim), and it also
+decrements secondary + reposition cooldowns. Turrets+drones decrement once in
+`TurretAim.tick` (shared state-machine; fire-arc slew gate; lock-drop ≠ hold-fire);
+mechs decrement per-track on `MechLoadoutComponent` in `HeavyWeapons.advanceMechWeapons`.
+**Three double-tick bugs** (HoldPost, GuardPostPatrol, PatrolMotion), not one.
+`ClearZone` has a second dispatch path (`GarrisonPatrol` invokes it inline). Stances are
+caller-supplied constants everywhere — never `FireStance.stanceFor(moveProgress)` — and
+inconsistent with actual motion at several sites (preserve verbatim; normalizing is a
+deliberate later behavior change). `fireShot` itself (InfantryWeapons) has **zero**
+cooldown/burst side effects — callers own all bookkeeping (that's the duplication).
+
+## The decision (2026-07-01) — explicit fire-intent on COMBAT; system executes, prep decrements
+
+The audit **falsifies contract (a)** (`targetId` IS permission): GuardPostPatrol's leash
+holds fire while *keeping* the target (`targetId` also feeds pursuit + `FacingSystem`
+aim-facing — can't be cleared to express hold), and AbstractZoneAction's opportune path
+fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form**:
+
+- **COMBAT gains a consume-once fire-intent**: `FIRE_TARGET_ID` (LONG, `0` = no intent =
+  hold fire), `FIRE_STANCE` (INT ordinal), `FIRE_REPOSITION` (INT 0/1 — EngagePosture's
+  post-fire `RepositionToCover`, flag-gated so it stays same-tick). Columns on COMBAT,
+  not a presence component — per-tick add/remove would thrash archetypes.
+- **Behaviors keep target selection + their own pre-gates** (leash, portal trigger,
+  opportune pick, rocket-branch suppression — all selection-side) and **write intent**
+  instead of firing. They stop reading/writing `cooldownTimer` entirely.
+- **`FiringSystem` (serial, after `unitUpdate`, before `infantry.tick()`'s burst
+  continuation)** consumes intent: resolve target (tolerant of death-in-flight), apply
+  the uniform gate `cooldown ≤ 0 && dist ≤ attackRange && hasLineOfSight`, then
+  `fireShot(shooter, target, stance)` + cooldown reset + `beginBurst` + optional
+  reposition. Consume-once: intent cleared every tick whether or not it fired (stale
+  intent must never re-fire).
+- **The decrement STAYS in `InfantryUnitPrep.tickCooldowns`** — revising the original
+  sketch ("the ONE decrement" in the system). The audit shows the canonical decrement is
+  coupled to the aim-freeze + secondary/reposition cooldowns (prep concerns), and every
+  other population (turret/drone/mech) already has exactly one owner. Fix the three
+  double-ticks by **deleting the local extras**; KitRetriever (GOAP-bypassing) routes to
+  `tickCooldowns` in the sweep phase (note: also starts ticking its secondary/reposition
+  cooldowns — tiny behavior change, decide at sweep).
+- **Scope: the infantry family only** (12 posture sites + KitRetriever). Turrets
+  (`TurretAim` fire-arc model), drones (same), mechs (`HeavyWeapons` per-track) are OUT —
+  no duplication exists there.
+- **Known equivalence caveat:** execution moves from *during* the parallel behavior
+  dispatch to a serial phase just after it (same tick, before burst continuation).
+  Within-tick shot ordering shifts; cadence is unchanged. Covered by cadence tests +
+  playtest.
+
+## Phases
+
+1. **Proving slice** — intent columns + `CombatService` accessors + `FiringSystem`
+   (new phase, wired before `infantry.tick()`) + flip **`EngagePosture` only** + cadence
+   golden test (shots per N ticks unchanged) + gate/consume-once/dead-target tests.
+2. **The sweep** — flip the remaining 11 sites + KitRetriever; delete the three
+   double-tick decrements (fires the backlog bug fix — garrison cadence ~2× faster,
+   verify in playtest) + KitRetriever prep routing; ChokePointHold selection-refactor
+   (portal gate moves to intent-writing, gates unchanged since the intruder stands on
+   the portal cell).
+3. **(Later, deliberate behavior change)** stance normalization via
+   `FireStance.stanceFor(moveProgress)` — kills the STANCED-while-lerping and
+   MOVING-while-dwelling inconsistencies. Separate slice with its own playtest.
 
 ## The gap
 
@@ -58,7 +138,7 @@ trigger. `CombatService` is the substrate it reads/writes; the field migration i
 upstream (it consolidates attackDamage/range/accuracy/cooldown/burst into the COMBAT
 columns this walks).
 
-## The open decision — the intent contract (decide via the audit, NOT up front)
+## ~~The open decision~~ — RESOLVED 2026-07-01 (see § The decision above; kept for the original framing)
 
 User direction (2026-06-29): **let the posture audit pick the contract.** The audit
 question: *does any posture today hold fire while keeping a live target, or apply a
@@ -77,11 +157,7 @@ Two pieces stay behavior-coupled (don't fold them in blindly): **post-fire repos
 its own aim window) — each either stays in the behavior reacting to "did I just fire"
 or becomes its own small system.
 
-## First steps when picked up
-
-1. **Audit** all ~12 fire sites: is firing uniform once target+cooldown+range+LoS? Tabulate any per-site deviation (stance, hold-fire, extra gate). This decides (a) vs (b).
-2. Stand up `FiringSystem`; move the fire block out of **one** posture (`EngagePosture`) as the proving slice; assert identical behavior (suite + a targeted fire-cadence test).
-3. Sweep the remaining postures; delete the scattered cooldown decrements; one decrement in the System.
+## ~~First steps when picked up~~ — step 1 (audit) DONE 2026-07-01; superseded by § Phases above
 
 ## Cross-refs
 

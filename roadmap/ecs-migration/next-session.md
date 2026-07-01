@@ -182,8 +182,14 @@ goap, campaign) interleave on HEAD.
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
-  epic is **parked, not active**. **Next actionable candidate: FiringSystem** (item 8 —
-  unblocked, high ready value, fixes the HoldPost double-tick cooldown bug); then
+  epic is **parked, not active**.
+- **ACTIVE epic: FiringSystem** (user-picked 2026-07-01). Audit of all 14 fire sites
+  COMPLETE; intent contract DECIDED (explicit consume-once fire-intent on COMBAT;
+  decrement stays in `InfantryUnitPrep`; infantry-family scope — turret/drone/mech out).
+  Full findings + phases: [`stories/firing-system.md`](stories/firing-system.md).
+  **Next: the proving slice** (intent columns + `FiringSystem` + `EngagePosture` flip +
+  cadence golden test). Then the sweep (11 sites + KitRetriever, deletes the THREE
+  double-tick cooldown bugs — HoldPost, GuardPostPatrol, PatrolMotion). Queued after:
   **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
