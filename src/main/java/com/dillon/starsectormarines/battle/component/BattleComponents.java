@@ -176,6 +176,14 @@ public final class BattleComponents {
     /** {@link #APPEARANCE} field 1: accumulated phase (radians) for the in-flight scale wobble (FLOAT). */
     public static final int APPEARANCE_FLIGHT_PHASE = 1;
 
+    /** {@link #GROUND_IDENTITY} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.VehicleType} (OBJECT). */
+    public static final int GROUND_IDENTITY_TYPE = 0;
+    /** {@link #GROUND_IDENTITY} field 1: the {@link com.dillon.starsectormarines.battle.unit.Faction} (OBJECT). */
+    public static final int GROUND_IDENTITY_FACTION = 1;
+
+    /** {@link #GROUND_KINEMATICS} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.GroundBody} payload (OBJECT) — continuous float pose (x/y/facing/speed) for a road-driving vehicle. */
+    public static final int GROUND_KINEMATICS_BODY = 0;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -442,6 +450,28 @@ public final class BattleComponents {
      * {@code roadmap/air/air-entities-into-world.md}.
      */
     public final ComponentType APPEARANCE;
+    /**
+     * Ground-vehicle identity — {@code VehicleType type, Faction faction}. The
+     * ground twin of {@link #AIR_IDENTITY}: convoy trucks / APCs are not units, so
+     * they get their own identity pair rather than widening grid {@link #IDENTITY}
+     * (whose {@code type} is a concrete
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType}). Part of the
+     * convoy-{@code Vehicle}-into-world epic
+     * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}).
+     */
+    public final ComponentType GROUND_IDENTITY;
+    /**
+     * Ground-vehicle kinematics — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.vehicle.GroundBody} (a
+     * {@code BicycleBody} today) with continuous float pose. The ground sibling of
+     * {@link #KINEMATICS} (which holds an {@code AirBody}); a <em>separate</em>
+     * component rather than a generalization because {@code GroundBody} /
+     * {@code AirBody} share no base type and the {@code AIR_IDENTITY}-vs-{@code IDENTITY}
+     * precedent favors disjoint components over widening. OBJECT (not decomposed
+     * floats) for the same tiny-population + shared-mutable-POJO reason as
+     * {@link #KINEMATICS}.
+     */
+    public final ComponentType GROUND_KINEMATICS;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -524,6 +554,8 @@ public final class BattleComponents {
         ROLE            = world.register(20, "Role", FieldKind.INT);
         HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
         TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);
+        GROUND_IDENTITY   = world.register(23, "GroundIdentity", FieldKind.OBJECT, FieldKind.OBJECT);
+        GROUND_KINEMATICS = world.register(24, "GroundKinematics", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

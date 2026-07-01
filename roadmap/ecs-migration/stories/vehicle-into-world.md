@@ -100,20 +100,24 @@ than air, where `AirSystem` conflated owner + processor.
 
 ## Phases (each leaves build + tests green)
 
-1. **Foundation (additive).** Register `GROUND_IDENTITY` + `GROUND_KINEMATICS`; add
-   `UnitRosterService.allocateVehicle(archetype)`; create `ConvoyService` (accessors for
-   the two components + the id-list backbone, grows in later phases). Nothing calls
-   `allocateVehicle` yet except the test. **Focused test:** `allocateVehicle` mints
-   monotonically, shares `nextId` with `allocate`/`allocateAir` (no collision), and the
-   entity is world-resident but absent from the dense roster (`getOrNull`→null, not in
-   `liveCount()`). Additive, suite green. *(← first slice; small + safe, mirrors air
-   Phase 1.)*
+1. **Foundation (additive). ✓ SHIPPED (2026-07-01).** Register `GROUND_IDENTITY` (23) +
+   `GROUND_KINEMATICS` (24); add `UnitRosterService.allocateVehicle(archetype)` (shares
+   `nextId`, world-only). Nothing calls `allocateVehicle` yet except the test.
+   `VehicleEntityAllocationTest` (3) mirrors `AirEntityAllocationTest`: shared monotonic
+   mint (vehicles interleave ground ids, no collision), world-resident but absent from
+   the dense roster (`getOrNull`→null, `liveCount()`==0, `isAliveById`==false), and the
+   ground OBJECT columns round-trip by id. Additive, suite green. `ConvoyService` is
+   **deferred to Phase 2** — no service before it has a consumer
+   ([[feedback_ship_then_optimize]]); the test seeds/reads columns via `entityWorld`
+   directly.
 2. **Extract `VehicleMission` + adopt (serial, aliasing).** Extract a `VehicleMission`
    bag from `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
    `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
    inputs, `controller`) — `Vehicle` embeds + delegates to it (mechanical, behavior-
    identical; this is the precondition air already had via `ShuttleMission`). Register
-   `VEHICLE_MISSION` + the `groundCraft` query. `GroundSystem.add` →
+   `VEHICLE_MISSION` + the `groundCraft` query. **Introduce `ConvoyService`** here (its
+   first consumer) — data owner for the ground columns + the vehicle-id `List<Long>`
+   backbone + `spawn`/`reap`. `GroundSystem.add` →
    `allocateVehicle({GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION})`, seeding the
    columns with the **same** `GroundBody`/`VehicleMission`/type/faction instances the
    `Vehicle` handle holds (aliasing → all consumers compile unchanged). Give `Vehicle` an

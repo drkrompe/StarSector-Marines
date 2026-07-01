@@ -427,6 +427,32 @@ public final class UnitRosterService {
     }
 
     /**
+     * Mints a world entity id for a ground CONVOY vehicle (truck / APC) and adopts
+     * it into the entity world with the given {@code archetype}, <em>without</em>
+     * inserting it into the dense ground roster — the ground twin of
+     * {@link #allocateAir}. Convoy vehicles are world-resident only: they never
+     * appear in {@link #denseArray()} / {@link #liveCount()} walks, the spatial
+     * index, occupancy, or fog, so every grid system skips them for free (their
+     * archetype carries no POSITION/HEALTH/COMBAT/MOVEMENT/AI_STATE). The caller then
+     * seeds the archetype's OBJECT columns (ground identity / kinematics / mission)
+     * through the {@code ConvoyService} data owner. Vehicle liveness is
+     * {@code mission.state == GONE}, not {@code HEALTH} — vehicles have no hp.
+     *
+     * <p>Shares the single {@link #nextId} authority with {@link #allocate} and
+     * {@link #allocateAir}, so a vehicle id can never collide with a ground or air
+     * id — the dual-mint trap (self-minting via {@code EntityWorld.createEntity(comps)}
+     * would bump the world's counter but not {@code nextId}, letting a later ground
+     * allocate reuse a vehicle's id). Serial-only (the convoy tick runs in the serial
+     * GROUND_SYSTEM phase). Part of the convoy-{@code Vehicle}-into-world epic
+     * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}).
+     */
+    public long allocateVehicle(ComponentType[] archetype) {
+        long id = nextId++;
+        entityWorld.createEntity(id, archetype);
+        return id;
+    }
+
+    /**
      * Hard-removes the entity with id {@code id} via swap-and-pop. The tail
      * entity moves into the freed slot and its id→index mapping updates. No-op if
      * {@code id} is unknown (duplicate-release safety) or {@code 0L} (the

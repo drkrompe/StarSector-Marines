@@ -71,13 +71,24 @@ identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction inputs 
 path/burst methods. Every migrated field's by-id access is Service-direct
 ([[feedback_world_facade_deprecated]]).
 
-**NEXT — fold convoy `Vehicle` into the world** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)):
-the ground `Vehicle`/`MapVehicle` POJO in `GroundSystem`'s `List<Vehicle>` is the **last
-non-ECS storage space** in the battle tier — a third storage home the air analog
-(shuttles/drones as `{AIR_IDENTITY, KINEMATICS, …}` entities) already closed on its side.
-Bring ground vehicles into the one `EntityWorld` as a ground archetype, following the air
-template. This is the on-arc ECS-storage continuation; the systems-half epic above is
-closed at terminus.
+**ACTIVE — fold convoy `Vehicle` into the world** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)):
+the live convoy `Vehicle` POJO in `GroundSystem`'s `List<Vehicle>` is the **last non-ECS
+storage space** in the battle tier — a third storage home the air analog (shuttles/drones
+as `{AIR_IDENTITY, KINEMATICS, …}` entities) already closed on its side. Bring ground
+vehicles into the one `EntityWorld` as a ground archetype, following the shipped air
+template phase-for-phase. (`MapVehicle` — static render-only map decoration — is explicitly
+out of scope.)
+
+- **Phase 1 ✓ SHIPPED (2026-07-01):** `GROUND_IDENTITY` (23) + `GROUND_KINEMATICS` (24)
+  registered; `UnitRosterService.allocateVehicle` mints from the shared `nextId`, world-only
+  (mirrors `allocateAir`); `VehicleEntityAllocationTest` (3) proves shared-mint +
+  world-resident-but-off-roster + column round-trip. Additive, suite green.
+- **NEXT — Phase 2:** extract a `VehicleMission` state bag from `Vehicle`'s inline
+  lifecycle fields; register `VEHICLE_MISSION` + the `groundCraft` query; introduce
+  `ConvoyService` (data owner, its first consumer); `GroundSystem.add` adopts vehicles into
+  the world (aliasing the same `GroundBody`/mission/type/faction instances). Then Phase 3
+  (turret → component) and Phase 4 (dissolve the `Vehicle` handle; `entityWorld.destroy` at
+  `GONE`).
 
 ### Access model (in force for every new slice)
 
@@ -120,19 +131,21 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+<pending> ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
+1d5ce956 docs(ecs-migration): close systems-to-columns at terminus, open vehicle-into-world
 6f528fc8 ecs-migration: fold Entity.deathPoseIdx into the DeathEvent (slice 8, FINALE)
 7537de69 ecs-migration: move Entity task fields onto a TASK component (slice 7c)
 84d0625c ecs-migration: lift the reprio gate off Entity into HitResponseSystem (slice 7b)
 eb676efb ecs-migration: move Entity.homeCell onto a HOME component (slice 7a)
-2cede400 ecs-migration: move Entity.role onto a universal ROLE component (slice 6)
-32a00239 ecs-migration: move Entity.squadId onto a presence-based SQUAD component
 ```
+(The `<pending>` line's hash lands at this commit; next boundary fills it in.)
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
 goap, campaign) interleave on HEAD.
 
 ## Sanity check before resuming
 
-- `gradlew.bat compileJava` clean, full suite green (809 tests at slice 8).
+- `gradlew.bat compileJava` clean, full suite green (`:test` BUILD SUCCESSFUL at
+  vehicle-into-world Phase 1; `VehicleEntityAllocationTest` +3).
 - `git log --oneline -5` shows `6f528fc8` (slice 8 — deathPoseIdx fold, epic finale) or
   your own recent work at the top.
