@@ -1,6 +1,8 @@
 # Live authored-appearance — sprites/rendering as ECS component data
 
-> **STATUS: Phase 1 SHIPPED (`9f1c33f0`, 2026-07-01); Phase 2 next.** The active ECS-migration epic after
+> **STATUS: Phases 1+2 SHIPPED (`9f1c33f0`+`ee215e14`, `9bd3c7fa` — 2026-07-01); the
+> core authored-appearance loop is CLOSED (author → read). Phases 3–4 are art/scope-gated.**
+> The active ECS-migration epic after
 > convoy-`Vehicle`-into-world (DONE). The **storage** half of the migration is fully closed
 > (every unit / craft / vehicle is a world entity); this is the **presentation-data** half:
 > make a live unit's on-screen appearance (facing, frame, aim-pose, animation) **authored
@@ -128,11 +130,21 @@ facing→frame / weaponUp math so it's unit-testable off the system.
    `deadSpritePath`). `RenderAppearance.derive` then **defers to it** (single source of truth,
    de-dups the switch); `allocate` gates `SPRITE` on it. This is a small additive prerequisite
    inside Phase 1.
-2. **Flip the renderer to read `SPRITE`.** `emitLiveSprite` reads `SPRITE_INDEX`/`FLIP_V`/`SHEET`
+2. ~~**Flip the renderer to read `SPRITE`.**~~ **SHIPPED `9bd3c7fa` (2026-07-01;
+   Sonnet-implemented, main-thread reviewed; suite 843 green).** `sweepLiveSprites` is a pure
+   `liveSprites` `Query` column walk (leaves the dense roster — the crumb collected);
+   `emitLiveSprite` reads authored `SPRITE_INDEX`/`FLIP_V`/`SHEET`; the whole renderer
+   derivation block is deleted. All three handoff landmines addressed (hp-gate-before-
+   visibility, per-weapon aim join with base fallback, render-side clamp).
+   **Convergence decided AGAINST:** the optional single drawable-`SPRITE` walk is rejected —
+   sweep order is paint order under the strict-painter drain (corpses draw under live units),
+   so live + dead stay two sweeps. **Accepted seam:** setup-spawned units draw the seeded
+   south-idle frame until the first `FacingSystem` pass (old code showed path-facing one
+   frame earlier; imperceptible). New headless `UnitRenderServiceLiveSweepTest` pins
+   live-emit / drained-corpse / released-not-yet-transmuted via `DrawList` counts with an
+   unloaded `BattleSprites`. Original design: `emitLiveSprite` reads the authored fields
    instead of calling `computeFacing`/`pickFrame`/`weaponUp`; delete those from the renderer
-   (moved to `LiveAppearance`). Optionally converge `sweepLiveSprites` + `sweepDeadSprites` onto
-   one drawable-`SPRITE` `Query` walk (live sweep leaves the dense roster — a systems-to-columns
-   crumb collected for free). Behavior-identical; suite green. Critique.
+   (moved to `LiveAppearance`). Behavior-identical; suite green. Critique.
 3. **Walk-cycle `ANIMATION` (id 27) — new behavior, per-type opt-in, ART-DEPENDENT.** Add the
    component + advance it in `FacingSystem`, fold into `SPRITE_INDEX` for types flagged
    `hasWalkCycle`. Behavior-preserving for types without walk frames (gate off). **Blocked on

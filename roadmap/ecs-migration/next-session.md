@@ -128,15 +128,14 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    the systems-half epic is its consumer.
 6. ~~Combatant-narrow COMBAT membership~~ — **SHIPPED (`74c565d1`):** "has COMBAT" now
    defines a combatant.
-7. **Live authored-appearance** (FacingSystem / `ANIMATION` component / FX child entities) —
-   **← ACTIVE; Phase 1 SHIPPED (`9f1c33f0`, 2026-07-01).** Live sheet-drawn units carry `SPRITE`
-   from spawn, authored per-tick by `battle.appearance.FacingSystem` at the sim-tick tail
-   (dormant — renderer still derives). **Next: Phase 2** — flip `UnitRenderService.emitLiveSprite`
-   to read `SPRITE`, delete the renderer's private derivation copies, optionally converge
-   live+dead onto one drawable-`SPRITE` `Query` sweep. See the story's "Phase-2 handoff notes"
-   (frame clamp stays render-side; selector→sheet mapping needs the aim-cache-missing fallback).
-   Design + full slice plan: [`stories/live-appearance.md`](stories/live-appearance.md);
-   walk-cycle `ANIMATION` + FX-child-entities remain later/art-gated phases.
+7. **Live authored-appearance** — **core loop CLOSED (2026-07-01): Phases 1+2 SHIPPED**
+   (`9f1c33f0`+`ee215e14` author, `9bd3c7fa` read). Live sheet-drawn units carry `SPRITE`
+   authored per-tick by `battle.appearance.FacingSystem`; `UnitRenderService.sweepLiveSprites`
+   is a pure `liveSprites` `Query` collector (dense-roster walk + all renderer derivation
+   deleted; single-walk convergence rejected — sweep order is paint order). Remaining phases
+   are **gated, not next-up**: Phase 3 walk-cycle `ANIMATION` needs art; Phase 4 =
+   secondary-aim-target bug-fix + FX-child-entities (scope on its own when reached).
+   [`stories/live-appearance.md`](stories/live-appearance.md).
    [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
 8. **FiringSystem** — extract the duplicated fire mechanics (~12 GOAP postures + turret/drone
    aim variants; the canonical cooldown-gate → `fireShot` → reset → burst → reposition block,
@@ -180,11 +179,11 @@ goap, campaign) interleave on HEAD.
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
 - `git log --oneline -5` shows `35840353` (javadoc sweep) / `f1ad8753` (the deletion) or your
   own recent work at the top.
-- **ACTIVE epic: live authored-appearance** (backlog item 7 — user-picked 2026-07-01).
-  **Phase 1 shipped `9f1c33f0`** (SPRITE on live units + dormant `FacingSystem`; suite 839
-  green). **Pick up at Phase 2**: flip the renderer to read `SPRITE` + delete its derivation
-  copies — read the story's Phase-2 handoff notes first. Other queued candidates if this
-  stalls: **FiringSystem** (item 8, unblocked, high ready value), **identity-collapse**
-  (item 9), **statelessify `VehicleController`** (item 10).
+- **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
+  (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
+  are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
+  epic is **parked, not active**. **Next actionable candidate: FiringSystem** (item 8 —
+  unblocked, high ready value, fixes the HoldPost double-tick cooldown bug); then
+  **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
