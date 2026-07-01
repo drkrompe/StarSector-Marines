@@ -1,19 +1,22 @@
 # Battle-tier ECS migration
 
 > **Status (2026-07-01): the storage/topology half AND the identity half are DONE; the
-> systems/perf half is open.** The entity-field migration finished (all 8 slices) — every
-> mutable per-unit field left the `Entity` heap object, so "entity = id" is now true for
-> the systems layer too, not just storage. What remains is turning the registry-shaped
-> loops that still read columns by id into query-driven, column-walking systems
-> ([`stories/systems-to-columns.md`](stories/systems-to-columns.md)) — an idiom win, not
-> a perf necessity (Phase 0 measured it). Read [`next-session.md`](next-session.md) §
+> systems half is CLOSED at its Phase-0 terminus; one storage gap (convoy `Vehicle`)
+> remains.** The entity-field migration finished (all 8 slices) — every mutable per-unit
+> field left the `Entity` heap object, so "entity = id" is now true for the systems layer
+> too, not just storage. The systems-half epic (query-driven, column-walking systems)
+> shipped its one genuine win (occupancy) and is otherwise
+> [closed at terminus](stories/systems-to-columns.md#terminus-2026-07-01) — the remaining
+> slices are lateral or Phase-0-parked (~0.02%/frame). **The active next epic is folding
+> the ground `Vehicle`/`MapVehicle` POJO — the last non-ECS storage space — into the world
+> as a ground archetype** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)),
+> following the shipped air-into-world template. Read [`next-session.md`](next-session.md) §
 > Status first for the live state and the leverage-ordered backlog. This file is the arc's *framing*: the *why*,
 > the original **SoA-peel design rules** (historical — that peel is complete and its
 > `UnitRegistry`/`local*`/`denseIdx` machinery is deleted, but the storage principles
 > carry forward), and the naming north star (now *achieved* — `Unit` is `Entity`). The
 > committed storage engine and its **live** rules are in
-> [`archetype-storage.md`](archetype-storage.md); the next epic is
-> [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
+> [`archetype-storage.md`](archetype-storage.md).
 
 Long-running refactor arc that moved the battle simulation from
 god-class-with-context-interfaces toward a Services-and-Systems shape, and the
@@ -138,12 +141,14 @@ ARE presence components — and *partially* open: the `Entity` handle still carr
 state, and the hot systems still read columns by id rather than walking a `Query`. The
 next epics, by leverage (full backlog in [`next-session.md`](next-session.md) § Status):
 
-- [`stories/systems-to-columns.md`](stories/systems-to-columns.md) — the **systems
-  half**: convert the combatant hot loop to `Query` + column iteration and *measure*
-  the cache-locality win. **The headline next step.**
-- Migrate the behavior-tier `Entity` fields onto world components (finishes
-  "entity = id").
-- Fold convoy ground `Vehicle` into the world (the air analog shipped; ground didn't).
+- **Fold convoy ground `Vehicle` into the world** (the air analog shipped; ground didn't)
+  — [`stories/vehicle-into-world.md`](stories/vehicle-into-world.md). **The active next
+  step**: the last non-ECS storage space.
+- ~~Migrate the behavior-tier `Entity` fields onto world components~~ — **DONE (2026-07-01)**
+  (all 8 slices; finishes "entity = id" for mutable state).
+- ~~[`stories/systems-to-columns.md`](stories/systems-to-columns.md) — the **systems
+  half**~~ — **CLOSED at terminus (2026-07-01)**: Slice 1 (occupancy) collected the win;
+  the rest is lateral or Phase-0-parked. Reopen only with the identity-collapse epic.
 - Live authored-appearance (FacingSystem / `ANIMATION` component / FX child entities).
 
 ## Memory entries to read alongside

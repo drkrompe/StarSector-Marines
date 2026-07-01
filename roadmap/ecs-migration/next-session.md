@@ -27,11 +27,13 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
 
 ## What's NOT done — the open half (why an ECS is worth building)
 
-1. **The systems are not query-shaped.** The mainline N≈200 combatant/AI/vision/squad
-   loops still iterate the dense `Entity[]` and read component data **by id** (one map
-   probe per field per unit). Only a few tiny/optional populations column-walk a
-   `Query`. The cache-locality win is uncollected. → epic
-   [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
+1. ~~**The systems are not query-shaped.**~~ **CLOSED at terminus (2026-07-01).** The
+   mainline loops still read columns by id, but [`stories/systems-to-columns.md`](stories/systems-to-columns.md)
+   § Terminus walks each remaining slice against the code and finds them lateral (they
+   *move* hashmap probes, not remove them) or Phase-0-parked (~0.02%/frame). Slice 1
+   (occupancy) collected the one genuine win. Reopen only alongside the deliberate
+   *identity-collapse* (Entity-handle) epic, where the spatial index goes id-native as a
+   byproduct — not on systems-half perf grounds.
 2. ~~**`Entity` carries live behavior fields.**~~ **DONE (2026-07-01).** All 8 slices of
    [`stories/entity-field-migration.md`](stories/entity-field-migration.md) shipped;
    `Entity` now holds no mutable per-unit state (id + immutable identity + write-only
@@ -69,12 +71,13 @@ identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction inputs 
 path/burst methods. Every migrated field's by-id access is Service-direct
 ([[feedback_world_facade_deprecated]]).
 
-**NEXT — the systems half** ([`stories/systems-to-columns.md`](stories/systems-to-columns.md)):
-turn the registry-shaped loops that still iterate the dense `Entity[]` and read columns
-by id into `Query` + column-array iteration. Phase 0 (measure) done, Phase 1 first slice
-shipped (`NavigationService.rebuildOccupancyMap`). This is the biggest *unrealized* win
-and the reason the field-migration was its prerequisite — though Phase 0 rates it
-idiom-completion, not a perf necessity (see the backlog).
+**NEXT — fold convoy `Vehicle` into the world** ([`stories/vehicle-into-world.md`](stories/vehicle-into-world.md)):
+the ground `Vehicle`/`MapVehicle` POJO in `GroundSystem`'s `List<Vehicle>` is the **last
+non-ECS storage space** in the battle tier — a third storage home the air analog
+(shuttles/drones as `{AIR_IDENTITY, KINEMATICS, …}` entities) already closed on its side.
+Bring ground vehicles into the one `EntityWorld` as a ground archetype, following the air
+template. This is the on-arc ECS-storage continuation; the systems-half epic above is
+closed at terminus.
 
 ### Access model (in force for every new slice)
 
@@ -96,17 +99,17 @@ Full rule in [`component-model.md`](component-model.md#component-class-conventio
 
 Full designs in the linked stories. Struck-through items are shipped/decided.
 
-1. **Convert the combatant hot loop to `Query` + column-array iteration** — epic (the
-   stated justification; biggest unrealized win).
-   [`stories/systems-to-columns.md`](stories/systems-to-columns.md). Phase 0 (measure)
-   done; Phase 1 re-scoped to behavior-neutral *column scans* (per-role timers are NOT
-   uniform sweeps — centralizing them is a behavior change, not a lift). First slice
-   shipped: `NavigationService.rebuildOccupancyMap` column-walks
-   `BattleComponents.gridOccupants`.
+1. ~~**Convert the combatant hot loop to `Query` + column-array iteration**~~ — **CLOSED
+   at terminus (2026-07-01).** [`stories/systems-to-columns.md`](stories/systems-to-columns.md)
+   § Terminus: Slice 1 (`NavigationService.rebuildOccupancyMap` column-walks
+   `BattleComponents.gridOccupants`) collected the win; the rest is lateral or
+   Phase-0-parked (~0.02%/frame). Reopen only with the identity-collapse epic.
 2. ~~Measure it (TickProfile A/B at N=200)~~ — **DONE** ([`phase0-measurement.md`](phase0-measurement.md)).
 3. ~~**Migrate the behavior-tier `Entity` fields onto components**~~ — **DONE
    (2026-07-01):** all 8 slices shipped; `Entity` carries no mutable per-unit state.
 4. **Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype** — L.
+   **← ACTIVE (2026-07-01).** The last non-ECS storage space; follows the shipped
+   air-into-world template. [`stories/vehicle-into-world.md`](stories/vehicle-into-world.md).
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep):** committed engine infra;
    the systems-half epic is its consumer.
 6. ~~Combatant-narrow COMBAT membership~~ — **SHIPPED (`74c565d1`):** "has COMBAT" now

@@ -1,10 +1,52 @@
 # Systems → columns (the systems half of the ECS migration)
 
-> **Status: design stage (seeded 2026-06-28).** This is the epic the storage
-> migration was building toward and the audit (2026-06-28) found unstarted. Read
-> [`overview.md`](../overview.md) for the SoA design rules and
+> **Status: CLOSED at its positive-value terminus (2026-07-01).** Phase 0 measured
+> the whole epic at ~0.02% of a 30 Hz frame; Slice 1 (occupancy) collected the one
+> genuine win; the remaining candidates are lateral (they *move* hashmap probes, not
+> remove them) or Phase-0-parked. The literal headline goal — column-walk the
+> `UnitUpdateSystem` combatant loop — is parked by the epic's own Phase-0 gate. See
+> **§ Terminus (2026-07-01)** below for the code-grounded walk of why each remaining
+> slice doesn't pay. Read [`overview.md`](../overview.md) for the SoA design rules and
 > [`archetype-storage.md`](../archetype-storage.md) for the engine the game systems
-> are meant to consume.
+> consume.
+>
+> ## Terminus (2026-07-01)
+>
+> Picked up to continue after the entity-field migration landed (the doc's "second
+> finding" said the spatial/vision slices would "fall out for free" once it did).
+> Walking the three remaining candidates against the actual code falsified that:
+>
+> - **Two doc premises were inaccurate.** `faction`/`type` are *already* dual-homed —
+>   `public final` fields on `Entity` **and** the `IDENTITY` column (id 0, OBJECT/OBJECT,
+>   persists alive→dead). So nothing was blocked on an "identity migration"; and the
+>   remaining slices don't fall out for free.
+> - **Spatial-index rebuilds (`UnitSpatialIndex`/`UnitDestinationSpatialIndex`) — lateral,
+>   not a win.** The buckets already denormalize `cellX/cellY` (gather's distance test is
+>   probe-free) and store `Entity` refs, so gather callers read `.faction` off the ref for
+>   free. Column-walking `rebuild` removes 2 cell-probes/unit but the bucket still needs a
+>   unit payload: either `roster.getOrNull(id)` back to `Entity` (net 2→1 probe, a sub-µs
+>   micro-opt) **or** switch the payload to `long` ids, which pushes a `getOrNull` probe
+>   onto every gather caller's `.faction` read — a decision-cadence **regression**. Slice 1
+>   (occupancy) was clean *only* because it is cell-keyed with **no unit payload** — that
+>   was the last freebie.
+> - **Vision sweep (`FogOfWarService.sweepUnitVisibility`) — not column-walkable.** Its
+>   output (`unitVisibility[]`/`fadeAlpha[]`) is keyed by **dense roster index**, which a
+>   POSITION-table walk does not preserve (table-row ≠ dense-slot). Re-keying by entity id
+>   is a fog re-architecture, not a column-walk slice. (Its `visionRange` reads are already
+>   fine: a small by-id contributor list off the VISION component, not an all-unit scan.)
+> - **Phase 2 (presence-dispatch) — not a clean lift.** `role` genuinely encodes *transient
+>   state* (`FLEE`, `KIT_RETRIEVER`, `OBJECTIVE_CAMPER`), not capability-presence, so
+>   converting `behaviorFor(role)` to presence gates is a behavior-model change — the same
+>   "not a mechanical lift" trap Phase 1's entangled timers hit. (The `FallbackBehavior`
+>   override *is* already presence-gated on `hasAiState` — the clean part was done.)
+> - **Phase 3 (behavior bodies) — parked by Phase 0** (~0.02%/frame, not memory-bound).
+>
+> **Verdict:** the epic delivered its real value at Slice 1 and is otherwise at a natural
+> stop. Pushing further is idiom/handle-shrinkage only (the still-open *identity-collapse*
+> would subsume the spatial-index id-native conversion), not a systems-half perf win — and
+> sinking effort into it now is exactly the premature-perf-engineering the project's
+> ship-then-optimize rule warns against. Reopen only alongside the deliberate
+> handle-collapse epic, where the spatial index goes id-native as a byproduct.
 
 ## The gap
 
