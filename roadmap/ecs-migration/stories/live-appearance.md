@@ -134,8 +134,15 @@ facing→frame / weaponUp math so it's unit-testable off the system.
    Sonnet-implemented, main-thread reviewed; suite 843 green).** `sweepLiveSprites` is a pure
    `liveSprites` `Query` column walk (leaves the dense roster — the crumb collected);
    `emitLiveSprite` reads authored `SPRITE_INDEX`/`FLIP_V`/`SHEET`; the whole renderer
-   derivation block is deleted. All three handoff landmines addressed (hp-gate-before-
-   visibility, per-weapon aim join with base fallback, render-side clamp).
+   derivation block is deleted. All three handoff landmines addressed (the hp≤0 gate —
+   whose *existence*, not its ordering, is the invariant: the visibility gate can never
+   filter a released row because `getUnitVisibility` tolerantly reads `INVALID_INDEX` as
+   visible (critique correction, `2d`-fixes commit); per-weapon aim join with base
+   fallback; render-side clamp). Two behavior-identity asterisks from the critique, both
+   accepted: within-sweep z-order changed (archetype-table order vs. dense order — no
+   contract existed, the old order was already swap-and-pop-unstable) and the headless
+   tests pin only the fallback-quad path (the sheet-emission branch needs GL; its frame
+   *math* is pinned by the Phase-1 golden tables).
    **Convergence decided AGAINST:** the optional single drawable-`SPRITE` walk is rejected —
    sweep order is paint order under the strict-painter drain (corpses draw under live units),
    so live + dead stay two sweeps. **Accepted seam:** setup-spawned units draw the seeded

@@ -531,13 +531,17 @@ public final class BattleComponents {
     public final Query corpses;
 
     /**
-     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION, SPRITE,
-     * HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
+     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION, RENDER_POSITION,
+     * SPRITE, HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
      * type, authored per-tick by {@code battle.appearance.FacingSystem}.
      * Requiring {@code HEALTH} excludes corpses (the death transmute removes
-     * it) without an explicit {@code CORPSE} exclusion. The column walk
-     * {@code FacingSystem.tick()} matches.
+     * it) without an explicit {@code CORPSE} exclusion. {@code RENDER_POSITION}
+     * is declared because the live-sprite render sweep pulls its columns from
+     * every matched table — the query states every column its consumers read
+     * (the {@link #corpses} convention), rather than leaning on the allocate
+     * invariant that happens to put RENDER_POSITION on every roster archetype.
+     * Walked by {@code FacingSystem.tick()} and the live-sprite render sweep.
      */
     public final Query liveSprites;
 
@@ -617,7 +621,8 @@ public final class BattleComponents {
         VEHICLE_MISSION   = world.register(26, "VehicleMission", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
-        liveSprites = world.query(new ComponentType[]{IDENTITY, POSITION, SPRITE, HEALTH}, null);
+        liveSprites = world.query(
+                new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, HEALTH}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);

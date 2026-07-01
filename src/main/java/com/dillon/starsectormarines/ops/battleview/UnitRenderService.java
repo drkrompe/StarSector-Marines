@@ -265,20 +265,21 @@ public final class UnitRenderService implements RenderSystem {
      * (no {@code RenderAppearance.spriteKind} check needed), and requiring
      * {@code HEALTH} excludes corpses without a separate check.
      *
-     * <p>Two gates, in this order:
+     * <p>Two gates:
      * <ol>
-     *   <li><b>{@code hp <= 0} first.</b> A unit killed <em>after</em> this tick's
+     *   <li><b>{@code hp <= 0} — this gate must EXIST; its position is just the
+     *   cheap-first ordering.</b> A unit killed <em>after</em> this tick's
      *   death-dispatcher drain (air-strafe damage, a convoy turret, a shot arrival)
      *   keeps its {@code HEALTH} row — hp &le; 0 — until the <em>next</em> tick's
      *   drain transmutes it to a corpse, so a released-but-not-yet-transmuted row
      *   still matches {@code liveSprites} for one frame (the old dense-roster walk
      *   got this filter for free — release already emptied the roster slot — so a
-     *   {@code Query} walk must state it). This must run <em>before</em> the
-     *   visibility lookup below: such a row's {@link UnitRosterService#indexOf}
-     *   resolves to {@code INVALID_INDEX} (already released from the roster), and
-     *   {@link FogOfWarService#getUnitVisibility} tolerantly returns
-     *   {@code VIS_VISIBLE} for an out-of-range index — checking visibility first
-     *   would draw the corpse-to-be's stale last live frame.</li>
+     *   {@code Query} walk must state it). The visibility gate below can <em>never</em>
+     *   filter such a row: its {@link UnitRosterService#indexOf} resolves to
+     *   {@code INVALID_INDEX} and {@link FogOfWarService#getUnitVisibility}
+     *   tolerantly returns {@code VIS_VISIBLE} for an out-of-range index — so
+     *   without this gate (in either position) the corpse-to-be draws its stale
+     *   last live frame.</li>
      *   <li><b>Visibility</b>, unchanged: {@code VIS_HIDDEN} skips, {@code VIS_FADING}
      *   multiplies in the fade alpha.</li>
      * </ol>
@@ -327,8 +328,9 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
-                // Gate 1: a released-but-not-yet-transmuted row (see the class doc
-                // above) — must precede the visibility lookup.
+                // Gate 1: a released-but-not-yet-transmuted row (see the method doc
+                // above) — the visibility gate can never filter these, so this
+                // check is load-bearing wherever it sits.
                 if (hp[r] <= 0f) continue;
 
                 // Gate 2: visibility, keyed by this row's dense roster slot.

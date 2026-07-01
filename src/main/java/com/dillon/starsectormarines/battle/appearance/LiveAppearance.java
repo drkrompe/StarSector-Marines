@@ -7,16 +7,15 @@ package com.dillon.starsectormarines.battle.appearance;
  * ops.battleview.UnitRenderService}'s former per-frame derivation
  * ({@code computeFacing}/{@code computeEightWayFacing}/{@code pickFrame}/
  * {@code pickFrameEightWay}/{@code facingFromDelta}/{@code eightWayFromDelta}) —
- * same tables, same thresholds, no "improvements". The renderer keeps its own
- * private copies for now (Phase 2 of the live-appearance epic deletes them once
- * it flips to reading the authored {@code SPRITE} columns instead).
+ * same tables, same thresholds, no "improvements". Since Phase 2 flipped the
+ * renderer to read the authored {@code SPRITE} columns, this class is the
+ * <em>only</em> copy of the derivation.
  *
  * <p>Stateless; the {@link com.dillon.starsectormarines.battle.air.AirAppearance AirAppearance} sibling —
  * a system advances authored component scalars into the world each tick, and a
  * stateless helper here turns them into the concrete draw parameters, unit-
  * testable off the system. {@code LiveAppearanceTest} pins these tables against
- * hand-written golden values (not the renderer) until the renderer's copies are
- * deleted in Phase 2, at which point this class becomes the only copy.
+ * hand-written golden values carried over from the deleted renderer copies.
  */
 public final class LiveAppearance {
 
