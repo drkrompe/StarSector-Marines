@@ -130,6 +130,11 @@ public final class BattleComponents {
     /** {@link #HOME} field 1: the garrison idle-post cell y (INT). */
     public static final int HOME_CELL_Y = 1;
 
+    /** {@link #TASK} field 0: the {@link com.dillon.starsectormarines.battle.command.objective.Objective} this unit is acting on, or {@code null} (OBJECT). */
+    public static final int TASK_ASSIGNED_OBJECTIVE = 0;
+    /** {@link #TASK} field 1: the {@link com.dillon.starsectormarines.battle.infantry.EquipmentDrop} kit a KIT_RETRIEVER is heading to, or {@code null} (OBJECT). */
+    public static final int TASK_EQUIPMENT_DROP = 1;
+
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
     /** {@link #SECONDARY_WEAPON} field 1: rounds remaining on the secondary (INT). */
@@ -319,6 +324,25 @@ public final class BattleComponents {
      */
     public final ComponentType HOME;
     /**
+     * Optional objective/kit task — two <em>nullable</em> OBJECT fields: the
+     * {@link com.dillon.starsectormarines.battle.command.objective.Objective}
+     * {@code assignedObjective} a unit is acting on (a planter's charge site, a VIP's
+     * exfil, an objective-camper's position) and the
+     * {@link com.dillon.starsectormarines.battle.infantry.EquipmentDrop}
+     * {@code equipmentDropTarget} a KIT_RETRIEVER is heading to. <em>Optional</em>:
+     * added when a unit first acquires a task (seeded at spawn for loadout
+     * planters/VIPs; added at kit-assignment for recruited retrievers) — so a plain
+     * combatant that was never tasked carries no TASK, and {@code TaskService}'s reads
+     * are <b>tolerant</b> (null when the component is absent, preserving the old
+     * "null = no task" semantics). Modeled as nullable fields rather than presence tags
+     * because {@code equipmentDropTarget} is <em>cleared during the parallel dispatch</em>
+     * ({@code KitRetrieverBehavior}), which must be a plain field-write, not a structural
+     * remove. Live-only (the death cascade reads the task pre-transmute, in resolve()).
+     * Data owner {@code battle.sim.TaskService}. See
+     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 7).
+     */
+    public final ComponentType TASK;
+    /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
      * <em>optional</em> live capability modeled as archetype presence: added at
@@ -499,6 +523,7 @@ public final class BattleComponents {
         SQUAD           = world.register(19, "Squad", FieldKind.INT);
         ROLE            = world.register(20, "Role", FieldKind.INT);
         HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
+        TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

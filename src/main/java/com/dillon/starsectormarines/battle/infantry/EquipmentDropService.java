@@ -52,9 +52,8 @@ public final class EquipmentDropService {
         // buffered corpse transmute, so ROLE is still present — read it by id.
         UnitRole role = rosterService.role().role(dead.entityId);
         if (role == UnitRole.PLANTER) {
-            carried = dead.assignedObjective;
-        } else if (role == UnitRole.KIT_RETRIEVER && dead.equipmentDropTarget != null
-                && !dead.equipmentDropTarget.consumed) {
+            carried = rosterService.task().assignedObjective(dead.entityId);
+        } else if (role == UnitRole.KIT_RETRIEVER && isCarryingLiveKit(dead)) {
             // Retriever was carrying nothing in-hand, but their target kit
             // is still on the ground. We don't emit a new drop — the existing
             // one remains in the world for someone else to grab.
@@ -65,6 +64,12 @@ public final class EquipmentDropService {
         // dead unit is still registered — read its cell by id.
         World world = rosterService.world();
         equipmentDrops.add(new EquipmentDrop(world.cellX(dead.entityId), world.cellY(dead.entityId), carried));
+    }
+
+    /** True iff {@code dead}'s kit target is still on the ground (un-consumed) — read by id off the TASK component. */
+    private boolean isCarryingLiveKit(Entity dead) {
+        EquipmentDrop kit = rosterService.task().equipmentDropTarget(dead.entityId);
+        return kit != null && !kit.consumed;
     }
 
     /**

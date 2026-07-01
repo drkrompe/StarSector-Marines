@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.RoleService;
+import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
@@ -62,6 +64,7 @@ public final class EquipmentDropSystem {
         // dense walk is safe; the corpse never appears.
         World world = rosterService.world();
         RoleService role = rosterService.role();
+        TaskService task = rosterService.task();
 
         // Pickup pass — any marine standing on a drop cell takes the kit.
         for (EquipmentDrop drop : active) {
@@ -72,8 +75,10 @@ public final class EquipmentDropSystem {
                 if (u.faction != Faction.MARINE) continue;
                 if (world.cellX(u.entityId) != drop.cellX || world.cellY(u.entityId) != drop.cellY) continue;
                 role.setRole(u.entityId, UnitRole.PLANTER);
-                u.assignedObjective = drop.objective;
-                u.equipmentDropTarget = null;
+                // setAssignedObjective first (adds TASK if this was a plain combatant),
+                // then clear the kit target on the now-present component.
+                task.setAssignedObjective(u.entityId, drop.objective);
+                task.clearEquipmentDropTarget(u.entityId);
                 drop.consumed = true;
                 break;
             }
@@ -86,7 +91,7 @@ public final class EquipmentDropSystem {
             Entity nearest = nearestAvailableMarine(drop.cellX, drop.cellY);
             if (nearest != null) {
                 role.setRole(nearest.entityId, UnitRole.KIT_RETRIEVER);
-                nearest.equipmentDropTarget = drop;
+                task.setEquipmentDropTarget(nearest.entityId, drop);
                 // Wipe any stale path so the retriever re-pathfinds to the drop
                 // next tick instead of continuing toward their old target.
                 pathClearer.accept(nearest);
@@ -98,9 +103,10 @@ public final class EquipmentDropSystem {
 
     private boolean hasLivingRetriever(EquipmentDrop drop) {
         RoleService role = rosterService.role();
+        TaskService task = rosterService.task();
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
             Entity u = rosterService.get(i);
-            if (role.role(u.entityId) == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
+            if (role.role(u.entityId) == UnitRole.KIT_RETRIEVER && task.equipmentDropTarget(u.entityId) == drop) return true;
         }
         return false;
     }
@@ -116,17 +122,20 @@ public final class EquipmentDropSystem {
     private Entity nearestAvailableMarine(int cx, int cy) {
         World world = rosterService.world();
         RoleService role = rosterService.role();
+        TaskService task = rosterService.task();
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
             Entity u = rosterService.get(i);
             if (u.faction != Faction.MARINE) continue;
+            Objective ao = task.assignedObjective(u.entityId);
             if (role.role(u.entityId) == UnitRole.PLANTER
-                    && u.assignedObjective != null
-                    && !u.assignedObjective.isComplete()) continue;
+                    && ao != null
+                    && !ao.isComplete()) continue;
+            EquipmentDrop edt = task.equipmentDropTarget(u.entityId);
             if (role.role(u.entityId) == UnitRole.KIT_RETRIEVER
-                    && u.equipmentDropTarget != null
-                    && !u.equipmentDropTarget.consumed) continue;
+                    && edt != null
+                    && !edt.consumed) continue;
             float d = TacticalScoring.cellDistance(world.cellX(u.entityId), world.cellY(u.entityId), cx, cy);
             if (d < bestDist) {
                 bestDist = d;

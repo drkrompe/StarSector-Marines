@@ -122,6 +122,9 @@ public interface BattleView {
     /** Data owner for the HOME component (garrison idle-post) — {@code home().hasHome(id)} / {@code homeCellX(id)}. The per-component Service that lands HOME off the {@link World} god-facade. */
     HomeService home();
 
+    /** Data owner for the TASK component (objective/kit assignment) — {@code task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. Tolerant reads (null when untasked); lands the task fields off the {@link World} god-facade. */
+    TaskService task();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

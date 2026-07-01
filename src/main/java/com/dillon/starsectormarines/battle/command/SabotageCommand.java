@@ -116,7 +116,7 @@ public final class SabotageCommand implements MissionCommand {
             Entity u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             if (sim.role().role(u.entityId) != UnitRole.PLANTER) continue;
-            if (u.assignedObjective instanceof ChargeSiteObjective cs && !cs.isComplete()) {
+            if (sim.task().assignedObjective(u.entityId) instanceof ChargeSiteObjective cs && !cs.isComplete()) {
                 return true;
             }
         }

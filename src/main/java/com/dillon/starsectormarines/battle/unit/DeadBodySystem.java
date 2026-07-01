@@ -65,7 +65,7 @@ public final class DeadBodySystem {
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
-                components.SQUAD, components.ROLE, components.HOME};
+                components.SQUAD, components.ROLE, components.HOME, components.TASK};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

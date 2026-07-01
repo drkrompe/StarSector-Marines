@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -291,10 +290,20 @@ public class Entity {
      * {@link #seedSquadId}.
      */
     public UnitRole seedRole = UnitRole.COMBATANT;
-    /** Objective this unit is acting on, when the role requires one (charge site for a planter, exfil zone for a VIP, position to camp for an objective camper). Null for plain combatants. */
-    public Objective assignedObjective;
-    /** {@link UnitRole#KIT_RETRIEVER} target — the dropped kit this unit is heading to recover. Cleared when picked up or when the drop is consumed by someone else. */
-    public EquipmentDrop equipmentDropTarget;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The objective a unit deboards
+     * acting on, when the loadout role requires one (a planter's charge site, a VIP's
+     * exfil, an objective-camper's position); {@code null} for plain combatants.
+     * {@link UnitRosterService#allocate} consumes it: a non-null value makes the unit
+     * spawn with the {@code TASK} component, seeded with this objective. The live task
+     * thereafter lives in the world component, reached by id via the {@code TaskService}
+     * data owner ({@code sim.task().assignedObjective(id)}); the runtime-assignment seam
+     * (a kit pickup promotes a marine to PLANTER with the kit's objective) is
+     * {@code TaskService.setAssignedObjective}. Write-only construction input; mirrors
+     * {@link #seedSquadId}. (The {@code KIT_RETRIEVER} kit target is TASK's other field —
+     * purely runtime, so it has no seed.)
+     */
+    public Objective seedAssignedObjective;
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The garrison idle-post cell

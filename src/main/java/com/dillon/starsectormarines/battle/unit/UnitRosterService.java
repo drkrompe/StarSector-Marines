@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.SquadService;
 import com.dillon.starsectormarines.battle.sim.RoleService;
 import com.dillon.starsectormarines.battle.sim.HomeService;
+import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -122,6 +123,7 @@ public final class UnitRosterService {
     private final SquadService squadService = new SquadService(entityWorld, components);
     private final RoleService roleService = new RoleService(entityWorld, components);
     private final HomeService homeService = new HomeService(entityWorld, components);
+    private final TaskService taskService = new TaskService(entityWorld, components);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -231,6 +233,9 @@ public final class UnitRosterService {
     /** Data owner for the HOME component (garrison idle-post) — inject into consumers that gate on hasHome / read the post cell. */
     public HomeService home() { return homeService; }
 
+    /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
+    public TaskService task() { return taskService; }
+
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
@@ -296,9 +301,14 @@ public final class UnitRosterService {
         // "has a post" — a roaming marine / patrol (the -1 seed) carries no HOME, so the
         // old sentinel never lands in the world (the SQUAD precedent). Live-only.
         boolean hasHome = u.seedHomeCellX >= 0;
+        // TASK iff the unit deboards already acting on an objective (a planter/VIP/camper
+        // loadout). The KIT_RETRIEVER kit target is purely runtime, so it never seeds
+        // TASK at spawn — a plain combatant recruited as a retriever gains TASK then (a
+        // serial addComponent). Optional; live-only.
+        boolean hasTask = u.seedAssignedObjective != null;
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
-                  + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0)];
+                  + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -315,6 +325,7 @@ public final class UnitRosterService {
         if (hasBody) archetype[c++] = components.KINEMATICS;
         if (inSquad) archetype[c++] = components.SQUAD;
         if (hasHome) archetype[c++] = components.HOME;
+        if (hasTask) archetype[c++] = components.TASK;
         entityWorld.createEntity(id, archetype);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
@@ -364,6 +375,11 @@ public final class UnitRosterService {
         if (hasHome) {
             entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_X, u.seedHomeCellX);
             entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_Y, u.seedHomeCellY);
+        }
+        // Seed the assigned objective (the TASK component was attached above iff the unit
+        // deboards with one); the kit-target field appends null.
+        if (hasTask) {
+            entityWorld.setObject(id, components.TASK, BattleComponents.TASK_ASSIGNED_OBJECTIVE, u.seedAssignedObjective);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative

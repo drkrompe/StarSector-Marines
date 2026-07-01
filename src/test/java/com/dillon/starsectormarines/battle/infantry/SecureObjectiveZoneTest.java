@@ -90,7 +90,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -107,7 +107,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -124,7 +124,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         SquadPlan plan = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
@@ -154,7 +154,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         SquadPlan first = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
@@ -177,7 +177,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         assertNull(SecureObjectiveZone.INSTANCE.customPlan(squad, sim),
@@ -199,7 +199,7 @@ public class SecureObjectiveZoneTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         // Advance objective progress past its duration so isComplete() flips true.

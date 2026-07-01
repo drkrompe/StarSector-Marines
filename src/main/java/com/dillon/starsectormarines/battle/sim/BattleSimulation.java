@@ -404,6 +404,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the HOME component (garrison idle-post) — {@code sim.home().hasHome(id)} / {@code homeCellX(id)}. */
     public HomeService home() { return rosterService.home(); }
 
+    /** Data owner for the TASK component (objective/kit assignment) — {@code sim.task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. */
+    public TaskService task() { return rosterService.task(); }
+
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 

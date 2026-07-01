@@ -28,10 +28,10 @@ public final class KitRetrieverBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        EquipmentDrop drop = u.equipmentDropTarget;
+        EquipmentDrop drop = sim.task().equipmentDropTarget(u.entityId);
         if (drop == null || drop.consumed) {
             sim.role().setRole(u.entityId, UnitRole.COMBATANT);
-            u.equipmentDropTarget = null;
+            sim.task().clearEquipmentDropTarget(u.entityId);
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }

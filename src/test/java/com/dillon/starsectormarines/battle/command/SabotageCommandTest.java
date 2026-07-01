@@ -87,7 +87,7 @@ public class SabotageCommandTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 4);
         planter.seedSquadId = squad.id;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = site;
+        planter.seedAssignedObjective = site;
         sim.addUnit(planter);
 
         new SabotageCommand().tick(sim);
@@ -157,7 +157,7 @@ public class SabotageCommandTest {
         // without needing the rest of the sim to be set up properly.
         Entity p = new Entity("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y);
         p.seedRole = UnitRole.PLANTER;
-        p.assignedObjective = cs;
+        p.seedAssignedObjective = cs;
         sim.addUnit(p);
         sim.world().setMoveProgress(p.entityId, 0f);
         cs.tick(sim);

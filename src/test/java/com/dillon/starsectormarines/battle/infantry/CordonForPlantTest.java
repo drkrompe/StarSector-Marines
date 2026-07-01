@@ -87,7 +87,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 1, 1);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         assertEquals(0f, CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -112,7 +112,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         assertTrue(CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
@@ -129,7 +129,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
@@ -175,7 +175,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
         TestUnits.kill(sim, planter);
 
@@ -193,7 +193,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 6, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
         sim.world().setMoveProgress(planter.entityId, 0f);
         // Tick the objective enough to flip isComplete().
@@ -214,7 +214,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
@@ -242,7 +242,7 @@ public class CordonForPlantTest {
         Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.seedSquadId = 1;
         planter.seedRole = UnitRole.PLANTER;
-        planter.assignedObjective = charge;
+        planter.seedAssignedObjective = charge;
         sim.addUnit(planter);
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
