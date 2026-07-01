@@ -60,14 +60,16 @@ public final class ConvoyService {
         }
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
-        // Presence == armed: an unarmed transport gets no GROUND_TURRET component.
+        // VEHICLE_MISSION (the handle-as-payload) is universal; GROUND_TURRET is present
+        // only when armed.
         ComponentType[] archetype = (v.turret != null)
-                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.GROUND_TURRET}
-                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS};
+                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.GROUND_TURRET}
+                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION};
         long id = roster.allocateVehicle(archetype);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_TYPE, v.type);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION, v.faction);
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, v.body);
+        world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, v);
         if (v.turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, v.turret);
         }
@@ -109,6 +111,21 @@ public final class ConvoyService {
         EntityWorld world = roster.entityWorld();
         return world.has(id, c.GROUND_IDENTITY)
                 ? (Faction) world.getObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION)
+                : null;
+    }
+
+    /**
+     * The {@link Vehicle} handle for {@code id} (the {@code VEHICLE_MISSION} payload), or
+     * {@code null} if {@code id} isn't a live ground craft (has-gated). The id→handle
+     * resolution that lets {@code GroundSystem} keep a {@code List<Long>} backbone instead
+     * of a side {@code List<Vehicle>}. Becomes {@code mission(id)} → {@code VehicleMission}
+     * when the handle dissolves.
+     */
+    public Vehicle vehicle(long id) {
+        BattleComponents c = roster.components();
+        EntityWorld world = roster.entityWorld();
+        return world.has(id, c.VEHICLE_MISSION)
+                ? (Vehicle) world.getObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE)
                 : null;
     }
 

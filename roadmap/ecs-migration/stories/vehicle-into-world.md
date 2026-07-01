@@ -141,11 +141,23 @@ than air, where `AirSystem` conflated owner + processor.
    bag (their gates — `turretFrame >= 0`, ungated dump — are broader than `hasTurretWeapon`),
    `BattleRenderer`'s debug overlay reads it under the `hasTurretWeapon` gate. `ConvoyServiceTest`
    +2. Full suite green.
-4. **Extract `VehicleMission` + dissolve the handle.** Extract a `VehicleMission` bag from
-   `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
+4. **Dissolve the handle — decomposed into 4a–4d (each green), 4a–4c SHIPPED (2026-07-01).**
+   - **4a ✓** promoted `Vehicle.State` → top-level `VehicleState` (outlives the handle).
+   - **4b ✓** re-keyed vehicle selection off positional index onto **entity id**
+     (`Selection.selectedVehicleId`; `WorldPicker`/`BattleScreen`/`BattleRenderer` resolve by
+     id) and added the end-of-tick `reapGoneVehicles()` sweep (despawn + remove GONE) — closes
+     the Phase-2 critique A/B (list-removal was blocked on the positional-index coupling).
+   - **4c ✓** converted `GroundSystem`'s `List<Vehicle>` → `List<Long> vehicleIds`; the handle
+     lives in a new `VEHICLE_MISSION` component (id 26, always present), reached via
+     `convoy.vehicle(id)`. `getVehicles()` materializes from ids; tick/turret/reap resolve by
+     id. **Vehicles are now fully world-resident — no separate handle-list storage (the
+     epic's PRIMARY goal).** Consumers unchanged.
+   - **4d (finale, optional polish)** — the remaining plan below. Extract a `VehicleMission`
+     bag from `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
    `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
-   inputs, `controller`, debug history); register `VEHICLE_MISSION` + the `groundCraft`
-   query and add the column to the spawn archetype (aliasing the bag). Migrate the
+   inputs, `controller`, debug history) and **shred the now-redundant `type`/`faction`/`body`/
+   `turret`** (they live in components); re-point `VEHICLE_MISSION`'s payload `Vehicle` →
+   `VehicleMission`. Migrate the
    `getConvoyVehicles()` consumers (`ConvoyRenderSystem`, `WorldPicker`/`Selection`,
    `TurretFireSystem` hookups, `VehicleStateDumper`, `BattleView`/`BattleControl`) to the
    `groundCraft` `Query` / by-id `ConvoyService` reads (add `sim.convoy()` /

@@ -51,7 +51,10 @@ public class GroundSystem {
     /** Adopts each vehicle into the entity world (identity + kinematics) at {@link #add} and reaps it at terminal GONE. */
     private final ConvoyService convoy;
 
-    private final List<Vehicle> vehicles = new ArrayList<>();
+    /** The backbone: world entity ids of live convoy vehicles. The {@link Vehicle} handles
+     *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#vehicle},
+     *  not a side list) — no separate handle storage. GONE ids are reaped each tick. */
+    private final List<Long> vehicleIds = new ArrayList<>();
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
@@ -66,15 +69,23 @@ public class GroundSystem {
         this.convoy = roster.convoy();
     }
 
-    public List<Vehicle> getVehicles() { return vehicles; }
+    /** Live convoy vehicles, materialized from the id backbone (handles live in VEHICLE_MISSION). Read-only snapshot; N≈1–4 so the per-call alloc is negligible. */
+    public List<Vehicle> getVehicles() {
+        List<Vehicle> out = new ArrayList<>(vehicleIds.size());
+        for (long id : vehicleIds) {
+            Vehicle v = convoy.vehicle(id);
+            if (v != null) out.add(v);
+        }
+        return out;
+    }
 
     public void add(Vehicle v) {
         v.controller = new VehicleController(v, navigation);
-        // Adopt as a world entity (ground archetype) — identity + kinematics aliased
-        // into GROUND_IDENTITY/GROUND_KINEMATICS; this handle stays authoritative for
-        // lifecycle state through the aliasing phase. See ConvoyService.
+        // Adopt as a world entity (ground archetype) — identity/kinematics/turret aliased
+        // into their columns and the handle stashed in VEHICLE_MISSION; this handle stays
+        // authoritative for lifecycle state through the aliasing phase. See ConvoyService.
         convoy.spawn(v);
-        vehicles.add(v);
+        vehicleIds.add(v.entityId);
     }
 
     /**
@@ -83,7 +94,8 @@ public class GroundSystem {
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
     public void tick(float dt) {
-        for (Vehicle v : vehicles) {
+        for (long id : vehicleIds) {
+            Vehicle v = convoy.vehicle(id);
             switch (v.state) {
                 case PENDING:
                     v.pendingDelay -= dt;
@@ -152,10 +164,13 @@ public class GroundSystem {
      * critique in {@code roadmap/ecs-migration/stories/vehicle-into-world.md}.
      */
     private void reapGoneVehicles() {
-        for (Iterator<Vehicle> it = vehicles.iterator(); it.hasNext(); ) {
-            Vehicle v = it.next();
-            if (v.state == VehicleState.GONE) {
-                convoy.despawn(v.entityId);
+        for (Iterator<Long> it = vehicleIds.iterator(); it.hasNext(); ) {
+            long id = it.next();
+            Vehicle v = convoy.vehicle(id);
+            // Resolve the handle BEFORE despawn (despawn destroys the entity → vehicle(id)
+            // would then return null).
+            if (v == null || v.state == VehicleState.GONE) {
+                convoy.despawn(id);
                 it.remove();
             }
         }
@@ -241,7 +256,8 @@ public class GroundSystem {
     }
 
     private void tickVehicleTurrets(float dt) {
-        for (Vehicle v : vehicles) {
+        for (long id : vehicleIds) {
+            Vehicle v = convoy.vehicle(id);
             if (!v.isVisible()) continue;
             if (!v.type.hasTurretWeapon()) continue;
             // Armed ⟹ GROUND_TURRET present (seeded at adoption), so gt is non-null. The

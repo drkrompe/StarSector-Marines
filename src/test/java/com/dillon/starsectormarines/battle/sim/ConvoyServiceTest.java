@@ -64,6 +64,10 @@ public class ConvoyServiceTest {
         assertEquals(VehicleType.HEAVY_APC.turretKind.startingAmmo, convoy.turret(id).ammo,
                 "turret ammo seeded from the TurretKind");
 
+        // The handle itself is stashed in VEHICLE_MISSION — the id→handle backbone resolution.
+        assertTrue(r.entityWorld().has(id, r.components().VEHICLE_MISSION));
+        assertSame(v, convoy.vehicle(id), "convoy.vehicle(id) resolves the stashed handle");
+
         // Off the dense ground roster — grid systems iterate [0, liveCount()) and skip it.
         assertNull(r.getOrNull(id), "a convoy vehicle is not a dense-roster entity");
         assertFalse(r.isLive(id));
@@ -83,9 +87,11 @@ public class ConvoyServiceTest {
         assertFalse(r.entityWorld().has(id, r.components().GROUND_IDENTITY));
         assertFalse(r.entityWorld().has(id, r.components().GROUND_KINEMATICS));
         assertFalse(r.entityWorld().has(id, r.components().GROUND_TURRET));
+        assertFalse(r.entityWorld().has(id, r.components().VEHICLE_MISSION));
         assertNull(convoy.body(id), "a destroyed vehicle reads null (has-gated), not a throw");
         assertNull(convoy.vehicleType(id));
         assertNull(convoy.turret(id));
+        assertNull(convoy.vehicle(id));
     }
 
     @Test

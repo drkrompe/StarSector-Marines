@@ -103,16 +103,23 @@ out of scope.)
     (`Selection.selectedVehicleId`, `WorldPicker`/`BattleScreen`/`BattleRenderer` resolve by
     id), and added the end-of-tick `reapGoneVehicles()` sweep (despawn + remove GONE from the
     list) — closes Phase-2 critique A/B. Full suite green.
-  - **NEXT — 4c:** convert `GroundSystem`'s `List<Vehicle>` backbone → `List<Long>` with the
-    handle held in a new `VEHICLE_MISSION` component (`convoy.vehicle(id)`); `getConvoyVehicles()`
-    materializes handles from ids; tick/turret/deboard resolve by id. Makes vehicles fully
-    world-resident (the epic's core goal) without the field-shred.
-  - **4d (finale):** extract a `VehicleMission` bag (shred the now-redundant `type`/`faction`/
-    `body` off the handle, migrate presentation readers + `VehicleController` to by-id via
-    `sim.convoy()`/`BattleView.convoy()`), **delete `Vehicle.java`**. The deepest coupler is
-    `VehicleController` (holds the ref, mutates `body` pose + reassigns the path arrays on
-    reroute); `VehicleStateDumper` is the only external history reader. Only 1 test
-    (`ConvoyServiceTest`) holds a handle; planners are `Vehicle`-free.
+  - **4c ✓ SHIPPED:** converted `GroundSystem`'s `List<Vehicle>` backbone → `List<Long>`
+    (`vehicleIds`); the handle now lives in the new `VEHICLE_MISSION` component (id 26, always
+    present), reached via `convoy.vehicle(id)`. `getVehicles()` materializes handles from ids
+    (N≈1–4, negligible); tick/turret/reap resolve by id; `despawn` drops VEHICLE_MISSION.
+    **Vehicles are now fully world-resident — no separate `List<Vehicle>` storage** (the epic's
+    core structural goal). Consumers unchanged (`getConvoyVehicles()` still returns
+    `List<Vehicle>`). `ConvoyServiceTest` +2. Full suite green.
+  - **NEXT — 4d (finale, optional-polish):** the redundancy cleanup + true handle deletion.
+    Extract a `VehicleMission` bag (shred the now-redundant `type`/`faction`/`body`/`turret`
+    off the handle — they're in components), migrate the presentation readers +
+    `VehicleController` to by-id via `sim.convoy()`/`BattleView.convoy()`, **delete
+    `Vehicle.java`**. Best done fresh + with a critique: deepest coupler is `VehicleController`
+    (holds the ref, mutates `body` pose + reassigns the path arrays on reroute, **untested**);
+    `VehicleStateDumper` is the only external history reader. Only 1 test
+    (`ConvoyServiceTest`) holds a handle; planners are `Vehicle`-free. NB: the epic's PRIMARY
+    goal (world-resident, one storage space) is already met at 4c — 4d removes the
+    type/faction/body dual-homing and the handle class.
 
 ### Access model (in force for every new slice)
 
@@ -155,12 +162,12 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+<pending> ecs-migration: vehicle-into-world Phase 4c — List<Long> backbone + VEHICLE_MISSION
 1e128ce0 ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
 963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
 730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
 321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
 1d5ce956 docs(ecs-migration): close systems-to-columns at terminus, open vehicle-into-world
-6f528fc8 ecs-migration: fold Entity.deathPoseIdx into the DeathEvent (slice 8, FINALE)
 ```
 (The `<pending>` line's hash lands at this commit; next boundary fills it in. Doc hash-fill
 + Phase-2 critique micro-commits are elided from this window.)
@@ -171,7 +178,8 @@ goap, campaign) interleave on HEAD.
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean, full suite green (`:test` BUILD SUCCESSFUL at
-  vehicle-into-world Phase 4a+4b). `Vehicle.State` is now top-level `VehicleState`; vehicle
-  selection is id-keyed; `GroundSystem.reapGoneVehicles()` sweeps GONE at end of tick.
+  vehicle-into-world Phase 4c). Vehicles are fully world-resident: `GroundSystem` backbone is
+  `List<Long> vehicleIds`, handles live in `VEHICLE_MISSION` (`convoy.vehicle(id)`). Only 4d
+  (delete the handle class + shred redundant identity/kinematics) remains.
 - `git log --oneline -5` shows `6f528fc8` (slice 8 — deathPoseIdx fold, epic finale) or
   your own recent work at the top.
