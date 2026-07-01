@@ -97,13 +97,25 @@ facing→frame / weaponUp math so it's unit-testable off the system.
 ## Phases (each leaves build + tests green)
 
 1. **Author `SPRITE` for live units (dormant).** Add `SPRITE` to the live SHEET-unit spawn
-   archetype (presence == `spriteKind==SHEET`); add `FacingSystem` running late in the sim tick,
-   authoring `SPRITE_INDEX`/`FLIP_V`/`SHEET` from the **exact** current derivation (extracted
-   verbatim into a `LiveAppearance` helper). **Nothing reads it yet** — the renderer still
-   derives (air-Phase-2 pattern: author dormant, flip readers next). Adjust the corpse transmute
-   (`corpseAdd` drops `SPRITE` since live already has it; the death write still overwrites
-   `SPRITE_INDEX`). Additive; suite green. A test asserts the authored frame equals the
-   renderer's derivation for a table of (target, path, cooldown) inputs.
+   archetype (presence == sheet-drawn); add `FacingSystem` running **at the tail of the sim
+   tick** (after `airSystem`/`groundSystem` deboards, so units spawned this tick are authored
+   before render), writing `SPRITE_INDEX`/`FLIP_V`/`SHEET` from the **exact** current derivation
+   (extracted verbatim into a stateless `LiveAppearance` helper). **Nothing reads it yet** — the
+   renderer still derives (air-Phase-2 pattern: author dormant, flip readers next). Adjust the
+   corpse transmute (`corpseAdd` drops `SPRITE` since live already has it; the death write still
+   overwrites `SPRITE_INDEX`). Additive; suite green. A test asserts the authored frame equals the
+   old renderer derivation for a golden table of (frameLayout, target, path, cooldown, inAim)
+   inputs.
+
+   **Membership decision (layering — resolved).** "Sheet-drawn" is classified today in the
+   **render tier** (`RenderAppearance.derive`: a switch — `TURRET`/`DRONE_HUB_STRUCTURE` →
+   `WHOLE_SPRITE`, `DRONE` → `NONE`, else `SHEET`). The sim-tier `UnitRosterService.allocate`
+   **must not** import `ops.battleview.RenderAppearance` (sim→render dependency). Fix: surface the
+   classification on the sim **`UnitType`** — a `drawnAsSheet` predicate (or `spriteKind`) — which
+   is the natural home (`UnitType` already carries the render-adjacent `frameLayout`, `renderScale`,
+   `deadSpritePath`). `RenderAppearance.derive` then **defers to it** (single source of truth,
+   de-dups the switch); `allocate` gates `SPRITE` on it. This is a small additive prerequisite
+   inside Phase 1.
 2. **Flip the renderer to read `SPRITE`.** `emitLiveSprite` reads `SPRITE_INDEX`/`FLIP_V`/`SHEET`
    instead of calling `computeFacing`/`pickFrame`/`weaponUp`; delete those from the renderer
    (moved to `LiveAppearance`). Optionally converge `sweepLiveSprites` + `sweepDeadSprites` onto
@@ -130,9 +142,10 @@ facing→frame / weaponUp math so it's unit-testable off the system.
   is unaffected.
 - **`SPRITE_SHEET` semantics change** from "always 0" to a sheet-selector. Corpses stay 0 (base),
   so no corpse-render change — assert it.
-- **Membership must match `spriteKind==SHEET`** exactly, or a `WHOLE_SPRITE`/`NONE` type gets a
-  stray `SPRITE` (harmless but untidy) or a SHEET type misses one (invisible). Derive presence
-  from `RenderAppearance`, the single source.
+- **Membership must match sheet-drawn** exactly, or a `WHOLE_SPRITE`/`NONE` type gets a stray
+  `SPRITE` (harmless but untidy) or a SHEET type misses one (invisible). Post-Phase-1 the single
+  source is the sim-`UnitType` `drawnAsSheet` predicate (which `RenderAppearance.derive` defers
+  to) — gate both spawn membership and the render sweep on it, never on divergent copies.
 - **Corpse transmute ripple** — live units gaining `SPRITE` means `corpseAdd` no longer adds it;
   the death path keeps the row's `SPRITE` and overwrites `SPRITE_INDEX`. Verify a unit that dies
   mid-move still freezes to the death pose (not its last live frame).
