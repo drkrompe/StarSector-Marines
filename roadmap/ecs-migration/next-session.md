@@ -146,7 +146,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
-<pending> ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
+963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
 730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
 321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
 1d5ce956 docs(ecs-migration): close systems-to-columns at terminus, open vehicle-into-world
