@@ -20,9 +20,9 @@ public class DeathDispatcherTest {
         return new Entity(id, Faction.MARINE, UnitType.MARINE, 0, 0);
     }
 
-    /** Death event for {@code u} — cell is irrelevant to dispatcher mechanics. */
+    /** Death event for {@code u} — cell + pose are irrelevant to dispatcher mechanics. */
     private static DeathEvent death(Entity u) {
-        return new DeathEvent(u, 0, 0);
+        return new DeathEvent(u, 0, 0, -1);
     }
 
     @Test

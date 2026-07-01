@@ -20,7 +20,13 @@ package com.dillon.starsectormarines.battle.unit;
  *
  * <p>{@link #cellX} / {@link #cellY} are the logical death cell — where the
  * demolition systems flip rubble and the wreck systems drop a smoking wreck.
- * As the corpse grows into a fuller body entity this record grows with it (hp,
- * render pos) only when a handler actually needs the field. Keep it minimal.
+ * {@link #deathPoseIdx} is the random prone-pose frame the dead-body handler
+ * ({@code DeadBodySystem}) authors into the corpse's {@code SPRITE.index} for
+ * battlefield variety; {@code -1} = no ground corpse (a cascade-killed drone that
+ * crashes-and-fades instead). It rides the event rather than the {@code Entity}
+ * because only this handler consumes it — the roll is a moment-of-death snapshot,
+ * so the field left the entity in the "entity = id" migration (slice 8). As the
+ * corpse grows into a fuller body entity this record grows with it (hp, render pos)
+ * only when a handler actually needs the field. Keep it minimal.
  */
-public record DeathEvent(Entity unit, int cellX, int cellY) {}
+public record DeathEvent(Entity unit, int cellX, int cellY, int deathPoseIdx) {}

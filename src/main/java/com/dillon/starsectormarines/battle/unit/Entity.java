@@ -354,9 +354,6 @@ public class Entity {
         combat.setBurstTargetId(entityId, Entity.idOf(target));
     }
 
-    /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
-    public int deathPoseIdx = -1;
-
     public Entity(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;

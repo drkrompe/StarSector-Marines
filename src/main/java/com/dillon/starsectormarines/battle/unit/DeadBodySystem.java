@@ -82,6 +82,6 @@ public final class DeadBodySystem {
         // no post-release snapshot needed.
         // SPRITE.sheet / flipV stay 0 — sheet resolves from IDENTITY.type until
         // the unified sprite registry mints handles (see BattleComponents.SPRITE).
-        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, u.deathPoseIdx);
+        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, event.deathPoseIdx());
     }
 }

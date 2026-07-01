@@ -113,7 +113,6 @@ public final class DamageResolver {
         world.setHp(target.entityId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         if (died) {
-            target.deathPoseIdx = rng.nextInt(4);
             deathSink.accept(target);
             equipmentDrops.emitIfApplicable(target);
             // Squad leader promotion — if the dead unit was leading a
@@ -138,7 +137,9 @@ public final class DamageResolver {
             // retire-legacy-units-list. Snapshot the death cell into the event
             // here, while the target is still registered — handlers run at the
             // drain (post-release) where the Group-C cell accessors fail loud.
-            deathDispatcher.publish(new DeathEvent(target, tcx, tcy));
+            // Roll the corpse prone-pose here (the normal-death path is the one that
+            // leaves a ground body); the drone-cascade path publishes -1 (no corpse).
+            deathDispatcher.publish(new DeathEvent(target, tcx, tcy, rng.nextInt(4)));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is
