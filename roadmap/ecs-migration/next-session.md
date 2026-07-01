@@ -32,10 +32,11 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
    probe per field per unit). Only a few tiny/optional populations column-walk a
    `Query`. The cache-locality win is uncollected. → epic
    [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
-2. **`Entity` still carries live behavior fields.** The per-unit *stats* and `role`
-   moved to components; what the world does **not** yet own is the decision cluster —
-   `assignedObjective`, `equipmentDropTarget`, `homeCell`, `lastReprioTickIndex`,
-   `deathPoseIdx`. → epic
+2. **`Entity` still carries one live behavior field.** The per-unit stats, `role`, and
+   the whole decision cluster (`assignedObjective`/`equipmentDropTarget`/`homeCell`, and
+   the reprio gate) have moved off; the **only** live mutable field left is
+   `deathPoseIdx` (slice 8 — a fold into SPRITE). `Entity` is otherwise id + immutable
+   identity + write-only `seed*` inputs. → epic
    [`stories/entity-field-migration.md`](stories/entity-field-migration.md) (active).
 3. **Convoy ground `Vehicle` never entered the world** — a plain POJO in
    `GroundSystem.List<Vehicle>` (a third storage space; the air analog closed, ground
@@ -58,14 +59,18 @@ Shipped: **1** `attackCooldown`→COMBAT · **2** `moveSpeed`→MOVEMENT · **3*
 `visionRange`+`airLosRadius`→new VISION component (+ fog-class rename
 `VisionService`→`FogOfWarService`) · **4** `primaryWeapon`→COMBAT (OBJECT) · **5**
 `squadId`→new presence-based SQUAD component (`32a00239`) · **6** `role`→new universal
-ROLE component (int ordinal) + `RoleService` (`2cede400`; single-valued mutable enum →
-universal column, NOT presence-per-role — a kit pickup would else churn the archetype).
+ROLE component (int ordinal) + `RoleService` (`2cede400`) · **7** the decision cluster,
+split three ways by shape — **7a** `homeCell`→HOME presence component + `HomeService`
+(`eb676efb`); **7b** `lastReprioTickIndex`→**not a component** (the CAS reprio gate lifted
+onto `HitResponseSystem` — transient per-tick coordination, not unit state) (`84d0625c`);
+**7c** `assignedObjective`+`equipmentDropTarget`→TASK component (nullable OBJECT) +
+`TaskService` with tolerant reads (`7537de69`).
 
-**NEXT — slice 7: the decision cluster** (`assignedObjective` / `equipmentDropTarget` /
-`homeCell` / `lastReprioTickIndex` — the thorny optional-tail; each optional with a
-distinct small population, so each is a presence component or a field on a narrow
-decision component; refine the grouping when reached), and **slice 8:
-`deathPoseIdx`→SPRITE** (likely a fold, not a new column).
+**NEXT — slice 8: `deathPoseIdx` → SPRITE.** The last live mutable field on `Entity`.
+The corpse death-pose already lands in `SPRITE.index` at the death transmute, so this is
+likely a fold (route the roll through SPRITE) rather than a new column — check the death
+path first. After it, `Entity` is id + immutable identity + write-only `seed*` inputs and
+the field-migration epic is done.
 
 ### Access model (in force for every new slice)
 
@@ -108,12 +113,12 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+7537de69 ecs-migration: move Entity task fields onto a TASK component (slice 7c)
+84d0625c ecs-migration: lift the reprio gate off Entity into HitResponseSystem (slice 7b)
+eb676efb ecs-migration: move Entity.homeCell onto a HOME component (slice 7a)
 2cede400 ecs-migration: move Entity.role onto a universal ROLE component (slice 6)
-0afb3c40 docs(ecs-migration): record squadId→SQUAD (slice 5, presence) shipped
 32a00239 ecs-migration: move Entity.squadId onto a presence-based SQUAD component
-0862ab2e docs(ecs-migration): record primaryWeapon→COMBAT (slice 4) shipped
 4835bd42 ecs-migration: move Entity.primaryWeapon onto the COMBAT component
-b7ed44e8 ecs-migration: visionRange/airLosRadius → VISION component + VisionService
 ```
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
@@ -121,6 +126,6 @@ goap, campaign) interleave on HEAD.
 
 ## Sanity check before resuming
 
-- `gradlew.bat compileJava` clean, full suite green (801 tests at slice 6).
-- `git log --oneline -5` shows `2cede400` (slice 6 — role→ROLE) or your own recent work
-  at the top.
+- `gradlew.bat compileJava` clean, full suite green (809 tests at slice 7).
+- `git log --oneline -5` shows `7537de69` (slice 7c — TASK) or your own recent work at
+  the top.

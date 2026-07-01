@@ -86,7 +86,10 @@ them next; slice 3 (VISION) **shipped** as `VisionService` from the start
 (dropping its `World` param). Slices 5 (`SquadService`, `32a00239`) and 6
 (`RoleService`, `2cede400`) shipped Service-direct from the start — **no new `World`
 accessor added** (the facade is deprecated in favour of the per-component Services;
-any new `world.<x>(id)` for a migrated field is a regression).
+any new `world.<x>(id)` for a migrated field is a regression). Slice 7 held the same
+line (`HomeService`, `TaskService`), and confirmed the corollary: not every field
+becomes a Service-owned component — a field that is transient per-tick *coordination*
+(the reprio gate, 7b) belongs on its System, not the entity or a component.
 
 ## Slice order (cleanest first; scan-unblockers prioritized)
 
@@ -188,10 +191,36 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
      + 3 GOAP/command test files swept (all pre-`addUnit` → `seedRole`, one live read →
      Service). Stale `UnitRole` javadoc corrected (it claimed nothing writes role after
      spawn). Suite green at 801.
-7. **Decision cluster** (`assignedObjective`, `equipmentDropTarget`, `homeCellX/Y`,
-   `lastReprioTickIndex`) — the thorny tail; each is optional with a distinct small
-   population, so each is a presence component or a field on a narrow decision
-   component. Do last, refine the grouping when reached.
+7. ~~**Decision cluster**~~ **— SHIPPED (2026-07-01), split three ways by shape** (the
+   census found the four fields are NOT one capability):
+   - **7a `homeCellX/Y` → HOME presence component** (`eb676efb`) — id 21, two INT,
+     GARRISON-only. `Entity.homeCellX/Y` → `seedHomeCellX/Y` (default -1); `allocate`
+     attaches HOME iff `seed >= 0`, so presence IS "has a post" and the -1 sentinel is
+     never stored. Data owner `HomeService` (`hasHome` + fail-loud cells + `setHome`, the
+     serial retreat-redistribution row-move). Readers (`GuardPostPatrol`, `HoldPost`,
+     `SquadFallbackSystem`, the debug dumper) gate on `hasHome`. Live-only.
+   - **7b `lastReprioTickIndex` → NOT a component** (`84d0625c`) — the field was a
+     `volatile int` CAS'd (`AtomicIntegerFieldUpdater`) by the parallel workers to gate
+     "one reprio roll per (target, tick)". Its only test is "already rolled *this* tick?",
+     so it's transient per-tick coordination, not durable unit state — lifted onto
+     `HitResponseSystem` as a per-battle `ConcurrentHashMap<Long,Integer>` (last-rolled
+     tick, atomic `compute` claim = the old CAS semantics). **No engine atomic-column was
+     added** for one niche caller (ship-then-optimize). Closed the last
+     concurrency-constrained per-unit heap field.
+   - **7c `assignedObjective` + `equipmentDropTarget` → TASK component** (`7537de69`) —
+     id 22, two **nullable** OBJECT. `assignedObjective` → `seedAssignedObjective`
+     (allocate attaches TASK iff non-null); `equipmentDropTarget` is runtime-only (no
+     seed). Data owner `TaskService` with **tolerant reads** (null when untasked, the old
+     nullable-field semantics readers probe on arbitrary units) — not fail-loud. Modeled
+     as nullable fields, not presence, because `equipmentDropTarget` is cleared *during
+     the parallel dispatch* (`KitRetrieverBehavior`), which must be a field-write not a
+     structural remove; the serial setters add TASK if absent. Readers (the GOAP/command
+     planter scoring, the equipment-drop sweep, the death cascade, the kit-retriever
+     behavior) go by-id off the Service. Live-only. Watched the `Squad.assignedObjective`
+     (`ObjectiveAssignment`) name collision in the swept tests.
+
+   `HomeServiceTest` + `TaskServiceTest` added; the reprio gate stays untested (RNG-gated,
+   as before). Suite green at 809.
 8. **`deathPoseIdx` → SPRITE / death authoring** — cleanup; the corpse pose already
    lands in `SPRITE.index`, so this may be a fold rather than a new column.
 
