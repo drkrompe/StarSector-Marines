@@ -152,18 +152,36 @@ than air, where `AirSystem` conflated owner + processor.
      `convoy.vehicle(id)`. `getVehicles()` materializes from ids; tick/turret/reap resolve by
      id. **Vehicles are now fully world-resident — no separate handle-list storage (the
      epic's PRIMARY goal).** Consumers unchanged.
-   - **4d (finale, optional polish)** — the remaining plan below. Extract a `VehicleMission`
-     bag from `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
-   `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
-   inputs, `controller`, debug history) and **shred the now-redundant `type`/`faction`/`body`/
-   `turret`** (they live in components); re-point `VEHICLE_MISSION`'s payload `Vehicle` →
-   `VehicleMission`. Migrate the
-   `getConvoyVehicles()` consumers (`ConvoyRenderSystem`, `WorldPicker`/`Selection`,
-   `TurretFireSystem` hookups, `VehicleStateDumper`, `BattleView`/`BattleControl`) to the
-   `groundCraft` `Query` / by-id `ConvoyService` reads (add `sim.convoy()` /
-   `BattleView.convoy()` here, their first sim-level consumers); the `GroundSystem` tick
-   reads mission state by id; **delete `Vehicle.java`**. Confirm occupancy/vision/win-counts
-   never see vehicles.
+   - **4d (finale, dissolution) — split into 4d-1 / 4d-2, each green.** The air end-state
+     precedent (verified against `ShuttleMission`): the mission bag is **pure data** — no
+     `AirBody`, no `ShuttleType`/identity, no `entityId`, no controller; consumers resolve
+     those by id off a `long[]` snapshot (`getAirEntityIds()`). Ground mirrors it, but
+     **`ConvoyService`-direct, not through the deprecated `World` facade** the air renderer
+     still uses ([[feedback_world_facade_deprecated]]).
+     - **4d-1 ✓ SHIPPED (`80d2e55d`)** — migrated the read-only `getConvoyVehicles()`
+       consumers onto entity ids: `BattleSimulation.convoy()` + `getConvoyVehicleIds()`
+       (backed by `GroundSystem.vehicleEntityIds()`); `ConvoyRenderSystem`, `WorldPicker`,
+       `BattleRenderer` (docking-paths + selected-vehicle debug), `VehicleStateDumper`,
+       `BattleScreen` F5 walk `long[]` ids and resolve type/faction/body/turret via
+       `convoy.vehicleType/faction/body/turret(id)`; mission-ish reads stay on the
+       `convoy.vehicle(id)` handle. `Vehicle` untouched — isolates the broad presentation
+       churn. (`TurretFireSystem` is a **non**-consumer — it targets grid `Entity`s by id.)
+     - **4d-2 (dissolution)** — extract a pure-data `VehicleMission` bag (state, countdowns,
+       in/outbound paths, LZ, `marinesRemaining`, overwatch, `marineLoadout`,
+       `deboardUnitType`, `squadId`, route inputs, `controller`, debug history) and **drop the
+       now-redundant `type`/`faction`/`body`/`turret`/`entityId`** (they live in components /
+       are keyed by id); re-point `VEHICLE_MISSION`'s payload `Vehicle` → `VehicleMission`
+       (`convoy.vehicle(id)` → `convoy.mission(id)`). Make `ConvoyService.spawn` a factory
+       (build body+turret+mission from type/faction/paths, seed columns). Rewire
+       `GroundSystem` (tick reads mission + body by id), `VehicleController` (constructor holds
+       `VehicleMission`/`GroundBody`/`VehicleType` refs, not a `Vehicle` — a ref swap, **not**
+       statelessification), and the two construction sites (`ConvoyMeans:223`,
+       `BattleSetup:832`) + `ConvoyMeans.activeConvoyDestinations` (a `BattleView` consumer —
+       add a read path); drop `getConvoyVehicles()`; **delete `Vehicle.java`**. Confirm
+       occupancy/vision/win-counts never see vehicles.
+     - **Follow-up (NOT 4d):** statelessify `VehicleController` into components + a system —
+       the air side has no per-craft controller (stateless `AirSteeringSystem` over `AirBody`).
+       A separate epic; 4d-2 keeps the controller stateful, only swapping its back-ref.
    - **This phase also unblocks the reap sweep + list-removal (Phase-2 critique A/B).**
      `WorldPicker`/`Selection`/`BattleScreen` select a vehicle by its **positional index**
      into `getConvoyVehicles()` (`getSelectedVehicleIdx()` → `.get(idx)`), so Phase 2

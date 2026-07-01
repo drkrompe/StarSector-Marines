@@ -110,16 +110,27 @@ out of scope.)
     **Vehicles are now fully world-resident — no separate `List<Vehicle>` storage** (the epic's
     core structural goal). Consumers unchanged (`getConvoyVehicles()` still returns
     `List<Vehicle>`). `ConvoyServiceTest` +2. Full suite green.
-  - **NEXT — 4d (finale, optional-polish):** the redundancy cleanup + true handle deletion.
-    Extract a `VehicleMission` bag (shred the now-redundant `type`/`faction`/`body`/`turret`
-    off the handle — they're in components), migrate the presentation readers +
-    `VehicleController` to by-id via `sim.convoy()`/`BattleView.convoy()`, **delete
-    `Vehicle.java`**. Best done fresh + with a critique: deepest coupler is `VehicleController`
-    (holds the ref, mutates `body` pose + reassigns the path arrays on reroute, **untested**);
-    `VehicleStateDumper` is the only external history reader. Only 1 test
-    (`ConvoyServiceTest`) holds a handle; planners are `Vehicle`-free. NB: the epic's PRIMARY
-    goal (world-resident, one storage space) is already met at 4c — 4d removes the
-    type/faction/body dual-homing and the handle class.
+  - **4d (finale, dissolution) — split into 4d-1 / 4d-2, each green:**
+    - **4d-1 ✓ SHIPPED (`80d2e55d`):** migrated the read-only convoy consumers off the
+      `List<Vehicle>` API onto entity ids resolved `ConvoyService`-direct — the air
+      `getAirEntityIds()` shape (added `BattleSimulation.convoy()` + `getConvoyVehicleIds()`,
+      `GroundSystem.vehicleEntityIds()`). `ConvoyRenderSystem`/`WorldPicker`/`BattleRenderer`
+      (docking + selected-vehicle debug)/`VehicleStateDumper`/`BattleScreen` F5 walk `long[]`
+      ids, resolve type/faction/body/turret by id; mission-ish reads stay on the
+      `convoy.vehicle(id)` handle (→ `convoy.mission(id)` in 4d-2). `Vehicle` untouched;
+      isolates the broad-but-shallow presentation churn. Build + convoy/vehicle tests green.
+    - **NEXT — 4d-2 (dissolution):** extract a pure-data `VehicleMission` bag (the air
+      `ShuttleMission` shape — **no** `type`/`faction`/`body`/`turret`/`entityId`), make
+      `ConvoyService.spawn` a factory (build body+turret+mission), rewire `GroundSystem` +
+      `VehicleController` (hold `VehicleMission`/`GroundBody`/`VehicleType` refs, **not** a
+      `Vehicle`) + the two construction sites (`ConvoyMeans:223`, `BattleSetup:832`) +
+      `ConvoyMeans.activeConvoyDestinations`, drop `getConvoyVehicles()`, **delete
+      `Vehicle.java`**. Deepest coupler is `VehicleController` (mutates `body` pose + reassigns
+      path arrays on reroute, **untested** by full-tick — only static-method tests). Follow-up
+      (NOT 4d): statelessify `VehicleController` into components + a system (air's
+      `AirSteeringSystem` has no per-craft controller). NB: the epic's PRIMARY goal
+      (world-resident, one storage space) is already met at 4c; 4d-2 removes the
+      type/faction/body dual-homing and the handle class.
 
 ### Access model (in force for every new slice)
 
@@ -162,6 +173,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+80d2e55d ecs-migration: vehicle-into-world 4d-1 — convoy read consumers to by-id
 88bf85c6 ecs-migration: vehicle-into-world Phase 4c — List<Long> backbone + VEHICLE_MISSION
 1e128ce0 ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
 963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
