@@ -83,7 +83,10 @@ them next; slice 3 (VISION) **shipped** as `VisionService` from the start
 `VisionService` was renamed `FogOfWarService` (`a171f12c`) to free the name. Slice 4
 (`primaryWeapon`→COMBAT, `4835bd42`) held the line: Service-direct, no
 `World.primaryWeapon` delegator, and `beginBurst` moved fully onto `CombatService`
-(dropping its `World` param).
+(dropping its `World` param). Slices 5 (`SquadService`, `32a00239`) and 6
+(`RoleService`, `2cede400`) shipped Service-direct from the start — **no new `World`
+accessor added** (the facade is deprecated in favour of the per-component Services;
+any new `world.<x>(id)` for a migrated field is a regression).
 
 ## Slice order (cleanest first; scan-unblockers prioritized)
 
@@ -158,9 +161,33 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
    `TurretAim.State` shadow-copies. `DroneSpawner`'s post-`queueSpawn` write became a
    serial/parallel seed-or-assign branch. `SquadServiceTest` + ~28 test files swept (two
    Sonnet agents; seed pre-`addUnit`, `assignSquad` post-`addUnit`).
-6. **`role` → dispatch component** — universal. Unblocks `systems-to-columns` Phase 2
-   (dispatch by presence, not enum) and is the prerequisite to keying the spatial
-   indices by id (the index column-walk follow-on).
+6. ~~**`role` → dispatch component**~~ **— SHIPPED (`2cede400`, 2026-07-01).** A new
+   **universal** `ROLE` component (id 20, one INT = the `UnitRole` ordinal), seeded at
+   `allocate` from the new write-only `Entity.seedRole`; the data owner is
+   **`battle.sim.RoleService`** (`role(id)` hides the ordinal↔enum round-trip via a
+   cached `UnitRole.values()`; `setRole(id, r)` is the live-reassignment seam). **No
+   `World` delegator** (Service-direct; the slice-3+ precedent — the facade being
+   retired is never grown). Wired `roster.role()` / `sim.role()` / `BattleView.role()`.
+   **Live-only** (added to the corpse-remove mask like SQUAD/VISION) — the death cascade
+   reads the role pre-transmute in `DamageResolver.resolve` (the drop-carrier check),
+   which runs before `releaseFromRegistry` + the buffered transmute.
+   - **Design finding — NOT presence-per-role.** The story loosely floated "dispatch by
+     presence, not enum," but `role` is a *single-valued, runtime-mutated* enum (a marine
+     is promoted to `KIT_RETRIEVER`/`PLANTER` on a kit pickup and reverts to `COMBATANT`
+     — `EquipmentDropSystem` + `KitRetrieverBehavior`). Modeling N mutually-exclusive
+     roles as N presence tags would force an archetype transmute on every kit pickup, so
+     a **universal INT-ordinal column** is the correct shape; the mutation goes through
+     `setRole`. "Dispatch by presence" stays a later `systems-to-columns` concern (this
+     slice is the prerequisite field-move that keys the spatial indices by id).
+   - **Sweep:** ~13 readers by-id off the Service (the `UnitUpdateSystem` hot dispatch
+     hoists one `role` read for `behaviorFor` + `innerBucketForRole`; the death-cascade
+     drop check; the planter/kit scoring in the GOAP/command tier — `SabotageCommand`,
+     `ChargeSiteObjective`, `CordonForPlant`, `HoldPortalCordon`; the squad UI/debug
+     panels). ~11 pre-allocate writers → `seedRole` (deboard, setup, walk-in, the
+     `Drone`/`DroneHubUnit`/`MapTurret` ctors). 3 live sets → `setRole`. `RoleServiceTest`
+     + 3 GOAP/command test files swept (all pre-`addUnit` → `seedRole`, one live read →
+     Service). Stale `UnitRole` javadoc corrected (it claimed nothing writes role after
+     spawn). Suite green at 801.
 7. **Decision cluster** (`assignedObjective`, `equipmentDropTarget`, `homeCellX/Y`,
    `lastReprioTickIndex`) — the thorny tail; each is optional with a distinct small
    population, so each is a presence component or a field on a narrow decision

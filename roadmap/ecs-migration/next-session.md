@@ -8,7 +8,7 @@ narrative live in the story docs + `complete/` — not here. When a slice ships,
 in its story doc (or move the story to `complete/`) and update the *pointers* below;
 don't accrete another status block.
 
-## Where we are (2026-06-30)
+## Where we are (2026-07-01)
 
 **The storage / topology half is DONE. The systems / identity / perf half is OPEN.**
 Watch the scope: "done" has always meant *storage*, never the whole migration.
@@ -32,9 +32,10 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
    probe per field per unit). Only a few tiny/optional populations column-walk a
    `Query`. The cache-locality win is uncollected. → epic
    [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
-2. **`Entity` still carries live behavior fields.** The per-unit *stats* moved to
-   components; what the world does **not** yet own is `role`, `assignedObjective`,
-   `equipmentDropTarget`, `homeCell`, `lastReprioTickIndex`, `deathPoseIdx`. → epic
+2. **`Entity` still carries live behavior fields.** The per-unit *stats* and `role`
+   moved to components; what the world does **not** yet own is the decision cluster —
+   `assignedObjective`, `equipmentDropTarget`, `homeCell`, `lastReprioTickIndex`,
+   `deathPoseIdx`. → epic
    [`stories/entity-field-migration.md`](stories/entity-field-migration.md) (active).
 3. **Convoy ground `Vehicle` never entered the world** — a plain POJO in
    `GroundSystem.List<Vehicle>` (a third storage space; the air analog closed, ground
@@ -56,14 +57,15 @@ live-field inventory, slice order, and per-slice shipped log with commit hashes.
 Shipped: **1** `attackCooldown`→COMBAT · **2** `moveSpeed`→MOVEMENT · **3**
 `visionRange`+`airLosRadius`→new VISION component (+ fog-class rename
 `VisionService`→`FogOfWarService`) · **4** `primaryWeapon`→COMBAT (OBJECT) · **5**
-`squadId`→new presence-based SQUAD component (`32a00239`, `0afb3c40` docs).
+`squadId`→new presence-based SQUAD component (`32a00239`) · **6** `role`→new universal
+ROLE component (int ordinal) + `RoleService` (`2cede400`; single-valued mutable enum →
+universal column, NOT presence-per-role — a kit pickup would else churn the archetype).
 
-**NEXT — slice 6: `role` → dispatch component** (universal). Unblocks
-`systems-to-columns` Phase 2 (dispatch by presence, not enum) and is the prerequisite
-to keying the spatial indices by id. Then **slice 7: the decision cluster**
-(`assignedObjective` / `equipmentDropTarget` / `homeCell` / `lastReprioTickIndex` — the
-thorny optional-tail), and **slice 8: `deathPoseIdx`→SPRITE** (likely a fold, not a new
-column).
+**NEXT — slice 7: the decision cluster** (`assignedObjective` / `equipmentDropTarget` /
+`homeCell` / `lastReprioTickIndex` — the thorny optional-tail; each optional with a
+distinct small population, so each is a presence component or a field on a narrow
+decision component; refine the grouping when reached), and **slice 8:
+`deathPoseIdx`→SPRITE** (likely a fold, not a new column).
 
 ### Access model (in force for every new slice)
 
@@ -106,12 +108,12 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+2cede400 ecs-migration: move Entity.role onto a universal ROLE component (slice 6)
 0afb3c40 docs(ecs-migration): record squadId→SQUAD (slice 5, presence) shipped
 32a00239 ecs-migration: move Entity.squadId onto a presence-based SQUAD component
 0862ab2e docs(ecs-migration): record primaryWeapon→COMBAT (slice 4) shipped
 4835bd42 ecs-migration: move Entity.primaryWeapon onto the COMBAT component
 b7ed44e8 ecs-migration: visionRange/airLosRadius → VISION component + VisionService
-a171f12c ecs-migration: rename fog VisionService → FogOfWarService
 ```
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
@@ -119,6 +121,6 @@ goap, campaign) interleave on HEAD.
 
 ## Sanity check before resuming
 
-- `gradlew.bat compileJava` clean, full suite green.
-- `git log --oneline -5` shows `0afb3c40` (slice 5 docs) / `32a00239` (slice 5) or your
-  own recent work at the top.
+- `gradlew.bat compileJava` clean, full suite green (801 tests at slice 6).
+- `git log --oneline -5` shows `2cede400` (slice 6 — role→ROLE) or your own recent work
+  at the top.
