@@ -110,6 +110,18 @@ public enum UnitType {
     public boolean isStatic() { return this == TURRET || this == DRONE_HUB_STRUCTURE; }
 
     /**
+     * Whether this archetype's body renders as a facing-indexed frame of
+     * {@link #spritePath} — the classification that gates the {@code SPRITE}
+     * component at spawn ({@code UnitRosterService.allocate}) and that the
+     * render tier's {@code RenderAppearance.derive} defers to (this is the
+     * single source of truth; the render-tier switch used to duplicate it).
+     * {@link #isStatic} types ({@link #TURRET} / {@link #DRONE_HUB_STRUCTURE})
+     * draw as whole rotated sprites instead, and {@link #DRONE} draws in its
+     * own layer — everything else (infantry, mechs, civilians) is sheet-drawn.
+     */
+    public boolean drawnAsSheet() { return !isStatic() && this != DRONE; }
+
+    /**
      * Sprite-sheet frame indexing convention. Each layout names what indices 0..N
      * represent on its source PNG. The renderer's facing→frame lookup branches on
      * this; adding a new convention is "add an enum value + a switch arm."

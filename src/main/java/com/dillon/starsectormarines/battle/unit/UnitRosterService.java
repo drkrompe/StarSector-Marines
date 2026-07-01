@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -284,6 +285,12 @@ public final class UnitRosterService {
         //     IS the capability (like SECONDARY_WEAPON; no inert path/cadence columns
         //     on a turret).
         //   - SECONDARY_WEAPON iff the unit carries one.
+        //   - SPRITE iff the type is sheet-drawn (UnitType.drawnAsSheet) —
+        //     presence IS "draws as a sheet frame", authored per-tick by
+        //     FacingSystem (battle.appearance); seeded to the south-idle frame
+        //     so a unit spawned between the facing pass and render still draws
+        //     sanely. Kept on the row through the corpse transmute (the death
+        //     write overwrites the index with the death pose).
         // Identity is written once here and persists alive→dead (the corpse
         // transmute's row-move carries it — as does the cell, which IS the death cell
         // by the time the corpse forms); Position and Health seed from the
@@ -294,6 +301,8 @@ public final class UnitRosterService {
         boolean mobile = !u.type.isStatic();
         boolean combatant = u.type.combatant;
         boolean hasSecondary = u.seedSecondaryWeapon != null;
+        // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
+        boolean sheetDrawn = u.type.drawnAsSheet();
         // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
         // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
         // a ground unit has none. It is kept OFF the corpse-remove mask
@@ -316,7 +325,8 @@ public final class UnitRosterService {
         boolean hasTask = u.seedAssignedObjective != null;
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
-                  + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)];
+                  + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
+                  + (sheetDrawn ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -334,7 +344,14 @@ public final class UnitRosterService {
         if (inSquad) archetype[c++] = components.SQUAD;
         if (hasHome) archetype[c++] = components.HOME;
         if (hasTask) archetype[c++] = components.TASK;
+        if (sheetDrawn) archetype[c++] = components.SPRITE;
         entityWorld.createEntity(id, archetype);
+        // SHEET/FLIP_V stay 0 from the zero-init append; INDEX is seeded to the
+        // south-idle frame so a unit spawned between this tick's FacingSystem
+        // pass and render still draws sanely instead of frame 0.
+        if (sheetDrawn) {
+            entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
+        }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);

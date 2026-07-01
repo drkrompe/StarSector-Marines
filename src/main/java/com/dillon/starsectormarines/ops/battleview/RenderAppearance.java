@@ -82,28 +82,28 @@ public final class RenderAppearance {
     }
 
     /**
-     * Derives the tags from the sim type — the hardcoded inline ladder, stated
-     * once. {@code TURRET}/{@code DRONE_HUB_STRUCTURE} are the whole-sprite
-     * footprint-drawers; {@code DRONE} renders in its own layer; everything else
-     * is sheet-drawn infantry/civilians. HP bars follow {@code combatant} (drones
-     * excluded), and a corpse sweep needs only a dead sheet to exist.
+     * Derives the tags from the sim type. The sheet-drawn classification now
+     * lives on the sim {@link UnitType#drawnAsSheet()} (so the sim tier can
+     * gate {@code SPRITE} archetype membership without importing this
+     * render-tier class) — this method just defers to it. {@code
+     * TURRET}/{@code DRONE_HUB_STRUCTURE} ({@link UnitType#isStatic()}) are the
+     * whole-sprite footprint-drawers; {@code DRONE} renders in its own layer.
+     * HP bars follow {@code combatant} (drones excluded), and a corpse sweep
+     * needs only a dead sheet to exist.
      */
     private static RenderAppearance derive(UnitType t) {
         SpriteKind kind;
         boolean footprint;
-        switch (t) {
-            case TURRET:
-            case DRONE_HUB_STRUCTURE:
-                kind = SpriteKind.WHOLE_SPRITE;
-                footprint = true;
-                break;
-            case DRONE:
-                kind = SpriteKind.NONE;
-                footprint = false;
-                break;
-            default:
-                kind = SpriteKind.SHEET;
-                footprint = false;
+        if (t.drawnAsSheet()) {
+            kind = SpriteKind.SHEET;
+            footprint = false;
+        } else if (t.isStatic()) {
+            kind = SpriteKind.WHOLE_SPRITE;
+            footprint = true;
+        } else {
+            // The remaining case is DRONE — drawn in its own layer.
+            kind = SpriteKind.NONE;
+            footprint = false;
         }
         boolean hpBar = t.combatant && t != UnitType.DRONE;
         boolean deathPose = t.deadSpritePath != null;

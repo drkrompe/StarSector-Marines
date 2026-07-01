@@ -61,11 +61,25 @@ public final class BattleComponents {
     /** {@link #RENDER_POSITION} field 1: smooth sub-cell draw y (FLOAT). */
     public static final int RENDER_POSITION_Y = 1;
 
-    /** {@link #SPRITE} field 0: minted sheet handle (INT) — see the interim note on {@link #SPRITE}. */
+    /**
+     * {@link #SPRITE} field 0: sheet selector (INT) — {@code 0} = the type's
+     * base sheet, {@code 1} = the secondary-aim sheet (the renderer maps the
+     * selector to a {@code SpriteAPI}; the component itself stays tier-neutral,
+     * never a sprite handle). A corpse is always {@code 0} (the base sheet).
+     */
     public static final int SPRITE_SHEET = 0;
-    /** {@link #SPRITE} field 1: frame index within the sheet (INT); {@code < 0} = nothing to draw. */
+    /**
+     * {@link #SPRITE} field 1: frame index within the sheet (INT); {@code < 0}
+     * = nothing to draw. Live: the per-tick facing/pose frame authored by
+     * {@code battle.appearance.FacingSystem}. Corpse: the frozen death-pose
+     * frame, written once at the death transmute.
+     */
     public static final int SPRITE_INDEX = 1;
-    /** {@link #SPRITE} field 2: vertical flip as 0/1 (INT). */
+    /**
+     * {@link #SPRITE} field 2: vertical flip as 0/1 (INT). Live: the
+     * weapon-up SOUTH vertical mirror, authored by {@code
+     * battle.appearance.FacingSystem}. Corpse: always {@code 0}.
+     */
     public static final int SPRITE_FLIP_V = 2;
 
     /** {@link #HEALTH} field 0: current hp (FLOAT). */
@@ -201,11 +215,18 @@ public final class BattleComponents {
     /**
      * Authored appearance — {@code int sheet, index, flipV}. The authoritative
      * "draw this"; one {@code Sprite} = one drawn quad, written by presentation
-     * systems (a corpse's frozen death pose lives in {@code index}), read by the
-     * render collector. <b>Interim:</b> {@code sheet} stays {@code 0} until the
-     * unified sprite registry mints sheet handles
-     * ({@code roadmap/battle-render/stories/unified-sprite-registry.md}) — the
-     * render resolves the sheet from {@link #IDENTITY_TYPE} until then.
+     * systems, read by the render collector. No longer corpse-only:
+     * every live {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * unit carries one too, authored per-tick by {@code
+     * battle.appearance.FacingSystem} (facing/pose frame + the weapon-up
+     * vertical mirror + the base/secondary-aim sheet selector); a corpse's
+     * frozen death pose lives in {@code index} (written once at the death
+     * transmute), with {@code sheet}/{@code flipV} re-asserted to {@code 0}.
+     * <b>Interim:</b> {@code sheet} is a small selector ({@code 0}/{@code 1}),
+     * not a minted handle, until the unified sprite registry mints sheet
+     * handles ({@code roadmap/battle-render/stories/unified-sprite-registry.md})
+     * — the render resolves the selector against {@link #IDENTITY_TYPE} until
+     * then.
      */
     public final ComponentType SPRITE;
     /** Dead-archetype marker — pure presence tag, no columns. */
@@ -508,6 +529,17 @@ public final class BattleComponents {
     public final Query corpses;
 
     /**
+     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION, SPRITE,
+     * HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * type, authored per-tick by {@code battle.appearance.FacingSystem}.
+     * Requiring {@code HEALTH} excludes corpses (the death transmute removes
+     * it) without an explicit {@code CORPSE} exclusion. The column walk
+     * {@code FacingSystem.tick()} matches.
+     */
+    public final Query liveSprites;
+
+    /**
      * Every entity currently crashing ({@code {CRASHING}}) — the falling drones the
      * crash system advances each tick and the drone renderer draws as fading hulls.
      * Required-only on {@code CRASHING}; the carrier is a corpse-archetype entity
@@ -583,6 +615,7 @@ public final class BattleComponents {
         VEHICLE_MISSION   = world.register(26, "VehicleMission", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
+        liveSprites = world.query(new ComponentType[]{IDENTITY, POSITION, SPRITE, HEALTH}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);

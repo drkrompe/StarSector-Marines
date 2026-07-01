@@ -9,9 +9,11 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
  * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE}}
- * archetype (plus the optional {@code COMBAT} a combatant carries, and the
+ * archetype (plus the optional {@code COMBAT} a combatant carries, the
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a
- * mobile/armed/squadded unit carries) to the
+ * mobile/armed/squadded unit carries, and the {@code SPRITE} every sheet-drawn
+ * unit — {@link UnitType#drawnAsSheet()} — already carries live, authored
+ * per-tick by {@code battle.appearance.FacingSystem}) to the
  * corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
  * {@code HEALTH}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, or {@code SQUAD} are
@@ -20,10 +22,13 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
  * row-move ("the corpse keeps its cell" is literal: nothing moves a unit after
  * the kill zeroes its hp, so the live POSITION + RENDER_POSITION already are the
- * death cell + frozen draw spot), and the death pose is authored into
- * {@code SPRITE.index} (the
+ * death cell + frozen draw spot). The transmute adds {@code SPRITE} only for a
+ * non-sheet death (turret / drone-hub / drone, which never carried one live);
+ * either way, the death write overwrites {@code SPRITE.index} with the death
+ * pose and zeroes {@code SPRITE.sheet}/{@code SPRITE.flipV} (a sheet unit can
+ * die mid-secondary-aim with those non-zero) — the
  * appearance-as-authored-data pattern — the render collector just draws what
- * the sprite says).
+ * the sprite says.
  *
  * <p>The corpse <em>is</em> the same entity id the unit lived under — the seam
  * future mechanics (medic revive) hook into without an id correlation table.
@@ -51,7 +56,12 @@ public final class DeadBodySystem {
         this.world = world;
         this.components = components;
         // RENDER_POSITION is universal on the live archetype now, so it rides the
-        // row-move (no add) — the corpse only gains SPRITE + the CORPSE tag.
+        // row-move (no add) — same for SPRITE, which every sheet-drawn unit
+        // (UnitType.drawnAsSheet) already carries live (authored per-tick by
+        // FacingSystem). Listing SPRITE in the add mask anyway is safe either
+        // way: transmute ORs the add mask in, so it's a no-op for a sheet unit
+        // that already has it, and still adds it fresh for a non-sheet death
+        // (turret / drone-hub / drone) that never carried one live.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
         // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, and SQUAD are all optional (a
         // non-combatant civilian has no COMBAT; a static turret/hub has no
@@ -80,8 +90,14 @@ public final class DeadBodySystem {
         // RENDER_POSITION rides the row-move (it's on the live archetype too, kept
         // off the corpse-remove mask), so the corpse already draws where it fell —
         // no post-release snapshot needed.
-        // SPRITE.sheet / flipV stay 0 — sheet resolves from IDENTITY.type until
-        // the unified sprite registry mints handles (see BattleComponents.SPRITE).
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, event.deathPoseIdx());
+        // A sheet unit's live-authored selector/flip ride the row-move (a unit
+        // can die mid-secondary-aim with SHEET=1/FLIP_V=1) — corpses draw the
+        // base sheet unflipped, so re-assert the corpse invariant explicitly
+        // rather than relying on a fresh-row default that only holds for the
+        // non-sheet (turret/hub/drone) deaths that gain SPRITE here for the
+        // first time.
+        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET, 0);
+        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V, 0);
     }
 }

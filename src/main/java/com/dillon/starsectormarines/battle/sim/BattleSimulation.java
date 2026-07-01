@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -139,6 +140,8 @@ public class BattleSimulation implements BattleControl {
     private final BattleComponents battleComponents;
     /** Dead-body system — death-event handler that transmutes the dead unit's world entity to the corpse archetype in {@link #entityWorld}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final DeadBodySystem deadBodySystem;
+    /** Presentation system that authors every live sheet-drawn unit's {@code SPRITE} facing/pose frame each tick — see {@link FacingSystem}. Ticked at the tail of {@link #tick}, just before the entity-world flush. */
+    private final FacingSystem facingSystem;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Entity-access facade — the artemis-shaped by-id read layer over the dense registry (hot primitives) + the sparse component stores (cold projection). Access half of the world-facade endgame; see {@link World}. Constructed in the ctor once the roster + stores exist. */
@@ -325,6 +328,7 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
         deathDispatcher.subscribe(mechWreckSystem::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
@@ -992,6 +996,12 @@ public class BattleSimulation implements BattleControl {
             winner = result.winner();
         }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
+        // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from
+        // this tick's settled state — the tail placement is load-bearing: it
+        // runs after every target/path/cooldown write and the air/ground
+        // deboards above, and before any render read of SPRITE this frame.
+        facingSystem.tick();
+        tickProfile.lap(TickProfile.Phase.APPEARANCE);
         // Tick barrier for the entity world: apply structural changes queued on
         // its command buffer during this tick's query walks. Today's structural
         // changes (corpse spawn is a walk-safe create; death transmute, air reap

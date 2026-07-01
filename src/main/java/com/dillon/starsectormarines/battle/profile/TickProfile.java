@@ -59,7 +59,8 @@ public final class TickProfile {
         EQUIPMENT_DROPS,
         OBJECTIVES,
         ZONE_GRAPH,
-        WIN_CHECK;
+        WIN_CHECK,
+        APPEARANCE;
 
         /** Cached array — avoids the {@code values()} clone on every panel render. */
         public static final Phase[] VALUES = values();
