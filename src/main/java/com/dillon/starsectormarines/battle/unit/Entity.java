@@ -297,19 +297,6 @@ public class Entity {
     public EquipmentDrop equipmentDropTarget;
 
     /**
-     * Sim-tick index of the last {@code rollReprioritizeOnHit} attempt
-     * against this unit. Compared to {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#simTickIndex}
-     * to gate the reprio to one roll per tick — without the gate, a 4-marine
-     * squad opening up in the same tick gives the mech a ~82% per-tick
-     * reprio chance from the base 0.35 rate (1 − 0.65⁴), which produces
-     * near-constant target twitching. Only mechs + turrets pay attention
-     * to this field; infantry leaves it at the -1 sentinel. {@code -1}
-     * before the first reprio attempt and stays at -1 for units that
-     * never qualify (infantry, civilians, dead units).
-     */
-    public volatile int lastReprioTickIndex = -1;
-
-    /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The garrison idle-post cell
      * a {@link UnitRole#GARRISON} unit returns to and holds while its squad is UNAWARE.
      * {@link UnitRosterService#allocate} consumes it: a value {@code >= 0} makes the

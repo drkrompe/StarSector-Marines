@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntSupplier;
 
 /**
@@ -28,10 +28,16 @@ import java.util.function.IntSupplier;
  *   <li>{@link #rollFallbackOnHit} — reads immutable service refs + per-unit
  *       fields; writes go through {@link DamageService#applyFallback} which
  *       handles serial/parallel routing.</li>
- *   <li>{@link #rollReprioritizeOnHit} — CAS on
- *       {@link Entity#lastReprioTickIndex} gates to one roll per (target, tick);
+ *   <li>{@link #rollReprioritizeOnHit} — an atomic per-target claim in
+ *       {@link #lastReprioTickByTarget} gates to one roll per (target, tick);
  *       writes go through {@link DamageService#applyReprio}.</li>
  * </ul>
+ *
+ * <p>The reprio gate is <b>transient per-tick coordination</b>, not durable unit
+ * state — its only test is "has this target already been rolled <em>this</em> tick?",
+ * so it lives here on the System (keyed by target entity id) rather than as an
+ * {@code Entity} field. This closed the last per-unit heap field on the "entity = id"
+ * migration (slice 7b).
  */
 public final class HitResponseSystem {
 
@@ -42,8 +48,15 @@ public final class HitResponseSystem {
     private static final float REPRIORITIZE_BASE_CHANCE = 0.35f;
     private static final float REPRIORITIZE_NO_LOS_CHANCE = 0.85f;
 
-    private static final AtomicIntegerFieldUpdater<Entity> LAST_REPRIO_TICK =
-            AtomicIntegerFieldUpdater.newUpdater(Entity.class, "lastReprioTickIndex");
+    /**
+     * Per-target last-reprio-roll tick — the off-entity home of the reprio gate. Maps a
+     * target's entity id to the sim-tick index it was last reprio-rolled on, so the
+     * parallel workers can atomically claim "the one roll for this target this tick"
+     * ({@link #rollReprioritizeOnHit}). Grows to one entry per distinct mech/turret ever
+     * hit (a handful — mechs + turrets are the only qualifying targets); the map is
+     * per-battle and dies with the ephemeral sim, so no reset is needed.
+     */
+    private final ConcurrentHashMap<Long, Integer> lastReprioTickByTarget = new ConcurrentHashMap<>();
 
     private final NavigationGrid grid;
     private final UnitRosterService roster;
@@ -85,9 +98,20 @@ public final class HitResponseSystem {
         boolean qualifies = world.hasMechLoadout(target.entityId) || target instanceof MapTurret;
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();
-        int prev = LAST_REPRIO_TICK.get(target);
-        if (prev == simTickIndex) return;
-        if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
+        // One reprio roll per (target, tick) across the parallel workers. Fast-path the
+        // common "already rolled this tick" case with a plain get, then atomically claim
+        // the roll via compute() — it wins iff it transitions this target's last-rolled
+        // tick to the current tick (the off-entity replacement for the old
+        // AtomicIntegerFieldUpdater CAS on Entity.lastReprioTickIndex).
+        Integer prevTick = lastReprioTickByTarget.get(target.entityId);
+        if (prevTick != null && prevTick == simTickIndex) return;
+        boolean[] claimed = {false};
+        lastReprioTickByTarget.compute(target.entityId, (k, prev) -> {
+            if (prev != null && prev == simTickIndex) return prev;   // another worker already claimed it
+            claimed[0] = true;
+            return simTickIndex;
+        });
+        if (!claimed[0]) return;
         long expectedTargetId = world.targetId(target.entityId);
         Entity expectedTarget = roster.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
