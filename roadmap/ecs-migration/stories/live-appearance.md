@@ -1,6 +1,6 @@
 # Live authored-appearance — sprites/rendering as ECS component data
 
-> **STATUS: design stage (seeded 2026-07-01).** The active ECS-migration epic after
+> **STATUS: Phase 1 SHIPPED (`9f1c33f0`, 2026-07-01); Phase 2 next.** The active ECS-migration epic after
 > convoy-`Vehicle`-into-world (DONE). The **storage** half of the migration is fully closed
 > (every unit / craft / vehicle is a world entity); this is the **presentation-data** half:
 > make a live unit's on-screen appearance (facing, frame, aim-pose, animation) **authored
@@ -96,7 +96,19 @@ facing→frame / weaponUp math so it's unit-testable off the system.
 
 ## Phases (each leaves build + tests green)
 
-1. **Author `SPRITE` for live units (dormant).** Add `SPRITE` to the live SHEET-unit spawn
+1. ~~**Author `SPRITE` for live units (dormant).**~~ **SHIPPED `9f1c33f0` (2026-07-01;
+   Sonnet-implemented from a prescriptive spec, reviewed on the main thread; suite 839 green).**
+   Landed as designed with two refinements found in review of `EntityWorld.transmute`:
+   (a) `corpseAdd` stays `{SPRITE, CORPSE}` — transmute ORs the add mask, so it's a natural
+   no-op for sheet units that already carry SPRITE and still adds it fresh for
+   turret/hub/drone deaths (the planned "corpseAdd drops SPRITE" adjustment was unnecessary);
+   (b) the REAL corpse ripple is the reverse direction — live-authored `SHEET`/`FLIP_V` ride
+   the row-move (a unit can die mid-secondary-aim), so `onDeath` now explicitly zeroes both.
+   Also landed: `UnitType.drawnAsSheet()` + `RenderAppearance.derive` deferral,
+   `BattleComponents.liveSprites` (`{IDENTITY, POSITION, SPRITE, HEALTH}` — HEALTH excludes
+   corpses, no CORPSE exclusion needed), spawn seed `SPRITE_INDEX=3` (south idle, same frame
+   in both layouts), `TickProfile.Phase.APPEARANCE`, golden-table + scenario tests.
+   Original design (for the record): Add `SPRITE` to the live SHEET-unit spawn
    archetype (presence == sheet-drawn); add `FacingSystem` running **at the tail of the sim
    tick** (after `airSystem`/`groundSystem` deboards, so units spawned this tick are authored
    before render), writing `SPRITE_INDEX`/`FLIP_V`/`SHEET` from the **exact** current derivation
@@ -131,6 +143,20 @@ facing→frame / weaponUp math so it's unit-testable off the system.
    as spawned child entities with their own lifecycle components (vs the current `ImpactFx`
    immediate-mode particles) — a separate sub-epic that overlaps the working `ShotFx`/`ImpactFx`;
    scope on its own when reached.
+
+## Phase-2 handoff notes (from the Phase-1 implementation, 2026-07-01)
+
+- **The renderer's frame clamp needs a home.** `emitLiveSprite`'s
+  `frameIdx >= frames.frames.length → 0` clamp is sheet-cache-dependent; `FacingSystem`
+  deliberately authors the *unclamped* logical frame. Phase 2's reader keeps its own clamp
+  (or the sheet-cache lookup defends itself).
+- **Aim-sheet-missing fallback.** Today `emitLiveSprite` falls back to the *base* cache when
+  the secondary-aim cache is missing/empty; `FacingSystem` authors `SPRITE_SHEET=1` on
+  `inAim` regardless (it can't know cache availability — tier-neutral). Phase 2's
+  selector→`SpriteAPI` mapping must replicate the fall-back-to-base-on-missing behavior.
+- **Phase-4a bug faithfully preserved:** the aim pose's facing still derives from the
+  *primary* `COMBAT.targetId`, not the secondary's aim target — ported verbatim per the
+  behavior-preserving rule; fix stays scheduled in Phase 4.
 
 ## Watch-items
 

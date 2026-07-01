@@ -129,14 +129,14 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 6. ~~Combatant-narrow COMBAT membership~~ — **SHIPPED (`74c565d1`):** "has COMBAT" now
    defines a combatant.
 7. **Live authored-appearance** (FacingSystem / `ANIMATION` component / FX child entities) —
-   **← ACTIVE (2026-07-01).** The "sprites/rendering → ECS" epic on the *data* side: live-unit
-   sprite state (facing, animation frame, aim pose) becomes authored **component** data written
-   by presentation systems, and the renderer becomes a pure `Query` collector — the pattern the
-   corpse `SPRITE` component + `RenderAppearance`/`ShotFx` already prove for dead units / FX.
-   Today live units still have the renderer *derive* facing per-frame. Design + slice plan:
-   [`stories/live-appearance.md`](stories/live-appearance.md) (extend `SPRITE` to live units,
-   author it from a sim-tick `FacingSystem`, flip the renderer to a pure collector; walk-cycle
-   `ANIMATION` + FX-child-entities are later/art-gated phases).
+   **← ACTIVE; Phase 1 SHIPPED (`9f1c33f0`, 2026-07-01).** Live sheet-drawn units carry `SPRITE`
+   from spawn, authored per-tick by `battle.appearance.FacingSystem` at the sim-tick tail
+   (dormant — renderer still derives). **Next: Phase 2** — flip `UnitRenderService.emitLiveSprite`
+   to read `SPRITE`, delete the renderer's private derivation copies, optionally converge
+   live+dead onto one drawable-`SPRITE` `Query` sweep. See the story's "Phase-2 handoff notes"
+   (frame clamp stays render-side; selector→sheet mapping needs the aim-cache-missing fallback).
+   Design + full slice plan: [`stories/live-appearance.md`](stories/live-appearance.md);
+   walk-cycle `ANIMATION` + FX-child-entities remain later/art-gated phases.
    [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
 8. **FiringSystem** — extract the duplicated fire mechanics (~12 GOAP postures + turret/drone
    aim variants; the canonical cooldown-gate → `fireShot` → reset → burst → reposition block,
@@ -180,8 +180,11 @@ goap, campaign) interleave on HEAD.
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
 - `git log --oneline -5` shows `35840353` (javadoc sweep) / `f1ad8753` (the deletion) or your
   own recent work at the top.
-- **ACTIVE epic: live authored-appearance** (backlog item 7 — user-picked 2026-07-01). The
-  storage half is fully closed; this is the presentation-data half. Design doc + slice plan
-  being drafted from a data-flow map of the current live-unit render path. Other queued
-  candidates if this stalls: **FiringSystem** (item 8, unblocked, high ready value),
-  **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
+- **ACTIVE epic: live authored-appearance** (backlog item 7 — user-picked 2026-07-01).
+  **Phase 1 shipped `9f1c33f0`** (SPRITE on live units + dormant `FacingSystem`; suite 839
+  green). **Pick up at Phase 2**: flip the renderer to read `SPRITE` + delete its derivation
+  copies — read the story's Phase-2 handoff notes first. Other queued candidates if this
+  stalls: **FiringSystem** (item 8, unblocked, high ready value), **identity-collapse**
+  (item 9), **statelessify `VehicleController`** (item 10).
+- Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
+  prescriptive specs; planning/review/suite/commit on the main thread.
