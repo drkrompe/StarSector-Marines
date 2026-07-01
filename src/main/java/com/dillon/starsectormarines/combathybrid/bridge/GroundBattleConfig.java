@@ -40,19 +40,26 @@ public record GroundBattleConfig(
     /**
      * The render passes the bridge draws today: terrain + structure + ground units (S3f) +
      * objective / compound capture-state markers (S3g) + parked vehicles & convoys (S3h) +
-     * airborne dropships (S3d D1) + combat FX: in-flight shot tracers/projectiles ({@link
-     * RenderLayer#SHOTS}) and shot-impact particles ({@link RenderLayer#IMPACT_FX}). Both FX passes
-     * are camera-projected (they drain through {@code ctx.camera}, like UNITS), so they join the set
-     * directly — unlike the screen-space FBO accumulator DECALS, which still needs
-     * projection-retarget work and stays out (S3j). The
-     * presentation that spawns/ages these FX and plays the matching combat audio lives in
+     * airborne dropships (S3d D1) + per-cell fog-of-war darkening ({@link RenderLayer#FOG}) + combat
+     * FX: in-flight shot tracers/projectiles ({@link RenderLayer#SHOTS}) and shot-impact particles
+     * ({@link RenderLayer#IMPACT_FX}). All of these are camera-projected (they drain through
+     * {@code ctx.camera}, like UNITS), so they join the set directly — unlike the screen-space FBO
+     * accumulator DECALS, which still needs projection-retarget work and stays out (S3j).
+     *
+     * <p><b>FOG</b> was originally skipped (S3i) on a fleet/orbital-POV rationale, partly justified
+     * as "a no-op anyway — the map-only sim never inits vision." That premise no longer holds: the
+     * bridge sim runs full vision (contributors + shadowcast), so the unit-visibility gate pops
+     * enemies in and out of sight. Without the matching fog overlay those units read as emerging from
+     * nowhere, so the fog darkening is drawn to match the LoS the player already experiences.
+     *
+     * <p>The presentation that spawns/ages the FX and plays the matching combat audio lives in
      * {@code GroundSimPresentation}, driven by the proxy mirror's per-frame sim tick.
      */
     public static final EnumSet<RenderLayer> DEFAULT_SCENE_LAYERS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS,
                     RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
                     RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES,
-                    RenderLayer.SHOTS, RenderLayer.IMPACT_FX);
+                    RenderLayer.FOG, RenderLayer.SHOTS, RenderLayer.IMPACT_FX);
 
     /**
      * Vanilla-damage → sim-damage divisor: maps ship-gun damage (hundreds/sec, bursty fighter

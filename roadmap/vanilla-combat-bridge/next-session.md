@@ -343,8 +343,9 @@ current proxies are turrets/structures (genuinely solid), so today's boundary mo
 
 **Render-layers thread resolved (S3f–S3j):** S3f/S3g/S3h wired (build-clean; `DEFAULT_SCENE_LAYERS`
 now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY/SHUTTLES + **SHOTS/IMPACT_FX**
-(combat FX, added 2026-06-27 with the audio fix)), S3i decided-skip (no fog in the orbital view;
-highlights blocked on a selection model), S3j now narrowed to **DECALS only** — the hard
+(combat FX, added 2026-06-27 with the audio fix)), S3i FOG **reversed → wired 2026-07** (the
+visibility gate is live in the bridge, so unmatched fog made enemies read as emerging from nowhere;
+HIGHLIGHTS still blocked on a selection model), S3j now narrowed to **DECALS only** — the hard
 screen-space-FBO bucket (~~LIGHTING slated for removal~~ → ✅ LIGHTING removed 2026-06-29; keep LoS-shadow + DECALS).
 **Open:** S3f's Ctrl+Shift+K playtest verdict (code carried unchanged through the extraction), and
 **S3c — airspace/AI viability**, the independent load-bearing de-risk the render work doesn't touch.
@@ -371,10 +372,13 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
 - **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. ✅ **DONE, build-clean** — added to
   `DEFAULT_SCENE_LAYERS` + `ensureVehicleSheets()`/`ensureConvoySprites()`; the null-`selection` NPE
   fixed by guarding `BattleRenderer.renderSelectedVehicleDebug` on `rc.selection == null`.
-- **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. ✅ **DONE as a decision-record (no
-  wiring).** FOG skipped — orbital fleet-commander POV reveals the surface; fog stays a
-  ground-commander mechanic on `BattleScreen`. HIGHLIGHTS deferred — no selection model in the bridge
-  to source `ctx.highlights` (its own thread). `DEFAULT_SCENE_LAYERS` unchanged.
+- **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. ✅ **FOG wired 2026-07 (decision
+  reversed); HIGHLIGHTS still deferred.** The 2026-06 skip leaned on "a no-op anyway — the sim never
+  inits vision," which is no longer true: the bridge sim runs full vision, so the unit-visibility gate
+  pops enemies in/out and unmatched fog made them read as emerging from nowhere. `RenderLayer.FOG`
+  added to `DEFAULT_SCENE_LAYERS` (`collectFogOverlay` is `rc.camera`-projected, slots after DOODADS /
+  before UNITS by enum order, early-returns if vision is uninitialized). HIGHLIGHTS deferred — still no
+  selection model in the bridge to source `ctx.highlights` (its own thread).
 - **`stories/s3j-fx-fbo-retarget.md`** — `DECALS` (~~`LIGHTING`~~ removed 2026-06-29; `IMPACT_FX` shipped). ⏸ **DEFERRED** (last item).
   No source in the map-only bridge (all are sim-side shot events — nothing until live sim
   combat post-`deliverSquad`/S3d). Pick up when the bridge actually fights. (`SHUTTLES` shipped in S3d D1a;
