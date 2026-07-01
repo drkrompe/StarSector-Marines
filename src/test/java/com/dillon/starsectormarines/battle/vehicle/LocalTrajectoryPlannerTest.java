@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * </ul>
  *
  * The planner is pure (pose + corridor + grid → trajectory), so no
- * {@link Vehicle} / {@link GroundSystem} is constructed here.
+ * {@link VehicleMission} / {@link GroundSystem} is constructed here.
  */
 public class LocalTrajectoryPlannerTest {
 

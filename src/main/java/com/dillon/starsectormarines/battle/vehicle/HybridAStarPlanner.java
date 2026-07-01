@@ -16,7 +16,7 @@ import java.util.PriorityQueue;
  * {@link ReedsShepp} for analytic shortcutting.
  *
  * <p>Slots between {@link ConvoyPlanner} (high-level road-graph route) and
- * {@link Vehicle} (waypoint consumer). The output is a dense {@code float[][]}
+ * {@link VehicleMission} (waypoint consumer). The output is a dense {@code float[][]}
  * of kinematically-feasible waypoints that {@link PurePursuit} can track
  * without wall collisions.
  */
@@ -58,7 +58,7 @@ public final class HybridAStarPlanner {
      *
      * <p>Pure: ({@code start}, {@code goal}, window, grid) in → feasible
      * {@code float[3][]} ([0]=X, [1]=Y, [2]=headingDeg) or {@code null} out.
-     * No {@link Vehicle} / {@link GroundSystem} coupling. {@code null} means
+     * No {@link VehicleMission} / {@link GroundSystem} coupling. {@code null} means
      * "no forward trajectory in the window within {@code maxIterations}" — the
      * caller (and, in slice 3, the recovery ladder) escalates.
      */

@@ -19,7 +19,7 @@ import java.util.Set;
  * multiple convoys competing for the shortest route.
  *
  * <p>{@link #expandToWaypoints} unrolls a node-path into the cell sequence
- * a {@link Vehicle} will consume as its waypoint queue. The expansion
+ * a {@link VehicleMission} will consume as its waypoint queue. The expansion
  * orients each edge's cell-list relative to the entry node so the convoy
  * walks cells in driving order; junction cells (shared between two edges)
  * are de-duplicated to avoid the truck pausing twice at the same node.
@@ -65,7 +65,7 @@ public final class ConvoyPlanner {
 
     /**
      * Expand an edge-path into the cell-center waypoint sequence a
-     * {@link Vehicle} consumes. The first cell of the first edge (from's
+     * {@link VehicleMission} consumes. The first cell of the first edge (from's
      * cell) opens the sequence; thereafter each edge's cells are appended
      * skipping the shared junction cell at the start (already added by the
      * previous edge's tail). Result is two parallel float arrays of equal

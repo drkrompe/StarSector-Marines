@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * {@code navigation-rework/overview.md}.
  *
  * <p>Pure and stateless: (pose, corridor, type, grid) → trajectory or
- * {@code null}. No {@link Vehicle} / {@link GroundSystem} coupling, which is
+ * {@code null}. No {@link VehicleMission} / {@link GroundSystem} coupling, which is
  * what makes it unit-testable in isolation and reusable for future tanks /
  * player vehicles. A {@code null} return means "no forward trajectory" — the
  * recovery ladder (slice 3) escalates from there.

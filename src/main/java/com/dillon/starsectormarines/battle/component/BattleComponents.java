@@ -187,7 +187,7 @@ public final class BattleComponents {
     /** {@link #GROUND_TURRET} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.GroundTurret} payload (OBJECT) — live aim/fire state (facing/cooldown/ammo/burst). Presence == "armed". */
     public static final int GROUND_TURRET_STATE = 0;
 
-    /** {@link #VEHICLE_MISSION} field 0: the convoy mission-state payload (OBJECT). Currently the {@link com.dillon.starsectormarines.battle.vehicle.Vehicle} handle itself; becomes a dedicated {@code VehicleMission} bag when the handle dissolves. Liveness is {@code state == GONE}. */
+    /** {@link #VEHICLE_MISSION} field 0: the convoy mission-state payload (OBJECT) — the {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag. Liveness is {@code state == GONE}. */
     public static final int VEHICLE_MISSION_STATE = 0;
 
     // ---- component types ----
@@ -488,11 +488,11 @@ public final class BattleComponents {
     public final ComponentType GROUND_TURRET;
     /**
      * Convoy mission state — one OBJECT field. The lifecycle/deboard/route/path state a
-     * convoy vehicle carries: today the {@link com.dillon.starsectormarines.battle.vehicle.Vehicle}
-     * handle itself is the payload (so the backbone can be a {@code List<Long>} of ids and
-     * the handle lives in the world, not a side list), reached via
-     * {@code ConvoyService.vehicle(id)}. When the handle dissolves it becomes a dedicated
-     * {@code VehicleMission} bag. Liveness is {@code state == GONE}, not {@link #HEALTH}.
+     * convoy vehicle carries: the payload is the
+     * {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag (so the backbone
+     * can be a {@code List<Long>} of ids and the mission lives in the world, not a side
+     * list), reached via {@code ConvoyService.vehicle(id)}. Liveness is {@code state ==
+     * GONE}, not {@link #HEALTH}.
      */
     public final ComponentType VEHICLE_MISSION;
 

@@ -22,7 +22,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * cell) and the slice-1 A* reads it once per expanded edge. Revisit a scaled
  * {@code byte[]} only if profiling flags the multiply (slice 5 / perf).
  *
- * <p>Pure: {@code CellTopology -> cost field}, no {@link Vehicle} coupling.
+ * <p>Pure: {@code CellTopology -> cost field}, no {@link VehicleMission} coupling.
  * Starting weights are slice-0 values, tuned in slice 4.
  */
 public final class TerrainCostField {

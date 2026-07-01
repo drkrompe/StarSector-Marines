@@ -10,10 +10,10 @@ package com.dillon.starsectormarines.battle.vehicle;
  * {@link VehicleType#turretKind}; this bag is the live aim/fire state
  * {@code GroundSystem.tickVehicleTurrets} drives each tick.
  *
- * <p>Extracted from {@link Vehicle}'s former inline {@code turret*} fields in the
+ * <p>Extracted from {@code Vehicle}'s former inline {@code turret*} fields in the
  * convoy-{@code Vehicle}-into-world epic
  * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}). During the aliasing
- * phase the same instance is held by both the {@link Vehicle} handle and the
+ * phase the same instance is held by both the {@code Vehicle} handle and the
  * {@code GROUND_TURRET} column.
  */
 public final class GroundTurret {

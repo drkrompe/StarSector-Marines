@@ -24,7 +24,7 @@ public interface ReinforcementMeans {
     boolean canFulfill(BattleView sim, ReinforcementRequest req);
 
     /**
-     * Spawn the actual units. May post {@link com.dillon.starsectormarines.battle.Vehicle},
+     * Spawn the actual units. May post {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission},
      * {@code Shuttle}, or {@code Squad}/{@code Entity} into the sim's normal
      * lists. Called only after {@link #canFulfill} returns {@code true}.
      */

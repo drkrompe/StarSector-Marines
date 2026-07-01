@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  * Advisory coarse route for one ground vehicle: the cell-center polyline from
  * {@link ConvoyPlanner} plus a progress cursor. Owns the carrot-picking and
  * remaining-length bookkeeping that previously lived as a loose
- * {@code waypointIndex} on {@link Vehicle}.
+ * {@code waypointIndex} on {@code Vehicle}.
  *
  * <p>The corridor is a <em>suggestion</em> the controller tracks, not a rail
  * the body is snapped to — see {@code navigation-rework/overview.md}. The

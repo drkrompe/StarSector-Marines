@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
  * tunables, visual footprint. Parallels {@link com.dillon.starsectormarines.battle.air.ShuttleType}
- * for ground craft. The sim ticks each {@link Vehicle}'s {@link GroundBody}
+ * for ground craft. The sim ticks each ground vehicle's {@link GroundBody}
  * directly — different variants can supply different kinematic models via
  * {@link #createBody()}, so a future {@code TANK} entry can return a
  * differential-drive {@code TrackedBody} instead of a {@link BicycleBody}
@@ -46,7 +46,7 @@ public enum VehicleType {
     /** Total frames in the sprite-sheet. The renderer divides the texture width by this to get each frame's UV rect. */
     public final int frameCount;
     /**
-     * Degrees to add to {@link Vehicle#body}.{@code facingDegrees} when
+     * Degrees to add to the chassis {@link GroundBody}'s {@code facingDegrees} when
      * rendering, to align the texture's natural "forward" with the sim's
      * "facing=0 is +Y" convention. Vanilla Starsector ship sprites point
      * north (offset 0); trucks_2.png frames point east (cab on the right

@@ -32,7 +32,7 @@ import java.util.List;
  * from a valid path), so callers can fall back rather than mistake it for empty.
  *
  * <p>Pure: {@code (start, goal, grid, costField, clearance) -> polyline}. No
- * {@link Vehicle} coupling — reusable for tanks / player vehicles. Tuned in
+ * {@link VehicleMission} coupling — reusable for tanks / player vehicles. Tuned in
  * slice 4.
  */
 public final class VehicleRoutePlanner {
