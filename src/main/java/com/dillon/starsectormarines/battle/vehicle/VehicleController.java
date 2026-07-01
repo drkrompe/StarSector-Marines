@@ -32,10 +32,13 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
  * surviving rails case, as a terminal LZ phase (see {@code navigation-rework/
  * overview.md}).
  *
- * <p>Motion state that used to live as loose fields on {@link Vehicle}
+ * <p>Motion state that used to live as loose fields on the vehicle handle
  * (waypoint cursor, docking path, wall-stuck timers) lives here, where it
- * belongs. The pose itself stays on {@link Vehicle#body} because the renderer
- * and turret loop read it.
+ * belongs. The pose itself stays on the {@link GroundBody} in
+ * {@code GROUND_KINEMATICS} (reached by id) because the renderer and turret loop
+ * read it; this controller holds a direct ref to that one instance, resolved once
+ * at construction. Mission-level state (paths, route inputs, LZ) lives on the
+ * {@link VehicleMission} it also holds.
  */
 public final class VehicleController {
 
@@ -130,7 +133,11 @@ public final class VehicleController {
     /** Radius (cells) of the impassable disc the re-route drops on the stuck spot, forcing a different corridor. ≥ a road width so it actually blocks the failing mouth. */
     private static final float REROUTE_AVOID_RADIUS = 3.0f;
 
-    private final Vehicle vehicle;
+    private final VehicleMission mission;
+    /** The kinematic body (in {@code GROUND_KINEMATICS}) this controller drives — one stable instance for the vehicle's life, resolved by id at construction. */
+    private final GroundBody body;
+    /** The vehicle variant (kinematics params, footprint) — one stable instance, resolved by id at construction. */
+    private final VehicleType type;
     private final NavigationService navigation;
 
     /** Active corridor for the current direction; rebuilt when inbound flips to outbound. */
@@ -174,8 +181,11 @@ public final class VehicleController {
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
     private boolean arrived;
 
-    public VehicleController(Vehicle vehicle, NavigationService navigation) {
-        this.vehicle = vehicle;
+    public VehicleController(VehicleMission mission, GroundBody body, VehicleType type,
+                             NavigationService navigation) {
+        this.mission = mission;
+        this.body = body;
+        this.type = type;
         this.navigation = navigation;
     }
 
@@ -213,8 +223,8 @@ public final class VehicleController {
      * LANDED/OVERWATCH).
      */
     public void tick(float dt, boolean isInbound) {
-        float[] xs = isInbound ? vehicle.inboundX : vehicle.outboundX;
-        float[] ys = isInbound ? vehicle.inboundY : vehicle.outboundY;
+        float[] xs = isInbound ? mission.inboundX : mission.outboundX;
+        float[] ys = isInbound ? mission.inboundY : mission.outboundY;
 
         if (lastInbound == null || lastInbound != isInbound) {
             initCorridor(xs, ys);
@@ -245,9 +255,6 @@ public final class VehicleController {
      * with a shared wall-stuck reverse stub wrapping the kinematic move.
      */
     private void advance(float[] xs, float[] ys, float dt, boolean isInbound) {
-        GroundBody body = vehicle.body;
-        VehicleType type = vehicle.type;
-
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
         corridor.advance(body.x, body.y);
@@ -568,8 +575,6 @@ public final class VehicleController {
      * body backs into something, then forces a forward replan from the new pose.
      */
     private void advanceReverse(float dt) {
-        GroundBody body = vehicle.body;
-        VehicleType type = vehicle.type;
         NavigationGrid grid = navigation.getGrid();
 
         float horizon = Math.max(MIN_LOOKAHEAD_CELLS, type.lookAheadCells);
@@ -641,12 +646,12 @@ public final class VehicleController {
      * stall timer retries every {@link #STALL_SECONDS} in case the grid opens up).
      */
     private boolean attemptReroute(GroundBody body) {
-        TerrainCostField cost = vehicle.routeCostField;
-        VehicleClearance clr = vehicle.routeClearance;
+        TerrainCostField cost = mission.routeCostField;
+        VehicleClearance clr = mission.routeClearance;
         if (cost == null || clr == null) return false; // not cost-routed — can't lap
         boolean inbound = lastInbound != null && lastInbound;
-        float[] xs = inbound ? vehicle.inboundX : vehicle.outboundX;
-        float[] ys = inbound ? vehicle.inboundY : vehicle.outboundY;
+        float[] xs = inbound ? mission.inboundX : mission.outboundX;
+        float[] ys = inbound ? mission.inboundY : mission.outboundY;
         NavigationGrid grid = navigation.getGrid();
 
         int goalIdx = lastOnGridIndex(xs, ys, grid);
@@ -671,11 +676,11 @@ public final class VehicleController {
 
         float[][] full = appendTail(re, xs, ys, goalIdx);
         if (inbound) {
-            vehicle.inboundX = full[0];
-            vehicle.inboundY = full[1];
+            mission.inboundX = full[0];
+            mission.inboundY = full[1];
         } else {
-            vehicle.outboundX = full[0];
-            vehicle.outboundY = full[1];
+            mission.outboundX = full[0];
+            mission.outboundY = full[1];
         }
         initCorridor(full[0], full[1]);
         return true;
@@ -713,7 +718,6 @@ public final class VehicleController {
      * truck to the LZ via the corridor).
      */
     private void tryEngageDocking(float[] xs, float[] ys) {
-        GroundBody body = vehicle.body;
         if (!(body instanceof BicycleBody)) return;
         int lastIdx = xs.length - 1;
         float lzX = xs[lastIdx];
@@ -730,7 +734,7 @@ public final class VehicleController {
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
         if (path == null) return;
-        if (!isPathFeasible(start, path, turnRadius, vehicle.type, navigation.getGrid())) return;
+        if (!isPathFeasible(start, path, turnRadius, type, navigation.getGrid())) return;
 
         dockingPath = path;
         dockingStartPose = start;
@@ -746,11 +750,10 @@ public final class VehicleController {
      * flag arrival when the path's total length is consumed.
      */
     private void advanceDocking(float dt) {
-        GroundBody body = vehicle.body;
         dockingProgressCells += DOCKING_SPEED * dt;
         float totalCells = dockingPath.lengthCells(dockingTurnRadius);
         if (dockingProgressCells >= totalCells) {
-            body.teleport(vehicle.lzX, vehicle.lzY, dockingGoalFacingDeg);
+            body.teleport(mission.lzX, mission.lzY, dockingGoalFacingDeg);
             dockingPath = null;
             arrived = true;
             return;

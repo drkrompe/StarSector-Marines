@@ -5,7 +5,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -64,6 +65,8 @@ public interface BattleControl extends BattleView {
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay);
 
-    /** Add a convoy vehicle to the ground system (convoy reinforcement). */
-    void addConvoyVehicle(Vehicle v);
+    /** Spawn a convoy vehicle (convoy reinforcement): builds its world entity from the
+     *  variant + faction, seeding the caller-built {@link VehicleMission} as its
+     *  {@code VEHICLE_MISSION} column. Configure the mission (route inputs, loadout) before calling. */
+    void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission);
 }

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -84,7 +84,7 @@ public final class WorldPicker implements HudPanel {
         long bestId = 0L;
         float bestDistSq = VEHICLE_PICK_RADIUS_CELLS * VEHICLE_PICK_RADIUS_CELLS;
         for (long id : ids) {
-            Vehicle v = convoy.vehicle(id);
+            VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible()) continue;
             GroundBody body = convoy.body(id);
             float dx = body.x - worldX;

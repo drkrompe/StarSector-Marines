@@ -37,7 +37,7 @@ import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
@@ -829,11 +829,10 @@ public final class BattleSetup {
         outX[outLen] = exitOffX;
         outY[outLen] = exitOffY;
 
-        Vehicle truck = new Vehicle(
-                VehicleType.HEAVY_APC, Faction.DEFENDER,
+        VehicleMission mission = new VehicleMission(
                 inX, inY, outX, outY,
-                DEBUG_CONVOY_PENDING_SEC);
-        sim.addConvoyVehicle(truck);
+                DEBUG_CONVOY_PENDING_SEC, VehicleType.HEAVY_APC.capacity);
+        sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("convoy: spawned HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") dest=(" + dest.cellX + "," + dest.cellY

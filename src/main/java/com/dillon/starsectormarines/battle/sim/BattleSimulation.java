@@ -32,7 +32,8 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSyst
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
@@ -420,12 +421,12 @@ public class BattleSimulation implements BattleControl {
     public void attachAirTurrets(long airEntityId, MountedTurret[] mounts) { requireInternalAir("attachAirTurrets"); airSystem.attachTurrets(airEntityId, mounts); }
     /** An air entity's mounted turrets (by id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
     public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
-    /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
-    public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
-    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()}. Mirrors {@link #getAirEntityIds()}; the render / picking / debug passes use it in place of {@link #getConvoyVehicles()}. */
+    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()} / {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}; distinct from {@link #getVehicles()}, the static map-vehicle obstacles. */
     public long[] getConvoyVehicleIds() { return groundSystem.vehicleEntityIds(); }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
+    /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live) — the by-id read path {@link BattleView} consumers use. */
+    public VehicleMission convoyMission(long id) { return rosterService.convoy().mission(id); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
@@ -645,8 +646,8 @@ public class BattleSimulation implements BattleControl {
         return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
     }
 
-    public void addConvoyVehicle(Vehicle v) {
-        groundSystem.add(v);
+    public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {
+        groundSystem.add(type, faction, mission);
     }
 
     public void applyDamage(Entity target, float damage, float vsTurretMult) {

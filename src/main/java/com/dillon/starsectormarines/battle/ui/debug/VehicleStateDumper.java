@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -33,7 +33,7 @@ public final class VehicleStateDumper {
     private VehicleStateDumper() {}
 
     public static void dump(long id, ConvoyService convoy, NavigationGrid grid) {
-        Vehicle v = convoy.vehicle(id);
+        VehicleMission v = convoy.mission(id);
         if (v == null) return;
         VehicleType type = convoy.vehicleType(id);
         Faction faction = convoy.faction(id);
@@ -84,10 +84,10 @@ public final class VehicleStateDumper {
         return a;
     }
 
-    private static JSONArray historyJson(Vehicle v) throws Exception {
+    private static JSONArray historyJson(VehicleMission v) throws Exception {
         JSONArray a = new JSONArray();
         for (int i = 0; i < v.histCount; i++) {
-            int idx = (v.histHead - v.histCount + i + Vehicle.HISTORY_SIZE) % Vehicle.HISTORY_SIZE;
+            int idx = (v.histHead - v.histCount + i + VehicleMission.HISTORY_SIZE) % VehicleMission.HISTORY_SIZE;
             JSONObject tick = new JSONObject();
             tick.put("x", round(v.histX[idx]));
             tick.put("y", round(v.histY[idx]));

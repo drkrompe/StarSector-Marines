@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -30,10 +31,13 @@ import java.util.function.Consumer;
  * like the APC (arrive, deboard, stay in overwatch with turret active).
  *
  * <p>Mirrors {@link com.dillon.starsectormarines.battle.air.AirSystem}'s
- * shape — constructor-injected services, per-tick state-machine pass, BFS
- * deboard scan, turret aim/fire loop. Kinematics differ: ground vehicles
- * use the {@link GroundBody} abstraction (currently {@link BicycleBody},
- * future tank/etc) driven by a pure-pursuit carrot along the polyline,
+ * shape — a stateless per-tick state-machine pass over an id backbone. Each
+ * vehicle is a world entity ({@code {GROUND_IDENTITY, GROUND_KINEMATICS,
+ * VEHICLE_MISSION}} + optional {@code GROUND_TURRET}); this system holds a
+ * {@code List<Long>} of ids and resolves each vehicle's mission / identity /
+ * kinematics / turret <b>by id</b> through {@link ConvoyService} (the data owner).
+ * Kinematics differ from air: ground vehicles use the {@link GroundBody}
+ * abstraction (currently {@link BicycleBody}) driven by a pure-pursuit carrot,
  * instead of the shuttle's "rotate-then-thrust" hover model.
  */
 public class GroundSystem {
@@ -48,12 +52,12 @@ public class GroundSystem {
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Entity> addUnitSink;
-    /** Adopts each vehicle into the entity world (identity + kinematics) at {@link #add} and reaps it at terminal GONE. */
+    /** Spawns each vehicle's world entity (identity + kinematics + mission + turret) at {@link #add} and reaps it at terminal GONE. */
     private final ConvoyService convoy;
 
-    /** The backbone: world entity ids of live convoy vehicles. The {@link Vehicle} handles
-     *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#vehicle},
-     *  not a side list) — no separate handle storage. GONE ids are reaped each tick. */
+    /** The backbone: world entity ids of live convoy vehicles. The {@link VehicleMission} bags
+     *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
+     *  not a side list) — no separate mission storage. GONE ids are reaped each tick. */
     private final List<Long> vehicleIds = new ArrayList<>();
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
@@ -78,23 +82,19 @@ public class GroundSystem {
         return ids;
     }
 
-    /** Live convoy vehicles, materialized from the id backbone (handles live in VEHICLE_MISSION). Read-only snapshot; N≈1–4 so the per-call alloc is negligible. */
-    public List<Vehicle> getVehicles() {
-        List<Vehicle> out = new ArrayList<>(vehicleIds.size());
-        for (long id : vehicleIds) {
-            Vehicle v = convoy.vehicle(id);
-            if (v != null) out.add(v);
-        }
-        return out;
-    }
-
-    public void add(Vehicle v) {
-        v.controller = new VehicleController(v, navigation);
-        // Adopt as a world entity (ground archetype) — identity/kinematics/turret aliased
-        // into their columns and the handle stashed in VEHICLE_MISSION; this handle stays
-        // authoritative for lifecycle state through the aliasing phase. See ConvoyService.
-        convoy.spawn(v);
-        vehicleIds.add(v.entityId);
+    /**
+     * Spawns {@code mission} as a world entity of the given variant / faction and
+     * joins it to the system. The caller builds + configures the {@link VehicleMission}
+     * (paths, route inputs, loadout) before handing it off; {@link ConvoyService#spawn}
+     * builds the body + turret and seeds every column, then the controller is created
+     * over the by-id-resolved body.
+     */
+    public void add(VehicleType type, Faction faction, VehicleMission mission) {
+        long id = convoy.spawn(type, faction, mission);
+        // The controller holds the mission + the by-id-resolved body / variant (one stable
+        // instance each for the vehicle's life). See ConvoyService / VehicleController.
+        mission.controller = new VehicleController(mission, convoy.body(id), type, navigation);
+        vehicleIds.add(id);
     }
 
     /**
@@ -104,50 +104,51 @@ public class GroundSystem {
      */
     public void tick(float dt) {
         for (long id : vehicleIds) {
-            Vehicle v = convoy.vehicle(id);
-            switch (v.state) {
+            VehicleMission m = convoy.mission(id);
+            VehicleType type = convoy.vehicleType(id);
+            switch (m.state) {
                 case PENDING:
-                    v.pendingDelay -= dt;
-                    if (v.pendingDelay <= 0f) v.state = VehicleState.INCOMING;
+                    m.pendingDelay -= dt;
+                    if (m.pendingDelay <= 0f) m.state = VehicleState.INCOMING;
                     break;
 
                 case INCOMING:
-                    v.controller.tick(dt, true);
-                    if (v.controller.consumeArrived()) {
-                        v.state = VehicleState.LANDED;
-                        v.deboardCountdown = v.type.deboardInterval;
+                    m.controller.tick(dt, true);
+                    if (m.controller.consumeArrived()) {
+                        m.state = VehicleState.LANDED;
+                        m.deboardCountdown = type.deboardInterval;
                     }
                     break;
 
                 case LANDED:
-                    v.deboardCountdown -= dt;
-                    if (v.deboardCountdown <= 0f && v.marinesRemaining > 0) {
-                        if (tryDeboardMarine(v)) {
-                            v.marinesRemaining--;
+                    m.deboardCountdown -= dt;
+                    if (m.deboardCountdown <= 0f && m.marinesRemaining > 0) {
+                        if (tryDeboardMarine(id, m, type)) {
+                            m.marinesRemaining--;
                         }
-                        v.deboardCountdown = v.type.deboardInterval;
+                        m.deboardCountdown = type.deboardInterval;
                     }
-                    if (v.marinesRemaining == 0) {
-                        if (v.type.departsAfterDeboard) {
-                            v.state = VehicleState.DEPARTING;
+                    if (m.marinesRemaining == 0) {
+                        if (type.departsAfterDeboard) {
+                            m.state = VehicleState.DEPARTING;
                         } else {
-                            v.overwatchCountdown = v.type.overwatchDurationSec;
-                            v.state = VehicleState.OVERWATCH;
+                            m.overwatchCountdown = type.overwatchDurationSec;
+                            m.state = VehicleState.OVERWATCH;
                         }
                     }
                     break;
 
                 case OVERWATCH:
-                    v.overwatchCountdown -= dt;
-                    if (v.overwatchCountdown <= 0f) {
-                        v.state = VehicleState.DEPARTING;
+                    m.overwatchCountdown -= dt;
+                    if (m.overwatchCountdown <= 0f) {
+                        m.state = VehicleState.DEPARTING;
                     }
                     break;
 
                 case DEPARTING:
-                    v.controller.tick(dt, false);
-                    if (v.controller.consumeArrived()) {
-                        v.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
+                    m.controller.tick(dt, false);
+                    if (m.controller.consumeArrived()) {
+                        m.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
                     }
                     break;
 
@@ -155,8 +156,8 @@ public class GroundSystem {
                 default:
                     break;
             }
-            if (v.isVisible()) {
-                v.recordTick();
+            if (m.isVisible()) {
+                m.recordTick(convoy.body(id));
             }
         }
         tickVehicleTurrets(dt);
@@ -165,7 +166,7 @@ public class GroundSystem {
 
     /**
      * End-of-tick reap: destroys the world entity of every {@link VehicleState#GONE}
-     * vehicle and drops the handle from the list — the air {@code reapGoneCraft} shape.
+     * vehicle and drops the id from the list — the air {@code reapGoneCraft} shape.
      * Gather-then-apply at the tick barrier (serial phase, so no {@code CommandBuffer};
      * {@code destroy} is idempotent). Bounds the list to live vehicles and covers any
      * terminal path in one place. Safe to remove from the list now that selection is
@@ -175,10 +176,10 @@ public class GroundSystem {
     private void reapGoneVehicles() {
         for (Iterator<Long> it = vehicleIds.iterator(); it.hasNext(); ) {
             long id = it.next();
-            Vehicle v = convoy.vehicle(id);
-            // Resolve the handle BEFORE despawn (despawn destroys the entity → vehicle(id)
+            VehicleMission m = convoy.mission(id);
+            // Resolve the mission BEFORE despawn (despawn destroys the entity → mission(id)
             // would then return null).
-            if (v == null || v.state == VehicleState.GONE) {
+            if (m == null || m.state == VehicleState.GONE) {
                 convoy.despawn(id);
                 it.remove();
             }
@@ -192,18 +193,19 @@ public class GroundSystem {
      * rather than shared so the air/ground split stays clean and the BFS
      * is small enough that duplication isn't a real cost.
      */
-    private boolean tryDeboardMarine(Vehicle v) {
-        int lzCellX = (int) Math.floor(v.lzX);
-        int lzCellY = (int) Math.floor(v.lzY);
+    private boolean tryDeboardMarine(long id, VehicleMission m, VehicleType type) {
+        Faction faction = convoy.faction(id);
+        int lzCellX = (int) Math.floor(m.lzX);
+        int lzCellY = (int) Math.floor(m.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
-        UnitType deboardType = (v.deboardUnitType != null)
-                ? v.deboardUnitType
-                : FactionUnitRoster.forFaction(v.faction).infantry();
-        Entity marine = new Entity(roster.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
-        int slot = v.type.capacity - v.marinesRemaining;
-        MarineLoadout loadout = (v.marineLoadout != null && slot < v.marineLoadout.length)
-                ? v.marineLoadout[slot] : null;
+        UnitType deboardType = (m.deboardUnitType != null)
+                ? m.deboardUnitType
+                : FactionUnitRoster.forFaction(faction).infantry();
+        Entity marine = new Entity(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
+        int slot = type.capacity - m.marinesRemaining;
+        MarineLoadout loadout = (m.marineLoadout != null && slot < m.marineLoadout.length)
+                ? m.marineLoadout[slot] : null;
         if (loadout != null) {
             marine.seedRole = loadout.role;
             marine.seedAssignedObjective = loadout.objective;
@@ -221,11 +223,11 @@ public class GroundSystem {
                 marine.seedSecondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        if (v.squadId == Entity.NO_SQUAD) {
-            v.squadId = roster.mintSquad(v.faction, marine);
+        if (m.squadId == Entity.NO_SQUAD) {
+            m.squadId = roster.mintSquad(faction, marine);
         }
-        marine.seedSquadId = v.squadId;
-        Squad squad = roster.getSquad(v.squadId);
+        marine.seedSquadId = m.squadId;
+        Squad squad = roster.getSquad(m.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);
         return true;
@@ -266,21 +268,24 @@ public class GroundSystem {
 
     private void tickVehicleTurrets(float dt) {
         for (long id : vehicleIds) {
-            Vehicle v = convoy.vehicle(id);
-            if (!v.isVisible()) continue;
-            if (!v.type.hasTurretWeapon()) continue;
-            // Armed ⟹ GROUND_TURRET present (seeded at adoption), so gt is non-null. The
-            // turret state now lives in the world's GROUND_TURRET component, read by id.
-            GroundTurret gt = convoy.turret(v.entityId);
+            VehicleMission m = convoy.mission(id);
+            if (!m.isVisible()) continue;
+            VehicleType type = convoy.vehicleType(id);
+            if (!type.hasTurretWeapon()) continue;
+            // Armed ⟹ GROUND_TURRET present (seeded at spawn), so gt is non-null. Turret
+            // state lives in the world's GROUND_TURRET component, read by id.
+            GroundTurret gt = convoy.turret(id);
             if (gt.ammo <= 0) continue;
 
-            TurretKind kind = v.type.turretKind;
+            GroundBody body = convoy.body(id);
+            Faction faction = convoy.faction(id);
+            TurretKind kind = type.turretKind;
 
-            float chassisRad = (float) Math.toRadians(v.body.facingDegrees);
+            float chassisRad = (float) Math.toRadians(body.facingDegrees);
             float cc = (float) Math.cos(chassisRad);
             float cs = (float) Math.sin(chassisRad);
-            float mountWorldX = v.body.x + v.type.turretMountX * cc - v.type.turretMountY * cs;
-            float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
+            float mountWorldX = body.x + type.turretMountX * cc - type.turretMountY * cs;
+            float mountWorldY = body.y + type.turretMountX * cs + type.turretMountY * cc;
 
             Entity currentBurstTarget = (gt.burstTargetId != 0L)
                     ? roster.getOrNull(gt.burstTargetId) : null;
@@ -290,7 +295,7 @@ public class GroundSystem {
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
                 if (gt.burstTimer <= 0f && currentBurstTarget != null && world.isAlive(gt.burstTargetId)) {
-                    fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
+                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget, false);
                     gt.ammo--;
                     gt.burstRemaining--;
                     gt.burstTimer = kind.burstSpacing;
@@ -308,7 +313,7 @@ public class GroundSystem {
             aim.originCellY = (int) Math.floor(mountWorldY);
             aim.originX = mountWorldX;
             aim.originY = mountWorldY;
-            aim.faction = v.faction;
+            aim.faction = faction;
             aim.facingDegrees = gt.facingDeg;
             aim.turnRateDegPerSec = kind.turnRateDegPerSec;
             aim.attackRange = kind.range;
@@ -324,7 +329,7 @@ public class GroundSystem {
             gt.targetId = (aim.target != null) ? aim.target.entityId : 0L;
 
             if (aim.fireThisTick && aim.target != null) {
-                fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, aim.target,
+                fireSink.fire(mountWorldX, mountWorldY, faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 gt.ammo--;
                 if (kind.burstCount > 1 && world.isAlive(aim.target.entityId)) {

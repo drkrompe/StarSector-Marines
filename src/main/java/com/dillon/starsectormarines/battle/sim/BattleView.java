@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -146,8 +146,11 @@ public interface BattleView {
     /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
     long[] getAirEntityIds();
 
-    /** Active convoy ground vehicles in the battle. */
-    List<Vehicle> getConvoyVehicles();
+    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}. */
+    long[] getConvoyVehicleIds();
+
+    /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live). */
+    VehicleMission convoyMission(long id);
 
     /** Mission objectives carried by both sides. */
     List<Objective> getObjectives();

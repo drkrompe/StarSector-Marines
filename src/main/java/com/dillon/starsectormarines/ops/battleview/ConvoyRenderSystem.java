@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -50,7 +50,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         float alphaMult = ctx.alphaMult;
 
         for (long id : ids) {
-            Vehicle v = convoy.vehicle(id);
+            VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible()) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);

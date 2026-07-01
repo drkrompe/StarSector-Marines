@@ -14,8 +14,8 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.ReedsShepp;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -466,7 +466,7 @@ public class BattleRenderer {
     private void renderConvoyDockingPathsDebug(long[] ids, ConvoyService convoy, float alphaMult) {
         boolean any = false;
         for (long id : ids) {
-            Vehicle v = convoy.vehicle(id);
+            VehicleMission v = convoy.mission(id);
             if (v != null && v.controller != null && v.controller.dockingPath() != null) { any = true; break; }
         }
         if (!any) return;
@@ -486,7 +486,7 @@ public class BattleRenderer {
 
         final float STEP_CELLS = 0.2f;
         for (long id : ids) {
-            Vehicle v = convoy.vehicle(id);
+            VehicleMission v = convoy.mission(id);
             if (v == null) continue;
             VehicleController ctrl = v.controller;
             if (ctrl == null) continue;
@@ -527,7 +527,7 @@ public class BattleRenderer {
         if (rc.selection == null) return;
         long selId = rc.selection.getSelectedVehicleId();
         if (selId == 0L) return;
-        Vehicle v = convoy.vehicle(selId);
+        VehicleMission v = convoy.mission(selId);
         if (v == null) return;   // stale selection (reaped vehicle) — has-gated, no throw
         GroundBody body = convoy.body(selId);
         VehicleType type = convoy.vehicleType(selId);

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -220,14 +220,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
         outX[outLen] = exitOffX;
         outY[outLen] = exitOffY;
 
-        Vehicle truck = new Vehicle(
-                VehicleType.HEAVY_APC, Faction.DEFENDER,
+        VehicleMission mission = new VehicleMission(
                 inX, inY, outX, outY,
-                PENDING_SEC);
+                PENDING_SEC, VehicleType.HEAVY_APC.capacity);
         // Stash the routing inputs so the recovery ladder can re-route mid-drive.
-        truck.routeCostField = cost;
-        truck.routeClearance = clr;
-        sim.addConvoyVehicle(truck);
+        mission.routeCostField = cost;
+        mission.routeClearance = clr;
+        sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") rally=(" + rx + "," + ry + ") wps=" + inX.length + "in/" + outX.length + "out");
@@ -347,9 +346,10 @@ public final class ConvoyMeans implements ReinforcementMeans {
     /** {@code (lzCellX, lzCellY)} of every convoy vehicle that's still inbound or landed. DEPARTING / GONE trucks aren't holding the cell any more, so they're excluded. */
     private static List<int[]> activeConvoyDestinations(BattleView sim) {
         List<int[]> out = new ArrayList<>();
-        for (Vehicle v : sim.getConvoyVehicles()) {
-            if (v.state == VehicleState.DEPARTING || v.state == VehicleState.GONE) continue;
-            out.add(new int[]{(int) v.lzX, (int) v.lzY});
+        for (long id : sim.getConvoyVehicleIds()) {
+            VehicleMission m = sim.convoyMission(id);
+            if (m == null || m.state == VehicleState.DEPARTING || m.state == VehicleState.GONE) continue;
+            out.add(new int[]{(int) m.lzX, (int) m.lzY});
         }
         return out;
     }
