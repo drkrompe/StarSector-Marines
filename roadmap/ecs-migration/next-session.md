@@ -155,7 +155,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
-<pending> ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
+1e128ce0 ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
 963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
 730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
 321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
