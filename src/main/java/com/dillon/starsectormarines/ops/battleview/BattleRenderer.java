@@ -9,9 +9,15 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.Pose;
+import com.dillon.starsectormarines.battle.vehicle.ReedsShepp;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
@@ -223,9 +229,9 @@ public class BattleRenderer {
                 // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
                 RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->
                         out.addCustom(RenderLayer.CONVOY, () -> {
-                            java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy =
-                                    ctx.sim.getConvoyVehicles();
-                            if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPathsDebug(convoy, ctx.alphaMult);
+                            long[] convoyIds = ctx.sim.getConvoyVehicleIds();
+                            ConvoyService convoy = ctx.sim.convoy();
+                            if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPathsDebug(convoyIds, convoy, ctx.alphaMult);
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
@@ -457,11 +463,11 @@ public class BattleRenderer {
     public static boolean DEBUG_RENDER_DOCKING_PATHS = true;
 
     @DebugOnly
-    private void renderConvoyDockingPathsDebug(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
-                                               float alphaMult) {
+    private void renderConvoyDockingPathsDebug(long[] ids, ConvoyService convoy, float alphaMult) {
         boolean any = false;
-        for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
-            if (v.controller != null && v.controller.dockingPath() != null) { any = true; break; }
+        for (long id : ids) {
+            Vehicle v = convoy.vehicle(id);
+            if (v != null && v.controller != null && v.controller.dockingPath() != null) { any = true; break; }
         }
         if (!any) return;
 
@@ -479,16 +485,18 @@ public class BattleRenderer {
         org.lwjgl.opengl.GL11.glLineWidth(2.5f);
 
         final float STEP_CELLS = 0.2f;
-        for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
-            com.dillon.starsectormarines.battle.vehicle.VehicleController ctrl = v.controller;
+        for (long id : ids) {
+            Vehicle v = convoy.vehicle(id);
+            if (v == null) continue;
+            VehicleController ctrl = v.controller;
             if (ctrl == null) continue;
-            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Path path = ctrl.dockingPath();
+            ReedsShepp.Path path = ctrl.dockingPath();
             if (path == null) continue;
-            com.dillon.starsectormarines.battle.vehicle.Pose start = ctrl.dockingStartPose();
+            Pose start = ctrl.dockingStartPose();
             float R = ctrl.dockingTurnRadius();
 
             float cursor = 0f;
-            for (com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Element e : path.elements) {
+            for (ReedsShepp.Element e : path.elements) {
                 float segCells = e.length * R;
                 if (segCells <= 0f) continue;
                 float segEnd = cursor + segCells;
@@ -498,12 +506,10 @@ public class BattleRenderer {
 
                 org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_LINE_STRIP);
                 for (float d = cursor; d <= segEnd; d += STEP_CELLS) {
-                    com.dillon.starsectormarines.battle.vehicle.Pose p =
-                            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.sample(start, R, path, d);
+                    Pose p = ReedsShepp.sample(start, R, path, d);
                     org.lwjgl.opengl.GL11.glVertex2f(rc.camera.cellToScreenX(p.x), rc.camera.cellToScreenY(p.y));
                 }
-                com.dillon.starsectormarines.battle.vehicle.Pose endP =
-                        com.dillon.starsectormarines.battle.vehicle.ReedsShepp.sample(start, R, path, segEnd);
+                Pose endP = ReedsShepp.sample(start, R, path, segEnd);
                 org.lwjgl.opengl.GL11.glVertex2f(rc.camera.cellToScreenX(endP.x), rc.camera.cellToScreenY(endP.y));
                 org.lwjgl.opengl.GL11.glEnd();
 
@@ -515,19 +521,17 @@ public class BattleRenderer {
     }
 
     @DebugOnly
-    private void renderSelectedVehicleDebug(
-            java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
-            float alphaMult) {
+    private void renderSelectedVehicleDebug(ConvoyService convoy, float alphaMult) {
         // Hosts without a selection model (the combat bridge passes selection=null) have no
         // selected vehicle and no use for this dev overlay — skip rather than NPE.
         if (rc.selection == null) return;
         long selId = rc.selection.getSelectedVehicleId();
         if (selId == 0L) return;
-        Vehicle v = null;
-        for (Vehicle candidate : convoy) {
-            if (candidate.entityId == selId) { v = candidate; break; }
-        }
-        if (v == null) return;
+        Vehicle v = convoy.vehicle(selId);
+        if (v == null) return;   // stale selection (reaped vehicle) — has-gated, no throw
+        GroundBody body = convoy.body(selId);
+        VehicleType type = convoy.vehicleType(selId);
+        GroundTurret turret = convoy.turret(selId);
         VehicleController ctrl = v.controller;
         int wp = (ctrl != null) ? ctrl.waypointIndex() : 1;
         float stuckSecs = (ctrl != null) ? ctrl.wallStuckTime() : 0f;
@@ -579,13 +583,13 @@ public class BattleRenderer {
         org.lwjgl.opengl.GL11.glPointSize(5f);
         org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_POINTS);
         org.lwjgl.opengl.GL11.glVertex2f(
-                rc.camera.cellToScreenX(v.body.x), rc.camera.cellToScreenY(v.body.y));
+                rc.camera.cellToScreenX(body.x), rc.camera.cellToScreenY(body.y));
         org.lwjgl.opengl.GL11.glEnd();
 
         org.lwjgl.opengl.GL11.glPopAttrib();
 
-        float textX = rc.camera.cellToScreenX(v.body.x) + 20f;
-        float textY = rc.camera.cellToScreenY(v.body.y) + 40f;
+        float textX = rc.camera.cellToScreenX(body.x) + 20f;
+        float textY = rc.camera.cellToScreenY(body.y) + 40f;
         float lineH = 16f;
         com.dillon.starsectormarines.ui.BitmapFont font = com.dillon.starsectormarines.ui.Fonts.INSIGNIA_15_AA;
         java.awt.Color c = new java.awt.Color(0.8f, 1f, 0.8f, 1f);
@@ -594,18 +598,18 @@ public class BattleRenderer {
                 textX, textY, c, alphaMult);
         textY -= lineH;
         font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
-                v.body.speed, v.body.facingDegrees, stuckSecs), textX, textY, c, alphaMult);
+                body.speed, body.facingDegrees, stuckSecs), textX, textY, c, alphaMult);
         textY -= lineH;
         String pathLabel = (ctrl != null && ctrl.dockingPath() != null) ? "docking"
                 : (ctrl != null && ctrl.hasTrajectory()) ? "tracking" : "corridor";
         font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d  prog: %.1f",
-                v.body.x, v.body.y, pathLabel,
+                body.x, body.y, pathLabel,
                 v.inboundX.length, v.outboundX.length,
                 trajProg), textX, textY, c, alphaMult);
         textY -= lineH;
-        if (v.type.hasTurretWeapon() && v.turret != null) {
+        if (type.hasTurretWeapon() && turret != null) {
             font.drawString(String.format("turret: ammo=%d  facing=%.0f",
-                    v.turret.ammo, v.turret.facingDeg), textX, textY, c, alphaMult);
+                    turret.ammo, turret.facingDeg), textX, textY, c, alphaMult);
             textY -= lineH;
         }
         font.drawString("[F5] dump state to JSON", textX, textY,

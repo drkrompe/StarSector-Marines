@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-
-import java.util.List;
 
 /**
  * Emits the {@link RenderLayer#CONVOY} layer — ground convoy vehicles (supply
@@ -39,54 +41,59 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        List<Vehicle> convoy = ctx.sim.getConvoyVehicles();
-        if (convoy.isEmpty()) return;
+        long[] ids = ctx.sim.getConvoyVehicleIds();
+        if (ids.length == 0) return;
+        ConvoyService convoy = ctx.sim.convoy();
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
 
-        for (Vehicle v : convoy) {
-            if (!v.isVisible()) continue;
-            UnitSpriteCache cache = sprites.convoySprites().get(v.type);
+        for (long id : ids) {
+            Vehicle v = convoy.vehicle(id);
+            if (v == null || !v.isVisible()) continue;
+            VehicleType type = convoy.vehicleType(id);
+            GroundBody body = convoy.body(id);
+            UnitSpriteCache cache = sprites.convoySprites().get(type);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
-            if (v.type.spriteFrame < 0 || v.type.spriteFrame >= cache.frames.frames.length) continue;
+            if (type.spriteFrame < 0 || type.spriteFrame >= cache.frames.frames.length) continue;
             SpriteSheetFrames frames = cache.frames;
-            SpriteSheetFrames.Frame f = frames.frames[v.type.spriteFrame];
+            SpriteSheetFrames.Frame f = frames.frames[type.spriteFrame];
 
             float frameAspect = (float) f.w / (float) f.h;
-            float drawLong = v.type.visualLengthCells * cellPx;
+            float drawLong = type.visualLengthCells * cellPx;
             float drawShort = drawLong / frameAspect;
-            float chassisFacingDeg = v.body.facingDegrees + v.type.spriteFacingOffsetDeg;
-            float cx = cam.cellToScreenX(v.body.x);
-            float cy = cam.cellToScreenY(v.body.y);
+            float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
+            float cx = cam.cellToScreenX(body.x);
+            float cy = cam.cellToScreenY(body.y);
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
                     1f, 1f, 1f, alphaMult);
 
-            if (v.type.turretFrame >= 0 && v.type.turretFrame < frames.frames.length) {
-                SpriteSheetFrames.Frame tf = frames.frames[v.type.turretFrame];
+            if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
+                SpriteSheetFrames.Frame tf = frames.frames[type.turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
-                float tDrawLong = v.type.turretVisualCells * cellPx;
+                float tDrawLong = type.turretVisualCells * cellPx;
                 float tDrawShort = tDrawLong / turretAspect;
 
                 // Gated on turretFrame (broader than hasTurretWeapon), so a decorative
                 // turret variant may have no GROUND_TURRET state — draw it facing 0.
-                float turretStateFacing = (v.turret != null) ? v.turret.facingDeg : 0f;
-                float turretFacingDeg = turretStateFacing + v.type.turretSpriteFacingOffsetDeg;
+                GroundTurret turret = convoy.turret(id);
+                float turretStateFacing = (turret != null) ? turret.facingDeg : 0f;
+                float turretFacingDeg = turretStateFacing + type.turretSpriteFacingOffsetDeg;
                 float cRad = (float) Math.toRadians(chassisFacingDeg);
                 float cc = (float) Math.cos(cRad);
                 float cs = (float) Math.sin(cRad);
-                float mountWorldX = v.type.turretMountX * cc - v.type.turretMountY * cs;
-                float mountWorldY = v.type.turretMountX * cs + v.type.turretMountY * cc;
+                float mountWorldX = type.turretMountX * cc - type.turretMountY * cs;
+                float mountWorldY = type.turretMountX * cs + type.turretMountY * cc;
                 float tRad = (float) Math.toRadians(turretFacingDeg);
                 float tc = (float) Math.cos(tRad);
                 float ts = (float) Math.sin(tRad);
-                float pivotWorldX = v.type.turretPivotX * tc - v.type.turretPivotY * ts;
-                float pivotWorldY = v.type.turretPivotX * ts + v.type.turretPivotY * tc;
-                float drawCellX = v.body.x + mountWorldX - pivotWorldX;
-                float drawCellY = v.body.y + mountWorldY - pivotWorldY;
+                float pivotWorldX = type.turretPivotX * tc - type.turretPivotY * ts;
+                float pivotWorldY = type.turretPivotX * ts + type.turretPivotY * tc;
+                float drawCellX = body.x + mountWorldX - pivotWorldX;
+                float drawCellY = body.y + mountWorldY - pivotWorldY;
 
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                         tf.x, tf.y, tf.w, tf.h,

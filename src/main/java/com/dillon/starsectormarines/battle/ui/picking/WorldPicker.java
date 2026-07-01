@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -77,18 +79,20 @@ public final class WorldPicker implements HudPanel {
 
     /** Entity id of the nearest visible convoy vehicle within the pick radius, or {@code 0L} if none. */
     private static long nearestVehicle(BattleSimulation sim, float worldX, float worldY) {
-        List<Vehicle> vehicles = sim.getConvoyVehicles();
+        long[] ids = sim.getConvoyVehicleIds();
+        ConvoyService convoy = sim.convoy();
         long bestId = 0L;
         float bestDistSq = VEHICLE_PICK_RADIUS_CELLS * VEHICLE_PICK_RADIUS_CELLS;
-        for (int i = 0; i < vehicles.size(); i++) {
-            Vehicle v = vehicles.get(i);
-            if (!v.isVisible()) continue;
-            float dx = v.body.x - worldX;
-            float dy = v.body.y - worldY;
+        for (long id : ids) {
+            Vehicle v = convoy.vehicle(id);
+            if (v == null || !v.isVisible()) continue;
+            GroundBody body = convoy.body(id);
+            float dx = body.x - worldX;
+            float dy = body.y - worldY;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
-                bestId = v.entityId;
+                bestId = id;
             }
         }
         return bestId;

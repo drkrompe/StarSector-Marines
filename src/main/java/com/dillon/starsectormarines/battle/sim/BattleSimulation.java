@@ -422,6 +422,10 @@ public class BattleSimulation implements BattleControl {
     public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
+    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()}. Mirrors {@link #getAirEntityIds()}; the render / picking / debug passes use it in place of {@link #getConvoyVehicles()}. */
+    public long[] getConvoyVehicleIds() { return groundSystem.vehicleEntityIds(); }
+    /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
+    public ConvoyService convoy() { return rosterService.convoy(); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }

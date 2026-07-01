@@ -69,6 +69,15 @@ public class GroundSystem {
         this.convoy = roster.convoy();
     }
 
+    /** Snapshot of the live convoy-vehicle entity ids — the id backbone the render / picking / debug
+     *  passes walk, resolving each vehicle by id via {@link ConvoyService}. The ground twin of
+     *  {@link com.dillon.starsectormarines.battle.air.AirSystem#airEntityIds}; N≈1–4 so the per-call array is negligible. */
+    public long[] vehicleEntityIds() {
+        long[] ids = new long[vehicleIds.size()];
+        for (int i = 0; i < ids.length; i++) ids[i] = vehicleIds.get(i);
+        return ids;
+    }
+
     /** Live convoy vehicles, materialized from the id backbone (handles live in VEHICLE_MISSION). Read-only snapshot; N≈1–4 so the per-call alloc is negligible. */
     public List<Vehicle> getVehicles() {
         List<Vehicle> out = new ArrayList<>(vehicleIds.size());

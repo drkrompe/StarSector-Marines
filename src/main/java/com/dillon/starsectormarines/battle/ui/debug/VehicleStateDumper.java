@@ -2,8 +2,13 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -27,19 +32,25 @@ public final class VehicleStateDumper {
 
     private VehicleStateDumper() {}
 
-    public static void dump(Vehicle v, NavigationGrid grid) {
+    public static void dump(long id, ConvoyService convoy, NavigationGrid grid) {
+        Vehicle v = convoy.vehicle(id);
+        if (v == null) return;
+        VehicleType type = convoy.vehicleType(id);
+        Faction faction = convoy.faction(id);
+        GroundBody body = convoy.body(id);
+        GroundTurret turret = convoy.turret(id);
         try {
             JSONObject root = new JSONObject();
-            root.put("type", v.type.name());
+            root.put("type", type.name());
             root.put("state", v.state.name());
-            root.put("faction", v.faction.name());
+            root.put("faction", faction.name());
 
-            JSONObject body = new JSONObject();
-            body.put("x", round(v.body.x));
-            body.put("y", round(v.body.y));
-            body.put("facingDeg", round(v.body.facingDegrees));
-            body.put("speed", round(v.body.speed));
-            root.put("body", body);
+            JSONObject bodyJson = new JSONObject();
+            bodyJson.put("x", round(body.x));
+            bodyJson.put("y", round(body.y));
+            bodyJson.put("facingDeg", round(body.facingDegrees));
+            bodyJson.put("speed", round(body.speed));
+            root.put("body", bodyJson);
 
             root.put("waypointIndex", v.controller != null ? v.controller.waypointIndex() : 1);
             root.put("trajectoryProgress", round(v.controller != null ? v.controller.trajectoryProgress() : 0f));
@@ -47,13 +58,13 @@ public final class VehicleStateDumper {
             root.put("hasTrajectory", v.controller != null && v.controller.hasTrajectory());
             root.put("marinesRemaining", v.marinesRemaining);
             root.put("overwatchCountdown", round(v.overwatchCountdown));
-            root.put("turretAmmo", v.turret != null ? v.turret.ammo : 0);
+            root.put("turretAmmo", turret != null ? turret.ammo : 0);
 
             root.put("inbound", waypointsJson(v.inboundX, v.inboundY));
             root.put("outbound", waypointsJson(v.outboundX, v.outboundY));
 
             root.put("history", historyJson(v));
-            root.put("localGrid", localGridJson(v, grid));
+            root.put("localGrid", localGridJson(body, grid));
 
             Global.getSettings().writeJSONToCommon(PATH, root, true);
             LOG.info("VehicleStateDumper: wrote saves/common/" + PATH);
@@ -89,9 +100,9 @@ public final class VehicleStateDumper {
         return a;
     }
 
-    private static JSONObject localGridJson(Vehicle v, NavigationGrid grid) throws Exception {
-        int cx = (int) Math.floor(v.body.x);
-        int cy = (int) Math.floor(v.body.y);
+    private static JSONObject localGridJson(GroundBody body, NavigationGrid grid) throws Exception {
+        int cx = (int) Math.floor(body.x);
+        int cy = (int) Math.floor(body.y);
         int r = LOCAL_GRID_RADIUS;
         int x0 = Math.max(0, cx - r), x1 = Math.min(grid.getWidth() - 1, cx + r);
         int y0 = Math.max(0, cy - r), y1 = Math.min(grid.getHeight() - 1, cy + r);

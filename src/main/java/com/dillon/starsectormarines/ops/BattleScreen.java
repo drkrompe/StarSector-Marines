@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -976,13 +975,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 long vId = getSelection().getSelectedVehicleId();
                 BattleSimulation bsim = getSim();
                 if (vId != 0L && bsim != null) {
-                    for (Vehicle v : bsim.getConvoyVehicles()) {
-                        if (v.entityId == vId) {
-                            VehicleStateDumper.dump(v, bsim.getGrid());
-                            e.consume();
-                            break;
-                        }
-                    }
+                    // dump no-ops if the id no longer resolves to a live vehicle (has-gated).
+                    VehicleStateDumper.dump(vId, bsim.convoy(), bsim.getGrid());
+                    e.consume();
                 }
             }
         }
