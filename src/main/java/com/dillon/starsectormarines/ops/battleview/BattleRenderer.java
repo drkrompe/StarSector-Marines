@@ -596,9 +596,9 @@ public class BattleRenderer {
                 v.inboundX.length, v.outboundX.length,
                 trajProg), textX, textY, c, alphaMult);
         textY -= lineH;
-        if (v.type.hasTurretWeapon()) {
+        if (v.type.hasTurretWeapon() && v.turret != null) {
             font.drawString(String.format("turret: ammo=%d  facing=%.0f",
-                    v.turretAmmo, v.turretFacingDeg), textX, textY, c, alphaMult);
+                    v.turret.ammo, v.turret.facingDeg), textX, textY, c, alphaMult);
             textY -= lineH;
         }
         font.drawString("[F5] dump state to JSON", textX, textY,

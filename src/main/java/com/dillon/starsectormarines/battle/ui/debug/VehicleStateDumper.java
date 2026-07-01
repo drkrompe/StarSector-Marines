@@ -46,7 +46,7 @@ public final class VehicleStateDumper {
             root.put("hasTrajectory", v.controller != null && v.controller.hasTrajectory());
             root.put("marinesRemaining", v.marinesRemaining);
             root.put("overwatchCountdown", round(v.overwatchCountdown));
-            root.put("turretAmmo", v.turretAmmo);
+            root.put("turretAmmo", v.turret != null ? v.turret.ammo : 0);
 
             root.put("inbound", waypointsJson(v.inboundX, v.inboundY));
             root.put("outbound", waypointsJson(v.outboundX, v.outboundY));

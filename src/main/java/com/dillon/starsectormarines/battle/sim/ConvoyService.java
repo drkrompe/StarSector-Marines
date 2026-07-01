@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -58,10 +59,17 @@ public final class ConvoyService {
         }
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
-        long id = roster.allocateVehicle(new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS});
+        // Presence == armed: an unarmed transport gets no GROUND_TURRET component.
+        ComponentType[] archetype = (v.turret != null)
+                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.GROUND_TURRET}
+                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS};
+        long id = roster.allocateVehicle(archetype);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_TYPE, v.type);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION, v.faction);
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, v.body);
+        if (v.turret != null) {
+            world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, v.turret);
+        }
         v.entityId = id;
         return id;
     }
@@ -100,6 +108,15 @@ public final class ConvoyService {
         EntityWorld world = roster.entityWorld();
         return world.has(id, c.GROUND_IDENTITY)
                 ? (Faction) world.getObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION)
+                : null;
+    }
+
+    /** The vehicle's live turret state, or {@code null} if unarmed / not a live ground craft (has-gated, presence == armed). */
+    public GroundTurret turret(long id) {
+        BattleComponents c = roster.components();
+        EntityWorld world = roster.entityWorld();
+        return world.has(id, c.GROUND_TURRET)
+                ? (GroundTurret) world.getObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE)
                 : null;
     }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -56,6 +57,13 @@ public class ConvoyServiceTest {
         assertSame(VehicleType.HEAVY_APC, convoy.vehicleType(id));
         assertSame(Faction.MARINE, convoy.faction(id));
 
+        // HEAVY_APC is armed → GROUND_TURRET present, aliasing the handle's bag, ammo seeded.
+        assertNotNull(v.turret, "HEAVY_APC is armed");
+        assertTrue(r.entityWorld().has(id, r.components().GROUND_TURRET), "armed vehicle carries GROUND_TURRET");
+        assertSame(v.turret, convoy.turret(id), "GROUND_TURRET aliases the handle's GroundTurret bag");
+        assertEquals(VehicleType.HEAVY_APC.turretKind.startingAmmo, convoy.turret(id).ammo,
+                "turret ammo seeded from the TurretKind");
+
         // Off the dense ground roster — grid systems iterate [0, liveCount()) and skip it.
         assertNull(r.getOrNull(id), "a convoy vehicle is not a dense-roster entity");
         assertFalse(r.isLive(id));
@@ -74,8 +82,10 @@ public class ConvoyServiceTest {
         // One destroy drops all columns; has-gated reads return false/null, never throw.
         assertFalse(r.entityWorld().has(id, r.components().GROUND_IDENTITY));
         assertFalse(r.entityWorld().has(id, r.components().GROUND_KINEMATICS));
+        assertFalse(r.entityWorld().has(id, r.components().GROUND_TURRET));
         assertNull(convoy.body(id), "a destroyed vehicle reads null (has-gated), not a throw");
         assertNull(convoy.vehicleType(id));
+        assertNull(convoy.turret(id));
     }
 
     @Test

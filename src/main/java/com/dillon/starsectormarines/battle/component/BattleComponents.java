@@ -184,6 +184,9 @@ public final class BattleComponents {
     /** {@link #GROUND_KINEMATICS} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.GroundBody} payload (OBJECT) — continuous float pose (x/y/facing/speed) for a road-driving vehicle. */
     public static final int GROUND_KINEMATICS_BODY = 0;
 
+    /** {@link #GROUND_TURRET} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.GroundTurret} payload (OBJECT) — live aim/fire state (facing/cooldown/ammo/burst). Presence == "armed". */
+    public static final int GROUND_TURRET_STATE = 0;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -472,6 +475,14 @@ public final class BattleComponents {
      * {@link #KINEMATICS}.
      */
     public final ComponentType GROUND_KINEMATICS;
+    /**
+     * Optional ground-vehicle turret — one OBJECT field holding a
+     * {@link com.dillon.starsectormarines.battle.vehicle.GroundTurret} (the live
+     * aim/fire state). Presence == "armed"; an unarmed transport (truck) lacks it. The
+     * ground twin of {@link #AIR_TURRETS}. Seeded at spawn for a vehicle whose
+     * {@code VehicleType.hasTurretWeapon()}; {@code has}-gate every read.
+     */
+    public final ComponentType GROUND_TURRET;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -556,6 +567,7 @@ public final class BattleComponents {
         TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_IDENTITY   = world.register(23, "GroundIdentity", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_KINEMATICS = world.register(24, "GroundKinematics", FieldKind.OBJECT);
+        GROUND_TURRET     = world.register(25, "GroundTurret", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);

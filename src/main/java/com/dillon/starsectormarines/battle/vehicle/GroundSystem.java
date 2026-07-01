@@ -227,7 +227,10 @@ public class GroundSystem {
         for (Vehicle v : vehicles) {
             if (!v.isVisible()) continue;
             if (!v.type.hasTurretWeapon()) continue;
-            if (v.turretAmmo <= 0) continue;
+            // Armed ⟹ GROUND_TURRET present (seeded at adoption), so gt is non-null. The
+            // turret state now lives in the world's GROUND_TURRET component, read by id.
+            GroundTurret gt = convoy.turret(v.entityId);
+            if (gt.ammo <= 0) continue;
 
             TurretKind kind = v.type.turretKind;
 
@@ -237,23 +240,23 @@ public class GroundSystem {
             float mountWorldX = v.body.x + v.type.turretMountX * cc - v.type.turretMountY * cs;
             float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
 
-            Entity currentBurstTarget = (v.turretBurstTargetId != 0L)
-                    ? roster.getOrNull(v.turretBurstTargetId) : null;
+            Entity currentBurstTarget = (gt.burstTargetId != 0L)
+                    ? roster.getOrNull(gt.burstTargetId) : null;
 
             // Burst continuation fires ahead of fresh acquisition — the turret
             // commits to its salvo target, matching shuttle turret behavior.
-            if (v.turretBurstRemaining > 0) {
-                v.turretBurstTimer -= dt;
-                if (v.turretBurstTimer <= 0f && currentBurstTarget != null && world.isAlive(v.turretBurstTargetId)) {
+            if (gt.burstRemaining > 0) {
+                gt.burstTimer -= dt;
+                if (gt.burstTimer <= 0f && currentBurstTarget != null && world.isAlive(gt.burstTargetId)) {
                     fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
-                    v.turretAmmo--;
-                    v.turretBurstRemaining--;
-                    v.turretBurstTimer = kind.burstSpacing;
-                    if (v.turretBurstRemaining == 0) v.turretBurstTargetId = 0L;
+                    gt.ammo--;
+                    gt.burstRemaining--;
+                    gt.burstTimer = kind.burstSpacing;
+                    if (gt.burstRemaining == 0) gt.burstTargetId = 0L;
                 }
-                if (currentBurstTarget == null || !world.isAlive(v.turretBurstTargetId)) {
-                    v.turretBurstRemaining = 0;
-                    v.turretBurstTargetId = 0L;
+                if (currentBurstTarget == null || !world.isAlive(gt.burstTargetId)) {
+                    gt.burstRemaining = 0;
+                    gt.burstTargetId = 0L;
                 }
                 continue;
             }
@@ -264,28 +267,28 @@ public class GroundSystem {
             aim.originX = mountWorldX;
             aim.originY = mountWorldY;
             aim.faction = v.faction;
-            aim.facingDegrees = v.turretFacingDeg;
+            aim.facingDegrees = gt.facingDeg;
             aim.turnRateDegPerSec = kind.turnRateDegPerSec;
             aim.attackRange = kind.range;
             aim.minRange = kind.minRange;
-            aim.cooldownTimer = v.turretCooldownTimer;
+            aim.cooldownTimer = gt.cooldownTimer;
             aim.attackCooldown = kind.cooldown;
-            aim.target = (v.turretTargetId != 0L) ? roster.getOrNull(v.turretTargetId) : null;
+            aim.target = (gt.targetId != 0L) ? roster.getOrNull(gt.targetId) : null;
 
             TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
-            v.turretFacingDeg = aim.facingDegrees;
-            v.turretCooldownTimer = aim.cooldownTimer;
-            v.turretTargetId = (aim.target != null) ? aim.target.entityId : 0L;
+            gt.facingDeg = aim.facingDegrees;
+            gt.cooldownTimer = aim.cooldownTimer;
+            gt.targetId = (aim.target != null) ? aim.target.entityId : 0L;
 
             if (aim.fireThisTick && aim.target != null) {
                 fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
-                v.turretAmmo--;
+                gt.ammo--;
                 if (kind.burstCount > 1 && world.isAlive(aim.target.entityId)) {
-                    v.turretBurstRemaining = kind.burstCount - 1;
-                    v.turretBurstTimer = kind.burstSpacing;
-                    v.turretBurstTargetId = aim.target.entityId;
+                    gt.burstRemaining = kind.burstCount - 1;
+                    gt.burstTimer = kind.burstSpacing;
+                    gt.burstTargetId = aim.target.entityId;
                 }
             }
         }

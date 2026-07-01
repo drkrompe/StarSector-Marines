@@ -84,20 +84,14 @@ public class Vehicle {
     public TerrainCostField routeCostField;
     public VehicleClearance routeClearance;
 
-    /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.turret.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
-    public float turretFacingDeg;
-    /** Sim-seconds until the turret can fire again. */
-    public float turretCooldownTimer;
-    /** Entity id of the currently locked target, or {@code 0L} when idle. */
-    public long turretTargetId;
-    /** Rounds remaining in the turret magazine. Initialized from {@link com.dillon.starsectormarines.battle.turret.TurretKind#startingAmmo}. */
-    public int turretAmmo;
-    /** Rounds left in the current burst (excluding the trigger-pull round). */
-    public int turretBurstRemaining;
-    /** Sim-seconds until the next burst round fires. */
-    public float turretBurstTimer;
-    /** Entity id of the target locked when the current burst started. */
-    public long turretBurstTargetId;
+    /**
+     * Live turret aim/fire state (facing / cooldown / ammo / burst), or {@code null}
+     * for an unarmed vehicle ({@code !type.hasTurretWeapon()}). Held in the world's
+     * {@code GROUND_TURRET} component (presence == armed) — during the aliasing phase
+     * this handle and the column share the one instance; {@code GroundSystem} drives it
+     * by id. The immutable weapon config stays on {@link VehicleType#turretKind}.
+     */
+    public final GroundTurret turret;
 
     /**
      * Per-deboard loadouts for this delivery. {@code marineLoadout[i]} is
@@ -168,7 +162,7 @@ public class Vehicle {
         this.lzY = inboundY[inboundY.length - 1];
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = type.capacity;
-        this.turretAmmo = type.turretKind != null ? type.turretKind.startingAmmo : 0;
+        this.turret = type.hasTurretWeapon() ? new GroundTurret(type.turretKind.startingAmmo) : null;
         this.body = type.createBody();
         // Spawn at the inbound queue's first waypoint, facing the second so
         // the truck reads as already rolling when it appears on-screen.

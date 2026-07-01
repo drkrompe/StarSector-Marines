@@ -71,7 +71,10 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float tDrawLong = v.type.turretVisualCells * cellPx;
                 float tDrawShort = tDrawLong / turretAspect;
 
-                float turretFacingDeg = v.turretFacingDeg + v.type.turretSpriteFacingOffsetDeg;
+                // Gated on turretFrame (broader than hasTurretWeapon), so a decorative
+                // turret variant may have no GROUND_TURRET state — draw it facing 0.
+                float turretStateFacing = (v.turret != null) ? v.turret.facingDeg : 0f;
+                float turretFacingDeg = turretStateFacing + v.type.turretSpriteFacingOffsetDeg;
                 float cRad = (float) Math.toRadians(chassisFacingDeg);
                 float cc = (float) Math.cos(cRad);
                 float cs = (float) Math.sin(cRad);

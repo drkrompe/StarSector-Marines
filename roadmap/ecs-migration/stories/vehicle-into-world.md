@@ -128,9 +128,19 @@ than air, where `AirSystem` conflated owner + processor.
    consumer switches to it, the air-Phase-2 pattern). A background critique verified no
    correctness defects; its one actioned finding is the fail-loud double-adopt guard on
    `spawn` (the list-removal + reap-sweep findings are Phase-4-coupled — see Phase 4).
-3. **Turret onto a component.** Move the inline turret state into `GROUND_TURRET`
-   (presence == armed; APC only) — or fold into `VehicleMission` if the separate component
-   earns nothing. `tickVehicleTurrets` reads it by id.
+3. **Turret onto a component. ✓ SHIPPED (2026-07-01).** Extracted the 7 inline `turret*`
+   fields into a `GroundTurret` bag (`battle.vehicle`) held in a new `GROUND_TURRET`
+   OBJECT component (id 25, **presence == armed** — the `AIR_TURRETS` precedent; an unarmed
+   truck carries none). `Vehicle.turret` is `null` for `!hasTurretWeapon()`, else the bag;
+   `ConvoyService.spawn` conditionally includes `GROUND_TURRET` in the archetype and seeds
+   it (aliased), with a has-gated `convoy.turret(id)` accessor. `GroundSystem.tickVehicleTurrets`
+   now drives the turret **by id** (`convoy.turret(v.entityId)`) — the first tick consumer
+   of a ground-craft component, so the world entity is no longer dormant. The three
+   presentation readers stay on the aliased handle bag (`v.turret.*`, a field rename) and
+   migrate to by-id at Phase 4: `ConvoyRenderSystem` + `VehicleStateDumper` null-guard the
+   bag (their gates — `turretFrame >= 0`, ungated dump — are broader than `hasTurretWeapon`),
+   `BattleRenderer`'s debug overlay reads it under the `hasTurretWeapon` gate. `ConvoyServiceTest`
+   +2. Full suite green.
 4. **Extract `VehicleMission` + dissolve the handle.** Extract a `VehicleMission` bag from
    `Vehicle`'s inline lifecycle fields (state, countdowns, in/outbound paths, LZ,
    `marinesRemaining`, overwatch, `marineLoadout`, `deboardUnitType`, `squadId`, route
