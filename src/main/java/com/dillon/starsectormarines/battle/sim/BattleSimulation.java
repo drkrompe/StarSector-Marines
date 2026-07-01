@@ -880,11 +880,15 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
-        // subsequent serial phase reads the spatial state. None of the
-        // post-UPDATE_UNITS phases call setPath today, so a single drain
-        // here keeps the bookkeeping consistent for the rest of the tick
-        // (and the next tick's REBUILD_OCCUPANCY rebuilds from each unit's
-        // MOVEMENT path regardless).
+        // subsequent serial phase reads the spatial state. FIRING (below)
+        // does call setPath — via a chained RepositionToCover — but that
+        // runs AFTER this drain, so its occupancy delta applies inline by
+        // design (DamageService.applyOccupancyDelta gates on insideParallel
+        // only, deliberately not on the FIRING-phase deferral flag; see its
+        // class doc). A single drain here still keeps the bookkeeping
+        // consistent for the rest of the tick (and the next tick's
+        // REBUILD_OCCUPANCY rebuilds from each unit's MOVEMENT path
+        // regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
         // Mirror queued drone-hub spawns into the units list. Only callers
@@ -899,7 +903,22 @@ public class BattleSimulation implements BattleControl {
         // run before infantry.tick()'s burst continuation below so it sees
         // this tick's beginBurst state exactly as it did when postures fired
         // inline. See FiringSystem's class doc for the full contract.
-        firingSystem.tick(this);
+        //
+        // Bracketed in the combat-effect deferral window: FIRING runs
+        // serially (no parallel-write hazard), but it sits ahead of this
+        // tick's APPLY_DAMAGE drain — so damage/reprio/fallback triggered
+        // here must still QUEUE, the same barrier fires used to hit back
+        // when they ran inside the parallel UPDATE_UNITS dispatch. Restores
+        // the doomed-unit-final-action / both-shooters-overkill / queued-
+        // guarded-reprio semantics the inline-during-FIRING flip had
+        // silently repealed. Occupancy (the reposition's setPath) is exempt
+        // — see DamageService.deferCombatEffects's class doc.
+        damageService.enterCombatEffectDeferral();
+        try {
+            firingSystem.tick(this);
+        } finally {
+            damageService.exitCombatEffectDeferral();
+        }
         tickProfile.lap(TickProfile.Phase.FIRING);
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
@@ -928,16 +947,21 @@ public class BattleSimulation implements BattleControl {
         detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);
         // Drain all damage queued this tick — from UPDATE_UNITS direct fire,
+        // FIRING (deferred per DamageService.enterCombatEffectDeferral),
         // INFANTRY_TICK / HEAVY_TICK burst continuations, PROJECTILES
         // arrivals, and DETONATIONS AoE. Single late drain (rather than one
         // after every damage-emitter) keeps the rule simple: damage applies
         // before any phase that reads alive-state — DEMOLISH /
         // DRONE_CRASHES / WIN_CHECK all run after this.
-        // Trade-off: a target queued for death in UPDATE_UNITS is still alive
-        // during the subsystem ticks this tick, so its burst continuations
-        // fire one more round. Considered "doomed unit gets a final action"
-        // — arguably more consistent than the pre-deferral order-dependent
-        // skip and the prerequisite for parallelizing the dispatch loop.
+        // Trade-off: a target queued for death in UPDATE_UNITS OR FIRING is
+        // still alive during the subsystem ticks this tick, so its burst
+        // continuations fire one more round. Considered "doomed unit gets a
+        // final action" — arguably more consistent than the pre-deferral
+        // order-dependent skip and the prerequisite for parallelizing the
+        // dispatch loop. FIRING's deferral (added alongside the FiringSystem
+        // proving-slice critique fix) extends this same trade-off to shots
+        // fired from the serial fire-intent phase, restoring the semantics
+        // those shots had when they ran inline during UPDATE_UNITS.
         flushPendingDamage();
         // Drain target-side reprio / fall-back enqueues from this tick's
         // weapon hits. Ordered AFTER flushPendingDamage so we skip mutations

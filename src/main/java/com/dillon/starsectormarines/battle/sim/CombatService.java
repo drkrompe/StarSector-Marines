@@ -85,15 +85,12 @@ public final class CombatService {
         entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION, repositionAfter ? 1 : 0);
     }
 
-    /** The consume-once fire-intent target, {@code 0L} = no intent (hold fire). */
+    /**
+     * The consume-once fire-intent target, {@code 0L} = no intent (hold
+     * fire). {@code fireStance}/{@code fireReposition} have no standalone
+     * accessor — {@code battle.combat.FiringSystem} is the sole reader of
+     * all three intent columns and reads them directly off the archetype
+     * table during its column-walk, one-caller-rule style.
+     */
     public long fireTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID); }
-
-    /** The queued shot's stance, decoded from the stored ordinal via {@link FireStance#VALUES}. Meaningless without a live {@link #fireTargetId}. */
-    public FireStance fireStance(long id) { return FireStance.VALUES[entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE)]; }
-
-    /** Whether a successful fire this tick should chain into a post-fire reposition. Meaningless without a live {@link #fireTargetId}. */
-    public boolean fireRepositionAfter(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION) != 0; }
-
-    /** Consumes the fire intent — zeroes {@code fireTargetId} only; {@code fireStance}/{@code fireReposition} are meaningless without a target and get overwritten by the next {@link #setFireIntent}. */
-    public void clearFireIntent(long id) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, 0L); }
 }

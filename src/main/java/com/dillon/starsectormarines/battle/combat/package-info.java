@@ -9,8 +9,8 @@
  *           {@code DamageResolver}, {@code HitResponseSystem}),
  *           detonations, the shared chassis-weapon firing mechanism
  *           ({@code HeavyWeapons}), the fire-intent execution system
- *           ({@code FiringSystem} — consumes the {@code COMBAT} fire
- *           intent behaviors queue), range/stance rules, and the single
+ *           ({@code FiringSystem} — consumes the {@code COMBAT} fire-intent
+ *           queue the behaviors write), range/stance rules, and the single
  *           visual-effects sink ({@code fx/EffectsService}).
  * <br>Boundary: actor-specific weapon <em>config</em> lives in the actor
  *           domains ({@code Marine*} in {@code infantry/}, {@code Mech*}

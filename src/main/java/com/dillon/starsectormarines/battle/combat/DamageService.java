@@ -11,7 +11,8 @@ import java.util.function.LongFunction;
 
 /**
  * Mailbox for damage + parallel-dispatch safety queues. Owns three queues
- * used during the UPDATE_UNITS phase:
+ * used during the UPDATE_UNITS phase (and, for damage/reprio/fallback, the
+ * later serial {@code FIRING} phase too — see {@link #deferCombatEffects}):
  * <ul>
  *   <li>SoA damage queue (parallel arrays — see below)</li>
  *   <li>{@link PendingTargetMutation} shooter-driven writes to the target's
@@ -21,10 +22,11 @@ import java.util.function.LongFunction;
  *
  * <p>Pattern: callers invoke one of the {@code applyXxx} methods, and the
  * service either resolves inline (serial / off-tick path) or pools-and-queues
- * for the matching flush (parallel UPDATE_UNITS path). Damage flushes feed
- * back into the injected {@link DamageApplier} so inline and queued paths use
- * identical semantics — the applier is always the same method ref
- * ({@code DamageResolver::resolve}).
+ * for the matching flush (parallel UPDATE_UNITS path, or the serial-but-
+ * deferred {@code FIRING} path for damage/reprio/fallback only). Damage
+ * flushes feed back into the injected {@link DamageApplier} so inline and
+ * queued paths use identical semantics — the applier is always the same
+ * method ref ({@code DamageResolver::resolve}).
  *
  * <p><b>Damage uses SoA, not AoS.</b> Four parallel arrays
  * ({@code Entity[] pendingTargets}, three {@code float[]}s) + an {@code int}
@@ -113,6 +115,39 @@ public final class DamageService {
      */
     private volatile boolean insideParallel = false;
 
+    /**
+     * True while {@code TickProfile.Phase.FIRING} is executing — a second,
+     * narrower deferral gate alongside {@link #insideParallel}. FIRING runs
+     * serially (no parallel-write hazard to guard against), but it sits
+     * <em>between</em> two of this tick's drain points, so the two combat-
+     * effect families it can trigger need opposite treatment:
+     * <ul>
+     *   <li>Damage / reprio / fallback (via {@link #applyDamage},
+     *       {@link #applyReprio}, {@link #applyFallback}) — FIRING runs
+     *       <em>before</em> {@link #flushPendingDamage()} /
+     *       {@link #flushPendingTargetMutations()} this tick (they drain in
+     *       {@code APPLY_DAMAGE}, after DETONATIONS), so these three still
+     *       need to queue. This restores the exact semantics fires had when
+     *       they ran inside the parallel UPDATE_UNITS dispatch: a doomed
+     *       unit's own burst continuation gets one final action before the
+     *       drain kills it, two shooters converging on one fragile target
+     *       both land their shot (overkill absorbed by the drain's dead-
+     *       target guard, not a first-shooter-wins race), and a
+     *       REPRIORITIZE from a hit rolled during FIRING is subject to the
+     *       same queued expectedTargetId guard a parallel-phase hit got.</li>
+     *   <li>Occupancy (via {@link #applyOccupancyDelta}) — FIRING runs
+     *       <em>after</em> {@link #flushPendingOccupancyDeltas()} already
+     *       drained this tick ({@code APPLY_OCCUPANCY}, right after
+     *       UPDATE_UNITS). A reposition queued from FIRING wouldn't drain
+     *       until next tick's APPLY_OCCUPANCY, leaking a stale delta across
+     *       the tick boundary — the exact bug {@link #insideParallel}'s
+     *       doc above warns about. So occupancy deliberately does NOT
+     *       check this flag and stays gated on {@link #insideParallel}
+     *       alone, applying inline from FIRING.</li>
+     * </ul>
+     */
+    private volatile boolean deferCombatEffects = false;
+
     public DamageService(DamageApplier damageApplier,
                          ReprioApplier reprioApplier,
                          FallbackApplier fallbackApplier,
@@ -130,16 +165,21 @@ public final class DamageService {
     /** Mostly an internal predicate — exposed so {@code BattleSimulation.queueSpawn} can branch on the same flag for its own (unit-spawn) queue. */
     public boolean isParallel() { return insideParallel; }
 
+    /** Opens the {@link #deferCombatEffects} window — bracket around {@code FiringSystem.tick} in {@code BattleSimulation.tick}. See the field doc for why occupancy is deliberately excluded. */
+    public void enterCombatEffectDeferral() { deferCombatEffects = true; }
+    public void exitCombatEffectDeferral()  { deferCombatEffects = false; }
+
     /**
      * Damage entry point — the mailbox front door. Serial callers (off-tick,
-     * post-UPDATE_UNITS tick phases, AoE detonation drain, external strafing
-     * reroute) resolve inline through the injected applier; parallel callers
-     * (UPDATE_UNITS workers) write into the SoA queue for
+     * post-{@code APPLY_DAMAGE} tick phases, AoE detonation drain, external
+     * strafing reroute) resolve inline through the injected applier; parallel
+     * UPDATE_UNITS workers AND the serial {@code FIRING} phase (see
+     * {@link #deferCombatEffects}) write into the SoA queue for
      * {@link #flushPendingDamage()}. No per-call object allocation in either
      * path.
      */
     public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
-        if (!insideParallel) {
+        if (!insideParallel && !deferCombatEffects) {
             damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
             return;
         }
@@ -161,9 +201,9 @@ public final class DamageService {
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
     }
 
-    /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
+    /** Target-reprioritize write. Inline writes unconditionally; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
     public void applyReprio(Entity target, long expectedTargetId) {
-        if (!insideParallel) {
+        if (!insideParallel && !deferCombatEffects) {
             reprioApplier.apply(target, expectedTargetId);
             return;
         }
@@ -178,9 +218,9 @@ public final class DamageService {
         }
     }
 
-    /** Fallback-cell write. Inline applies the 3 field writes + path-clear; queued path drains in {@link #flushPendingTargetMutations()}. */
+    /** Fallback-cell write. Inline applies the 3 field writes + path-clear; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) drains in {@link #flushPendingTargetMutations()}. */
     public void applyFallback(Entity target, int fbX, int fbY) {
-        if (!insideParallel) {
+        if (!insideParallel && !deferCombatEffects) {
             fallbackApplier.apply(target, fbX, fbY);
             return;
         }
@@ -196,7 +236,15 @@ public final class DamageService {
         }
     }
 
-    /** Occupancy + destIndex delta. Callers pass {@code Integer.MIN_VALUE} for an old / new coord to mark that half as a no-op. Serial callers apply inline; parallel callers queue for {@link #flushPendingOccupancyDeltas()}. */
+    /**
+     * Occupancy + destIndex delta. Callers pass {@code Integer.MIN_VALUE} for
+     * an old / new coord to mark that half as a no-op. Serial callers apply
+     * inline; parallel UPDATE_UNITS callers queue for
+     * {@link #flushPendingOccupancyDeltas()}. Deliberately gated on
+     * {@link #insideParallel} ONLY — not {@link #deferCombatEffects} — because
+     * this drain already ran for the tick by the time {@code FIRING} (the
+     * deferral window) executes; see the field doc for the leak this avoids.
+     */
     public void applyOccupancyDelta(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
         if (!insideParallel) {
             occupancyApplier.apply(u, oldDestX, oldDestY, newDestX, newDestY);
@@ -217,11 +265,13 @@ public final class DamageService {
 
     /**
      * Drains the SoA damage queue FIFO through the registered applier. Runs
-     * serially in {@code TickProfile.Phase.APPLY_DAMAGE}, between UPDATE_UNITS
-     * and the subsystem ticks that read HP. Behavioral note preserved from
-     * the pre-deferral inline-apply era: a doomed target gets one tick of
-     * action before the drain kills it (vs the pre-deferral inline path where
-     * a doomed later-in-iteration target was already dead when its own update
+     * serially in {@code TickProfile.Phase.APPLY_DAMAGE}, after both the
+     * parallel UPDATE_UNITS dispatch and the serial {@code FIRING} phase have
+     * queued this tick's hits (see {@link #deferCombatEffects}), and before
+     * the subsystem ticks that read HP. Behavioral note preserved from the
+     * pre-deferral inline-apply era: a doomed target gets one tick of action
+     * before the drain kills it (vs the pre-deferral inline path where a
+     * doomed later-in-iteration target was already dead when its own update
      * ran).
      */
     public void flushPendingDamage() {

@@ -111,7 +111,16 @@ public final class EngagePosture implements Action {
                 sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
                 startedSecondary = true;
             }
-            if (!startedSecondary) {
+            // The pre-gate mirrors the old inline `dist <= attackRange` check
+            // at behavior time — effectiveRange above is the rocket-extended
+            // gate for "act from here" (so a rocketeer in rocket-but-not-
+            // rifle range doesn't run into rifle range), but authoring a
+            // primary-fire intent still requires the *rifle's* own range.
+            // FiringSystem re-checks range post-movement too; this pre-gate
+            // is strictly suppressive (it can only hold an intent that would
+            // have failed the system's check anyway), so skipping it here
+            // never lets a shot through the system wouldn't already allow.
+            if (!startedSecondary && dist <= sim.world().attackRange(member.entityId)) {
                 // Author intent instead of firing inline — FiringSystem
                 // applies the uniform cooldown/range/LoS gate (the old inline
                 // `cooldownTimer<=0 && dist<=attackRange` check) and executes

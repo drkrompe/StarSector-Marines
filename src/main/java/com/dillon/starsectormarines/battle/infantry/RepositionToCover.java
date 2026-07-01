@@ -12,11 +12,14 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
  * Story G — short-range reposition to refresh cover or open a better firing
- * angle. Called inline by {@link EngagePosture} after firing, not as a
+ * angle. Chained by {@code battle.combat.FiringSystem} on a successful fire
+ * when the shooter's fire-intent carries the reposition flag — not as a
  * standalone planner step: at the per-squad 2-second replan cadence, a real
  * planner step couldn't fire between shots, and a sub-action lets the
  * inter-burst micro-movement happen tick-by-tick the way the story wants
- * ("members shift one or two cells between bursts").
+ * ("members shift one or two cells between bursts"). {@link EngagePosture}
+ * only sets the flag when it authors the fire intent; it never calls
+ * {@link #tryReposition} itself.
  *
  * <p>Cooldown-gated via {@code world.repositionCooldown(id)}: when the per-unit
  * timer is ready, look for a cover cell that's strictly better than current
@@ -30,8 +33,8 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  *
  * <p>Implements {@link Action} so it's testable in isolation, but is
  * <em>not</em> registered in {@code GoapInfantryBehavior.INFANTRY_ACTIONS} —
- * the planner never sees it; {@link EngagePosture} calls
- * {@link #tryReposition} directly.
+ * the planner never sees it; {@code battle.combat.FiringSystem} calls
+ * {@link #tryReposition} directly, on a successful fire.
  */
 public final class RepositionToCover implements Action {
 
@@ -55,12 +58,12 @@ public final class RepositionToCover implements Action {
     @Override public int requiredMembers() { return 1; }
 
     /**
-     * Inline-from-EngagePosture entry point. Returns true when the member
-     * actually starts repositioning (and the cooldown gets stamped on them);
-     * false when ineligible (cooldown not ready, no target, no better cover
-     * available, or already in best cover). The boolean is informational —
-     * callers don't have to act on it, but a debug overlay can use it to
-     * read "this tick: shifted vs. held."
+     * {@code FiringSystem}'s post-fire entry point. Returns true when the
+     * member actually starts repositioning (and the cooldown gets stamped on
+     * them); false when ineligible (cooldown not ready, no target, no better
+     * cover available, or already in best cover). The boolean is
+     * informational — callers don't have to act on it, but a debug overlay
+     * can use it to read "this tick: shifted vs. held."
      */
     public static boolean tryReposition(Entity member, BattleControl sim) {
         if (sim.world().repositionCooldown(member.entityId) > 0f) return false;

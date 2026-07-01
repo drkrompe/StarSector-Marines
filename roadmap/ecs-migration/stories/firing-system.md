@@ -69,10 +69,28 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
 - **Scope: the infantry family only** (12 posture sites + KitRetriever). Turrets
   (`TurretAim` fire-arc model), drones (same), mechs (`HeavyWeapons` per-track) are OUT —
   no duplication exists there.
-- **Known equivalence caveat:** execution moves from *during* the parallel behavior
-  dispatch to a serial phase just after it (same tick, before burst continuation).
-  Within-tick shot ordering shifts; cadence is unchanged. Covered by cadence tests +
-  playtest.
+- **Known equivalence caveat (critique-driven fix, this commit):** execution moves from
+  *during* the parallel behavior dispatch to a serial phase just after it (same tick,
+  before burst continuation), but combat effects (damage / reprio / fallback) triggered
+  from FIRING now DEFER to the same `APPLY_DAMAGE` barrier the old parallel path used —
+  `DamageService.enterCombatEffectDeferral`/`exit` brackets the `FiringSystem.tick` call.
+  This restores the three semantics the initial proving-slice flip had silently repealed
+  by resolving those effects inline instead: doomed-unit final action (a target hit this
+  tick stays roster-alive through its own later burst continuation), both-shooters-
+  overkill (two shooters converging on one fragile target both land their shot instead of
+  the second holding), and queued-guarded reprio (a reprioritize roll during FIRING gets
+  the same expectedTargetId race-check a parallel-phase roll got). Occupancy is
+  deliberately excluded from the deferral (it stays gated on the parallel-dispatch flag
+  only) since its drain already ran for the tick by the time FIRING executes — deferring
+  it would leak a delta into next tick. Residual deltas, now narrow: (i) the post-advance
+  gate re-check is conservative-only (can suppress, never wrongly authorize, a fire —
+  `EngagePosture` restores its own pre-gate at the rifle's range so this can't fire early
+  either); (ii) a chained `RepositionToCover` installs its path at FIRING (first step next
+  tick) instead of mid-dispatch, and being serial, same-tick repositions now see each
+  other's cover claims (the old parallel dispatch could double-book a cell); (iii) the
+  narrow marine-vs-drone `airLos` hold noted in the Phase-1 entry below. Within-tick shot
+  ordering across units still shifts; cadence is unchanged. Covered by cadence tests
+  (tightened to exact spacing) + two new deferral-specific tests + playtest.
 
 ## Phases
 
@@ -87,6 +105,20 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
    holds fire where `canSeePair`'s airLos leniency previously fired (conservative
    direction; ground-vs-ground is byte-identical). Original slice plan: intent columns +
    accessors + system + flip `EngagePosture` only + cadence/gate/consume-once tests.
+   **Critique-fix follow-up (same day, pre-merge-of-next-story):** a review pass on
+   `c07a11ef` found the inline-during-FIRING damage resolution had silently repealed
+   three semantics the old parallel-dispatch path preserved (doomed-unit final action,
+   both-shooters-overkill, queued-guarded reprio) and let a rocketeer fire one tick early
+   at the outer rocket-extended range gate instead of the rifle's own range. Fixed via
+   `DamageService.enterCombatEffectDeferral`/`exit` (a second, narrower deferral flag
+   alongside `insideParallel`, occupancy deliberately excluded) bracketing
+   `FiringSystem.tick`, plus an `EngagePosture` pre-gate restoring the old inline
+   `dist <= attackRange` check at behavior time. Also: deleted three zero-caller
+   `CombatService` accessors (`fireStance`/`fireRepositionAfter`/`clearFireIntent` —
+   `FiringSystem` reads the columns directly), refreshed stale docs (`RepositionToCover`,
+   `HitResponseSystem`, `package-info`), and tightened/added `FiringSystemTest` coverage
+   (exact cadence spacing, reposition-not-chained-on-a-blocked-fire, overkill/focus-fire).
+   See § The decision's "Known equivalence caveat" above for the corrected semantics.
 2. **The sweep** — flip the remaining 11 sites + KitRetriever; delete the three
    double-tick decrements (fires the backlog bug fix — garrison cadence ~2× faster,
    verify in playtest) + KitRetriever prep routing; ChokePointHold selection-refactor

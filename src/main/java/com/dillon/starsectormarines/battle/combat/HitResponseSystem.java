@@ -23,11 +23,16 @@ import java.util.function.IntSupplier;
  * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
  *
  * <p>Both methods are called from the parallel UPDATE_UNITS dispatch (via
- * InfantryWeapons / HeavyWeapons / TurretFireSystem). Thread safety:
+ * InfantryWeapons / HeavyWeapons / TurretFireSystem for the postures/tracks
+ * that still fire inline) AND from the serial phases that fire off the
+ * deferred/continuation paths — {@code battle.combat.FiringSystem}'s FIRING
+ * phase (fire-intent postures, deferred alongside damage — see
+ * {@link DamageService}) and the InfantryWeapons/HeavyWeapons per-tick burst
+ * continuations (INFANTRY_TICK / HEAVY_TICK). Thread safety:
  * <ul>
  *   <li>{@link #rollFallbackOnHit} — reads immutable service refs + per-unit
  *       fields; writes go through {@link DamageService#applyFallback} which
- *       handles serial/parallel routing.</li>
+ *       handles serial/parallel/deferred routing.</li>
  *   <li>{@link #rollReprioritizeOnHit} — an atomic per-target claim in
  *       {@link #lastReprioTickByTarget} gates to one roll per (target, tick);
  *       writes go through {@link DamageService#applyReprio}.</li>

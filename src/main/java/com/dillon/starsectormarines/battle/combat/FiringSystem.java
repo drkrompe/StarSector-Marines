@@ -13,8 +13,8 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
- * Executes the per-tick fire intent behaviors queue on {@code COMBAT} — the
- * proving slice of the FiringSystem epic
+ * Executes the per-tick fire-intent queue the behaviors write on
+ * {@code COMBAT} — the proving slice of the FiringSystem epic
  * ({@code roadmap/ecs-migration/stories/firing-system.md} § The decision),
  * wired for {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}
  * only today; the remaining ~11 inline fire sites keep firing the old way
@@ -43,16 +43,24 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * dispatch that wrote the intent); this system only ever reads it and
  * resets it on a fire.
  *
- * <p><b>Table-walk safety.</b> {@code sim.fireShot} resolves damage inline
- * (same serial phase) and can kill the target — releasing it from the
- * roster and zeroing its {@code HEALTH} — but the death cascade only
- * <em>transmutes</em> the {@link EntityWorld} row (removing {@code COMBAT}
- * to the corpse archetype) on the buffered death-dispatcher drain, later in
- * the tick. So no row this walk is touching moves out from under it; the
+ * <p><b>Table-walk safety.</b> {@code BattleSimulation.tick} brackets this
+ * system's call with {@code DamageService.enterCombatEffectDeferral()} /
+ * {@code exitCombatEffectDeferral()}, so {@code sim.fireShot}'s damage (and
+ * any fallback/reprio it triggers) QUEUES here exactly as it does from the
+ * parallel UPDATE_UNITS dispatch — it does not resolve until
+ * {@code flushPendingDamage()} at {@code APPLY_DAMAGE}, after DETONATIONS.
+ * A target this walk hits stays roster-alive (and its own later intent, or
+ * burst continuation, can still fire) for the rest of the tick; the death
+ * cascade's {@link EntityWorld} row transmute (removing {@code COMBAT} to
+ * the corpse archetype) doesn't happen until the buffered death-dispatcher
+ * drain, later still. So no row this walk is touching moves out from under
+ * it <em>from this walk's own shots</em>. The
  * {@link UnitRosterService#isAliveById}/{@link UnitRosterService#getOrNull}
- * guards below exist purely to skip a shooter or target that a
- * <em>different</em> row's shot already killed earlier in this same walk,
- * not to guard against structural churn.
+ * guards below instead protect against a shooter or target released
+ * <em>before</em> this walk started this tick — e.g. an off-tick caller
+ * (flyby strafing's {@code applyExternalDamage}, or a test driving
+ * {@code FiringSystem.tick} directly without the deferral bracket) that
+ * resolved damage inline between ticks. Cheap to keep regardless.
  *
  * <p><b>Known ordering shift.</b> Execution moves from inline-during-the-
  * parallel-behavior-dispatch to this serial phase immediately after it
@@ -60,7 +68,16 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * continuation sees this tick's {@code beginBurst} state exactly as it did
  * when postures fired inline). Within-tick shot ordering across units
  * shifts as a result; cadence (shots per unit per second) is unchanged —
- * see the story's cadence golden test.
+ * see the story's cadence golden test. Because combat effects now defer to
+ * the same barrier the old parallel path used, the residual behavioral
+ * deltas are narrow: (i) the post-advance range/LoS re-check this system
+ * applies is conservative-only (can suppress a fire the old inline gate
+ * would have allowed, never the reverse — see {@code EngagePosture}'s
+ * pre-gate); (ii) a chained {@code RepositionToCover} installs its path
+ * here at FIRING (first step next tick) rather than mid-dispatch, and
+ * because FIRING is serial, repositions now see each other's cover claims
+ * within the same tick — the old parallel dispatch could double-book a
+ * cover cell.
  */
 public final class FiringSystem {
 
