@@ -32,12 +32,10 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
    probe per field per unit). Only a few tiny/optional populations column-walk a
    `Query`. The cache-locality win is uncollected. → epic
    [`stories/systems-to-columns.md`](stories/systems-to-columns.md).
-2. **`Entity` still carries one live behavior field.** The per-unit stats, `role`, and
-   the whole decision cluster (`assignedObjective`/`equipmentDropTarget`/`homeCell`, and
-   the reprio gate) have moved off; the **only** live mutable field left is
-   `deathPoseIdx` (slice 8 — a fold into SPRITE). `Entity` is otherwise id + immutable
-   identity + write-only `seed*` inputs. → epic
-   [`stories/entity-field-migration.md`](stories/entity-field-migration.md) (active).
+2. ~~**`Entity` carries live behavior fields.**~~ **DONE (2026-07-01).** All 8 slices of
+   [`stories/entity-field-migration.md`](stories/entity-field-migration.md) shipped;
+   `Entity` now holds no mutable per-unit state (id + immutable identity + write-only
+   `seed*` inputs). See the "entity-field-migration — DONE" section below.
 3. **Convoy ground `Vehicle` never entered the world** — a plain POJO in
    `GroundSystem.List<Vehicle>` (a third storage space; the air analog closed, ground
    didn't).
@@ -50,27 +48,33 @@ the access cost of a column-walk, but the absolute saving is ~7.3 µs/tick ≈ 0
 systems conversion is **idiom-completion, optional on perf grounds** — do it for the
 shape, not the microseconds.
 
-## Active track — entity-field-migration (slices 1–5 shipped)
+## entity-field-migration — DONE (all 8 slices, 2026-07-01)
 
-Story: [`stories/entity-field-migration.md`](stories/entity-field-migration.md) — full
-live-field inventory, slice order, and per-slice shipped log with commit hashes.
+Story (kept in `stories/` as the living **Access-model / Service convention**
+reference 15 Services cite — not moved to `complete/` despite being shipped):
+[`stories/entity-field-migration.md`](stories/entity-field-migration.md).
 
 Shipped: **1** `attackCooldown`→COMBAT · **2** `moveSpeed`→MOVEMENT · **3**
-`visionRange`+`airLosRadius`→new VISION component (+ fog-class rename
-`VisionService`→`FogOfWarService`) · **4** `primaryWeapon`→COMBAT (OBJECT) · **5**
-`squadId`→new presence-based SQUAD component (`32a00239`) · **6** `role`→new universal
-ROLE component (int ordinal) + `RoleService` (`2cede400`) · **7** the decision cluster,
-split three ways by shape — **7a** `homeCell`→HOME presence component + `HomeService`
-(`eb676efb`); **7b** `lastReprioTickIndex`→**not a component** (the CAS reprio gate lifted
-onto `HitResponseSystem` — transient per-tick coordination, not unit state) (`84d0625c`);
-**7c** `assignedObjective`+`equipmentDropTarget`→TASK component (nullable OBJECT) +
-`TaskService` with tolerant reads (`7537de69`).
+`visionRange`+`airLosRadius`→VISION (+ fog-class rename `VisionService`→`FogOfWarService`)
+· **4** `primaryWeapon`→COMBAT (OBJECT) · **5** `squadId`→presence-based SQUAD (`32a00239`)
+· **6** `role`→universal ROLE (int ordinal) + `RoleService` (`2cede400`) · **7** the
+decision cluster: **7a** `homeCell`→HOME + `HomeService` (`eb676efb`), **7b**
+`lastReprioTickIndex`→**not a component** (CAS reprio gate lifted onto `HitResponseSystem`)
+(`84d0625c`), **7c** `assignedObjective`+`equipmentDropTarget`→TASK + `TaskService`
+(tolerant reads) (`7537de69`) · **8** `deathPoseIdx`→folded into the `DeathEvent`
+(`6f528fc8`).
 
-**NEXT — slice 8: `deathPoseIdx` → SPRITE.** The last live mutable field on `Entity`.
-The corpse death-pose already lands in `SPRITE.index` at the death transmute, so this is
-likely a fold (route the roll through SPRITE) rather than a new column — check the death
-path first. After it, `Entity` is id + immutable identity + write-only `seed*` inputs and
-the field-migration epic is done.
+**`Entity` now carries NO mutable per-unit state** — it's the `long` id + immutable
+identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction inputs + the
+path/burst methods. Every migrated field's by-id access is Service-direct
+([[feedback_world_facade_deprecated]]).
+
+**NEXT — the systems half** ([`stories/systems-to-columns.md`](stories/systems-to-columns.md)):
+turn the registry-shaped loops that still iterate the dense `Entity[]` and read columns
+by id into `Query` + column-array iteration. Phase 0 (measure) done, Phase 1 first slice
+shipped (`NavigationService.rebuildOccupancyMap`). This is the biggest *unrealized* win
+and the reason the field-migration was its prerequisite — though Phase 0 rates it
+idiom-completion, not a perf necessity (see the backlog).
 
 ### Access model (in force for every new slice)
 
@@ -100,8 +104,8 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    shipped: `NavigationService.rebuildOccupancyMap` column-walks
    `BattleComponents.gridOccupants`.
 2. ~~Measure it (TickProfile A/B at N=200)~~ — **DONE** ([`phase0-measurement.md`](phase0-measurement.md)).
-3. **Migrate the behavior-tier `Entity` fields onto components** — epic; the active
-   track above (slices 1–5 shipped, 6–8 remain).
+3. ~~**Migrate the behavior-tier `Entity` fields onto components**~~ — **DONE
+   (2026-07-01):** all 8 slices shipped; `Entity` carries no mutable per-unit state.
 4. **Fold convoy `Vehicle`/`MapVehicle` into the world as a ground archetype** — L.
 5. ~~Decide `CommandBuffer`'s fate~~ — **DECIDED (keep):** committed engine infra;
    the systems-half epic is its consumer.
@@ -113,12 +117,12 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+6f528fc8 ecs-migration: fold Entity.deathPoseIdx into the DeathEvent (slice 8, FINALE)
 7537de69 ecs-migration: move Entity task fields onto a TASK component (slice 7c)
 84d0625c ecs-migration: lift the reprio gate off Entity into HitResponseSystem (slice 7b)
 eb676efb ecs-migration: move Entity.homeCell onto a HOME component (slice 7a)
 2cede400 ecs-migration: move Entity.role onto a universal ROLE component (slice 6)
 32a00239 ecs-migration: move Entity.squadId onto a presence-based SQUAD component
-4835bd42 ecs-migration: move Entity.primaryWeapon onto the COMBAT component
 ```
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
@@ -126,6 +130,6 @@ goap, campaign) interleave on HEAD.
 
 ## Sanity check before resuming
 
-- `gradlew.bat compileJava` clean, full suite green (809 tests at slice 7).
-- `git log --oneline -5` shows `7537de69` (slice 7c — TASK) or your own recent work at
-  the top.
+- `gradlew.bat compileJava` clean, full suite green (809 tests at slice 8).
+- `git log --oneline -5` shows `6f528fc8` (slice 8 — deathPoseIdx fold, epic finale) or
+  your own recent work at the top.

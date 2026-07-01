@@ -1,8 +1,13 @@
 # Battle-tier ECS migration
 
-> **Status (2026-06-28): the storage/topology half is DONE; the systems/identity/perf
-> half is open.** Read [`next-session.md`](next-session.md) § Status first for the live
-> state and the leverage-ordered backlog. This file is the arc's *framing*: the *why*,
+> **Status (2026-07-01): the storage/topology half AND the identity half are DONE; the
+> systems/perf half is open.** The entity-field migration finished (all 8 slices) — every
+> mutable per-unit field left the `Entity` heap object, so "entity = id" is now true for
+> the systems layer too, not just storage. What remains is turning the registry-shaped
+> loops that still read columns by id into query-driven, column-walking systems
+> ([`stories/systems-to-columns.md`](stories/systems-to-columns.md)) — an idiom win, not
+> a perf necessity (Phase 0 measured it). Read [`next-session.md`](next-session.md) §
+> Status first for the live state and the leverage-ordered backlog. This file is the arc's *framing*: the *why*,
 > the original **SoA-peel design rules** (historical — that peel is complete and its
 > `UnitRegistry`/`local*`/`denseIdx` machinery is deleted, but the storage principles
 > carry forward), and the naming north star (now *achieved* — `Unit` is `Entity`). The

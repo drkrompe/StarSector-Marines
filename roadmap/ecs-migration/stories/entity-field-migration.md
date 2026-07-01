@@ -1,13 +1,17 @@
 # Entity-field migration — move the behavior-tier fields onto world components
 
-> **Status: design + in flight (seeded 2026-06-29).** The sibling epic the
-> [`systems-to-columns`](systems-to-columns.md) audit kept pointing at: the storage
-> half made *columns* the home for per-unit state, but ~12 live mutable fields still
-> ride the `Entity` heap object the roster holds. This epic moves them onto the
-> `EntityWorld` so `Entity` collapses toward "just an id + immutable identity," and
-> the per-tick scans that currently need the `Entity` object (spatial index, vision)
-> become column-walkable. Read [`overview.md`](../overview.md) for the SoA rules and
-> [`archetype-storage.md`](../archetype-storage.md) for the engine.
+> **Status: DONE (2026-06-29 → 2026-07-01). All 8 slices shipped.** Every live
+> mutable behavior field left the `Entity` heap object: the stats onto COMBAT/
+> MOVEMENT/VISION, `squadId`→SQUAD, `role`→ROLE, the decision cluster (`homeCell`→HOME,
+> `assignedObjective`+`equipmentDropTarget`→TASK, the reprio gate→`HitResponseSystem`),
+> and finally `deathPoseIdx`→the `DeathEvent`. **`Entity` is now its `long` id +
+> immutable identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction
+> inputs + the path/burst methods** — no mutable per-unit state. Each field's by-id
+> access lands on a per-component **Service** (Service-direct, no `World` delegator —
+> [[feedback_world_facade_deprecated]]). The sibling scan-conversion win (making the
+> registry-shaped loops column-walk a `Query`) is the OPEN epic
+> [`systems-to-columns`](systems-to-columns.md) — this epic was its prerequisite.
+> The original in-flight framing follows.
 
 ## Why (the two payoffs)
 
@@ -221,8 +225,18 @@ backstop; fan mechanical sweeps to Sonnet), delete the `Entity` field, suite gre
 
    `HomeServiceTest` + `TaskServiceTest` added; the reprio gate stays untested (RNG-gated,
    as before). Suite green at 809.
-8. **`deathPoseIdx` → SPRITE / death authoring** — cleanup; the corpse pose already
-   lands in `SPRITE.index`, so this may be a fold rather than a new column.
+8. ~~**`deathPoseIdx` → SPRITE / death authoring**~~ **— SHIPPED (`6f528fc8`,
+   2026-07-01), a fold not a column.** The random corpse prone-pose was rolled onto
+   `Entity.deathPoseIdx` in `DamageResolver`, then read by `DeadBodySystem` to author
+   into the corpse's `SPRITE.index` at the death transmute — only that one handler
+   consumes it, so it folded into the **`DeathEvent`** record (the moment-of-death
+   snapshot that already carries the death cell). `DamageResolver` rolls it into the
+   event; `DeadBodySystem` reads `event.deathPoseIdx()`. Behavior-preserving via the
+   roll site: the normal-death path rolls 0–3, the drone-cascade path
+   (`HubDemolitionSystem`) publishes `-1` (crashes-and-fades, no ground corpse) — the
+   old rolled-vs-default distinction. `Entity.deathPoseIdx` deleted; `DeadBodySystemTest`
+   already covers the pose reaching `SPRITE.index`. **This was the last live mutable
+   field on `Entity` — the epic is DONE.**
 
 ## Acceptance criteria
 
