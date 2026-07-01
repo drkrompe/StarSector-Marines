@@ -154,6 +154,18 @@ facing→frame / weaponUp math so it's unit-testable off the system.
   the secondary-aim cache is missing/empty; `FacingSystem` authors `SPRITE_SHEET=1` on
   `inAim` regardless (it can't know cache availability — tier-neutral). Phase 2's
   selector→`SpriteAPI` mapping must replicate the fall-back-to-base-on-missing behavior.
+- **Selector 1 resolves per-WEAPON, not per-type** (critique S1). The aim-sheet map is
+  `EnumMap<MarineSecondary, UnitSpriteCache>` (`BattleSprites.marineSecondaryAimSheets`) —
+  Phase 2's reader must join `SPRITE_SHEET==1` against the `SECONDARY_WEAPON_SPEC` column to
+  pick the sheet; resolving it from `IDENTITY_TYPE` draws the wrong (or no) aim sheet the
+  moment a second secondary with aim art exists.
+- **Released-but-not-yet-transmuted rows still match `liveSprites` for one frame**
+  (critique S2). Kills that land *after* the death-dispatcher drain (air-strafe damage,
+  convoy turret fire, shot arrivals) leave a row with HEALTH (hp ≤ 0) until the *next*
+  tick's drain transmutes it. Today's renderer never sees these because it walks the dense
+  roster (release already emptied the slot); a Phase-2 `liveSprites` `Query` sweep WILL
+  match them and must replicate `FacingSystem`'s `hp <= 0` skip or a unit dies drawing its
+  last live frame for a frame.
 - **Phase-4a bug faithfully preserved:** the aim pose's facing still derives from the
   *primary* `COMBAT.targetId`, not the secondary's aim target — ported verbatim per the
   behavior-preserving rule; fix stays scheduled in Phase 4.

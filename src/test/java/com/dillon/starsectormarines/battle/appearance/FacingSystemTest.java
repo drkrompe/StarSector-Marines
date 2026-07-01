@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -90,6 +93,12 @@ public class FacingSystemTest {
             assertEquals(0, spriteSheet(sim, u.entityId), u.id);
             assertEquals(0, spriteFlipV(sim, u.entityId), u.id);
         }
+
+        // Negative membership: a live non-sheet unit (whole-sprite turret)
+        // carries no SPRITE — it gains one only at the corpse transmute.
+        MapTurret turret = new MapTurret("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20);
+        sim.addUnit(turret);
+        assertFalse(world.has(turret.entityId, c.SPRITE), "live turret carries no SPRITE");
     }
 
     @Test
@@ -173,8 +182,12 @@ public class FacingSystemTest {
         assertFalse(sim.getRoster().isLive(enemy.entityId), "the target is dead");
         // Re-affirm the stale reference in case the tick's own AI already
         // cleared it — this scenario targets the roster.isLive gate
-        // specifically, not the tid==0 fast path.
+        // specifically, not the tid==0 fast path. Clear the path + cooldown
+        // the tick's AI may have set, so the assertion pins the dead-target
+        // fallthrough rather than whatever the AI decided that tick.
         sim.world().setTargetId(marine.entityId, enemy.entityId);
+        sim.clearPath(marine);
+        sim.world().setCooldownTimer(marine.entityId, 0f);
 
         systemFor(sim).tick();
 
@@ -200,6 +213,31 @@ public class FacingSystemTest {
         system.tick();
         assertEquals(1, spriteIndex(sim, mech.entityId), "due N borrows the NW frame");
         assertEquals(0, spriteFlipV(sim, mech.entityId));
+    }
+
+    @Test
+    public void secondaryAimSelectsAimSheetAndForcesWeaponUp() {
+        BattleSimulation sim = openArena(40, 40);
+        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
+        marine.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
+        sim.addUnit(marine);
+        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5);
+        sim.addUnit(enemy);
+        sim.world().setTargetId(marine.entityId, enemy.entityId);
+        sim.world().setSecondaryActionTimer(marine.entityId, 0.5f);
+
+        FacingSystem system = systemFor(sim);
+        system.tick();
+
+        assertEquals(1, spriteSheet(sim, marine.entityId), "aiming selects the secondary-aim sheet");
+        assertEquals(5, spriteIndex(sim, marine.entityId),
+                "inAim forces weapon-up even at cooldown 0 — east weapon-up frame");
+        assertEquals(0, spriteFlipV(sim, marine.entityId));
+
+        sim.world().setSecondaryActionTimer(marine.entityId, 0f);
+        system.tick();
+        assertEquals(0, spriteSheet(sim, marine.entityId), "timer expired — back to the base sheet");
+        assertEquals(2, spriteIndex(sim, marine.entityId), "east idle again");
     }
 
     @Test

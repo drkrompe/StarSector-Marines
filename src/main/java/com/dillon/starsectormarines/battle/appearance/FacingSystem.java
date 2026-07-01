@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * per-frame derivation with authored component data (
  * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
  * gates {@code SPRITE} membership at spawn; this system writes it every tick
- * thereafter). Pure column walk over {@link #liveSprites}; the facing/frame
+ * thereafter). Pure column walk over {@link BattleComponents#liveSprites}; the facing/frame
  * math itself is the stateless {@link LiveAppearance} helper.
  *
  * <p><b>Tick placement is load-bearing.</b> This must run at the <em>tail</em>
