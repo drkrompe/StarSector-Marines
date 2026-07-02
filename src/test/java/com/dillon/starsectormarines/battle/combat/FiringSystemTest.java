@@ -276,7 +276,7 @@ public class FiringSystemTest {
     @Test
     public void engagePostureCadenceGoldenAcrossFullSimTicks() {
         BattleSimulation sim = openArena(30, 10);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
                 .squad(squadId)
                 .health(1_000_000f));

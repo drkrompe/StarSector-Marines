@@ -43,7 +43,7 @@ public class KillZoneIntegrationTest {
     @Test
     public void garrisonAccumulatesKillZoneTicksAndTripsGate() {
         BattleSimulation sim = openSim();
-        int defSquadId = sim.mintSquad(Faction.DEFENDER, null);
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 
@@ -86,7 +86,7 @@ public class KillZoneIntegrationTest {
     @Test
     public void killZoneCounterResetsWhenEnemyOutOfSight() {
         BattleSimulation sim = openSim();
-        int defSquadId = sim.mintSquad(Faction.DEFENDER, null);
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
         // Pre-set the counter to half the threshold to simulate prior ticks.
@@ -106,7 +106,7 @@ public class KillZoneIntegrationTest {
         // Patrol squads (holdsFireUntilKillZone = false) leave the counter at 0 —
         // the alert-update pass skips them entirely.
         BattleSimulation sim = openSim();
-        int defSquadId = sim.mintSquad(Faction.DEFENDER, null);
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = false;
 
@@ -132,7 +132,7 @@ public class KillZoneIntegrationTest {
         // After threshold the gate forces open even though no enemy ever
         // entered the kill-zone radius.
         BattleSimulation sim = openSim();
-        int defSquadId = sim.mintSquad(Faction.DEFENDER, null);
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 

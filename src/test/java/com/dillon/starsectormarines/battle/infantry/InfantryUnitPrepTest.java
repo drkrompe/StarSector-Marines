@@ -110,7 +110,7 @@ public class InfantryUnitPrepTest {
     public void opportunityRocketRespectsSquadCoordination() {
         // Hephaestus needs 2 rockets — first two marines commit, third holds.
         BattleSimulation sim = openArena(50, 10);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.squad().assignSquad(marineA.entityId, squadId);
         Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);
@@ -131,7 +131,7 @@ public class InfantryUnitPrepTest {
         // The common case: Vulcan dies to one rocket. Once marineA commits,
         // marineB must not also fire.
         BattleSimulation sim = openArena(50, 10);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.squad().assignSquad(marineA.entityId, squadId);
         Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);

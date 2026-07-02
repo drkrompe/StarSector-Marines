@@ -56,7 +56,7 @@ public class UnderFireAtLosEvaluatorTest {
     @Test
     public void emptyShotsReadsFalse() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -70,7 +70,7 @@ public class UnderFireAtLosEvaluatorTest {
     @Test
     public void hostileShotNearSquadmateWithLosReadsTrue() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -88,7 +88,7 @@ public class UnderFireAtLosEvaluatorTest {
     @Test
     public void hostileShotThroughWallReadsFalse() {
         BattleSimulation sim = wallSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -109,7 +109,7 @@ public class UnderFireAtLosEvaluatorTest {
     @Test
     public void friendlyShotIsIgnored() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -126,7 +126,7 @@ public class UnderFireAtLosEvaluatorTest {
     @Test
     public void distantShotDoesNotTrip() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 

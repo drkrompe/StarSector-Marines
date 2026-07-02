@@ -85,7 +85,7 @@ public class TurretDemolitionSystemTest {
                 new DefensePost.TurretSpec(TurretKind.VULCAN, 11, 10)));
         sim.setDefensePosts(List.of(post));
 
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad garrison = sim.getSquad(squadId);
         garrison.defensePost = post;
         garrison.patrolRadius = 4; // tight orbit while the post is live

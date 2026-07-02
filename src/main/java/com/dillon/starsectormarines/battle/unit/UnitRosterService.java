@@ -726,6 +726,24 @@ public final class UnitRosterService {
         }
     }
 
+    /**
+     * Mints a new (as-yet-leaderless) squad for {@code faction}, denormalizing
+     * {@code mechSquad} from {@code type}; returns its id. The pre-spawn mint the
+     * spec-based construction path uses: the caller holds an {@link EntitySpec},
+     * not a live {@link Entity}, so the squad is born with {@code leaderId == 0}
+     * and leadership (if any) is set after the members spawn. Sibling to
+     * {@link #mintSquad(Faction, Entity)} (mint led by an existing unit);
+     * synchronized for the same drone-hub same-tick reason.
+     */
+    public int mintSquad(Faction faction, UnitType type) {
+        synchronized (squads) {
+            Squad squad = new Squad(nextSquadId++, faction);
+            squad.mechSquad = type.isMech();
+            squads.put(squad.id, squad);
+            return squad.id;
+        }
+    }
+
     /** Bumps the deboarded-marine counter and returns the next id in {@code "m<n>"} format. */
     public String nextMarineId() {
         return "m" + deboardedMarineCount++;

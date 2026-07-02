@@ -68,7 +68,7 @@ public class BreakLOSTest {
     @Test
     public void executePicksAndStashesDestinationOnFirstTick() {
         BattleSimulation sim = walledSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -100,7 +100,7 @@ public class BreakLOSTest {
     @Test
     public void arrivalReturnsSuccessAndPinsPosition() {
         BattleSimulation sim = walledSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -125,7 +125,7 @@ public class BreakLOSTest {
         // ticks — it keeps walking. We force a specific cached destination and
         // verify the action reports RUNNING (not arrived) while pre-cached.
         BattleSimulation sim = walledSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
@@ -150,7 +150,7 @@ public class BreakLOSTest {
         // transit), the unit stayed glued to it. Now we share BreakContact's
         // refresh rule via TacticalScoring.fallbackDestinationNeedsRefresh.
         BattleSimulation sim = walledSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 

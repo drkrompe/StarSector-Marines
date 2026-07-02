@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
@@ -50,8 +51,17 @@ public interface BattleControl extends BattleView {
     /** Queue a unit spawn for the serial spawn-flush (drone-hub / reinforcement spawns). */
     void queueSpawn(Entity u);
 
-    /** Mint a new squad for {@code faction} with an optional {@code leader}; returns the new squad id. */
+    /** Mint a new squad for {@code faction} led by an existing {@code leader} (may be null for a leaderless squad); returns the new squad id. */
     int mintSquad(Faction faction, Entity leader);
+
+    /**
+     * Mint a new (as-yet-leaderless) squad for {@code faction}, denormalizing
+     * {@code mechSquad} from {@code type}; returns the new squad id. The pre-spawn
+     * mint the spec-based construction path uses — the caller holds an
+     * {@link EntitySpec}, not a live {@link Entity}, so leadership (if any) is set
+     * after the members spawn.
+     */
+    int mintSquad(Faction faction, UnitType type);
 
     /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
     void addUnit(Entity u);

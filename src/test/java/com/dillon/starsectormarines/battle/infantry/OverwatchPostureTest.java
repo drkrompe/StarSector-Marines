@@ -75,7 +75,7 @@ public class OverwatchPostureTest {
     @Test
     public void executeHoldsPositionAndDoesNotFire() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.holdsFireUntilKillZone = true;
         squad.aliveMembers = 1;

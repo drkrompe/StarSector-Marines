@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
@@ -768,6 +769,10 @@ public class BattleSimulation implements BattleControl {
 
     public int mintSquad(Faction faction, Entity leader) {
         return rosterService.mintSquad(faction, leader);
+    }
+
+    public int mintSquad(Faction faction, UnitType type) {
+        return rosterService.mintSquad(faction, type);
     }
 
     public void addObjective(Objective o) {

@@ -208,7 +208,7 @@ public class TacticalScoringTest {
         // get a target — otherwise the planner has nothing to do and the
         // squad sits idle (the Conquest "stuck in Idle" failure mode).
         BattleSimulation sim = openArena(50, 50);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 4;
         squad.centroidX = 5f;
@@ -690,7 +690,7 @@ public class TacticalScoringTest {
         // two (126) is overkill. So squad coordination should allow the second
         // marine to commit but block the third.
         BattleSimulation sim = openArena(20, 20);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
 
         Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.squad().assignSquad(m0.entityId, squadId);
@@ -724,7 +724,7 @@ public class TacticalScoringTest {
         // is already overkill. As soon as one marine commits, every other
         // marine in the squad should hold fire — the most common volley case.
         BattleSimulation sim = openArena(20, 20);
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.squad().assignSquad(m0.entityId, squadId);
         Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
@@ -799,8 +799,8 @@ public class TacticalScoringTest {
         // first squad's marine. (The inflight check still applies once the
         // first squad's rocket is airborne.)
         BattleSimulation sim = openArena(20, 20);
-        int squadA = sim.mintSquad(Faction.MARINE, null);
-        int squadB = sim.mintSquad(Faction.MARINE, null);
+        int squadA = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        int squadB = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
 
         Entity mA = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.squad().assignSquad(mA.entityId, squadA);

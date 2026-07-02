@@ -48,7 +48,7 @@ public class EnemyInKillZoneEvaluatorTest {
     @Test
     public void nonGarrisonSquadAlwaysReadsTrue() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, null);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = false;
@@ -61,7 +61,7 @@ public class EnemyInKillZoneEvaluatorTest {
     @Test
     public void garrisonReadsFalseWithoutSustainedLos() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
@@ -78,7 +78,7 @@ public class EnemyInKillZoneEvaluatorTest {
     @Test
     public void garrisonReadsTrueOnceCounterCrossesThreshold() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
@@ -96,7 +96,7 @@ public class EnemyInKillZoneEvaluatorTest {
     @Test
     public void garrisonReadsFalseEvenWithTicksWhenNoCloseEnemyVisible() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
@@ -114,7 +114,7 @@ public class EnemyInKillZoneEvaluatorTest {
     @Test
     public void singleTickLosDoesNotTrip() {
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
@@ -137,7 +137,7 @@ public class EnemyInKillZoneEvaluatorTest {
         // timeUnderSustainedFire passes KILL_ZONE_AMBUSH_BLOWN_SECONDS the
         // predicate trips regardless of enemy proximity.
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
@@ -161,7 +161,7 @@ public class EnemyInKillZoneEvaluatorTest {
         // trigger. Just shy of the threshold, the existing kill-zone
         // proximity rules still apply.
         BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
