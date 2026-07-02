@@ -92,7 +92,7 @@ public class UnitRenderServiceLiveSweepTest {
         BattleSimulation sim = openArena(40, 40);
         Entity subject = spawnSubject(sim, 10, 10);
 
-        sim.applyDamage(subject, 100_000f, 1f, 0f);
+        sim.applyDamage(subject.entityId, 100_000f, 1f, 0f);
         sim.advance(BattleSimulation.TICK_DT); // drains the death mailbox -> corpse transmute
 
         assertFalse(sim.getRoster().isLive(subject.entityId), "the unit is gone from the roster");
@@ -117,7 +117,7 @@ public class UnitRenderServiceLiveSweepTest {
         // FogOfWarService.getUnitVisibility tolerantly reads as VIS_VISIBLE — so the
         // hp-gate (not the visibility gate) is the only thing standing between this
         // row and a stale draw.
-        sim.applyDamage(subject, 100_000f, 1f, 0f);
+        sim.applyDamage(subject.entityId, 100_000f, 1f, 0f);
         assertFalse(sim.getRoster().isLive(subject.entityId),
                 "serial applyDamage releases the roster slot inline, before any death drain");
 

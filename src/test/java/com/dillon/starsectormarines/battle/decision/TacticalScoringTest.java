@@ -851,7 +851,7 @@ public class TacticalScoringTest {
         TacticalScoring s = sim.getTacticalScoring();
         assertEquals(2, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f), "both alive");
 
-        sim.applyDamage(doomed, 100_000f, 3.5f, 0f);
+        sim.applyDamage(doomed.entityId, 100_000f, 3.5f, 0f);
         assertEquals(1, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f),
                 "a dead combatant drops out of the tally");
     }

@@ -50,7 +50,7 @@ public class TurretDemolitionSystemTest {
 
         // Lethal hit, routed through the production damage path so the death
         // cascade (and the DeathEvent publish) actually runs.
-        sim.applyDamage(turret, 100_000f, 3.5f, 0f);
+        sim.applyDamage(turret.entityId, 100_000f, 3.5f, 0f);
 
         assertFalse(sim.world().isAlive(turret.entityId), "the turret should be dead after a lethal hit");
         // Buffered: the handler has NOT run yet — death published, not drained.
@@ -92,14 +92,14 @@ public class TurretDemolitionSystemTest {
 
         // Kill only the first turret — the post still has a live turret, so
         // the squad must stay pinned to it.
-        sim.applyDamage(a, 100_000f, 3.5f, 0f);
+        sim.applyDamage(a.entityId, 100_000f, 3.5f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
         assertEquals(post, garrison.defensePost,
                 "one turret still alive → guardpost squad stays pinned");
         assertEquals(4, garrison.patrolRadius, "patrol radius unchanged while the post holds");
 
         // Kill the second — now every turret on the post is down.
-        sim.applyDamage(b, 100_000f, 3.5f, 0f);
+        sim.applyDamage(b.entityId, 100_000f, 3.5f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
         assertNull(garrison.defensePost, "post fully down → squad released from the guardpost");
         assertEquals(PatrolRoute.DEFAULT_DISTRICT_RADIUS, garrison.patrolRadius,

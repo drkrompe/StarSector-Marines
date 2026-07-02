@@ -166,7 +166,7 @@ public class FacingSystemTest {
         Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.world().setTargetId(marine.entityId, enemy.entityId);
 
-        sim.applyDamage(enemy, 100_000f, 1f, 0f);
+        sim.applyDamage(enemy.entityId, 100_000f, 1f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
         assertFalse(sim.getRoster().isLive(enemy.entityId), "the target is dead");
         // Re-affirm the stale reference in case the tick's own AI already
@@ -237,7 +237,7 @@ public class FacingSystemTest {
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET, 1);
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V, 1);
 
-        sim.applyDamage(marine, 100_000f, 1f, 0f);
+        sim.applyDamage(marine.entityId, 100_000f, 1f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
 
         assertFalse(sim.getRoster().isLive(id));

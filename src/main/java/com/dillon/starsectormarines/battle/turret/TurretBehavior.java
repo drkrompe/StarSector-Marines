@@ -121,7 +121,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // Single-shot kinds keep the existing Entity-vs-Entity fire path
                 // so morale impact + ShotEvent tagging stay correct for the
                 // unchanged ground turrets (Arbalest, Hephaestus, etc.).
-                sim.fireShot(u, s.target);
+                sim.fireShot(u.entityId, s.target.entityId);
                 turretState.setRecoilTimer(id, 0f);
             }
         }

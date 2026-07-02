@@ -88,7 +88,7 @@ public class SquadMoraleTest {
         Entity target = sim.liveUnitAt(0);
         float startingHp = sim.world().hp(target.entityId);
         // Damage low enough that the unit survives so we isolate the hit drain.
-        sim.applyDamage(target, 1f, 1f);
+        sim.applyDamage(target.entityId, 1f, 1f);
         assertTrue(sim.world().hp(target.entityId) < startingHp, "test prerequisite: damage actually landed");
         assertTrue(sim.world().isAlive(target.entityId), "test prerequisite: target survived the hit");
         assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
@@ -101,7 +101,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         Entity target = sim.liveUnitAt(0);
         // Overkill damage — guaranteed kill.
-        sim.applyDamage(target, sim.world().hp(target.entityId) + 1000f, 1f);
+        sim.applyDamage(target.entityId, sim.world().hp(target.entityId) + 1000f, 1f);
         assertFalse(sim.world().isAlive(target.entityId), "test prerequisite: target died");
         float expected = 1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT
                               - SquadMoraleSystem.MORALE_DROP_ON_DEATH;
@@ -193,7 +193,7 @@ public class SquadMoraleTest {
         // through the cooldown gate. The hysteresis math we're verifying
         // sits downstream of how morale got there.
         Entity b = sim.liveUnitAt(1);
-        sim.applyDamage(b, sim.world().hp(b.entityId) + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
+        sim.applyDamage(b.entityId, sim.world().hp(b.entityId) + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
         sq.morale = 0.15f;
         sq.moraleDrainCooldown = 0f;
         // The kill reset timeSinceUnderFire; this test validates hysteresis
@@ -290,7 +290,7 @@ public class SquadMoraleTest {
         sq.moraleBroken = false;
 
         Entity survivor = units.get(3);
-        sim.applyDamage(survivor, 1f, 1f);
+        sim.applyDamage(survivor.entityId, 1f, 1f);
         assertTrue(sim.world().isAlive(survivor.entityId), "test prerequisite: 1 damage shouldn't kill");
 
         // Hit drain for cap=0.25 is 0.05/0.25 = 0.20 → morale = 0.05.
@@ -341,7 +341,7 @@ public class SquadMoraleTest {
         Entity target = sim.liveUnitAt(0);
         float startMorale = sq.morale;
 
-        for (int i = 0; i < 10; i++) sim.applyDamage(target, 1f, 1f);
+        for (int i = 0; i < 10; i++) sim.applyDamage(target.entityId, 1f, 1f);
 
         assertEquals(startMorale - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "10 hits inside one cooldown window drain by exactly one hit");
@@ -358,7 +358,7 @@ public class SquadMoraleTest {
         hideDefender(sim);
         Entity target = sim.liveUnitAt(0);
 
-        sim.applyDamage(target, 1f, 1f);
+        sim.applyDamage(target.entityId, 1f, 1f);
         float afterFirst = sq.morale;
 
         // Tick past the cooldown so the next hit can drain again. The
@@ -372,7 +372,7 @@ public class SquadMoraleTest {
         for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);
         float moraleAfterCooldown = sq.morale;
 
-        sim.applyDamage(target, 1f, 1f);
+        sim.applyDamage(target.entityId, 1f, 1f);
 
         assertEquals(moraleAfterCooldown - SquadMoraleSystem.MORALE_DROP_ON_HIT,
                 sq.morale, 1e-5f,
@@ -391,13 +391,13 @@ public class SquadMoraleTest {
         Entity b = sim.liveUnitAt(1);
 
         // Burn the cooldown with a non-lethal hit.
-        sim.applyDamage(a, 1f, 1f);
+        sim.applyDamage(a.entityId, 1f, 1f);
         float afterHit = sq.morale;
         assertTrue(sq.moraleDrainCooldown > 0f,
                 "test prerequisite: first hit puts the cooldown on");
 
         // Kill b immediately — death drain should still apply.
-        sim.applyDamage(b, sim.world().hp(b.entityId) + 1000f, 1f);
+        sim.applyDamage(b.entityId, sim.world().hp(b.entityId) + 1000f, 1f);
 
         assertEquals(afterHit - SquadMoraleSystem.MORALE_DROP_ON_DEATH,
                 sq.morale, 1e-5f,
@@ -436,7 +436,7 @@ public class SquadMoraleTest {
         Entity target = sim.liveUnitAt(0);
         float before = sq.morale;
 
-        sim.applyDamage(target, 1f, 1f, UnitType.MILITIA.moraleImpact);
+        sim.applyDamage(target.entityId, 1f, 1f, UnitType.MILITIA.moraleImpact);
 
         float expected = before - SquadMoraleSystem.MORALE_DROP_ON_HIT
                 * UnitType.MILITIA.moraleImpact;
@@ -455,14 +455,14 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         Entity a = sim.liveUnitAt(0);
 
-        sim.applyDamage(a, 1f, 1f, UnitType.MARINE.moraleImpact);
+        sim.applyDamage(a.entityId, 1f, 1f, UnitType.MARINE.moraleImpact);
         float marineDrain = 1.0f - sq.morale;
 
         // Reset state and apply the heavy-mech hit identically.
         sq.morale = 1.0f;
         sq.moraleDrainCooldown = 0f;
         Entity b = sim.liveUnitAt(1);
-        sim.applyDamage(b, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
+        sim.applyDamage(b.entityId, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
         float mechDrain = 1.0f - sq.morale;
 
         assertTrue(mechDrain > marineDrain,
@@ -483,7 +483,7 @@ public class SquadMoraleTest {
 
         Entity civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
                 .squad(Entity.NO_SQUAD));
-        sim.applyDamage(civilian, sim.world().hp(civilian.entityId) + 1000f, 1f);
+        sim.applyDamage(civilian.entityId, sim.world().hp(civilian.entityId) + 1000f, 1f);
 
         assertEquals(before, sq.morale, 1e-6f,
                 "killing a non-squad unit must not drain any squad's morale");

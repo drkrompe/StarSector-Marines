@@ -157,7 +157,7 @@ public class FiringSystemTest {
         // Inline kill — no drain/advance needed; the world row transmute is
         // buffered to the death-dispatcher drain, so the COMBAT table this
         // walk touches is untouched, but the roster pops the target.
-        sim.applyDamage(target, 100_000f, 1f, 1f);
+        sim.applyDamage(target.entityId, 100_000f, 1f, 1f);
 
         assertDoesNotThrow(() -> systemFor(sim).tick(sim));
 
@@ -174,7 +174,7 @@ public class FiringSystemTest {
         sim.combat().setFireIntent(shooter.entityId, target.entityId, FireStance.STANCED, false);
         // Kill the shooter after intent was written — a different shot
         // landing earlier in the same walk, per the story's ordering.
-        sim.applyDamage(shooter, 100_000f, 1f, 1f);
+        sim.applyDamage(shooter.entityId, 100_000f, 1f, 1f);
 
         assertDoesNotThrow(() -> systemFor(sim).tick(sim));
 

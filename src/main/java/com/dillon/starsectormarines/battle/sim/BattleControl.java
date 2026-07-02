@@ -36,17 +36,17 @@ public interface BattleControl extends BattleView {
     void advanceMovement(long u);
 
     /** Stanced-fire convenience (STANCED). */
-    void fireShot(Entity shooter, Entity target);
+    void fireShot(long shooter, long target);
 
     /** Stance-aware fire — MOVING halves the base accuracy roll. */
-    void fireShot(Entity shooter, Entity target, FireStance stance);
+    void fireShot(long shooter, long target, FireStance stance);
 
-    void fireSecondary(Entity shooter, Entity target);
+    void fireSecondary(long shooter, long target);
 
-    void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon);
+    void fireMechWeapon(long shooter, long target, MechWeapon weapon);
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
-    void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult);
+    void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult);
 
     /** Mint a new squad for {@code faction} led by an existing {@code leader} (may be null for a leaderless squad); returns the new squad id. */
     int mintSquad(Faction faction, Entity leader);

@@ -134,7 +134,7 @@ public final class FiringSystem {
                 if (!grid.hasLineOfSight(sx, sy, tx, ty)) continue;
 
                 FireStance stance = FireStance.VALUES[fireStance[r]];
-                sim.fireShot(shooter, target, stance);
+                sim.fireShot(shooter.entityId, target.entityId, stance);
                 combat.setCooldownTimer(shooterId, combat.attackCooldown(shooterId));
                 combat.beginBurst(shooterId, ft);
                 if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooter, sim);

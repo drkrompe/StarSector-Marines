@@ -690,12 +690,12 @@ public class BattleSimulation implements BattleControl {
         groundSystem.add(type, faction, mission);
     }
 
-    public void applyDamage(Entity target, float damage, float vsTurretMult) {
+    public void applyDamage(long target, float damage, float vsTurretMult) {
         applyDamage(target, damage, vsTurretMult, 1.0f);
     }
 
-    public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
-        damageService.applyDamage(target.entityId, damage, vsTurretMult, moraleImpact);
+    public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
+        damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
     }
 
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
@@ -1186,13 +1186,13 @@ public class BattleSimulation implements BattleControl {
     /**
      * Stanced-fire convenience: most callers fire from a stationary position
      * (engage loops, garrisons, turrets, mech chassis) and don't need to
-     * think about stance. Routes to {@link #fireShot(Entity, Entity,
+     * think about stance. Routes to {@link #fireShot(long, long,
      * com.dillon.starsectormarines.battle.combat.FireStance)} with
      * {@link com.dillon.starsectormarines.battle.combat.FireStance#STANCED}.
      * Callers firing while walking should call the stance-aware overload
      * with {@code MOVING} so the accuracy penalty applies.
      */
-    public void fireShot(Entity shooter, Entity target) {
+    public void fireShot(long shooter, long target) {
         fireShot(shooter, target, com.dillon.starsectormarines.battle.combat.FireStance.STANCED);
     }
 
@@ -1205,17 +1205,17 @@ public class BattleSimulation implements BattleControl {
      * behaviors can call {@code sim.fireShot(...)} without reaching into the
      * subsystem accessor.
      */
-    public void fireShot(Entity shooter, Entity target,
+    public void fireShot(long shooter, long target,
                          com.dillon.starsectormarines.battle.combat.FireStance stance) {
-        infantry.fireShot(shooter.entityId, target.entityId, stance);
+        infantry.fireShot(shooter, target, stance);
     }
 
     /**
      * Delegates to {@link InfantryWeapons#fireSecondary}. Same delegation
      * rationale as {@link #fireShot}.
      */
-    public void fireSecondary(Entity shooter, Entity target) {
-        infantry.fireSecondary(shooter.entityId, target.entityId);
+    public void fireSecondary(long shooter, long target) {
+        infantry.fireSecondary(shooter, target);
     }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
@@ -1235,16 +1235,16 @@ public class BattleSimulation implements BattleControl {
      * surface because AI behaviors call {@code sim.fireMechWeapon(...)}
      * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
-    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon) {
-        heavy.fireMechWeapon(shooter.entityId, target.entityId, weapon);
+    public void fireMechWeapon(long shooter, long target, MechWeapon weapon) {
+        heavy.fireMechWeapon(shooter, target, weapon);
     }
 
     /**
      * Delegates to {@link HeavyWeapons#fireMechWeapon} with explicit accuracy
      * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
      */
-    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
-        heavy.fireMechWeapon(shooter.entityId, target.entityId, weapon, accuracyMult);
+    public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
+        heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
     }
 
     // advanceMechWeapons moved to HeavyWeapons.tick; the dead-mech wreck moved

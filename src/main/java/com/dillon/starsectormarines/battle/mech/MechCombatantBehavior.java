@@ -105,7 +105,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     public static void tryFireChaingun(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
-            sim.fireMechWeapon(u, target, m.chaingun);
+            sim.fireMechWeapon(u.entityId, target.entityId, m.chaingun);
             m.chaingunCooldown = m.chaingun.cooldown;
             if (m.chaingun.burstCount > 1) {
                 m.chaingunBurstRemaining = m.chaingun.burstCount - 1;
@@ -119,7 +119,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     public static void tryFireSrm(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
-            sim.fireMechWeapon(u, target, m.srmPod);
+            sim.fireMechWeapon(u.entityId, target.entityId, m.srmPod);
             m.srmAmmoSalvos--;
             m.srmCooldown = m.srmPod.cooldown;
             if (m.srmPod.burstCount > 1) {
@@ -143,7 +143,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
             float accMult = hasLos
                     ? 1.0f
                     : com.dillon.starsectormarines.battle.mech.MechWeapon.LRM_NO_LOS_ACC_MULT;
-            sim.fireMechWeapon(u, target, m.lrmArtillery, accMult);
+            sim.fireMechWeapon(u.entityId, target.entityId, m.lrmArtillery, accMult);
             m.lrmAmmoSalvos--;
             m.lrmCooldown = m.lrmArtillery.cooldown;
             if (m.lrmArtillery.burstCount > 1) {

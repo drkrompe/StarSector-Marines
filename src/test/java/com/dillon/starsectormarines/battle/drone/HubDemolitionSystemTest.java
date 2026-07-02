@@ -48,7 +48,7 @@ public class HubDemolitionSystemTest {
         Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
         int wrecksBefore = sim.getSmokingWrecks().size();
 
-        sim.applyDamage(hub, 100_000f, 3.5f, 0f);
+        sim.applyDamage(hub.entityId, 100_000f, 3.5f, 0f);
 
         assertFalse(sim.world().isAlive(hub.entityId), "the hub should be dead after a lethal hit");
         // Buffered: the handler has NOT run yet — death published, not drained.
@@ -80,7 +80,7 @@ public class HubDemolitionSystemTest {
         Entity d2 = sim.spawn(d2Spec);
         Entity control = sim.spawn(controlSpec);
 
-        sim.applyDamage(deadHub, 100_000f, 3.5f, 0f);
+        sim.applyDamage(deadHub.entityId, 100_000f, 3.5f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
 
         // The dead hub's drones are killed by the cascade and — because each

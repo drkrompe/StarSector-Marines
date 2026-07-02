@@ -76,7 +76,7 @@ public class DroneCrashSystemTest {
         Entity drone = parkArenaWithDrone(sim);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
-        sim.applyDamage(drone, 100_000f, 20f, 20f);
+        sim.applyDamage(drone.entityId, 100_000f, 20f, 20f);
         assertFalse(sim.world().isAlive(drone.entityId), "lethal hit kills the drone");
         // Buffered: no component until the death mailbox drains in the tick.
         assertFalse(isCrashing(sim, drone.entityId),
@@ -117,7 +117,7 @@ public class DroneCrashSystemTest {
         // KINEMATICS (it rode the corpse transmute, off the corpseRemove mask) to
         // seed the CrashingComponent, then DETACHES KINEMATICS — the body's
         // lifecycle has moved to the crash component (a corpse doesn't fly).
-        sim.applyDamage(drone, 100_000f, 20f, 20f);
+        sim.applyDamage(drone.entityId, 100_000f, 20f, 20f);
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(isCrashing(sim, drone.entityId), "the dead drone is crashing");
         assertFalse(hasKinematics(sim, drone.entityId),

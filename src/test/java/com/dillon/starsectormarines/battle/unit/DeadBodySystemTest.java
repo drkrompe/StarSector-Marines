@@ -57,7 +57,7 @@ public class DeadBodySystemTest {
         Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
 
-        sim.applyDamage(target, 100_000f, 20f, 20f);
+        sim.applyDamage(target.entityId, 100_000f, 20f, 20f);
         assertFalse(sim.world().isAlive(id), "lethal hit kills the unit");
         // Buffered: the corpse spawns when the death mailbox drains in the tick.
         assertEquals(0, corpseCount(sim), "the corpse spawns on the death drain, not inline");
@@ -99,7 +99,7 @@ public class DeadBodySystemTest {
         float deathX = sim.world().renderX(target.entityId);
         float deathY = sim.world().renderY(target.entityId);
 
-        sim.applyDamage(target, 100_000f, 20f, 20f);
+        sim.applyDamage(target.entityId, 100_000f, 20f, 20f);
         sim.advance(BattleSimulation.TICK_DT);
 
         // The unit is gone from the live registry...
