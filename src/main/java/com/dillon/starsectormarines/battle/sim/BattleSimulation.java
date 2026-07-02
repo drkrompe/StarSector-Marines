@@ -1159,9 +1159,9 @@ public class BattleSimulation implements BattleControl {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
-    /** Delegates to {@link Entity#advanceAlongPath(World, float)}. Kept so existing behavior call sites compile unchanged. */
+    /** Delegates to {@link MovementService#advanceAlongPath(World, long, float)}. Kept so existing behavior call sites compile unchanged. */
     public void advanceMovement(Entity u) {
-        u.advanceAlongPath(world, TICK_DT);
+        movement().advanceAlongPath(world, u.entityId, TICK_DT);
     }
 
     /**

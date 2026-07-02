@@ -93,4 +93,24 @@ public final class CombatService {
      * table during its column-walk, one-caller-rule style.
      */
     public long fireTargetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID); }
+
+    /**
+     * Queue the burst follow-up rounds after the AI has already fired round 1.
+     * No-op for single-shot weapons or combatants without a primary-weapon profile
+     * (militia / aliens / turrets — those use their own burst paths or are
+     * intrinsically single-shot). Centralizes the trigger pattern so every
+     * fireShot callsite — stanced, moving, opportunity, garrison — gets bursts
+     * consistently. Everything it touches is COMBAT — the primary-weapon profile
+     * read and all three burst-column writes. Called at most once per shot per unit
+     * (not a per-tick bulk path), so the by-id probes are fine. {@code targetId} is
+     * the shot's target id ({@code 0L} = none); rehomed from {@code Entity.beginBurst}
+     * (identity-collapse Phase A).
+     */
+    public void beginBurst(long shooterId, long targetId) {
+        MarineWeapon weapon = primaryWeapon(shooterId);
+        if (weapon == null || weapon.burstCount <= 1) return;
+        setBurstRemaining(shooterId, weapon.burstCount - 1);
+        setBurstTimer(shooterId, weapon.burstSpacing);
+        setBurstTargetId(shooterId, targetId);
+    }
 }

@@ -3,13 +3,9 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.sim.CombatService;
-import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
@@ -39,7 +35,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  *
  * <p>The world's MOVEMENT component (reached by id) holds the whole movement
  * step — the flat {@code int[]} path, the {@code pathIdx} cursor, and
- * move-progress. {@link #advanceAlongPath(World, float)} rebuilds nothing
+ * move-progress. {@code MovementService.advanceAlongPath} rebuilds nothing
  * but lerps render position toward the next path cell as move-progress climbs
  * from 0 to 1; on arrival the logical cell advances, progress resets, and the
  * cursor steps forward.
@@ -115,39 +111,6 @@ public class Entity {
      */
     public float localRenderX;
     public float localRenderY;
-
-    /**
-     * Per-tick movement step. Every piece of per-unit movement state lives in the
-     * entity world's components, read/written by id through the {@link World}
-     * facade: the cell pair in POSITION, move-progress + the path reference + the
-     * path cursor in MOVEMENT. The flat {@code int[]} path (cell {@code i} at
-     * {@code (path[i*2], path[i*2+1])}, {@link GridPathfinder#EMPTY_PATH} when
-     * nothing is scheduled) is fetched once and interrogated through
-     * {@link Paths}; the cursor advances as the unit lands in each next cell.
-     */
-    public void advanceAlongPath(World world, float dt) {
-        int[] path = world.path(entityId);
-        int pathIdx = world.pathIdx(entityId);
-        if (pathIdx >= Paths.cellCount(path)) return;
-        int nextX = Paths.cellX(path, pathIdx);
-        int nextY = Paths.cellY(path, pathIdx);
-        int curX = world.cellX(entityId);
-        int curY = world.cellY(entityId);
-        float dx = nextX - curX;
-        float dy = nextY - curY;
-        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (cellDist < 0.0001f) { world.setPathIdx(entityId, pathIdx + 1); return; }
-        float mp = world.moveProgress(entityId) + (world.moveSpeed(entityId) * dt) / cellDist;
-        if (mp >= 1f) {
-            world.setCellPos(entityId, nextX, nextY);
-            world.setRenderPos(entityId, nextX, nextY);
-            world.setMoveProgress(entityId, 0f);
-            world.setPathIdx(entityId, pathIdx + 1);
-        } else {
-            world.setMoveProgress(entityId, mp);
-            world.setRenderPos(entityId, curX + dx * mp, curY + dy * mp);
-        }
-    }
 
     // Stats — initialized from UnitType, then mutable per-unit so captain traits
     // and mission modifiers can adjust an individual without changing the archetype.
@@ -370,25 +333,6 @@ public class Entity {
      * {@code Drone} ctor default + the marine deboard loadout).
      */
     public MarineWeapon seedPrimaryWeapon;
-
-    /**
-     * Queue the burst follow-up rounds after the AI has already fired round 1.
-     * No-op for single-shot weapons or combatants without a primary-weapon profile
-     * (militia / aliens / turrets — those use their own burst paths or are
-     * intrinsically single-shot). Centralizes the trigger pattern so every
-     * fireShot callsite — stanced, moving, opportunity, garrison — gets bursts
-     * consistently. Everything it touches is COMBAT — the primary-weapon profile
-     * read and all three burst-column writes — so it consumes {@link CombatService}
-     * directly (no {@code World} hop). Called at most once per shot per unit (not a
-     * per-tick bulk path), so the by-id probes are fine.
-     */
-    public void beginBurst(CombatService combat, Entity target) {
-        MarineWeapon weapon = combat.primaryWeapon(entityId);
-        if (weapon == null || weapon.burstCount <= 1) return;
-        combat.setBurstRemaining(entityId, weapon.burstCount - 1);
-        combat.setBurstTimer(entityId, weapon.burstSpacing);
-        combat.setBurstTargetId(entityId, Entity.idOf(target));
-    }
 
     public Entity(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -46,4 +48,40 @@ public final class MovementService {
 
     public int pathIdx(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
     public void setPathIdx(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
+
+    /**
+     * Advances a mover one path step: lerps its render position toward the next
+     * path cell as move-progress climbs from 0 to 1, and on arrival advances the
+     * logical cell, resets progress, and steps the path cursor. The flat
+     * {@code int[]} path (cell {@code i} at {@code (path[i*2], path[i*2+1])},
+     * {@link GridPathfinder#EMPTY_PATH} when nothing is scheduled) is fetched once
+     * and interrogated through {@link Paths}. Reads/writes the mover's MOVEMENT
+     * fields directly and its POSITION / RENDER_POSITION columns via the
+     * {@link World} facade — the step is inherently cross-component. Rehomed from
+     * {@code Entity.advanceAlongPath} (identity-collapse Phase A); the sole caller
+     * is {@code BattleSimulation.advanceMovement}.
+     */
+    public void advanceAlongPath(World world, long id, float dt) {
+        int[] path = path(id);
+        int pathIdx = pathIdx(id);
+        if (pathIdx >= Paths.cellCount(path)) return;
+        int nextX = Paths.cellX(path, pathIdx);
+        int nextY = Paths.cellY(path, pathIdx);
+        int curX = world.cellX(id);
+        int curY = world.cellY(id);
+        float dx = nextX - curX;
+        float dy = nextY - curY;
+        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (cellDist < 0.0001f) { setPathIdx(id, pathIdx + 1); return; }
+        float mp = moveProgress(id) + (moveSpeed(id) * dt) / cellDist;
+        if (mp >= 1f) {
+            world.setCellPos(id, nextX, nextY);
+            world.setRenderPos(id, nextX, nextY);
+            setMoveProgress(id, 0f);
+            setPathIdx(id, pathIdx + 1);
+        } else {
+            setMoveProgress(id, mp);
+            world.setRenderPos(id, curX + dx * mp, curY + dy * mp);
+        }
+    }
 }
