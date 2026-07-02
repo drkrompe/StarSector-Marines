@@ -368,8 +368,8 @@ public class BattleSimulation implements BattleControl {
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit, effects);
-        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn, effects);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -44,39 +45,38 @@ public final class DroneSpawner {
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + sim.identity().name(hub.entityId) + "-" + sim.hubState().incrementDronesLaunched(hub.entityId);
-        // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
-        // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
-        // queue before the next phase reads units.
-        Entity drone = sim.queueSpawn(Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId));
+        EntitySpec droneSpec = Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId);
 
-        if (!sim.hubState().hasDroneSquad(hub.entityId)) {
-            int squadId = sim.mintSquad(hub.faction, drone);
+        // Resolve the hub's drone squad (mint one on first launch) BEFORE the spawn
+        // so the squad id can be stamped on the spec — allocate then seeds the SQUAD
+        // component for both the serial (inline) and parallel (deferred flush) paths,
+        // replacing the old post-spawn assignSquad/seedSquadId split.
+        boolean newSquad = !sim.hubState().hasDroneSquad(hub.entityId);
+        int squadId;
+        if (newSquad) {
+            squadId = sim.mintSquad(hub.faction, droneSpec.type);
             Squad squad = sim.getSquad(squadId);
             squad.droneHubId = hub.entityId;
             sim.hubState().setDroneSquadId(hub.entityId, squadId);
-            joinDroneSquad(sim, drone, squadId);
         } else {
-            int squadId = sim.hubState().droneSquadId(hub.entityId);
-            joinDroneSquad(sim, drone, squadId);
-            Squad squad = sim.getSquad(squadId);
-            if (sim.resolveUnit(squad.leaderId) == null) {
-                squad.leaderId = drone.entityId;
-            }
+            squadId = sim.hubState().droneSquadId(hub.entityId);
+        }
+        droneSpec.squad(squadId);
+
+        // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
+        // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
+        // queue before the next phase reads units.
+        Entity drone = sim.queueSpawn(droneSpec);
+
+        // Designate the drone as squad leader on first launch; on later launches take
+        // over only if the current leader is dead/gone. In the parallel path the drone
+        // is queued (entityId still 0 here), so leaderId stays 0 until a serial spawn
+        // assigns a real id — matching the pre-spec behavior.
+        Squad squad = sim.getSquad(squadId);
+        if (newSquad || sim.resolveUnit(squad.leaderId) == null) {
+            squad.leaderId = drone.entityId;
         }
         return drone;
-    }
-
-    /**
-     * Records the drone's squad membership. {@link BattleSimulation#queueSpawn}
-     * allocated the drone inline in a serial phase (its {@code entityId} is set) but
-     * only QUEUED it in the parallel UPDATE_UNITS dispatch ({@code entityId} still 0;
-     * the APPLY_SPAWNS flush allocates it later). So assign the live SQUAD membership
-     * if the drone is already allocated, otherwise seed it for the flush's
-     * {@code allocate} to consume — both land the same SQUAD component.
-     */
-    private static void joinDroneSquad(BattleSimulation sim, Entity drone, int squadId) {
-        if (drone.entityId != 0L) sim.squad().assignSquad(drone.entityId, squadId);
-        else drone.seedSquadId = squadId;
     }
 
     /**

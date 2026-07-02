@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -51,7 +52,7 @@ public class GroundSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
-    private final Consumer<Entity> addUnitSink;
+    private final Consumer<EntitySpec> addUnitSink;
     /** Spawns each vehicle's world entity (identity + kinematics + mission + turret) at {@link #add} and reaps it at terminal GONE. */
     private final ConvoyService convoy;
 
@@ -62,7 +63,7 @@ public class GroundSystem {
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
-                        World world, TurretFireSink fireSink, Random rng, Consumer<Entity> addUnitSink) {
+                        World world, TurretFireSink fireSink, Random rng, Consumer<EntitySpec> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -202,15 +203,15 @@ public class GroundSystem {
         UnitType deboardType = (m.deboardUnitType != null)
                 ? m.deboardUnitType
                 : FactionUnitRoster.forFaction(faction).infantry();
-        Entity marine = new Entity(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
+        EntitySpec marine = new EntitySpec(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
         int slot = type.capacity - m.marinesRemaining;
         MarineLoadout loadout = (m.marineLoadout != null && slot < m.marineLoadout.length)
                 ? m.marineLoadout[slot] : null;
         if (loadout != null) loadout.seedInto(marine);
         if (m.squadId == Entity.NO_SQUAD) {
-            m.squadId = roster.mintSquad(faction, marine);
+            m.squadId = roster.mintSquad(faction, deboardType);
         }
-        marine.seedSquadId = m.squadId;
+        marine.squad(m.squadId);
         Squad squad = roster.getSquad(m.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);

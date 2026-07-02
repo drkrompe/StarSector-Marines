@@ -1023,12 +1023,11 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.seedRole = UnitRole.GARRISON;
-                unit.seedHomeCellX = cell[0];
-                unit.seedHomeCellY = cell[1];
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role(UnitRole.GARRISON);
+                unit.home(cell[0], cell[1]);
                 if (squad == null) {
-                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    int sid = sim.mintSquad(Faction.DEFENDER, type);
                     squad = sim.getSquad(sid);
                     squad.assignedNode = node;
                     // Story A: infantry garrisons hold fire until the
@@ -1038,9 +1037,9 @@ public final class BattleSetup {
                     // not in a fire-suppression flag on the squad.
                     squad.holdsFireUntilKillZone = (mechRole == null);
                 }
-                unit.seedSquadId = squad.id;
-                sim.addUnit(unit);
-                attachMechLoadout(sim, unit, mechRole);
+                unit.squad(squad.id);
+                Entity member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1078,16 +1077,16 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.seedRole = UnitRole.PATROL;
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role(UnitRole.PATROL);
                 if (squad == null) {
-                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    int sid = sim.mintSquad(Faction.DEFENDER, type);
                     squad = sim.getSquad(sid);
                     squad.assignedNode = anchor;
                 }
-                unit.seedSquadId = squad.id;
-                sim.addUnit(unit);
-                attachMechLoadout(sim, unit, mechRole);
+                unit.squad(squad.id);
+                Entity member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1133,17 +1132,17 @@ public final class BattleSetup {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
-                unit.seedRole = UnitRole.PATROL;
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role(UnitRole.PATROL);
                 if (squad == null) {
-                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    int sid = sim.mintSquad(Faction.DEFENDER, type);
                     squad = sim.getSquad(sid);
                     // No assignedNode — PatrolRoute falls back to the
                     // squad centroid as its wander seed when this is null.
                 }
-                unit.seedSquadId = squad.id;
-                sim.addUnit(unit);
-                attachMechLoadout(sim, unit, mechRole);
+                unit.squad(squad.id);
+                Entity member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1154,8 +1153,8 @@ public final class BattleSetup {
      * presence component attached <em>after</em> the unit is added to the sim —
      * see {@link #attachMechLoadout} — because the loadout store is keyed by the
      * entity id, which isn't assigned until {@code addUnit}. */
-    private static Entity makeDefender(String id, UnitType type, int x, int y) {
-        return new Entity(id, Faction.DEFENDER, type, x, y);
+    private static EntitySpec makeDefender(String id, UnitType type, int x, int y) {
+        return new EntitySpec(id, Faction.DEFENDER, type, x, y);
     }
 
     /**

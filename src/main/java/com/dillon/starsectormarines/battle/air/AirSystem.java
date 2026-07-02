@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
@@ -81,7 +82,7 @@ public class AirSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
-    private final Consumer<Entity> addUnitSink;
+    private final Consumer<EntitySpec> addUnitSink;
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
 
     /**
@@ -115,7 +116,7 @@ public class AirSystem {
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
-                     Random rng, Consumer<Entity> addUnitSink, EffectsService effects) {
+                     Random rng, Consumer<EntitySpec> addUnitSink, EffectsService effects) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -710,13 +711,13 @@ public class AirSystem {
         UnitType deboardType = (mission.deboardUnitType != null)
                 ? mission.deboardUnitType
                 : FactionUnitRoster.forFaction(faction).infantry();
-        Entity marine = new Entity(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
+        EntitySpec marine = new EntitySpec(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
         int slot = mission.deboardedThisSortie;   // 0-based deboard index — correct even for a partial sortie
         MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
                 ? mission.marineLoadout[slot] : null;
         if (loadout != null) loadout.seedInto(marine);
         if (mission.squadId == Entity.NO_SQUAD) {
-            mission.squadId = roster.mintSquad(faction, marine);
+            mission.squadId = roster.mintSquad(faction, deboardType);
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than
             // idling until a commander assignment (and so the commander leaves
@@ -726,7 +727,7 @@ public class AirSystem {
                 if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
             }
         }
-        marine.seedSquadId = mission.squadId;
+        marine.squad(mission.squadId);
         Squad squad = roster.getSquad(mission.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);

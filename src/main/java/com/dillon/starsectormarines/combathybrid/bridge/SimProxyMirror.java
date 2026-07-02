@@ -60,13 +60,16 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
     private static final class ProxyLink {
         final Entity unit;
         final ShipAPI proxy;
+        /** Snapshotted at link creation (unit alive) so the despawn log is release-safe — by despawn time the unit may already be out of the roster, so a by-id name lookup isn't safe. */
+        final String name;
         final Vector2f anchor = new Vector2f();
         boolean simDead;   // set by the death subscriber when the sim reports this unit dead
         boolean removed;   // proxy already despawned
 
-        ProxyLink(Entity unit, ShipAPI proxy) {
+        ProxyLink(Entity unit, ShipAPI proxy, String name) {
             this.unit = unit;
             this.proxy = proxy;
+            this.name = name;
         }
     }
 
@@ -125,7 +128,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             // proxied target kinds / shapes arrive.
             ProxyShape.forUnit(u).applyTo(proxy, u, cfg.worldUnitsPerCell());
             proxy.getLocation().set(loc);
-            ProxyLink link = new ProxyLink(u, proxy);
+            ProxyLink link = new ProxyLink(u, proxy, sim.identity().name(u.entityId));
             link.anchor.set(loc);
             links.add(link);
         }
@@ -176,11 +179,10 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             if (link.simDead || !link.proxy.isAlive()) {
                 engine.removeEntity(link.proxy);
                 link.removed = true;
-                // Read the name off the held Entity ref (immutable, so it never
-                // diverges from IDENTITY_NAME) rather than sim.identity().name(id):
-                // by this point the unit may already be released from the roster, so
-                // a by-id lookup isn't safe here.
-                LOG.info("ground-bridge: despawned proxy for " + link.unit.seedName
+                // Name was snapshotted at link creation (see ProxyLink.name): by this
+                // point the unit may already be released from the roster, so a by-id
+                // lookup isn't safe here.
+                LOG.info("ground-bridge: despawned proxy for " + link.name
                         + (link.simDead ? " (sim owned the death)." : " (vanilla destroyed it)."));
             }
         }

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -102,15 +102,15 @@ public final class WalkInMeans implements ReinforcementMeans {
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : spawnCells) {
-            Entity unit = new Entity("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
-            unit.seedRole = UnitRole.PATROL;
+            EntitySpec unit = new EntitySpec("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
+            unit.role(UnitRole.PATROL);
             if (squad == null) {
-                int sid = sim.mintSquad(req.side, unit);
+                int sid = sim.mintSquad(req.side, infantryType);
                 squad = sim.getSquad(sid);
                 if (squad != null) squad.assignedNode = anchor;
             }
-            if (squad != null) unit.seedSquadId = squad.id;
-            sim.addUnit(unit);
+            if (squad != null) unit.squad(squad.id);
+            sim.spawn(unit);
             spawned++;
         }
         if (squad != null) squad.originalSize = spawned;

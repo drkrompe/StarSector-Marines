@@ -208,6 +208,29 @@ public final class UnitRosterService {
     }
 
     /**
+     * Spawns a ground-roster unit from an {@link EntitySpec}, adopting it immediately
+     * (allocate + spatial-index mirror); returns the handle. The roster-level twin of
+     * {@code BattleSimulation.spawn(EntitySpec)} for sim-less callers (roster/service
+     * tests). Part of identity-collapse Phase C (spawn-spec).
+     */
+    public Entity spawn(EntitySpec spec) {
+        Entity e = spec.toEntity();
+        addUnit(e);
+        return e;
+    }
+
+    /**
+     * Deferred spec spawn — the {@link #queueSpawn(Entity)} twin for callers inside the
+     * parallel UPDATE_UNITS dispatch; returns the handle (entityId assigned inline in
+     * serial phases, {@code 0L} until the APPLY_SPAWNS drain in the parallel path).
+     */
+    public Entity queueSpawn(EntitySpec spec) {
+        Entity e = spec.toEntity();
+        queueSpawn(e);
+        return e;
+    }
+
+    /**
      * Drops the registry entry for {@code entityId} via swap-and-pop.
      * Called by the death cascade in
      * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}.
