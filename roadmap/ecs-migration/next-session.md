@@ -201,10 +201,13 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    ~48 callers pass `.entityId` (3 parallel Sonnet passes over disjoint clusters). **D4 SHIPPED
    (`d6b61af2`, 869 green):** the D1-deferred `DamageService` `applyDamage`/`applyReprio`/`applyFallback`
    + `HitResponseSystem` `rollFallbackOnHit`/`rollReprioritizeOnHit` front-doors → `long` (nullable
-   `shooter`→`0L`; kept `applyOccupancyDelta(Entity)` = dest-index applier). **SEQUENCING CORRECTION:**
-   the behaviors share one atomic `Action.execute(Entity)` interface, gated bottom-up; it's a sequential
-   cascade, only the caller ripple fans out. **Next: the weapon-fire methods** (`InfantryWeapons.fireShot`/
-   `fireSecondary`, `HeavyWeapons.fireMechWeapon` → `long`, unblocked by D4), then the facade `fire*`.
+   `shooter`→`0L`; kept `applyOccupancyDelta(Entity)` = dest-index applier). **D5 SHIPPED (`51d6f1c`,
+   869 green):** the weapon-fire leaf methods `InfantryWeapons.fireShot`/`fireSecondary` +
+   `HeavyWeapons.fireMechWeapon` (×2) → `long` (`shooter.type`/`faction` cached via `roster.identity()`;
+   tick continuations + facade wrappers pass `.entityId`). **SEQUENCING CORRECTION:** the behaviors share
+   one atomic `Action.execute(Entity)` interface, gated bottom-up; sequential cascade, only the caller
+   ripple fans out. **Next: the facade `fire*`** (`BattleControl.fireShot`/`fireSecondary`/`fireMechWeapon`
+   → `long`, impls now long-native) + the `BattleSimulation.applyDamage(Entity)` external front-door.
    **Dest-index-gated (own slice, not tail-finale):** `setPath`/`clearPath` + the `Action.execute` flip
    wait on the dest-index (`applyOccupancyDelta`/`UnitDestinationSpatialIndex`) going id-native. Full
    record + corrected sequence: the story doc § Phase D.
@@ -216,6 +219,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+51d6f1c  ecs-migration: identity-collapse D5 - weapon-fire methods -> long
 d6b61af2 ecs-migration: identity-collapse D4 - DamageService/HitResponse front-doors -> long
 14a6d774 ecs-migration: identity-collapse D3 - sim-facade targetOf/advanceMovement params -> long
 a782ad71 ecs-migration: identity-collapse D2 - TacticalScoring params Entity->long
@@ -244,7 +248,7 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `d6b61af2` (identity-collapse D4) or your own recent work at the top.
+- `git log --oneline -5` shows `51d6f1c` (identity-collapse D5) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
@@ -258,12 +262,14 @@ goap, campaign) interleave on HEAD.
   D1 combat damage pipeline internals → `long` (public front-doors keep `Entity`). **D2 SHIPPED
   (`a782ad71`, 869 tests green):** every `TacticalScoring` `Entity` param → `long`. **D3 SHIPPED
   (`14a6d774`, 869 green):** sim-facade `targetOf(long)` + `advanceMovement(long)`. **D4 SHIPPED
-  (`d6b61af2`, 869 green):** `DamageService`/`HitResponseSystem` front-doors → `long`. **SEQUENCING
-  CORRECTION:** the behaviors share one atomic `Action.execute(Entity)` interface, gated bottom-up — a
-  sequential cascade, only the caller ripple fans out. **Next: the weapon-fire methods**
-  (`InfantryWeapons` fireShot/fireSecondary, `HeavyWeapons` fireMechWeapon → `long`, unblocked by D4),
-  then the facade `fire*`. `setPath`/`clearPath` + the `Action.execute` flip are gated on the dest-index
-  going id-native (its own slice). [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  (`d6b61af2`, 869 green):** `DamageService`/`HitResponseSystem` front-doors → `long`. **D5 SHIPPED
+  (`51d6f1c`, 869 green):** the weapon-fire leaf methods (`InfantryWeapons` fireShot/fireSecondary,
+  `HeavyWeapons` fireMechWeapon ×2) → `long`. **SEQUENCING CORRECTION:** the behaviors share one atomic
+  `Action.execute(Entity)` interface, gated bottom-up — a sequential cascade, only the caller ripple
+  fans out. **Next: the facade `fire*`** (`BattleControl` fireShot/fireSecondary/fireMechWeapon → `long`)
+  + the `BattleSimulation.applyDamage(Entity)` external front-door. `setPath`/`clearPath` + the
+  `Action.execute` flip are gated on the dest-index going id-native (its own slice).
+  [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -276,10 +282,11 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — leaf services** (`NavigationService`/
-  `InfantryWeapons`/`HeavyWeapons` param flips → `long`, the bottom of the bottom-up cascade; caller
-  ripple delegable to Sonnets). D0+D1 `240df7f9`; D2 (`TacticalScoring`) `a782ad71`; D3 (sim-facade
-  `targetOf`/`advanceMovement`) `14a6d774`.
+  playtest. **Next-up:** **identity-collapse Phase D — facade `fire*`** (`BattleControl`
+  fireShot/fireSecondary/fireMechWeapon → `long`, impls now long-native) + the
+  `BattleSimulation.applyDamage(Entity)` external front-door; then the dest-index id-native slice
+  (unblocks `setPath`/`clearPath` + the atomic `Action.execute` flip). D0+D1 `240df7f9`; D2 `a782ad71`;
+  D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`.
   Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

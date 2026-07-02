@@ -3,9 +3,9 @@
 > **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
 > IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
 > D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
-> shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`. NOTE: this
-> stretch is a bottom-up cascade of sequential slices, NOT a parallel behavior-cluster fan-out — see
-> the § Phase D "SEQUENCING CORRECTION".**
+> shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`; D5
+> (weapon-fire methods) shipped `51d6f1c`. NOTE: this stretch is a bottom-up cascade of sequential
+> slices, NOT a parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
 > **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
@@ -343,10 +343,16 @@ self-contained slices** (D2-cadence: flip the layer, callers pass `.entityId`, d
 *not* parallel cluster-commits. The only parallelism available is delegating each slice's mechanical
 caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimulation` facade +
 `Action` interface, so the *slices* are sequential.
-- **Next — weapon-fire methods (unblocked by D4):** `InfantryWeapons.fireShot`/`fireSecondary` +
-  `HeavyWeapons.fireMechWeapon` params → `long` (their `applyDamage`/`roll*` calls are now
-  long-native, so the flip is clean — read `shooter.type`/`faction` via `roster.identity()`), then the
-  `BattleControl` facade `fireShot`/`fireSecondary`/`fireMechWeapon` → `long`.
+- ~~**D5 · weapon-fire methods**~~ — **SHIPPED (`51d6f1c`; suite green, 869 tests).**
+  `InfantryWeapons.fireShot`/`fireSecondary` + `HeavyWeapons.fireMechWeapon` (×2) params → `long`
+  (unblocked by D4; `shooter.type`/`faction` cached via `roster.identity()`, `UnitType`/`Faction`
+  imports added; internal burst/salvo tick continuations + the `BattleSimulation` facade wrappers pass
+  `.entityId`).
+- **Next — facade `fire*` + external damage front-door:** `BattleControl.fireShot` (×2) /
+  `fireSecondary` / `fireMechWeapon` (×2) params → `long` (impls now delegate to long-native
+  `InfantryWeapons`/`HeavyWeapons`; callers = the few direct `sim.fire*` sites), and the
+  `BattleSimulation.applyDamage(Entity)` external-damage front-door (its `damageService.applyDamage`
+  call went long-native in D4).
 - **Dest-index-gated (its own slice, NOT the tail finale):** `setPath`/`clearPath` feed
   `DamageService.applyOccupancyDelta(Entity u,…)` → the `UnitDestinationSpatialIndex` (reference-identity
   `remove`). They — and the `Action.execute(Entity member)` interface flip, whose bodies call
