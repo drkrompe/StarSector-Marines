@@ -42,8 +42,8 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. */
-    private static final int SCHEMA_VERSION = 3;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. */
+    private static final int SCHEMA_VERSION = 4;
 
     private SquadStateDumper() {}
 
