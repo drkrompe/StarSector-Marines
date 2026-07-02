@@ -41,9 +41,9 @@ public class DroneSwarmActionTest {
     @Test
     public void patrolBranchPicksASectorWaypointWhenNoneIsSetYet() {
         BattleSimulation sim = openArena(60, 60);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30).toEntity();
         sim.addUnit(hub);
-        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId);
+        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId).toEntity();
         sim.addUnit(drone);
         Squad squad = new Squad(0, Faction.DEFENDER);
         squad.aliveMembers = 1;
@@ -80,9 +80,9 @@ public class DroneSwarmActionTest {
     @Test
     public void pursuitBranchDecaysTheLatchWhenNothingRefreshesItThisTick() {
         BattleSimulation sim = openArena(60, 60);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30).toEntity();
         sim.addUnit(hub);
-        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId);
+        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId).toEntity();
         sim.addUnit(drone);
         Squad squad = new Squad(0, Faction.DEFENDER);
         squad.aliveMembers = 1;

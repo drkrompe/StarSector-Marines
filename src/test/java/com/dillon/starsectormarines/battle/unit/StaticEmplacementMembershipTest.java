@@ -45,8 +45,8 @@ public class StaticEmplacementMembershipTest {
     public void mobileUnitsAreMoversAndThinkersStaticEmplacementsAreNeither() {
         BattleSimulation sim = openSim();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2).toEntity();
         sim.addUnit(marine);
         sim.addUnit(turret);
         sim.addUnit(hub);
@@ -82,8 +82,8 @@ public class StaticEmplacementMembershipTest {
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.seedSquadId = sid;
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2).toEntity();
         sim.addUnit(marine);
         sim.addUnit(turret);
         sim.addUnit(hub);
@@ -105,11 +105,11 @@ public class StaticEmplacementMembershipTest {
     @Test
     public void droneCarriesDroneStateSeededToNaNGoalsAndItsHomeHubId() {
         BattleSimulation sim = openSim();
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 5, 5);
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 5, 5).toEntity();
         sim.addUnit(hub);
-        Entity drone = Drone.create("d", Faction.DEFENDER, 10, 10, hub.entityId);
+        Entity drone = Drone.create("d", Faction.DEFENDER, 10, 10, hub.entityId).toEntity();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
         sim.addUnit(drone);
         sim.addUnit(marine);
         sim.addUnit(turret);
@@ -136,8 +136,8 @@ public class StaticEmplacementMembershipTest {
     public void rollFallbackOnHitSkipsStaticEmplacements() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8);
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 9, 9);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8).toEntity();
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 9, 9).toEntity();
         sim.addUnit(turret);
         sim.addUnit(hub);
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 2, 2));

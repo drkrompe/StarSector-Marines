@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
@@ -637,6 +638,29 @@ public class BattleSimulation implements BattleControl {
                 && fogOfWar.getVisionState().isContributor(u.faction)) {
             fogOfWar.addContributor(u, rosterService);
         }
+    }
+
+    /**
+     * Spawn a ground-roster unit from an {@link EntitySpec} (identity-collapse
+     * Phase C): builds the unit and adopts it immediately via {@link #addUnit}
+     * (fog contributor registered), returning the handle. Replaces hand-building an
+     * {@code Entity} + writing its {@code seed*} fields.
+     */
+    public Entity spawn(EntitySpec spec) {
+        Entity e = spec.toEntity();
+        addUnit(e);
+        return e;
+    }
+
+    /**
+     * Deferred spec spawn — the {@link #queueSpawn(Entity)} twin for callers inside
+     * the parallel UPDATE_UNITS dispatch. Returns the handle (entityId assigned
+     * inline in serial phases, {@code 0L} until the APPLY_SPAWNS drain in parallel).
+     */
+    public Entity queueSpawn(EntitySpec spec) {
+        Entity e = spec.toEntity();
+        queueSpawn(e);
+        return e;
     }
 
     /** Mirrors queued drone-hub spawns into the units list. Delegates to {@link UnitRosterService#flushPendingSpawns()}; registers fog-of-war contributors for any player-faction spawns. */

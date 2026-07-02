@@ -46,9 +46,9 @@ public class DroneCrashSystemTest {
     /** A drone homed to a hub kept alive far away — so killing the drone doesn't end the battle. */
     private static Entity parkArenaWithDrone(BattleSimulation sim) {
         sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
-        Entity keepAlive = DroneHub.create("hub", Faction.DEFENDER, 38, 38);
+        Entity keepAlive = DroneHub.create("hub", Faction.DEFENDER, 38, 38).toEntity();
         sim.addUnit(keepAlive);
-        Entity drone = Drone.create("d0", Faction.DEFENDER, 20, 20, keepAlive.entityId);
+        Entity drone = Drone.create("d0", Faction.DEFENDER, 20, 20, keepAlive.entityId).toEntity();
         sim.addUnit(drone);
         return drone;
     }

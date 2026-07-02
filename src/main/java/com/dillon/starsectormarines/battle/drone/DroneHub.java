@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -63,17 +64,15 @@ public final class DroneHub {
      * iff {@code type.isDroneHub()}); the caller still owns handing the result
      * to {@code sim.addUnit}/{@code queueSpawn}.
      */
-    public static Entity create(String id, Faction faction, int cellX, int cellY) {
-        Entity hub = new Entity(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY);
-        hub.seedMaxHp = HUB_MAX_HP;
-        hub.seedHp = HUB_MAX_HP;
-        hub.seedAttackDamage = 0f;
-        hub.seedAttackRange = 0f;
-        hub.seedAttackCooldown = 1f;
-        hub.seedAccuracy = 0f;
-        hub.seedMoveSpeed = 0f;
-        hub.seedRole = UnitRole.DRONE_HUB;
-        hub.seedHubSpawnCooldown = INITIAL_SPAWN_DELAY_SEC;
-        return hub;
+    public static EntitySpec create(String id, Faction faction, int cellX, int cellY) {
+        return new EntitySpec(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY)
+                .health(HUB_MAX_HP)
+                .attackDamage(0f)
+                .attackRange(0f)
+                .attackCooldown(1f)
+                .accuracy(0f)
+                .moveSpeed(0f)
+                .role(UnitRole.DRONE_HUB)
+                .hubSpawnCooldown(INITIAL_SPAWN_DELAY_SEC);
     }
 }

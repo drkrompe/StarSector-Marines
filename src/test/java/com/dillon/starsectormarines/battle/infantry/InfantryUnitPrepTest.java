@@ -44,7 +44,7 @@ public class InfantryUnitPrepTest {
     }
 
     private static Entity turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y);
+        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y).toEntity();
         sim.addUnit(t);
         return t;
     }

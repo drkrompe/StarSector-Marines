@@ -44,7 +44,7 @@ public class TurretDemolitionSystemTest {
     @Test
     public void deadTurretIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
+        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
         sim.addUnit(turret);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
@@ -74,8 +74,8 @@ public class TurretDemolitionSystemTest {
         // A two-turret defense post; a garrison squad orbiting it on a tight
         // patrol radius. When BOTH turrets die the post is "down" and the
         // squad should revert to the wide default radius + drop its post link.
-        Entity a = MapTurret.create("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
-        Entity b = MapTurret.create("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10);
+        Entity a = MapTurret.create("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
+        Entity b = MapTurret.create("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10).toEntity();
         sim.addUnit(a);
         sim.addUnit(b);
         // A lone, far-off MARINE keeps the battle in progress across both ticks
@@ -111,7 +111,7 @@ public class TurretDemolitionSystemTest {
     @Test
     public void liveTurretIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
+        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
         sim.addUnit(turret);
 
         sim.advance(BattleSimulation.TICK_DT);

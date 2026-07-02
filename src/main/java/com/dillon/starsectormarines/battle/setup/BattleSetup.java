@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -1316,9 +1317,7 @@ public final class BattleSetup {
             int[] cell = findCivilianCell(map.grid, poi.anchorCellX, poi.anchorCellY, claimed, rng);
             if (cell == null) continue;
             UnitType type = roles[rng.nextInt(roles.length)];
-            Entity u = new Entity("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]);
-            u.seedRole = UnitRole.FLEE;
-            sim.addUnit(u);
+            sim.spawn(new EntitySpec("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]).role(UnitRole.FLEE));
             claimed.add(key(cell[0], cell[1]));
             spawned++;
         }
@@ -1625,8 +1624,7 @@ public final class BattleSetup {
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                Entity turret = MapTurret.create("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
-                sim.addUnit(turret);
+                Entity turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
@@ -1639,8 +1637,7 @@ public final class BattleSetup {
             // sealInnerCell call). Spawning the hub here gives it HP
             // and a render target; the drones it'll launch come in a follow-up.
             if (post.tier == DefensePostKind.DRONE_HUB) {
-                Entity hub = DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
-                sim.addUnit(hub);
+                Entity hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
                 spawned.add(hub);
             }
         }

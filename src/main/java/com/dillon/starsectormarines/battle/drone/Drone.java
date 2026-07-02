@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -202,26 +203,20 @@ public final class Drone {
      * hub-less — it patrols around its own body and is excluded from the hub's
      * death cascade.
      */
-    public static Entity create(String id, Faction faction, int cellX, int cellY, long homeHubId) {
-        Entity drone = new Entity(id, faction, UnitType.DRONE, cellX, cellY);
-        drone.seedMaxHp = DRONE_MAX_HP;
-        drone.seedHp = DRONE_MAX_HP;
-        drone.seedPrimaryWeapon = MarineWeapon.DRONE_PULSE;
-        drone.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
-        drone.seedVisionRange = 44f;
-        drone.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
-        drone.seedAttackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
-        drone.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
-        drone.seedMoveSpeed = 0f;
-        drone.seedAirLosRadius = DRONE_AIR_LOS_RADIUS;
-        drone.seedRole = UnitRole.DRONE_PATROL;
-        drone.seedHomeHubId = homeHubId;
+    public static EntitySpec create(String id, Faction faction, int cellX, int cellY, long homeHubId) {
         // Build + position the kinematic body and hand it to the world-adoption seam.
-        // allocate() reads seedBody → adds the KINEMATICS component, keyed by entity
+        // allocate() reads spec.body → adds the KINEMATICS component, keyed by entity
         // id; the body lives in that column thereafter (this same instance, aliased).
-        AirBody seed = new AirBody();
-        seed.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
-        drone.seedBody = seed;
-        return drone;
+        AirBody body = new AirBody();
+        body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
+        return new EntitySpec(id, faction, UnitType.DRONE, cellX, cellY)
+                .health(DRONE_MAX_HP)
+                .primaryWeapon(MarineWeapon.DRONE_PULSE)   // sets range / damage / accuracy / cooldown
+                .visionRange(44f)
+                .moveSpeed(0f)
+                .airLosRadius(DRONE_AIR_LOS_RADIUS)
+                .role(UnitRole.DRONE_PATROL)
+                .homeHubId(homeHubId)
+                .body(body);
     }
 }

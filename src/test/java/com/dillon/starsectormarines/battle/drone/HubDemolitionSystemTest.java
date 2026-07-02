@@ -44,7 +44,7 @@ public class HubDemolitionSystemTest {
     @Test
     public void deadHubIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
         sim.addUnit(hub);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
@@ -69,15 +69,15 @@ public class HubDemolitionSystemTest {
     public void hubDeathCascadeKillsItsOwnDronesAndStartsTheirCrashSameTick() {
         BattleSimulation sim = openArena(30, 30);
         // The hub that dies, with two drones it launched.
-        Entity deadHub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        Entity deadHub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
         sim.addUnit(deadHub);
-        Entity d1 = Drone.create("d1", Faction.DEFENDER, 10, 11, deadHub.entityId);
-        Entity d2 = Drone.create("d2", Faction.DEFENDER, 10, 9, deadHub.entityId);
+        Entity d1 = Drone.create("d1", Faction.DEFENDER, 10, 11, deadHub.entityId).toEntity();
+        Entity d2 = Drone.create("d2", Faction.DEFENDER, 10, 9, deadHub.entityId).toEntity();
         // A second, untouched hub with its own drone — the cascade must leave
         // a drone that calls a DIFFERENT hub home completely alone.
-        Entity liveHub = DroneHub.create("h1", Faction.DEFENDER, 20, 20);
+        Entity liveHub = DroneHub.create("h1", Faction.DEFENDER, 20, 20).toEntity();
         sim.addUnit(liveHub);
-        Entity control = Drone.create("c0", Faction.DEFENDER, 20, 21, liveHub.entityId);
+        Entity control = Drone.create("c0", Faction.DEFENDER, 20, 21, liveHub.entityId).toEntity();
         sim.addUnit(d1);
         sim.addUnit(d2);
         sim.addUnit(control);
@@ -103,7 +103,7 @@ public class HubDemolitionSystemTest {
     @Test
     public void liveHubIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
         sim.addUnit(hub);
 
         sim.advance(BattleSimulation.TICK_DT);

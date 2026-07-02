@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -54,6 +55,12 @@ public interface BattleControl extends BattleView {
 
     /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
     void addUnit(Entity u);
+
+    /** Spawn a ground-roster unit from a spec (immediate adopt); returns the handle. The spec-based construction path (identity-collapse Phase C). */
+    Entity spawn(EntitySpec spec);
+
+    /** Queue a spec spawn for the serial spawn-flush; returns the handle (entityId assigned at drain in the parallel path). */
+    Entity queueSpawn(EntitySpec spec);
 
     /**
      * Spawn a shuttle into the air system (shuttle reinforcement / garrison drop) and

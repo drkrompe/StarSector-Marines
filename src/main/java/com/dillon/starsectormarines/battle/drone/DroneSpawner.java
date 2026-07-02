@@ -44,11 +44,10 @@ public final class DroneSpawner {
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + sim.identity().name(hub.entityId) + "-" + sim.hubState().incrementDronesLaunched(hub.entityId);
-        Entity drone = Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId);
         // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
         // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
         // queue before the next phase reads units.
-        sim.queueSpawn(drone);
+        Entity drone = sim.queueSpawn(Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId));
 
         if (!sim.hubState().hasDroneSquad(hub.entityId)) {
             int squadId = sim.mintSquad(hub.faction, drone);

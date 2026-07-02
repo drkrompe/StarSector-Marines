@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -45,22 +46,17 @@ public final class MapTurret {
      * {@code TURRET_STATE} component iff {@code type.isTurret()}); the caller
      * still owns handing the result to {@code sim.addUnit}/{@code queueSpawn}.
      */
-    public static Entity create(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
-        Entity turret = new Entity(id, faction, UnitType.TURRET, cellX, cellY);
+    public static EntitySpec create(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
         // TurretKind stats override the UnitType.TURRET zero-base. Doing it here
         // (rather than in UnitType) keeps the per-kind balance in one place.
-        // Pre-allocate construction seed: write the seed* fields directly
-        // (registry is still null, so the accessors can't route yet).
-        // UnitRosterService.allocate later copies these into the SoA arrays.
-        turret.seedMaxHp = kind.maxHp;
-        turret.seedHp = kind.maxHp;
-        turret.seedAttackDamage = kind.damage;
-        turret.seedAttackRange = kind.range;
-        turret.seedAttackCooldown = kind.cooldown;
-        turret.seedAccuracy = kind.accuracy;
-        turret.seedMoveSpeed = 0f;
-        turret.seedRole = UnitRole.TURRET;
-        turret.seedTurretKind = kind;
-        return turret;
+        return new EntitySpec(id, faction, UnitType.TURRET, cellX, cellY)
+                .health(kind.maxHp)
+                .attackDamage(kind.damage)
+                .attackRange(kind.range)
+                .attackCooldown(kind.cooldown)
+                .accuracy(kind.accuracy)
+                .moveSpeed(0f)
+                .role(UnitRole.TURRET)
+                .turretKind(kind);
     }
 }

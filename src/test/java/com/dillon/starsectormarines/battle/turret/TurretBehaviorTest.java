@@ -33,7 +33,7 @@ public class TurretBehaviorTest {
     @Test
     public void recoilTimerAgesEachUpdateWhenNoTargetInRange() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
+        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
         sim.addUnit(turret);
 
         TurretBehavior.INSTANCE.update(turret, sim);
@@ -47,7 +47,7 @@ public class TurretBehaviorTest {
     @Test
     public void burstKindLatchesRemainingRoundsIntoTurretStateOnFire() {
         BattleSimulation sim = openArena(40, 40);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
+        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
         sim.addUnit(turret);
         // Due north of the turret (same cellX): bearing-to-target is exactly 0°,
         // matching the turret's zero-init facingDegrees, so the fire-arc gate

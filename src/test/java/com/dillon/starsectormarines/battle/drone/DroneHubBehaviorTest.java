@@ -31,7 +31,7 @@ public class DroneHubBehaviorTest {
     @Test
     public void spawnCooldownTicksDownByOneTickDtPerUpdate() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
         sim.addUnit(hub);
 
         DroneHubBehavior.INSTANCE.update(hub, sim);
@@ -44,7 +44,7 @@ public class DroneHubBehaviorTest {
     @Test
     public void cooldownResetsToTheSteadyStateIntervalAfterALaunchAttempt() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
         sim.addUnit(hub);
 
         // Force the cooldown to the edge of expiry so the next update attempts
