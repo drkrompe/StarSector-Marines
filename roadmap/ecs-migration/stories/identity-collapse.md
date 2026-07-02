@@ -207,31 +207,41 @@ no lasting dual representation). Executed in green-at-each-step slices:
   `BattleSetup` defense-post turrets/hubs, ambient civilians) go through `spawn(spec)`. Test factory
   callers bridged with `.toEntity()` (33 sites/10 files). `Entity` keeps its `seed*` fields +
   `addUnit(Entity)`/`allocate(Entity)` as the transitional path (tests + `toEntity` still use it).
-- **C3 · test migration → `spawn(spec)`** — **NEXT (parallel-Sonnet candidate).** ~219 `new Entity(...)`
-  across **59 test files**. Rule: `new Entity(...) [+ .seedX=…] + sim.addUnit/queueSpawn(u)` →
-  `sim.spawn(new EntitySpec(...)[.setterX(…)])`, keeping the returned handle where the test uses it.
-  Seed→setter map = the `EntitySpec` fluent API (`seedSquadId`→`.squad`, `seedRole`→`.role`,
-  `seedPrimaryWeapon`→`.primaryWeapon` [sets the 4 weapon stats], `seedSecondaryWeapon/Ammo`→`.secondary`,
-  `seedHomeCellX/Y`→`.home`, `seedAssignedObjective`→`.assignedObjective`, stat seeds→their setters,
-  `seedHp`+`seedMaxHp`→`.health`). **Seeds still exist during C3, so untouched sites still compile —
-  the safety net.** **LEAVE UNTOUCHED (C4 handles):** `UnitRosterServiceTest` (tests the
-  `addUnit(Entity)`/`allocate`/swap-pop roster API directly — its `new Entity` IS the subject),
-  `DeathDispatcherTest` (sim-less fixtures via a `unit(name)` helper — no `addUnit`, currently reads
-  `e.unit().seedName`), and any `new Entity` NOT followed by `addUnit`/`queueSpawn`. Air/vehicle
-  allocation tests use `allocateAir`/`allocateVehicle` (different path) — check case-by-case.
-- **C4 · delete `seed*` + squad-site + `mintSquad` refactor** — **AFTER C3 (delicate, main-thread).**
+- ~~**C3 · test migration → `spawn(spec)`**~~ — **SHIPPED (`e4e45833`; 3 parallel Sonnets, 45 test
+  files, ~217 sites; full suite green).** `new Entity(...) [+ .seedX=…] + sim.addUnit/queueSpawn(u)` →
+  `sim.spawn(new EntitySpec(...)[.setterX(…)])`; the C2 `.toEntity()` factory bridges collapsed into
+  `sim.spawn(Factory.create(...))`. Seed→setter map = the `EntitySpec` fluent API. Seeds still exist,
+  so it's behavior-identical + the untouched sites still compile.
+- **The exact sites left on the raw path for C4** (all 3 agents converged on these — the C4 to-do list):
+  - **`mintSquad`-before-adoption squad-setup** (~11 sites): `CivilianCombatMembershipTest`,
+    `StaticEmplacementMembershipTest`, `HitResponseSystemTest` (×2), `MechMoraleTest`, `SquadMoraleTest`,
+    `CompoundSupplyGatingTest`, `RecaptureTargetServiceTest`, `OverwatchKillZoneGoalTest`,
+    `BackstopAssignedSquadGoalTest`, `BreachToEngageTest`, `BreachAndAdvanceTest` (×4). Pattern: leader
+    handed to `mintSquad` while `entityId==0` (→ `leaderId 0L`). The `mintSquad(faction,type)` refactor
+    unblocks these (spawn first / mint by type, then `spec.squad`).
+  - **sim-less `allocate`-direct tests**: the 7 `*ServiceTest` (`World`/`Vision`/`Task`/`Squad`/`Role`/
+    `Home`/`Combat`) + `AirEntityAllocationTest` + `VehicleEntityAllocationTest` — build `new Entity` +
+    `roster.allocate(Entity)`; need a **roster-level `spawn(EntitySpec)`** (add in C4).
+  - **`UnitRosterServiceTest`** (tests `addUnit`/`allocate`/swap-pop directly) + **`DeathDispatcherTest`**
+    (sim-less fixtures, reads `e.unit().seedName`) — rework for the post-deletion construction.
+  - **sim-less builder helpers** that return an unadded `Entity`: `OverwatchPostureTest.defenderAt`,
+    `BreakLOSTest.marineAt`/`defenderAt` — thread `sim` + `spawn` (as group B did for its helpers).
+  - **`InfantryUnitPrepTest.rocketeer()`** — sets a `seedPrimaryWeapon` **reference without** its stat
+    block; `.primaryWeapon()` would inject the weapon's stats. Set the weapon post-spawn by id instead
+    (`sim.combat().setPrimaryWeapon`).
+- **C4 · delete `seed*` + squad-site + `mintSquad` refactor** — **NEXT (delicate, main-thread).**
   (a) Refactor `mintSquad(Faction, Entity leader)` → `mintSquad(Faction, UnitType type)` — behavior-
   identical (every caller mints with a not-yet-allocated handle, so `leaderId` is already `0`; `mechSquad`
-  comes from the type). (b) Convert the squad-interleaved production sites to spec: deboard ×2
+  comes from the type). (b) Convert the squad-interleaved **production** sites to spec: deboard ×2
   (`spec` + `seedInto(spec)`, `mintSquad(type)`, `spec.squad(id)`, `addUnitSink` → `Consumer<EntitySpec>`),
   the 3 `BattleSetup` defender clusters, `WalkInMeans`, and `DroneSpawner`'s deferred-drone squad seed
-  (queue the spec, set `spec.squad` after mint). (c) Flip `spawn(spec)` to seed the world columns
-  **directly** from the spec (a private `adopt(spec)`), delete `toEntity()`. (d) Delete every `Entity`
-  `seed*`/`seedName`/`seedCellX/Y`/`localRender*` field + the 5-arg ctor + `addUnit(Entity)`/
-  `allocate(Entity)`/`queueSpawn(Entity)`; give `Entity` a minimal `{entityId, faction, type}` ctor.
-  Rework `UnitRosterServiceTest` + `DeathDispatcherTest` for the new construction. The compiler surfaces
-  every remaining seed writer — fix each. End state: `Entity` = `{entityId, faction, type}`, all
-  construction via `spawn(EntitySpec)`.
+  (queue the spec, set `spec.squad` after mint). (c) Add **`UnitRosterService.spawn(EntitySpec)`** (for
+  the sim-less roster tests) + convert all the raw-path test sites listed above. (d) Flip `spawn(spec)`
+  to seed the world columns **directly** from the spec (a private `adopt(spec)`), delete `toEntity()`.
+  (e) Delete every `Entity` `seed*`/`seedName`/`seedCellX/Y`/`localRender*` field + the 5-arg ctor +
+  `addUnit(Entity)`/`allocate(Entity)`/`queueSpawn(Entity)`; give `Entity` a minimal `{entityId, faction,
+  type}` ctor. The compiler surfaces every remaining seed writer — fix each. End state: `Entity` =
+  `{entityId, faction, type}`, all construction via `spawn(EntitySpec)`.
 
 **Phase D — the bare-`long` handle sweep.** **Committed, not optional — deferred to a follow-up
 session** (its own multi-session arc). Roster dense `Entity[]` → `long[]`; the resolve layer
