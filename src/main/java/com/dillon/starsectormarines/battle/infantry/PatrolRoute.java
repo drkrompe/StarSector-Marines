@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <b>Squad posture: patrol route walking.</b> Custom-plan action emitted by
@@ -76,6 +78,7 @@ public final class PatrolRoute implements Action {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
         int radius = squad.patrolRadius;
+        Random rng = ThreadLocalRandom.current();
         if (anchor != null && map != null) {
             List<TacticalNode> nearby = map.within(anchor.anchorX, anchor.anchorY, radius);
             int[] best = null;
@@ -85,7 +88,7 @@ public final class PatrolRoute implements Action {
                 if (n.anchorX == squad.patrolWaypointX && n.anchorY == squad.patrolWaypointY) continue;
                 if (!sim.getGrid().inBounds(n.anchorX, n.anchorY)) continue;
                 if (!sim.getGrid().isWalkable(n.anchorX, n.anchorY)) continue;
-                int roll = member.rng.nextInt(1000);
+                int roll = rng.nextInt(1000);
                 if (roll > bestRoll) {
                     bestRoll = roll;
                     best = new int[]{n.anchorX, n.anchorY};
@@ -99,8 +102,8 @@ public final class PatrolRoute implements Action {
         int seedY = anchor != null ? anchor.anchorY : Math.round(squad.centroidY);
         int r = radius;
         for (int i = 0; i < FALLBACK_SAMPLE_ATTEMPTS; i++) {
-            int dx = member.rng.nextInt(r * 2 + 1) - r;
-            int dy = member.rng.nextInt(r * 2 + 1) - r;
+            int dx = rng.nextInt(r * 2 + 1) - r;
+            int dy = rng.nextInt(r * 2 + 1) - r;
             int cx = seedX + dx;
             int cy = seedY + dy;
             if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;

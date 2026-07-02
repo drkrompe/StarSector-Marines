@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Today that's just the
@@ -91,7 +92,7 @@ public class HeavyWeapons {
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
-        boolean hit = shooter.rng.nextFloat() < weapon.accuracy * accuracyMult;
+        boolean hit = ThreadLocalRandom.current().nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         World world = roster.world();
@@ -117,7 +118,7 @@ public class HeavyWeapons {
         // impact zone instead of stacking on one cell.
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target.entityId), world.renderY(target.entityId),
-                hit, effectiveSpread, shooter.rng);
+                hit, effectiveSpread, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
 

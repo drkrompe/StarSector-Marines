@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
 
 /**
@@ -90,7 +91,7 @@ public final class HitResponseSystem {
         if (!world.hasAiState(target.entityId)) return;
         if (world.fallbackTimer(target.entityId) > 0f) return;
         if (roster.squad().hasSquad(target.entityId)) return;
-        if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
+        if (ThreadLocalRandom.current().nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
         if (fallback[0] == world.cellX(target.entityId) && fallback[1] == world.cellY(target.entityId)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
@@ -126,7 +127,7 @@ public final class HitResponseSystem {
                 world.cellX(expectedTarget.entityId), world.cellY(expectedTarget.entityId),
                 vision.airLosRadius(target.entityId), vision.airLosRadius(expectedTarget.entityId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
-        if (target.rng.nextFloat() >= chance) return;
+        if (ThreadLocalRandom.current().nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);
     }
 }

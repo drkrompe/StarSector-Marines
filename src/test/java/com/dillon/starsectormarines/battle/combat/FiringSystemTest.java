@@ -378,9 +378,9 @@ public class FiringSystemTest {
     // test above already exercises). InfantryWeapons.tick() only fires a
     // burst round for a shooter carrying a MarineWeapon (a null weapon just
     // clears the burst state without a shot), and a weapon's hit roll is
-    // driven by its accuracy/accuracyFalloff through Entity.rng (an unseeded
-    // java.util.Random per unit) rather than the overridable World.accuracy
-    // used above — so there's no deterministic way to force the hit from
+    // driven by its accuracy/accuracyFalloff through ThreadLocalRandom (an
+    // unseeded per-worker java.util.Random) rather than the overridable
+    // World.accuracy used above — so there's no deterministic way to force the hit from
     // outside. The complementary deterministic signal (burstRemaining
     // decrementing to 0) lives on the VICTIM's own COMBAT row, but by the
     // time BattleSimulation.advance() returns from the tick that kills it,

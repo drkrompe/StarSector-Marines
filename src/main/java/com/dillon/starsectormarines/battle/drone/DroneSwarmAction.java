@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <b>Squad posture: defend hub with a coordinated drone swarm.</b> The single
@@ -320,7 +321,7 @@ public final class DroneSwarmAction implements Action {
             droneState.setPatrolGoalY(member.entityId, body.y);
             return;
         }
-        Random rng = member.rng;
+        Random rng = ThreadLocalRandom.current();
         NavigationGrid grid = sim.getGrid();
         float anchorX = sim.world().cellX(hubId) + 0.5f;
         float anchorY = sim.world().cellY(hubId) + 0.5f;

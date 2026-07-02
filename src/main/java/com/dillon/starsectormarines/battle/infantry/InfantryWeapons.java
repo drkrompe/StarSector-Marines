@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Handheld squad weapons — rifles, SMGs, DMRs (primary line tracers / kinetic
@@ -156,7 +157,7 @@ public class InfantryWeapons {
             effectiveSpread = RangeFalloff.spread(weapon.hitSpread, dist, weapon.range);
         }
         accuracy *= stance.accuracyMult;
-        boolean hit = shooter.rng.nextFloat() < accuracy;
+        boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         if (hit) {
             damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
@@ -173,7 +174,7 @@ public class InfantryWeapons {
         float fromY = world.renderY(shooter.entityId) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target.entityId), world.renderY(target.entityId),
-                hit, effectiveSpread, shooter.rng);
+                hit, effectiveSpread, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
         TurretKind tk = shooter.type.isTurret() ? roster.turretState().kind(shooter.entityId) : null;
@@ -220,7 +221,7 @@ public class InfantryWeapons {
         int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
         world.setSecondaryAmmo(shooterId, ammo - 1);
-        boolean hit = shooter.rng.nextFloat() < sec.accuracy;
+        boolean hit = ThreadLocalRandom.current().nextFloat() < sec.accuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
@@ -230,7 +231,7 @@ public class InfantryWeapons {
         float fromY = world.renderY(shooter.entityId) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target.entityId), world.renderY(target.entityId),
-                hit, 0f, shooter.rng);
+                hit, 0f, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever

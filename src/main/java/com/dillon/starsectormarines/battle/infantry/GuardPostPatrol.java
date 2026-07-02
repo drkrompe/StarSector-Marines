@@ -13,6 +13,9 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * <b>Squad posture: patrol a turret emplacement's bounding box.</b> Custom-plan
  * action emitted by {@link GuardPost} for a defender squad linked to a live
@@ -254,9 +257,10 @@ public final class GuardPostPatrol implements Action {
     private int[] nextWaypoint(Entity member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int span = radius * 2 + 1;
+        Random rng = ThreadLocalRandom.current();
         for (int i = 0; i < WAYPOINT_SAMPLE_ATTEMPTS; i++) {
-            int cx = anchorX + member.rng.nextInt(span) - radius;
-            int cy = anchorY + member.rng.nextInt(span) - radius;
+            int cx = anchorX + rng.nextInt(span) - radius;
+            int cy = anchorY + rng.nextInt(span) - radius;
             if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
             if (cx == squad.patrolWaypointX && cy == squad.patrolWaypointY) continue;
             return new int[]{cx, cy};
