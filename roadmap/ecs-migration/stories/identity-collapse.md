@@ -279,7 +279,11 @@ in this order:
 - **Returns + storage last (the finale).** Once callers are long-native, flip every `Entity`-returning
   method → `long`, the roster dense `Entity[]` → `long[]`, both spatial indexes id-native,
   `DeathEvent` → `long`, rehome `Entity.idOf`/`NO_SQUAD`, and **delete `Entity`**. The transient
-  `Entity` locals evaporate (queries now return `long`).
+  `Entity` locals evaporate (queries now return `long`). **Finale follow-up (from the D1 critique):**
+  when `clearPath(Entity)` goes id-native it should take `long` + null-guard internally, not lean on
+  the caller — D1's `writeFallbackInline` transitionally does `clearPath(getOrNull(id))`, which would
+  NPE if fallback were ever applied inline to an unregistered target (unreachable today, but the
+  id-native `clearPath` should own the guard).
 
 Sliceable package-by-package: combat → decision/`TacticalScoring` → infantry/mech/drone/turret/squad
 behaviors → sim facade + air/vehicle/ui → finale → ~61 test files. This is the phase that literally
