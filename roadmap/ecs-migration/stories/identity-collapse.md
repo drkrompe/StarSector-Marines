@@ -108,8 +108,9 @@ can't serve.
   data owner (`sim.hubState()`); `droneSquad` object-ref → a `droneSquadId` INT resolved via
   `getSquad` (`-1`/`NO_SQUAD` sentinel since `0` is a valid squad id). `demolished` → a
   `LongOpenHashSet` side-table in `HubDemolitionSystem` (it's a defensive double-fire guard read
-  *after* roster release, so it can't be a live-only column; `isDemolished(id)` exposed for
-  tests/renderer). `Drone.homeHub` (a `DroneHubUnit` ref) → `homeHubId` (long, `0L` = none) —
+  *after* roster release, so it can't be a live-only column; `isDemolished(id)` exposed for tests).
+  `Drone.homeHub` (a `DroneHubUnit` ref) → `homeHubId` (long, `0L` = none; captured eagerly, so
+  pass `hub.entityId` only after the hub is registered — see the field javadoc) —
   the recon-recommended hub-first link, touching only `DroneSwarmAction`'s anchor reads in the
   otherwise-B3 drone file. Config + construction → a new non-`Entity` `DroneHub` factory
   (`DroneHub.create(...) → Entity`, `UnitType.DRONE_HUB_STRUCTURE`); `allocate` attaches `HUB_STATE`

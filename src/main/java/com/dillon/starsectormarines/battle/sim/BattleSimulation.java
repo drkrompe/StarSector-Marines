@@ -584,7 +584,7 @@ public class BattleSimulation implements BattleControl {
     public com.dillon.starsectormarines.battle.decision.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
     public HitResponseSystem getHitResponseSystem() { return hitResponse; }
-    /** Death-event handler for destroyed drone hubs — exposes {@code isDemolished(id)} for the renderer / tests, replacing the old subclass's {@code demolished} field. */
+    /** Death-event handler for destroyed drone hubs — exposes {@code isDemolished(id)} for tests, replacing the old subclass's {@code demolished} field. */
     public com.dillon.starsectormarines.battle.drone.HubDemolitionSystem getHubDemolitionSystem() { return hubDemolition; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {

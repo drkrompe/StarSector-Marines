@@ -32,8 +32,8 @@ import java.util.List;
  * a field on the hub's (now-dissolved) dedicated {@link Entity} subclass; it's
  * now {@link #demolishedHubs}, an id side-table here — the hub itself is a plain
  * {@link Entity} with no per-instance demolition state. Still a defensive
- * double-fire guard (a death publishes exactly once) and the "already rubble"
- * marker {@link #isDemolished} exposes for the renderer / tests.
+ * double-fire guard (a death publishes exactly once) and the "already
+ * demolished" marker {@link #isDemolished} exposes for tests.
  *
  * <p>The drone cascade finds the hub's drones in the dense registry, and each
  * cascade-killed drone {@link DeathDispatcher#publish publishes} its own
@@ -87,7 +87,7 @@ public final class HubDemolitionSystem {
         cascadeKillDrones(u.entityId);
     }
 
-    /** True iff the hub with entity id {@code hubId} has already been demolished. Exposed for tests and the renderer's "already rubble" check. */
+    /** True iff the hub with entity id {@code hubId} has already been demolished — the double-fire guard's observable state. Exposed for tests. */
     public boolean isDemolished(long hubId) { return demolishedHubs.contains(hubId); }
 
     /**

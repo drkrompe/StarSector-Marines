@@ -64,6 +64,15 @@ public class Drone extends Entity {
      * rather than holding a stale reference. Read so the hub's active-drone
      * bookkeeping can drop dead drones; patrol behavior reads it for the
      * patrol-around-this-anchor goal.
+     *
+     * <p><b>Captured eagerly at construction</b> — pass {@code hub.entityId}
+     * only <em>after</em> the hub is registered ({@code addUnit}/{@code allocate}).
+     * An unregistered hub still has {@code entityId == 0}, and {@code 0L} is the
+     * legit "no hub" sentinel (not fail-loud), so capturing it early silently
+     * makes the drone hub-less — it patrols around its own body and is excluded
+     * from the hub's death cascade. (The old design held the hub <em>ref</em> and
+     * resolved its id lazily at tick time, which tolerated construct-before-register;
+     * the id form does not.)
      */
     public final long homeHubId;
 
