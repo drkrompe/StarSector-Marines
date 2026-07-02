@@ -116,38 +116,4 @@ public final class EntitySpec {
         return this;
     }
 
-    /**
-     * Builds the {@link Entity} handle for this spec and copies the spec into its
-     * write-only {@code seed*} fields, ready for {@code UnitRosterService.allocate}.
-     * Transitional bridge for identity-collapse Phase C: production spawns go
-     * through {@code spawn(spec)}, which routes here; the {@code seed*} fields (and
-     * this method) are removed in Phase C's final slice once every caller — tests
-     * included — builds specs and {@code spawn} seeds the world columns straight
-     * from the spec.
-     */
-    public Entity toEntity() {
-        Entity e = new Entity(name, faction, type, cellX, cellY);
-        e.seedSquadId = squadId;
-        e.seedRole = role;
-        e.seedSecondaryWeapon = secondaryWeapon;
-        e.seedSecondaryAmmo = secondaryAmmo;
-        e.seedBody = body;
-        e.seedPrimaryWeapon = primaryWeapon;
-        e.seedAssignedObjective = assignedObjective;
-        e.seedHomeCellX = homeCellX;
-        e.seedHomeCellY = homeCellY;
-        e.seedHubSpawnCooldown = hubSpawnCooldown;
-        e.seedTurretKind = turretKind;
-        e.seedHomeHubId = homeHubId;
-        e.seedMoveSpeed = moveSpeed;
-        e.seedHp = hp;
-        e.seedMaxHp = maxHp;
-        e.seedAttackDamage = attackDamage;
-        e.seedAttackRange = attackRange;
-        e.seedAccuracy = accuracy;
-        e.seedVisionRange = visionRange;
-        e.seedAirLosRadius = airLosRadius;
-        e.seedAttackCooldown = attackCooldown;
-        return e;
-    }
 }

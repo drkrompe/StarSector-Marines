@@ -19,21 +19,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * moving the tail entity into the freed slot, stale-id lookups returning
  * {@link UnitRosterService#INVALID_INDEX}, and growth on overflow without index
  * corruption. The per-entity component columns are seeded by
- * {@link UnitRosterService#allocate} and read by id through the {@code r.world()}
+ * {@link UnitRosterService#spawn} and read by id through the {@code r.world()}
  * facade.
  */
 public class UnitRosterServiceTest {
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
-    /** A marine pre-seeded with a secondary weapon, so allocate gives it the optional SECONDARY_WEAPON component. */
-    private static Entity secondaryUnit(String label) {
-        Entity u = unit(label);
-        u.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        u.seedSecondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
-        return u;
+    /** A marine pre-seeded with a secondary weapon, so spawn gives it the optional SECONDARY_WEAPON component. */
+    private static EntitySpec secondaryUnit(String label) {
+        return unit(label).secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
     }
 
     private static UnitRosterService roster() {
@@ -43,13 +40,13 @@ public class UnitRosterServiceTest {
     @Test
     public void allocateAssignsMonotonicIdsAndPacksDenseSlots() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
 
-        long idA = r.allocate(a);
-        long idB = r.allocate(b);
-        long idC = r.allocate(c);
+        long idA = a.entityId;
+        long idB = b.entityId;
+        long idC = c.entityId;
 
         assertTrue(idA > 0L, "ids start at 1");
         assertTrue(idB > idA);
@@ -66,12 +63,11 @@ public class UnitRosterServiceTest {
     @Test
     public void releaseSwapsTailIntoFreedSlot() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        long idC = r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
+        long idC = c.entityId;
 
         // Release the middle entity — slot 0 should become c (the tail),
         // not b (which is unrelated to the swap target).
@@ -90,10 +86,10 @@ public class UnitRosterServiceTest {
     @Test
     public void releaseOfTailEntityIsSimplePop() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        long idA = r.allocate(a);
-        long idB = r.allocate(b);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        long idA = a.entityId;
+        long idB = b.entityId;
 
         r.release(idB);
 
@@ -107,8 +103,8 @@ public class UnitRosterServiceTest {
     @Test
     public void releaseOfUnknownIdIsNoOp() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        long idA = r.allocate(a);
+        Entity a = r.spawn(unit("a"));
+        long idA = a.entityId;
 
         r.release(9999L);   // never allocated
         r.release(idA);
@@ -121,8 +117,8 @@ public class UnitRosterServiceTest {
     @Test
     public void staleIdAfterReleaseReturnsInvalidIndex() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        long idA = r.allocate(a);
+        Entity a = r.spawn(unit("a"));
+        long idA = a.entityId;
         r.release(idA);
 
         assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(idA));
@@ -139,8 +135,8 @@ public class UnitRosterServiceTest {
         long[] ids = new long[n];
         Entity[] units = new Entity[n];
         for (int i = 0; i < n; i++) {
-            units[i] = unit("u" + i);
-            ids[i] = r.allocate(units[i]);
+            units[i] = r.spawn(unit("u" + i));
+            ids[i] = units[i].entityId;
         }
 
         assertEquals(n, r.liveCount());
@@ -153,10 +149,9 @@ public class UnitRosterServiceTest {
     @Test
     public void denseArrayNullsTheFreedTailSlot() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        r.allocate(a);
-        long idB = r.allocate(b);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        long idB = b.entityId;
 
         r.release(idB);
 
@@ -178,25 +173,12 @@ public class UnitRosterServiceTest {
     }
 
     @Test
-    public void allocateRejectsAlreadyAllocatedUnit() {
-        UnitRosterService r = roster();
-        Entity a = unit("a");
-        r.allocate(a);
-        // Same instance, second allocate — would otherwise mint a new id and
-        // leave the old id->slot mapping stale, so a later release on the
-        // old id would null a slot the new id still resolves to.
-        assertThrows(IllegalStateException.class, () -> r.allocate(a));
-        // Registry state unchanged by the rejected call.
-        assertEquals(1, r.liveCount());
-    }
-
-    @Test
     public void getOrNullResolvesAliveReturnsNullForReleasedAndZeroSentinel() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        long idA = r.allocate(a);
-        long idB = r.allocate(b);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        long idA = a.entityId;
+        long idB = b.entityId;
 
         // Alive id → its unit.
         assertSame(a, r.getOrNull(idA));
@@ -219,17 +201,17 @@ public class UnitRosterServiceTest {
     public void allocateSeedsHealthIntoTheEntityWorldFromUnitsSeedFields() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        // Pre-allocate: ctor seeded seedHp + seedMaxHp from type.maxHp
-        // (MARINE_BLUE). hp is unreadable pre-allocate (no world entity yet),
-        // so read the seed fields directly here.
-        float typeMaxHp = u.seedMaxHp;
+        EntitySpec spec = unit("u");
+        // Pre-spawn: the spec ctor seeded hp + maxHp from type.maxHp
+        // (MARINE_BLUE). hp is unreadable pre-spawn (no world entity yet),
+        // so read the spec fields directly here.
+        float typeMaxHp = spec.maxHp;
         assertTrue(typeMaxHp > 0f, "test prerequisite: type seeds a non-zero maxHp");
-        assertEquals(typeMaxHp, u.seedHp, 1e-6f);
+        assertEquals(typeMaxHp, spec.hp, 1e-6f);
 
-        r.allocate(u);
+        Entity u = r.spawn(spec);
 
-        // Post-allocate: hp lives in the entity world's HEALTH columns under the
+        // Post-spawn: hp lives in the entity world's HEALTH columns under the
         // minted id (migration step 3) — the by-id world facade reads it.
         assertEquals(typeMaxHp, w.hp(u.entityId), 1e-6f);
         assertEquals(typeMaxHp, w.maxHp(u.entityId), 1e-6f);
@@ -247,8 +229,7 @@ public class UnitRosterServiceTest {
     public void releaseDropsTheDenseSlotButHpStaysWorldSideUntilTheDeathTransmute() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         // Production order: every release path zeroes hp first (resolve /
         // cascade / TestUnits.kill), THEN releases the dense slot.
@@ -268,12 +249,10 @@ public class UnitRosterServiceTest {
     @Test
     public void releaseUpdatesDenseIdxOfTheSwappedTailUnit() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
 
         // Release the head — tail (c) swaps into slot 0; its index mapping must
         // update or by-index column reads through c would hit the wrong slot.
@@ -291,10 +270,9 @@ public class UnitRosterServiceTest {
     public void allocateSeedsCellPosIntoTheEntityWorldFromUnitsSeedFields() {
         UnitRosterService r = roster();
         World w = r.world();
-        // Entity ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
-        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
-
-        r.allocate(u);
+        // EntitySpec ctor takes initial cellX/cellY, carried into spawn's
+        // POSITION seed.
+        Entity u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3));
 
         // The cell pair lives in the world's POSITION columns under the minted
         // id (migration step 3b) — read/written through the by-id facade.
@@ -310,8 +288,7 @@ public class UnitRosterServiceTest {
     public void cellSurvivesReleaseAndRidesTheDeathTransmute() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        r.allocate(u);
+        Entity u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
 
         w.setCellPos(u.entityId, 42, 17);
         w.setHp(u.entityId, 0f);
@@ -331,9 +308,7 @@ public class UnitRosterServiceTest {
     public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.cooldownTimer(u.entityId), 1e-6f);
 
@@ -345,12 +320,10 @@ public class UnitRosterServiceTest {
     public void cooldownTimerIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setCooldownTimer(c.entityId, 4.2f);
 
         // Releasing a swap-pops c into a's old dense slot — COMBAT is keyed by
@@ -365,9 +338,7 @@ public class UnitRosterServiceTest {
     public void allocateMoveProgressDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.moveProgress(u.entityId), 1e-6f);
 
@@ -379,12 +350,10 @@ public class UnitRosterServiceTest {
     public void moveProgressIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setMoveProgress(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — MOVEMENT is keyed by
@@ -399,9 +368,7 @@ public class UnitRosterServiceTest {
     public void allocatePathDefaultsToEmptySentinelAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         // The OBJECT path column seeds to the shared empty-path sentinel (a null
         // append would NPE every path reader); the cursor zero-inits.
@@ -419,12 +386,10 @@ public class UnitRosterServiceTest {
     public void pathIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         int[] p = {7, 8};
         w.setPathRef(c.entityId, p);
         w.setPathIdx(c.entityId, 1);
@@ -442,11 +407,10 @@ public class UnitRosterServiceTest {
     public void allocateSeedsRenderPosIntoTheWorldComponent() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
+        Entity u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8));
+        long id = u.entityId;
 
-        long id = r.allocate(u);
-
-        // Seeded from the unit's pre-allocate cell into the universal
+        // Seeded from the unit's pre-spawn cell into the universal
         // RENDER_POSITION world component, read by id.
         assertEquals(5f, w.renderX(id), 1e-6f);
         assertEquals(8f, w.renderY(id), 1e-6f);
@@ -460,8 +424,8 @@ public class UnitRosterServiceTest {
     public void renderPosSurvivesReleaseForTheCorpse() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        long id = r.allocate(u);
+        Entity u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
+        long id = u.entityId;
 
         w.setRenderPos(id, 3.5f, 7.2f);
         r.release(u.entityId);
@@ -482,12 +446,11 @@ public class UnitRosterServiceTest {
     public void renderPosIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = new Entity("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        Entity b = new Entity("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        Entity c = new Entity("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        long idA = r.allocate(a);
-        r.allocate(b);
-        long idC = r.allocate(c);
+        Entity a = r.spawn(new EntitySpec("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
+        Entity b = r.spawn(new EntitySpec("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
+        Entity c = r.spawn(new EntitySpec("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
+        long idA = a.entityId;
+        long idC = c.entityId;
         w.setRenderPos(idC, 11.5f, 22.3f);
 
         // Releasing a swap-pops c into a's old dense slot — render position is
@@ -503,11 +466,11 @@ public class UnitRosterServiceTest {
     public void allocateSeedsAttackDamageAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        float typeDmg = u.seedAttackDamage;
+        EntitySpec spec = unit("u");
+        float typeDmg = spec.attackDamage;
         assertTrue(typeDmg > 0f, "test prerequisite: type seeds a non-zero attackDamage");
 
-        r.allocate(u);
+        Entity u = r.spawn(spec);
 
         assertEquals(typeDmg, w.attackDamage(u.entityId), 1e-6f);
 
@@ -519,12 +482,10 @@ public class UnitRosterServiceTest {
     public void attackDamageIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setAttackDamage(c.entityId, 55f);
 
         r.release(idA);
@@ -537,11 +498,11 @@ public class UnitRosterServiceTest {
     public void allocateSeedsAttackRangeAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        float typeRange = u.seedAttackRange;
+        EntitySpec spec = unit("u");
+        float typeRange = spec.attackRange;
         assertTrue(typeRange > 0f, "test prerequisite: type seeds a non-zero attackRange");
 
-        r.allocate(u);
+        Entity u = r.spawn(spec);
 
         assertEquals(typeRange, w.attackRange(u.entityId), 1e-6f);
 
@@ -553,12 +514,10 @@ public class UnitRosterServiceTest {
     public void attackRangeIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setAttackRange(c.entityId, 99f);
 
         r.release(idA);
@@ -571,11 +530,11 @@ public class UnitRosterServiceTest {
     public void allocateSeedsAccuracyAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        float typeAcc = u.seedAccuracy;
+        EntitySpec spec = unit("u");
+        float typeAcc = spec.accuracy;
         assertTrue(typeAcc > 0f, "test prerequisite: type seeds a non-zero accuracy");
 
-        r.allocate(u);
+        Entity u = r.spawn(spec);
 
         assertEquals(typeAcc, w.accuracy(u.entityId), 1e-6f);
 
@@ -587,12 +546,10 @@ public class UnitRosterServiceTest {
     public void accuracyIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setAccuracy(c.entityId, 0.95f);
 
         r.release(idA);
@@ -605,12 +562,11 @@ public class UnitRosterServiceTest {
     public void allocateWithoutSecondaryLacksTheSecondaryWeaponComponent() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
+        Entity u = r.spawn(unit("u"));
 
-        r.allocate(u);
-
-        // No seedSecondaryWeapon → the optional capability isn't in the unit's
-        // archetype. Presence IS the capability — there's nothing else to check.
+        // No secondary weapon on the spec → the optional capability isn't in
+        // the unit's archetype. Presence IS the capability — there's nothing
+        // else to check.
         assertFalse(w.hasSecondaryWeapon(u.entityId));
     }
 
@@ -618,9 +574,7 @@ public class UnitRosterServiceTest {
     public void allocateWithSecondarySeedsSpecAmmoAndDefaultTimers() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = secondaryUnit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(secondaryUnit("u"));
 
         assertTrue(w.hasSecondaryWeapon(u.entityId));
         assertSame(MarineSecondary.ROCKET_LAUNCHER, w.secondaryWeapon(u.entityId));
@@ -636,8 +590,7 @@ public class UnitRosterServiceTest {
     public void secondaryScalarsRoundTripThroughByIdAccessors() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = secondaryUnit("u");
-        r.allocate(u);
+        Entity u = r.spawn(secondaryUnit("u"));
         long id = u.entityId;
 
         w.setSecondaryAmmo(id, 2);
@@ -657,12 +610,10 @@ public class UnitRosterServiceTest {
     public void secondaryStateIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = secondaryUnit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(secondaryUnit("c"));
+        long idA = a.entityId;
         w.setSecondaryActionTimer(c.entityId, 0.7f);
         w.setSecondaryAimTargetId(c.entityId, 999L);
 
@@ -679,9 +630,7 @@ public class UnitRosterServiceTest {
     public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0, w.burstRemaining(u.entityId));
 
@@ -693,12 +642,10 @@ public class UnitRosterServiceTest {
     public void burstRemainingIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setBurstRemaining(c.entityId, 5);
 
         r.release(idA);
@@ -711,9 +658,7 @@ public class UnitRosterServiceTest {
     public void allocateBurstTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.burstTimer(u.entityId), 1e-6f);
 
@@ -725,12 +670,10 @@ public class UnitRosterServiceTest {
     public void burstTimerIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setBurstTimer(c.entityId, 0.33f);
 
         r.release(idA);
@@ -743,9 +686,7 @@ public class UnitRosterServiceTest {
     public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0L, w.burstTargetId(u.entityId));
 
@@ -757,12 +698,10 @@ public class UnitRosterServiceTest {
     public void burstTargetIdIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setBurstTargetId(c.entityId, 777L);
 
         r.release(idA);
@@ -775,9 +714,7 @@ public class UnitRosterServiceTest {
     public void allocateTargetIdDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0L, w.targetId(u.entityId));
 
@@ -789,12 +726,10 @@ public class UnitRosterServiceTest {
     public void targetIdIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setTargetId(c.entityId, 642L);
 
         r.release(idA);
@@ -807,9 +742,7 @@ public class UnitRosterServiceTest {
     public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.repositionCooldown(u.entityId), 1e-6f);
 
@@ -821,12 +754,10 @@ public class UnitRosterServiceTest {
     public void repositionCooldownIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setRepositionCooldown(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is keyed by
@@ -840,8 +771,8 @@ public class UnitRosterServiceTest {
     @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRosterService r = roster();
-        Entity a = unit("a");
-        long idA = r.allocate(a);
+        Entity a = r.spawn(unit("a"));
+        long idA = a.entityId;
         // Setup-discarded units (constructed but never registered) carry
         // entityId == 0. Routing that into release() must not corrupt the
         // live entry — and crucially must not bump any "missing key" path
@@ -856,8 +787,8 @@ public class UnitRosterServiceTest {
     public void allocateGivesAFreshUnitDefaultsAfterReusingAFreedSlot() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        long idA = r.allocate(a);
+        Entity a = r.spawn(unit("a"));
+        long idA = a.entityId;
         // Dirty several mid-combat columns — all now id-keyed in the world:
         // COMBAT scalars and the AI_STATE fall-back cell.
         w.setCooldownTimer(a.entityId, 2.5f);
@@ -868,11 +799,10 @@ public class UnitRosterServiceTest {
 
         // A fresh unit reusing the freed dense slot 0 must see defaults: its
         // world row is a fresh per-id append (a's stale row persists under a's
-        // own id), so COMBAT scalars are zero-init and allocate re-seeds the
+        // own id), so COMBAT scalars are zero-init and spawn re-seeds the
         // AI_STATE fall-back cell to the -1/-1 sentinel (the one non-zero
         // default).
-        Entity b = unit("b");
-        r.allocate(b);
+        Entity b = r.spawn(unit("b"));
         assertEquals(0, r.indexOf(b.entityId));
         assertEquals(0f, w.cooldownTimer(b.entityId), 1e-6f);
         assertEquals(0L, w.targetId(b.entityId));
@@ -885,10 +815,9 @@ public class UnitRosterServiceTest {
     public void allocateFallbackCellDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-        // The -1/-1 "no cached cell" sentinel must be seeded by allocate (a
+        // The -1/-1 "no cached cell" sentinel must be seeded by spawn (a
         // zero-init world row would otherwise read (0,0) as a live destination).
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
         assertEquals(-1, w.fallbackCellX(u.entityId));
         assertEquals(-1, w.fallbackCellY(u.entityId));
 
@@ -901,12 +830,10 @@ public class UnitRosterServiceTest {
     public void fallbackCellIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setFallbackCell(c.entityId, 99, 88);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
@@ -922,12 +849,9 @@ public class UnitRosterServiceTest {
     public void staticEmplacementsGetNoMovementOrAiStateComponents() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        Entity turret = new Entity("t", Faction.MARINE, UnitType.TURRET, 1, 1);
-        Entity hub = new Entity("h", Faction.MARINE, UnitType.DRONE_HUB_STRUCTURE, 2, 2);
-        r.allocate(marine);
-        r.allocate(turret);
-        r.allocate(hub);
+        Entity marine = r.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
+        Entity turret = r.spawn(new EntitySpec("t", Faction.MARINE, UnitType.TURRET, 1, 1));
+        Entity hub = r.spawn(new EntitySpec("h", Faction.MARINE, UnitType.DRONE_HUB_STRUCTURE, 2, 2));
 
         // A mobile unit is a mover AND a thinker; a static emplacement (turret,
         // drone hub; UnitType.isStatic) is neither — presence IS the capability.
@@ -938,7 +862,7 @@ public class UnitRosterServiceTest {
         assertFalse(w.hasMovement(hub.entityId));
         assertFalse(w.hasAiState(hub.entityId));
 
-        // The mobile unit's non-zero seeds still run (the mobile-gated allocate
+        // The mobile unit's non-zero seeds still run (the mobile-gated spawn
         // block): the empty-path sentinel and the -1/-1 fall-back cell.
         assertSame(GridPathfinder.EMPTY_PATH, w.path(marine.entityId));
         assertEquals(-1, w.fallbackCellX(marine.entityId));
@@ -952,9 +876,7 @@ public class UnitRosterServiceTest {
     public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.fallbackTimer(u.entityId), 1e-6f);
 
@@ -966,12 +888,10 @@ public class UnitRosterServiceTest {
     public void fallbackTimerIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setFallbackTimer(c.entityId, 0.4f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
@@ -986,9 +906,7 @@ public class UnitRosterServiceTest {
     public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity u = unit("u");
-
-        r.allocate(u);
+        Entity u = r.spawn(unit("u"));
 
         assertEquals(0f, w.wanderDwellTimer(u.entityId), 1e-6f);
 
@@ -1000,12 +918,10 @@ public class UnitRosterServiceTest {
     public void wanderDwellTimerIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
+        Entity a = r.spawn(unit("a"));
+        Entity b = r.spawn(unit("b"));
+        Entity c = r.spawn(unit("c"));
+        long idA = a.entityId;
         w.setWanderDwellTimer(c.entityId, 0.9f);
 
         // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed

@@ -36,10 +36,11 @@ import java.util.List;
  *
  * <ul>
  *   <li><b>The live entity roster</b> — a dense, live-only {@code Entity[]} keyed
- *       by monotonic {@code long} entity ids ({@link #allocate}/{@link #release}
- *       with swap-and-pop), plus the {@link EntityWorld} + {@link BattleComponents}
+ *       by monotonic {@code long} entity ids ({@link #spawn} adopts, {@link #release}
+ *       swap-and-pops), plus the {@link EntityWorld} + {@link BattleComponents}
  *       that hold every per-entity component, plus the {@link World} by-id access
- *       facade over them. {@link #addUnit} allocates; the death cascade in
+ *       facade over them. {@link #spawn} builds + adopts the unit from an
+ *       {@link EntitySpec}; the death cascade in
  *       {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}
  *       releases via {@link #releaseFromRegistry}. Post-death state is carried by
  *       the corpse archetype in the {@link EntityWorld} (a corpse entity spawned
@@ -49,9 +50,9 @@ import java.util.List;
  *       {@link #getSquad(int)} (synchronized to fence against same-tick
  *       {@link #mintSquad} from drone-hub spawns), iteration via
  *       {@link #getSquads()} (live values view; safe in serial phases).</li>
- *   <li>Parallel-safe spawn queue — {@link #queueSpawn(Entity)} routes serial
- *       callers through the inline {@link #addUnit(Entity)} path and parallel
- *       callers through {@link #pendingSpawns}, drained by
+ *   <li>Parallel-safe spawn queue — {@link #queueSpawn(EntitySpec)} spawns serial
+ *       callers immediately via {@link #spawn} and queues parallel callers into
+ *       {@link #pendingSpawns}, drained by
  *       {@link #flushPendingSpawns()} in the APPLY_SPAWNS phase. Sibling
  *       pattern to {@link DamageService}'s three queues; the in-flight
  *       parallel-flag itself lives on {@code DamageService} so this service
@@ -75,7 +76,7 @@ import java.util.List;
  * indices — battles never save/load mid-fight).
  *
  * <h2>Thread safety</h2>
- * <p>Single-writer / multi-reader within a tick. {@link #allocate(Entity)} and
+ * <p>Single-writer / multi-reader within a tick. {@link #spawn} and
  * {@link #release(long)} run in serial sim phases (spawn flush and the
  * post-UPDATE_UNITS death drain); the parallel UPDATE_UNITS dispatch reads
  * {@link Entity#entityId} fields and may call {@link #isLive(long)} /
@@ -84,9 +85,9 @@ import java.util.List;
  * <p>Sibling slice to {@link DamageService},
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService}, et al.
  * Constructor-injected dependencies: {@link UnitSpatialIndex} (mirrored
- * from {@link #addUnit} so off-tick / mid-tick deboard callers see the new
+ * from {@link #spawn} so off-tick / mid-tick deboard callers see the new
  * unit on the next AI query), {@link DamageService} (for the parallel-flag
- * read inside {@link #queueSpawn}).
+ * read inside {@link #queueSpawn(EntitySpec)}).
  */
 public final class UnitRosterService {
 
@@ -98,7 +99,7 @@ public final class UnitRosterService {
     private final UnitSpatialIndex unitIndex;
     /** Set post-construction by {@link #setDamageService} — the sim's wiring loop is
      *  {@code rosterService → damageResolver → damageService} so this field gets
-     *  bound on the last step. Only read inside {@link #queueSpawn} for the
+     *  bound on the last step. Only read inside {@link #queueSpawn(EntitySpec)} for the
      *  parallel-flag check (drone-hub same-tick spawn), so a null read here
      *  would only fire if a spawn happens before sim construction completes,
      *  which the harness prevents. */
@@ -113,7 +114,7 @@ public final class UnitRosterService {
 
     /**
      * The battle's archetype-table entity world + its game component
-     * registrations + the by-id access facade. Owned here because {@link #allocate}
+     * registrations + the by-id access facade. Owned here because {@link #adopt}
      * is the single spawn seam — minting the id and adopting it into the world stay
      * in one place, and every per-entity component lives keyed by id in the world
      * (immune to the dense {@code Entity[]} reshuffle on release). The world,
@@ -154,16 +155,26 @@ public final class UnitRosterService {
     private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>(256);
 
     /**
-     * Units queued for addition during UPDATE_UNITS (drone hub spawns today),
-     * drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Routes the
-     * one mid-dispatch caller of {@link #addUnit} through a queue so the
-     * units list isn't mutated from inside a per-unit task; AIR_SYSTEM /
-     * GROUND_SYSTEM deboard paths stay on inline {@link #addUnit} because
-     * they run in serial phases.
+     * Deferred spawns queued during the parallel UPDATE_UNITS dispatch (drone-hub
+     * launches), drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Each entry
+     * pairs the pre-created {@link Entity} handle (returned to the caller with entityId
+     * 0) with its {@link EntitySpec}; the flush adopts the pair, filling the handle's
+     * id. Serial deboard / setup paths spawn inline via {@link #spawn} instead.
      */
-    private final ArrayList<Entity> pendingSpawns = new ArrayList<>();
-    /** Read-only view for callers that need to inspect pending spawns before the drain (e.g., fog-of-war contributor registration). */
-    public List<Entity> getPendingSpawns() { return pendingSpawns; }
+    private final ArrayList<PendingSpawn> pendingSpawns = new ArrayList<>();
+
+    /** A queued deferred spawn: the pre-created handle (entityId filled at the flush) plus its construction spec. */
+    private record PendingSpawn(Entity entity, EntitySpec spec) {}
+
+    /**
+     * The pre-created handles of the queued deferred spawns, for callers that inspect
+     * pending spawns before the drain (fog-of-war contributor registration).
+     */
+    public List<Entity> getPendingSpawns() {
+        List<Entity> out = new ArrayList<>(pendingSpawns.size());
+        for (PendingSpawn p : pendingSpawns) out.add(p.entity());
+        return out;
+    }
 
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -196,37 +207,40 @@ public final class UnitRosterService {
     public Int2ObjectMap<Squad> getSquadsMap() { return squads; }
 
     /**
-     * Adds a unit to the roster and mirrors into the spatial index so
-     * callers running outside the tick loop (test fixtures, AirSystem
-     * mid-tick deboard) see the unit on the next AI query. {@code tick()}
-     * still does the full {@link UnitSpatialIndex#rebuild} each frame, so
-     * this mirror is purely additive.
-     */
-    public void addUnit(Entity u) {
-        allocate(u);
-        unitIndex.add(this, u);
-    }
-
-    /**
-     * Spawns a ground-roster unit from an {@link EntitySpec}, adopting it immediately
-     * (allocate + spatial-index mirror); returns the handle. The roster-level twin of
-     * {@code BattleSimulation.spawn(EntitySpec)} for sim-less callers (roster/service
-     * tests). Part of identity-collapse Phase C (spawn-spec).
+     * Spawns a ground-roster unit from an {@link EntitySpec}: builds the {@link Entity}
+     * handle, adopts it (assigns its id + seeds every component column from the spec),
+     * mirrors it into the spatial index so callers outside the tick loop (test
+     * fixtures, AirSystem mid-tick deboard) see it on the next AI query, and returns
+     * the handle. The single immediate-spawn seam; {@code BattleSimulation.spawn}
+     * layers fog-contributor registration on top. Serial phases only.
      */
     public Entity spawn(EntitySpec spec) {
-        Entity e = spec.toEntity();
-        addUnit(e);
+        Entity e = new Entity(spec.faction, spec.type);
+        adopt(e, spec);
+        unitIndex.add(this, e);
         return e;
     }
 
     /**
-     * Deferred spec spawn — the {@link #queueSpawn(Entity)} twin for callers inside the
-     * parallel UPDATE_UNITS dispatch; returns the handle (entityId assigned inline in
-     * serial phases, {@code 0L} until the APPLY_SPAWNS drain in the parallel path).
+     * Parallel-safe deferred spawn for callers inside the UPDATE_UNITS dispatch
+     * (drone-hub launches). Serial callers spawn immediately via {@link #spawn};
+     * parallel callers get a fresh {@link Entity} handle now (entityId still 0) whose
+     * {@link EntitySpec} is queued into {@link #pendingSpawns}, adopted by
+     * {@link #flushPendingSpawns()} in APPLY_SPAWNS. The parallel flag lives on
+     * {@link DamageService} so the two queue patterns share one source of truth.
+     *
+     * <p>Within-tick drift: a queued unit isn't in the live roster until the drain.
+     * {@code DroneSpawner.isCellOccupied} iterates the live roster, so if two hubs
+     * spawn the same tick the second won't see the first and could pick the same cell.
+     * Hub intervals make same-tick double-spawn rare; the next tick's REBUILD_OCCUPANCY
+     * restores the picture.
      */
     public Entity queueSpawn(EntitySpec spec) {
-        Entity e = spec.toEntity();
-        queueSpawn(e);
+        if (!damageService.isParallel()) return spawn(spec);
+        Entity e = new Entity(spec.faction, spec.type);
+        synchronized (pendingSpawns) {
+            pendingSpawns.add(new PendingSpawn(e, spec));
+        }
         return e;
     }
 
@@ -291,28 +305,22 @@ public final class UnitRosterService {
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
-     * Adds {@code u} to the next dense slot, assigns its {@link Entity#entityId},
-     * adopts the minted id into the entity world with its live archetype, seeds the
-     * world columns from the unit's write-only {@code seed*} fields, and returns the
-     * id. Grows the backing array by doubling on overflow.
-     *
-     * <p>Rejects re-allocation: a {@link Entity} whose {@code entityId} is non-zero
-     * already lives in the roster, and re-allocating would mint a new id pointing at
-     * the same instance while the old id stays mapped to a now-stale dense slot. The
-     * throw makes the double-add a loud setup bug rather than a silent corruption.
+     * Adopts a freshly-built {@link Entity} handle {@code e} into the roster from its
+     * construction {@link EntitySpec}: assigns its {@link Entity#entityId}, drops it in
+     * the next dense slot, creates its world entity with the archetype the spec's
+     * capabilities imply, and seeds every component column from the spec. Returns the
+     * id; grows the backing array by doubling on overflow. The single column-seeding
+     * seam — {@link #spawn} and {@link #flushPendingSpawns} both route here; {@code e}
+     * is always a caller-fresh handle (entityId 0), so there is no re-allocation case.
      */
-    public long allocate(Entity u) {
-        if (u.entityId != 0L) {
-            throw new IllegalStateException(
-                    "Entity '" + u.seedName + "' already has entityId " + u.entityId + " — double allocate");
-        }
+    private long adopt(Entity e, EntitySpec spec) {
         if (liveCount == dense.length) {
             dense = Arrays.copyOf(dense, dense.length * 2);
         }
         long id = nextId++;
-        u.entityId = id;
-        dense[liveCount] = u;
-        // Adopt the minted id into the entity world. Every live unit is at least
+        e.entityId = id;
+        dense[liveCount] = e;
+        // Create the minted id's world entity. Every live unit is at least
         // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
         // universal — sight stats + the behavior-dispatch role; both removed on
         // death); on top of that:
@@ -321,7 +329,7 @@ public final class UnitRosterService {
         //     never targeted, so "has COMBAT" defines a combatant — presence IS the
         //     capability (like MOVEMENT/AI_STATE; no inert attack/cooldown columns on
         //     a fleeing civilian). Readers that walk the whole roster must gate on
-        //     u.type.combatant before any COMBAT read (the accessors are fail-loud).
+        //     spec.type.combatant before any COMBAT read (the accessors are fail-loud).
         //   - MOVEMENT + AI_STATE iff the unit is mobile. A static emplacement (a
         //     turret or drone hub; UnitType.isStatic) neither paths nor decides, so
         //     "has MOVEMENT" defines a mover and "has AI_STATE" a thinker — presence
@@ -350,46 +358,46 @@ public final class UnitRosterService {
         // hp > 0" is the liveness definition (isAliveById). Combat seeds the same way
         // when present. The corpse transmute removes HEALTH and any COMBAT /
         // MOVEMENT / AI_STATE / SECONDARY_WEAPON.
-        boolean mobile = !u.type.isStatic();
-        boolean combatant = u.type.combatant;
-        boolean hasSecondary = u.seedSecondaryWeapon != null;
+        boolean mobile = !spec.type.isStatic();
+        boolean combatant = spec.type.combatant;
+        boolean hasSecondary = spec.secondaryWeapon != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
-        boolean sheetDrawn = u.type.drawnAsSheet();
+        boolean sheetDrawn = spec.type.drawnAsSheet();
         // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
         // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
         // a ground unit has none. It is kept OFF the corpse-remove mask
         // (DeadBodySystem), so a dead drone's body rides the death transmute for the
         // crash handler to read before it detaches it.
-        boolean hasBody = u.seedBody != null;
+        boolean hasBody = spec.body != null;
         // SQUAD iff the unit spawns in a squad. Presence IS membership — a solo unit
         // (NO_SQUAD seed) carries no SQUAD component, so the old sentinel never lands
         // in the world (the SECONDARY_WEAPON precedent). Live-only: removed on the
         // corpse transmute (the death cascade reads membership pre-transmute).
-        boolean inSquad = u.seedSquadId != Entity.NO_SQUAD;
+        boolean inSquad = spec.squadId != Entity.NO_SQUAD;
         // HOME iff the unit spawns with a garrison post (seedHomeCell >= 0). Presence IS
         // "has a post" — a roaming marine / patrol (the -1 seed) carries no HOME, so the
         // old sentinel never lands in the world (the SQUAD precedent). Live-only.
-        boolean hasHome = u.seedHomeCellX >= 0;
+        boolean hasHome = spec.homeCellX >= 0;
         // TASK iff the unit deboards already acting on an objective (a planter/VIP/camper
         // loadout). The KIT_RETRIEVER kit target is purely runtime, so it never seeds
         // TASK at spawn — a plain combatant recruited as a retriever gains TASK then (a
         // serial addComponent). Optional; live-only.
-        boolean hasTask = u.seedAssignedObjective != null;
+        boolean hasTask = spec.assignedObjective != null;
         // HUB_STATE iff the unit is a drone hub (UnitType.isDroneHub()). Presence IS
         // "is a live drone hub" — the DroneHub factory config/entity has no other
         // marker, so the archetype membership itself is the classification gate that
         // replaced the old instanceof-subclass checks.
-        boolean isHub = u.type.isDroneHub();
+        boolean isHub = spec.type.isDroneHub();
         // TURRET_STATE iff the unit is a turret (UnitType.isTurret()). Presence IS
         // "is a live turret" — the MapTurret factory config/entity has no other
         // marker, so the archetype membership itself is the classification gate that
         // replaced the old instanceof-subclass checks.
-        boolean isTurret = u.type.isTurret();
+        boolean isTurret = spec.type.isTurret();
         // DRONE_STATE iff the unit is a drone (UnitType.isDrone()). Presence IS
         // "is a live drone" — the Drone factory config/entity has no other
         // marker, so the archetype membership itself is the classification gate
         // that replaced the old instanceof-subclass checks.
-        boolean isDrone = u.type.isDrone();
+        boolean isDrone = spec.type.isDrone();
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
@@ -422,67 +430,67 @@ public final class UnitRosterService {
         if (sheetDrawn) {
             entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
         }
-        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
-        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
-        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, u.seedName);
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
-        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
-        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, spec.type);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, spec.faction);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, spec.name);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, spec.cellX);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, spec.cellY);
+        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
+        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
         // VISION is universal — sight stats seeded from the unit's write-only seeds
         // (a ground unit's airLosRadius just seeds to 0). Removed on death.
-        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, u.seedVisionRange);
-        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, u.seedAirLosRadius);
+        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, spec.visionRange);
+        entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, spec.airLosRadius);
         // ROLE is universal — the behavior-dispatch role seeded from the unit's
         // write-only seedRole ordinal. Mutable on a live unit thereafter via
         // RoleService.setRole (kit-pickup promotion/revert); removed on death.
-        entityWorld.setInt(id, components.ROLE, BattleComponents.ROLE_ORDINAL, u.seedRole.ordinal());
+        entityWorld.setInt(id, components.ROLE, BattleComponents.ROLE_ORDINAL, spec.role.ordinal());
         // Seed the COMBAT stat columns from the unit's pre-allocation seed* fields
         // (only for combatants — a non-combatant has no COMBAT component); the
         // mid-combat COMBAT scalars start at zero (a fresh world row appends
         // zero-initialised — no slot-reuse reset needed).
         if (combatant) {
-            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, u.seedAttackDamage);
-            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
-            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
-            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN, u.seedAttackCooldown);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, spec.attackDamage);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, spec.attackRange);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, spec.accuracy);
+            entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN, spec.attackCooldown);
             // primaryWeapon is the OBJECT stat — null for a combatant with no
             // per-weapon profile (militia/aliens/turrets); a fresh row appends null,
             // so this seed is what makes a marine's deboard loadout canonical.
-            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, u.seedPrimaryWeapon);
+            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, spec.primaryWeapon);
         }
         if (hasSecondary) {
-            entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
-            entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
+            entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec.secondaryWeapon);
+            entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, spec.secondaryAmmo);
         }
         // Seed the flier's KINEMATICS body — the SAME AirBody instance the unit's
         // ctor created and positioned, now world-resident and aliased by the unit's
         // steering reads (zero-churn, the shuttle-KINEMATICS precedent).
         if (hasBody) {
-            entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, u.seedBody);
+            entityWorld.setObject(id, components.KINEMATICS, BattleComponents.KINEMATICS_BODY, spec.body);
         }
         // Seed the squad-membership key (the SQUAD component was attached above iff
         // the unit spawns in a squad).
         if (inSquad) {
-            entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, u.seedSquadId);
+            entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, spec.squadId);
         }
         // Seed the garrison post (the HOME component was attached above iff the unit
         // spawns with one).
         if (hasHome) {
-            entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_X, u.seedHomeCellX);
-            entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_Y, u.seedHomeCellY);
+            entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_X, spec.homeCellX);
+            entityWorld.setInt(id, components.HOME, BattleComponents.HOME_CELL_Y, spec.homeCellY);
         }
         // Seed the assigned objective (the TASK component was attached above iff the unit
         // deboards with one); the kit-target field appends null.
         if (hasTask) {
-            entityWorld.setObject(id, components.TASK, BattleComponents.TASK_ASSIGNED_OBJECTIVE, u.seedAssignedObjective);
+            entityWorld.setObject(id, components.TASK, BattleComponents.TASK_ASSIGNED_OBJECTIVE, spec.assignedObjective);
         }
         // Seed the hub's live state (the HUB_STATE component was attached above iff
         // the unit is a drone hub). spawnCooldown seeds to the hub's initial launch
         // delay from the write-only seed; droneSquadId seeds to NO_SQUAD (-1) because
         // 0 is a valid squad id, so a fresh-row zero can't mean "no squad yet".
         if (isHub) {
-            entityWorld.setFloat(id, components.HUB_STATE, BattleComponents.HUB_STATE_SPAWN_COOLDOWN, u.seedHubSpawnCooldown);
+            entityWorld.setFloat(id, components.HUB_STATE, BattleComponents.HUB_STATE_SPAWN_COOLDOWN, spec.hubSpawnCooldown);
             entityWorld.setInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID, Entity.NO_SQUAD);
         }
         // Seed the turret's live state (the TURRET_STATE component was attached above
@@ -491,7 +499,7 @@ public final class UnitRosterService {
         // doesn't read as mid-recoil at sim start (a fresh row's zero-init would).
         // facingDegrees/burst* ride the zero-init.
         if (isTurret) {
-            entityWorld.setObject(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_KIND, u.seedTurretKind);
+            entityWorld.setObject(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_KIND, spec.turretKind);
             entityWorld.setFloat(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_RECOIL_TIMER, 1f);
         }
         // Seed the drone's live state (the DRONE_STATE component was attached above
@@ -506,7 +514,7 @@ public final class UnitRosterService {
             entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PATROL_GOAL_Y, Float.NaN);
             entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PURSUIT_GOAL_X, Float.NaN);
             entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PURSUIT_GOAL_Y, Float.NaN);
-            entityWorld.setLong(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_HOME_HUB_ID, u.seedHomeHubId);
+            entityWorld.setLong(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_HOME_HUB_ID, spec.homeHubId);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative
@@ -517,14 +525,14 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
-            entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, u.seedMoveSpeed);
+            entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, spec.moveSpeed);
         }
         // Seed the smooth render position from the unit's pre-allocation seed.
         // RENDER_POSITION is universal and kept OFF the corpse-remove mask, so it
         // rides the death transmute — a released corpse still resolves its
         // death-pose location with no post-release snapshot.
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, u.localRenderX);
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, u.localRenderY);
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, spec.cellX);
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, spec.cellY);
         indexById.put(id, liveCount);
         liveCount++;
         return id;
@@ -670,38 +678,16 @@ public final class UnitRosterService {
     }
 
     /**
-     * Parallel-safe addition variant for callers running inside UPDATE_UNITS.
-     * Routes serial callers through inline {@link #addUnit(Entity)}; parallel
-     * callers append to {@link #pendingSpawns}, drained by
-     * {@link #flushPendingSpawns()} in the APPLY_SPAWNS phase. The
-     * parallel-flag itself lives on {@link DamageService} so the two
-     * queue patterns share one source of truth.
-     *
-     * <p>Within-tick drift: a queued unit isn't visible in the live registry
-     * until the drain. {@code DroneSpawner.isCellOccupied} iterates the live
-     * registry, so if two hubs spawn in the same tick the second won't see the
-     * first and could pick the same cell. Hub spawn intervals make same-tick
-     * double-spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
-     */
-    public void queueSpawn(Entity u) {
-        if (!damageService.isParallel()) {
-            addUnit(u);
-            return;
-        }
-        synchronized (pendingSpawns) {
-            pendingSpawns.add(u);
-        }
-    }
-
-    /**
-     * Drains {@link #pendingSpawns} in FIFO order, mirroring each queued unit
-     * through {@link #addUnit}. Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY
-     * and INFANTRY_TICK.
+     * Drains {@link #pendingSpawns} in FIFO order, adopting each queued (handle, spec)
+     * pair into the roster + entity world and mirroring it into the spatial index.
+     * Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY and INFANTRY_TICK.
      */
     public void flushPendingSpawns() {
         if (pendingSpawns.isEmpty()) return;
         for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
-            addUnit(pendingSpawns.get(i));
+            PendingSpawn p = pendingSpawns.get(i);
+            adopt(p.entity(), p.spec());
+            unitIndex.add(this, p.entity());
         }
         pendingSpawns.clear();
     }

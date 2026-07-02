@@ -618,49 +618,31 @@ public class BattleSimulation implements BattleControl {
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
 
-    public void addUnit(Entity u) {
-        rosterService.addUnit(u);
-        if (fogOfWar.getVisionState().isContributor(u.faction)) {
-            fogOfWar.addContributor(u, rosterService);
-        }
-    }
-
     /**
-     * Delegates to {@link UnitRosterService#queueSpawn(Entity)}. Routes serial
-     * callers through inline addUnit (which allocates the entity immediately)
-     * and parallel callers through the spawn queue (drained in APPLY_SPAWNS).
-     * Serial-path fog contributor registration is done here after the inline
-     * allocation; parallel-path registration is done in {@link #flushPendingSpawns}.
-     */
-    public void queueSpawn(Entity u) {
-        long idBefore = u.entityId;
-        rosterService.queueSpawn(u);
-        if (idBefore == 0L && u.entityId != 0L
-                && fogOfWar.getVisionState().isContributor(u.faction)) {
-            fogOfWar.addContributor(u, rosterService);
-        }
-    }
-
-    /**
-     * Spawn a ground-roster unit from an {@link EntitySpec} (identity-collapse
-     * Phase C): builds the unit and adopts it immediately via {@link #addUnit}
-     * (fog contributor registered), returning the handle. Replaces hand-building an
-     * {@code Entity} + writing its {@code seed*} fields.
+     * Spawn a ground-roster unit from an {@link EntitySpec} (identity-collapse Phase C):
+     * mints the unit + seeds its world columns via {@link UnitRosterService#spawn},
+     * registers it as a fog contributor if its faction contributes vision, and returns
+     * the handle. The single immediate-spawn seam.
      */
     public Entity spawn(EntitySpec spec) {
-        Entity e = spec.toEntity();
-        addUnit(e);
+        Entity e = rosterService.spawn(spec);
+        if (fogOfWar.getVisionState().isContributor(e.faction)) {
+            fogOfWar.addContributor(e, rosterService);
+        }
         return e;
     }
 
     /**
-     * Deferred spec spawn — the {@link #queueSpawn(Entity)} twin for callers inside
-     * the parallel UPDATE_UNITS dispatch. Returns the handle (entityId assigned
-     * inline in serial phases, {@code 0L} until the APPLY_SPAWNS drain in parallel).
+     * Deferred spec spawn — the {@link #spawn(EntitySpec)} twin for callers inside the
+     * parallel UPDATE_UNITS dispatch. Serial callers adopt inline (fog registered here);
+     * parallel callers are queued (entityId stays {@code 0L} until the APPLY_SPAWNS
+     * drain, where {@link #flushPendingSpawns} registers fog). Returns the handle.
      */
     public Entity queueSpawn(EntitySpec spec) {
-        Entity e = spec.toEntity();
-        queueSpawn(e);
+        Entity e = rosterService.queueSpawn(spec);
+        if (e.entityId != 0L && fogOfWar.getVisionState().isContributor(e.faction)) {
+            fogOfWar.addContributor(e, rosterService);
+        }
         return e;
     }
 

@@ -41,7 +41,7 @@ public class WorldTest {
 
         // Seeded hp == type.maxHp, readable by id with no Entity deref —
         // backed by the entity world's HEALTH columns.
-        assertEquals(u.seedMaxHp, w.hp(id), 1e-6f);
+        assertEquals(UnitType.MARINE_BLUE.maxHp, w.hp(id), 1e-6f);
 
         // setHp by id hits the same world slot every reader sees.
         w.setHp(id, 42f);

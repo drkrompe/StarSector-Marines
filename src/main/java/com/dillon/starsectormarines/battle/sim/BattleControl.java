@@ -48,9 +48,6 @@ public interface BattleControl extends BattleView {
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
     void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult);
 
-    /** Queue a unit spawn for the serial spawn-flush (drone-hub / reinforcement spawns). */
-    void queueSpawn(Entity u);
-
     /** Mint a new squad for {@code faction} led by an existing {@code leader} (may be null for a leaderless squad); returns the new squad id. */
     int mintSquad(Faction faction, Entity leader);
 
@@ -62,9 +59,6 @@ public interface BattleControl extends BattleView {
      * after the members spawn.
      */
     int mintSquad(Faction faction, UnitType type);
-
-    /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
-    void addUnit(Entity u);
 
     /** Spawn a ground-roster unit from a spec (immediate adopt); returns the handle. The spec-based construction path (identity-collapse Phase C). */
     Entity spawn(EntitySpec spec);

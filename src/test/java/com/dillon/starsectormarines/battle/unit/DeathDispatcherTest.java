@@ -16,8 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class DeathDispatcherTest {
 
-    private static Entity unit(String id) {
-        return new Entity(id, Faction.MARINE, UnitType.MARINE, 0, 0);
+    private static Entity unit(long id) {
+        Entity e = new Entity(Faction.MARINE, UnitType.MARINE);
+        e.entityId = id;
+        return e;
     }
 
     /** Death event for {@code u} — cell + pose are irrelevant to dispatcher mechanics. */
@@ -31,7 +33,7 @@ public class DeathDispatcherTest {
         List<Entity> seen = new ArrayList<>();
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
-        Entity u = unit("a");
+        Entity u = unit(1);
         dispatcher.publish(death(u));
         assertTrue(seen.isEmpty(), "publish must buffer — handlers fire only on drain");
 
@@ -43,15 +45,15 @@ public class DeathDispatcherTest {
     public void drainFansEachEventToEverySubscriberInOrder() {
         DeathDispatcher dispatcher = new DeathDispatcher();
         List<String> log = new ArrayList<>();
-        dispatcher.subscribe(e -> log.add("h1:" + e.unit().seedName));
-        dispatcher.subscribe(e -> log.add("h2:" + e.unit().seedName));
+        dispatcher.subscribe(e -> log.add("h1:" + e.unit().entityId));
+        dispatcher.subscribe(e -> log.add("h2:" + e.unit().entityId));
 
-        dispatcher.publish(death(unit("a")));
-        dispatcher.publish(death(unit("b")));
+        dispatcher.publish(death(unit(1)));
+        dispatcher.publish(death(unit(2)));
         dispatcher.drain();
 
         // Outer loop is publish order, inner loop is subscribe order.
-        assertEquals(List.of("h1:a", "h2:a", "h1:b", "h2:b"), log);
+        assertEquals(List.of("h1:1", "h2:1", "h1:2", "h2:2"), log);
     }
 
     @Test
@@ -60,7 +62,7 @@ public class DeathDispatcherTest {
         List<Entity> seen = new ArrayList<>();
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
-        dispatcher.publish(death(unit("a")));
+        dispatcher.publish(death(unit(1)));
         dispatcher.drain();
         dispatcher.drain(); // second drain has nothing buffered
 
@@ -70,23 +72,24 @@ public class DeathDispatcherTest {
     @Test
     public void reentrantPublishDuringDrainIsFannedOutInTheSameDrain() {
         DeathDispatcher dispatcher = new DeathDispatcher();
-        List<String> seen = new ArrayList<>();
+        List<Long> seen = new ArrayList<>();
+        long hubId = 1L, droneId = 2L;
         // Handler A models a cascade: seeing the hub die, it kills a drone —
         // publishing a fresh DeathEvent while drain() is still fanning out.
         dispatcher.subscribe(e -> {
-            if (e.unit().seedName.equals("hub")) {
-                dispatcher.publish(death(unit("drone")));
+            if (e.unit().entityId == hubId) {
+                dispatcher.publish(death(unit(droneId)));
             }
         });
         // Handler B records every event it is handed.
-        dispatcher.subscribe(e -> seen.add(e.unit().seedName));
+        dispatcher.subscribe(e -> seen.add(e.unit().entityId));
 
-        dispatcher.publish(death(unit("hub")));
+        dispatcher.publish(death(unit(hubId)));
         dispatcher.drain();
 
         // The drone death, published mid-drain, is fanned out in the same drain
         // (next wave) — exactly once, after the hub. No drop, no double-fire.
-        assertEquals(List.of("hub", "drone"), seen);
+        assertEquals(List.of(hubId, droneId), seen);
     }
 
     @Test

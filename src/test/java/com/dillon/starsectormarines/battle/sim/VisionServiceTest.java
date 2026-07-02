@@ -34,14 +34,14 @@ public class VisionServiceTest {
     @Test
     public void allocateSeedsTheVisionColumnsFromTheUnitSeeds() {
         UnitRosterService r = roster();
-        Entity u = r.spawn(unit("u"));
-        long id = u.entityId;
+        EntitySpec spec = unit("u");
+        long id = r.spawn(spec).entityId;
         VisionService vision = r.vision();
 
         assertTrue(vision.has(id));
-        // Seeded from the unit's write-only seed* fields (no Entity deref afterward).
-        assertEquals(u.seedVisionRange, vision.visionRange(id), 1e-6f);
-        assertEquals(u.seedAirLosRadius, vision.airLosRadius(id), 1e-6f);
+        // Seeded from the spec (no Entity deref afterward).
+        assertEquals(spec.visionRange, vision.visionRange(id), 1e-6f);
+        assertEquals(spec.airLosRadius, vision.airLosRadius(id), 1e-6f);
     }
 
     @Test
