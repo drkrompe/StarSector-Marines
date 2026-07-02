@@ -10,13 +10,14 @@ import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import java.util.List;
 
 /**
- * Death-event handler that converts a destroyed {@link MapTurret} into walkable
- * rubble. Subscribes to the {@link DeathDispatcher}; fires once per turret
- * death when the mailbox drains (the {@code DEMOLISH} phase). Pairs
+ * Death-event handler that converts a destroyed turret ({@code UnitType.isTurret()})
+ * into walkable rubble. Subscribes to the {@link DeathDispatcher}; fires once per
+ * turret death when the mailbox drains (the {@code DEMOLISH} phase). Pairs
  * with {@code HubDemolitionSystem} (same flip-to-rubble pattern for drone hubs)
  * but stays separate because the post-demolish step — releasing the squad that
  * was guarding the post once every turret on it is dead — is turret-only and
@@ -25,12 +26,17 @@ import java.util.List;
  * <p>Migrated off the legacy {@code List<Entity>} scan (the old per-tick
  * {@code !isAlive() && !demolished} sweep) to the event seam — the first
  * handler proving the {@code retire-legacy-units-list} spine. The
- * {@link MapTurret#demolished} flag stays as a defensive double-fire guard
- * (a death publishes exactly once, so it's belt-and-suspenders) and as the
- * "already rubble" marker the renderer reads.
+ * {@code demolished} flag used to live as a field on the turret's
+ * (now-dissolved) dedicated {@link Entity} subclass; it's now
+ * {@link #demolishedTurrets}, an id side-table here — the turret itself is a
+ * plain {@link Entity} with no per-instance demolition state. Still a
+ * defensive double-fire guard (a death publishes exactly once, so it's
+ * belt-and-suspenders) and the "already demolished" marker {@link #isDemolished}
+ * exposes for tests.
  *
  * <p>Sibling to other {@code *System} consumers — all dependencies
- * constructor-injected, no per-event state.
+ * constructor-injected; {@link #demolishedTurrets} is the one piece of
+ * per-turret state this system owns (everything else is stateless).
  */
 public final class TurretDemolitionSystem {
 
@@ -38,6 +44,8 @@ public final class TurretDemolitionSystem {
     private final EffectsService effects;
     private final TacticalContextService tactical;
     private final UnitRosterService roster;
+    /** Side-table of demolished turret entity ids — replaces the dissolved turret subclass's {@code demolished} field, since a plain {@link Entity} carries no per-instance demolition state. */
+    private final LongOpenHashSet demolishedTurrets = new LongOpenHashSet();
 
     public TurretDemolitionSystem(MapEditor mapEditor,
                                   EffectsService effects,
@@ -50,7 +58,7 @@ public final class TurretDemolitionSystem {
     }
 
     /**
-     * Death-event callback. Flips a newly-dead {@link MapTurret} into walkable
+     * Death-event callback. Flips a newly-dead turret into walkable
      * rubble + a smoking wreck and releases the owning defense post's squad if
      * every turret on the post is now down. Ignores non-turret deaths and
      * already-demolished turrets (the latter can't happen via the dispatcher —
@@ -58,19 +66,22 @@ public final class TurretDemolitionSystem {
      * called twice).
      */
     public void onDeath(DeathEvent event) {
-        if (!(event.unit() instanceof MapTurret t)) return;
-        if (t.demolished) return;
+        Entity u = event.unit();
+        if (!u.type.isTurret()) return;
+        if (!demolishedTurrets.add(u.entityId)) return;
         // Death cell from the event snapshot — the turret is released by the
         // time this drains, so its Group-C cell accessors are fail-loud.
         int cx = event.cellX();
         int cy = event.cellY();
         mapEditor.flipCellToRubble(cx, cy);
-        t.demolished = true;
         // Mount cell keeps smoking for a while so the player can see the
         // wreck is dead-and-cooling rather than just "gone".
         effects.spawnSmokingWreck(cx, cy);
         releaseGuardpostIfAllTurretsDead(cx, cy);
     }
+
+    /** True iff the turret with entity id {@code turretId} has already been demolished — the double-fire guard's observable state. Exposed for tests. */
+    public boolean isDemolished(long turretId) { return demolishedTurrets.contains(turretId); }
 
     /**
      * If {@code deadTurret} was part of a {@link DefensePost} and every turret
@@ -111,13 +122,13 @@ public final class TurretDemolitionSystem {
         }
         if (owner == null) return;
         // Check whether every turret on the owning post is now dead. A spec
-        // with no live MapTurret at its cell counts as dead — covers both the
+        // with no live turret at its cell counts as dead — covers both the
         // already-demolished and the never-spawned edge cases.
         for (DefensePost.TurretSpec spec : owner.turrets) {
             boolean aliveAtSpec = false;
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 Entity u = roster.get(i);
-                if (!(u instanceof MapTurret)) continue;
+                if (!u.type.isTurret()) continue;
                 if (world.cellX(u.entityId) != spec.cellX || world.cellY(u.entityId) != spec.cellY) continue;
                 aliveAtSpec = true;
                 break;

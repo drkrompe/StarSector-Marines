@@ -3,8 +3,8 @@
 > **Status: ACTIVE (2026-07-01). Recon COMPLETE (3 parallel agents — full tabulations in
 > session). Scope DECIDED: value-first sequencing — do A → B (+ C) this arc; **Phase D
 > (the bare-`long` sweep) is committed, not optional — deferred to a follow-up session.**
-> The endgame is still `entity = long` everywhere. Proving slice: B1 (DroneHubUnit →
-> `HUB_STATE`).**
+> The endgame is still `entity = long` everywhere. B1 (DroneHubUnit → `HUB_STATE`) and
+> B2 (MapTurret → `TURRET_STATE`) SHIPPED; next up is B3 (`Drone`, hairiest).**
 > The last open ECS-migration epic that touches the identity layer: turn `Entity` from a
 > ~305-line heap object held in the roster's `Entity[]` into a bare `long` id, so
 > `entity = id` is literally true everywhere. The spatial index goes id-native as a
@@ -124,12 +124,35 @@ can't serve.
   to `SPAWN_INTERVAL_SEC` after a launch attempt). **This proves the whole Phase-B pattern:** subclass
   live-state → component + service, subclass → factory, state-cast/type-tag `instanceof` → `UnitType`
   predicate, entity-ref field → id.
-- **B2 · `MapTurret`** — **fold `burstRemaining`/`burstTimer`/`burstTargetId` onto the existing
-  COMBAT burst columns** (the turret is the sole writer of its shadow copies; deletes 3 fields +
-  ~12 sites for free); `TURRET_STATE` for `facingDegrees`/`recoilTimer`; `kind` → side-table by id;
-  `demolished` shares B1's flag. Convert 3 type-tag `instanceof` (`TacticalScoring.isHardened`,
-  `AirSystem` AA filter, `HitResponseSystem` reprio — the last has a ready `hasAiState`-style
-  presence precedent) + 2 renderer casts.
+- ~~**B2 · `MapTurret`**~~ — **SHIPPED (2026-07-01; Sonnet-implemented; full suite green, 866
+  tests).** The `MapTurret` class is **rewritten into a non-`Entity` factory** (`MapTurret.create(...)
+  → Entity`, `UnitType.TURRET`; keeps the name). Live state → `TURRET_STATE` component (id 28:
+  `facingDegrees`/`recoilTimer`/`kind`/`burstRemaining`/`burstTimer`/`burstTargetId`) +
+  `TurretStateService` data owner (`sim.turretState()`). **Decision reversed from this story's
+  original plan:** the burst triplet did **not** fold onto the COMBAT burst columns — it stays a
+  deliberately self-contained turret-only burst inside `TURRET_STATE`, because
+  `InfantryWeapons.tick`'s burst-continuation pass gathers every combatant with
+  `COMBAT.burstRemaining(id) > 0` and continues via the *infantry* `fireShot` path; a turret fires
+  its burst through `TurretBehavior`'s *turret* `fireShotFrom` pipeline (scatter/AoE/raycast per
+  `TurretKind`), so writing the COMBAT columns would double-process a turret burst through the wrong
+  pipeline. `demolished` → a `LongOpenHashSet` side-table in `TurretDemolitionSystem` (same shape as
+  B1's `HubDemolitionSystem`; `isDemolished(id)` exposed for tests/renderer). `allocate` attaches
+  `TURRET_STATE` keyed off a new `UnitType.isTurret()` predicate, seeded from a transient
+  `Entity.seedTurretKind` (an OBJECT seed — same mechanism as B1's `seedHubSpawnCooldown`, just a
+  richer payload); `recoilTimer` seeds to `1f` (matches the old subclass's field initializer) so an
+  unfired turret doesn't read as mid-recoil. All `instanceof MapTurret`/`(MapTurret)` sites converted:
+  `TurretBehavior` (the aim/fire ferry, rewritten to read/write by id via `TurretStateService`),
+  `InfantryWeapons`'s shot-event `TurretKind` read, `UnitRenderService` (turret-body sweep + HP-bar
+  sizing), `TacticalScoring.isHardened`, `HitResponseSystem.rollReprioritizeOnHit`, `AirSystem`'s AA
+  "defense posts only" filter (pure tag, no kind read) — all → `UnitType.isTurret()` or a
+  `TURRET_STATE` read. `FootprintCircleShape` (the `@DebugOnly` combat-bridge proxy) has no
+  sim/roster reach from its static `footprintCells(Entity)` signature, so a turret there falls back
+  to `DEFAULT_FOOTPRINT_CELLS` (a debug-only sizing degradation, noted inline) rather than reading
+  the real `TurretKind.visualCells`. `TURRET_STATE` added to the `DeadBodySystem` corpse-remove mask
+  (live-only). Tests: `StaticEmplacementMembershipTest` extended (TURRET_STATE presence + seeded
+  kind/recoilTimer), `TurretDemolitionSystemTest` migrated to `isDemolished(id)`, new
+  `TurretBehaviorTest` (recoil aging with no target; a burst kind latching `burstRemaining`/
+  `burstTimer`/`burstTargetId`/facing into `TURRET_STATE` on a same-tick fire).
 - **B3 · `Drone`** — `DRONE_STATE` for the patrol/pursuit vectors + timer; rewrite `DroneSwarmAction`'s
   7 `Drone d` helpers to `(long id)` + component fetch. Entangled with the hub via `homeHub`
   (migrate as a pair, B1 establishes `homeHubId` first). Hairiest; `DroneCrashSystem`'s `CRASHING`

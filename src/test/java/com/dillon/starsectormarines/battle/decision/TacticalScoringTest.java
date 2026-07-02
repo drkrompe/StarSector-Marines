@@ -613,8 +613,8 @@ public class TacticalScoringTest {
     // Part 7 — rocket-vs-turret range gates and squad coordination
     // ---------------------------------------------------------------------
 
-    private static MapTurret turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        MapTurret t = new MapTurret("t" + sim.liveUnitCount(), f, kind, x, y);
+    private static Entity turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
+        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y);
         sim.addUnit(t);
         return t;
     }
@@ -632,7 +632,7 @@ public class TacticalScoringTest {
     public void effectiveAttackRangeWidensForRocketeerVsTurret() {
         BattleSimulation sim = openArena(40, 10);
         Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
         Entity infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
@@ -660,7 +660,7 @@ public class TacticalScoringTest {
         // turret sits past pulse range but inside rocket range.
         float primary = sim.world().attackRange(rocketeer.entityId);
         int turretX = (int) Math.ceil(primary) + 8;
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
 
         int[] pick = sim.getTacticalScoring().findFiringPosition(rocketeer, turret);
         assertNotNull(pick);
@@ -683,7 +683,7 @@ public class TacticalScoringTest {
     public void shouldCommitRocketAllowsFirstShot() {
         BattleSimulation sim = openArena(20, 20);
         Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "first marine on a healthy turret with no inflight must commit");
@@ -704,7 +704,7 @@ public class TacticalScoringTest {
         Entity m2 = rocketeer(sim, Faction.MARINE, 5, 7);
         sim.squad().assignSquad(m2.entityId, squadId);
 
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
         float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage
                 * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult;
         assertTrue(oneRocket < sim.world().maxHp(turret.entityId),
@@ -734,7 +734,7 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m0.entityId, squadId);
         Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
         sim.squad().assignSquad(m1.entityId, squadId);
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         sim.world().setSecondaryActionTimer(m0.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         sim.world().setSecondaryAimTargetId(m0.entityId, Entity.idOf(turret));
@@ -747,7 +747,7 @@ public class TacticalScoringTest {
     public void shouldCommitRocketBlocksOnInflightProjectile() {
         BattleSimulation sim = openArena(20, 20);
         Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         // Stuff enough damage into the inflight projectile list to kill the
         // turret. One rocket isn't enough for a Vulcan (test above), so two.
@@ -779,7 +779,7 @@ public class TacticalScoringTest {
         // bug, but the gate is per-shooter-faction either way).
         BattleSimulation sim = openArena(20, 20);
         Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         float bigDamage = sim.world().maxHp(turret.entityId) * 2f;
         float endX = sim.world().cellX(turret.entityId) + 0.5f;
@@ -812,7 +812,7 @@ public class TacticalScoringTest {
         Entity mB = rocketeer(sim, Faction.MARINE, 5, 6);
         sim.squad().assignSquad(mB.entityId, squadB);
 
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         sim.world().setSecondaryActionTimer(mA.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         sim.world().setSecondaryAimTargetId(mA.entityId, Entity.idOf(turret));

@@ -43,8 +43,8 @@ public class InfantryUnitPrepTest {
         return u;
     }
 
-    private static MapTurret turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        MapTurret t = new MapTurret("t" + sim.liveUnitCount(), f, kind, x, y);
+    private static Entity turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
+        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y);
         sim.addUnit(t);
         return t;
     }
@@ -54,7 +54,7 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         // Past pulse-rifle range (24), well inside rocket range (32).
-        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");

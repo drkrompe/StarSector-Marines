@@ -1625,7 +1625,7 @@ public final class BattleSetup {
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                MapTurret turret = new MapTurret("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
+                Entity turret = MapTurret.create("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
                 sim.addUnit(turret);
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);

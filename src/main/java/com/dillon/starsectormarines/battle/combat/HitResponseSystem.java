@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
@@ -84,7 +83,7 @@ public final class HitResponseSystem {
         World world = roster.world();
         if (!roster.isAliveById(target.entityId)) return;
         // Static emplacements (turrets, drone hubs) have no AI_STATE — they don't
-        // fall back. This presence gate replaces the old `instanceof MapTurret`
+        // fall back. This presence gate replaces the old per-subclass instanceof
         // check and also (correctly) covers drone hubs, which previously could roll
         // a fall-back they had no behavior to execute. It must precede the
         // fallbackTimer read below, which is fail-loud without AI_STATE.
@@ -100,7 +99,7 @@ public final class HitResponseSystem {
     public void rollReprioritizeOnHit(Entity target, Entity shooter) {
         World world = roster.world();
         if (!roster.isAliveById(target.entityId)) return;
-        boolean qualifies = world.hasMechLoadout(target.entityId) || target instanceof MapTurret;
+        boolean qualifies = world.hasMechLoadout(target.entityId) || target.type.isTurret();
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();
         // One reprio roll per (target, tick) across the parallel workers. Fast-path the

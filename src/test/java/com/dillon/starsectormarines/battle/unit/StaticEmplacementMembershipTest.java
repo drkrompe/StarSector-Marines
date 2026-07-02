@@ -44,7 +44,7 @@ public class StaticEmplacementMembershipTest {
     public void mobileUnitsAreMoversAndThinkersStaticEmplacementsAreNeither() {
         BattleSimulation sim = openSim();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
         Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
         sim.addUnit(marine);
         sim.addUnit(turret);
@@ -64,6 +64,15 @@ public class StaticEmplacementMembershipTest {
         assertFalse(sim.hubState().isHub(marine.entityId));
         assertEquals(DroneHub.INITIAL_SPAWN_DELAY_SEC, sim.hubState().spawnCooldown(hub.entityId), 1e-4f);
         assertEquals(-1, sim.hubState().droneSquadId(hub.entityId));
+
+        // The turret carries TURRET_STATE (presence IS "is a live turret"),
+        // seeded with its TurretKind and a recoilTimer past the renderer's
+        // recoil window; the hub and marine — neither a turret — don't.
+        assertTrue(sim.turretState().isTurret(turret.entityId));
+        assertFalse(sim.turretState().isTurret(hub.entityId));
+        assertFalse(sim.turretState().isTurret(marine.entityId));
+        assertEquals(TurretKind.VULCAN, sim.turretState().kind(turret.entityId));
+        assertEquals(1f, sim.turretState().recoilTimer(turret.entityId), 1e-4f);
     }
 
     @Test
@@ -72,7 +81,7 @@ public class StaticEmplacementMembershipTest {
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.seedSquadId = sid;
-        MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
         Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
         sim.addUnit(marine);
         sim.addUnit(turret);
@@ -96,7 +105,7 @@ public class StaticEmplacementMembershipTest {
     public void rollFallbackOnHitSkipsStaticEmplacements() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8);
         Entity hub = DroneHub.create("h", Faction.DEFENDER, 9, 9);
         sim.addUnit(turret);
         sim.addUnit(hub);

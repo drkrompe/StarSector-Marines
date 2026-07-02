@@ -155,8 +155,14 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    index goes id-native there and reopens systems-to-columns). **B1 SHIPPED** — the `DroneHubUnit`
    subclass is deleted (live state → `HUB_STATE` component + `HubStateService`; `demolished` → a
    `HubDemolitionSystem` side-table; `Drone.homeHub` → `homeHubId`; config/ctor → a `DroneHub`
-   factory; all `instanceof DroneHubUnit` → `UnitType.isDroneHub()`). **Next: B2** (`MapTurret` —
-   its burst triplet folds onto existing COMBAT columns for free), then **B3** (`Drone`, hairiest).
+   factory; all `instanceof DroneHubUnit` → `UnitType.isDroneHub()`). **B2 SHIPPED** — the
+   `MapTurret` subclass is dissolved (live state → `TURRET_STATE` component + `TurretStateService`;
+   the burst triplet stays a self-contained turret-only burst in `TURRET_STATE` — **not** folded
+   onto the COMBAT burst columns, since `InfantryWeapons.tick`'s burst-continuation pass would
+   double-process a turret burst through the wrong (infantry) firing pipeline if it did; `demolished`
+   → a `TurretDemolitionSystem` side-table; config/ctor → a `MapTurret.create` factory; all
+   `instanceof MapTurret`/`(MapTurret)` → `UnitType.isTurret()` or a `TURRET_STATE` read). **Next:
+   B3** (`Drone`, hairiest — entangled with the hub via `homeHubId`).
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;

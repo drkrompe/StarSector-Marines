@@ -57,7 +57,6 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -138,7 +137,7 @@ public class BattleSimulation implements BattleControl {
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
-    /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
+    /** Death-event handler for destroyed turrets ({@code UnitType.isTurret()}) — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed drone hubs ({@code UnitType.isDroneHub()}) — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
@@ -423,6 +422,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the HUB_STATE component (drone-hub spawn cadence) — {@code sim.hubState().isHub(id)} / {@code spawnCooldown(id)}. */
     public HubStateService hubState() { return rosterService.hubState(); }
 
+    /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — {@code sim.turretState().isTurret(id)} / {@code facingDegrees(id)}. */
+    public TurretStateService turretState() { return rosterService.turretState(); }
+
     /** Data owner for the TASK component (objective/kit assignment) — {@code sim.task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. */
     public TaskService task() { return rosterService.task(); }
 
@@ -567,9 +569,9 @@ public class BattleSimulation implements BattleControl {
      * the id is unknown / released. The generic counterpart to
      * {@link #targetOf(Entity)} — used by readers of id-typed combat/secondary
      * cross-references (the {@code COMBAT.burstTargetId} / {@code
-     * SECONDARY_WEAPON.aimTargetId} world columns, {@link
-     * com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId}) where
-     * there's no companion holder unit to thread.
+     * SECONDARY_WEAPON.aimTargetId} world columns, {@code
+     * TURRET_STATE.burstTargetId} via {@code TurretStateService}) where there's
+     * no companion holder unit to thread.
      */
     public Entity resolveUnit(long id) {
         return rosterService.getOrNull(id);
@@ -586,6 +588,8 @@ public class BattleSimulation implements BattleControl {
     public HitResponseSystem getHitResponseSystem() { return hitResponse; }
     /** Death-event handler for destroyed drone hubs — exposes {@code isDemolished(id)} for tests, replacing the old subclass's {@code demolished} field. */
     public com.dillon.starsectormarines.battle.drone.HubDemolitionSystem getHubDemolitionSystem() { return hubDemolition; }
+    /** Death-event handler for destroyed turrets — exposes {@code isDemolished(id)} for tests/renderer, replacing the old subclass's {@code demolished} field. */
+    public com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem getTurretDemolitionSystem() { return turretDemolition; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);

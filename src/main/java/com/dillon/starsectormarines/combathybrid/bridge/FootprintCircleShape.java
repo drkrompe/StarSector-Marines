@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.fs.starfarer.api.combat.ShipAPI;
 
@@ -40,9 +39,17 @@ public final class FootprintCircleShape implements ProxyShape {
      * their size here; both current kinds already publish it ({@code TurretKind.visualCells},
      * {@link DroneHub#VISUAL_CELLS}). Falls back to {@link #DEFAULT_FOOTPRINT_CELLS} for anything
      * unrecognized so a new target type is hittable (just not perfectly sized) before it's wired in.
+     *
+     * <p><b>Turret degradation:</b> a turret's real {@code TurretKind.visualCells} now
+     * lives in the world {@code TURRET_STATE} component (read via
+     * {@code battle.sim.TurretStateService}), unreachable from here — this method is a
+     * bare static helper ({@link #applyTo}'s signature carries only the {@link Entity}
+     * and a scale factor, no {@code sim}/{@code roster} reference to route a by-id read
+     * through). So a turret just falls through to {@link #DEFAULT_FOOTPRINT_CELLS}
+     * like any unrecognized kind — a debug-only sizing approximation, not a
+     * correctness issue (this whole shape is throwaway dev scaffolding).
      */
     private static float footprintCells(Entity unit) {
-        if (unit instanceof MapTurret) return ((MapTurret) unit).kind.visualCells;
         if (unit.type.isDroneHub()) return DroneHub.VISUAL_CELLS;
         return DEFAULT_FOOTPRINT_CELLS;
     }

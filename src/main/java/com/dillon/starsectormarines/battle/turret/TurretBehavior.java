@@ -3,14 +3,16 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Static-defense behavior. Delegates the aim/fire loop to {@link TurretAim} so
  * the same logic powers shuttle-mounted turrets in
  * {@link com.dillon.starsectormarines.battle.air.AirSystem}; this class is
- * just the {@link UnitBehavior} adapter that ferries {@link MapTurret} fields
- * in and out of the shared {@link TurretAim.State} carrier.
+ * just the {@link UnitBehavior} adapter that ferries a turret's
+ * {@code TURRET_STATE} fields in and out of the shared {@link TurretAim.State}
+ * carrier.
  *
  * <p>Pulled out of {@link CombatantBehavior} rather than reused because the
  * cohesion / repositioning / pathfinding branches don't apply, and bolting
@@ -24,59 +26,63 @@ public final class TurretBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        MapTurret t = (MapTurret) u;
+        long id = u.entityId;
+        TurretStateService turretState = sim.turretState();
 
         // Age the per-shot recoil timer every tick; reset to 0 on each fired
         // round below. The renderer reads this to drive barrel slide so a
         // burst recoils per round, not just on the trigger pull.
-        t.recoilTimer += BattleSimulation.TICK_DT;
+        turretState.setRecoilTimer(id, turretState.recoilTimer(id) + BattleSimulation.TICK_DT);
 
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
-        // AirSystem.tickShuttleTurrets. Reads the MapTurret-shadow
-        // burstTargetId (not the inherited Entity one — see MapTurret class doc).
-        Entity currentBurstTarget = sim.resolveUnit(t.burstTargetId);
-        if (t.burstRemaining > 0 && currentBurstTarget == null) {
-            t.burstRemaining = 0;
-            t.burstTargetId = 0L;
-            currentBurstTarget = null;
+        // AirSystem.tickShuttleTurrets. Reads the TURRET_STATE-shadow
+        // burstTargetId (not the inherited COMBAT one — see the
+        // BattleComponents#TURRET_STATE class doc).
+        int burstRemaining = turretState.burstRemaining(id);
+        Entity currentBurstTarget = sim.resolveUnit(turretState.burstTargetId(id));
+        if (burstRemaining > 0 && currentBurstTarget == null) {
+            burstRemaining = 0;
+            turretState.setBurstRemaining(id, 0);
+            turretState.setBurstTargetId(id, 0L);
         }
         // Pin slew target during a burst so the barrel tracks the salvo
         // victim instead of drifting toward a fresh acquisition mid-burst.
         // Direct id-to-id copy (not setTarget) — both fields are already
         // entity ids in the same id space, no null encoding to apply.
-        if (t.burstRemaining > 0) {
-            sim.world().setTargetId(t.entityId, t.burstTargetId);
+        if (burstRemaining > 0) {
+            sim.world().setTargetId(id, turretState.burstTargetId(id));
         }
 
+        TurretKind kind = turretState.kind(id);
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = sim.world().cellX(t.entityId);
-        s.originCellY = sim.world().cellY(t.entityId);
-        s.originX = sim.world().cellX(t.entityId) + 0.5f;
-        s.originY = sim.world().cellY(t.entityId) + 0.5f;
-        s.faction = t.faction;
-        s.squadId = sim.squad().hasSquad(t.entityId) ? sim.squad().squadId(t.entityId) : Entity.NO_SQUAD;
-        s.excludeFromCrowding = t;
-        s.facingDegrees = t.facingDegrees;
-        s.turnRateDegPerSec = t.kind.turnRateDegPerSec;
-        s.attackRange = sim.world().attackRange(t.entityId);
-        s.minRange = t.kind.minRange;
-        s.cooldownTimer = sim.world().cooldownTimer(t.entityId);
-        s.attackCooldown = sim.combat().attackCooldown(t.entityId);
-        s.target = sim.targetOf(t);
-        s.indirectFire = t.kind.indirectFire;
+        s.originCellX = sim.world().cellX(id);
+        s.originCellY = sim.world().cellY(id);
+        s.originX = sim.world().cellX(id) + 0.5f;
+        s.originY = sim.world().cellY(id) + 0.5f;
+        s.faction = u.faction;
+        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
+        s.excludeFromCrowding = u;
+        s.facingDegrees = turretState.facingDegrees(id);
+        s.turnRateDegPerSec = kind.turnRateDegPerSec;
+        s.attackRange = sim.world().attackRange(id);
+        s.minRange = kind.minRange;
+        s.cooldownTimer = sim.world().cooldownTimer(id);
+        s.attackCooldown = sim.combat().attackCooldown(id);
+        s.target = sim.targetOf(u);
+        s.indirectFire = kind.indirectFire;
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
-        t.facingDegrees = s.facingDegrees;
-        sim.world().setCooldownTimer(t.entityId, s.cooldownTimer);
-        sim.world().setTargetId(t.entityId, Entity.idOf(s.target));
+        turretState.setFacingDegrees(id, s.facingDegrees);
+        sim.world().setCooldownTimer(id, s.cooldownTimer);
+        sim.world().setTargetId(id, Entity.idOf(s.target));
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
         // salvo finishes its rounds before the aim loop kicks another.
-        if (t.burstRemaining > 0) {
-            t.burstTimer -= BattleSimulation.TICK_DT;
-            if (t.burstTimer <= 0f) {
+        if (burstRemaining > 0) {
+            float burstTimer = turretState.burstTimer(id) - BattleSimulation.TICK_DT;
+            if (burstTimer <= 0f) {
                 // Recompute LoS for each burst round — target moves, LoS state
                 // can flip mid-salvo. Indirect-fire kinds use this to switch
                 // the per-rocket accuracy between full and no-LoS-multiplier.
@@ -84,36 +90,39 @@ public final class TurretBehavior implements UnitBehavior {
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
-                        sim.world().cellX(t.entityId), sim.world().cellY(t.entityId), sim.world().cellX(currentBurstTarget.entityId), sim.world().cellY(currentBurstTarget.entityId));
-                sim.fireShotFrom(sim.world().cellX(t.entityId) + 0.5f, sim.world().cellY(t.entityId) + 0.5f, t.faction, t.kind, currentBurstTarget,
+                        sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget.entityId), sim.world().cellY(currentBurstTarget.entityId));
+                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, u.faction, kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
-                t.recoilTimer = 0f;
-                t.burstRemaining--;
-                t.burstTimer = t.kind.burstSpacing;
-                if (t.burstRemaining == 0) t.burstTargetId = 0L;
+                turretState.setRecoilTimer(id, 0f);
+                burstRemaining--;
+                turretState.setBurstRemaining(id, burstRemaining);
+                turretState.setBurstTimer(id, kind.burstSpacing);
+                if (burstRemaining == 0) turretState.setBurstTargetId(id, 0L);
+            } else {
+                turretState.setBurstTimer(id, burstTimer);
             }
             return;
         }
 
         if (s.fireThisTick) {
-            if (t.kind.burstCount > 1) {
+            if (kind.burstCount > 1) {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(sim.world().cellX(t.entityId) + 0.5f, sim.world().cellY(t.entityId) + 0.5f, t.faction, t.kind, s.target,
+                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, u.faction, kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
-                t.recoilTimer = 0f;
+                turretState.setRecoilTimer(id, 0f);
                 if (s.target != null) {
-                    t.burstRemaining = t.kind.burstCount - 1;
-                    t.burstTimer = t.kind.burstSpacing;
-                    t.burstTargetId = s.target.entityId;
+                    turretState.setBurstRemaining(id, kind.burstCount - 1);
+                    turretState.setBurstTimer(id, kind.burstSpacing);
+                    turretState.setBurstTargetId(id, s.target.entityId);
                 }
             } else {
                 // Single-shot kinds keep the existing Entity-vs-Entity fire path
                 // so morale impact + ShotEvent tagging stay correct for the
                 // unchanged ground turrets (Arbalest, Hephaestus, etc.).
-                sim.fireShot(t, s.target);
-                t.recoilTimer = 0f;
+                sim.fireShot(u, s.target);
+                turretState.setRecoilTimer(id, 0f);
             }
         }
     }

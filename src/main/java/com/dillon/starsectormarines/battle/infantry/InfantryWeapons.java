@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -106,11 +105,11 @@ public class InfantryWeapons {
             // membership-narrowing because only a mover reaches this pass. A
             // static emplacement (turret/hub) has no MOVEMENT, but it also never
             // writes the COMBAT burst columns — Entity.beginBurst is infantry/
-            // mech/drone-only, and a MapTurret tracks its burst on its own shadow
-            // fields — so its burstRemaining stays 0 and it never enters
-            // burstScratch above. If turrets are ever rewired to burst via the
-            // COMBAT columns, gate this on world.hasMovement(id) (a non-mover
-            // is always STANCED).
+            // mech/drone-only, and a turret tracks its burst on its own
+            // TURRET_STATE component (battle.sim.TurretStateService) — so its
+            // burstRemaining stays 0 and it never enters burstScratch above. If
+            // turrets are ever rewired to burst via the COMBAT columns, gate
+            // this on world.hasMovement(id) (a non-mover is always STANCED).
             fireShot(u, burstTarget, FireStance.stanceFor(world.moveProgress(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
@@ -177,7 +176,7 @@ public class InfantryWeapons {
                 hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
-        TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
+        TurretKind tk = shooter.type.isTurret() ? roster.turretState().kind(shooter.entityId) : null;
         // Primary weapons with their own projectile sprite (SMG bullets) use
         // the weapon's flightSec so a slow round visibly travels — line tracers
         // keep the default SHOT_LIFETIME since they're drawn full-length instantly.

@@ -217,6 +217,19 @@ public final class BattleComponents {
     /** {@link #HUB_STATE} field 2: the squad id the hub's drones join, {@code Entity.NO_SQUAD} (-1) = none minted yet (INT). */
     public static final int HUB_STATE_DRONE_SQUAD_ID = 2;
 
+    /** {@link #TURRET_STATE} field 0: current barrel facing, degrees (FLOAT). 0° = +Y (north). */
+    public static final int TURRET_STATE_FACING_DEGREES = 0;
+    /** {@link #TURRET_STATE} field 1: sim-seconds since the last fired round (FLOAT) — drives the renderer's per-round barrel recoil slide. */
+    public static final int TURRET_STATE_RECOIL_TIMER = 1;
+    /** {@link #TURRET_STATE} field 2: the {@link com.dillon.starsectormarines.battle.turret.TurretKind} baked at construction (OBJECT). */
+    public static final int TURRET_STATE_KIND = 2;
+    /** {@link #TURRET_STATE} field 3: rounds left in the current burst, excluding the trigger-pull round; {@code 0} = idle/single-shot kind (INT). */
+    public static final int TURRET_STATE_BURST_REMAINING = 3;
+    /** {@link #TURRET_STATE} field 4: sim-seconds until the next burst round fires; counts down while field 3 &gt; 0 (FLOAT). */
+    public static final int TURRET_STATE_BURST_TIMER = 4;
+    /** {@link #TURRET_STATE} field 5: entity id of the target locked when the burst started, {@code 0L} when idle (LONG). */
+    public static final int TURRET_STATE_BURST_TARGET_ID = 5;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -564,6 +577,38 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B1).
      */
     public final ComponentType HUB_STATE;
+    /**
+     * Optional turret live state — {@code float facingDegrees; float
+     * recoilTimer; TurretKind kind; int burstRemaining; float burstTimer; long
+     * burstTargetId}. Presence <em>IS</em> "is a live turret" — added at spawn
+     * only for {@code UnitType.TURRET}
+     * ({@link com.dillon.starsectormarines.battle.unit.UnitType#isTurret()}),
+     * absent on every other unit. {@code facingDegrees}/{@code recoilTimer} are
+     * read every tick by {@code battle.turret.TurretBehavior} (the aim/fire
+     * loop) and the renderer (barrel rotation + recoil slide); {@code kind} is
+     * the {@code TurretKind} config (stats/sprite/firing profile) baked at
+     * construction by the {@code MapTurret} factory.
+     *
+     * <p>{@code burstRemaining}/{@code burstTimer}/{@code burstTargetId} are a
+     * <b>deliberately self-contained turret-only burst</b> — <em>not</em> the
+     * COMBAT burst columns ({@code world.burstRemaining(id)} etc.) that
+     * infantry/mech/drone {@code beginBurst} writes.
+     * {@code battle.infantry.InfantryWeapons.tick} gathers every combatant with
+     * {@code COMBAT.burstRemaining(id) > 0} and continues its burst via the
+     * infantry {@code fireShot} path; turrets fire their burst rounds through
+     * {@code TurretBehavior} using the turret {@code fireShotFrom} pipeline
+     * (scatter/AoE/raycast per {@code TurretKind}). If turrets wrote the COMBAT
+     * burst columns, {@code InfantryWeapons.tick} would ALSO process them —
+     * double-fire, and through the wrong pipeline — so the turret burst rides
+     * here instead and {@code InfantryWeapons} never reads/writes it.
+     *
+     * <p>Live-only (a demolished turret is a corpse; see
+     * {@code battle.turret.TurretDemolitionSystem}'s side-table for the
+     * separate {@code demolished} flag, which is not world state). The data
+     * owner is {@code battle.sim.TurretStateService}. See
+     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B2).
+     */
+    public final ComponentType TURRET_STATE;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -677,6 +722,7 @@ public final class BattleComponents {
         GROUND_TURRET     = world.register(25, "GroundTurret", FieldKind.OBJECT);
         VEHICLE_MISSION   = world.register(26, "VehicleMission", FieldKind.OBJECT);
         HUB_STATE       = world.register(27, "HubState", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
+        TURRET_STATE    = world.register(28, "TurretState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

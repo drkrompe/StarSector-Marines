@@ -96,7 +96,7 @@ public class FacingSystemTest {
 
         // Negative membership: a live non-sheet unit (whole-sprite turret)
         // carries no SPRITE — it gains one only at the corpse transmute.
-        MapTurret turret = new MapTurret("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20);
+        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20);
         sim.addUnit(turret);
         assertFalse(world.has(turret.entityId, c.SPRITE), "live turret carries no SPRITE");
     }

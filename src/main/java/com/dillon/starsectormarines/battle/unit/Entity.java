@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.util.Random;
 
@@ -197,11 +198,10 @@ public class Entity {
      * {@code world.attackDamage(id)}, …) since nothing reads them post-release —
      * the HUD that once read max HP post-release now snapshots the row by value at
      * {@code update()} (see {@code SquadDetailPanel}). These fields are write-only
-     * <em>construction</em> input: the ctor archetype seed, the subclass overrides
-     * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
-     * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), the
-     * {@link com.dillon.starsectormarines.battle.drone.DroneHub#create} factory, and the
-     * shuttle/vehicle deboard loadout.
+     * <em>construction</em> input: the ctor archetype seed, the
+     * {@link com.dillon.starsectormarines.battle.drone.Drone} subclass override, the
+     * {@link com.dillon.starsectormarines.battle.drone.DroneHub#create} /
+     * {@code MapTurret#create} factories, and the shuttle/vehicle deboard loadout.
      */
     public float seedMaxHp;
     public float seedAttackDamage;
@@ -279,9 +279,8 @@ public class Entity {
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The behavior-dispatch role a
      * unit spawns with — default {@link UnitRole#COMBATANT} (matches pre-role behavior),
-     * overridden by the subclass ctors ({@code Drone}/{@code MapTurret}), the
-     * {@code DroneHub} factory, the deboard loadout, and the setup/reinforcement
-     * spawn code before
+     * overridden by the {@code Drone} subclass ctor, the {@code DroneHub}/{@code MapTurret}
+     * factories, the deboard loadout, and the setup/reinforcement spawn code before
      * {@link UnitRosterService#allocate} consumes it into the universal {@code ROLE}
      * component (the {@code UnitRole} ordinal). The live role thereafter lives in the
      * world component, reached by id via the {@code RoleService} data owner
@@ -335,6 +334,22 @@ public class Entity {
      * absorb. Write-only construction input; set by the {@code DroneHub} factory.
      */
     public float seedHubSpawnCooldown = 0f;
+
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The {@link TurretKind}
+     * config (stats/sprite/firing profile) baked at construction.
+     * {@link UnitRosterService#allocate} consumes it only when {@code type.isTurret()}:
+     * it seeds the entity world's {@code TURRET_STATE} component (field
+     * {@link BattleComponents#TURRET_STATE_KIND}), canonical thereafter; reached by
+     * id via the {@code TurretStateService} data owner
+     * ({@code sim.turretState().kind(id)}). Ignored (never consumed) for every
+     * non-turret type; {@link UnitRosterService#allocate} passes this field through
+     * opaquely (an {@code Object} write), so it needs no {@code battle.turret} import
+     * of its own — a transient seed the Phase-C spawn-spec will absorb. Unlike the
+     * hub's spawn-delay float, this seed is an OBJECT, but the mechanism is
+     * identical. Write-only construction input; set by the {@code MapTurret} factory.
+     */
+    public TurretKind seedTurretKind;
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The primary handheld

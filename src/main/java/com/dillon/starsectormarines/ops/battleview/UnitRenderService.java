@@ -4,8 +4,9 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -113,36 +114,40 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepTurretBodies(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
+        TurretStateService turretState = ctx.sim.turretState();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
-            if (!(u instanceof MapTurret)) continue;
-            MapTurret t = (MapTurret) u;
-            float cx = cam.cellToScreenX(world.cellX(t.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(world.cellY(t.entityId) + 0.5f);
+            if (!u.type.isTurret()) continue;
+            long id = u.entityId;
+            TurretKind kind = turretState.kind(id);
+            float facingDegrees = turretState.facingDegrees(id);
+            float cx = cam.cellToScreenX(world.cellX(id) + 0.5f);
+            float cy = cam.cellToScreenY(world.cellY(id) + 0.5f);
 
-            ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
+            ShuttleSpriteCache base = sprites.turretSprites().get(kind);
             if (base == null) {
                 float half = cellPx * BattleRenderer.UNIT_FRAC / 2f;
                 emitSolidQuad(out, cx, cy, half, DEFENDER_COLOR, alphaMult);
                 continue;
             }
 
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(t.kind);
+            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(kind);
             if (barrel != null) {
+                float recoilTimer = turretState.recoilTimer(id);
                 float recoilT = 0f;
-                if (t.recoilTimer < BattleRenderer.RECOIL_DURATION) {
-                    recoilT = 1f - t.recoilTimer / BattleRenderer.RECOIL_DURATION;
+                if (recoilTimer < BattleRenderer.RECOIL_DURATION) {
+                    recoilT = 1f - recoilTimer / BattleRenderer.RECOIL_DURATION;
                 }
-                float pushPx = recoilT * BattleRenderer.RECOIL_DISTANCE_FRAC * t.kind.visualCells * cellPx;
-                double rad = Math.toRadians(t.facingDegrees);
+                float pushPx = recoilT * BattleRenderer.RECOIL_DISTANCE_FRAC * kind.visualCells * cellPx;
+                double rad = Math.toRadians(facingDegrees);
                 float bx = (float) Math.sin(rad) * pushPx;
                 float by = -(float) Math.cos(rad) * pushPx;
-                emitWholeSprite(out, barrel, t.facingDegrees, t.kind.visualCells, cellPx,
+                emitWholeSprite(out, barrel, facingDegrees, kind.visualCells, cellPx,
                         cx + bx, cy + by, alphaMult);
             }
-            emitWholeSprite(out, base, t.facingDegrees, t.kind.visualCells, cellPx, cx, cy, alphaMult);
+            emitWholeSprite(out, base, facingDegrees, kind.visualCells, cellPx, cx, cy, alphaMult);
         }
     }
 
@@ -413,6 +418,7 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepHpBars(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
+        TurretStateService turretState = ctx.sim.turretState();
         float cellPx = cam.cellPxSize();
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
@@ -430,8 +436,8 @@ public final class UnitRenderService implements RenderSystem {
             float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
             float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
             float barY;
-            if (u instanceof MapTurret) {
-                barY = cy + ((MapTurret) u).kind.visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            if (u.type.isTurret()) {
+                barY = cy + turretState.kind(u.entityId).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else if (u.type.isDroneHub()) {
                 barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else {

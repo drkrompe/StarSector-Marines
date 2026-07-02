@@ -317,8 +317,9 @@ public class BattleSprites {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
-            // TURRET sprite is per-instance via MapTurret.kind, not per-type —
-            // its spritePath is intentionally empty so we skip the load here.
+            // TURRET sprite is per-instance via the turret's TURRET_STATE kind,
+            // not per-type — its spritePath is intentionally empty so we skip
+            // the load here.
             if (type == UnitType.TURRET) continue;
             unitSprites.put(type, loadUnitSheet(type.spritePath));
             if (type.deadSpritePath != null) {

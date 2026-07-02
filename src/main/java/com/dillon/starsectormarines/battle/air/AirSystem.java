@@ -18,7 +18,6 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -277,7 +276,7 @@ public class AirSystem {
             for (int i = 0, n = scratch.size(); i < n; i++) {
                 Entity e = scratch.get(i);
                 if (e.faction == faction) continue;
-                if (!(e instanceof MapTurret)) continue;     // defense posts only — not infantry / mechs
+                if (!e.type.isTurret()) continue;     // defense posts only — not infantry / mechs
                 if (!world.isAlive(e.entityId)) continue;
                 posts++;
             }
@@ -525,7 +524,7 @@ public class AirSystem {
                 }
                 // Resolve the burst victim once per tick — null surfaces both
                 // "released from registry" and "id was 0L all along," same path
-                // as TurretBehavior's MapTurret-shadow read.
+                // as TurretBehavior's TURRET_STATE-shadow read.
                 Entity currentBurstTarget = roster.getOrNull(mt.burstTargetId);
                 if (mt.burstRemaining > 0 && currentBurstTarget == null) {
                     // A burst whose victim died is dead too — release the lock so

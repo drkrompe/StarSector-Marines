@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -477,8 +476,8 @@ public final class TacticalScoring {
 
     /**
      * Hardened target classification — counts static emplacements
-     * ({@link MapTurret}, drone hubs — {@code UnitType.isDroneHub()}) and heavy
-     * mechs. Anything else (infantry archetypes, aliens, militia) is soft.
+     * (turrets — {@code UnitType.isTurret()}; drone hubs — {@code UnitType.isDroneHub()})
+     * and heavy mechs. Anything else (infantry archetypes, aliens, militia) is soft.
      * Drives the weapon-affinity bias in {@link #findBestTarget} (rocketeers
      * prefer hardened) and the rocket-eligibility gates in
      * {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
@@ -487,14 +486,14 @@ public final class TacticalScoring {
      * (3.5×) bonus payoff.
      */
     public static boolean isHardened(Entity target) {
-        if (target instanceof MapTurret) return true;
+        if (target.type.isTurret()) return true;
         if (target.type.isDroneHub()) return true;
         return target.type == UnitType.HEAVY_MECH;
     }
 
     /**
      * True when {@code shooter} carries a loaded rocket and {@code target} is
-     * a hardened class ({@link MapTurret}, a drone hub, heavy mech) —
+     * a hardened class (a turret, a drone hub, heavy mech) —
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
