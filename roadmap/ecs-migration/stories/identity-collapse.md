@@ -5,7 +5,8 @@
 > D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
 > shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`; D5
 > (weapon-fire methods) shipped `51d6f1c`; D6 (sim-facade `fire*` + `applyDamage(Entity)` front-door)
-> shipped `da6c022c`. NOTE: this stretch is a bottom-up cascade of sequential
+> shipped `da6c022c`; D7 (dest-index id-native + `NavigationService` setPath/clearPath internals)
+> shipped `c296b13b`. NOTE: this stretch is a bottom-up cascade of sequential
 > slices, NOT a parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
@@ -357,16 +358,28 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   test-only now — the flyby strafing path routes elsewhere). A symmetric **60/60** diff, zero logic
   change: 5 production `sim.fire*` sites + 34 `applyDamage` test sites append `.entityId`; 2 stale
   `{@link …(Entity,…)}` Javadoc refs (`fireShot`, `MechSurviveContact`→`applyDamage`) fixed to `long`.
-- **Next — the dest-index id-native slice** (its own slice, NOT the tail finale): `setPath`/`clearPath` feed
-  `DamageService.applyOccupancyDelta(Entity u,…)` → the `UnitDestinationSpatialIndex` (reference-identity
-  `remove`). They — and the `Action.execute(Entity member)` interface flip, whose bodies call
-  `sim.setPath(member,…)` — can't cleanly go `long` until the **dest-index goes id-native** (the
-  reopened [`systems-to-columns`](systems-to-columns.md) / id-native spatial-index work). That slice
-  then unblocks: `setPath`/`clearPath` (+ the D1 `writeFallbackInline` `getOrNull` follow-up) → the
-  **atomic `Action.execute` flip** (interface + ~30 implementors + dispatcher + `AbstractZoneAction` +
-  test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → the finale
-  (Entity-returning queries → `long`, roster `Entity[]` → `long[]`, `DeathEvent` → `long`, rehome
-  `idOf`/`NO_SQUAD`, delete `Entity`).
+- ~~**D7 · dest-index id-native (the storage-core gate)**~~ — **SHIPPED (`c296b13b`; suite green, 869
+  tests).** `UnitDestinationSpatialIndex` converted from `ArrayList<Entity>` buckets to id-native storage:
+  a new `LongBucket` (minimal growable primitive-`long` list, order-agnostic swap-remove, public
+  `ids`/`size` for SoA hot-loop iteration — no `Long`/`Entity` boxing) is both the bucket element AND the
+  `gather` scratch. `rebuild` stores ids; `addDestination`/`removeDestination`/`gather` take/emit `long`.
+  **Behavior nuance:** `gather` now skips `!isAliveById(id)` entries — a released id's by-id reads are
+  unsafe under dense slot reuse (an `Entity` handle's `final faction` survived release; a bare id does
+  not), and a dead unit is not a live destination occupant. Cascade: `DamageService.OccupancyApplier` +
+  `applyOccupancyDelta(long)` (the queue already stored `unitId` as a `long`; the drain resolves ONLY to
+  gate liveness, then passes the id) → `NavigationService.setPath`/`clearPath`/`applyOccupancyDeltaInline`
+  internals → `long`. The `BattleSimulation.setPath(Entity)`/`clearPath(Entity)` **facade KEPT `Entity`**
+  (delegates `.entityId` inward), so the ~30 behavior callers + 3 test callers do NOT move this slice.
+  Reopens [`systems-to-columns`](systems-to-columns.md) (the id-native spatial-index work). Sister
+  `UnitSpatialIndex` (still `Entity` buckets, more `gather` callers) + roster `Entity[]` are the later
+  storage-finale scope, deliberately deferred.
+- **Next — the facade `setPath`/`clearPath` → `long`:** `BattleControl.setPath(Entity, int[])` /
+  `clearPath(Entity)` params → `long`, rippling the ~30 behavior callers + 3 test sites to `.entityId`
+  (mechanical — delegatable), plus the D1 `writeFallbackInline` `getOrNull` follow-up. Then the **atomic
+  `Action.execute(Entity member)` flip** (interface + ~30 implementors + dispatcher + `AbstractZoneAction`
+  + test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → the finale
+  (Entity-returning queries → `long`, roster `Entity[]` → `long[]`, sister `UnitSpatialIndex` id-native,
+  `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`, delete `Entity`).
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 

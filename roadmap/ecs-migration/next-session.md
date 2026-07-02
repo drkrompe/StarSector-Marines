@@ -209,10 +209,18 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    `BattleSimulation.applyDamage(Entity)` external front-door → `long` — impls delegate the id straight
    through (a pure 60/60 passthrough); 5 production `fire*` callers + 34 `applyDamage` test sites pass
    `.entityId`. **SEQUENCING CORRECTION:** the behaviors share one atomic `Action.execute(Entity)`
-   interface, gated bottom-up; sequential cascade, only the caller ripple fans out. **Next: the dest-index
-   id-native slice** — `applyOccupancyDelta`/`UnitDestinationSpatialIndex` (reference-identity `remove`) →
-   id-keyed, which unblocks `setPath`/`clearPath` and then the atomic `Action.execute(Entity→long)` flip
-   (interface + ~30 implementors, one commit). Full record + corrected sequence: the story doc § Phase D.
+   interface, gated bottom-up; sequential cascade, only the caller ripple fans out. **D7 SHIPPED
+   (`c296b13b`, 869 green):** the storage-core step — `UnitDestinationSpatialIndex` went id-native (new
+   `LongBucket` primitive-long store replacing `ArrayList<Entity>` buckets; `gather` now skips released
+   ids, since a released id's by-id reads are unsafe under slot reuse), unblocking the dest-index gate:
+   `DamageService.OccupancyApplier`/`applyOccupancyDelta` + `NavigationService` `setPath`/`clearPath`/
+   `applyOccupancyDeltaInline` internals → `long`. The `BattleSimulation.setPath(Entity)`/`clearPath(Entity)`
+   facade KEPT `Entity` (delegates `.entityId`), so the ~30 behavior callers don't move yet. Reopens
+   `systems-to-columns` (the id-native spatial-index work). **Next: the facade `setPath`/`clearPath` →
+   `long`** (ripples the ~30 behavior + 3 test callers to `.entityId`; the D1 `writeFallbackInline`
+   `getOrNull` follow-up rides along), then the atomic `Action.execute(Entity→long)` flip (interface + ~30
+   implementors, one commit). Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity (later storage
+   finale — the Option B/C scope). Full record + corrected sequence: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -221,6 +229,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+c296b13b ecs-migration: identity-collapse D7 - dest-index id-native; NavigationService setPath/clearPath internals -> long
 da6c022c ecs-migration: identity-collapse D6 - facade fire* + applyDamage front-door -> long
 51d6f1c  ecs-migration: identity-collapse D5 - weapon-fire methods -> long
 d6b61af2 ecs-migration: identity-collapse D4 - DamageService/HitResponse front-doors -> long
@@ -251,7 +260,7 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `da6c022c` (identity-collapse D6) or your own recent work at the top.
+- `git log --oneline -5` shows `c296b13b` (identity-collapse D7) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
@@ -270,11 +279,16 @@ goap, campaign) interleave on HEAD.
   `HeavyWeapons` fireMechWeapon ×2) → `long`. **D6 SHIPPED (`da6c022c`, 869 green):** the sim-facade
   `BattleControl` fireShot/fireSecondary/fireMechWeapon + the `BattleSimulation.applyDamage(Entity)`
   external front-door → `long` (pure passthrough; 5 prod callers + 34 test sites pass `.entityId`).
+  **D7 SHIPPED (`c296b13b`, 869 green):** the storage-core step — `UnitDestinationSpatialIndex` id-native
+  (new `LongBucket` primitive-long store; `gather` skips released ids), unblocking the dest-index gate:
+  `DamageService.OccupancyApplier`/`applyOccupancyDelta` + `NavigationService` setPath/clearPath internals
+  → `long`. The `BattleSimulation.setPath(Entity)`/`clearPath(Entity)` facade KEPT Entity (delegates
+  `.entityId`), so the ~30 behavior callers don't move yet. Reopens `systems-to-columns`.
   **SEQUENCING CORRECTION:** the behaviors share one atomic `Action.execute(Entity)` interface, gated
-  bottom-up — a sequential cascade, only the caller ripple fans out. **Next: the dest-index id-native
-  slice** (`applyOccupancyDelta`/`UnitDestinationSpatialIndex` → id-keyed), which unblocks
-  `setPath`/`clearPath` + the atomic `Action.execute(Entity→long)` flip.
-  [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  bottom-up — a sequential cascade, only the caller ripple fans out. **Next: the facade
+  `setPath`/`clearPath` → `long`** (ripples the ~30 behavior + 3 test callers to `.entityId`), then the
+  atomic `Action.execute(Entity→long)` flip. Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity
+  (later storage finale). [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -287,10 +301,11 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — the dest-index id-native slice**
-  (`applyOccupancyDelta`/`UnitDestinationSpatialIndex` → id-keyed), which unblocks
-  `setPath`/`clearPath` + the atomic `Action.execute(Entity→long)` flip. D0+D1 `240df7f9`; D2 `a782ad71`;
-  D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`.
+  playtest. **Next-up:** **identity-collapse Phase D — the facade `setPath`/`clearPath` → `long`**
+  (now that the dest-index is id-native as of D7): flip `BattleControl.setPath`/`clearPath` params →
+  `long`, rippling the ~30 behavior + 3 test callers to `.entityId`; then the atomic
+  `Action.execute(Entity→long)` flip. D0+D1 `240df7f9`; D2 `a782ad71`; D3 `14a6d774`; D4 `d6b61af2`;
+  D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`.
   Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
