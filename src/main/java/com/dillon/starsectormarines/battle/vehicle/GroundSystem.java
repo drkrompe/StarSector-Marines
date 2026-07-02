@@ -206,23 +206,7 @@ public class GroundSystem {
         int slot = type.capacity - m.marinesRemaining;
         MarineLoadout loadout = (m.marineLoadout != null && slot < m.marineLoadout.length)
                 ? m.marineLoadout[slot] : null;
-        if (loadout != null) {
-            marine.seedRole = loadout.role;
-            marine.seedAssignedObjective = loadout.objective;
-            if (loadout.primary != null) {
-                // Pre-allocate seed (marine not yet added to the registry).
-                marine.seedPrimaryWeapon = loadout.primary;
-                marine.seedAttackRange = loadout.primary.range;
-                marine.seedAttackDamage = loadout.primary.damage;
-                marine.seedAccuracy = loadout.primary.accuracy;
-                marine.seedAttackCooldown = loadout.primary.cooldown;
-            }
-            if (loadout.secondary != null && loadout.secondaryAmmo > 0) {
-                // Pre-allocate seed — allocate adds the SECONDARY_WEAPON component.
-                marine.seedSecondaryWeapon = loadout.secondary;
-                marine.seedSecondaryAmmo = loadout.secondaryAmmo;
-            }
-        }
+        if (loadout != null) loadout.seedInto(marine);
         if (m.squadId == Entity.NO_SQUAD) {
             m.squadId = roster.mintSquad(faction, marine);
         }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -42,5 +43,32 @@ public final class MarineLoadout {
         this.primary = primary;
         this.secondary = secondary;
         this.secondaryAmmo = secondaryAmmo;
+    }
+
+    /**
+     * Seeds a freshly-constructed (not-yet-allocated) deboard {@code marine} from
+     * this loadout: role + objective, and — when set — the primary weapon (with its
+     * range/damage/accuracy/cooldown stat block) and the secondary weapon + ammo.
+     * Writes the {@code seed*} fields directly, so call before
+     * {@code UnitRosterService.allocate} (the registry accessors can't route yet).
+     * The one shared deboard loadout path — both the air ({@code AirSystem}) and
+     * ground ({@code GroundSystem}) deboards call this so the seed sequence lives
+     * in one place. (The BFS free-cell search around each LZ stays a deliberate
+     * per-host copy.)
+     */
+    public void seedInto(Entity marine) {
+        marine.seedRole = role;
+        marine.seedAssignedObjective = objective;
+        if (primary != null) {
+            marine.seedPrimaryWeapon = primary;
+            marine.seedAttackRange = primary.range;
+            marine.seedAttackDamage = primary.damage;
+            marine.seedAccuracy = primary.accuracy;
+            marine.seedAttackCooldown = primary.cooldown;
+        }
+        if (secondary != null && secondaryAmmo > 0) {
+            marine.seedSecondaryWeapon = secondary;
+            marine.seedSecondaryAmmo = secondaryAmmo;
+        }
     }
 }
