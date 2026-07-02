@@ -2,7 +2,9 @@
 
 > **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
 > IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
-> D2 (`TacticalScoring` params) shipped `a782ad71`.**
+> D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
+> shipped `14a6d774`. NOTE: this stretch is a bottom-up cascade of sequential slices, NOT a
+> parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
 > **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
@@ -313,11 +315,34 @@ semantics minefield.
   Entity-keyed `AttackerIndexService`, finale scope). `TurretAim.State.excludeFromCrowding` field
   `Entity` → `long` (`null` → `0L` for shuttle turrets; `GroundSystem` defaults to `0L`). ~26
   behavior callers (infantry/mech/drone/turret/goap) + `TacticalScoringTest` pass `.entityId`.
-- **Next — behavior clusters:** infantry / mech·drone·turret / squad behaviors' remaining `Entity`
-  params → `long` (delegable to parallel Sonnets with the params-first recipe). Then sim facade +
-  air/vehicle/ui, then the finale (Entity-returning queries → `long`, roster `Entity[]` → `long[]`,
-  spatial indexes id-native, `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`, delete `Entity`,
-  clearPath → `long` + null-guard).
+- ~~**D3 · sim-facade `targetOf`/`advanceMovement` params**~~ — **SHIPPED (`14a6d774`; suite green,
+  869 tests).** The two `BattleView`/`BattleControl` facade methods that were *already id-native
+  underneath* → `long`: `targetOf(long)` (still RETURNS `Entity`) over `world.targetId(id)`,
+  `advanceMovement(long)` over `movement().advanceAlongPath(world, id, dt)` — zero resolve churn.
+  ~48 callers across goap/infantry/mech/drone/turret/ui pass `.entityId` (fanned out to 3 parallel
+  Sonnet passes over disjoint file groups).
+
+**SEQUENCING CORRECTION (discovered D3, 2026-07-02).** The "behavior clusters" are **not** an
+independent parallel fan-out. All ~30 behaviors implement one shared `Action.execute(Entity member,…)`
+interface (flipping it is a single *atomic* commit, not N independent ones), and that flip is **gated
+bottom-up**: `execute`'s `member` feeds `Entity`-taking `BattleControl` mutators (`setPath`,
+`fireSecondary`, …), which in turn delegate to `Entity`-taking leaf services (`NavigationService`,
+`InfantryWeapons`, `HeavyWeapons`). Flipping any upper layer before the one below it just re-resolves
+`long`→`Entity` at the boundary (backwards churn). So this stretch is a **bottom-up cascade of
+self-contained slices** (D2-cadence: flip the layer, callers pass `.entityId`, delegate the ripple),
+*not* parallel cluster-commits. The only parallelism available is delegating each slice's mechanical
+caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimulation` facade +
+`Action` interface, so the *slices* are sequential.
+- **Next — leaf services (bottom of the cascade):** `NavigationService.setPath`/`clearPath`,
+  `InfantryWeapons.fireShot`/`fireSecondary`, `HeavyWeapons.fireMechWeapon` params → `long` (each a
+  self-contained slice; callers = the facade wrappers + a few direct). Then the remaining facade
+  mutators (`setPath`/`clearPath`/`fireShot`/`fireSecondary`/`fireMechWeapon` on `BattleControl`,
+  now clean; `clearPath` also absorbs the D1 `writeFallbackInline` `getOrNull` follow-up) →
+  `mintSquad` (nullable leader→`0L`, with `SquadService`/roster) → the **atomic `Action.execute`
+  interface flip** (interface + all ~30 implementors + dispatcher + `AbstractZoneAction` + test anon
+  impls, one commit) → air/vehicle/ui → the finale (Entity-returning queries → `long`, roster
+  `Entity[]` → `long[]`, spatial indexes id-native, `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`,
+  delete `Entity`).
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 
