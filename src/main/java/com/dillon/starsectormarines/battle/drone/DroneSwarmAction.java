@@ -105,7 +105,7 @@ public final class DroneSwarmAction implements Action {
         s.originY = body.y;
         s.faction = member.faction;
         s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
-        s.excludeFromCrowding = member;
+        s.excludeFromCrowding = member.entityId;
         s.facingDegrees = body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
         s.attackRange = sim.world().attackRange(id);
@@ -269,7 +269,7 @@ public final class DroneSwarmAction implements Action {
         float dAir = sim.vision().airLosRadius(member.entityId);
         Entity candidate = sim.getTacticalScoring().findBestTarget(
                 sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), member.faction,
-                sim.squad().hasSquad(member.entityId) ? sim.squad().squadId(member.entityId) : Entity.NO_SQUAD, member, dAir);
+                sim.squad().hasSquad(member.entityId) ? sim.squad().squadId(member.entityId) : Entity.NO_SQUAD, member.entityId, dAir);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
                 sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));

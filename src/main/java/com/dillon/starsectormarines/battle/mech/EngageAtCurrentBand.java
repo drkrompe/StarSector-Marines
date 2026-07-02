@@ -50,7 +50,7 @@ public final class EngageAtCurrentBand implements Action {
 
     @Override
     public ActionStatus execute(Entity u, Squad squad, BattleControl sim) {
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u.entityId);
         sim.world().setTargetId(u.entityId, Entity.idOf(target));
         if (target == null) return ActionStatus.RUNNING;
 
@@ -75,7 +75,7 @@ public final class EngageAtCurrentBand implements Action {
         // indirect path above).
         boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
         if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(u.entityId, target.entityId);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.
                 // Drop and let the mech's per-tick target acquisition re-pick.

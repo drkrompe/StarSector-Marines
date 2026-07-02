@@ -133,8 +133,8 @@ public final class GarrisonCordon implements Action {
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
         Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return;

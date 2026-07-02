@@ -62,7 +62,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.originY = sim.world().cellY(id) + 0.5f;
         s.faction = u.faction;
         s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
-        s.excludeFromCrowding = u;
+        s.excludeFromCrowding = u.entityId;
         s.facingDegrees = turretState.facingDegrees(id);
         s.turnRateDegPerSec = kind.turnRateDegPerSec;
         s.attackRange = sim.world().attackRange(id);

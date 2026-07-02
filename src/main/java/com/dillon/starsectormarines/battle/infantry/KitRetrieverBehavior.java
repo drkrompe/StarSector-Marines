@@ -58,7 +58,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
     private static void fireOpportunistically(Entity u, BattleControl sim) {
         Entity target = sim.targetOf(u);
         if (target == null) {
-            target = sim.getTacticalScoring().findBestTarget(u);
+            target = sim.getTacticalScoring().findBestTarget(u.entityId);
             sim.world().setTargetId(u.entityId, Entity.idOf(target));
         }
         if (target == null) return;

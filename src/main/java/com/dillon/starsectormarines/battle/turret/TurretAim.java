@@ -40,8 +40,8 @@ public final class TurretAim {
         public Faction faction;
         /** Shooter squad id — feeds crowding logic. {@link Entity#NO_SQUAD} for turrets, which don't squad up. */
         public int squadId = Entity.NO_SQUAD;
-        /** If the shooter is itself a {@link Entity} on the units list, pass it here so target acquisition's crowding pass doesn't count self. {@code null} for non-Entity shooters. */
-        public Entity excludeFromCrowding;
+        /** If the shooter is itself an entity on the units list, pass its id here so target acquisition's crowding pass doesn't count self. {@code 0L} for non-entity shooters. */
+        public long excludeFromCrowding;
 
         /** Current barrel facing, degrees. Mutated by the slew each tick. */
         public float facingDegrees;

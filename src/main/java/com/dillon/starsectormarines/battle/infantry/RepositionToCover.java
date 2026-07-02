@@ -70,7 +70,7 @@ public final class RepositionToCover implements Action {
         Entity target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
-                member, target, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+                member.entityId, target.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         if (dest == null) return false;
         if (dest[0] == sim.world().cellX(member.entityId) && dest[1] == sim.world().cellY(member.entityId)) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

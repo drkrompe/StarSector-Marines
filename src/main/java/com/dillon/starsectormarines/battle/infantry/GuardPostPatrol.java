@@ -125,8 +125,8 @@ public final class GuardPostPatrol implements Action {
         }
 
         Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target != null) {
@@ -169,15 +169,15 @@ public final class GuardPostPatrol implements Action {
         }
 
         int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, anchorX, anchorY, leash);
+                member.entityId, target.entityId, anchorX, anchorY, leash);
         if (firingPos == null) {
             Entity alt = sim.getTacticalScoring().findEngageableEnemyWithin(
-                    member, anchorX, anchorY, leash);
+                    member.entityId, anchorX, anchorY, leash);
             if (alt != null) {
                 sim.world().setTargetId(member.entityId, Entity.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, anchorX, anchorY, leash);
+                        member.entityId, target.entityId, anchorX, anchorY, leash);
             }
         }
         if (firingPos == null || (firingPos[0] == sim.world().cellX(member.entityId) && firingPos[1] == sim.world().cellY(member.entityId))) {

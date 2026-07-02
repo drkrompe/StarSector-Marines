@@ -29,7 +29,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u.entityId);
         sim.world().setTargetId(u.entityId, Entity.idOf(target));
         if (target == null) return;
 
@@ -56,7 +56,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // path above).
         boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
         if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(u.entityId, target.entityId);
             if (dest == null) {
                 // No reachable firing or vantage cell. Drop the target; the
                 // mech's next acquisition cycle picks something it can engage.

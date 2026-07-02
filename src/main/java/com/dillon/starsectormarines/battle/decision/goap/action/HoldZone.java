@@ -177,9 +177,9 @@ public final class HoldZone extends AbstractZoneAction {
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = pickInZoneTarget(member, sim, enemy);
-            if (target == null) target = sim.getTacticalScoring().findBestTarget(member);
+            if (target == null) target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) {
@@ -209,7 +209,7 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
             if (dest == null) {
                 sim.world().setTargetId(member.entityId, 0L);
                 hold(member, sim);

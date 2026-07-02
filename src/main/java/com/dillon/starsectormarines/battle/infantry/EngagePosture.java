@@ -74,8 +74,8 @@ public final class EngagePosture implements Action {
         // no-target rather than charging in.
         Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
@@ -88,7 +88,7 @@ public final class EngagePosture implements Action {
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target,
+        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member.entityId, target.entityId,
                 sim.world().attackRange(member.entityId));
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
@@ -105,7 +105,7 @@ public final class EngagePosture implements Action {
                     && sim.world().secondaryCooldownTimer(mid) <= 0f
                     && TacticalScoring.isHardened(target.type)
                     && dist <= sim.world().secondaryWeapon(mid).range
-                    && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
+                    && sim.getTacticalScoring().shouldCommitRocket(member.entityId, target.entityId)) {
                 sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration);
                 sim.world().setSecondaryFired(mid, false);
                 sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
@@ -147,7 +147,7 @@ public final class EngagePosture implements Action {
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (sim.world().moveProgress(member.entityId) == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
+                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.

@@ -184,8 +184,8 @@ public final class PatrolMotion {
      */
     public static void fireIfAble(Entity member, BattleControl sim) {
         Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return;

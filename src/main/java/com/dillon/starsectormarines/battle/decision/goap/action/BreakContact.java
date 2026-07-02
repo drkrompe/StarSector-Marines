@@ -47,8 +47,8 @@ public final class BreakContact implements Action {
 
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
-            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member.entityId)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member.entityId);
             sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
         }
 
@@ -84,8 +84,8 @@ public final class BreakContact implements Action {
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
         Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return;

@@ -133,7 +133,7 @@ public final class BackstopAssignedSquad implements Action {
         // everything you have at whatever the marines are shooting at."
         Entity target = sim.targetOf(member);
         if (target == null) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target != null) {

@@ -125,7 +125,7 @@ public final class OverwatchKillZone implements Action {
         // LR mech parked at its overwatch cell can otherwise stay locked onto
         // an enemy that's slid behind cover while ignoring a fresh enemy now
         // standing in its kill lane.
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(member.entityId);
         sim.world().setTargetId(member.entityId, Entity.idOf(target));
         if (target != null) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

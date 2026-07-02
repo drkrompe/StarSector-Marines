@@ -89,8 +89,8 @@ abstract class AbstractZoneAction implements Action {
     protected final void advanceIntoZone(Entity member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
         Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
+        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
 
@@ -116,7 +116,7 @@ abstract class AbstractZoneAction implements Action {
             // zone push, the trigger just stops it being a sitting duck.
             // FiringSystem's beginBurst tracks the intent target, so the
             // follow-up burst tracks the enemy we shot, not the pursuit target.
-            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member.entityId);
             if (opportune != null) {
                 sim.combat().setFireIntent(member.entityId, Entity.idOf(opportune), FireStance.MOVING, false);
             }

@@ -83,10 +83,10 @@ public final class ClearZone extends AbstractZoneAction {
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             Entity inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
+            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.RUNNING;
@@ -115,7 +115,7 @@ public final class ClearZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
             int[] path = dest == null ? GridPathfinder.EMPTY_PATH
                     : GridPathfinder.findPath(sim.getGrid(),
                             sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

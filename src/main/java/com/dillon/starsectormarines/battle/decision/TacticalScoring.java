@@ -251,12 +251,12 @@ public final class TacticalScoring {
      * visible targets; falls back to nearest of any LOS so the unit pathfinds
      * toward them and visibility eventually opens.
      */
-    public Entity findBestTarget(Entity self) {
+    public Entity findBestTarget(long self) {
         World world = roster.world();
-        return findBestTarget(world.cellX(self.entityId), world.cellY(self.entityId),
-                self.faction,
-                roster.squad().hasSquad(self.entityId) ? roster.squad().squadId(self.entityId) : Entity.NO_SQUAD,
-                self, roster.vision().airLosRadius(self.entityId));
+        return findBestTarget(world.cellX(self), world.cellY(self),
+                roster.identity().faction(self),
+                roster.squad().hasSquad(self) ? roster.squad().squadId(self) : Entity.NO_SQUAD,
+                self, roster.vision().airLosRadius(self));
     }
 
     /**
@@ -278,15 +278,15 @@ public final class TacticalScoring {
      * returned target because the per-weapon fire gate handles that downstream;
      * we only ask "is the current pick clearly the wrong choice right now?".
      */
-    public Entity refreshTargetIfNotShootable(Entity self) {
+    public Entity refreshTargetIfNotShootable(long self) {
         World world = roster.world();
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        Entity cur = roster.getOrNull(world.targetId(self.entityId));
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        Entity cur = roster.getOrNull(world.targetId(self));
         if (cur != null) {
             int cx = world.cellX(cur.entityId);
             int cy = world.cellY(cur.entityId);
-            if (cellDistance(sx, sy, cx, cy) <= world.attackRange(self.entityId)
+            if (cellDistance(sx, sy, cx, cy) <= world.attackRange(self)
                     && grid.hasLineOfSight(sx, sy, cx, cy)) {
                 return cur;
             }
@@ -303,7 +303,7 @@ public final class TacticalScoring {
      * when the caller doesn't squad up and isn't itself in the unit list.
      */
     public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, Entity excludeFromCrowding) {
+                                 int selfSquadId, long excludeFromCrowding) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
                 0f);
     }
@@ -344,7 +344,7 @@ public final class TacticalScoring {
      * caller treats null as "hold position, no target."
      */
     public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, Entity excludeFromCrowding,
+                                 int selfSquadId, long excludeFromCrowding,
                                  float shooterAirRadius) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
                 excludeFromCrowding, shooterAirRadius, /*allowNoLos*/ false);
@@ -360,7 +360,7 @@ public final class TacticalScoring {
      * enemy for the path-toward-them fallback.
      */
     public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, Entity excludeFromCrowding,
+                                 int selfSquadId, long excludeFromCrowding,
                                  float shooterAirRadius, boolean allowNoLos) {
         long _profT0 = System.nanoTime();
         try {
@@ -373,7 +373,7 @@ public final class TacticalScoring {
     }
 
     private Entity findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
-                                      int selfSquadId, Entity excludeFromCrowding,
+                                      int selfSquadId, long excludeFromCrowding,
                                       float shooterAirRadius, boolean allowNoLos) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
         // excludes released slots (no isAlive() filter inside the loop).
@@ -443,19 +443,19 @@ public final class TacticalScoring {
      * a strong negative adjustment (bonus); rifles (0.3×) earn a positive one
      * (penalty). Soft targets are baseline (no adjustment).
      *
-     * <p>{@code self} is nullable for non-Entity callers (shuttle / static
+     * <p>{@code self} is {@code 0L} for non-combatant callers (shuttle / static
      * turrets) — they get no affinity term.
      */
-    private float scoreWeaponAffinity(Entity self, Entity target) {
-        if (self == null) return 0f;
+    private float scoreWeaponAffinity(long self, Entity target) {
+        if (self == 0L) return 0f;
         if (!isHardened(target.type)) return 0f;
         World world = roster.world();
-        // self is the scoring combatant (non-Entity callers returned above), so its
+        // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
-        MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self.entityId);
+        MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
         float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult : 0.3f;
-        float secondary = (world.hasSecondaryWeapon(self.entityId) && world.secondaryAmmo(self.entityId) > 0)
-                ? world.secondaryWeapon(self.entityId).vsTurretMult : 0f;
+        float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
+                ? world.secondaryWeapon(self).vsTurretMult : 0f;
         float bestMult = Math.max(primary, secondary);
         return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
     }
@@ -497,11 +497,11 @@ public final class TacticalScoring {
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public boolean canRocketTarget(Entity shooter, Entity target) {
+    public boolean canRocketTarget(long shooter, long target) {
         World world = roster.world();
-        return isHardened(target.type)
-                && world.hasSecondaryWeapon(shooter.entityId)
-                && world.secondaryAmmo(shooter.entityId) > 0;
+        return isHardened(roster.identity().type(target))
+                && world.hasSecondaryWeapon(shooter)
+                && world.secondaryAmmo(shooter) > 0;
     }
 
     /**
@@ -512,10 +512,10 @@ public final class TacticalScoring {
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
-    public float effectiveAttackRange(Entity shooter, Entity target, float shooterAttackRange) {
+    public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
         if (canRocketTarget(shooter, target)) {
             World world = roster.world();
-            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter.entityId).range);
+            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range);
         }
         return shooterAttackRange;
     }
@@ -537,12 +537,12 @@ public final class TacticalScoring {
      * re-checking on a later tick (after his own cooldown) isn't blocked by
      * his own prior contribution.
      */
-    public boolean shouldCommitRocket(Entity shooter, Entity target) {
+    public boolean shouldCommitRocket(long shooter, long target) {
         World world = roster.world();
-        if (!world.hasSecondaryWeapon(shooter.entityId) || world.secondaryAmmo(shooter.entityId) <= 0) return false;
-        if (target == null || !roster.isAliveById(target.entityId)) return false;
+        if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
+        if (target == 0L || !roster.isAliveById(target)) return false;
         return projectedRocketDamageOnTarget(shooter, target)
-                < world.hp(target.entityId);
+                < world.hp(target);
     }
 
     /**
@@ -562,18 +562,18 @@ public final class TacticalScoring {
      * the faction match. The squad-aim-window pre-fire half above remains
      * squadId-gated so a sibling squad's pre-launch aim isn't double-counted.
      */
-    private float projectedRocketDamageOnTarget(Entity shooter, Entity target) {
+    private float projectedRocketDamageOnTarget(long shooter, long target) {
         World world = roster.world();
         float total = 0f;
-        if (roster.squad().hasSquad(shooter.entityId)) {
-            int shooterSquadId = roster.squad().squadId(shooter.entityId);
+        if (roster.squad().hasSquad(shooter)) {
+            int shooterSquadId = roster.squad().squadId(shooter);
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 Entity u = roster.get(i);
-                if (u == shooter) continue;
+                if (u.entityId == shooter) continue;
                 if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != shooterSquadId) continue;
                 if (!world.hasSecondaryWeapon(u.entityId)) continue;
                 if (world.secondaryActionTimer(u.entityId) <= 0f) continue;
-                if (world.secondaryAimTargetId(u.entityId) != target.entityId) continue;
+                if (world.secondaryAimTargetId(u.entityId) != target) continue;
                 MarineSecondary sw = world.secondaryWeapon(u.entityId);
                 total += sw.damage * sw.vsTurretMult;
             }
@@ -586,10 +586,11 @@ public final class TacticalScoring {
         // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
         // live projectile list while another worker may queueProjectile.
         // Mirrors the legacy snapshotInflightDetonations path.
-        float targetCx = world.cellX(target.entityId) + 0.5f;
-        float targetCy = world.cellY(target.entityId) + 0.5f;
+        float targetCx = world.cellX(target) + 0.5f;
+        float targetCy = world.cellY(target) + 0.5f;
+        Faction shooterFaction = roster.identity().faction(shooter);
         for (Projectile p : shots.snapshotActiveProjectiles()) {
-            if (p.shooterFaction != shooter.faction) continue;
+            if (p.shooterFaction != shooterFaction) continue;
             PendingDetonation det = p.onArrival;
             if (det == null) continue;
             float dx = targetCx - det.endpointX;
@@ -652,16 +653,17 @@ public final class TacticalScoring {
      *       to prevent chasing a fleer into their squad.</li>
      * </ul>
      */
-    public boolean shouldKeepPursuing(Entity self, Entity currentTarget) {
+    public boolean shouldKeepPursuing(long self, long currentTarget) {
         World world = roster.world();
-        if (currentTarget == null || !roster.isAliveById(currentTarget.entityId)) return false;
+        if (currentTarget == 0L || !roster.isAliveById(currentTarget)) return false;
         VisionService vision = roster.vision();
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        int tx = world.cellX(currentTarget.entityId);
-        int ty = world.cellY(currentTarget.entityId);
+        Faction selfFaction = roster.identity().faction(self);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        int tx = world.cellX(currentTarget);
+        int ty = world.cellY(currentTarget);
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
-                vision.airLosRadius(self.entityId), vision.airLosRadius(currentTarget.entityId));
+                vision.airLosRadius(self), vision.airLosRadius(currentTarget));
 
         // "Meaningfully closer visible enemy" check — runs whether or not the
         // current target is visible. If current is invisible and a visible
@@ -690,8 +692,8 @@ public final class TacticalScoring {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity other = dense[i];
-            if (other == currentTarget) continue;
-            if (other.faction == self.faction) continue;
+            if (other.entityId == currentTarget) continue;
+            if (other.faction == selfFaction) continue;
             if (!other.type.combatant) continue;
             int dx = world.cellX(other.entityId) - tx;
             int dy = world.cellY(other.entityId) - ty;
@@ -709,21 +711,22 @@ public final class TacticalScoring {
      * "closer visible target appeared" check. Linear scan; the caller pays
      * once per posture tick.
      */
-    private Entity closestVisibleOtherEnemy(Entity self, Entity exclude) {
+    private Entity closestVisibleOtherEnemy(long self, long exclude) {
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
 
         World world = roster.world();
         VisionService vision = roster.vision();
+        Faction selfFaction = roster.identity().faction(self);
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        float selfAir = vision.airLosRadius(self.entityId);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        float selfAir = vision.airLosRadius(self);
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            if (u == exclude || u == self) continue;
-            if (u.faction == self.faction || !u.type.combatant) continue;
+            if (u.entityId == exclude || u.entityId == self) continue;
+            if (u.faction == selfFaction || !u.type.combatant) continue;
             int ux = world.cellX(u.entityId);
             int uy = world.cellY(u.entityId);
             if (!canSeePair(grid, sx, sy, ux, uy,
@@ -752,13 +755,14 @@ public final class TacticalScoring {
      * off the heavier {@link #findBestTarget} scoring path. Cheap distance and
      * range tests gate the per-candidate LoS raycast.
      */
-    public Entity closestEnemyInAttackRange(Entity self) {
+    public Entity closestEnemyInAttackRange(long self) {
         World world = roster.world();
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        float range = world.attackRange(self.entityId);
+        Faction selfFaction = roster.identity().faction(self);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        float range = world.attackRange(self);
         VisionService vision = roster.vision();
-        float selfAir = vision.airLosRadius(self.entityId);
+        float selfAir = vision.airLosRadius(self);
 
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
@@ -767,7 +771,7 @@ public final class TacticalScoring {
         float bestDist = Float.MAX_VALUE;
         for (int i = 0; i < liveCount; i++) {
             Entity other = dense[i];
-            if (other.faction == self.faction) continue;
+            if (other.faction == selfFaction) continue;
             if (!other.type.combatant) continue;
             int ox = world.cellX(other.entityId);
             int oy = world.cellY(other.entityId);
@@ -789,13 +793,13 @@ public final class TacticalScoring {
      * target-selection cost drops from O(U³) to O(U² + U·L).
      */
     private float scoreCrowding(Faction selfFaction, int selfSquadId, Entity target,
-                                Entity exclude) {
+                                long exclude) {
         java.util.ArrayList<Entity> attackers = attackerIndex.getAttackersOf(target);
         if (attackers == null) return 0f;
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
             Entity u = attackers.get(i);
-            if (u == exclude || !roster.isAliveById(u.entityId)) continue;
+            if (u.entityId == exclude || !roster.isAliveById(u.entityId)) continue;
             if (u.faction != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
             if (selfSquadId != Entity.NO_SQUAD && roster.squad().hasSquad(u.entityId)
@@ -828,7 +832,7 @@ public final class TacticalScoring {
      * walk to. Callers treat null as "drop the target and re-acquire," not
      * "stand still."
      */
-    public int[] findFiringPosition(Entity self, Entity target) {
+    public int[] findFiringPosition(long self, long target) {
         return findFiringPosition(self, target, Integer.MIN_VALUE, Integer.MIN_VALUE);
     }
 
@@ -853,7 +857,7 @@ public final class TacticalScoring {
      * plus at most a couple of pathfinds; invoke only when a cheaper "is anyone
      * even here" gate (e.g. zone-clear) has already passed.
      */
-    public boolean hasReachableFiringSpot(Entity self, Entity target) {
+    public boolean hasReachableFiringSpot(long self, long target) {
         int[] spot = findFiringPosition(self, target);
         if (spot == null) return false;
         // A stage-2 vantage is already reachability-checked, so this pathfind
@@ -861,7 +865,7 @@ public final class TacticalScoring {
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
         World world = roster.world();
-        int[] path = GridPathfinder.findPath(grid, world.cellX(self.entityId), world.cellY(self.entityId), spot[0], spot[1]);
+        int[] path = GridPathfinder.findPath(grid, world.cellX(self), world.cellY(self), spot[0], spot[1]);
         if (path.length > 0) return true;
         return pickReachableVantage(self, target) != null;
     }
@@ -896,15 +900,16 @@ public final class TacticalScoring {
      * invoke this in the fallback path — when {@link #findFiringPositionWithin}
      * for the current target has already returned null.
      */
-    public Entity findEngageableEnemyWithin(Entity self,
+    public Entity findEngageableEnemyWithin(long self,
                                             int anchorX, int anchorY,
                                             float maxDistFromAnchor) {
         World world = roster.world();
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        float maxWeaponReach = world.attackRange(self.entityId);
-        if (world.hasSecondaryWeapon(self.entityId) && world.secondaryAmmo(self.entityId) > 0) {
-            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self.entityId).range);
+        Faction selfFaction = roster.identity().faction(self);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        float maxWeaponReach = world.attackRange(self);
+        if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
+            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range);
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         ArrayList<Entity> scratch = new ArrayList<>();
@@ -914,8 +919,8 @@ public final class TacticalScoring {
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity enemy = scratch.get(i);
             if (!roster.isAliveById(enemy.entityId) || !enemy.type.combatant) continue;
-            if (enemy.faction == self.faction) continue;
-            int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
+            if (enemy.faction == selfFaction) continue;
+            int[] pos = findFiringPositionWithin(self, enemy.entityId, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
             float d = cellDistance(sx, sy, world.cellX(enemy.entityId), world.cellY(enemy.entityId));
             if (d < bestDist) {
@@ -944,7 +949,7 @@ public final class TacticalScoring {
         return count;
     }
 
-    public int[] findFiringPositionWithin(Entity self, Entity target,
+    public int[] findFiringPositionWithin(long self, long target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
         long _profT0 = System.nanoTime();
         try {
@@ -955,23 +960,23 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionWithinImpl(Entity self, Entity target,
+    private int[] findFiringPositionWithinImpl(long self, long target,
                                                int anchorX, int anchorY, float maxDistFromAnchor) {
 
         World world = roster.world();
-        int tx = world.cellX(target.entityId);
-        int ty = world.cellY(target.entityId);
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
+        int tx = world.cellX(target);
+        int ty = world.cellY(target);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
         VisionService vision = roster.vision();
-        float selfAir = vision.airLosRadius(self.entityId);
-        float targetAir = vision.airLosRadius(target.entityId);
+        float selfAir = vision.airLosRadius(self);
+        float targetAir = vision.airLosRadius(target);
 
         // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
         // otherwise an out-of-rifle-range marine paths into rifle range before
         // ever firing the rocket. Inner range check uses the same effective
         // range so candidate cells are valid for whatever weapon will fire.
-        float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self.entityId));
+        float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self));
         int range = Math.max(1, (int) Math.floor(effectiveRange));
 
         int[] best = null;
@@ -1011,7 +1016,7 @@ public final class TacticalScoring {
         return best;
     }
 
-    public int[] findFiringPosition(Entity self, Entity target, int rejectX, int rejectY) {
+    public int[] findFiringPosition(long self, long target, int rejectX, int rejectY) {
         long _profT0 = System.nanoTime();
         try {
             return findFiringPositionImpl(self, target, rejectX, rejectY);
@@ -1021,19 +1026,19 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionImpl(Entity self, Entity target, int rejectX, int rejectY) {
+    private int[] findFiringPositionImpl(long self, long target, int rejectX, int rejectY) {
 
         World world = roster.world();
-        int tx = world.cellX(target.entityId);
-        int ty = world.cellY(target.entityId);
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
+        int tx = world.cellX(target);
+        int ty = world.cellY(target);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
         VisionService vision = roster.vision();
-        float selfAir = vision.airLosRadius(self.entityId);
-        float targetAir = vision.airLosRadius(target.entityId);
+        float selfAir = vision.airLosRadius(self);
+        float targetAir = vision.airLosRadius(target);
 
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
-        float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self.entityId));
+        float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self));
         int range = Math.max(1, (int) Math.floor(effectiveRange));
 
         int[] best = null;
@@ -1090,13 +1095,13 @@ public final class TacticalScoring {
      * Caller treats null as "no engageable cell from here," typically by
      * dropping the target.
      */
-    private int[] pickReachableVantage(Entity self, Entity target) {
+    private int[] pickReachableVantage(long self, long target) {
         World world = roster.world();
-        int[][] vantages = nav.getVantagePointsFor(world.cellX(target.entityId), world.cellY(target.entityId));
+        int[][] vantages = nav.getVantagePointsFor(world.cellX(target), world.cellY(target));
         if (vantages.length == 0) return null;
 
-        int selfCellX = world.cellX(self.entityId);
-        int selfCellY = world.cellY(self.entityId);
+        int selfCellX = world.cellX(self);
+        int selfCellY = world.cellY(self);
         int n = vantages.length;
         // Sort by Euclidean distance from self. n is bounded by
         // (2 * MAX_VANTAGE_SEARCH_RADIUS + 1)^2 ≈ 1681 worst case but usually
@@ -1234,7 +1239,7 @@ public final class TacticalScoring {
      * equal cover. That's the "MG-in-heavy-cover stays cozy" half of Story G,
      * paired with the cooldown gate inside RepositionToCover.
      */
-    public int[] findFiringPositionCoverPreferred(Entity self, Entity target,
+    public int[] findFiringPositionCoverPreferred(long self, long target,
                                                   int rejectX, int rejectY) {
         long _profT0 = System.nanoTime();
         try {
@@ -1245,19 +1250,19 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionCoverPreferredImpl(Entity self, Entity target,
+    private int[] findFiringPositionCoverPreferredImpl(long self, long target,
                                                        int rejectX, int rejectY) {
 
         World world = roster.world();
-        int tx = world.cellX(target.entityId);
-        int ty = world.cellY(target.entityId);
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
-        float selfRange = world.attackRange(self.entityId);
+        int tx = world.cellX(target);
+        int ty = world.cellY(target);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        float selfRange = world.attackRange(self);
         int range = Math.max(1, (int) Math.floor(selfRange));
         VisionService vision = roster.vision();
-        float selfAir = vision.airLosRadius(self.entityId);
-        float targetAir = vision.airLosRadius(target.entityId);
+        float selfAir = vision.airLosRadius(self);
+        float targetAir = vision.airLosRadius(target);
         // Self's current cover against the target — per-facing, so a
         // marine already in heavy cover from this threat direction won't
         // downgrade to a cell that lacks that specific facing.
@@ -1363,7 +1368,7 @@ public final class TacticalScoring {
      * other reachable candidate exists — caller treats that as "don't
      * enter fall-back."
      */
-    public int[] findFallbackPosition(Entity self) {
+    public int[] findFallbackPosition(long self) {
         long _profT0 = System.nanoTime();
         try {
             return findFallbackPositionImpl(self);
@@ -1373,12 +1378,13 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFallbackPositionImpl(Entity self) {
+    private int[] findFallbackPositionImpl(long self) {
 
         World world = roster.world();
+        Faction selfFaction = roster.identity().faction(self);
         ZoneGraph zones = zoneGraph;
-        int sx = world.cellX(self.entityId);
-        int sy = world.cellY(self.entityId);
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
         int[] zoneControl = computeZoneControl(self);
 
         int[] threatRef = averageEnemyCell(self);
@@ -1387,7 +1393,7 @@ public final class TacticalScoring {
 
         int scanRange = Math.max(FALLBACK_SCAN_RANGE_MIN,
                        Math.min(FALLBACK_SCAN_RANGE_MAX,
-                                Math.round(roster.movement().moveSpeed(self.entityId) * FALLBACK_SCAN_SECONDS)));
+                                Math.round(roster.movement().moveSpeed(self) * FALLBACK_SCAN_SECONDS)));
 
         // Pre-gather every enemy that could threaten any candidate cell, once.
         // The radius bound is "candidate-furthest-from-self" + "enemy with the
@@ -1397,7 +1403,7 @@ public final class TacticalScoring {
         // where K is the nearby-enemy count.
         ArrayList<Entity> threats = new ArrayList<>();
         unitIndex.gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
-        filterEnemyCombatants(threats, self.faction);
+        filterEnemyCombatants(threats, selfFaction);
         // Project the threat set into parallel SoA columns once, so the
         // per-candidate exposure check reads plain arrays — no registry probe
         // inside the ~1089-candidate scan (cache-locality guardrail).
@@ -1506,16 +1512,17 @@ public final class TacticalScoring {
      * null} when there are no enemies. Used as the "don't march toward this"
      * reference for cardinal-neighbor ordering in fall-back consolation.
      */
-    private int[] averageEnemyCell(Entity self) {
+    private int[] averageEnemyCell(long self) {
         float sumX = 0f, sumY = 0f;
         int count = 0;
 
         World world = roster.world();
+        Faction selfFaction = roster.identity().faction(self);
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            if (u.faction == self.faction) continue;
+            if (u.faction == selfFaction) continue;
             if (!u.type.combatant) continue;
             sumX += world.cellX(u.entityId);
             sumY += world.cellY(u.entityId);
@@ -1532,8 +1539,9 @@ public final class TacticalScoring {
      * scan does at most O(zones + units) work instead of re-scanning units
      * per cell.
      */
-    private int[] computeZoneControl(Entity self) {
+    private int[] computeZoneControl(long self) {
         World world = roster.world();
+        Faction selfFaction = roster.identity().faction(self);
         ZoneGraph zones = zoneGraph;
         int[] control = new int[zones.getZones().size()];
 
@@ -1543,7 +1551,7 @@ public final class TacticalScoring {
             Entity u = dense[i];
             int zid = zones.zoneIdAt(world.cellX(u.entityId), world.cellY(u.entityId));
             if (zid < 0 || zid >= control.length) continue;
-            control[zid] += (u.faction == self.faction) ? 1 : -1;
+            control[zid] += (u.faction == selfFaction) ? 1 : -1;
         }
         return control;
     }
@@ -1560,14 +1568,15 @@ public final class TacticalScoring {
      * {@link #MAX_PLAUSIBLE_ATTACK_RANGE} of ({@code cx}, {@code cy}). Anyone
      * farther can't threaten the cell by construction.
      */
-    public boolean isHiddenFromAllEnemies(Entity self, int cx, int cy) {
+    public boolean isHiddenFromAllEnemies(long self, int cx, int cy) {
 
         World world = roster.world();
+        Faction selfFaction = roster.identity().faction(self);
         ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity other = scratch.get(i);
-            if (other.faction == self.faction) continue;
+            if (other.faction == selfFaction) continue;
             if (!other.type.combatant) continue;
             if (grid.hasLineOfSightWithin(cx, cy, world.cellX(other.entityId), world.cellY(other.entityId),
                     world.attackRange(other.entityId))) return false;
@@ -1594,10 +1603,10 @@ public final class TacticalScoring {
      * this check: once the cached cell drifted into enemy LoS the unit
      * was glued to it.
      */
-    public boolean fallbackDestinationNeedsRefresh(Entity member) {
+    public boolean fallbackDestinationNeedsRefresh(long member) {
         World world = roster.world();
-        int fx = world.fallbackCellX(member.entityId);
-        int fy = world.fallbackCellY(member.entityId);
+        int fx = world.fallbackCellX(member);
+        int fy = world.fallbackCellY(member);
         if (fx < 0 || fy < 0) return true;
         return !isHiddenFromAllEnemies(member, fx, fy);
     }
@@ -1618,10 +1627,10 @@ public final class TacticalScoring {
      * {@link #findFallbackPosition} uses the {@code threats}-list overload
      * to avoid re-gathering inside the cell loop.
      */
-    public int countEnemiesWithLos(Entity self, int cx, int cy) {
+    public int countEnemiesWithLos(long self, int cx, int cy) {
         ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
-        filterEnemyCombatants(scratch, self.faction);
+        filterEnemyCombatants(scratch, roster.identity().faction(self));
         int n = scratch.size();
         int[] tcx = new int[n];
         int[] tcy = new int[n];
@@ -1708,8 +1717,9 @@ public final class TacticalScoring {
      * the dest index drops it to the same O(units-with-path-near-radius)
      * complexity as Pass 1.
      */
-    public int alliesNearForSpread(Entity self, int cx, int cy) {
+    public int alliesNearForSpread(long self, int cx, int cy) {
         World world = roster.world();
+        Faction selfFaction = roster.identity().faction(self);
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
         ArrayList<Entity> scratch = new ArrayList<>();
@@ -1717,7 +1727,7 @@ public final class TacticalScoring {
         unitIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity u = scratch.get(i);
-            if (u == self || u.faction != self.faction) continue;
+            if (u.entityId == self || u.faction != selfFaction) continue;
             count++;
         }
         // Pass 2 — units whose path DESTINATION is in the spread radius.
@@ -1728,7 +1738,7 @@ public final class TacticalScoring {
         destIndex.gather(roster, cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity u = scratch.get(i);
-            if (u == self || u.faction != self.faction) continue;
+            if (u.entityId == self || u.faction != selfFaction) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
             // index resolve is decision-cadence, not a hot bulk loop.
@@ -1745,13 +1755,13 @@ public final class TacticalScoring {
      * (current cell + path destination). Used so a unit doesn't penalize
      * itself when scoring its own current/intended position.
      */
-    public int occupantsExcludingSelf(Entity self, int selfCellX, int selfCellY, int cx, int cy) {
+    public int occupantsExcludingSelf(long self, int selfCellX, int selfCellY, int cx, int cy) {
 
         if (!grid.inBounds(cx, cy)) return 0;
         int n = occupancyMap[cy * grid.getWidth() + cx] & 0xFF;
         if (cx == selfCellX && cy == selfCellY) n--;
         World world = roster.world();
-        int[] path = world.path(self.entityId);
+        int[] path = world.path(self);
         int cells = Paths.cellCount(path);
         if (cells > 0) {
             int destX = Paths.cellX(path, cells - 1);

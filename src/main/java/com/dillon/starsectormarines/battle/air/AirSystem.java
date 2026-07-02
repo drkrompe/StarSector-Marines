@@ -559,7 +559,7 @@ public class AirSystem {
                 aim.originY = worldY;
                 aim.faction = faction;
                 aim.squadId = Entity.NO_SQUAD;
-                aim.excludeFromCrowding = null;
+                aim.excludeFromCrowding = 0L;
                 aim.facingDegrees = mt.facingDegrees;
                 aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
                 aim.attackRange = mt.mount.kind.range;
