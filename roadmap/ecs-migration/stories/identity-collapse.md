@@ -4,7 +4,8 @@
 > IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
 > D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
 > shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`; D5
-> (weapon-fire methods) shipped `51d6f1c`. NOTE: this stretch is a bottom-up cascade of sequential
+> (weapon-fire methods) shipped `51d6f1c`; D6 (sim-facade `fire*` + `applyDamage(Entity)` front-door)
+> shipped `da6c022c`. NOTE: this stretch is a bottom-up cascade of sequential
 > slices, NOT a parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
@@ -348,12 +349,15 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   (unblocked by D4; `shooter.type`/`faction` cached via `roster.identity()`, `UnitType`/`Faction`
   imports added; internal burst/salvo tick continuations + the `BattleSimulation` facade wrappers pass
   `.entityId`).
-- **Next — facade `fire*` + external damage front-door:** `BattleControl.fireShot` (×2) /
-  `fireSecondary` / `fireMechWeapon` (×2) params → `long` (impls now delegate to long-native
-  `InfantryWeapons`/`HeavyWeapons`; callers = the few direct `sim.fire*` sites), and the
-  `BattleSimulation.applyDamage(Entity)` external-damage front-door (its `damageService.applyDamage`
-  call went long-native in D4).
-- **Dest-index-gated (its own slice, NOT the tail finale):** `setPath`/`clearPath` feed
+- ~~**D6 · facade `fire*` + external damage front-door**~~ — **SHIPPED (`da6c022c`; suite green, 869
+  tests).** `BattleControl.fireShot` (×2) / `fireSecondary` / `fireMechWeapon` (×2) params → `long`
+  (impls delegate to the long-native `InfantryWeapons`/`HeavyWeapons`, dropping the `.entityId`
+  extraction — a pure passthrough), and the `BattleSimulation.applyDamage(Entity)` (×2) external-damage
+  front-door → `long` (its `damageService.applyDamage` call went long-native in D4; callers are
+  test-only now — the flyby strafing path routes elsewhere). A symmetric **60/60** diff, zero logic
+  change: 5 production `sim.fire*` sites + 34 `applyDamage` test sites append `.entityId`; 2 stale
+  `{@link …(Entity,…)}` Javadoc refs (`fireShot`, `MechSurviveContact`→`applyDamage`) fixed to `long`.
+- **Next — the dest-index id-native slice** (its own slice, NOT the tail finale): `setPath`/`clearPath` feed
   `DamageService.applyOccupancyDelta(Entity u,…)` → the `UnitDestinationSpatialIndex` (reference-identity
   `remove`). They — and the `Action.execute(Entity member)` interface flip, whose bodies call
   `sim.setPath(member,…)` — can't cleanly go `long` until the **dest-index goes id-native** (the
