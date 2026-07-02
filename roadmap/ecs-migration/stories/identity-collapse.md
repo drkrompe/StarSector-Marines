@@ -1,7 +1,10 @@
 # Identity-collapse — dissolve the `Entity` handle into a bare `long` id
 
-> **Status: DESIGN (2026-07-01, picked up). Recon COMPLETE (3 parallel agents — full
-> tabulations in session). Scope decision PENDING (see § Scope decision). No code yet.**
+> **Status: ACTIVE (2026-07-01). Recon COMPLETE (3 parallel agents — full tabulations in
+> session). Scope DECIDED: value-first sequencing — do A → B (+ C) this arc; **Phase D
+> (the bare-`long` sweep) is committed, not optional — deferred to a follow-up session.**
+> The endgame is still `entity = long` everywhere. Proving slice: B1 (DroneHubUnit →
+> `HUB_STATE`).**
 > The last open ECS-migration epic that touches the identity layer: turn `Entity` from a
 > ~305-line heap object held in the roster's `Entity[]` into a bare `long` id, so
 > `entity = id` is literally true everywhere. The spatial index goes id-native as a
@@ -122,14 +125,16 @@ After B: no `Entity` subclasses, no live state outside components, no state-reac
 Dedupe the deboard loadout. Absorb test churn with a shared `spawn(sim, spec)` helper (and/or a
 transitional `addUnit(Entity)` adapter kept until Phase D). Subclass ctors become spec factories.
 
-**Phase D — the bare-`long` handle sweep.** Roster dense `Entity[]` → `long[]`; the resolve layer
+**Phase D — the bare-`long` handle sweep.** **Committed, not optional — deferred to a follow-up
+session** (its own multi-session arc). Roster dense `Entity[]` → `long[]`; the resolve layer
 (`getOrNull`/`resolveUnit`/`targetOf`/`findBestTarget`/`DeathEvent.unit()`) returns `long`; every
 `Entity` param → `long`; every `.entityId`/identity read → by-id/service. Sliceable package-by-package:
 combat → decision/`TacticalScoring` → infantry/mech/drone behaviors → sim facade → ~55 test files.
 The spatial indexes go id-native here — **which is where [`systems-to-columns`](systems-to-columns.md)
-reopens.** ~150–200 files; mechanical.
+reopens.** ~150–200 files; mechanical. This is the phase that literally makes `entity = long`; A→C
+are the prerequisites that let it be a clean mechanical sweep instead of a semantics minefield.
 
-## Scope decision (PENDING — the fork worth your call)
+## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 
 The value is **front-loaded**: Phase B is the genuine structural win (last live state into components,
 `instanceof` branching gone, subclasses dissolved). Phase D is ~150–200 files of mechanical churn
@@ -137,16 +142,12 @@ whose payoff is *idiom-completion* — the perf case was already measured at ~0.
 ([`phase0-measurement.md`](../phase0-measurement.md)), so D is "entity = long everywhere," not speed.
 Phase B is a prerequisite for D regardless (can't collapse a still-subclassed `Drone`).
 
-Three defensible stopping lines:
-1. **Full arc (A → D)** — end at bare `long` everywhere; spatial index id-native; systems-to-columns
-   reopens. The backlog-literal target. Multi-session; the largest remaining ECS-migration commitment.
-2. **Value-first (A → B, optionally C)** — dissolve the subclasses + side-quests (the real ECS win),
-   land a spawn-spec, and treat Phase D as a separate optional later mechanical pass. Stops before the
-   200-file churn while capturing everything structurally valuable.
-3. **Proving slice (B1 only)** — componentize `DroneHubUnit`, then reassess appetite with a concrete feel.
-
-`B1` (DroneHubUnit → `HUB_STATE`) is on the critical path of **every** option that does anything, so
-it is the correct first slice regardless of where the line lands.
+**Decision (user, 2026-07-01):** sequence **value-first — do A → B (+ C) this arc — and defer the
+Phase-D bare-`long` sweep to a follow-up session.** Phase D is **not dropped/optional**: the committed
+endgame is `entity = long` everywhere. It is deferred so the high-value structural work (dissolving the
+subclasses, killing the last live state outside components, landing a spawn-spec) lands first, which
+turns the eventual D sweep into a clean mechanical pass rather than a semantics minefield. `B1`
+(DroneHubUnit → `HUB_STATE`) is the proving slice — on the critical path of every phase.
 
 ## Sequencing & risks
 
