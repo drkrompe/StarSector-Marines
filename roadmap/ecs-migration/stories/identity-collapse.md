@@ -136,7 +136,7 @@ can't serve.
   its burst through `TurretBehavior`'s *turret* `fireShotFrom` pipeline (scatter/AoE/raycast per
   `TurretKind`), so writing the COMBAT columns would double-process a turret burst through the wrong
   pipeline. `demolished` → a `LongOpenHashSet` side-table in `TurretDemolitionSystem` (same shape as
-  B1's `HubDemolitionSystem`; `isDemolished(id)` exposed for tests/renderer). `allocate` attaches
+  B1's `HubDemolitionSystem`; `isDemolished(id)` exposed for tests). `allocate` attaches
   `TURRET_STATE` keyed off a new `UnitType.isTurret()` predicate, seeded from a transient
   `Entity.seedTurretKind` (an OBJECT seed — same mechanism as B1's `seedHubSpawnCooldown`, just a
   richer payload); `recoilTimer` seeds to `1f` (matches the old subclass's field initializer) so an
