@@ -3,8 +3,9 @@
 > **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
 > IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
 > D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
-> shipped `14a6d774`. NOTE: this stretch is a bottom-up cascade of sequential slices, NOT a
-> parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
+> shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`. NOTE: this
+> stretch is a bottom-up cascade of sequential slices, NOT a parallel behavior-cluster fan-out — see
+> the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
 > **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
@@ -321,6 +322,15 @@ semantics minefield.
   `advanceMovement(long)` over `movement().advanceAlongPath(world, id, dt)` — zero resolve churn.
   ~48 callers across goap/infantry/mech/drone/turret/ui pass `.entityId` (fanned out to 3 parallel
   Sonnet passes over disjoint file groups).
+- ~~**D4 · `DamageService`/`HitResponse` front-doors**~~ — **SHIPPED (`d6b61af2`; suite green, 869
+  tests).** The D1-deferred "keep `Entity` front-door" layer → `long`: `DamageService`
+  `applyDamage`/`applyReprio`/`applyFallback` + `HitResponseSystem`
+  `rollFallbackOnHit`/`rollReprioritizeOnHit` (internals already long-native from D1, so the flip just
+  drops the `.entityId` extraction). `rollReprioritizeOnHit`'s nullable `shooter` → `0L`;
+  `target.type` → `roster.identity().type(target)`; reprio-dedup `ConcurrentHashMap<Long,Integer>`
+  keys unchanged. Kept `applyOccupancyDelta(Entity)` (dest-index applier — dest-index-gated, see below).
+  16 callers (HeavyWeapons / InfantryWeapons / TurretFireSystem / Detonations / BattleSimulation
+  front-door + 2 tests) pass `.entityId`.
 
 **SEQUENCING CORRECTION (discovered D3, 2026-07-02).** The "behavior clusters" are **not** an
 independent parallel fan-out. All ~30 behaviors implement one shared `Action.execute(Entity member,…)`
@@ -333,16 +343,20 @@ self-contained slices** (D2-cadence: flip the layer, callers pass `.entityId`, d
 *not* parallel cluster-commits. The only parallelism available is delegating each slice's mechanical
 caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimulation` facade +
 `Action` interface, so the *slices* are sequential.
-- **Next — leaf services (bottom of the cascade):** `NavigationService.setPath`/`clearPath`,
-  `InfantryWeapons.fireShot`/`fireSecondary`, `HeavyWeapons.fireMechWeapon` params → `long` (each a
-  self-contained slice; callers = the facade wrappers + a few direct). Then the remaining facade
-  mutators (`setPath`/`clearPath`/`fireShot`/`fireSecondary`/`fireMechWeapon` on `BattleControl`,
-  now clean; `clearPath` also absorbs the D1 `writeFallbackInline` `getOrNull` follow-up) →
-  `mintSquad` (nullable leader→`0L`, with `SquadService`/roster) → the **atomic `Action.execute`
-  interface flip** (interface + all ~30 implementors + dispatcher + `AbstractZoneAction` + test anon
-  impls, one commit) → air/vehicle/ui → the finale (Entity-returning queries → `long`, roster
-  `Entity[]` → `long[]`, spatial indexes id-native, `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`,
-  delete `Entity`).
+- **Next — weapon-fire methods (unblocked by D4):** `InfantryWeapons.fireShot`/`fireSecondary` +
+  `HeavyWeapons.fireMechWeapon` params → `long` (their `applyDamage`/`roll*` calls are now
+  long-native, so the flip is clean — read `shooter.type`/`faction` via `roster.identity()`), then the
+  `BattleControl` facade `fireShot`/`fireSecondary`/`fireMechWeapon` → `long`.
+- **Dest-index-gated (its own slice, NOT the tail finale):** `setPath`/`clearPath` feed
+  `DamageService.applyOccupancyDelta(Entity u,…)` → the `UnitDestinationSpatialIndex` (reference-identity
+  `remove`). They — and the `Action.execute(Entity member)` interface flip, whose bodies call
+  `sim.setPath(member,…)` — can't cleanly go `long` until the **dest-index goes id-native** (the
+  reopened [`systems-to-columns`](systems-to-columns.md) / id-native spatial-index work). That slice
+  then unblocks: `setPath`/`clearPath` (+ the D1 `writeFallbackInline` `getOrNull` follow-up) → the
+  **atomic `Action.execute` flip** (interface + ~30 implementors + dispatcher + `AbstractZoneAction` +
+  test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → the finale
+  (Entity-returning queries → `long`, roster `Entity[]` → `long[]`, `DeathEvent` → `long`, rehome
+  `idOf`/`NO_SQUAD`, delete `Entity`).
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 

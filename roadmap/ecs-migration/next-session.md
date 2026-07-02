@@ -198,13 +198,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    nullable → `0L`; `TurretAim.State.excludeFromCrowding` field → `long`; ~26 callers + test pass
    `.entityId`). **D3 SHIPPED (`14a6d774`, suite green, 869 tests):** the two already-id-native facade
    methods `BattleView.targetOf(long)` (still returns `Entity`) + `BattleControl.advanceMovement(long)`;
-   ~48 callers pass `.entityId` (3 parallel Sonnet passes over disjoint clusters). **SEQUENCING
-   CORRECTION:** the behaviors are NOT an independent parallel fan-out — they share one atomic
-   `Action.execute(Entity)` interface, gated bottom-up (execute→facade mutators→leaf weapon/nav
-   services). It's a bottom-up cascade of sequential slices; only the caller ripple fans out.
-   **Next: the leaf services** (`NavigationService.setPath`/`clearPath`, `InfantryWeapons.fireShot`/
-   `fireSecondary`, `HeavyWeapons.fireMechWeapon` params → `long`), then the facade mutators, then the
-   atomic `Action.execute` flip. Full record + corrected sequence: the story doc § Phase D.
+   ~48 callers pass `.entityId` (3 parallel Sonnet passes over disjoint clusters). **D4 SHIPPED
+   (`d6b61af2`, 869 green):** the D1-deferred `DamageService` `applyDamage`/`applyReprio`/`applyFallback`
+   + `HitResponseSystem` `rollFallbackOnHit`/`rollReprioritizeOnHit` front-doors → `long` (nullable
+   `shooter`→`0L`; kept `applyOccupancyDelta(Entity)` = dest-index applier). **SEQUENCING CORRECTION:**
+   the behaviors share one atomic `Action.execute(Entity)` interface, gated bottom-up; it's a sequential
+   cascade, only the caller ripple fans out. **Next: the weapon-fire methods** (`InfantryWeapons.fireShot`/
+   `fireSecondary`, `HeavyWeapons.fireMechWeapon` → `long`, unblocked by D4), then the facade `fire*`.
+   **Dest-index-gated (own slice, not tail-finale):** `setPath`/`clearPath` + the `Action.execute` flip
+   wait on the dest-index (`applyOccupancyDelta`/`UnitDestinationSpatialIndex`) going id-native. Full
+   record + corrected sequence: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -213,6 +216,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+d6b61af2 ecs-migration: identity-collapse D4 - DamageService/HitResponse front-doors -> long
 14a6d774 ecs-migration: identity-collapse D3 - sim-facade targetOf/advanceMovement params -> long
 a782ad71 ecs-migration: identity-collapse D2 - TacticalScoring params Entity->long
 240df7f9 ecs-migration: identity-collapse D0+D1 - IdentityService type/faction(id); combat pipeline -> long
@@ -240,7 +244,7 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `14a6d774` (identity-collapse D3) or your own recent work at the top.
+- `git log --oneline -5` shows `d6b61af2` (identity-collapse D4) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
@@ -253,13 +257,13 @@ goap, campaign) interleave on HEAD.
   (`240df7f9`, suite green):** D0 infra (`IdentityService.type/faction(id)`, `BattleView.identity()`);
   D1 combat damage pipeline internals → `long` (public front-doors keep `Entity`). **D2 SHIPPED
   (`a782ad71`, 869 tests green):** every `TacticalScoring` `Entity` param → `long`. **D3 SHIPPED
-  (`14a6d774`, 869 green):** sim-facade `targetOf(long)` + `advanceMovement(long)`. **SEQUENCING
-  CORRECTION:** the behaviors share one atomic `Action.execute(Entity)` interface, gated bottom-up
-  (execute→facade mutators→leaf weapon/nav services) — a bottom-up cascade of sequential slices, NOT a
-  parallel cluster fan-out (only the caller ripple fans out). **Next: leaf services** (`NavigationService`
-  setPath/clearPath, `InfantryWeapons` fireShot/fireSecondary, `HeavyWeapons` fireMechWeapon → `long`),
-  then facade mutators, then the atomic `Action.execute` flip.
-  [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  (`14a6d774`, 869 green):** sim-facade `targetOf(long)` + `advanceMovement(long)`. **D4 SHIPPED
+  (`d6b61af2`, 869 green):** `DamageService`/`HitResponseSystem` front-doors → `long`. **SEQUENCING
+  CORRECTION:** the behaviors share one atomic `Action.execute(Entity)` interface, gated bottom-up — a
+  sequential cascade, only the caller ripple fans out. **Next: the weapon-fire methods**
+  (`InfantryWeapons` fireShot/fireSecondary, `HeavyWeapons` fireMechWeapon → `long`, unblocked by D4),
+  then the facade `fire*`. `setPath`/`clearPath` + the `Action.execute` flip are gated on the dest-index
+  going id-native (its own slice). [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
