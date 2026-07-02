@@ -1,8 +1,8 @@
 # Identity-collapse — dissolve the `Entity` handle into a bare `long` id
 
-> **Status: Phases A + B + C COMPLETE (2026-07-02). Only Phase D (the bare-`long` sweep)
-> remains — committed, deferred to its own follow-up arc.** The endgame is still
-> `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
+> **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
+> IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`.**
+> The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
 > **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
 > `38764ca7`). **Phase C** (spawn-spec; user scope "Full — build it right") — C1 `b7884353` /
@@ -259,14 +259,49 @@ no lasting dual representation). Executed in green-at-each-step slices:
   via `EntitySpec` + `spawn(spec)`.** −470 net lines in C4.4; compiler-verified zero seed refs; full
   suite green at every commit.
 
-**Phase D — the bare-`long` handle sweep.** **Committed, not optional — deferred to a follow-up
-session** (its own multi-session arc). Roster dense `Entity[]` → `long[]`; the resolve layer
-(`getOrNull`/`resolveUnit`/`targetOf`/`findBestTarget`/`DeathEvent.unit()`) returns `long`; every
-`Entity` param → `long`; every `.entityId`/identity read → by-id/service. Sliceable package-by-package:
-combat → decision/`TacticalScoring` → infantry/mech/drone behaviors → sim facade → ~55 test files.
-The spatial indexes go id-native here — **which is where [`systems-to-columns`](systems-to-columns.md)
-reopens.** ~150–200 files; mechanical. This is the phase that literally makes `entity = long`; A→C
-are the prerequisites that let it be a clean mechanical sweep instead of a semantics minefield.
+**Phase D — the bare-`long` handle sweep. IN PROGRESS (2026-07-02).** Roster dense `Entity[]` →
+`long[]`; the resolve layer (`getOrNull`/`resolveUnit`/`targetOf`/`findBestTarget`/`DeathEvent.unit()`)
+returns `long`; every `Entity` param → `long`; every `.entityId`/identity read → by-id/service. The
+spatial indexes go id-native here — **which is where [`systems-to-columns`](systems-to-columns.md)
+reopens.** ~150–200 files (recon 2026-07-02: **1484 `Entity` refs / 210 files**, 918/149 main +
+566/61 test); mechanical.
+
+**Execution strategy — params-first, returns+storage-finale.** `Entity` and `long` are incompatible
+types, so any seam flip cascades to callers immediately; to keep every slice green + committable, flip
+in this order:
+- **Params first (cheap, one-directional ripple).** Flip method `Entity` params → `long`, read fields
+  by-id inside (`identity().type(id)`/`faction(id)`, the by-id Services, `world.*(id)`); callers pass
+  `.entityId` (they usually already hold the id). `Entity`-**returning** query/resolve methods
+  (`findBestTarget`, `targetOf`, `resolveUnit`, `getOrNull`, `liveUnitAt`, `denseArray`) KEEP returning
+  `Entity` for now — so a converted method's local obtained from a query stays an `Entity` used for its
+  `.entityId`. Wrap `resolveUnit(id)` inbound only where a converted body must hand an `Entity` to a
+  still-`Entity`-param callee (minimize by converting callees before callers within a package).
+- **Returns + storage last (the finale).** Once callers are long-native, flip every `Entity`-returning
+  method → `long`, the roster dense `Entity[]` → `long[]`, both spatial indexes id-native,
+  `DeathEvent` → `long`, rehome `Entity.idOf`/`NO_SQUAD`, and **delete `Entity`**. The transient
+  `Entity` locals evaporate (queries now return `long`).
+
+Sliceable package-by-package: combat → decision/`TacticalScoring` → infantry/mech/drone/turret/squad
+behaviors → sim facade + air/vehicle/ui → finale → ~61 test files. This is the phase that literally
+makes `entity = long`; A→C are the prerequisites that let it be a clean mechanical sweep instead of a
+semantics minefield.
+
+- ~~**D0 · infra**~~ + ~~**D1 · combat pipeline**~~ — **SHIPPED (`240df7f9`; suite green).**
+  **D0:** `IdentityService.type(id)`/`faction(id)` (by-id reads over `IDENTITY_TYPE`/`IDENTITY_FACTION`
+  — the replacement for `Entity.type`/`.faction`; every roster-held handle carries IDENTITY, which
+  rides the death transmute so it reads on a corpse too); `BattleView.identity()` for leaf reach.
+  **D1:** the combat damage pipeline internals → `long` — `DamageService` SoA queue `Entity[]` →
+  `long[]`, the `DamageApplier`/`ReprioApplier`/`FallbackApplier` interfaces + `DamageResolver.resolve`
+  + the full death cascade (leader promotion, morale drains, equipment-drop emit, death publish,
+  release) key off the id; `deathSink` `Consumer<Entity>` → `LongConsumer`; `pickPromotionCandidate` →
+  `long` (0L=none). The public `applyDamage`/`applyExternalDamage` front-doors KEEP `Entity` (extract
+  `.entityId`), severing caller ripple. `EquipmentDropService.emitIfApplicable(long)`.
+  `TacticalScoring.isHardened(UnitType)` (a pure type predicate). Deliberately left `Entity`: the
+  `OccupancyApplier` + `resolver` liveness-null-check (dest-index reference-identity is finale scope);
+  `DeathEvent` (resolved transitionally via `getOrNull`, pre-release).
+- **Next — D2:** decision/`TacticalScoring` params → `long` (the shared `findBestTarget`/`targetOf`
+  query layer keeps returning `Entity` until the finale). Then the behavior clusters (delegable to
+  parallel Sonnets with the params-first recipe).
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 

@@ -185,8 +185,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    delete `Entity.seed*`/5-arg-ctor/`toEntity`/roster `addUnit`+`allocate`+`queueSpawn(Entity)`; roster
    goes spec-native (`adopt(Entity,EntitySpec)` seeds the columns); `Entity` = `{entityId, faction, type,
    NO_SQUAD, idOf}` (`50d92c8d`; −470 net lines, suite green). All construction now flows through
-   `EntitySpec` + `spawn(spec)`. **Only Phase D (bare-`long` sweep) remains** — the committed follow-up.
-   Full record: [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase C.
+   `EntitySpec` + `spawn(spec)`. Full record: [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase C.
+   **PHASE D IN PROGRESS (2026-07-02) — the bare-`long` sweep.** Strategy = **params-first,
+   returns+storage-finale** (flip `Entity` params → `long` reading by-id, callers pass `.entityId`;
+   `Entity`-returning query/resolve methods + roster `Entity[]` storage + spatial indexes + `DeathEvent`
+   + `Entity` deletion are the finale). Recon: 1484 `Entity` refs / 210 files. **D0+D1 SHIPPED
+   (`240df7f9`, suite green):** D0 infra (`IdentityService.type/faction(id)` + `BattleView.identity()`);
+   D1 the combat damage pipeline internals → `long` (queue `Entity[]`→`long[]`, appliers + `resolve` +
+   death cascade by-id, `deathSink`→`LongConsumer`, `isHardened(UnitType)`; public front-doors keep
+   `Entity` to sever caller ripple). **Next: D2** (decision/`TacticalScoring` params → `long`), then the
+   behavior clusters (delegable to parallel Sonnets). Full record + slice recipe: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -195,6 +203,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+240df7f9 ecs-migration: identity-collapse D0+D1 - IdentityService type/faction(id); combat pipeline -> long
 50d92c8d ecs-migration: identity-collapse C4.4 - delete seed*, Entity = {entityId,faction,type}
 fe86d529 ecs-migration: identity-collapse C4.3 - test construction -> EntitySpec
 0a03f604 ecs-migration: identity-collapse C4.2 - production construction -> EntitySpec
@@ -219,16 +228,19 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `50d92c8d` (identity-collapse C4.4: seed deletion) or your own
-  recent work at the top.
+- `git log --oneline -5` shows `240df7f9` (identity-collapse D0+D1) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
   (the private `adopt(Entity,EntitySpec)` seeds the world columns). Phase C4 (the seed-deletion finale)
-  shipped C4.1–C4.4 (`6fa06ca1`→`50d92c8d`), suite green + critique-reviewed. **Only Phase D remains** —
-  the bare-`long` handle sweep (roster `Entity[]`→`long[]`; the resolve layer + every `Entity` param →
-  `long`; the spatial index goes id-native, reopening `systems-to-columns`). ~150–200 files, mechanical;
-  committed follow-up, its own multi-session arc. [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  shipped C4.1–C4.4 (`6fa06ca1`→`50d92c8d`), suite green + critique-reviewed.
+- **identity-collapse Phase D IN PROGRESS (2026-07-02)** — the bare-`long` handle sweep (roster
+  `Entity[]`→`long[]`; the resolve layer + every `Entity` param → `long`; spatial indexes go id-native,
+  reopening `systems-to-columns`; `Entity` deleted). ~150–200 files (1484 refs / 210 files), mechanical.
+  Strategy = **params-first, returns+storage-finale** (see the story doc § Phase D). **D0+D1 SHIPPED
+  (`240df7f9`, suite green):** D0 infra (`IdentityService.type/faction(id)`, `BattleView.identity()`);
+  D1 combat damage pipeline internals → `long` (public front-doors keep `Entity`). **Next: D2** =
+  decision/`TacticalScoring` params. [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -241,8 +253,8 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D** — the bare-`long` handle sweep (item 9;
-  A/B/C COMPLETE, seed deletion shipped `50d92c8d`). Large + mechanical (~150–200 files), its own
-  arc. Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
+  playtest. **Next-up:** **identity-collapse Phase D — D2** (decision/`TacticalScoring` params →
+  `long`), then the behavior clusters (delegable to parallel Sonnets). D0+D1 shipped `240df7f9`.
+  Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
