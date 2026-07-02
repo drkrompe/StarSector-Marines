@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import java.util.Random;
-import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Stateless mailbox-consumer for the damage pipeline. One entry point —
@@ -59,14 +59,14 @@ public final class DamageResolver {
     private final Int2ObjectMap<Squad> squads;
     private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
-    private final Consumer<Entity> deathSink;
+    private final LongConsumer deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
-                          Consumer<Entity> deathSink,
+                          LongConsumer deathSink,
                           DeathDispatcher deathDispatcher,
                           Random rng) {
         this.grid = navigation.getGrid();
@@ -94,12 +94,12 @@ public final class DamageResolver {
      * inside this method, so {@code !wasAlive} means the target is already dead
      * — and the damage is moot anyway.
      */
-    public void resolve(Entity target, float damage, float vsTurretMult, float moraleImpact) {
+    public void resolve(long targetId, float damage, float vsTurretMult, float moraleImpact) {
         World world = roster.world();
-        boolean wasAlive = roster.isAliveById(target.entityId);
+        boolean wasAlive = roster.isAliveById(targetId);
         if (!wasAlive) return;
-        int tcx = world.cellX(target.entityId);
-        int tcy = world.cellY(target.entityId);
+        int tcx = world.cellX(targetId);
+        int tcy = world.cellY(targetId);
         int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
@@ -108,24 +108,23 @@ public final class DamageResolver {
         // hit (drone hubs, heavy mechs both took 1× before despite the AI
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
-        float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
-        float newHp = world.hp(target.entityId) - damage * effectiveMult * (1f - dr);
-        world.setHp(target.entityId, newHp);
+        float effectiveMult = TacticalScoring.isHardened(roster.identity().type(targetId)) ? vsTurretMult : 1f;
+        float newHp = world.hp(targetId) - damage * effectiveMult * (1f - dr);
+        world.setHp(targetId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         if (died) {
-            deathSink.accept(target);
-            equipmentDrops.emitIfApplicable(target);
+            deathSink.accept(targetId);
+            equipmentDrops.emitIfApplicable(targetId);
             // Squad leader promotion — if the dead unit was leading a
             // squad, hand the badge to the closest still-alive member.
             // Preserves direction of travel: the new leader stands roughly
             // where the old one fell, so followers don't get yanked
             // sideways when the leader dies mid-maneuver. NO_SQUAD units
             // (turrets, civilians, etc.) skip — no leader to promote.
-            if (roster.squad().hasSquad(target.entityId)) {
-                Squad ls = squads.get(roster.squad().squadId(target.entityId));
-                if (ls != null && ls.leaderId == target.entityId) {
-                    Entity promoted = pickPromotionCandidate(ls, target);
-                    ls.leaderId = (promoted != null) ? promoted.entityId : 0L;
+            if (roster.squad().hasSquad(targetId)) {
+                Squad ls = squads.get(roster.squad().squadId(targetId));
+                if (ls != null && ls.leaderId == targetId) {
+                    ls.leaderId = pickPromotionCandidate(ls, targetId);
                 }
             }
             // Publish the death to the mailbox BEFORE the registry release,
@@ -139,12 +138,14 @@ public final class DamageResolver {
             // drain (post-release) where the Group-C cell accessors fail loud.
             // Roll the corpse prone-pose here (the normal-death path is the one that
             // leaves a ground body); the drone-cascade path publishes -1 (no corpse).
-            deathDispatcher.publish(new DeathEvent(target, tcx, tcy, rng.nextInt(4)));
+            // Resolve the still-registered handle for the event (release is below);
+            // DeathEvent goes id-native in the Phase-D finale.
+            deathDispatcher.publish(new DeathEvent(roster.getOrNull(targetId), tcx, tcy, rng.nextInt(4)));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is
             // effectively the death bookkeeping. See UnitRosterService class doc.
-            roster.releaseFromRegistry(target.entityId);
+            roster.releaseFromRegistry(targetId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0
         // so external-source damage (air strafing, scripted scenario damage)
@@ -161,15 +162,15 @@ public final class DamageResolver {
         // event + cap scaling + death bonus). Solo units (turrets, civilians)
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
-            if (world.hasMechLoadout(target.entityId)) {
+            if (world.hasMechLoadout(targetId)) {
                 // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
                 // killed by this very hit was already released from the registry
                 // (above) — its HEALTH component still reads until the death drain
                 // transmutes it to a corpse, but a dead mech's threshold morale is
                 // moot, so keep the guard.
-                if (!died) applyMechHpThresholdDrain(target);
-            } else if (roster.squad().hasSquad(target.entityId)) {
-                applySquadMoraleDrain(target, moraleImpact, died);
+                if (!died) applyMechHpThresholdDrain(targetId);
+            } else if (roster.squad().hasSquad(targetId)) {
+                applySquadMoraleDrain(targetId, moraleImpact, died);
             }
         }
     }
@@ -183,27 +184,30 @@ public final class DamageResolver {
      * reads positions via {@code cellXById/cellYById}. The dead leader
      * is still present in the dense view at this point (we run BEFORE
      * {@code releaseFromRegistry} in the same resolve() call) — filtered by
-     * the {@code u == deadLeader} identity check. Other dead units cannot
+     * the {@code u.entityId == deadLeaderId} id check. Other dead units cannot
      * appear: prior deaths this frame would have released themselves in
      * their own resolve() calls.
+     *
+     * @return the new leader's entity id, or {@code 0L} if the squad has no
+     *         other survivors.
      */
-    private Entity pickPromotionCandidate(Squad squad, Entity deadLeader) {
-        Entity best = null;
+    private long pickPromotionCandidate(Squad squad, long deadLeaderId) {
+        long best = 0L;
         float bestDistSq = Float.MAX_VALUE;
         World world = roster.world();
-        int lx = world.cellX(deadLeader.entityId);
-        int ly = world.cellY(deadLeader.entityId);
+        int lx = world.cellX(deadLeaderId);
+        int ly = world.cellY(deadLeaderId);
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            if (u == deadLeader || !roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
+            if (u.entityId == deadLeaderId || !roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
             int dx = world.cellX(u.entityId) - lx;
             int dy = world.cellY(u.entityId) - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
-                best = u;
+                best = u.entityId;
             }
         }
         return best;
@@ -220,8 +224,8 @@ public final class DamageResolver {
      * only reset the timer on the first bullet, letting recovery resume
      * mid-volley.
      */
-    private void applySquadMoraleDrain(Entity target, float moraleImpact, boolean died) {
-        Squad sq = squads.get(roster.squad().squadId(target.entityId));
+    private void applySquadMoraleDrain(long targetId, float moraleImpact, boolean died) {
+        Squad sq = squads.get(roster.squad().squadId(targetId));
         if (sq == null) return;
         float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
                 ? (float) sq.aliveMembers / sq.originalSize
@@ -253,13 +257,13 @@ public final class DamageResolver {
      * keyed to "how far through this fight have you been damaged," not to
      * instantaneous HP.
      */
-    private void applyMechHpThresholdDrain(Entity target) {
+    private void applyMechHpThresholdDrain(long targetId) {
         World world = roster.world();
-        MechLoadoutComponent m = world.mechLoadout(target.entityId);
+        MechLoadoutComponent m = world.mechLoadout(targetId);
         m.timeSinceUnderFire = 0f;
-        float maxHp = world.maxHp(target.entityId);
+        float maxHp = world.maxHp(targetId);
         if (maxHp <= 0f) return;
-        float frac = Math.max(0f, world.hp(target.entityId)) / maxHp;
+        float frac = Math.max(0f, world.hp(targetId)) / maxHp;
         int newCount = 0;
         for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
             if (frac <= t) newCount++;

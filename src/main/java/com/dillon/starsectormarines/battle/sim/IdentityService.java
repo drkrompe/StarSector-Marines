@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -38,4 +40,23 @@ public final class IdentityService {
 
     /** The entity's human-readable greppable name (seeded from the ctor String id). Fail-loud on an entity with no IDENTITY (an air craft / convoy vehicle); gate on {@link #has} if the caller isn't sure it's a ground unit. */
     public String name(long id) { return (String) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME); }
+
+    /**
+     * The entity's immutable {@link UnitType} archetype (drives sprite + base stat
+     * block). The by-id replacement for the {@code Entity.type} field read as the
+     * handle collapses to a bare {@code long} (identity-collapse Phase D). IDENTITY
+     * rides the death transmute, so this is readable on a corpse too. Fail-loud on an
+     * entity with no IDENTITY (an air craft / convoy vehicle carries its own
+     * AIR_IDENTITY / GROUND_IDENTITY type instead).
+     */
+    public UnitType type(long id) { return (UnitType) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE); }
+
+    /**
+     * The entity's immutable {@link Faction}. The by-id replacement for the
+     * {@code Entity.faction} field read as the handle collapses to a bare {@code long}
+     * (identity-collapse Phase D). Readable on a corpse (IDENTITY rides the death
+     * transmute). Fail-loud on an entity with no IDENTITY — an air craft reads
+     * {@code World.airFaction(id)}, a convoy vehicle {@code ConvoyService.faction(id)}.
+     */
+    public Faction faction(long id) { return (Faction) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION); }
 }

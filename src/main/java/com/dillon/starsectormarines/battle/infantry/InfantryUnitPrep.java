@@ -118,7 +118,7 @@ public final class InfantryUnitPrep {
         sim.getUnitIndex().gather(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId), range, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity other = scratch.get(i);
-            if (!TacticalScoring.isHardened(other)) continue;
+            if (!TacticalScoring.isHardened(other.type)) continue;
             if (!sim.world().isAlive(other.entityId)) continue;
             if (other.faction == unit.faction) continue;
             float dx = sim.world().cellX(other.entityId) - sim.world().cellX(unit.entityId);

@@ -119,6 +119,9 @@ public interface BattleView {
     /** Data owner for the ROLE component (behavior-dispatch role) — {@code role().role(id)} / {@code setRole(id, r)}. The per-component Service that lands ROLE off the {@link World} god-facade. */
     RoleService role();
 
+    /** Data owner for the IDENTITY component (immutable archetype) — {@code identity().type(id)} / {@code faction(id)} / {@code name(id)}. The by-id reads that replace the {@code Entity.type} / {@code Entity.faction} handle fields as the handle collapses to a bare {@code long} (identity-collapse Phase D). */
+    IdentityService identity();
+
     /** Data owner for the HOME component (garrison idle-post) — {@code home().hasHome(id)} / {@code homeCellX(id)}. The per-component Service that lands HOME off the {@link World} god-facade. */
     HomeService home();
 

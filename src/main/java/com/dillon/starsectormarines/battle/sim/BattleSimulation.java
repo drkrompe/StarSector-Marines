@@ -310,7 +310,10 @@ public class BattleSimulation implements BattleControl {
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
-                deathsThisFrame::add, deathDispatcher, rng);
+                // deathSink takes the dying id (still registered at accept-time,
+                // pre-release) — resolve it to the handle deathsThisFrame holds;
+                // the list goes id-native in the Phase-D finale.
+                id -> deathsThisFrame.add(rosterService.getOrNull(id)), deathDispatcher, rng);
         this.damageService = new DamageService(
                 damageResolver::resolve,
                 this::writeReprioInline,
@@ -738,15 +741,17 @@ public class BattleSimulation implements BattleControl {
     }
 
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path. Clears the targetId only if it still matches {@code expectedTargetId} (the race-check now lives here, registry-side, instead of a no-arg {@code target.getTargetId()} read in the flush drain); the next behavior tick re-picks via {@code findBestTarget}. */
-    private void writeReprioInline(Entity target, long expectedTargetId) {
-        if (world.targetId(target.entityId) == expectedTargetId) world.setTargetId(target.entityId, 0L);
+    private void writeReprioInline(long targetId, long expectedTargetId) {
+        if (world.targetId(targetId) == expectedTargetId) world.setTargetId(targetId, 0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
-    private void writeFallbackInline(Entity target, int fbX, int fbY) {
-        world.setFallbackCell(target.entityId, fbX, fbY);
-        world.setFallbackTimer(target.entityId, HitResponseSystem.FALLBACK_DURATION);
-        clearPath(target);
+    private void writeFallbackInline(long targetId, int fbX, int fbY) {
+        world.setFallbackCell(targetId, fbX, fbY);
+        world.setFallbackTimer(targetId, HitResponseSystem.FALLBACK_DURATION);
+        // clearPath still takes the handle; resolve the (non-lethal, still-live)
+        // target — clearPath goes id-native later in Phase D.
+        clearPath(rosterService.getOrNull(targetId));
     }
 
     public int mintSquad(Faction faction, Entity leader) {
@@ -1259,7 +1264,7 @@ public class BattleSimulation implements BattleControl {
      */
     public void applyExternalDamage(Entity target, float damage) {
         if (target == null || !world.isAlive(target.entityId) || damage <= 0f) return;
-        damageResolver.resolve(target, damage, 1f, 0f);
+        damageResolver.resolve(target.entityId, damage, 1f, 0f);
     }
 
 

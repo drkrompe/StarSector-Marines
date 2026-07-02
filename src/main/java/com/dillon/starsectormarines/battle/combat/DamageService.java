@@ -29,7 +29,7 @@ import java.util.function.LongFunction;
  * method ref ({@code DamageResolver::resolve}).
  *
  * <p><b>Damage uses SoA, not AoS.</b> Four parallel arrays
- * ({@code Entity[] pendingTargets}, three {@code float[]}s) + an {@code int}
+ * ({@code long[]} target ids, three {@code float[]}s) + an {@code int}
  * count is enough state — no {@code DamageEvent} record. The inline path
  * never allocates; the queued path grows the arrays by doubling when full,
  * which steady-state means zero allocation after the first overflow tick.
@@ -50,21 +50,21 @@ import java.util.function.LongFunction;
 public final class DamageService {
 
     @FunctionalInterface public interface DamageApplier {
-        void apply(Entity target, float damage, float vsTurretMult, float moraleImpact);
+        void apply(long targetId, float damage, float vsTurretMult, float moraleImpact);
     }
     @FunctionalInterface public interface ReprioApplier {
         /**
-         * Clears {@code target}'s target field, but only if it still equals
+         * Clears {@code targetId}'s target field, but only if it still equals
          * {@code expectedTargetId} — the compare-and-clear lives registry-side
          * (the applier holds the registry; this service holds only the id
          * resolver). On the serial inline path the guard is trivially true
          * (nothing mutates between snapshot and apply); on the queued flush it
          * preserves a concurrent self-retarget done during the parallel phase.
          */
-        void apply(Entity target, long expectedTargetId);
+        void apply(long targetId, long expectedTargetId);
     }
     @FunctionalInterface public interface FallbackApplier {
-        void apply(Entity target, int fbX, int fbY);
+        void apply(long targetId, int fbX, int fbY);
     }
     @FunctionalInterface public interface OccupancyApplier {
         /** {@code Integer.MIN_VALUE} for an old / new dest coordinate is the "no-op" sentinel — that half of the delta is skipped. */
@@ -92,7 +92,7 @@ public final class DamageService {
     // contend on one monitor, but the contention window is just a couple of
     // array writes so it's not measurable in practice.
     private static final int INITIAL_DAMAGE_CAPACITY = 64;
-    private Entity[] dmgTarget = new Entity[INITIAL_DAMAGE_CAPACITY];
+    private long[] dmgTargetId = new long[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgVsTurretMult = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
@@ -180,13 +180,13 @@ public final class DamageService {
      */
     public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
         if (!insideParallel && !deferCombatEffects) {
-            damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
+            damageApplier.apply(target.entityId, damage, vsTurretMult, moraleImpact);
             return;
         }
         synchronized (dmgLock) {
             int i = dmgCount;
-            if (i == dmgTarget.length) growDamageArrays(i * 2);
-            dmgTarget[i] = target;
+            if (i == dmgTargetId.length) growDamageArrays(i * 2);
+            dmgTargetId[i] = target.entityId;
             dmgDamage[i] = damage;
             dmgVsTurretMult[i] = vsTurretMult;
             dmgMoraleImpact[i] = moraleImpact;
@@ -195,7 +195,7 @@ public final class DamageService {
     }
 
     private void growDamageArrays(int newCapacity) {
-        dmgTarget = Arrays.copyOf(dmgTarget, newCapacity);
+        dmgTargetId = Arrays.copyOf(dmgTargetId, newCapacity);
         dmgDamage = Arrays.copyOf(dmgDamage, newCapacity);
         dmgVsTurretMult = Arrays.copyOf(dmgVsTurretMult, newCapacity);
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
@@ -204,7 +204,7 @@ public final class DamageService {
     /** Target-reprioritize write. Inline writes unconditionally; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
     public void applyReprio(Entity target, long expectedTargetId) {
         if (!insideParallel && !deferCombatEffects) {
-            reprioApplier.apply(target, expectedTargetId);
+            reprioApplier.apply(target.entityId, expectedTargetId);
             return;
         }
         synchronized (pendingTargetMutations) {
@@ -221,7 +221,7 @@ public final class DamageService {
     /** Fallback-cell write. Inline applies the 3 field writes + path-clear; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) drains in {@link #flushPendingTargetMutations()}. */
     public void applyFallback(Entity target, int fbX, int fbY) {
         if (!insideParallel && !deferCombatEffects) {
-            fallbackApplier.apply(target, fbX, fbY);
+            fallbackApplier.apply(target.entityId, fbX, fbY);
             return;
         }
         synchronized (pendingTargetMutations) {
@@ -278,8 +278,7 @@ public final class DamageService {
         int n = dmgCount;
         if (n == 0) return;
         for (int i = 0; i < n; i++) {
-            damageApplier.apply(dmgTarget[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
-            dmgTarget[i] = null; // release ref so GC can collect dead Units
+            damageApplier.apply(dmgTargetId[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
         }
         dmgCount = 0;
     }
@@ -296,21 +295,20 @@ public final class DamageService {
         if (pendingTargetMutations.isEmpty()) return;
         for (int i = 0, n = pendingTargetMutations.size(); i < n; i++) {
             PendingTargetMutation m = pendingTargetMutations.get(i);
-            // Resolve the id rather than holding the unit: null means the target
-            // was released between enqueue and this drain (the preceding
-            // flushPendingDamage killed it), so we skip it — no isAlive() on a
-            // dangling ref.
-            Entity target = resolver.apply(m.targetId);
-            if (target != null) {
+            // Liveness-gate on the id rather than holding the unit: a null resolve
+            // means the target was released between enqueue and this drain (the
+            // preceding flushPendingDamage killed it), so we skip it — no isAlive()
+            // on a dangling ref. The appliers themselves take the id.
+            if (resolver.apply(m.targetId) != null) {
                 switch (m.kind) {
                     case REPRIORITIZE:
                         // The expectedTargetId race-check moved registry-side
                         // (writeReprioInline) so this drain no longer reads
                         // target.getTargetId() through the no-arg denseIdx accessor.
-                        reprioApplier.apply(target, m.expectedTargetId);
+                        reprioApplier.apply(m.targetId, m.expectedTargetId);
                         break;
                     case FALLBACK:
-                        fallbackApplier.apply(target, m.fallbackCellX, m.fallbackCellY);
+                        fallbackApplier.apply(m.targetId, m.fallbackCellX, m.fallbackCellY);
                         break;
                 }
             }

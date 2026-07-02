@@ -448,7 +448,7 @@ public final class TacticalScoring {
      */
     private float scoreWeaponAffinity(Entity self, Entity target) {
         if (self == null) return 0f;
-        if (!isHardened(target)) return 0f;
+        if (!isHardened(target.type)) return 0f;
         World world = roster.world();
         // self is the scoring combatant (non-Entity callers returned above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
@@ -485,10 +485,10 @@ public final class TacticalScoring {
      * marines burn a rocket on anything that earns the {@code vsTurretMult}
      * (3.5×) bonus payoff.
      */
-    public static boolean isHardened(Entity target) {
-        if (target.type.isTurret()) return true;
-        if (target.type.isDroneHub()) return true;
-        return target.type == UnitType.HEAVY_MECH;
+    public static boolean isHardened(UnitType type) {
+        if (type.isTurret()) return true;
+        if (type.isDroneHub()) return true;
+        return type == UnitType.HEAVY_MECH;
     }
 
     /**
@@ -499,7 +499,7 @@ public final class TacticalScoring {
      */
     public boolean canRocketTarget(Entity shooter, Entity target) {
         World world = roster.world();
-        return isHardened(target)
+        return isHardened(target.type)
                 && world.hasSecondaryWeapon(shooter.entityId)
                 && world.secondaryAmmo(shooter.entityId) > 0;
     }

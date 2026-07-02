@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Data owner for the active equipment-drop list. {@link #emitIfApplicable(Entity)}
+ * Data owner for the active equipment-drop list. {@link #emitIfApplicable(long)}
  * is called by the sim's death cascade ({@code DamageResolver.resolve} for all
  * damage paths — combat fire, AoE splash, and external strafing all route
  * through it) to drop a kit where a carrier fell; the per-tick retrieve / pickup
@@ -46,14 +45,14 @@ public final class EquipmentDropService {
      * The drop is placed at the unit's current cell; mission code should
      * ensure the cell is walkable for normal combat, so retrieval is reachable.
      */
-    public void emitIfApplicable(Entity dead) {
+    public void emitIfApplicable(long deadId) {
         Objective carried = null;
         // Called from DamageResolver.resolve's died branch before release + the
         // buffered corpse transmute, so ROLE is still present — read it by id.
-        UnitRole role = rosterService.role().role(dead.entityId);
+        UnitRole role = rosterService.role().role(deadId);
         if (role == UnitRole.PLANTER) {
-            carried = rosterService.task().assignedObjective(dead.entityId);
-        } else if (role == UnitRole.KIT_RETRIEVER && isCarryingLiveKit(dead)) {
+            carried = rosterService.task().assignedObjective(deadId);
+        } else if (role == UnitRole.KIT_RETRIEVER && isCarryingLiveKit(deadId)) {
             // Retriever was carrying nothing in-hand, but their target kit
             // is still on the ground. We don't emit a new drop — the existing
             // one remains in the world for someone else to grab.
@@ -63,12 +62,12 @@ public final class EquipmentDropService {
         // Called from DamageResolver.resolve's died branch before release, so the
         // dead unit is still registered — read its cell by id.
         World world = rosterService.world();
-        equipmentDrops.add(new EquipmentDrop(world.cellX(dead.entityId), world.cellY(dead.entityId), carried));
+        equipmentDrops.add(new EquipmentDrop(world.cellX(deadId), world.cellY(deadId), carried));
     }
 
-    /** True iff {@code dead}'s kit target is still on the ground (un-consumed) — read by id off the TASK component. */
-    private boolean isCarryingLiveKit(Entity dead) {
-        EquipmentDrop kit = rosterService.task().equipmentDropTarget(dead.entityId);
+    /** True iff {@code deadId}'s kit target is still on the ground (un-consumed) — read by id off the TASK component. */
+    private boolean isCarryingLiveKit(long deadId) {
+        EquipmentDrop kit = rosterService.task().equipmentDropTarget(deadId);
         return kit != null && !kit.consumed;
     }
 
