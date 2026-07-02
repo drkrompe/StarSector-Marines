@@ -279,7 +279,7 @@ public final class BattleComponents {
      * corpse does NOT carry it (death removes it in the corpse transmute), so
      * "has {@code HEALTH} with {@code hp > 0}" <em>is</em> the liveness
      * definition ({@code UnitRosterService.isAliveById}). Seeded at spawn by
-     * {@code UnitRosterService.allocate}; damage writes go through {@code World}'s
+     * {@code UnitRosterService.adopt}; damage writes go through {@code World}'s
      * by-id accessors.
      */
     public final ComponentType HEALTH;
@@ -335,7 +335,7 @@ public final class BattleComponents {
      * The per-unit countdowns + cached fall-back cell the decision tier drives:
      * reposition gating, break-contact fall-back (timer + its destination cell,
      * {@code -1/-1} = none — the one field pair whose default is <em>not</em>
-     * zero, so {@code allocate} explicitly seeds the sentinel since a fresh world
+     * zero, so {@code adopt} explicitly seeds the sentinel since a fresh world
      * row appends as zero), and the FLEE wander dwell. <em>Optional</em>: added at
      * spawn only for thinking units, so "has AI_STATE" defines a thinker. A static
      * emplacement (a turret or drone hub;
@@ -372,7 +372,7 @@ public final class BattleComponents {
      * never a stored value — a solo defender / civilian / unsquadded turret simply
      * has no SQUAD (the SECONDARY_WEAPON presence precedent, applied to a field that
      * used to default to a sentinel on every unit). Set once at spawn (seeded at
-     * {@code allocate} from {@code Entity.seedSquadId}; the post-spawn join seam is
+     * {@code adopt} from {@code EntitySpec.squadId}; the post-spawn join seam is
      * {@code SquadService.assignSquad}); never reassigned on a live unit. The data
      * owner is {@code battle.sim.SquadService} ({@code hasSquad} presence + the
      * fail-loud {@code squadId} read), distinct from the squad <em>objects</em> the
@@ -394,7 +394,7 @@ public final class BattleComponents {
      * the {@code Entity}. Unlike SQUAD it is <b>mutable on a live unit</b> (a marine is
      * promoted to {@code KIT_RETRIEVER}/{@code PLANTER} on a kit pickup and reverts to
      * {@code COMBATANT}), so {@code RoleService} carries a live {@code setRole} seam
-     * beside the {@code allocate}-time seed from {@code Entity.seedRole}. The data owner
+     * beside the {@code adopt}-time seed from {@code EntitySpec.role}. The data owner
      * is {@code battle.sim.RoleService}; the per-tick dispatch ({@code UnitUpdateSystem})
      * reads it by id. See {@code roadmap/ecs-migration/stories/entity-field-migration.md}
      * (slice 6).
@@ -404,8 +404,8 @@ public final class BattleComponents {
      * Optional garrison idle-post — two INT fields, the "home" cell a
      * {@link com.dillon.starsectormarines.battle.unit.UnitRole#GARRISON} unit returns
      * to and holds while its squad is UNAWARE. <em>Optional</em>: added at spawn only
-     * for garrison defenders (seeded from {@code Entity.seedHomeCell*} when {@code >= 0}),
-     * so "has HOME" <em>is</em> "has a post" — the old {@code -1} sentinel is never a
+     * for garrison defenders (seeded from {@code EntitySpec.homeCellX}/{@code homeCellY}
+     * when {@code >= 0}), so "has HOME" <em>is</em> "has a post" — the old {@code -1} sentinel is never a
      * stored value (a roaming marine / patrol simply carries no HOME). The runtime
      * reassignment ({@code SquadFallbackSystem} redistributes posts when a garrison
      * squad retreats to a new node) is a serial-phase write on units that already carry
@@ -637,11 +637,11 @@ public final class BattleComponents {
      * Both goal pairs use {@link Float#NaN} as the "no waypoint yet" sentinel
      * — a fresh world row appends {@code 0.0f}, not {@code NaN}, and
      * {@code battle.drone.DroneSwarmAction}'s {@code ensureSectorWaypoint}
-     * gates on {@code Float.isNaN}, so {@code UnitRosterService.allocate}
+     * gates on {@code Float.isNaN}, so {@code UnitRosterService.adopt}
      * seeds the sentinel explicitly (the {@code AI_STATE} {@code -1}/{@code -1}
      * fall-back-cell precedent). {@code homeHubId} is the entity id of the hub
      * that launched this drone ({@code 0L} = none — test fixtures that never
-     * register a hub), seeded once at spawn from {@code Entity.seedHomeHubId}
+     * register a hub), seeded once at spawn from {@code EntitySpec.homeHubId}
      * and never reassigned.
      *
      * <p>Read/written every tick by {@code battle.drone.DroneSwarmAction} (the
@@ -675,7 +675,7 @@ public final class BattleComponents {
      * it) without an explicit {@code CORPSE} exclusion. {@code RENDER_POSITION}
      * is declared because the live-sprite render sweep pulls its columns from
      * every matched table — the query states every column its consumers read
-     * (the {@link #corpses} convention), rather than leaning on the allocate
+     * (the {@link #corpses} convention), rather than leaning on the {@code adopt}
      * invariant that happens to put RENDER_POSITION on every roster archetype.
      * Walked by {@code FacingSystem.tick()} and the live-sprite render sweep.
      */

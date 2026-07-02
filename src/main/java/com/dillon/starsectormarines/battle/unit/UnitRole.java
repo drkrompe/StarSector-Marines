@@ -56,8 +56,8 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  *
  * <p>The role lives on the world {@code ROLE} component (the {@code UnitRole}
  * ordinal), reached by id through the {@code battle.sim.RoleService} data owner.
- * Mission setup seeds it at spawn ({@code Entity.seedRole}, consumed by
- * {@code UnitRosterService.allocate}); it is reassigned on a <em>live</em> unit via
+ * Mission setup seeds it at spawn ({@code EntitySpec.role}, consumed by
+ * {@code UnitRosterService.adopt}); it is reassigned on a <em>live</em> unit via
  * {@code RoleService.setRole} — the equipment-drop flow does exactly this today (a
  * marine picking up a kit is promoted to {@link #KIT_RETRIEVER} / {@link #PLANTER},
  * then {@code KitRetrieverBehavior} reverts it to {@link #COMBATANT} once the drop is

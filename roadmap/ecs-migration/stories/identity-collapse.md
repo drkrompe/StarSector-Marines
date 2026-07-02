@@ -1,13 +1,14 @@
 # Identity-collapse — dissolve the `Entity` handle into a bare `long` id
 
-> **Status: ACTIVE (2026-07-01). Recon COMPLETE (3 parallel agents — full tabulations in
-> session). Scope DECIDED: value-first sequencing — do A → B (+ C) this arc; **Phase D
-> (the bare-`long` sweep) is committed, not optional — deferred to a follow-up session.**
-> The endgame is still `entity = long` everywhere. B1 (DroneHubUnit → `HUB_STATE`) and
-> B1/B2/B3 all SHIPPED — **Phase B COMPLETE** (no `Entity` subclasses left). **Phase A COMPLETE
-> (2026-07-02)** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base methods→Services (`ead4ec0d`),
-> String `id`→`IDENTITY_NAME` column + `IdentityService` (`e0240ac6`). **Next: Phase C**
-> (spawn-spec); Phase D (bare-`long` sweep) is the committed follow-up.**
+> **Status: Phases A + B + C COMPLETE (2026-07-02). Only Phase D (the bare-`long` sweep)
+> remains — committed, deferred to its own follow-up arc.** The endgame is still
+> `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
+> methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
+> **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
+> `38764ca7`). **Phase C** (spawn-spec; user scope "Full — build it right") — C1 `b7884353` /
+> C2 `9ea2a95a` / C3 `e4e45833` / C4 `6fa06ca1`→`50d92c8d`: `Entity` is now
+> `{entityId, faction, type, NO_SQUAD, idOf}`, all construction via `EntitySpec` + `spawn(spec)`.
+> **Next: Phase D.**
 > The last open ECS-migration epic that touches the identity layer: turn `Entity` from a
 > ~305-line heap object held in the roster's `Entity[]` into a bare `long` id, so
 > `entity = id` is literally true everywhere. The spatial index goes id-native as a
@@ -229,19 +230,33 @@ no lasting dual representation). Executed in green-at-each-step slices:
   - **`InfantryUnitPrepTest.rocketeer()`** — sets a `seedPrimaryWeapon` **reference without** its stat
     block; `.primaryWeapon()` would inject the weapon's stats. Set the weapon post-spawn by id instead
     (`sim.combat().setPrimaryWeapon`).
-- **C4 · delete `seed*` + squad-site + `mintSquad` refactor** — **NEXT (delicate, main-thread).**
-  (a) Refactor `mintSquad(Faction, Entity leader)` → `mintSquad(Faction, UnitType type)` — behavior-
-  identical (every caller mints with a not-yet-allocated handle, so `leaderId` is already `0`; `mechSquad`
-  comes from the type). (b) Convert the squad-interleaved **production** sites to spec: deboard ×2
-  (`spec` + `seedInto(spec)`, `mintSquad(type)`, `spec.squad(id)`, `addUnitSink` → `Consumer<EntitySpec>`),
-  the 3 `BattleSetup` defender clusters, `WalkInMeans`, and `DroneSpawner`'s deferred-drone squad seed
-  (queue the spec, set `spec.squad` after mint). (c) Add **`UnitRosterService.spawn(EntitySpec)`** (for
-  the sim-less roster tests) + convert all the raw-path test sites listed above. (d) Flip `spawn(spec)`
-  to seed the world columns **directly** from the spec (a private `adopt(spec)`), delete `toEntity()`.
-  (e) Delete every `Entity` `seed*`/`seedName`/`seedCellX/Y`/`localRender*` field + the 5-arg ctor +
-  `addUnit(Entity)`/`allocate(Entity)`/`queueSpawn(Entity)`; give `Entity` a minimal `{entityId, faction,
-  type}` ctor. The compiler surfaces every remaining seed writer — fix each. End state: `Entity` =
-  `{entityId, faction, type}`, all construction via `spawn(EntitySpec)`.
+- ~~**C4 · delete `seed*` + squad-site + `mintSquad`**~~ — **SHIPPED (2026-07-02; 4 green commits).**
+  **C4.1** (`6fa06ca1`) `mintSquad(Faction, UnitType)` added as a **dual overload** — NOT the planned
+  outright replace. The recon premise ("every caller mints a not-yet-allocated leader → `leaderId` 0")
+  was **wrong**: `ReinforceContact`/`Sabotage`/`Conquest`/`Assault` fixtures spawn-then-mint with an
+  ALLOCATED leader (real `leaderId`), and `MechMorale`/`HitResponse`/`Backstop`/`OverwatchKillZone` rely
+  on `mechSquad = leader.type.isMech()`. Keeping `mintSquad(Faction, Entity)` auto-preserves both; the
+  new `(Faction, UnitType)` overload is the pre-spawn mint the spec path needs (no live Entity at mint).
+  The 11 literal-`null` passers (ambiguous under the overload) → `UnitType.MARINE` (non-mech, so
+  `mechSquad=false` preserved). **C4.2** (`0a03f604`) production construction → `EntitySpec`: deboard ×2
+  (`MarineLoadout.seedInto(EntitySpec)`, `addUnitSink` → `Consumer<EntitySpec>` wired to `this::spawn`,
+  `mintSquad(faction, deboardType)`), 3 `BattleSetup` clusters + `makeDefender`→spec, `WalkInMeans`,
+  `DroneSpawner` (mint the drone squad BEFORE `queueSpawn` so `spec.squad` seeds membership; `leaderId`
+  preserved via `newSquad || dead-leader`), `SimProxyMirror` (unit name snapshotted into `ProxyLink` at
+  creation — release-safe, replacing the deleted `seedName` read). **C4.3** (`fe86d529`) the 24 raw-path
+  test files → spec (3 parallel Sonnets + `InfantryUnitPrep.rocketeer` done main-thread with post-spawn
+  `combat().setPrimaryWeapon` to dodge `.primaryWeapon()`'s stat derivation; mint-before-adoption →
+  mint-by-TYPE-then-spawn-with-`.squad`, NEVER spawn-then-mint — that would set a real `leaderId`).
+  **C4.4** (`50d92c8d`) the deletion: `allocate(Entity)` → private `adopt(Entity, EntitySpec)` reading
+  the spec; `spawn`/`queueSpawn(EntitySpec)` roster-native (pending queue holds `(handle, spec)` pairs
+  the flush adopts); `addUnit`/`allocate`/`queueSpawn(Entity)` + `EntitySpec.toEntity()` + every `Entity`
+  `seed*`/`localRender*` field + the 5-arg ctor DELETED (the double-allocate guard with them — `spawn`
+  always mints a fresh handle); minimal `Entity(faction, type)` ctor. `UnitRosterServiceTest` reworked to
+  `spawn(spec)` (`allocateRejectsAlreadyAllocatedUnit` deleted — scenario unreachable), `DeathDispatcherTest`
+  keys on `entityId` (the name is gone), `World`/`VisionServiceTest` read expected values off the
+  spec/`UnitType`. **End state: `Entity` = `{entityId, faction, type, NO_SQUAD, idOf}`, all construction
+  via `EntitySpec` + `spawn(spec)`.** −470 net lines in C4.4; compiler-verified zero seed refs; full
+  suite green at every commit.
 
 **Phase D — the bare-`long` handle sweep.** **Committed, not optional — deferred to a follow-up
 session** (its own multi-session arc). Roster dense `Entity[]` → `long[]`; the resolve layer

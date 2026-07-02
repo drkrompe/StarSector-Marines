@@ -59,10 +59,10 @@ public final class DroneHub {
 
     /**
      * Builds a fresh drone-hub {@link Entity} at {@code (cellX, cellY)}. Seeds
-     * the config stats above plus {@link Entity#seedHubSpawnCooldown} (consumed by
-     * {@code UnitRosterService.allocate} into the {@code HUB_STATE} component
+     * the config stats above plus {@link EntitySpec#hubSpawnCooldown} (consumed by
+     * {@code UnitRosterService.adopt} into the {@code HUB_STATE} component
      * iff {@code type.isDroneHub()}); the caller still owns handing the result
-     * to {@code sim.addUnit}/{@code queueSpawn}.
+     * to {@code sim.spawn}/{@code queueSpawn}.
      */
     public static EntitySpec create(String id, Faction faction, int cellX, int cellY) {
         return new EntitySpec(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY)

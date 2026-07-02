@@ -47,8 +47,8 @@ public final class SquadService {
 
     /**
      * Joins {@code id} to {@code squadId} — the post-spawn membership seam (the
-     * deboard / setup / reinforcement paths seed it at {@code allocate} from
-     * {@code Entity.seedSquadId} instead). Adds the SQUAD component if the unit had
+     * deboard / setup / reinforcement paths seed it at {@code adopt} from
+     * {@code EntitySpec.squadId} instead). Adds the SQUAD component if the unit had
      * none (an archetype row-move) then writes the key, so it works whether or not
      * the unit was already a member. Serial-only — never mid-{@code Query} walk;
      * mirrors {@code World.attachSecondaryWeapon}. {@code squadId} is a real squad

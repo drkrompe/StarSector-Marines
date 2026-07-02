@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  * {@link DroneHub}. Combatant with HP, faction = DEFENDER, targetable by
  * marines like any other unit. Its continuous-flight {@link AirBody} is a
  * world {@code KINEMATICS} component: {@link #create} builds + positions it
- * and hands it to {@link Entity#seedBody}, then {@code UnitRosterService.allocate}
+ * and hands it to {@link EntitySpec#body}, then {@code UnitRosterService.adopt}
  * adopts it into the world column — read by id via {@code world.kinematics(id)}
  * and steered each tick by {@link DroneSwarmAction} (which then syncs the grid
  * cell + render position from it).
@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  * drone's live per-instance state ({@code patrolGoalX/Y}/{@code pursuitGoalX/Y}/
  * {@code pursuitTimer}/{@code homeHubId}) lives in the world {@code DRONE_STATE}
  * component (data owner {@code battle.sim.DroneStateService}); {@link #create}
- * seeds {@code homeHubId} via {@link Entity#seedHomeHubId}. See
+ * seeds {@code homeHubId} via {@link EntitySpec#homeHubId}. See
  * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B3).
  */
 public final class Drone {
@@ -192,12 +192,12 @@ public final class Drone {
      * Builds a fresh drone {@link Entity} at {@code (cellX, cellY)}, homed to
      * the hub with entity id {@code homeHubId} ({@code 0L} = none — test
      * fixtures that never register a hub). Seeds the config stats above plus
-     * {@link Entity#seedHomeHubId} (consumed by {@code UnitRosterService.allocate}
+     * {@link EntitySpec#homeHubId} (consumed by {@code UnitRosterService.adopt}
      * into the {@code DRONE_STATE} component iff {@code type.isDrone()}); the
-     * caller still owns handing the result to {@code sim.addUnit}/{@code queueSpawn}.
+     * caller still owns handing the result to {@code sim.spawn}/{@code queueSpawn}.
      *
      * <p><b>Captured eagerly</b> — pass {@code hub.entityId} only <em>after</em>
-     * the hub is registered ({@code addUnit}/{@code allocate}). An unregistered
+     * the hub is registered ({@code UnitRosterService.spawn}). An unregistered
      * hub still has {@code entityId == 0}, and {@code 0L} is the legit "no hub"
      * sentinel (not fail-loud), so passing it early silently makes the drone
      * hub-less — it patrols around its own body and is excluded from the hub's
@@ -205,7 +205,7 @@ public final class Drone {
      */
     public static EntitySpec create(String id, Faction faction, int cellX, int cellY, long homeHubId) {
         // Build + position the kinematic body and hand it to the world-adoption seam.
-        // allocate() reads spec.body → adds the KINEMATICS component, keyed by entity
+        // adopt() reads spec.body → adds the KINEMATICS component, keyed by entity
         // id; the body lives in that column thereafter (this same instance, aliased).
         AirBody body = new AirBody();
         body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);

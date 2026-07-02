@@ -43,8 +43,8 @@ public final class HomeService {
      * ({@code SquadFallbackSystem} redistributes posts when a garrison squad retreats to
      * a new node). Adds the HOME component if the unit had none (an archetype row-move)
      * then writes the cell, so it works whether or not the unit already had a post. The
-     * spawn path seeds the post at {@code allocate} from {@code Entity.seedHomeCell*}
-     * instead. Serial-only — never mid-{@code Query} walk; mirrors
+     * spawn path seeds the post at {@code adopt} from {@code EntitySpec.homeCellX}/
+     * {@code homeCellY} instead. Serial-only — never mid-{@code Query} walk; mirrors
      * {@code SquadService.assignSquad}.
      */
     public void setHome(long id, int cellX, int cellY) {

@@ -28,8 +28,8 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * removed ROLE) or a released id — never on a live unit. Unlike SQUAD it is
  * <b>mutable on a live unit</b>: {@link #setRole} is the runtime-reassignment seam a
  * kit pickup drives (a marine promoted to {@code KIT_RETRIEVER}/{@code PLANTER}, then
- * reverted to {@code COMBATANT}); the spawn paths seed the role at {@code allocate}
- * from {@code Entity.seedRole} instead. Serial-only.
+ * reverted to {@code COMBATANT}); the spawn paths seed the role at {@code adopt}
+ * from {@code EntitySpec.role} instead. Serial-only.
  */
 public final class RoleService {
 
@@ -52,7 +52,7 @@ public final class RoleService {
      * Reassigns {@code id}'s live role — the runtime seam (a kit pickup promotes a
      * marine to {@code KIT_RETRIEVER}/{@code PLANTER}; {@code KitRetrieverBehavior}
      * reverts it to {@code COMBATANT} once the drop is gone). The spawn paths seed the
-     * role at {@code allocate} from {@code Entity.seedRole} instead. Fail-loud on a
+     * role at {@code adopt} from {@code EntitySpec.role} instead. Fail-loud on a
      * corpse / released id. Serial-only — never mid-{@code Query} walk.
      */
     public void setRole(long id, UnitRole role) {

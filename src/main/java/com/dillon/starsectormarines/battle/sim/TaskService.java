@@ -57,7 +57,7 @@ public final class TaskService {
     /**
      * Sets {@code id}'s assigned objective — the runtime seam (a kit pickup promotes a
      * marine to PLANTER with the kit's objective; the deboard loadout seeds the spawn
-     * case at {@code allocate} from {@code Entity.seedAssignedObjective}). Adds the TASK
+     * case at {@code adopt} from {@code EntitySpec.assignedObjective}). Adds the TASK
      * component if the unit had none (an archetype row-move). Serial-only — never
      * mid-{@code Query} walk.
      */

@@ -28,7 +28,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * the old per-instance field writes on the dissolved {@code Drone} subclass were.
  *
  * <p>{@code homeHubId} is read-only here (set once at spawn from
- * {@code Entity.seedHomeHubId}, never reassigned) — no setter, mirroring
+ * {@code EntitySpec.homeHubId}, never reassigned) — no setter, mirroring
  * {@code TurretStateService.kind}'s seed-once-no-live-write shape.
  */
 public final class DroneStateService {

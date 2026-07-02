@@ -30,7 +30,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * {@code kind}/{@code burstRemaining}/{@code burstTimer}/{@code burstTargetId})
  * lives in the world {@code TURRET_STATE} component (data owner
  * {@code battle.sim.TurretStateService}); {@link #create} seeds it via
- * {@link Entity#seedTurretKind}. See
+ * {@link EntitySpec#turretKind}. See
  * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B2).
  */
 public final class MapTurret {
@@ -41,10 +41,10 @@ public final class MapTurret {
      * Builds a fresh turret {@link Entity} of {@code kind} at
      * {@code (cellX, cellY)}. Seeds the {@code Entity}'s Group-S stats from
      * {@code kind} (rather than baking them into {@link UnitType#TURRET},
-     * which stays a zero-base placeholder) plus {@link Entity#seedTurretKind}
-     * (consumed by {@code UnitRosterService.allocate} into the
+     * which stays a zero-base placeholder) plus {@link EntitySpec#turretKind}
+     * (consumed by {@code UnitRosterService.adopt} into the
      * {@code TURRET_STATE} component iff {@code type.isTurret()}); the caller
-     * still owns handing the result to {@code sim.addUnit}/{@code queueSpawn}.
+     * still owns handing the result to {@code sim.spawn}/{@code queueSpawn}.
      */
     public static EntitySpec create(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
         // TurretKind stats override the UnitType.TURRET zero-base. Doing it here

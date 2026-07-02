@@ -177,16 +177,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    + new `IdentityService`, UI selection key → `entityId` (`e0240ac6`). The base `Entity` now holds
    only `entityId` + immutable `faction`/`type` + write-only `seed*` (incl. `seedName`): no methods,
    no readable identity field — everything a `long` + an `IDENTITY` read can serve.
-   **Phase C IN PROGRESS (2026-07-02; user scope = "Full — build it right"):** **C1** deboard-loadout
-   dedupe (`b7884353`) + **C2** `EntitySpec` + `spawn(spec)` + factories return specs (`9ea2a95a`,
-   critique byte-equivalent-clean) + **C3** test-spawn migration (`e4e45833`; 3 parallel Sonnets, 45
-   test files, ~217 sites; suite green) SHIPPED. **Next: C4 (the finale)** — `mintSquad(faction,type)`
-   refactor + convert the squad-interleaved production sites (deboard / defenders / walk-in / drone-spawn)
-   + add `UnitRosterService.spawn(EntitySpec)` + convert the ~20 raw-path test sites C3 left (the exact
-   list is in the story) + flip `spawn` to seed columns directly + **delete `Entity`'s `seed*`/`seedName`/
-   `seedCellX/Y`/`localRender*` fields + the 5-arg ctor** (compiler-enforced) → `Entity` = `{entityId,
-   faction, type}`. Phase D (bare-`long` sweep) stays the deferred follow-up. Full C4 plan + the exact
-   left-for-C4 site list: [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase C.
+   **PHASE C COMPLETE (2026-07-02; user scope = "Full — build it right").** **C1** deboard-loadout
+   dedupe (`b7884353`) · **C2** `EntitySpec` + `spawn(spec)` + factories-return-specs (`9ea2a95a`) ·
+   **C3** test-spawn migration (`e4e45833`, 45 files) · **C4** the seed-deletion finale, this session:
+   **C4.1** `mintSquad(Faction,UnitType)` dual overload (`6fa06ca1`) · **C4.2** production construction →
+   `EntitySpec` (`0a03f604`) · **C4.3** the remaining 24 raw-path test files → spec (`fe86d529`) · **C4.4**
+   delete `Entity.seed*`/5-arg-ctor/`toEntity`/roster `addUnit`+`allocate`+`queueSpawn(Entity)`; roster
+   goes spec-native (`adopt(Entity,EntitySpec)` seeds the columns); `Entity` = `{entityId, faction, type,
+   NO_SQUAD, idOf}` (`50d92c8d`; −470 net lines, suite green). All construction now flows through
+   `EntitySpec` + `spawn(spec)`. **Only Phase D (bare-`long` sweep) remains** — the committed follow-up.
+   Full record: [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase C.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -195,6 +195,10 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+50d92c8d ecs-migration: identity-collapse C4.4 - delete seed*, Entity = {entityId,faction,type}
+fe86d529 ecs-migration: identity-collapse C4.3 - test construction -> EntitySpec
+0a03f604 ecs-migration: identity-collapse C4.2 - production construction -> EntitySpec
+6fa06ca1 ecs-migration: identity-collapse C4.1 - add mintSquad(Faction,UnitType) overload
 e4e45833 ecs-migration: identity-collapse C3 - migrate test spawns to sim.spawn(EntitySpec)
 26b0d0e4 ecs-migration: identity-collapse Phase C docs - C1/C2 shipped, C3/C4 plan
 9ea2a95a ecs-migration: identity-collapse C2 - EntitySpec + spawn(spec); factories return specs
@@ -215,17 +219,16 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `e4e45833` (identity-collapse C3: test-spawn migration) or your own
+- `git log --oneline -5` shows `50d92c8d` (identity-collapse C4.4: seed deletion) or your own
   recent work at the top.
-- **identity-collapse Phases A + B COMPLETE; Phase C C1–C3 SHIPPED, C4 next (2026-07-02)** — `Entity`
-  is hollowed (no subclasses, no live state outside components, no methods, no readable identity field).
-  Phase C (user scope = **Full**): **C1** deboard dedupe + **C2** `EntitySpec`/`spawn(spec)`/factories-
-  return-specs + **C3** test-spawn migration (45 files, ~217 sites, suite green) SHIPPED. **RESUME AT
-  C4 (the finale)** — `mintSquad(faction,type)` refactor + squad-interleaved production-site conversion
-  + `UnitRosterService.spawn(EntitySpec)` + convert the ~20 raw-path test sites C3 left (exact list in
-  the story) + flip `spawn` to direct-column-seed + **delete `Entity.seed*` / 5-arg ctor** → `Entity` =
-  `{entityId, faction, type}`. Phase D (bare-`long` sweep) stays the committed follow-up.
-  [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase C.
+- **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
+  `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
+  `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
+  (the private `adopt(Entity,EntitySpec)` seeds the world columns). Phase C4 (the seed-deletion finale)
+  shipped C4.1–C4.4 (`6fa06ca1`→`50d92c8d`), suite green + critique-reviewed. **Only Phase D remains** —
+  the bare-`long` handle sweep (roster `Entity[]`→`long[]`; the resolve layer + every `Entity` param →
+  `long`; the spatial index goes id-native, reopening `systems-to-columns`). ~150–200 files, mechanical;
+  committed follow-up, its own multi-session arc. [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -238,9 +241,8 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase C4** (the seed-deletion finale — `mintSquad` refactor +
-  squad-site conversion + delete `Entity.seed*`; item 9; C1–C3 shipped); other candidates:
-  **statelessify `VehicleController`** (item 10, small/self-contained), Phase D bare-`long` sweep
-  (large, committed follow-up).
+  playtest. **Next-up:** **identity-collapse Phase D** — the bare-`long` handle sweep (item 9;
+  A/B/C COMPLETE, seed deletion shipped `50d92c8d`). Large + mechanical (~150–200 files), its own
+  arc. Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
