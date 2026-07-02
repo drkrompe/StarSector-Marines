@@ -1,7 +1,8 @@
 # Identity-collapse — dissolve the `Entity` handle into a bare `long` id
 
 > **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
-> IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`.**
+> IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
+> D2 (`TacticalScoring` params) shipped `a782ad71`.**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
 > **Phase B** — subclasses dissolved into components (B1 `a4180ef0` / B2 `2d9eb894` / B3
@@ -303,9 +304,20 @@ semantics minefield.
   `TacticalScoring.isHardened(UnitType)` (a pure type predicate). Deliberately left `Entity`: the
   `OccupancyApplier` + `resolver` liveness-null-check (dest-index reference-identity is finale scope);
   `DeathEvent` (resolved transitionally via `getOrNull`, pre-release).
-- **Next — D2:** decision/`TacticalScoring` params → `long` (the shared `findBestTarget`/`targetOf`
-  query layer keeps returning `Entity` until the finale). Then the behavior clusters (delegable to
-  parallel Sonnets with the params-first recipe).
+- ~~**D2 · `TacticalScoring` params**~~ — **SHIPPED (`a782ad71`; suite green, 869 tests).** Every
+  `Entity` param in `battle/decision/TacticalScoring.java` → `long` (read fields by-id via
+  `roster.identity()`/`world()`/`vision()`); the Entity-RETURNING queries (`findBestTarget`,
+  `closestEnemyInAttackRange`, `refreshTargetIfNotShootable`, `findEngageableEnemyWithin`,
+  `closestVisibleOtherEnemy`) keep returning `Entity` until the finale. Nullable `self`/`exclude`
+  → `0L` sentinel (`== null` → `== 0L`). `scoreCrowding` keeps an `Entity target` (feeds the
+  Entity-keyed `AttackerIndexService`, finale scope). `TurretAim.State.excludeFromCrowding` field
+  `Entity` → `long` (`null` → `0L` for shuttle turrets; `GroundSystem` defaults to `0L`). ~26
+  behavior callers (infantry/mech/drone/turret/goap) + `TacticalScoringTest` pass `.entityId`.
+- **Next — behavior clusters:** infantry / mech·drone·turret / squad behaviors' remaining `Entity`
+  params → `long` (delegable to parallel Sonnets with the params-first recipe). Then sim facade +
+  air/vehicle/ui, then the finale (Entity-returning queries → `long`, roster `Entity[]` → `long[]`,
+  spatial indexes id-native, `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`, delete `Entity`,
+  clearPath → `long` + null-guard).
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 

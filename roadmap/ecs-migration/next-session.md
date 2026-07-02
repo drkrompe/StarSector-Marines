@@ -193,8 +193,11 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    (`240df7f9`, suite green):** D0 infra (`IdentityService.type/faction(id)` + `BattleView.identity()`);
    D1 the combat damage pipeline internals → `long` (queue `Entity[]`→`long[]`, appliers + `resolve` +
    death cascade by-id, `deathSink`→`LongConsumer`, `isHardened(UnitType)`; public front-doors keep
-   `Entity` to sever caller ripple). **Next: D2** (decision/`TacticalScoring` params → `long`), then the
-   behavior clusters (delegable to parallel Sonnets). Full record + slice recipe: the story doc § Phase D.
+   `Entity` to sever caller ripple). **D2 SHIPPED (`a782ad71`, suite green, 869 tests):** every `Entity`
+   param in `TacticalScoring` → `long` (by-id reads; Entity-returning queries still return `Entity`;
+   nullable → `0L`; `TurretAim.State.excludeFromCrowding` field → `long`; ~26 callers + test pass
+   `.entityId`). **Next: the behavior clusters** (infantry/mech/drone/turret/squad remaining `Entity`
+   params → `long`, delegable to parallel Sonnets). Full record + slice recipe: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -203,6 +206,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+a782ad71 ecs-migration: identity-collapse D2 - TacticalScoring params Entity->long
 240df7f9 ecs-migration: identity-collapse D0+D1 - IdentityService type/faction(id); combat pipeline -> long
 50d92c8d ecs-migration: identity-collapse C4.4 - delete seed*, Entity = {entityId,faction,type}
 fe86d529 ecs-migration: identity-collapse C4.3 - test construction -> EntitySpec
@@ -228,7 +232,7 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `240df7f9` (identity-collapse D0+D1) or your own recent work at the top.
+- `git log --oneline -5` shows `a782ad71` (identity-collapse D2) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
@@ -239,8 +243,11 @@ goap, campaign) interleave on HEAD.
   reopening `systems-to-columns`; `Entity` deleted). ~150–200 files (1484 refs / 210 files), mechanical.
   Strategy = **params-first, returns+storage-finale** (see the story doc § Phase D). **D0+D1 SHIPPED
   (`240df7f9`, suite green):** D0 infra (`IdentityService.type/faction(id)`, `BattleView.identity()`);
-  D1 combat damage pipeline internals → `long` (public front-doors keep `Entity`). **Next: D2** =
-  decision/`TacticalScoring` params. [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  D1 combat damage pipeline internals → `long` (public front-doors keep `Entity`). **D2 SHIPPED
+  (`a782ad71`, 869 tests green):** every `TacticalScoring` `Entity` param → `long` (Entity-returning
+  queries still return `Entity`; nullable → `0L`; `TurretAim.State.excludeFromCrowding` → `long`; ~26
+  callers + test). **Next: the behavior clusters** (infantry/mech/drone/turret/squad remaining `Entity`
+  params → `long`). [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -253,8 +260,9 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — D2** (decision/`TacticalScoring` params →
-  `long`), then the behavior clusters (delegable to parallel Sonnets). D0+D1 shipped `240df7f9`.
+  playtest. **Next-up:** **identity-collapse Phase D — behavior clusters** (infantry/mech/drone/
+  turret/squad remaining `Entity` params → `long`, delegable to parallel Sonnets). D0+D1 shipped
+  `240df7f9`; D2 (`TacticalScoring` params) shipped `a782ad71`.
   Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
