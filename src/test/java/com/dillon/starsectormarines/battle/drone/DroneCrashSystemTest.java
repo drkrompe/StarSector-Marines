@@ -44,11 +44,11 @@ public class DroneCrashSystemTest {
     }
 
     /** A drone homed to a hub kept alive far away — so killing the drone doesn't end the battle. */
-    private static Drone parkArenaWithDrone(BattleSimulation sim) {
+    private static Entity parkArenaWithDrone(BattleSimulation sim) {
         sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         Entity keepAlive = DroneHub.create("hub", Faction.DEFENDER, 38, 38);
         sim.addUnit(keepAlive);
-        Drone drone = new Drone("d0", Faction.DEFENDER, 20, 20, keepAlive.entityId);
+        Entity drone = Drone.create("d0", Faction.DEFENDER, 20, 20, keepAlive.entityId);
         sim.addUnit(drone);
         return drone;
     }
@@ -75,7 +75,7 @@ public class DroneCrashSystemTest {
     @Test
     public void shotDownDroneGetsACrashingComponentThenSettlesIntoAWreck() {
         BattleSimulation sim = openArena(40, 40);
-        Drone drone = parkArenaWithDrone(sim);
+        Entity drone = parkArenaWithDrone(sim);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         sim.applyDamage(drone, 100_000f, 20f, 20f);
@@ -104,7 +104,7 @@ public class DroneCrashSystemTest {
     @Test
     public void liveDroneCarriesKinematicsAndTheCrashDetachesIt() {
         BattleSimulation sim = openArena(40, 40);
-        Drone drone = parkArenaWithDrone(sim);
+        Entity drone = parkArenaWithDrone(sim);
 
         // Alive: the drone flies, so it carries a KINEMATICS body — the SAME
         // instance its ctor positioned at the spawn cell center (20.5, 20.5),
@@ -135,7 +135,7 @@ public class DroneCrashSystemTest {
     @Test
     public void liveDroneNeverGetsACrashingComponent() {
         BattleSimulation sim = openArena(40, 40);
-        Drone drone = parkArenaWithDrone(sim);
+        Entity drone = parkArenaWithDrone(sim);
 
         for (int i = 0; i < 5; i++) {
             sim.advance(BattleSimulation.TICK_DT);

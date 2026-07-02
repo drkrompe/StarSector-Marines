@@ -35,7 +35,7 @@ public final class DroneSpawner {
      * join the existing squad; if its leader is dead, the new drone takes
      * over.
      */
-    public static Drone tryLaunch(Entity hub, BattleSimulation sim) {
+    public static Entity tryLaunch(Entity hub, BattleSimulation sim) {
         if (!sim.world().isAlive(hub.entityId)) return null;
         NavigationGrid grid = sim.getGrid();
         World world = sim.world();
@@ -44,7 +44,7 @@ public final class DroneSpawner {
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + hub.id + "-" + sim.hubState().incrementDronesLaunched(hub.entityId);
-        Drone drone = new Drone(id, hub.faction, cell[0], cell[1], hub.entityId);
+        Entity drone = Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId);
         // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
         // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
         // queue before the next phase reads units.
@@ -75,7 +75,7 @@ public final class DroneSpawner {
      * if the drone is already allocated, otherwise seed it for the flush's
      * {@code allocate} to consume — both land the same SQUAD component.
      */
-    private static void joinDroneSquad(BattleSimulation sim, Drone drone, int squadId) {
+    private static void joinDroneSquad(BattleSimulation sim, Entity drone, int squadId) {
         if (drone.entityId != 0L) sim.squad().assignSquad(drone.entityId, squadId);
         else drone.seedSquadId = squadId;
     }

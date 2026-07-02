@@ -133,6 +133,19 @@ public enum UnitType {
     public boolean isTurret() { return this == TURRET; }
 
     /**
+     * Whether this archetype is an autonomous defensive drone — the
+     * classification gate that replaced the old {@code instanceof} subclass
+     * checks once the drone's live state moved off a dedicated {@link Entity}
+     * subclass and onto the world {@code DRONE_STATE} component. Used by
+     * {@code UnitRosterService.allocate} to attach {@code DRONE_STATE}
+     * (presence IS "is a live drone") and by the render/behavior type-tag
+     * sites ({@code DroneRenderSystem}, {@code DroneCrashSystem},
+     * {@code DroneHubBehavior.countActiveDrones}, {@code HubDemolitionSystem.cascadeKillDrones})
+     * that used to cast to the subclass.
+     */
+    public boolean isDrone() { return this == DRONE; }
+
+    /**
      * Whether this archetype's body renders as a facing-indexed frame of
      * {@link #spritePath} — the classification that gates the {@code SPRITE}
      * component at spawn ({@code UnitRosterService.allocate}) and that the

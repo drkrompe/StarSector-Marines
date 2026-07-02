@@ -128,6 +128,9 @@ public interface BattleView {
     /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — {@code turretState().isTurret(id)} / {@code facingDegrees(id)}. The per-component Service the turret type-tag classification ({@code UnitType.isTurret()}) replaced the old {@code MapTurret} subclass state-cast with. */
     TurretStateService turretState();
 
+    /** Data owner for the DRONE_STATE component (drone patrol/pursuit vectors) — {@code droneState().isDrone(id)} / {@code patrolGoalX(id)}. The per-component Service the drone type-tag classification ({@code UnitType.isDrone()}) replaced the old {@code Drone} subclass state-cast with. */
+    DroneStateService droneState();
+
     /** Data owner for the TASK component (objective/kit assignment) — {@code task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. Tolerant reads (null when untasked); lands the task fields off the {@link World} god-facade. */
     TaskService task();
 

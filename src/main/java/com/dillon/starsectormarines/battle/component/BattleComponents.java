@@ -230,6 +230,19 @@ public final class BattleComponents {
     /** {@link #TURRET_STATE} field 5: entity id of the target locked when the burst started, {@code 0L} when idle (LONG). */
     public static final int TURRET_STATE_BURST_TARGET_ID = 5;
 
+    /** {@link #DRONE_STATE} field 0: current patrol waypoint cell x, {@link Float#NaN} = no waypoint yet (FLOAT). */
+    public static final int DRONE_STATE_PATROL_GOAL_X = 0;
+    /** {@link #DRONE_STATE} field 1: current patrol waypoint cell y, paired with {@link #DRONE_STATE_PATROL_GOAL_X} (FLOAT). */
+    public static final int DRONE_STATE_PATROL_GOAL_Y = 1;
+    /** {@link #DRONE_STATE} field 2: last-known engagement/agro-scan cell x the drone is pursuing, {@link Float#NaN} = no pursuit target on record (FLOAT). */
+    public static final int DRONE_STATE_PURSUIT_GOAL_X = 2;
+    /** {@link #DRONE_STATE} field 3: last-known pursuit cell y, paired with {@link #DRONE_STATE_PURSUIT_GOAL_X} (FLOAT). */
+    public static final int DRONE_STATE_PURSUIT_GOAL_Y = 3;
+    /** {@link #DRONE_STATE} field 4: sim-seconds remaining on the pursuit latch; {@code 0} = latch expired, back to patrol (FLOAT). */
+    public static final int DRONE_STATE_PURSUIT_TIMER = 4;
+    /** {@link #DRONE_STATE} field 5: entity id of the hub that launched this drone, {@code 0L} = none (LONG). */
+    public static final int DRONE_STATE_HOME_HUB_ID = 5;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -609,6 +622,36 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B2).
      */
     public final ComponentType TURRET_STATE;
+    /**
+     * Optional drone live state — {@code float patrolGoalX, patrolGoalY,
+     * pursuitGoalX, pursuitGoalY, pursuitTimer; long homeHubId}. Presence
+     * <em>IS</em> "is a live drone" — added at spawn only for
+     * {@code UnitType.DRONE}
+     * ({@link com.dillon.starsectormarines.battle.unit.UnitType#isDrone()}),
+     * absent on every other unit. {@code patrolGoalX/Y} is the current patrol
+     * waypoint (cell coords) the drone cruises toward while idle;
+     * {@code pursuitGoalX/Y} is the last-known engagement/agro-scan position
+     * the drone commits to closing on while {@code pursuitTimer} counts down.
+     * Both goal pairs use {@link Float#NaN} as the "no waypoint yet" sentinel
+     * — a fresh world row appends {@code 0.0f}, not {@code NaN}, and
+     * {@code battle.drone.DroneSwarmAction}'s {@code ensureSectorWaypoint}
+     * gates on {@code Float.isNaN}, so {@code UnitRosterService.allocate}
+     * seeds the sentinel explicitly (the {@code AI_STATE} {@code -1}/{@code -1}
+     * fall-back-cell precedent). {@code homeHubId} is the entity id of the hub
+     * that launched this drone ({@code 0L} = none — test fixtures that never
+     * register a hub), seeded once at spawn from {@code Entity.seedHomeHubId}
+     * and never reassigned.
+     *
+     * <p>Read/written every tick by {@code battle.drone.DroneSwarmAction} (the
+     * three-mode engage/pursue/patrol dispatch); {@code battle.drone.DroneHubBehavior}
+     * and {@code battle.drone.HubDemolitionSystem} read {@code homeHubId} to
+     * find a hub's active/doomed drones. Live-only (a crashing drone doesn't
+     * patrol — removed in the corpse transmute, unlike {@code KINEMATICS},
+     * which rides the transmute so the crash system can read the falling
+     * body). The data owner is {@code battle.sim.DroneStateService}. See
+     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B3).
+     */
+    public final ComponentType DRONE_STATE;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -723,6 +766,7 @@ public final class BattleComponents {
         VEHICLE_MISSION   = world.register(26, "VehicleMission", FieldKind.OBJECT);
         HUB_STATE       = world.register(27, "HubState", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         TURRET_STATE    = world.register(28, "TurretState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
+        DRONE_STATE     = world.register(29, "DroneState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.LONG);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

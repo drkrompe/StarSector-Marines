@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.drone;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.DroneStateService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.AirBody;
@@ -51,6 +52,13 @@ import java.util.Random;
  * order rarely shuffles); occasional cross-replan re-numbering is harmless
  * since the swarm still covers N distinct sectors / bearings.
  *
+ * <p>Every drone's live patrol/pursuit vectors live in the world
+ * {@code DRONE_STATE} component (data owner {@link DroneStateService},
+ * reached via {@code sim.droneState()}) — the dissolved {@code Drone}
+ * subclass used to carry them as instance fields. The per-mode helpers below
+ * take the {@link Entity} member plus the {@code DroneStateService} where
+ * they touch that state, reading/writing it by {@code member.entityId}.
+ *
  * <p>The previous per-unit {@code DroneBehavior} class is replaced wholesale
  * by this action — drones now route through {@code CombatantBehavior}'s drone
  * branch like any other GOAP-managed combatant.
@@ -76,39 +84,41 @@ public final class DroneSwarmAction implements Action {
 
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        if (!(member instanceof Drone)) return ActionStatus.FAILURE;
-        Drone d = (Drone) member;
-        if (!sim.world().isAlive(d.entityId)) return ActionStatus.RUNNING;
+        if (!member.type.isDrone()) return ActionStatus.FAILURE;
+        long id = member.entityId;
+        if (!sim.world().isAlive(id)) return ActionStatus.RUNNING;
+
+        DroneStateService droneState = sim.droneState();
 
         // The drone's kinematic body is a world KINEMATICS component now; read it
         // once and thread it through the per-mode helpers + the cell/render sync.
-        AirBody body = sim.world().kinematics(d.entityId);
+        AirBody body = sim.world().kinematics(id);
 
-        int slotIdx = resolveSlotIndex(squad, d);
+        int slotIdx = resolveSlotIndex(squad, member);
         int slotCount = Math.max(1, slotMemberCount(squad));
 
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = sim.world().cellX(d.entityId);
-        s.originCellY = sim.world().cellY(d.entityId);
+        s.originCellX = sim.world().cellX(id);
+        s.originCellY = sim.world().cellY(id);
         s.originX = body.x;
         s.originY = body.y;
-        s.faction = d.faction;
-        s.squadId = sim.squad().hasSquad(d.entityId) ? sim.squad().squadId(d.entityId) : Entity.NO_SQUAD;
-        s.excludeFromCrowding = d;
+        s.faction = member.faction;
+        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
+        s.excludeFromCrowding = member;
         s.facingDegrees = body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
-        s.attackRange = sim.world().attackRange(d.entityId);
+        s.attackRange = sim.world().attackRange(id);
         s.minRange = 0f;
-        s.cooldownTimer = sim.world().cooldownTimer(d.entityId);
-        s.attackCooldown = sim.combat().attackCooldown(d.entityId);
-        s.target = sim.targetOf(d);
+        s.cooldownTimer = sim.world().cooldownTimer(id);
+        s.attackCooldown = sim.combat().attackCooldown(id);
+        s.target = sim.targetOf(member);
         s.ignoreCloseWalls = true;
-        s.closeWallRadius = sim.vision().airLosRadius(d.entityId);
+        s.closeWallRadius = sim.vision().airLosRadius(id);
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
-        sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
-        sim.world().setTargetId(d.entityId, Entity.idOf(s.target));
+        sim.world().setCooldownTimer(id, s.cooldownTimer);
+        sim.world().setTargetId(id, Entity.idOf(s.target));
 
         float dt = BattleSimulation.TICK_DT;
 
@@ -117,33 +127,33 @@ public final class DroneSwarmAction implements Action {
         // refresh the pursuit latch.
         Entity lockedOn = s.target;
         if (lockedOn == null) {
-            lockedOn = tryAgroScan(d, sim);
+            lockedOn = tryAgroScan(member, sim);
         }
         if (lockedOn != null) {
-            d.pursuitGoalX = sim.world().cellX(lockedOn.entityId) + 0.5f;
-            d.pursuitGoalY = sim.world().cellY(lockedOn.entityId) + 0.5f;
-            d.pursuitTimer = Drone.PURSUIT_LATCH_SECONDS;
+            droneState.setPursuitGoalX(id, sim.world().cellX(lockedOn.entityId) + 0.5f);
+            droneState.setPursuitGoalY(id, sim.world().cellY(lockedOn.entityId) + 0.5f);
+            droneState.setPursuitTimer(id, Drone.PURSUIT_LATCH_SECONDS);
         }
 
         if (s.target != null) {
-            tickEngage(d, body, s, slotIdx, slotCount, sim, dt);
-        } else if (d.pursuitTimer > 0f) {
-            tickPursue(d, body, lockedOn != null, slotIdx, slotCount, sim, dt);
+            tickEngage(member, body, s, slotIdx, slotCount, sim, droneState, dt);
+        } else if (droneState.pursuitTimer(id) > 0f) {
+            tickPursue(member, body, droneState, lockedOn != null, slotIdx, slotCount, sim, dt);
         } else {
-            tickPatrol(d, body, sim, slotIdx, slotCount, dt);
+            tickPatrol(member, body, droneState, sim, slotIdx, slotCount, dt);
         }
 
-        sim.world().setCellPos(d.entityId, (int) Math.floor(body.x), (int) Math.floor(body.y));
+        sim.world().setCellPos(id, (int) Math.floor(body.x), (int) Math.floor(body.y));
         // Sync render position so the shot pipeline picks up the drone's actual
         // position. InfantryWeapons.fireShot computes the tracer origin as
         // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
         // the tracers fire from the drone's spawn cell while the sprite
         // visually orbits the target.
-        sim.world().setRenderPos(d.entityId, body.x - 0.5f, body.y - 0.5f);
+        sim.world().setRenderPos(id, body.x - 0.5f, body.y - 0.5f);
 
         if (s.fireThisTick && s.target != null) {
-            sim.fireShot(d, s.target, FireStance.STANCED);
-            d.beginBurst(sim.combat(), s.target);
+            sim.fireShot(member, s.target, FireStance.STANCED);
+            member.beginBurst(sim.combat(), s.target);
         }
         return ActionStatus.RUNNING;
     }
@@ -171,9 +181,9 @@ public final class DroneSwarmAction implements Action {
      * at least one is roughly nose-on at most moments, distributing squad
      * fire across the orbit cycle.
      */
-    private static void tickEngage(Drone d, AirBody body, TurretAim.State s,
+    private static void tickEngage(Entity member, AirBody body, TurretAim.State s,
                                    int slotIdx, int slotCount,
-                                   BattleView sim, float dt) {
+                                   BattleView sim, DroneStateService droneState, float dt) {
         float tx = sim.world().cellX(s.target.entityId) + 0.5f;
         float ty = sim.world().cellY(s.target.entityId) + 0.5f;
         float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
@@ -182,8 +192,8 @@ public final class DroneSwarmAction implements Action {
         float driftDeg = simTime * Drone.ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC;
         float orbitBearingDeg = baseBearingDeg + driftDeg;
 
-        float baseRadius = sim.world().attackRange(d.entityId) * Drone.ENGAGE_ORBIT_BASE_FRACTION;
-        float pulseAmplitude = sim.world().attackRange(d.entityId) * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
+        float baseRadius = sim.world().attackRange(member.entityId) * Drone.ENGAGE_ORBIT_BASE_FRACTION;
+        float pulseAmplitude = sim.world().attackRange(member.entityId) * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
         float pulsePhase = 2f * (float) Math.PI
                 * (Drone.ENGAGE_ORBIT_PULSE_HZ * simTime + (float) slotIdx / slotCount);
         float orbitRadius = baseRadius + pulseAmplitude * (float) Math.sin(pulsePhase);
@@ -194,7 +204,7 @@ public final class DroneSwarmAction implements Action {
         float orbitX = tx + orbitRadius * ox;
         float orbitY = ty + orbitRadius * oy;
 
-        float[] goal = clampGoalToLeash(d, sim, orbitX, orbitY);
+        float[] goal = clampGoalToLeash(member, droneState, sim, orbitX, orbitY);
         AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
@@ -203,15 +213,16 @@ public final class DroneSwarmAction implements Action {
      * around the latched goal; tick the latch down only when no fresh target
      * sourced the refresh this tick.
      */
-    private static void tickPursue(Drone d, AirBody body, boolean latchRefreshedThisTick,
+    private static void tickPursue(Entity member, AirBody body, DroneStateService droneState,
+                                   boolean latchRefreshedThisTick,
                                    int slotIdx, int slotCount, BattleView sim, float dt) {
         if (!latchRefreshedThisTick) {
-            d.pursuitTimer -= dt;
+            droneState.setPursuitTimer(member.entityId, droneState.pursuitTimer(member.entityId) - dt);
         }
-        float comfortableDist = sim.world().attackRange(d.entityId) * ENGAGE_HOVER_FRACTION;
-        float[] hover = encircleOffset(d.pursuitGoalX, d.pursuitGoalY,
+        float comfortableDist = sim.world().attackRange(member.entityId) * ENGAGE_HOVER_FRACTION;
+        float[] hover = encircleOffset(droneState.pursuitGoalX(member.entityId), droneState.pursuitGoalY(member.entityId),
                 comfortableDist, slotIdx, slotCount);
-        float[] goal = clampGoalToLeash(d, sim, hover[0], hover[1]);
+        float[] goal = clampGoalToLeash(member, droneState, sim, hover[0], hover[1]);
         AirSteeringSystem.steer(body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
     }
 
@@ -221,14 +232,14 @@ public final class DroneSwarmAction implements Action {
      * constraint keeps the swarm fanned around the hub rather than orbiting
      * in a single bunch.
      */
-    private static void tickPatrol(Drone d, AirBody body, BattleView sim,
+    private static void tickPatrol(Entity member, AirBody body, DroneStateService droneState, BattleView sim,
                                    int slotIdx, int slotCount, float dt) {
-        ensureSectorWaypoint(d, body, sim, slotIdx, slotCount);
-        AirSteeringSystem.steer(body, d.patrolGoalX, d.patrolGoalY,
+        ensureSectorWaypoint(member, body, droneState, sim, slotIdx, slotCount);
+        AirSteeringSystem.steer(body, droneState.patrolGoalX(member.entityId), droneState.patrolGoalY(member.entityId),
                 SteeringMode.CRUISE, Drone.HANDLING, dt);
-        if (body.distanceTo(d.patrolGoalX, d.patrolGoalY)
+        if (body.distanceTo(droneState.patrolGoalX(member.entityId), droneState.patrolGoalY(member.entityId))
                 <= Drone.PATROL_WAYPOINT_ARRIVE_DIST) {
-            pickSectorWaypoint(d, body, sim, slotIdx, slotCount);
+            pickSectorWaypoint(member, body, droneState, sim, slotIdx, slotCount);
         }
     }
 
@@ -253,17 +264,17 @@ public final class DroneSwarmAction implements Action {
      * for its squad-aware crowding + threat-density scoring, then post-filters
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
-    private static Entity tryAgroScan(Drone d, BattleView sim) {
-        float dAir = sim.vision().airLosRadius(d.entityId);
+    private static Entity tryAgroScan(Entity member, BattleView sim) {
+        float dAir = sim.vision().airLosRadius(member.entityId);
         Entity candidate = sim.getTacticalScoring().findBestTarget(
-                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction,
-                sim.squad().hasSquad(d.entityId) ? sim.squad().squadId(d.entityId) : Entity.NO_SQUAD, d, dAir);
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), member.faction,
+                sim.squad().hasSquad(member.entityId) ? sim.squad().squadId(member.entityId) : Entity.NO_SQUAD, member, dAir);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
-                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));
         if (dist > Drone.AGGRO_RANGE_CELLS) return null;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId),
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId),
                 dAir, sim.vision().airLosRadius(candidate.entityId));
         return visible ? candidate : null;
     }
@@ -273,10 +284,11 @@ public final class DroneSwarmAction implements Action {
      * {@link Drone#ENGAGE_LEASH_RADIUS_CELLS} of the hub anchor. Points
      * outside the leash are pulled radially inward to the leash boundary.
      */
-    private static float[] clampGoalToLeash(Drone d, BattleView sim, float gx, float gy) {
-        if (d.homeHubId == 0L) return new float[]{gx, gy};
-        float hubX = sim.world().cellX(d.homeHubId) + 0.5f;
-        float hubY = sim.world().cellY(d.homeHubId) + 0.5f;
+    private static float[] clampGoalToLeash(Entity member, DroneStateService droneState, BattleView sim, float gx, float gy) {
+        long hubId = droneState.homeHubId(member.entityId);
+        if (hubId == 0L) return new float[]{gx, gy};
+        float hubX = sim.world().cellX(hubId) + 0.5f;
+        float hubY = sim.world().cellY(hubId) + 0.5f;
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -286,10 +298,10 @@ public final class DroneSwarmAction implements Action {
     }
 
     /** Picks an initial sector waypoint if the drone has never had one. */
-    private static void ensureSectorWaypoint(Drone d, AirBody body, BattleView sim,
+    private static void ensureSectorWaypoint(Entity member, AirBody body, DroneStateService droneState, BattleView sim,
                                              int slotIdx, int slotCount) {
-        if (Float.isNaN(d.patrolGoalX) || Float.isNaN(d.patrolGoalY)) {
-            pickSectorWaypoint(d, body, sim, slotIdx, slotCount);
+        if (Float.isNaN(droneState.patrolGoalX(member.entityId)) || Float.isNaN(droneState.patrolGoalY(member.entityId))) {
+            pickSectorWaypoint(member, body, droneState, sim, slotIdx, slotCount);
         }
     }
 
@@ -300,17 +312,18 @@ public final class DroneSwarmAction implements Action {
      * the distribution is uniform on the disk's annular slice. In-bounds
      * fallback: 6 attempts, then snap to the hub anchor.
      */
-    private static void pickSectorWaypoint(Drone d, AirBody body, BattleView sim,
+    private static void pickSectorWaypoint(Entity member, AirBody body, DroneStateService droneState, BattleView sim,
                                            int slotIdx, int slotCount) {
-        if (d.homeHubId == 0L) {
-            d.patrolGoalX = body.x;
-            d.patrolGoalY = body.y;
+        long hubId = droneState.homeHubId(member.entityId);
+        if (hubId == 0L) {
+            droneState.setPatrolGoalX(member.entityId, body.x);
+            droneState.setPatrolGoalY(member.entityId, body.y);
             return;
         }
-        Random rng = d.rng;
+        Random rng = member.rng;
         NavigationGrid grid = sim.getGrid();
-        float anchorX = sim.world().cellX(d.homeHubId) + 0.5f;
-        float anchorY = sim.world().cellY(d.homeHubId) + 0.5f;
+        float anchorX = sim.world().cellX(hubId) + 0.5f;
+        float anchorY = sim.world().cellY(hubId) + 0.5f;
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {
@@ -324,17 +337,17 @@ public final class DroneSwarmAction implements Action {
             int cx = (int) Math.floor(gx);
             int cy = (int) Math.floor(gy);
             if (grid.inBounds(cx, cy)) {
-                d.patrolGoalX = gx;
-                d.patrolGoalY = gy;
+                droneState.setPatrolGoalX(member.entityId, gx);
+                droneState.setPatrolGoalY(member.entityId, gy);
                 return;
             }
         }
-        d.patrolGoalX = anchorX;
-        d.patrolGoalY = anchorY;
+        droneState.setPatrolGoalX(member.entityId, anchorX);
+        droneState.setPatrolGoalY(member.entityId, anchorY);
     }
 
     /**
-     * Member's slot index in the current step's assignment map. Walks the
+     * Member's slot index in the current step's assignment slot map. Walks the
      * LinkedHashMap in insertion order so the index aligns with the slot
      * declaration order in {@link #roles}. Returns 0 as a safe default if
      * the member isn't in any slot (shouldn't happen — the dispatcher

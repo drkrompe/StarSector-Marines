@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
+import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -99,6 +100,36 @@ public class StaticEmplacementMembershipTest {
         assertTrue(sim.world().hasAiState(marine.entityId));
         assertFalse(sim.world().hasMovement(turret.entityId));
         assertFalse(sim.world().hasAiState(hub.entityId));
+    }
+
+    @Test
+    public void droneCarriesDroneStateSeededToNaNGoalsAndItsHomeHubId() {
+        BattleSimulation sim = openSim();
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 5, 5);
+        sim.addUnit(hub);
+        Entity drone = Drone.create("d", Faction.DEFENDER, 10, 10, hub.entityId);
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
+        sim.addUnit(drone);
+        sim.addUnit(marine);
+        sim.addUnit(turret);
+
+        // The drone carries DRONE_STATE (presence IS "is a live drone"); the hub,
+        // marine, and turret — none a drone — don't.
+        assertTrue(sim.droneState().isDrone(drone.entityId));
+        assertFalse(sim.droneState().isDrone(hub.entityId));
+        assertFalse(sim.droneState().isDrone(marine.entityId));
+        assertFalse(sim.droneState().isDrone(turret.entityId));
+
+        // Patrol/pursuit goals seed to NaN ("no waypoint yet" — DroneSwarmAction's
+        // ensureSectorWaypoint gates on this); pursuitTimer rides the zero-init
+        // (0f = latch expired); homeHubId seeds from the id passed to create().
+        assertTrue(Float.isNaN(sim.droneState().patrolGoalX(drone.entityId)), "patrolGoalX seeds to NaN");
+        assertTrue(Float.isNaN(sim.droneState().patrolGoalY(drone.entityId)), "patrolGoalY seeds to NaN");
+        assertTrue(Float.isNaN(sim.droneState().pursuitGoalX(drone.entityId)), "pursuitGoalX seeds to NaN");
+        assertTrue(Float.isNaN(sim.droneState().pursuitGoalY(drone.entityId)), "pursuitGoalY seeds to NaN");
+        assertEquals(0f, sim.droneState().pursuitTimer(drone.entityId), 1e-4f, "pursuitTimer seeds to 0 (latch expired)");
+        assertEquals(hub.entityId, sim.droneState().homeHubId(drone.entityId), "homeHubId seeds from the passed hub id");
     }
 
     @Test

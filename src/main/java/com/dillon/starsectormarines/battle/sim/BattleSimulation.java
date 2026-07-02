@@ -425,6 +425,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — {@code sim.turretState().isTurret(id)} / {@code facingDegrees(id)}. */
     public TurretStateService turretState() { return rosterService.turretState(); }
 
+    /** Data owner for the DRONE_STATE component (drone patrol/pursuit vectors) — {@code sim.droneState().isDrone(id)} / {@code patrolGoalX(id)}. */
+    public DroneStateService droneState() { return rosterService.droneState(); }
+
     /** Data owner for the TASK component (objective/kit assignment) — {@code sim.task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. */
     public TaskService task() { return rosterService.task(); }
 

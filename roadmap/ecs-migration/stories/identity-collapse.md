@@ -4,7 +4,8 @@
 > session). Scope DECIDED: value-first sequencing — do A → B (+ C) this arc; **Phase D
 > (the bare-`long` sweep) is committed, not optional — deferred to a follow-up session.**
 > The endgame is still `entity = long` everywhere. B1 (DroneHubUnit → `HUB_STATE`) and
-> B2 (MapTurret → `TURRET_STATE`) SHIPPED; next up is B3 (`Drone`, hairiest).**
+> B1/B2/B3 all SHIPPED — **Phase B COMPLETE** (no `Entity` subclasses left). Next: Phase A
+> (side-quests) + Phase C (spawn-spec).**
 > The last open ECS-migration epic that touches the identity layer: turn `Entity` from a
 > ~305-line heap object held in the roster's `Entity[]` into a bare `long` id, so
 > `entity = id` is literally true everywhere. The spatial index goes id-native as a
@@ -153,12 +154,28 @@ can't serve.
   kind/recoilTimer), `TurretDemolitionSystemTest` migrated to `isDemolished(id)`, new
   `TurretBehaviorTest` (recoil aging with no target; a burst kind latching `burstRemaining`/
   `burstTimer`/`burstTargetId`/facing into `TURRET_STATE` on a same-tick fire).
-- **B3 · `Drone`** — `DRONE_STATE` for the patrol/pursuit vectors + timer; rewrite `DroneSwarmAction`'s
-  7 `Drone d` helpers to `(long id)` + component fetch. Entangled with the hub via `homeHub`
-  (migrate as a pair, B1 establishes `homeHubId` first). Hairiest; `DroneCrashSystem`'s `CRASHING`
-  composition is the in-repo end-state to imitate.
+- ~~**B3 · `Drone`**~~ — **SHIPPED (2026-07-01; Sonnet-implemented, main-thread reviewed; full
+  suite green, 870 tests).** The `Drone` class is rewritten in place into a non-`Entity` factory
+  (`Drone.create(...) → Entity`, `UnitType.DRONE`) keeping all its tuning constants + `HANDLING`
+  (`DroneSwarmAction`/`DroneCrashSystem` reference them). Live state → `DRONE_STATE` component
+  (id 29: `patrolGoalX/Y`, `pursuitGoalX/Y`, `pursuitTimer` FLOAT, `homeHubId` LONG) +
+  `DroneStateService` (`sim.droneState()`). The B1 `Drone.homeHubId` field folded into `DRONE_STATE`,
+  seeded from a new `Entity.seedHomeHubId`. **Load-bearing seed:** `allocate` seeds the patrol/pursuit
+  goals to `Float.NaN` (the "no waypoint yet" sentinel `ensureSectorWaypoint` gates on — a fresh row
+  appends `0.0`, not NaN; the `AI_STATE -1/-1` cell precedent). `DroneSwarmAction`'s `execute` + 7
+  helpers rewritten to `(Entity member)` + a threaded `DroneStateService` (byte-identical control
+  flow — a pure storage relocation of the field reads/writes). `instanceof Drone` → `UnitType.isDrone()`
+  at every site (`DroneHubBehavior.countActiveDrones`, `HubDemolitionSystem.cascadeKillDrones`,
+  `DroneRenderSystem`, `DroneCrashSystem` — the last two confirmed tag-only). `DRONE_STATE` is
+  live-only (corpse-remove mask) while KINEMATICS (the AirBody) stays for the crash. Tests:
+  `StaticEmplacementMembershipTest` (DRONE_STATE presence + NaN goal seeds + homeHubId), new
+  `DroneSwarmActionTest` (patrol-waypoint pick, pursuit-latch decay, non-drone rejection).
 
-After B: no `Entity` subclasses, no live state outside components, no state-reach `instanceof`.
+**Phase B COMPLETE (2026-07-01):** no `Entity` subclasses remain, no live per-instance state lives
+outside a world component, and every state-reach / classification `instanceof` subclass-check is gone
+(replaced by `UnitType.isX()` predicates + per-component Services). Remaining epic work: Phase A
+(rng/name/base-method side-quests) + Phase C (spawn-spec); Phase D (bare-`long` sweep) stays the
+committed follow-up-session deferral.
 
 **Phase C — spawn-spec.** Replace `new X(...)` + `seed*` writes + `allocate(Entity)` with an
 `EntitySpec` (mirroring `allocateAir`/`allocateVehicle`) consumed by `roster.spawn(spec) → long`.

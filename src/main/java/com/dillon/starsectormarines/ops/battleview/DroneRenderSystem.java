@@ -85,13 +85,12 @@ public final class DroneRenderSystem implements RenderSystem {
         // Live drones — iterate the dense registry; the corpse never appears.
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
-            if (!(u instanceof Drone)) continue;
-            Drone d = (Drone) u;
+            if (!u.type.isDrone()) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
 
             // The drone's body is a world KINEMATICS component now (read by id).
-            AirBody body = world.kinematics(d.entityId);
+            AirBody body = world.kinematics(u.entityId);
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
             float drawAlpha = alphaMult;
@@ -105,7 +104,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    world.hp(d.entityId) / world.maxHp(d.entityId), drawAlpha);
+                    world.hp(u.entityId) / world.maxHp(u.entityId), drawAlpha);
         }
     }
 }

@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.HomeService;
 import com.dillon.starsectormarines.battle.sim.HubStateService;
 import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
+import com.dillon.starsectormarines.battle.sim.DroneStateService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -129,6 +130,7 @@ public final class UnitRosterService {
     private final HomeService homeService = new HomeService(entityWorld, components);
     private final HubStateService hubStateService = new HubStateService(entityWorld, components);
     private final TurretStateService turretStateService = new TurretStateService(entityWorld, components);
+    private final DroneStateService droneStateService = new DroneStateService(entityWorld, components);
     private final TaskService taskService = new TaskService(entityWorld, components);
     // Data owner for the convoy-vehicle world entities (ground archetype). Takes `this`
     // because adoption must mint through the shared allocateVehicle; the ref is stored,
@@ -249,6 +251,9 @@ public final class UnitRosterService {
     /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — inject into consumers that gate on isTurret / read the aim/burst state. */
     public TurretStateService turretState() { return turretStateService; }
 
+    /** Data owner for the DRONE_STATE component (drone patrol/pursuit vectors) — inject into consumers that gate on isDrone / read the patrol/pursuit state. */
+    public DroneStateService droneState() { return droneStateService; }
+
     /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
     public TaskService task() { return taskService; }
 
@@ -307,6 +312,9 @@ public final class UnitRosterService {
         //   - TURRET_STATE iff the unit is a turret (UnitType.isTurret()) —
         //     presence IS "is a live turret", the same classification-gate
         //     pattern replacing the old instanceof-subclass checks.
+        //   - DRONE_STATE iff the unit is a drone (UnitType.isDrone()) —
+        //     presence IS "is a live drone", the same classification-gate
+        //     pattern replacing the old instanceof-subclass checks.
         // Identity is written once here and persists alive→dead (the corpse
         // transmute's row-move carries it — as does the cell, which IS the death cell
         // by the time the corpse forms); Position and Health seed from the
@@ -349,10 +357,15 @@ public final class UnitRosterService {
         // marker, so the archetype membership itself is the classification gate that
         // replaced the old instanceof-subclass checks.
         boolean isTurret = u.type.isTurret();
+        // DRONE_STATE iff the unit is a drone (UnitType.isDrone()). Presence IS
+        // "is a live drone" — the Drone factory config/entity has no other
+        // marker, so the archetype membership itself is the classification gate
+        // that replaced the old instanceof-subclass checks.
+        boolean isDrone = u.type.isDrone();
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0) + (isHub ? 1 : 0) + (isTurret ? 1 : 0)];
+                  + (sheetDrawn ? 1 : 0) + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -373,6 +386,7 @@ public final class UnitRosterService {
         if (sheetDrawn) archetype[c++] = components.SPRITE;
         if (isHub) archetype[c++] = components.HUB_STATE;
         if (isTurret) archetype[c++] = components.TURRET_STATE;
+        if (isDrone) archetype[c++] = components.DRONE_STATE;
         entityWorld.createEntity(id, archetype);
         // SHEET/FLIP_V stay 0 from the zero-init append; INDEX is seeded to the
         // south-idle frame so a unit spawned between this tick's FacingSystem
@@ -450,6 +464,20 @@ public final class UnitRosterService {
         if (isTurret) {
             entityWorld.setObject(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_KIND, u.seedTurretKind);
             entityWorld.setFloat(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_RECOIL_TIMER, 1f);
+        }
+        // Seed the drone's live state (the DRONE_STATE component was attached above
+        // iff the unit is a drone). Patrol/pursuit goals default to NaN ("no
+        // waypoint yet") — a fresh row appends 0.0f, not NaN, and
+        // ensureSectorWaypoint gates on isNaN, so the sentinel must be seeded
+        // explicitly (the AI_STATE -1/-1 cell precedent). homeHubId seeds from
+        // the write-only seed; pursuitTimer rides the zero-init (0f = latch
+        // expired).
+        if (isDrone) {
+            entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PATROL_GOAL_X, Float.NaN);
+            entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PATROL_GOAL_Y, Float.NaN);
+            entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PURSUIT_GOAL_X, Float.NaN);
+            entityWorld.setFloat(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_PURSUIT_GOAL_Y, Float.NaN);
+            entityWorld.setLong(id, components.DRONE_STATE, BattleComponents.DRONE_STATE_HOME_HUB_ID, u.seedHomeHubId);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative

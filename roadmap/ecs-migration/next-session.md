@@ -161,8 +161,17 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    onto the COMBAT burst columns, since `InfantryWeapons.tick`'s burst-continuation pass would
    double-process a turret burst through the wrong (infantry) firing pipeline if it did; `demolished`
    → a `TurretDemolitionSystem` side-table; config/ctor → a `MapTurret.create` factory; all
-   `instanceof MapTurret`/`(MapTurret)` → `UnitType.isTurret()` or a `TURRET_STATE` read). **Next:
-   B3** (`Drone`, hairiest — entangled with the hub via `homeHubId`).
+   `instanceof MapTurret`/`(MapTurret)` → `UnitType.isTurret()` or a `TURRET_STATE` read). **B3
+   SHIPPED** — the `Drone` subclass is dissolved (live patrol/pursuit vectors + `homeHubId` →
+   `DRONE_STATE` component id 29 + `DroneStateService`; `Drone` rewritten into a factory keeping its
+   tuning constants; `DroneSwarmAction`'s `execute` + 7 helpers rewritten to `(Entity + droneState)`
+   byte-identically; patrol goals seed to `Float.NaN`; all `instanceof Drone` → `UnitType.isDrone()`).
+   **PHASE B COMPLETE — no `Entity` subclasses remain, no live per-instance state outside components,
+   no state-reach `instanceof`.** Commit chain B1 `a4180ef0` → B2 `2d9eb894` → B3 (this commit).
+   **Next: Phase A** (rng → thread-local, String `id` → IDENTITY name column, `advanceAlongPath`/
+   `beginBurst` → owning services) + **Phase C** (spawn-spec: `EntitySpec` replaces the `new Entity`
+   + `seed*` writes, dedupes the deboard loadout). Phase D (bare-`long` sweep) stays the deferred
+   follow-up. Full designs: [`stories/identity-collapse.md`](stories/identity-collapse.md).
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;

@@ -71,13 +71,13 @@ public class HubDemolitionSystemTest {
         // The hub that dies, with two drones it launched.
         Entity deadHub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
         sim.addUnit(deadHub);
-        Drone d1 = new Drone("d1", Faction.DEFENDER, 10, 11, deadHub.entityId);
-        Drone d2 = new Drone("d2", Faction.DEFENDER, 10, 9, deadHub.entityId);
+        Entity d1 = Drone.create("d1", Faction.DEFENDER, 10, 11, deadHub.entityId);
+        Entity d2 = Drone.create("d2", Faction.DEFENDER, 10, 9, deadHub.entityId);
         // A second, untouched hub with its own drone — the cascade must leave
         // a drone that calls a DIFFERENT hub home completely alone.
         Entity liveHub = DroneHub.create("h1", Faction.DEFENDER, 20, 20);
         sim.addUnit(liveHub);
-        Drone control = new Drone("c0", Faction.DEFENDER, 20, 21, liveHub.entityId);
+        Entity control = Drone.create("c0", Faction.DEFENDER, 20, 21, liveHub.entityId);
         sim.addUnit(d1);
         sim.addUnit(d2);
         sim.addUnit(control);

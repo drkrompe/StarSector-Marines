@@ -111,17 +111,17 @@ public final class HubDemolitionSystem {
      */
     private void cascadeKillDrones(long hubId) {
         World world = roster.world();
-        List<Drone> doomed = null;
+        List<Entity> doomed = null;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             Entity u = roster.get(i);
-            if (u instanceof Drone d && d.homeHubId == hubId) {
+            if (u.type.isDrone() && roster.droneState().homeHubId(u.entityId) == hubId) {
                 if (doomed == null) doomed = new ArrayList<>();
-                doomed.add(d);
+                doomed.add(u);
             }
         }
         if (doomed == null) return;
         for (int i = 0, n = doomed.size(); i < n; i++) {
-            Drone d = doomed.get(i);
+            Entity d = doomed.get(i);
             world.setHp(d.entityId, 0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on

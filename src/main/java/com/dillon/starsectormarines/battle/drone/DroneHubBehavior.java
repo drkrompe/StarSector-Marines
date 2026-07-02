@@ -42,8 +42,8 @@ public final class DroneHubBehavior implements UnitBehavior {
         int n = 0;
         for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (!(u instanceof Drone)) continue;
-            if (((Drone) u).homeHubId == hub.entityId) n++;
+            if (!u.type.isDrone()) continue;
+            if (sim.droneState().homeHubId(u.entityId) == hub.entityId) n++;
         }
         return n;
     }

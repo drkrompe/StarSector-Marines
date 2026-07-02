@@ -352,6 +352,24 @@ public class Entity {
     public TurretKind seedTurretKind;
 
     /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Entity id of the hub
+     * that launched this drone, {@code 0L} if none (test fixtures that never
+     * register a hub). {@link UnitRosterService#allocate} consumes it only
+     * when {@code type.isDrone()}: it seeds the entity world's
+     * {@code DRONE_STATE} component (field
+     * {@link BattleComponents#DRONE_STATE_HOME_HUB_ID}), canonical thereafter;
+     * reached by id via the {@code DroneStateService} data owner
+     * ({@code sim.droneState().homeHubId(id)}), read by
+     * {@code battle.drone.DroneHubBehavior}/{@code HubDemolitionSystem} to find
+     * a hub's active/doomed drones. Ignored (never consumed) for every
+     * non-drone type, so this keeps {@link UnitRosterService#allocate} free of
+     * any {@code battle.drone} import — a transient seed the Phase-C spawn-spec
+     * will absorb. Write-only construction input; set by the {@code Drone}
+     * factory.
+     */
+    public long seedHomeHubId = 0L;
+
+    /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The primary handheld
      * weapon a unit spawns/deboards with (null = a legacy/non-marine unit with no
      * per-weapon profile — fire stats fall back to the {@link UnitType} attack-stat

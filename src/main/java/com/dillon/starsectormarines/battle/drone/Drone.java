@@ -10,24 +10,32 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
 
 /**
- * Autonomous defensive drone launched from a {@link DroneHub}. Combatant
- * with HP, faction = DEFENDER, targetable by marines like any other unit. Its
- * continuous-flight {@link AirBody} is a world {@code KINEMATICS} component: the
- * ctor builds + positions it and hands it to {@link Entity#seedBody}, then
- * {@code UnitRosterService.allocate} adopts it into the world column — read by id
- * via {@code world.kinematics(id)} and steered each tick by {@link DroneSwarmAction}
- * (which then syncs the grid cell + render position from it).
+ * Config + factory for the autonomous defensive drone launched from a
+ * {@link DroneHub}. Combatant with HP, faction = DEFENDER, targetable by
+ * marines like any other unit. Its continuous-flight {@link AirBody} is a
+ * world {@code KINEMATICS} component: {@link #create} builds + positions it
+ * and hands it to {@link Entity#seedBody}, then {@code UnitRosterService.allocate}
+ * adopts it into the world column — read by id via {@code world.kinematics(id)}
+ * and steered each tick by {@link DroneSwarmAction} (which then syncs the grid
+ * cell + render position from it).
  *
  * <p>Per-instance vanilla sprite path (the {@link UnitType#DRONE} sheet field
  * is empty) so the renderer hooks the dedicated drone pass instead of the
  * generic unit-sheet path — same convention used by {@link DroneHub} and
  * {@link com.dillon.starsectormarines.battle.turret.MapTurret}.
  *
- * <p>The {@link UnitRole#STRUCTURE} role is a temporary stand-in: it keeps the
- * sim's per-tick behavior dispatch a no-op until {@code DroneBehavior} arrives
- * with patrol + engagement.
+ * <p>The {@link UnitRole#DRONE_PATROL} role dispatches to
+ * {@code GoapDroneBehavior}/{@link DroneSwarmAction} for the per-tick
+ * patrol/pursue/engage posture.
+ *
+ * <p>A plain config/factory class, <b>not</b> an {@link Entity} subclass — the
+ * drone's live per-instance state ({@code patrolGoalX/Y}/{@code pursuitGoalX/Y}/
+ * {@code pursuitTimer}/{@code homeHubId}) lives in the world {@code DRONE_STATE}
+ * component (data owner {@code battle.sim.DroneStateService}); {@link #create}
+ * seeds {@code homeHubId} via {@link Entity#seedHomeHubId}. See
+ * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B3).
  */
-public class Drone extends Entity {
+public final class Drone {
 
     /**
      * Vanilla Terminator-drone sprite — sleek combat drone launched from
@@ -46,7 +54,7 @@ public class Drone extends Entity {
     public static final float TURN_RATE_DEG_PER_SEC = 220f;
 
     /**
-     * Drone {@link Entity#airLosRadius}, in cells. Walls within this many cells
+     * Drone {@code VISION_AIR_LOS_RADIUS}, in cells. Walls within this many cells
      * of the drone are transparent for LoS — both for the drone firing down
      * and for ground combatants firing up. Smaller than the shuttle's 3.5
      * because drones are physically smaller and patrol closer to roof level;
@@ -54,27 +62,6 @@ public class Drone extends Entity {
      * the drone "see through the next building's wall too" reach.
      */
     public static final float DRONE_AIR_LOS_RADIUS = 3.0f;
-
-    /**
-     * Entity id of the hub that launched this drone, {@code 0L} if none (test
-     * fixtures that never register a hub). Held as an id, not an {@link Entity}
-     * ref — the hub can be destroyed (and registry-released) while the drone
-     * still flies, so callers resolve position/liveness by id
-     * ({@code sim.world().cellX(homeHubId)}, {@code sim.world().isAlive(homeHubId)})
-     * rather than holding a stale reference. Read so the hub's active-drone
-     * bookkeeping can drop dead drones; patrol behavior reads it for the
-     * patrol-around-this-anchor goal.
-     *
-     * <p><b>Captured eagerly at construction</b> — pass {@code hub.entityId}
-     * only <em>after</em> the hub is registered ({@code addUnit}/{@code allocate}).
-     * An unregistered hub still has {@code entityId == 0}, and {@code 0L} is the
-     * legit "no hub" sentinel (not fail-loud), so capturing it early silently
-     * makes the drone hub-less — it patrols around its own body and is excluded
-     * from the hub's death cascade. (The old design held the hub <em>ref</em> and
-     * resolved its id lazily at tick time, which tolerated construct-before-register;
-     * the id form does not.)
-     */
-    public final long homeHubId;
 
     /**
      * Radius (cells) around the hub's anchor within which the drone picks
@@ -98,16 +85,16 @@ public class Drone extends Entity {
     public static final float AGGRO_RANGE_CELLS = 32f;
 
     /**
-     * Maximum distance (cells) from {@link #homeHubId} the drone is willing to
-     * stray when pursuing a target. The "follow allowance" cap — drones aren't
-     * fighter aircraft, they're a screen anchored to their launching hub. A
-     * marine fleeing beyond this radius outruns the drone's leash and the
-     * drone hovers at the boundary until the engagement ends (then returns
-     * to patrol via the standard waypoint roll). Sized to fit a full orbit
-     * radius (base + pulse amplitude ~ 19 cells at the current attackRange)
-     * around a target at the boundary — drones encircling a marine at the
-     * leash edge still trace a full orbit instead of bunching on the hub
-     * side.
+     * Maximum distance (cells) from the drone's home hub the drone is willing
+     * to stray when pursuing a target. The "follow allowance" cap — drones
+     * aren't fighter aircraft, they're a screen anchored to their launching
+     * hub. A marine fleeing beyond this radius outruns the drone's leash and
+     * the drone hovers at the boundary until the engagement ends (then
+     * returns to patrol via the standard waypoint roll). Sized to fit a full
+     * orbit radius (base + pulse amplitude ~ 19 cells at the current
+     * attackRange) around a target at the boundary — drones encircling a
+     * marine at the leash edge still trace a full orbit instead of bunching
+     * on the hub side.
      */
     public static final float ENGAGE_LEASH_RADIUS_CELLS = 32f;
 
@@ -120,37 +107,6 @@ public class Drone extends Entity {
      * for two seconds and popping back out.
      */
     public static final float PURSUIT_LATCH_SECONDS = 3f;
-
-    /**
-     * Current patrol waypoint, world cell coords. Picked when spawned; re-
-     * rolled when the drone gets close to it. Sentinel value
-     * {@link Float#NaN} means "no waypoint yet" — DroneBehavior picks one on
-     * first tick using {@code BattleSimulation.getRng()}.
-     */
-    public float patrolGoalX = Float.NaN;
-    public float patrolGoalY = Float.NaN;
-
-    /**
-     * Last-known enemy cell the drone is committed to closing on, world cell
-     * coords. Latched whenever the drone has an active engagement target or
-     * a fresh agro-scan hit; consumed by the pursuit branch while
-     * {@link #pursuitTimer} is positive. {@link Float#NaN} = no pursuit
-     * target on record. Drives the "follow" allowance: drone keeps moving
-     * toward this position (clamped to {@link #ENGAGE_LEASH_RADIUS_CELLS}
-     * from the hub) for {@link #PURSUIT_LATCH_SECONDS} after the active
-     * target evaporates, so a marine ducking briefly behind cover doesn't
-     * reset the drone all the way back to patrol orbit.
-     */
-    public float pursuitGoalX = Float.NaN;
-    public float pursuitGoalY = Float.NaN;
-
-    /**
-     * Sim-seconds remaining on the pursuit latch. Refreshed to
-     * {@link #PURSUIT_LATCH_SECONDS} every tick the drone has a live engagement
-     * or agro-scan hit; ticks down toward zero only when both come up empty.
-     * On reaching zero the drone returns to patrol mode.
-     */
-    public float pursuitTimer = 0f;
 
     /**
      * Drone flight handling — tuned for a combat-helicopter feel: noticeably
@@ -175,7 +131,7 @@ public class Drone extends Entity {
     public static final float PATROL_WAYPOINT_ARRIVE_DIST = 1.2f;
 
     /**
-     * Orbit base radius as a fraction of {@link #attackRange}. The drone's
+     * Orbit base radius as a fraction of {@code attackRange}. The drone's
      * engagement target sits at the orbit center; the drone circles at this
      * radius, modulated by the pulse term below. 0.55 places the orbit
      * comfortably inside firing range (radius ~14 cells at attackRange 26)
@@ -184,7 +140,7 @@ public class Drone extends Entity {
     public static final float ENGAGE_ORBIT_BASE_FRACTION = 0.55f;
 
     /**
-     * Orbit radius pulse amplitude as a fraction of {@link #attackRange}.
+     * Orbit radius pulse amplitude as a fraction of {@code attackRange}.
      * Each drone's orbit radius oscillates sinusoidally between
      * {@code base ± amplitude}, giving the "varying radius" lap-the-target
      * read familiar from vanilla Starsector Terminator drones. 0.18 keeps
@@ -229,25 +185,43 @@ public class Drone extends Entity {
      */
     public static final float CRASH_SPIN_DEG_PER_SEC = 720f;
 
-    public Drone(String id, Faction faction, int cellX, int cellY, long homeHubId) {
-        super(id, faction, UnitType.DRONE, cellX, cellY);
-        this.homeHubId = homeHubId;
-        this.seedMaxHp = DRONE_MAX_HP;
-        this.seedHp = DRONE_MAX_HP;
-        this.seedPrimaryWeapon = MarineWeapon.DRONE_PULSE;
-        this.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
-        this.seedVisionRange = 44f;
-        this.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
-        this.seedAttackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
-        this.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
-        this.seedMoveSpeed = 0f;
-        this.seedAirLosRadius = DRONE_AIR_LOS_RADIUS;
-        this.seedRole = UnitRole.DRONE_PATROL;
+    private Drone() {}
+
+    /**
+     * Builds a fresh drone {@link Entity} at {@code (cellX, cellY)}, homed to
+     * the hub with entity id {@code homeHubId} ({@code 0L} = none — test
+     * fixtures that never register a hub). Seeds the config stats above plus
+     * {@link Entity#seedHomeHubId} (consumed by {@code UnitRosterService.allocate}
+     * into the {@code DRONE_STATE} component iff {@code type.isDrone()}); the
+     * caller still owns handing the result to {@code sim.addUnit}/{@code queueSpawn}.
+     *
+     * <p><b>Captured eagerly</b> — pass {@code hub.entityId} only <em>after</em>
+     * the hub is registered ({@code addUnit}/{@code allocate}). An unregistered
+     * hub still has {@code entityId == 0}, and {@code 0L} is the legit "no hub"
+     * sentinel (not fail-loud), so passing it early silently makes the drone
+     * hub-less — it patrols around its own body and is excluded from the hub's
+     * death cascade.
+     */
+    public static Entity create(String id, Faction faction, int cellX, int cellY, long homeHubId) {
+        Entity drone = new Entity(id, faction, UnitType.DRONE, cellX, cellY);
+        drone.seedMaxHp = DRONE_MAX_HP;
+        drone.seedHp = DRONE_MAX_HP;
+        drone.seedPrimaryWeapon = MarineWeapon.DRONE_PULSE;
+        drone.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
+        drone.seedVisionRange = 44f;
+        drone.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
+        drone.seedAttackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
+        drone.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
+        drone.seedMoveSpeed = 0f;
+        drone.seedAirLosRadius = DRONE_AIR_LOS_RADIUS;
+        drone.seedRole = UnitRole.DRONE_PATROL;
+        drone.seedHomeHubId = homeHubId;
         // Build + position the kinematic body and hand it to the world-adoption seam.
         // allocate() reads seedBody → adds the KINEMATICS component, keyed by entity
         // id; the body lives in that column thereafter (this same instance, aliased).
         AirBody seed = new AirBody();
         seed.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
-        this.seedBody = seed;
+        drone.seedBody = seed;
+        return drone;
     }
 }

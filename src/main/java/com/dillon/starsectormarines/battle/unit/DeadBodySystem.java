@@ -63,23 +63,32 @@ public final class DeadBodySystem {
         // that already has it, and still adds it fresh for a non-sheet death
         // (turret / drone-hub / drone) that never carried one live.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
-        // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, HUB_STATE, and
-        // TURRET_STATE are all optional (a non-combatant civilian has no COMBAT; a
-        // static turret/hub has no MOVEMENT/AI_STATE; only armed units carry a
-        // secondary; only squad members carry SQUAD; only a drone hub carries
-        // HUB_STATE; only a turret carries TURRET_STATE) and removed when present —
-        // transmute treats a remove of a component the entity lacks as a no-op, so
-        // listing them unconditionally is safe (a non-hub death's HUB_STATE remove,
-        // and a non-turret death's TURRET_STATE remove, are simply no-ops). VISION
-        // and ROLE are universal but live-only (a corpse neither sees nor acts), so
-        // they're removed too. SQUAD and ROLE are read pre-transmute by the death
-        // cascade in resolve() (squad membership; the drop-carrier role check),
-        // which runs before releaseFromRegistry and this buffered transmute.
+        // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, HUB_STATE,
+        // TURRET_STATE, and DRONE_STATE are all optional (a non-combatant civilian
+        // has no COMBAT; a static turret/hub has no MOVEMENT/AI_STATE; only armed
+        // units carry a secondary; only squad members carry SQUAD; only a drone hub
+        // carries HUB_STATE; only a turret carries TURRET_STATE; only a drone
+        // carries DRONE_STATE) and removed when present — transmute treats a
+        // remove of a component the entity lacks as a no-op, so listing them
+        // unconditionally is safe (a non-hub death's HUB_STATE remove, a
+        // non-turret death's TURRET_STATE remove, and a non-drone death's
+        // DRONE_STATE remove are simply no-ops). VISION and ROLE are universal but
+        // live-only (a corpse neither sees nor acts), so they're removed too.
+        // SQUAD and ROLE are read pre-transmute by the death cascade in resolve()
+        // (squad membership; the drop-carrier role check), which runs before
+        // releaseFromRegistry and this buffered transmute.
+        //
+        // DRONE_STATE is live-only (removed here) even though KINEMATICS (the
+        // AirBody) is deliberately KEPT OFF this mask — a crashing drone's body
+        // rides the transmute so DroneCrashSystem can read it before detaching it,
+        // but the patrol/pursuit vectors have no post-death reader (a crashing
+        // drone doesn't patrol), so DRONE_STATE is removed like every other
+        // live-only optional component.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
                 components.SQUAD, components.ROLE, components.HOME, components.TASK,
-                components.HUB_STATE, components.TURRET_STATE};
+                components.HUB_STATE, components.TURRET_STATE, components.DRONE_STATE};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */
