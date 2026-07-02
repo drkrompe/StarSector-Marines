@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.CombatService;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.SquadService;
@@ -122,6 +123,7 @@ public final class UnitRosterService {
     private final BattleComponents components = new BattleComponents(entityWorld);
     // Per-component data-owner Services (the World decomposition). World delegates
     // its COMBAT/MOVEMENT accessors to these; consumers inject them via combat()/movement().
+    private final IdentityService identityService = new IdentityService(entityWorld, components);
     private final CombatService combatService = new CombatService(entityWorld, components);
     private final MovementService movementService = new MovementService(entityWorld, components);
     private final VisionService visionService = new VisionService(entityWorld, components);
@@ -257,6 +259,9 @@ public final class UnitRosterService {
     /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
     public TaskService task() { return taskService; }
 
+    /** Data owner for the IDENTITY component (type/faction/name) — {@code identity().name(id)} is the greppable-name read for debug dumps / logs / tests. */
+    public IdentityService identity() { return identityService; }
+
     /** Data owner for convoy-vehicle world entities (ground archetype) — {@code GroundSystem} adopts / reaps vehicles and reads their identity + pose by id through it. */
     public ConvoyService convoy() { return convoyService; }
 
@@ -276,7 +281,7 @@ public final class UnitRosterService {
     public long allocate(Entity u) {
         if (u.entityId != 0L) {
             throw new IllegalStateException(
-                    "Entity '" + u.id + "' already has entityId " + u.entityId + " — double allocate");
+                    "Entity '" + u.seedName + "' already has entityId " + u.entityId + " — double allocate");
         }
         if (liveCount == dense.length) {
             dense = Arrays.copyOf(dense, dense.length * 2);
@@ -396,6 +401,7 @@ public final class UnitRosterService {
         }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, u.seedName);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);

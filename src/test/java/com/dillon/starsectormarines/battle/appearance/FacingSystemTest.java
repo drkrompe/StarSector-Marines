@@ -88,10 +88,10 @@ public class FacingSystemTest {
         EntityWorld world = sim.getEntityWorld();
         BattleComponents c = sim.getBattleComponents();
         for (Entity u : new Entity[]{marine, civilian}) {
-            assertTrue(world.has(u.entityId, c.SPRITE), u.id + " carries SPRITE at spawn");
-            assertEquals(3, spriteIndex(sim, u.entityId), u.id + " seeds the south-idle frame");
-            assertEquals(0, spriteSheet(sim, u.entityId), u.id);
-            assertEquals(0, spriteFlipV(sim, u.entityId), u.id);
+            assertTrue(world.has(u.entityId, c.SPRITE), sim.identity().name(u.entityId) + " carries SPRITE at spawn");
+            assertEquals(3, spriteIndex(sim, u.entityId), sim.identity().name(u.entityId) + " seeds the south-idle frame");
+            assertEquals(0, spriteSheet(sim, u.entityId), sim.identity().name(u.entityId));
+            assertEquals(0, spriteFlipV(sim, u.entityId), sim.identity().name(u.entityId));
         }
 
         // Negative membership: a live non-sheet unit (whole-sprite turret)

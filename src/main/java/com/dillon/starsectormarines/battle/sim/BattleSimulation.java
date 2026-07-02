@@ -401,6 +401,9 @@ public class BattleSimulation implements BattleControl {
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
 
+    /** Data owner for the IDENTITY component (type/faction/name) — {@code sim.identity().name(id)} is the greppable-name read for debug dumps / logs. */
+    public IdentityService identity() { return rosterService.identity(); }
+
     /** Data owner for the COMBAT component (the World decomposition) — consumers reach it here as {@code sim.combat().attackCooldown(id)}. */
     public CombatService combat() { return rosterService.combat(); }
 

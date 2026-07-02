@@ -176,7 +176,11 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             if (link.simDead || !link.proxy.isAlive()) {
                 engine.removeEntity(link.proxy);
                 link.removed = true;
-                LOG.info("ground-bridge: despawned proxy for " + link.unit.id
+                // Read the name off the held Entity ref (immutable, so it never
+                // diverges from IDENTITY_NAME) rather than sim.identity().name(id):
+                // by this point the unit may already be released from the roster, so
+                // a by-id lookup isn't safe here.
+                LOG.info("ground-bridge: despawned proxy for " + link.unit.seedName
                         + (link.simDead ? " (sim owned the death)." : " (vanilla destroyed it)."));
             }
         }

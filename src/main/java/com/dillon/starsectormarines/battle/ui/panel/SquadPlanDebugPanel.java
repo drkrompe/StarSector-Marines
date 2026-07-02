@@ -492,7 +492,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 lineY -= DETAIL_LINE_H;
                 for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
                     lineY = drawLineIfVisible(font,
-                            "    " + e.getKey() + " → " + memberIds(e.getValue()),
+                            "    " + e.getKey() + " → " + memberIds(e.getValue(), ctx.getSim()),
                             lineX, lineY, DETAIL_LABEL_FG, alphaMult, vpBottomY, vpTopY);
                 }
             }
@@ -582,14 +582,15 @@ public final class SquadPlanDebugPanel implements HudPanel {
         }
     }
 
-    /** Comma-joined unit ids, capped so a large slot list doesn't blow the panel. */
-    private static String memberIds(List<Entity> members) {
+    /** Comma-joined unit names, capped so a large slot list doesn't blow the panel. Falls back to the numeric entityId when no sim is available. */
+    private static String memberIds(List<Entity> members, BattleSimulation sim) {
         if (members == null || members.isEmpty()) return "(none)";
         StringBuilder sb = new StringBuilder();
         int max = Math.min(members.size(), 4);
         for (int i = 0; i < max; i++) {
             if (i > 0) sb.append(", ");
-            sb.append(members.get(i).id);
+            Entity m = members.get(i);
+            sb.append(sim != null ? sim.identity().name(m.entityId) : Long.toString(m.entityId));
         }
         if (members.size() > max) sb.append(", +").append(members.size() - max);
         return sb.toString();
@@ -653,8 +654,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (s == null) return;
         BattleSimulation sim = ctx.getSim();
         if (sim == null) return;
-        String selectedUnitId = ctx.getSelection().getSelectedUnitId();
-        String path = SquadStateDumper.dump(s, sim, detailState, selectedUnitId);
+        long selectedUnitEntityId = ctx.getSelection().getSelectedUnitEntityId();
+        String path = SquadStateDumper.dump(s, sim, detailState, selectedUnitEntityId);
         dumpStatusMessage = path != null
                 ? "(dumped to common/" + path + ")"
                 : "(dump failed — see log)";

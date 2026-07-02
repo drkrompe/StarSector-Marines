@@ -105,7 +105,7 @@ public class InfantryWeapons {
             // Invariant: this read is unguarded but safe under MOVEMENT
             // membership-narrowing because only a mover reaches this pass. A
             // static emplacement (turret/hub) has no MOVEMENT, but it also never
-            // writes the COMBAT burst columns — Entity.beginBurst is infantry/
+            // writes the COMBAT burst columns — CombatService.beginBurst is infantry/
             // mech/drone-only, and a turret tracks its burst on its own
             // TURRET_STATE component (battle.sim.TurretStateService) — so its
             // burstRemaining stays 0 and it never enters burstScratch above. If

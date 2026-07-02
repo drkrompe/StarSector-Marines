@@ -54,7 +54,8 @@ public final class HubStateService {
 
     /**
      * Bumps {@code id}'s lifetime launch count by one and returns the new value —
-     * folded into each launched drone's greppable id ({@code "drone-" + hub.id + "-" + n}).
+     * folded into each launched drone's greppable name ({@code "drone-" + hubName + "-" + n},
+     * where {@code hubName} is {@code IdentityService.name(hubId)}).
      */
     public int incrementDronesLaunched(long id) {
         int n = dronesLaunched(id) + 1;

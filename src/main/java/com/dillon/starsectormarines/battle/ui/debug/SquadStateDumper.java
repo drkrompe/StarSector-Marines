@@ -52,24 +52,24 @@ public final class SquadStateDumper {
      * lands at on success, or {@code null} on any error (the call site
      * shows a brief status line either way; details land in the game log).
      *
-     * <p>{@code selectedUnitId} is optional: when non-null, the dump tags
+     * <p>{@code selectedUnitEntityId} is optional: when non-zero, the dump tags
      * the matching member with {@code "selected": true} and surfaces a
-     * top-level {@code selectedMemberId} so offline inspection of "this
-     * specific mech is misbehaving while its squadmates look fine" can
-     * jump straight to the right row.
+     * top-level {@code selectedMemberId} (the world entity id) so offline
+     * inspection of "this specific mech is misbehaving while its squadmates
+     * look fine" can jump straight to the right row.
      */
     public static String dump(Squad squad, BattleSimulation sim, WorldState worldState,
-                              String selectedUnitId) {
+                              long selectedUnitEntityId) {
         if (squad == null || sim == null) return null;
         try {
             JSONObject root = new JSONObject();
             root.put("schemaVersion", SCHEMA_VERSION);
             root.put("simTickIndex", sim.simTickIndex);
-            root.put("selectedMemberId", selectedUnitId != null ? selectedUnitId : JSONObject.NULL);
+            root.put("selectedMemberId", selectedUnitEntityId != 0L ? selectedUnitEntityId : JSONObject.NULL);
             root.put("squad", buildSquadJson(squad, sim));
-            root.put("members", buildMembersJson(squad, sim, selectedUnitId));
+            root.put("members", buildMembersJson(squad, sim, selectedUnitEntityId));
             root.put("currentGoal", buildGoalJson(squad));
-            root.put("currentPlan", buildPlanJson(squad));
+            root.put("currentPlan", buildPlanJson(squad, sim));
             root.put("worldState", buildPredicateJson(worldState));
             JSONObject clearZone = buildClearZoneReachabilityJson(squad, sim);
             if (clearZone != null) root.put("clearZoneReachability", clearZone);
@@ -105,7 +105,7 @@ public final class SquadStateDumper {
         o.put("timeSinceContact", squad.timeSinceContact);
         o.put("timeSinceReplan", squad.timeSinceReplan);
         Entity leaderUnit = sim.resolveUnit(squad.leaderId);
-        o.put("leaderId", leaderUnit != null ? leaderUnit.id : null);
+        o.put("leaderId", leaderUnit != null ? sim.identity().name(leaderUnit.entityId) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
         o.put("assignedObjective", buildAssignmentJson(squad.assignedObjective));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
@@ -128,7 +128,7 @@ public final class SquadStateDumper {
     }
 
     private static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
-                                              String selectedUnitId) throws Exception {
+                                              long selectedUnitEntityId) throws Exception {
         JSONArray arr = new JSONArray();
         // Live members only (dense registry) — a dead member has left the
         // registry, so the dump no longer lists corpses. The "why is this squad
@@ -138,8 +138,8 @@ public final class SquadStateDumper {
             Entity u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
             JSONObject o = new JSONObject();
-            o.put("id", u.id);
-            if (selectedUnitId != null && selectedUnitId.equals(u.id)) {
+            o.put("id", sim.identity().name(u.entityId));
+            if (selectedUnitEntityId != 0L && selectedUnitEntityId == u.entityId) {
                 o.put("selected", true);
             }
             o.put("alive", sim.world().isAlive(u.entityId));
@@ -158,7 +158,7 @@ public final class SquadStateDumper {
             o.put("maxHp", sim.world().maxHp(u.entityId));
             o.put("moveProgress", sim.world().moveProgress(u.entityId));
             Entity dumpTarget = sim.targetOf(u);
-            o.put("targetId", dumpTarget != null ? dumpTarget.id : null);
+            o.put("targetId", dumpTarget != null ? sim.identity().name(dumpTarget.entityId) : null);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
             // can't route to from this member — e.g. an enemy behind walls
@@ -225,7 +225,7 @@ public final class SquadStateDumper {
             }
             if (!reachable) anyUnreachable = true;
             JSONObject eo = new JSONObject();
-            eo.put("id", e.id);
+            eo.put("id", sim.identity().name(e.entityId));
             eo.put("cellX", sim.world().cellX(e.entityId));
             eo.put("cellY", sim.world().cellY(e.entityId));
             eo.put("reachableFromAnyMember", reachable);
@@ -253,7 +253,7 @@ public final class SquadStateDumper {
         return o;
     }
 
-    private static JSONObject buildPlanJson(Squad squad) throws Exception {
+    private static JSONObject buildPlanJson(Squad squad, BattleSimulation sim) throws Exception {
         JSONObject o = new JSONObject();
         SquadPlan plan = squad.currentPlan;
         if (plan == null) {
@@ -275,7 +275,7 @@ public final class SquadStateDumper {
             JSONObject slotJson = new JSONObject();
             for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
                 JSONArray ids = new JSONArray();
-                for (Entity u : e.getValue()) ids.put(u.id);
+                for (Entity u : e.getValue()) ids.put(sim.identity().name(u.entityId));
                 slotJson.put(e.getKey(), ids);
             }
             so.put("assignments", slotJson);

@@ -43,8 +43,8 @@ public class DeathDispatcherTest {
     public void drainFansEachEventToEverySubscriberInOrder() {
         DeathDispatcher dispatcher = new DeathDispatcher();
         List<String> log = new ArrayList<>();
-        dispatcher.subscribe(e -> log.add("h1:" + e.unit().id));
-        dispatcher.subscribe(e -> log.add("h2:" + e.unit().id));
+        dispatcher.subscribe(e -> log.add("h1:" + e.unit().seedName));
+        dispatcher.subscribe(e -> log.add("h2:" + e.unit().seedName));
 
         dispatcher.publish(death(unit("a")));
         dispatcher.publish(death(unit("b")));
@@ -74,12 +74,12 @@ public class DeathDispatcherTest {
         // Handler A models a cascade: seeing the hub die, it kills a drone —
         // publishing a fresh DeathEvent while drain() is still fanning out.
         dispatcher.subscribe(e -> {
-            if (e.unit().id.equals("hub")) {
+            if (e.unit().seedName.equals("hub")) {
                 dispatcher.publish(death(unit("drone")));
             }
         });
         // Handler B records every event it is handed.
-        dispatcher.subscribe(e -> seen.add(e.unit().id));
+        dispatcher.subscribe(e -> seen.add(e.unit().seedName));
 
         dispatcher.publish(death(unit("hub")));
         dispatcher.drain();

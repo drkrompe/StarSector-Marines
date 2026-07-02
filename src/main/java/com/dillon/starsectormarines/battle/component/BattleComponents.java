@@ -50,6 +50,8 @@ public final class BattleComponents {
     public static final int IDENTITY_TYPE = 0;
     /** {@link #IDENTITY} field 1: the {@link com.dillon.starsectormarines.battle.unit.Faction} (OBJECT). */
     public static final int IDENTITY_FACTION = 1;
+    /** {@link #IDENTITY} field 2: the human-readable name (String OBJECT) — greppable id like {@code "m0"} / {@code "drone-dh1-5"}, seeded from the ctor String id, read by id via {@code IdentityService.name}. Debug/log/test-facing; the stable machine identity is the {@code long} entityId. */
+    public static final int IDENTITY_NAME = 2;
 
     /** {@link #POSITION} field 0: logical cell x (INT). */
     public static final int POSITION_CELL_X = 0;
@@ -245,7 +247,7 @@ public final class BattleComponents {
 
     // ---- component types ----
 
-    /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
+    /** Who/what this entity is — {@code UnitType type, Faction faction, String name}. Persists alive→dead. */
     public final ComponentType IDENTITY;
     /** Logical cell — {@code int cellX, cellY}. Every spatially-present entity, corpse included. */
     public final ComponentType POSITION;
@@ -729,7 +731,7 @@ public final class BattleComponents {
     public final Query combatants;
 
     public BattleComponents(EntityWorld world) {
-        IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
+        IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
         RENDER_POSITION = world.register(2, "RenderPosition", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);

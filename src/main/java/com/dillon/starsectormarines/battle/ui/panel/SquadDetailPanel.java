@@ -125,11 +125,11 @@ public final class SquadDetailPanel implements HudPanel {
             if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squadId) continue;
             live.add(u);
         }
-        // Leader first (if set + alive), then stable by unit id so the row
-        // order is deterministic across frames.
+        // Leader first (if set + alive), then stable by entity id so the row
+        // order is deterministic across frames (entityId is monotonic + never recycled).
         live.sort(Comparator
                 .comparing((Entity u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
-                .thenComparing(u -> u.id));
+                .thenComparingLong(u -> u.entityId));
         for (Entity u : live) {
             boolean hasSec = sim.world().hasSecondaryWeapon(u.entityId);
             rows.add(new MemberRow(sim.world().hp(u.entityId), sim.world().maxHp(u.entityId), sim.combat().primaryWeapon(u.entityId),

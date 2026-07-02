@@ -68,7 +68,24 @@ public class Entity {
         return (u == null) ? 0L : u.entityId;
     }
 
-    public final String id;
+    /**
+     * The human-readable greppable name this unit spawns with (e.g. {@code "m0"},
+     * {@code "drone-dh1-5"}). {@link UnitRosterService#allocate} copies it into the
+     * entity world's {@code IDENTITY} component (field
+     * {@link BattleComponents#IDENTITY_NAME}), which is canonical thereafter; by-id
+     * sites read it via the {@code IdentityService} data owner
+     * ({@code sim.identity().name(id)}) for debug dumps / logs / tests. The stable
+     * <em>machine</em> identity is {@link #entityId} (a {@code long}), not this string —
+     * selection keys and sort orders key on {@code entityId}.
+     *
+     * <p>Named {@code seed*} because {@code allocate} consumes it, but unlike the
+     * mutable seeds this value is <b>immutable</b> — it never diverges from the
+     * {@code IDENTITY_NAME} column. So a held-{@code Entity}-ref site that needs the
+     * name where a by-id lookup isn't safe (e.g. logging a unit that may already be
+     * released from the roster) may read this field directly. Prefer
+     * {@code sim.identity().name(id)} everywhere else.
+     */
+    public String seedName;
     public final Faction faction;
     /** Archetype — drives sprite + base stat block. Set once at construction. */
     public final UnitType type;
@@ -335,7 +352,7 @@ public class Entity {
     public MarineWeapon seedPrimaryWeapon;
 
     public Entity(String id, Faction faction, UnitType type, int cellX, int cellY) {
-        this.id = id;
+        this.seedName = id;
         this.faction = faction;
         this.type = type;
         this.seedCellX = cellX;

@@ -16,15 +16,16 @@ package com.dillon.starsectormarines.battle.ui.picking;
  *
  * <p>Squad ids match {@link com.dillon.starsectormarines.battle.squad.Squad#id}.
  * {@link #NONE} (-1) is the sentinel for "nothing selected" — same convention
- * the sim uses for {@code Entity.NO_SQUAD}. Entity ids are {@link String} (matches
- * {@code Entity.id}), null when no unit is pinned.
+ * the sim uses for {@code Entity.NO_SQUAD}. The pinned unit is the world entity id
+ * (a {@code long}); {@code 0L} == none (the sim's "no entity" sentinel) — the
+ * stable machine identity, replacing the old greppable-string {@code Entity.id}.
  */
 public final class Selection {
 
     public static final int NONE = -1;
 
     private int selectedSquadId = NONE;
-    private String selectedUnitId;
+    private long selectedUnitEntityId = 0L;
     /** Selected convoy vehicle by world entity id; {@code 0L} == none. Id-keyed (not a list
      *  index) so it stays valid as the convoy list mutates — GONE vehicles are reaped. */
     private long selectedVehicleId = 0L;
@@ -33,20 +34,20 @@ public final class Selection {
         return selectedSquadId;
     }
 
-    public String getSelectedUnitId() {
-        return selectedUnitId;
+    public long getSelectedUnitEntityId() {
+        return selectedUnitEntityId;
     }
 
     /** Squad-only selection (e.g. HUD row click). Clears any prior unit pin so the dumper doesn't carry a stale member id forward. */
     public void selectSquad(int squadId) {
         this.selectedSquadId = squadId;
-        this.selectedUnitId = null;
+        this.selectedUnitEntityId = 0L;
     }
 
-    /** Selects a specific unit and its parent squad. Both ids must be in sync — pass the unit's own squadId, not a guessed one. */
-    public void selectUnit(int squadId, String unitId) {
+    /** Selects a specific unit and its parent squad. Both ids must be in sync — pass the unit's own squadId, not a guessed one. {@code unitEntityId} is the world entity id ({@code 0L} = none). */
+    public void selectUnit(int squadId, long unitEntityId) {
         this.selectedSquadId = squadId;
-        this.selectedUnitId = unitId;
+        this.selectedUnitEntityId = unitEntityId;
     }
 
     public long getSelectedVehicleId() { return selectedVehicleId; }
@@ -54,12 +55,12 @@ public final class Selection {
     public void selectVehicle(long vehicleId) {
         this.selectedVehicleId = vehicleId;
         this.selectedSquadId = NONE;
-        this.selectedUnitId = null;
+        this.selectedUnitEntityId = 0L;
     }
 
     public void clear() {
         this.selectedSquadId = NONE;
-        this.selectedUnitId = null;
+        this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;
     }
 
