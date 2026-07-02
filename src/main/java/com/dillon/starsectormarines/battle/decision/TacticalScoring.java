@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -1734,16 +1735,18 @@ public final class TacticalScoring {
         // Dest index excludes still units (dest == current) and pathless
         // units; the per-unit current-cell radius check below dedupes
         // against Pass 1 for moving units whose current happens to also
-        // be near (cx, cy).
-        destIndex.gather(roster, cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity u = scratch.get(i);
-            if (u.entityId == self || u.faction != selfFaction) continue;
+        // be near (cx, cy). The dest index is id-native — it gathers live
+        // ids, and identity/position are read by id rather than off a handle.
+        LongBucket destScratch = new LongBucket();
+        destIndex.gather(roster, cx, cy, FIRING_AOE_SPREAD_RADIUS, destScratch);
+        for (int i = 0, n = destScratch.size; i < n; i++) {
+            long id = destScratch.ids[i];
+            if (id == self || roster.identity().faction(id) != selfFaction) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
             // index resolve is decision-cadence, not a hot bulk loop.
-            int dx = world.cellX(u.entityId) - cx;
-            int dy = world.cellY(u.entityId) - cy;
+            int dx = world.cellX(id) - cx;
+            int dy = world.cellY(id) - cy;
             if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
             count++;
         }

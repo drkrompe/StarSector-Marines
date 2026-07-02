@@ -1115,7 +1115,7 @@ public class BattleSimulation implements BattleControl {
      * {@link #clearPath(Entity)}) to drop the current path.
      */
     public void setPath(Entity u, int[] newPath) {
-        navigation.setPath(u, newPath);
+        navigation.setPath(u.entityId, newPath);
     }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */
@@ -1125,7 +1125,7 @@ public class BattleSimulation implements BattleControl {
 
     /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(Entity)}. */
     public void clearPath(Entity u) {
-        navigation.clearPath(u);
+        navigation.clearPath(u.entityId);
     }
 
     /**

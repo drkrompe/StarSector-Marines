@@ -270,14 +270,14 @@ public final class NavigationService {
      * applier. {@code Integer.MIN_VALUE} for an old / new coord is the
      * "no-op" sentinel — that half of the delta is skipped.
      */
-    public void applyOccupancyDeltaInline(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
+    public void applyOccupancyDeltaInline(long id, int oldDestX, int oldDestY, int newDestX, int newDestY) {
         if (oldDestX != Integer.MIN_VALUE) {
             decrementOccupancy(oldDestX, oldDestY);
-            destIndex.removeDestination(u, oldDestX, oldDestY);
+            destIndex.removeDestination(id, oldDestX, oldDestY);
         }
         if (newDestX != Integer.MIN_VALUE) {
             incrementOccupancy(newDestX, newDestY);
-            destIndex.addDestination(roster, u, newDestX, newDestY);
+            destIndex.addDestination(roster, id, newDestX, newDestY);
         }
     }
 
@@ -295,13 +295,13 @@ public final class NavigationService {
      * delta skip them; if neither old nor new destination is occupancy-bearing
      * the sink call is elided entirely.
      */
-    public void setPath(Entity u, int[] newPath) {
+    public void setPath(long id, int[] newPath) {
         World world = roster.world();
-        int[] oldPath = world.path(u.entityId);
+        int[] oldPath = world.path(id);
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);
-        world.setPathRef(u.entityId, newPath);
-        world.setPathIdx(u.entityId, newPath.length == 0 ? 0 : 1);
+        world.setPathRef(id, newPath);
+        world.setPathIdx(id, newPath.length == 0 ? 0 : 1);
         int newDestX;
         int newDestY;
         if (newPath.length > 0) {
@@ -311,21 +311,21 @@ public final class NavigationService {
             newDestX = Integer.MIN_VALUE;
             newDestY = Integer.MIN_VALUE;
         }
-        int curX = world.cellX(u.entityId);
-        int curY = world.cellY(u.entityId);
+        int curX = world.cellX(id);
+        int curY = world.cellY(id);
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != curX || oldDestY != curY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != curX || newDestY != curY);
         if (!hasOld && !hasNew) return;
-        occupancyDeltaSink.apply(u,
+        occupancyDeltaSink.apply(id,
                 hasOld ? oldDestX : Integer.MIN_VALUE,
                 hasOld ? oldDestY : Integer.MIN_VALUE,
                 hasNew ? newDestX : Integer.MIN_VALUE,
                 hasNew ? newDestY : Integer.MIN_VALUE);
     }
 
-    /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
-    public void clearPath(Entity u) {
-        setPath(u, GridPathfinder.EMPTY_PATH);
+    /** Convenience: drop the unit's path. Equivalent to {@code setPath(id, GridPathfinder.EMPTY_PATH)}. */
+    public void clearPath(long id) {
+        setPath(id, GridPathfinder.EMPTY_PATH);
     }
 
     /**

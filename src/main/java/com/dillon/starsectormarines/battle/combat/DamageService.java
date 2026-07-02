@@ -68,7 +68,7 @@ public final class DamageService {
     }
     @FunctionalInterface public interface OccupancyApplier {
         /** {@code Integer.MIN_VALUE} for an old / new dest coordinate is the "no-op" sentinel — that half of the delta is skipped. */
-        void apply(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY);
+        void apply(long u, int oldDestX, int oldDestY, int newDestX, int newDestY);
     }
 
     private final DamageApplier damageApplier;
@@ -245,7 +245,7 @@ public final class DamageService {
      * this drain already ran for the tick by the time {@code FIRING} (the
      * deferral window) executes; see the field doc for the leak this avoids.
      */
-    public void applyOccupancyDelta(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
+    public void applyOccupancyDelta(long u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
         if (!insideParallel) {
             occupancyApplier.apply(u, oldDestX, oldDestY, newDestX, newDestY);
             return;
@@ -254,7 +254,7 @@ public final class DamageService {
             PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
                     ? new PendingOccupancyDelta()
                     : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
-            d.unitId = u.entityId;
+            d.unitId = u;
             d.oldDestX = oldDestX;
             d.oldDestY = oldDestY;
             d.newDestX = newDestX;
@@ -328,11 +328,12 @@ public final class DamageService {
         if (pendingOccupancy.isEmpty()) return;
         for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
             PendingOccupancyDelta d = pendingOccupancy.get(i);
-            // Resolve the id — this drain runs in APPLY_OCCUPANCY (before any
-            // death/release this tick), so a non-null resolve is expected, but
-            // guard anyway rather than deref a held ref.
-            Entity u = resolver.apply(d.unitId);
-            if (u != null) occupancyApplier.apply(u, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
+            // Resolve only to gate on liveness — this drain runs in
+            // APPLY_OCCUPANCY (before any death/release this tick), so a non-null
+            // resolve is expected, but guard anyway; the applier takes the id.
+            if (resolver.apply(d.unitId) != null) {
+                occupancyApplier.apply(d.unitId, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
+            }
             d.unitId = 0L;
             pendingOccupancyPool.add(d);
         }
