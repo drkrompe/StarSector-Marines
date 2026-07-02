@@ -45,19 +45,25 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 
 ## Bugs
 
-- **`HoldPost` double-ticks the attack cooldown** — `HoldPost.executeWithTarget`
-  (`battle/infantry/HoldPost.java`, the `if (getCooldownTimer() > 0f)
-  setCooldownTimer(... - TICK_DT)` line) drains the cooldown a second time,
-  on top of `InfantryUnitPrep.tickCooldowns` already called from
-  `GoapInfantryBehavior.prepareForAction` before `execute`. So garrison /
-  guard-post units (the `GuardPost` goal → `HoldPost` action) fire ~2× too
-  slowly. `EngagePosture` is the correct pattern — it never manually
-  decrements, it only gates on `getCooldownTimer() <= 0f` and resets after
-  firing. Fix = delete the manual decrement in `HoldPost`. Pre-existing
-  (predates the GOAP `BattleView`/`BattleControl` flip); surfaced by the
-  flip's critique pass. Behavioral change → verify garrison fire cadence
-  after. Cross-ref: `HoldPost` is also the fattest sim CPU path (see
-  Performance § below), so this also slightly inflates that profile.
+- ~~**`HoldPost` double-ticks the attack cooldown**~~ — **FIXED `b418d835`
+  (2026-07-01, FiringSystem sweep)**, along with two more instances the epic's
+  audit found (`GuardPostPatrol.engage`, `PatrolMotion.fireIfAble`). Direction
+  correction to the original entry: the double drain emptied the cooldown in
+  half the time, so those units fired ~2× too **fast** (not too slowly).
+  Post-fix cadence drops to the intended `attackCooldown` spacing — verify
+  garrison fire feel in playtest (the game may have been implicitly balanced
+  around the bug; if garrisons feel too soft, tune `attackCooldown` data, don't
+  resurrect the double-tick). Record:
+  `roadmap/ecs-migration/stories/firing-system.md` Phase 2.
+- **A marine mech can be recruited as `KIT_RETRIEVER`** —
+  `EquipmentDropSystem.nearestAvailableMarine` filters on faction only, so a
+  mech-loadout unit can win the recruitment and run `KitRetrieverBehavior`: it
+  then ticks infantry COMBAT cooldowns and authors an infantry fire-intent, so
+  `FiringSystem` executes an infantry `fireShot` for a mech (mechs otherwise
+  fire only via `HeavyWeapons` per-track). Pre-existing (the old inline fire
+  had the same shape); surfaced by the FiringSystem sweep critique
+  (`b418d835`). Fix candidate: exclude mech-loadout units in
+  `nearestAvailableMarine`.
 
 ## UI
 

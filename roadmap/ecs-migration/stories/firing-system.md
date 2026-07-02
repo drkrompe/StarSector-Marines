@@ -56,7 +56,9 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
   not a presence component — per-tick add/remove would thrash archetypes.
 - **Behaviors keep target selection + their own pre-gates** (leash, portal trigger,
   opportune pick, rocket-branch suppression — all selection-side) and **write intent**
-  instead of firing. They stop reading/writing `cooldownTimer` entirely.
+  instead of firing. They stop reading/writing `cooldownTimer` — with one sweep
+  exception: HoldZone/ClearZone keep a read-only consult purely as a movement gate
+  (see Phase 2's findings), never as a fire gate.
 - **`FiringSystem` (serial, after `unitUpdate`, before `infantry.tick()`'s burst
   continuation)** consumes intent: resolve target (tolerant of death-in-flight), apply
   the uniform gate `cooldown ≤ 0 && dist ≤ attackRange && hasLineOfSight`, then

@@ -132,6 +132,7 @@ public class GuardPostPatrolTest {
         sim.addUnit(member);
         squad.leaderId = member.entityId;
         sim.world().setAttackRange(member.entityId, 10f);
+        sim.world().setCooldownTimer(member.entityId, 0.6f);
 
         Entity enemy = new Entity("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY);
         sim.addUnit(enemy);
@@ -139,6 +140,9 @@ public class GuardPostPatrolTest {
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
         patrol.execute(member, squad, sim);
 
+        assertEquals(0.6f, sim.world().cooldownTimer(member.entityId), 1e-6f,
+                "engage() must not decrement cooldownTimer itself anymore — "
+                        + "the local decrement was one of the epic's double-tick bugs");
         assertEquals(enemy.entityId, sim.combat().fireTargetId(member.entityId),
                 "in range + LoS + inside the leash writes a fire intent for the target");
         assertEquals(FireStance.STANCED.ordinal(),

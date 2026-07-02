@@ -103,7 +103,7 @@ public final class ClearZone extends AbstractZoneAction {
             // control flow: on the ready tick the member stands to shoot;
             // between shots it keeps creeping toward a better firing position
             // (the block below).
-            if (sim.world().cooldownTimer(member.entityId) <= 0f) {
+            if (sim.combat().cooldownTimer(member.entityId) <= 0f) {
                 return ActionStatus.RUNNING;
             }
         }
