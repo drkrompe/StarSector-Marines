@@ -45,8 +45,9 @@ Watch the scope: "done" has always meant *storage*, never the whole migration.
 3. ~~**Convoy ground `Vehicle` never entered the world.**~~ **DONE (2026-07-01).** The
    `Vehicle` POJO is deleted; convoy vehicles are world entities like every other unit.
    See [`complete/vehicle-into-world.md`](complete/vehicle-into-world.md).
-4. **Authored-appearance is corpse-only** — SPRITE is real, but live units derive
-   facing per-frame; no FacingSystem / AnimationSystem / FX child entities.
+4. ~~**Authored-appearance is corpse-only**~~ — **core loop CLOSED (2026-07-01).**
+   Live units carry SPRITE authored by `battle.appearance.FacingSystem`; the renderer
+   is a pure Query collector. Remaining phases art/scope-gated (backlog item 7).
 
 Perf was **measured** ([`phase0-measurement.md`](phase0-measurement.md)): by-id is ~20×
 the access cost of a column-walk, but the absolute saving is ~7.3 µs/tick ≈ 0.02% of a
@@ -137,13 +138,15 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    secondary-aim-target bug-fix + FX-child-entities (scope on its own when reached).
    [`stories/live-appearance.md`](stories/live-appearance.md).
    [[feedback_appearance_authored_component]], [[feedback_compose_effects_not_carrier]].
-8. **FiringSystem** — extract the duplicated fire mechanics (~12 GOAP postures + turret/drone
-   aim variants; the canonical cooldown-gate → `fireShot` → reset → burst → reposition block,
-   plus the scattered cooldown *decrement* across ~5 sites) into one System reading COMBAT.
-   **Unblocked** now that entity-field-migration consolidated the COMBAT state it reads; also
-   fixes the `HoldPost` double-tick cooldown bug (see `backlog.md` § Bugs) and targets the
-   fattest sim CPU path. The concrete motivating case of the (closed) systems-to-columns epic.
-   Design: [`stories/firing-system.md`](stories/firing-system.md). Candidate — high ready value.
+8. ~~**FiringSystem**~~ — **EXTRACTION COMPLETE (2026-07-01):** proving slice
+   `c07a11ef`+`426f21db`, sweep `b418d835`. Every infantry-family fire site authors a
+   consume-once fire-intent on COMBAT; `battle.combat.FiringSystem` (serial FIRING phase,
+   combat effects deferred to the APPLY_DAMAGE flush) is the sole executor; the three
+   double-tick decrements are deleted (garrison/patrol cadence drops to the intended
+   `attackCooldown` spacing — they were firing ~2× fast). Turret/drone/mech stayed with
+   their single owners by design. **Open on the story:** playtest verification + optional
+   Phase 3 stance normalization (deliberate behavior change).
+   [`stories/firing-system.md`](stories/firing-system.md).
 9. **Identity-collapse (`Entity` handle → bare `long` id)** — dissolve the ~305-line `Entity`
    heap object (now only immutable identity + `seed*` inputs + path/burst methods) so entity =
    id everywhere; the spatial index goes id-native and **reopens systems-to-columns as a
@@ -157,14 +160,14 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
-35840353 docs(vehicle-into-world): sweep stale {@link Vehicle} javadoc after handle deletion
+b418d835 ecs-migration: FiringSystem sweep - all 11 remaining fire sites + KitRetriever author intent
+426f21db ecs-migration: FiringSystem critique fixes - defer FIRING combat effects to the flush
+c07a11ef ecs-migration: FiringSystem proving slice - fire-intent contract + EngagePosture flip
+74765c9b ecs-migration: live-appearance Phase 2 critique fixes (doc invariant, query hardening)
+9bd3c7fa ecs-migration: live-appearance Phase 2 - renderer reads authored SPRITE
+ee215e14 ecs-migration: live-appearance Phase 1 critique fixes (S1-S3, N1, N3)
+9f1c33f0 ecs-migration: live-appearance Phase 1 - SPRITE on live units + dormant FacingSystem
 f1ad8753 ecs-migration: vehicle-into-world 4d-2 — dissolve Vehicle into VehicleMission (handle DELETED)
-80d2e55d ecs-migration: vehicle-into-world 4d-1 — convoy read consumers to by-id
-88bf85c6 ecs-migration: vehicle-into-world Phase 4c — List<Long> backbone + VEHICLE_MISSION
-1e128ce0 ecs-migration: vehicle-into-world Phase 4a+4b — VehicleState + id-selection + reap sweep
-963d7987 ecs-migration: vehicle-into-world Phase 3 — turret onto a GROUND_TURRET component
-730713d6 ecs-migration: vehicle-into-world Phase 2 — adopt vehicles as world entities
-321cc047 ecs-migration: vehicle-into-world Phase 1 — ground archetype foundation
 ```
 (Doc hash-fill + critique micro-commits are elided from this window.)
 
@@ -173,25 +176,25 @@ goap, campaign) interleave on HEAD.
 
 ## Sanity check before resuming
 
-- `gradlew.bat compileJava` clean, full suite green (`:test` BUILD SUCCESSFUL at
-  vehicle-into-world 4d-2 / javadoc sweep). `Vehicle.java` is **gone**: convoy vehicles are
+- `gradlew.bat compileJava` clean, full suite green (`:test --rerun` BUILD SUCCESSFUL at
+  the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `35840353` (javadoc sweep) / `f1ad8753` (the deletion) or your
-  own recent work at the top.
+- `git log --oneline -5` shows `b418d835` (FiringSystem sweep) or your own recent work
+  at the top.
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
   epic is **parked, not active**.
-- **ACTIVE epic: FiringSystem** (user-picked 2026-07-01). Audit of all 14 fire sites
-  COMPLETE; intent contract DECIDED (explicit consume-once fire-intent on COMBAT;
-  decrement stays in `InfantryUnitPrep`; infantry-family scope — turret/drone/mech out).
-  Full findings + phases: [`stories/firing-system.md`](stories/firing-system.md).
-  **Proving slice SHIPPED `c07a11ef`** (intent columns + `FiringSystem` + `EngagePosture`
-  flip + cadence golden). **Next: the sweep** — flip the remaining 11 sites +
-  KitRetriever, delete the THREE double-tick cooldown decrements (HoldPost,
-  GuardPostPatrol, PatrolMotion — garrison cadence ~2× faster, playtest after), route
-  KitRetriever through `tickCooldowns`, ChokePointHold selection-refactor. Queued after:
-  **identity-collapse** (item 9), **statelessify `VehicleController`** (item 10).
+- **FiringSystem: EXTRACTION COMPLETE 2026-07-01** — proving slice `c07a11ef` +
+  critique fixes `426f21db`, sweep `b418d835` (all 11 remaining sites + KitRetriever
+  author intent; three double-tick decrements deleted; suite 862 green). Full record:
+  [`stories/firing-system.md`](stories/firing-system.md). **Open before closing the
+  epic:** (a) **playtest** — garrison/patrol/guard-post fire cadence drops to the
+  intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
+  the overall intent-flip feel; (b) optional Phase 3 stance normalization via
+  `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
+  playtest. **Next epic candidates:** **identity-collapse** (item 9, large/foundational),
+  **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

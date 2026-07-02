@@ -1,8 +1,12 @@
 # FiringSystem — centralize the duplicated firing mechanics
 
-> **Status: ACTIVE (picked up 2026-07-01). Audit COMPLETE; contract DECIDED (see
-> § The decision). Next: the proving slice (intent columns + FiringSystem +
-> EngagePosture flip).** Surfaced during the per-component Service decomposition:
+> **Status: EXTRACTION COMPLETE (2026-07-01) — proving slice `c07a11ef`+`426f21db`,
+> sweep `b418d835`. Every infantry-family fire site authors intent;
+> `battle.combat.FiringSystem` is the sole executor of the fire mechanics.
+> Remaining: playtest verification (garrison/patrol cadence returns to the intended
+> `attackCooldown` spacing — the double-tick bug had those sites firing ~2× fast)
+> and the optional Phase 3 stance normalization (deliberate behavior change,
+> separate slice).** Surfaced during the per-component Service decomposition:
 > the behavior tier duplicates the firing mechanics across ~12 postures. Sequenced
 > after [`entity-field-migration`](entity-field-migration.md) (user decision
 > 2026-06-29), which consolidated the COMBAT state this System reads. The concrete,
@@ -119,11 +123,42 @@ fires a target that is deliberately NOT `targetId`. Contract is **(b), lean form
    `HitResponseSystem`, `package-info`), and tightened/added `FiringSystemTest` coverage
    (exact cadence spacing, reposition-not-chained-on-a-blocked-fire, overkill/focus-fire).
    See § The decision's "Known equivalence caveat" above for the corrected semantics.
-2. **The sweep** — flip the remaining 11 sites + KitRetriever; delete the three
-   double-tick decrements (fires the backlog bug fix — garrison cadence ~2× faster,
-   verify in playtest) + KitRetriever prep routing; ChokePointHold selection-refactor
-   (portal gate moves to intent-writing, gates unchanged since the intruder stands on
-   the portal cell).
+2. ~~**The sweep**~~ — **SHIPPED `b418d835` (2026-07-01; Sonnet-implemented,
+   main-thread reviewed; full suite green, 862 tests).** All 11 remaining sites +
+   `KitRetrieverBehavior` author intent; the three double-tick decrements are DELETED.
+   **Cadence direction, disambiguated** (the original phrasing above was ambiguous):
+   prep (`InfantryUnitPrep.tickCooldowns`) already ticked once per tick before every
+   action executes, so the local decrements had HoldPost/GuardPostPatrol/PatrolMotion
+   sites draining cooldown at 2× — garrisons, guard posts, and patrols were firing
+   roughly **twice the intended rate**. Deleting the locals *slows* them to the
+   designed `attackCooldown` spacing; verify the feel in playtest. Sweep findings
+   beyond the plan:
+   - **HoldZone/ClearZone movement coupling** — their old fire branch `return`ed on
+     the fire tick and fell through to creep-toward-a-firing-position movement during
+     cooldown. Both keep a read-only `cooldownTimer` consult purely as the movement
+     gate (commented as such in the code), preserving the creep-between-shots control
+     flow exactly. Every other site's control flow never depended on the cooldown.
+   - **KitRetriever routing** — the `tickCooldowns` call sits AFTER the demote
+     early-return (the demote path delegates to `CombatantBehavior` → GOAP prep,
+     which ticks; placing it before the check would double-tick on the demote tick).
+     Accepted delta: secondary + reposition cooldowns now tick during retrieval (the
+     old inline decrement was primary-only).
+   - **ChokePointHold micro-delta** — `targetId` + intent now stamp on every
+     trigger-active tick (was only on cooldown-ready ticks); the portal LoS/range
+     pre-gates stay behavior-side. Direction: steadier aim-facing; same fire cadence.
+   - **Range/LoS pre-gates kept verbatim at every site** — they prevent the system's
+     post-move re-check from *authorizing* a fire the old inline gate would have
+     blocked (a target that closed distance between dispatch and FIRING); the system
+     re-check stays conservative-only. The zone-action opportune path
+     (`closestEnemyInAttackRange` selects via `canSeePair`) inherits the accepted
+     marine-vs-drone-across-a-close-wall suppress; its scan also now runs on every
+     not-in-contact tick instead of only cooldown-ready ticks (perf-only).
+   Tests: leash hold-fire golden (the contract-(b) motivating case — outside-leash
+   member authors NO intent while keeping `targetId`), `fireIfAble` no-decrement pin,
+   HoldZone creep-during-cooldown pin, new `KitRetrieverBehaviorTest` (three-cooldown
+   routing + demote placement guard); 3 inline-fire assertions in
+   `ChokePointHoldTest`/`GarrisonCordonTest` migrated to drive `FiringSystem`
+   explicitly.
 3. **(Later, deliberate behavior change)** stance normalization via
    `FireStance.stanceFor(moveProgress)` — kills the STANCED-while-lerping and
    MOVING-while-dwelling inconsistencies. Separate slice with its own playtest.
