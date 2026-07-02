@@ -233,12 +233,13 @@ no lasting dual representation). Executed in green-at-each-step slices:
 - ~~**C4 · delete `seed*` + squad-site + `mintSquad`**~~ — **SHIPPED (2026-07-02; 4 green commits).**
   **C4.1** (`6fa06ca1`) `mintSquad(Faction, UnitType)` added as a **dual overload** — NOT the planned
   outright replace. The recon premise ("every caller mints a not-yet-allocated leader → `leaderId` 0")
-  was **wrong**: `ReinforceContact`/`Sabotage`/`Conquest`/`Assault` fixtures spawn-then-mint with an
-  ALLOCATED leader (real `leaderId`), and `MechMorale`/`HitResponse`/`Backstop`/`OverwatchKillZone` rely
-  on `mechSquad = leader.type.isMech()`. Keeping `mintSquad(Faction, Entity)` auto-preserves both; the
-  new `(Faction, UnitType)` overload is the pre-spawn mint the spec path needs (no live Entity at mint).
-  The 11 literal-`null` passers (ambiguous under the overload) → `UnitType.MARINE` (non-mech, so
-  `mechSquad=false` preserved). **C4.2** (`0a03f604`) production construction → `EntitySpec`: deboard ×2
+  **held for the production callers** (all mint pre-allocation) but was **wrong for four test fixtures**:
+  `ReinforceContact`/`Sabotage`/`Conquest`/`Assault` spawn-then-mint with an ALLOCATED leader and rely on
+  the resulting real `leaderId`. Keeping `mintSquad(Faction, Entity)` for those auto-preserves it (no
+  explicit leader-assignment needed); the new `(Faction, UnitType)` overload is the pre-spawn mint the
+  spec path needs (no live Entity at mint). `mechSquad` is preserved either way — both overloads derive it
+  from the unit's `type.isMech()`, so it is NOT a reason to keep the Entity overload. The 11 literal-`null`
+  passers (ambiguous under the overload) → `UnitType.MARINE` (non-mech, so `mechSquad=false` preserved). **C4.2** (`0a03f604`) production construction → `EntitySpec`: deboard ×2
   (`MarineLoadout.seedInto(EntitySpec)`, `addUnitSink` → `Consumer<EntitySpec>` wired to `this::spawn`,
   `mintSquad(faction, deboardType)`), 3 `BattleSetup` clusters + `makeDefender`→spec, `WalkInMeans`,
   `DroneSpawner` (mint the drone squad BEFORE `queueSpawn` so `spec.squad` seeds membership; `leaderId`
