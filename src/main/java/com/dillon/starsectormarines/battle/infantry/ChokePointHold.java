@@ -254,17 +254,16 @@ public final class ChokePointHold implements Action {
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
-        if (sim.world().cooldownTimer(member.entityId) > 0f) return ActionStatus.RUNNING;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY);
         if (d > sim.world().attackRange(member.entityId)) return ActionStatus.RUNNING;
 
-        // STANCED fire — on-post, deliberate. Full accuracy. Same shape as
-        // HoldPortalCordon's on-post branch so burst follow-ups behave
-        // identically (machine guns rip a burst when the trigger fires).
-        sim.fireShot(member, portalIntruder, FireStance.STANCED);
+        // STANCED fire — on-post, deliberate. Author intent; FiringSystem
+        // applies the cooldown gate and executes the shot, still landing the
+        // concentrated burst this tick. Same shape as HoldPortalCordon's
+        // on-post branch so burst follow-ups behave identically (machine guns
+        // rip a burst when the trigger fires).
+        sim.combat().setFireIntent(member.entityId, Entity.idOf(portalIntruder), FireStance.STANCED, false);
         sim.world().setTargetId(member.entityId, Entity.idOf(portalIntruder));
-        sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-        member.beginBurst(sim.combat(), portalIntruder);
         return ActionStatus.RUNNING;
     }
 

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -149,5 +151,43 @@ public class PatrolMotionTest {
 
         assertEquals(4, squad.patrolWaypointX, "a reachable waypoint must not be re-rolled");
         assertEquals(7, squad.patrolWaypointY, "a reachable waypoint must not be re-rolled");
+    }
+
+    @Test
+    public void fireIfAbleWritesMovingIntentWithoutTouchingCooldown() {
+        // FiringSystem sweep: fireIfAble now authors a fire intent instead of
+        // firing inline, and no longer touches cooldownTimer itself (the old
+        // inline decrement was one of the epic's double-tick bugs).
+        BattleSimulation sim = openArena();
+        Entity marine = add(sim, "m", 3, 3);
+        Entity enemy = new Entity("e", Faction.DEFENDER, UnitType.MARINE, 5, 3);
+        sim.addUnit(enemy);
+        sim.world().setAttackRange(marine.entityId, 10f);
+        sim.world().setCooldownTimer(marine.entityId, 0.6f);
+
+        PatrolMotion.fireIfAble(marine, sim);
+
+        assertEquals(0.6f, sim.world().cooldownTimer(marine.entityId), 1e-6f,
+                "fireIfAble must not decrement cooldownTimer itself anymore");
+        assertEquals(enemy.entityId, sim.combat().fireTargetId(marine.entityId),
+                "an in-range, visible enemy gets a fire intent written");
+        assertEquals(FireStance.MOVING.ordinal(),
+                sim.getRoster().entityWorld().getInt(marine.entityId, sim.getRoster().components().COMBAT,
+                        BattleComponents.COMBAT_FIRE_STANCE),
+                "the authored intent carries the MOVING stance");
+    }
+
+    @Test
+    public void fireIfAbleHoldsIntentWhenOutOfRange() {
+        BattleSimulation sim = openArena();
+        Entity marine = add(sim, "m", 3, 3);
+        Entity enemy = new Entity("e", Faction.DEFENDER, UnitType.MARINE, 9, 3);
+        sim.addUnit(enemy);
+        sim.world().setAttackRange(marine.entityId, 2f); // enemy is 6 cells away
+
+        PatrolMotion.fireIfAble(marine, sim);
+
+        assertEquals(0L, sim.combat().fireTargetId(marine.entityId),
+                "an out-of-range enemy must not get a fire intent");
     }
 }

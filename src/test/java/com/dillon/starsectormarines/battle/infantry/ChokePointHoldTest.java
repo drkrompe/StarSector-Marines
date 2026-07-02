@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -152,6 +153,14 @@ public class ChokePointHoldTest {
 
         hold.execute(d1, squad, sim);
 
+        assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId),
+                "enemy on portal cell + LoS + range → defender authors a fire intent");
+
+        // FiringSystem (not execute() itself) applies the cooldown gate and
+        // fires — drive it directly to observe the same on-tick burst the
+        // trigger existed to express.
+        new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
+
         assertTrue(sim.world().cooldownTimer(d1.entityId) > 0f,
                 "enemy on portal cell + LoS + range → defender must fire (cooldown set)");
         assertTrue(sim.getShotsThisFrame().size() > 0,
@@ -186,6 +195,14 @@ public class ChokePointHoldTest {
         // express.
         hold.execute(d1, squad, sim);
         hold.execute(d2, squad, sim);
+
+        assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId));
+        assertEquals(attacker.entityId, sim.combat().fireTargetId(d2.entityId));
+
+        // Both holders' intents land on the same FiringSystem walk — the
+        // deterministic concentrated-burst property the action exists to
+        // express.
+        new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
         assertTrue(sim.world().cooldownTimer(d1.entityId) > 0f, "d1 must have fired this tick");
         assertTrue(sim.world().cooldownTimer(d2.entityId) > 0f, "d2 must have fired this tick");

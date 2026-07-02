@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -118,5 +120,61 @@ public class GuardPostPatrolTest {
         assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
                         && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
                 "an inherited out-of-box waypoint must be re-rolled into the box, not walked to");
+    }
+
+    @Test
+    public void engageInRangeVisibleAndWithinLeashWritesStancedIntent() {
+        int anchorX = 20, anchorY = 20, radius = 8;
+        BattleSimulation sim = openArena(40, 40);
+        Squad squad = postedSquad(sim, anchorX, anchorY, radius);
+
+        Entity member = new Entity("m", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
+        sim.addUnit(member);
+        squad.leaderId = member.entityId;
+        sim.world().setAttackRange(member.entityId, 10f);
+
+        Entity enemy = new Entity("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY);
+        sim.addUnit(enemy);
+
+        GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
+        patrol.execute(member, squad, sim);
+
+        assertEquals(enemy.entityId, sim.combat().fireTargetId(member.entityId),
+                "in range + LoS + inside the leash writes a fire intent for the target");
+        assertEquals(FireStance.STANCED.ordinal(),
+                sim.getRoster().entityWorld().getInt(member.entityId, sim.getRoster().components().COMBAT,
+                        BattleComponents.COMBAT_FIRE_STANCE),
+                "the authored intent carries the STANCED stance");
+    }
+
+    @Test
+    public void engageOutsideLeashHoldsFireWhileKeepingTheTarget() {
+        // Contract-(b) case: a member with LOS + range to its target but
+        // standing outside the (odds-scaled, capped at the box radius) leash
+        // must NOT author a fire intent — it gives ground toward the
+        // strongpoint instead of trading shots out on the perimeter — while
+        // still remembering the target it was engaging.
+        int anchorX = 20, anchorY = 20, radius = 5;
+        BattleSimulation sim = openArena(60, 40);
+        Squad squad = postedSquad(sim, anchorX, anchorY, radius);
+
+        // Member sits well outside the box (radius 5); leash can never exceed
+        // the full box radius regardless of the odds tally, so any member
+        // farther than that from the anchor is unconditionally outside it.
+        Entity member = new Entity("m", Faction.DEFENDER, UnitType.MARINE, anchorX + 10, anchorY);
+        sim.addUnit(member);
+        squad.leaderId = member.entityId;
+        sim.world().setAttackRange(member.entityId, 10f);
+
+        Entity enemy = new Entity("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY);
+        sim.addUnit(enemy);
+
+        GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
+        patrol.execute(member, squad, sim);
+
+        assertEquals(0L, sim.combat().fireTargetId(member.entityId),
+                "outside the leash — no fire intent even though in range + LoS");
+        assertEquals(enemy.entityId, sim.world().targetId(member.entityId),
+                "the engaged target is still retained for when the leash allows firing again");
     }
 }

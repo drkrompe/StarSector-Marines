@@ -36,6 +36,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             return;
         }
 
+        InfantryUnitPrep.tickCooldowns(u, sim.world());
         fireOpportunistically(u, sim);
 
         if (sim.world().moveProgress(u.entityId) == 0f) {
@@ -48,9 +49,11 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * Inline opportunistic fire — was a shared helper on {@code PlanterBehavior}
      * when planters had a bespoke path. Now that planters route through GOAP,
      * the kit-retriever is the last role still on a per-unit dispatch that
-     * fires while moving, so the helper lives here. Decrements the cooldown
-     * itself (unlike the GOAP path where {@code InfantryUnitPrep.tickCooldowns}
-     * does it before {@code Action.execute}).
+     * fires while moving, so the helper lives here. {@code update()} now
+     * routes cooldown ticking through {@code InfantryUnitPrep.tickCooldowns}
+     * like the GOAP path does before {@code Action.execute} — a deliberate
+     * change from the old inline (primary-only) decrement: secondary and
+     * reposition cooldowns now tick during retrieval too.
      */
     private static void fireOpportunistically(Entity u, BattleControl sim) {
         Entity target = sim.targetOf(u);
@@ -58,17 +61,15 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             target = sim.getTacticalScoring().findBestTarget(u);
             sim.world().setTargetId(u.entityId, Entity.idOf(target));
         }
-        if (sim.world().cooldownTimer(u.entityId) > 0f) sim.world().setCooldownTimer(u.entityId, sim.world().cooldownTimer(u.entityId) - BattleSimulation.TICK_DT);
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean canFire = dist <= sim.world().attackRange(u.entityId)
-                && sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))
-                && sim.world().cooldownTimer(u.entityId) <= 0f;
+                && sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (canFire) {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
-            sim.fireShot(u, target, FireStance.MOVING);
-            sim.combat().setCooldownTimer(u.entityId, sim.combat().attackCooldown(u.entityId));
-            u.beginBurst(sim.combat(), target);
+            // Authors intent; FiringSystem applies the cooldown gate and
+            // executes the shot.
+            sim.combat().setFireIntent(u.entityId, Entity.idOf(target), FireStance.MOVING, false);
         }
     }
 }

@@ -15,10 +15,12 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 /**
  * Executes the per-tick fire-intent queue the behaviors write on
  * {@code COMBAT} — the proving slice of the FiringSystem epic
- * ({@code roadmap/ecs-migration/stories/firing-system.md} § The decision),
- * wired for {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}
- * only today; the remaining ~11 inline fire sites keep firing the old way
- * until the sweep phase flips them.
+ * ({@code roadmap/ecs-migration/stories/firing-system.md} § The decision).
+ * The sweep phase is complete: every infantry-family fire site (postures,
+ * zone actions, patrol/garrison holds, the kit retriever) authors intent
+ * here rather than firing inline. Turret/drone/mech fire paths keep their
+ * single owners ({@code TurretAim} / {@code HeavyWeapons}) by design — they
+ * were never part of this sweep.
  *
  * <p><b>The intent contract.</b> A behavior that decides to shoot calls
  * {@link CombatService#setFireIntent} instead of firing inline —

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -90,8 +90,6 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus executeWithTarget(Entity member, Entity target, BattleControl sim, int homeX, int homeY) {
-        if (sim.world().cooldownTimer(member.entityId) > 0f) sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
-
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean inRange = dist <= sim.world().attackRange(member.entityId);
@@ -99,11 +97,7 @@ public final class HoldPost implements Action {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         if (inRange && visible) {
-            if (sim.world().cooldownTimer(member.entityId) <= 0f) {
-                sim.fireShot(member, target);
-                sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-                member.beginBurst(sim.combat(), target);
-            }
+            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, false);
             hold(member, sim);
             return ActionStatus.RUNNING;
         }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -95,11 +96,16 @@ public final class ClearZone extends AbstractZoneAction {
         boolean inRange = dist <= sim.world().attackRange(member.entityId);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (inRange && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
-            sim.fireShot(member, target);
-            sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-            member.beginBurst(sim.combat(), target);
-            return ActionStatus.RUNNING;
+        if (inRange && visible) {
+            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, false);
+            // Movement gate, not a fire gate — FiringSystem owns the cooldown
+            // check for the shot itself. This read only preserves the old
+            // control flow: on the ready tick the member stands to shoot;
+            // between shots it keeps creeping toward a better firing position
+            // (the block below).
+            if (sim.world().cooldownTimer(member.entityId) <= 0f) {
+                return ActionStatus.RUNNING;
+            }
         }
 
         // Out of range / no LOS — close on the target IFF the target is in

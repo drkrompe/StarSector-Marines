@@ -1,13 +1,17 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -130,5 +134,43 @@ public class HoldZoneTest {
             }
         }
         assertEquals(4, placed, "all four members bound to a hold cell");
+    }
+
+    @Test
+    public void engageInZoneWithCooldownPendingWritesIntentAndStillCreepsTowardFiringPosition() {
+        // FiringSystem sweep: engageInZone now authors a fire intent
+        // unconditionally when in range + LoS (FiringSystem owns the cooldown
+        // gate for the shot itself), but the old control flow only RETURNED
+        // on the cooldown-ready tick — on a cooldown-pending tick it must
+        // still fall through to the creep-toward-a-firing-position movement
+        // block below. This pins that preserved fallthrough.
+        BattleSimulation sim = roomSim();
+        TacticalNode node = roomNode();
+        int roomZone = sim.getZoneGraph().zoneIdAt(5, 5);
+
+        int[][] cells = HoldZone.pickHoldCells(node, roomZone, 1, sim);
+        HoldZone hold = new HoldZone(roomZone, node, cells[0], cells[1]);
+
+        Squad squad = new Squad(7, Faction.MARINE);
+        squad.aliveMembers = 1;
+
+        Entity member = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        sim.addUnit(member);
+        Entity target = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 6, 4);
+        sim.addUnit(target);
+
+        sim.world().setAttackRange(member.entityId, 10f);
+        sim.world().setCooldownTimer(member.entityId, 0.6f); // cooldown pending
+
+        ActionStatus status = hold.execute(member, squad, sim);
+
+        assertEquals(ActionStatus.RUNNING, status);
+        assertEquals(target.entityId, sim.combat().fireTargetId(member.entityId),
+                "in range + LoS writes a fire intent even though the cooldown isn't ready yet");
+        assertEquals(FireStance.STANCED.ordinal(),
+                sim.getRoster().entityWorld().getInt(member.entityId, sim.getRoster().components().COMBAT,
+                        BattleComponents.COMBAT_FIRE_STANCE));
+        assertTrue(!Paths.isEmpty(sim.world().path(member.entityId)),
+                "a cooldown-pending tick must still fall through to the creep-toward-firing-position movement block");
     }
 }

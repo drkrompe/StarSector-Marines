@@ -177,11 +177,12 @@ public final class PatrolMotion {
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }
 
-    /** Opportunistic moving-stance shot at a visible in-range enemy; no movement. */
+    /**
+     * Authors a MOVING-stance fire intent at a visible in-range enemy; no
+     * movement. {@code battle.combat.FiringSystem} owns the cooldown gate and
+     * executes the shot in the serial FIRING phase.
+     */
     public static void fireIfAble(Entity member, BattleControl sim) {
-        if (sim.world().cooldownTimer(member.entityId) > 0f) {
-            sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
-        }
         Entity target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
@@ -192,10 +193,8 @@ public final class PatrolMotion {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (dist <= sim.world().attackRange(member.entityId) && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
-            sim.fireShot(member, target, FireStance.MOVING);
-            sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-            member.beginBurst(sim.combat(), target);
+        if (dist <= sim.world().attackRange(member.entityId) && visible) {
+            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.MOVING, false);
         }
     }
 }

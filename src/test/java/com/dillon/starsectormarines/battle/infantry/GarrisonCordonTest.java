@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -170,6 +171,13 @@ public class GarrisonCordonTest {
         squad.currentPlan = new SquadPlan(List.of(step));
 
         cordon.execute(d1, squad, sim);
+
+        assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId),
+                "on-post holder with visible enemy in range → authors a fire intent (opportunistic, no portal trigger required)");
+
+        // FiringSystem (not execute() itself) applies the cooldown gate and
+        // fires — drive it directly to observe the actual shot.
+        new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
         assertTrue(sim.world().cooldownTimer(d1.entityId) > 0f,
                 "on-post holder with visible enemy in range → must fire (opportunistic, no portal trigger required)");

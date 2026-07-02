@@ -75,10 +75,11 @@ public final class BreakContact implements Action {
     }
 
     /**
-     * One-shot fire pass: pick a target, fire if in LOS + range with cooldown
-     * ready. Mirrors {@code HoldPortalCordon.opportunisticFire} structurally —
-     * shared lift if a fourth caller shows up; for now duplication is cheaper
-     * than another helper class.
+     * One-shot fire pass: pick a target, author a fire intent when in LOS +
+     * range; {@code battle.combat.FiringSystem} applies the cooldown gate and
+     * executes the shot. Mirrors {@code HoldPortalCordon.opportunisticFire}
+     * structurally — shared lift if a fourth caller shows up; for now
+     * duplication is cheaper than another helper class.
      */
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
         Entity target = sim.targetOf(member);
@@ -87,14 +88,12 @@ public final class BreakContact implements Action {
             target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
-        if (target == null || sim.world().cooldownTimer(member.entityId) > 0f) return;
+        if (target == null) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (d > sim.world().attackRange(member.entityId)) return;
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
-        sim.fireShot(member, target, stance);
-        sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-        member.beginBurst(sim.combat(), target);
+        sim.combat().setFireIntent(member.entityId, Entity.idOf(target), stance, false);
     }
 }

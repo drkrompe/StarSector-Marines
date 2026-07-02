@@ -103,27 +103,22 @@ abstract class AbstractZoneAction implements Action {
             inContact = d <= sim.world().attackRange(member.entityId) && visible;
         }
 
-        if (sim.world().cooldownTimer(member.entityId) <= 0f) {
-            if (inContact) {
-                sim.fireShot(member, target, haltOnContact ? FireStance.STANCED : FireStance.MOVING);
-                sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-                member.beginBurst(sim.combat(), target);
-            } else {
-                // Opportunistic return fire while advancing. The pursuit target
-                // is out of range/LoS (or absent) — across the open approach
-                // that left members marching past enemies they could hit,
-                // eating shots without returning any. Fire on the nearest enemy
-                // actually in range and LoS, MOVING stance, without halting or
-                // touching the pursuit target: the squad still commits to the
-                // zone push, the trigger just stops it being a sitting duck.
-                // beginBurst keys off a separate burst target, so the follow-up
-                // burst tracks the enemy we shot, not the pursuit target.
-                Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
-                if (opportune != null) {
-                    sim.fireShot(member, opportune, FireStance.MOVING);
-                    sim.combat().setCooldownTimer(member.entityId, sim.combat().attackCooldown(member.entityId));
-                    member.beginBurst(sim.combat(), opportune);
-                }
+        if (inContact) {
+            sim.combat().setFireIntent(member.entityId, Entity.idOf(target),
+                    haltOnContact ? FireStance.STANCED : FireStance.MOVING, false);
+        } else {
+            // Opportunistic return fire while advancing. The pursuit target
+            // is out of range/LoS (or absent) — across the open approach
+            // that left members marching past enemies they could hit,
+            // eating shots without returning any. Fire on the nearest enemy
+            // actually in range and LoS, MOVING stance, without halting or
+            // touching the pursuit target: the squad still commits to the
+            // zone push, the trigger just stops it being a sitting duck.
+            // FiringSystem's beginBurst tracks the intent target, so the
+            // follow-up burst tracks the enemy we shot, not the pursuit target.
+            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+            if (opportune != null) {
+                sim.combat().setFireIntent(member.entityId, Entity.idOf(opportune), FireStance.MOVING, false);
             }
         }
 
