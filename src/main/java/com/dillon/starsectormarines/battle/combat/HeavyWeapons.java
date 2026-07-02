@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -76,7 +78,7 @@ public class HeavyWeapons {
      * Convenience overload — full accuracy. Used by all the precision-fire
      * code paths (chaingun, SRM, line-of-sight LRMs).
      */
-    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon) {
+    public void fireMechWeapon(long shooter, long target, MechWeapon weapon) {
         fireMechWeapon(shooter, target, weapon, 1.0f);
     }
 
@@ -91,24 +93,26 @@ public class HeavyWeapons {
      * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
+    public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
         boolean hit = ThreadLocalRandom.current().nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
-        float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         World world = roster.world();
+        Faction shooterFaction = roster.identity().faction(shooter);
+        UnitType shooterType = roster.identity().type(shooter);
+        float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
 
         // Muzzle origin tracks the SHOOTER'S CURRENT RENDER POSITION so a
         // chaingun burst follows the walking mech instead of pinning the
         // muzzle flash to the cell where the burst started. Mirrors the
         // infantry-side fix in InfantryWeapons.fireShot.
-        float fromX = world.renderX(shooter.entityId) + 0.5f;
-        float fromY = world.renderY(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter) + 0.5f;
+        float fromY = world.renderY(shooter) + 0.5f;
         // Distance-scaled spread — see RangeFalloff for the physical model.
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
         // hitSpread numbers.
-        float distToTarget = RangeFalloff.dist(world.cellX(shooter.entityId), world.cellY(shooter.entityId),
-                world.cellX(target.entityId), world.cellY(target.entityId));
+        float distToTarget = RangeFalloff.dist(world.cellX(shooter), world.cellY(shooter),
+                world.cellX(target), world.cellY(target));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
         // Endpoint resolves through ShotEndpoint — same hit-jitter +
@@ -117,7 +121,7 @@ public class HeavyWeapons {
         // center scattered through the same machinery so a salvo sprays the
         // impact zone instead of stacking on one cell.
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target.entityId), world.renderY(target.entityId),
+                world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
@@ -136,9 +140,9 @@ public class HeavyWeapons {
         // wall-blocked round correctly counts as a miss. AoE-kind shots skip
         // this and resolve at endpoint via the Detonations pipeline below.
         if (!isAoe && hit) {
-            damageService.applyDamage(target.entityId, weapon.damage, weapon.vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target.entityId);
-            hitResponse.rollReprioritizeOnHit(target.entityId, shooter.entityId);
+            damageService.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target);
+            hitResponse.rollReprioritizeOnHit(target, shooter);
         }
 
         // AOE PATH — queue a detonation at the (possibly wall-snapped)
@@ -153,7 +157,7 @@ public class HeavyWeapons {
             PendingDetonation onArrival = new PendingDetonation(
                     toX, toY, weapon.flightSec,
                     weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
-                    weapon.wallDamage, shooter.faction, aerial,
+                    weapon.wallDamage, shooterFaction, aerial,
                     weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
             if (weapon.impactProfile == ImpactProfile.HE) {
                 // HE rockets (SRM_POD, LRM_ARTILLERY) ride the modeled Projectile
@@ -166,7 +170,7 @@ public class HeavyWeapons {
                 shots.queueProjectile(new Projectile(
                         fromX, fromY, toX, toY,
                         /*hasBoostRamp*/ true, weapon.arcHeight,
-                        shooter.faction, aerial, weapon.flightSec, onArrival));
+                        shooterFaction, aerial, weapon.flightSec, onArrival));
             } else {
                 // Kinetic-splash kinds (chaingun) keep the legacy AoE-tracer
                 // path — no in-flight queryable entity is useful for a bullet,
@@ -176,7 +180,7 @@ public class HeavyWeapons {
         }
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
                 null, null, null, weapon, moraleImpact));
     }
 
@@ -231,7 +235,7 @@ public class HeavyWeapons {
                         m.chaingunBurstRemaining = 0;
                         m.chaingunBurstTargetId = 0L;
                     } else {
-                        fireMechWeapon(u, cgTarget, m.chaingun);
+                        fireMechWeapon(u.entityId, cgTarget.entityId, m.chaingun);
                         m.chaingunBurstRemaining--;
                         m.chaingunBurstTimer = m.chaingun.burstSpacing;
                         if (m.chaingunBurstRemaining == 0) m.chaingunBurstTargetId = 0L;
@@ -248,7 +252,7 @@ public class HeavyWeapons {
                         m.srmSalvoRemaining = 0;
                         m.srmSalvoTargetId = 0L;
                     } else {
-                        fireMechWeapon(u, srmTarget, m.srmPod);
+                        fireMechWeapon(u.entityId, srmTarget.entityId, m.srmPod);
                         m.srmSalvoRemaining--;
                         m.srmSalvoTimer = m.srmPod.burstSpacing;
                         if (m.srmSalvoRemaining == 0) m.srmSalvoTargetId = 0L;
@@ -274,7 +278,7 @@ public class HeavyWeapons {
                                 world.cellX(u.entityId), world.cellY(u.entityId),
                                 world.cellX(lrmTarget.entityId), world.cellY(lrmTarget.entityId));
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
-                        fireMechWeapon(u, lrmTarget, m.lrmArtillery, accMult);
+                        fireMechWeapon(u.entityId, lrmTarget.entityId, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;
                         m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
                         if (m.lrmSalvoRemaining == 0) m.lrmSalvoTargetId = 0L;

@@ -1207,7 +1207,7 @@ public class BattleSimulation implements BattleControl {
      */
     public void fireShot(Entity shooter, Entity target,
                          com.dillon.starsectormarines.battle.combat.FireStance stance) {
-        infantry.fireShot(shooter, target, stance);
+        infantry.fireShot(shooter.entityId, target.entityId, stance);
     }
 
     /**
@@ -1215,7 +1215,7 @@ public class BattleSimulation implements BattleControl {
      * rationale as {@link #fireShot}.
      */
     public void fireSecondary(Entity shooter, Entity target) {
-        infantry.fireSecondary(shooter, target);
+        infantry.fireSecondary(shooter.entityId, target.entityId);
     }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
@@ -1236,7 +1236,7 @@ public class BattleSimulation implements BattleControl {
      * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
     public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon) {
-        heavy.fireMechWeapon(shooter, target, weapon);
+        heavy.fireMechWeapon(shooter.entityId, target.entityId, weapon);
     }
 
     /**
@@ -1244,7 +1244,7 @@ public class BattleSimulation implements BattleControl {
      * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
      */
     public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
-        heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
+        heavy.fireMechWeapon(shooter.entityId, target.entityId, weapon, accuracyMult);
     }
 
     // advanceMechWeapons moved to HeavyWeapons.tick; the dead-mech wreck moved

@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
@@ -111,7 +113,7 @@ public class InfantryWeapons {
             // burstRemaining stays 0 and it never enters burstScratch above. If
             // turrets are ever rewired to burst via the COMBAT columns, gate
             // this on world.hasMovement(id) (a non-mover is always STANCED).
-            fireShot(u, burstTarget, FireStance.stanceFor(world.moveProgress(id)));
+            fireShot(u.entityId, burstTarget.entityId, FireStance.stanceFor(world.moveProgress(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
             // invalidate these post-fire writes — no slot re-resolve needed.
@@ -134,21 +136,23 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing; fall-back is also
      * rolled here, which can mutate the target's path via the context.
      */
-    public void fireShot(Entity shooter, Entity target, FireStance stance) {
+    public void fireShot(long shooter, long target, FireStance stance) {
         World world = roster.world();
+        Faction shooterFaction = roster.identity().faction(shooter);
+        UnitType shooterType = roster.identity().type(shooter);
         // A shooter firing its primary is a combatant — the COMBAT primary-weapon
         // read is safe by id (null = militia/alien/turret, fall back to baked stats).
-        MarineWeapon weapon = roster.combat().primaryWeapon(shooter.entityId);
-        float accuracy = world.accuracy(shooter.entityId);
-        float damage   = world.attackDamage(shooter.entityId);
+        MarineWeapon weapon = roster.combat().primaryWeapon(shooter);
+        float accuracy = world.accuracy(shooter);
+        float damage   = world.attackDamage(shooter);
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
         // through to their baked Entity stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        float dist = RangeFalloff.dist(world.cellX(shooter.entityId), world.cellY(shooter.entityId),
-                world.cellX(target.entityId), world.cellY(target.entityId));
+        float dist = RangeFalloff.dist(world.cellX(shooter), world.cellY(shooter),
+                world.cellX(target), world.cellY(target));
         float effectiveSpread = 0f;
         if (weapon != null) {
             accuracy = RangeFalloff.accuracy(weapon.accuracy, weapon.accuracyFalloff, dist, weapon.range);
@@ -158,11 +162,11 @@ public class InfantryWeapons {
         }
         accuracy *= stance.accuracyMult;
         boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
-        float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
+        float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
         if (hit) {
-            damageService.applyDamage(target.entityId, damage, vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target.entityId);
-            hitResponse.rollReprioritizeOnHit(target.entityId, shooter.entityId);
+            damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target);
+            hitResponse.rollReprioritizeOnHit(target, shooter);
         }
 
         // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
@@ -170,14 +174,14 @@ public class InfantryWeapons {
         // miss-scatter both resolve through ShotEndpoint so all three
         // weapon paths (infantry primary / secondary / mech) live by the
         // same hit-jitter + miss-ring rules.
-        float fromX = world.renderX(shooter.entityId) + 0.5f;
-        float fromY = world.renderY(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter) + 0.5f;
+        float fromY = world.renderY(shooter) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target.entityId), world.renderY(target.entityId),
+                world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
-        TurretKind tk = shooter.type.isTurret() ? roster.turretState().kind(shooter.entityId) : null;
+        TurretKind tk = shooterType.isTurret() ? roster.turretState().kind(shooter) : null;
         // Primary weapons with their own projectile sprite (SMG bullets) use
         // the weapon's flightSec so a slow round visibly travels — line tracers
         // keep the default SHOT_LIFETIME since they're drawn full-length instantly.
@@ -185,7 +189,7 @@ public class InfantryWeapons {
         if (weapon != null && weapon.projectileSpritePath != null && weapon.flightSec > 0f) {
             lifetime = weapon.flightSec;
         }
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
                 tk, weapon, null, null, moraleImpact));
     }
 
@@ -213,9 +217,10 @@ public class InfantryWeapons {
      * <p>Caller is responsible for verifying ammo &gt; 0 and within-range
      * before calling.
      */
-    public void fireSecondary(Entity shooter, Entity target) {
+    public void fireSecondary(long shooter, long target) {
         World world = roster.world();
-        long shooterId = shooter.entityId;
+        Faction shooterFaction = roster.identity().faction(shooter);
+        long shooterId = shooter;
         if (!world.hasSecondaryWeapon(shooterId)) return;
         MarineSecondary sec = world.secondaryWeapon(shooterId);
         int ammo = world.secondaryAmmo(shooterId);
@@ -227,10 +232,10 @@ public class InfantryWeapons {
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
         // don't carry their own hitSpread today, so the universal hit-jitter
         // + miss-ring still apply but no weapon-specific scatter.
-        float fromX = world.renderX(shooter.entityId) + 0.5f;
-        float fromY = world.renderY(shooter.entityId) + 0.5f;
+        float fromX = world.renderX(shooter) + 0.5f;
+        float fromY = world.renderY(shooter) + 0.5f;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target.entityId), world.renderY(target.entityId),
+                world.renderX(target), world.renderY(target),
                 hit, 0f, ThreadLocalRandom.current());
         float toX = ep.x();
         float toY = ep.y();
@@ -241,16 +246,16 @@ public class InfantryWeapons {
         PendingDetonation onArrival = new PendingDetonation(
                 toX, toY, sec.flightSec,
                 sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                sec.wallDamage, shooter.faction, /*aerialDelivery*/ false,
+                sec.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                 sec.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
         // hasBoostRamp=true: marine rocket is a launched missile with a
         // booster, matches locust's accelerate-from-rest visual curve.
         // arcHeight=0: direct-fire, no parabolic lob.
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
-                shooter.faction, /*aerialDelivery*/ false,
+                shooterFaction, /*aerialDelivery*/ false,
                 sec.flightSec, onArrival));
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, sec.flightSec,
                 null, null, sec));
     }
 }
