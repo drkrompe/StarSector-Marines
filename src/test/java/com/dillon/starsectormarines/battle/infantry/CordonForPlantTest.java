@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -84,11 +85,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
         // Squad centroid outside the room (corridor zone).
         Squad squad = marineSquadAt(1, 1f, 1f, 2);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 1, 1);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 1, 1)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         assertEquals(0f, CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "squad outside planter zone → CordonForPlant inactive (SecureObjectiveZone handles approach)");
@@ -109,11 +109,10 @@ public class CordonForPlantTest {
         // we just added. Centroid is also inside (the cached aggregate is
         // normally refreshed by BattleSimulation; tests set it directly).
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         assertTrue(CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "squad in planter zone with portals → cordon goal fires");
@@ -126,11 +125,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "cordon goal should produce a non-null plan");
@@ -156,9 +154,8 @@ public class CordonForPlantTest {
     public void customPlanReturnsNullWhenNoPlanter() {
         BattleSimulation sim = roomWithTwoDoorways();
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Entity combatant = new Entity("c1", Faction.MARINE, UnitType.MARINE, 6, 6);
-        combatant.seedSquadId = 1;
-        sim.addUnit(combatant);
+        Entity combatant = sim.spawn(new EntitySpec("c1", Faction.MARINE, UnitType.MARINE, 6, 6)
+                .squad(1));
 
         assertNull(CordonForPlant.INSTANCE.customPlan(squad, sim),
                 "no planter in squad → no cordon plan (squad falls back to EliminateEnemies)");
@@ -172,11 +169,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
         TestUnits.kill(sim, planter);
 
         assertEquals(0f, CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -190,11 +186,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 6, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 6, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
         sim.world().setMoveProgress(planter.entityId, 0f);
         // Tick the objective enough to flip isComplete().
         for (int i = 0; i < 200; i++) charge.tick(sim);
@@ -211,11 +206,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
         HoldPortalCordon cordon = (HoldPortalCordon) plan.steps().get(0).action;
@@ -239,11 +233,10 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 5, 6)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
         HoldPortalCordon cordon = (HoldPortalCordon) plan.steps().get(0).action;

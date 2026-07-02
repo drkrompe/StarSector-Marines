@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -49,15 +50,11 @@ public class TacticalScoringTest {
     }
 
     private static Entity unit(BattleSimulation sim, Faction f, int x, int y) {
-        Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y));
     }
 
     private static Entity unit(BattleSimulation sim, Faction f, UnitType type, int x, int y) {
-        Entity u = new Entity("u" + sim.liveUnitCount(), f, type, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, type, x, y));
     }
 
     // ---------------------------------------------------------------------
@@ -614,9 +611,7 @@ public class TacticalScoringTest {
     // ---------------------------------------------------------------------
 
     private static Entity turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y).toEntity();
-        sim.addUnit(t);
-        return t;
+        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y));
     }
 
     private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
@@ -887,10 +882,8 @@ public class TacticalScoringTest {
         // the SQ-96 freeze (findFiringPosition hands back a LOS+range cell that
         // GridPathfinder can't route to).
         BattleSimulation sim = twoRoomsWalledAt11();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
-        sim.addUnit(marine);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
+        Entity enemy  = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 17, 4));
 
         assertNotNull(sim.getTacticalScoring().findFiringPosition(marine, enemy),
                 "a LOS+range firing cell exists in the enemy's room — but it's unreachable");
@@ -905,10 +898,8 @@ public class TacticalScoringTest {
         BattleSimulation sim = twoRoomsWalledAt11();
         sim.getGrid().setWalkableFloor(11, 4);
         sim.getGrid().setDoorway(11, 4, true);
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
-        sim.addUnit(marine);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
+        Entity enemy  = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 17, 4));
 
         assertTrue(sim.getTacticalScoring().hasReachableFiringSpot(marine, enemy),
                 "with a doorway the marine can reach a firing position → engageable");
@@ -964,10 +955,8 @@ public class TacticalScoringTest {
         // but a wall at x=7 blocks the lane.
         BattleSimulation sim = twoRoomsWalledAt11();
         sim.getGrid().setWalkable(7, 4, false);  // drop a blocker in the lane
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 9, 4);
-        sim.addUnit(marine);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
+        Entity enemy  = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 9, 4));
 
         assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine),
                 "in-range but no LoS → no opportunistic shot");

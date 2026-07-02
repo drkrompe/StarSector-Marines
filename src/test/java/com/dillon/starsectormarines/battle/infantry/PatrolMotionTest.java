@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -51,9 +52,7 @@ public class PatrolMotionTest {
     }
 
     private static Entity add(BattleSimulation sim, String id, int x, int y) {
-        Entity u = new Entity(id, Faction.MARINE, UnitType.MARINE, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec(id, Faction.MARINE, UnitType.MARINE, x, y));
     }
 
     @Test
@@ -160,8 +159,7 @@ public class PatrolMotionTest {
         // inline decrement was one of the epic's double-tick bugs).
         BattleSimulation sim = openArena();
         Entity marine = add(sim, "m", 3, 3);
-        Entity enemy = new Entity("e", Faction.DEFENDER, UnitType.MARINE, 5, 3);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 5, 3));
         sim.world().setAttackRange(marine.entityId, 10f);
         sim.world().setCooldownTimer(marine.entityId, 0.6f);
 
@@ -181,8 +179,7 @@ public class PatrolMotionTest {
     public void fireIfAbleHoldsIntentWhenOutOfRange() {
         BattleSimulation sim = openArena();
         Entity marine = add(sim, "m", 3, 3);
-        Entity enemy = new Entity("e", Faction.DEFENDER, UnitType.MARINE, 9, 3);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 9, 3));
         sim.world().setAttackRange(marine.entityId, 2f); // enemy is 6 cells away
 
         PatrolMotion.fireIfAble(marine, sim);

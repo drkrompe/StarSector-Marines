@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ public class CompoundGarrisonSystemTest {
 
     private static void captureCompound(BattleSimulation sim, CompoundService service,
                                          CompoundCaptureSystem capture) {
-        sim.addUnit(new Entity("cap-m", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.spawn(new EntitySpec("cap-m", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {
@@ -120,7 +121,7 @@ public class CompoundGarrisonSystemTest {
         // auto-complete the instant capture finishes — otherwise advance() stops
         // ticking and the shuttle never flies in. Added after capture so the
         // capture itself still saw a clear compound.
-        sim.addUnit(new Entity("d-far", Faction.DEFENDER, UnitType.MARINE, 9, 9));
+        sim.spawn(new EntitySpec("d-far", Faction.DEFENDER, UnitType.MARINE, 9, 9));
 
         // Fly the shuttle in and deboard its first marine (squad minted then).
         int guard = 0;
@@ -233,7 +234,7 @@ public class CompoundGarrisonSystemTest {
         for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
-        sim.addUnit(new Entity("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        sim.spawn(new EntitySpec("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
         // MARINE_HELD → CONTESTED → DEFENDER_HELD
         int recapTicks = 2 + (int) Math.ceil(
                 CompoundService.DEFENDER_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
@@ -253,7 +254,7 @@ public class CompoundGarrisonSystemTest {
         for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.DEFENDER) TestUnits.kill(sim, u);
         }
-        sim.addUnit(new Entity("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.spawn(new EntitySpec("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -76,7 +77,7 @@ public class CompoundSupplyGatingTest {
     /** Drives the compound to MARINE_HELD by adding a marine to the compound zone and ticking the capture system. */
     private static void captureCompound(BattleSimulation sim, CompoundService service,
                                         CompoundCaptureSystem system, int marineX, int marineY) {
-        sim.addUnit(new Entity("cap-marine", Faction.MARINE, UnitType.MARINE, marineX, marineY));
+        sim.spawn(new EntitySpec("cap-marine", Faction.MARINE, UnitType.MARINE, marineX, marineY));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {

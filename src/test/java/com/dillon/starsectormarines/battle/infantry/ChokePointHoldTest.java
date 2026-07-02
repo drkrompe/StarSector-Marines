@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -93,9 +94,8 @@ public class ChokePointHoldTest {
         // Pre-condition: no portal scoped yet.
         assertEquals(-1, squad.chokePointPortalId);
 
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squad.id));
 
         // LOS cell at the marine's current cell so execute won't try to path away.
         List<int[]> cells = List.of(new int[]{5, 5});
@@ -114,9 +114,8 @@ public class ChokePointHoldTest {
         int portalId = sim.getZoneGraph().getPortals().get(0).getPortalId();
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squad.id));
 
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
@@ -135,13 +134,11 @@ public class ChokePointHoldTest {
         int portalId = sim.getZoneGraph().getPortals().get(0).getPortalId();
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squad.id));
 
         // Attacker stepping onto the doorway cell.
-        Entity attacker = new Entity("a1", Faction.MARINE, UnitType.MARINE, 6, 3);
-        sim.addUnit(attacker);
+        Entity attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 6, 3));
 
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
@@ -173,14 +170,11 @@ public class ChokePointHoldTest {
         int portalId = sim.getZoneGraph().getPortals().get(0).getPortalId();
 
         Squad squad = defenderSquad(1, 6f, 6f, 2);
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.seedSquadId = squad.id;
-        Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
-        d2.seedSquadId = squad.id;
-        sim.addUnit(d1);
-        sim.addUnit(d2);
-        Entity attacker = new Entity("a1", Faction.MARINE, UnitType.MARINE, 6, 3);
-        sim.addUnit(attacker);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squad.id));
+        Entity d2 = sim.spawn(new EntitySpec("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5)
+                .squad(squad.id));
+        Entity attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 6, 3));
 
         List<int[]> cells = List.of(new int[]{5, 5}, new int[]{7, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1, d2));
@@ -216,10 +210,9 @@ public class ChokePointHoldTest {
         int portalId = sim.getZoneGraph().getPortals().get(0).getPortalId();
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        d1.seedSquadId = squad.id;
         // Pretend the member had a stale path queued before getting to post.
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squad.id));
 
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
@@ -237,9 +230,8 @@ public class ChokePointHoldTest {
 
         Squad squad = defenderSquad(1, 6f, 6f, 1);
         // Start the marine away from the LOS cell so they have to move.
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7)
+                .squad(squad.id));
 
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));

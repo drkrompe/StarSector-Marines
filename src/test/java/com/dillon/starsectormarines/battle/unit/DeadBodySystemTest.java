@@ -38,11 +38,9 @@ public class DeadBodySystemTest {
 
     /** A target DEFENDER to kill, with a live unit of each faction kept far away so the battle doesn't end. */
     private static Entity parkArenaWithTarget(BattleSimulation sim) {
-        sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
-        sim.addUnit(new Entity("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
-        Entity target = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 20, 20);
-        sim.addUnit(target);
-        return target;
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
+        return sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 20, 20));
     }
 
     private static int corpseCount(BattleSimulation sim) {

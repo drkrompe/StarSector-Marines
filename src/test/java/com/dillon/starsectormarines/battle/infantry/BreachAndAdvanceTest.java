@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -42,9 +43,8 @@ public class BreachAndAdvanceTest {
         first.seedSquadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
-            Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY);
-            u.seedSquadId = sid;
-            sim.addUnit(u);
+            sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY)
+                    .squad(sid));
         }
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = memberCount;
@@ -98,12 +98,11 @@ public class BreachAndAdvanceTest {
         BattleSimulation sim = openArena(20, 20);
         // Place both members AT their stack-up cells already.
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 8, 5);
-        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 8, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.seedSquadId = sid;
-        m1.seedSquadId = sid;
         sim.addUnit(m0);
-        sim.addUnit(m1);
+        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 6)
+                .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
         sq.centroidX = 8f;
@@ -151,12 +150,11 @@ public class BreachAndAdvanceTest {
     public void arrivalAtForwardCellClearsPathAndPinsRender() {
         BattleSimulation sim = openArena(20, 20);
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.seedSquadId = sid;
-        m1.seedSquadId = sid;
         sim.addUnit(m0);
-        sim.addUnit(m1);
+        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
+                .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
         sq.centroidX = 14f;
@@ -182,12 +180,11 @@ public class BreachAndAdvanceTest {
     public void successWhenAllMembersAtForward() {
         BattleSimulation sim = openArena(20, 20);
         Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.seedSquadId = sid;
-        m1.seedSquadId = sid;
         sim.addUnit(m0);
-        sim.addUnit(m1);
+        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
+                .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
         sq.centroidX = 14f;

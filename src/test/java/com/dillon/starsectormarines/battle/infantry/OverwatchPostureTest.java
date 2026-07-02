@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -89,8 +90,7 @@ public class OverwatchPostureTest {
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 8, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 8, 5));
 
         ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
         assertEquals(ActionStatus.RUNNING, status);

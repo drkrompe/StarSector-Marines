@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -37,15 +38,11 @@ public class RepositionToCoverTest {
     }
 
     private static Entity marineAt(BattleSimulation sim, int x, int y) {
-        Entity u = new Entity("m" + sim.liveUnitCount(), Faction.MARINE, UnitType.MARINE, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec("m" + sim.liveUnitCount(), Faction.MARINE, UnitType.MARINE, x, y));
     }
 
     private static Entity enemyAt(BattleSimulation sim, int x, int y) {
-        Entity u = new Entity("e" + sim.liveUnitCount(), Faction.DEFENDER, UnitType.MARINE, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec("e" + sim.liveUnitCount(), Faction.DEFENDER, UnitType.MARINE, x, y));
     }
 
     @Test

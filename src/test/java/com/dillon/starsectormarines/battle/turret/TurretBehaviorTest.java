@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -33,8 +34,7 @@ public class TurretBehaviorTest {
     @Test
     public void recoilTimerAgesEachUpdateWhenNoTargetInRange() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
-        sim.addUnit(turret);
+        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
 
         TurretBehavior.INSTANCE.update(turret, sim);
 
@@ -47,14 +47,12 @@ public class TurretBehaviorTest {
     @Test
     public void burstKindLatchesRemainingRoundsIntoTurretStateOnFire() {
         BattleSimulation sim = openArena(40, 40);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
-        sim.addUnit(turret);
+        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
         // Due north of the turret (same cellX): bearing-to-target is exactly 0°,
         // matching the turret's zero-init facingDegrees, so the fire-arc gate
         // passes on the very first update with no slew needed. Well within
         // VULCAN's 22-cell range.
-        Entity enemy = new Entity("m0", Faction.MARINE, UnitType.MARINE, 10, 20);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 20));
 
         TurretBehavior.INSTANCE.update(turret, sim);
 

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -72,9 +73,8 @@ public class SecureObjectiveZoneTest {
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);
         // Squad member exists but with no assignedObjective.
-        Entity u = new Entity("m1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        u.seedSquadId = 1;
-        sim.addUnit(u);
+        Entity u = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1));
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "no charge objective → goal inactive");
@@ -87,11 +87,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "already in objective zone → goal inactive, EliminateEnemies takes over");
@@ -104,11 +103,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "disconnected objective should fall through to EliminateEnemies, not strand the squad plan-less");
@@ -121,11 +119,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         SquadPlan plan = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "reachable objective should produce a non-null plan");
@@ -151,11 +148,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         SquadPlan first = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
         assertNotNull(first);
@@ -174,11 +170,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         assertNull(SecureObjectiveZone.INSTANCE.customPlan(squad, sim),
                 "no zone hop needed → customPlan returns null (squad shouldn't replan into no-op steps)");
@@ -196,11 +191,10 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
-        planter.seedSquadId = 1;
-        planter.seedRole = UnitRole.PLANTER;
-        planter.seedAssignedObjective = charge;
-        sim.addUnit(planter);
+        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+                .squad(1)
+                .role(UnitRole.PLANTER)
+                .assignedObjective(charge));
 
         // Advance objective progress past its duration so isComplete() flips true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {

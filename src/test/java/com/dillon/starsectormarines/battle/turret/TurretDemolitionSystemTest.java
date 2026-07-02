@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -44,8 +45,7 @@ public class TurretDemolitionSystemTest {
     @Test
     public void deadTurretIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
-        sim.addUnit(turret);
+        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         // Lethal hit, routed through the production damage path so the death
@@ -74,14 +74,12 @@ public class TurretDemolitionSystemTest {
         // A two-turret defense post; a garrison squad orbiting it on a tight
         // patrol radius. When BOTH turrets die the post is "down" and the
         // squad should revert to the wide default radius + drop its post link.
-        Entity a = MapTurret.create("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
-        Entity b = MapTurret.create("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10).toEntity();
-        sim.addUnit(a);
-        sim.addUnit(b);
+        Entity a = sim.spawn(MapTurret.create("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        Entity b = sim.spawn(MapTurret.create("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10));
         // A lone, far-off MARINE keeps the battle in progress across both ticks
         // — without a live unit on each side the win-check eliminates MARINE
         // after tick 1 and the second advance() would no-op before the drain.
-        sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         DefensePost post = new DefensePost(DefensePostKind.LIGHT, 10, 10, List.of(
                 new DefensePost.TurretSpec(TurretKind.VULCAN, 10, 10),
                 new DefensePost.TurretSpec(TurretKind.VULCAN, 11, 10)));
@@ -111,8 +109,7 @@ public class TurretDemolitionSystemTest {
     @Test
     public void liveTurretIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10).toEntity();
-        sim.addUnit(turret);
+        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
 
         sim.advance(BattleSimulation.TICK_DT);
 

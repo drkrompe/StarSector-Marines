@@ -3,6 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
@@ -111,8 +112,7 @@ public class ZoneQueriesTest {
         squad.aliveMembers = 2;
         squad.centroidX = 2f;
         squad.centroidY = 2f;
-        Entity leader = new Entity("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
-        sim.addUnit(leader); // register so getCellX routes through the registry (cell is fail-loud pre-allocate)
+        Entity leader = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 3)); // register so getCellX routes through the registry (cell is fail-loud pre-allocate)
         squad.leaderId = leader.entityId;
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         int leftZone  = sim.getZoneGraph().zoneIdAt(2, 2);
@@ -144,11 +144,10 @@ public class ZoneQueriesTest {
         squad.aliveMembers = 1;
         squad.centroidX = 2f;
         squad.centroidY = 2f;
-        Entity deadLeader = new Entity("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
         // Register, point the squad at its id, then kill it — the kill releases
         // it from the registry, so sim.resolveUnit(leaderId) returns null and the
         // query must fall back to the centroid instead of anchoring on a corpse.
-        sim.addUnit(deadLeader);
+        Entity deadLeader = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 3));
         squad.leaderId = deadLeader.entityId;
         TestUnits.kill(sim, deadLeader);
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
@@ -184,8 +183,7 @@ public class ZoneQueriesTest {
         assertTrue(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
                 "empty zone is clear by definition");
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 8, 3);
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 8, 3));
         assertFalse(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
                 "live defender in the zone should make it not-clear");
 
@@ -195,7 +193,7 @@ public class ZoneQueriesTest {
                 "left zone has no defender so it should still read clear");
 
         // A marine in the right zone is irrelevant when we're asking about DEFENDERs.
-        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 7, 3));
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 7, 3));
         assertTrue(ZoneQueries.zoneClear(rightZone, Faction.MARINE, sim) == false,
                 "marine in right zone should make it not-clear for the MARINE faction");
         assertFalse(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),

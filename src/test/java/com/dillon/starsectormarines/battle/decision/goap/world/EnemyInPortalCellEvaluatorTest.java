@@ -3,6 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -58,8 +59,7 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         // Enemy combatant standing exactly on the doorway cell.
-        Entity attacker = new Entity("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5);
-        sim.addUnit(attacker);
+        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertTrue(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -75,8 +75,7 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         // Enemy one cell away from the doorway — same row, one column off.
-        Entity attacker = new Entity("m1", Faction.MARINE, UnitType.MARINE, 6, 5);
-        sim.addUnit(attacker);
+        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 6, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -91,7 +90,7 @@ public class EnemyInPortalCellEvaluatorTest {
 
         // Even with an enemy on the doorway, the predicate should read false:
         // the squad isn't running a ChokePointHold action.
-        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -107,9 +106,8 @@ public class EnemyInPortalCellEvaluatorTest {
 
         // A friendly on the doorway must not trigger — the predicate is
         // "enemy in portal cell," scoped by faction.
-        Entity friendly = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, WALL_COL, 5);
-        friendly.seedSquadId = squad.id;
-        sim.addUnit(friendly);
+        Entity friendly = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, WALL_COL, 5)
+                .squad(squad.id));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -123,8 +121,7 @@ public class EnemyInPortalCellEvaluatorTest {
         Squad squad = defenderSquad(1);
         squad.chokePointPortalId = portalId;
 
-        Entity attacker = new Entity("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5);
-        sim.addUnit(attacker);
+        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
         TestUnits.kill(sim, attacker);
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
@@ -138,7 +135,7 @@ public class EnemyInPortalCellEvaluatorTest {
         Squad squad = defenderSquad(1);
         squad.chokePointPortalId = 9999; // out-of-range, portalById returns null
 
-        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),

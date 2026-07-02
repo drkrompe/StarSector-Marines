@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -52,9 +53,7 @@ public class UnitRenderServiceLiveSweepTest {
      * assertion below to {@code sweepLiveSprites} alone.
      */
     private static Entity spawnSubject(BattleSimulation sim, int cellX, int cellY) {
-        Entity subject = new Entity("subject", Faction.MARINE, UnitType.CIVILIAN, cellX, cellY);
-        sim.addUnit(subject);
-        return subject;
+        return sim.spawn(new EntitySpec("subject", Faction.MARINE, UnitType.CIVILIAN, cellX, cellY));
     }
 
     private static RenderContext newContext(BattleSimulation sim) {

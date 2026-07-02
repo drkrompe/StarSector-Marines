@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -56,9 +57,7 @@ public class FiringSystemTest {
     }
 
     private static Entity combatant(BattleSimulation sim, Faction f, int x, int y) {
-        Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y));
     }
 
     private static FiringSystem systemFor(BattleSimulation sim) {
@@ -278,18 +277,14 @@ public class FiringSystemTest {
     public void engagePostureCadenceGoldenAcrossFullSimTicks() {
         BattleSimulation sim = openArena(30, 10);
         int squadId = sim.mintSquad(Faction.MARINE, null);
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 5);
-        marine.seedSquadId = squadId;
-        marine.seedHp = 1_000_000f;
-        marine.seedMaxHp = 1_000_000f;
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .squad(squadId)
+                .health(1_000_000f));
 
         // No squad assigned — GoapInfantryBehavior.update no-ops for it, so
         // it never moves, never fires, and never leaves range/LoS.
-        Entity defender = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 10, 5);
-        defender.seedHp = 1_000_000f;
-        defender.seedMaxHp = 1_000_000f;
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 10, 5)
+                .health(1_000_000f));
 
         int totalTicks = 120;
         List<Integer> resetTicks = new ArrayList<>();

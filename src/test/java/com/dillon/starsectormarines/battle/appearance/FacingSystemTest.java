@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -80,10 +81,8 @@ public class FacingSystemTest {
     @Test
     public void liveSheetUnitsSpawnWithSouthIdleSprite() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
-        Entity civilian = new Entity("c0", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10);
-        sim.addUnit(civilian);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
+        Entity civilian = sim.spawn(new EntitySpec("c0", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10));
 
         EntityWorld world = sim.getEntityWorld();
         BattleComponents c = sim.getBattleComponents();
@@ -96,16 +95,14 @@ public class FacingSystemTest {
 
         // Negative membership: a live non-sheet unit (whole-sprite turret)
         // carries no SPRITE — it gains one only at the corpse transmute.
-        Entity turret = MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20).toEntity();
-        sim.addUnit(turret);
+        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20));
         assertFalse(world.has(turret.entityId, c.SPRITE), "live turret carries no SPRITE");
     }
 
     @Test
     public void idleUnitStaysAtSouthIdleFrame() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
 
         systemFor(sim).tick();
 
@@ -117,10 +114,8 @@ public class FacingSystemTest {
     @Test
     public void targetFacingIdleThenWeaponUp() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.world().setTargetId(marine.entityId, enemy.entityId);
 
         FacingSystem system = systemFor(sim);
@@ -136,11 +131,9 @@ public class FacingSystemTest {
     @Test
     public void southFacingWeaponUpFlipsVertically() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
         // dy<0 -> SOUTH (facingFromDelta's convention; matches the renderer).
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 5, 2);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 5, 2));
         sim.world().setTargetId(marine.entityId, enemy.entityId);
         sim.world().setCooldownTimer(marine.entityId, sim.world().attackCooldown(marine.entityId));
 
@@ -153,8 +146,7 @@ public class FacingSystemTest {
     @Test
     public void pathFacingWhenNoTarget() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
         // The next path cell sits at y+1. In this sim's cell space dy>0 is NORTH
         // (facingFromDelta's convention, matching the renderer) — trust the
         // delta math over screen-direction intuition.
@@ -169,12 +161,9 @@ public class FacingSystemTest {
     @Test
     public void deadTargetFallsBackToSouthIdle() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
-        Entity keepalive = new Entity("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38);
-        sim.addUnit(keepalive);
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
+        Entity keepalive = sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.world().setTargetId(marine.entityId, enemy.entityId);
 
         sim.applyDamage(enemy, 100_000f, 1f, 0f);
@@ -198,10 +187,8 @@ public class FacingSystemTest {
     @Test
     public void eightWayFacingFromTarget() {
         BattleSimulation sim = openArena(40, 40);
-        Entity mech = new Entity("mech0", Faction.MARINE, UnitType.HEAVY_MECH, 10, 10);
-        sim.addUnit(mech);
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 13, 13);
-        sim.addUnit(enemy);
+        Entity mech = sim.spawn(new EntitySpec("mech0", Faction.MARINE, UnitType.HEAVY_MECH, 10, 10));
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 13, 13));
         sim.world().setTargetId(mech.entityId, enemy.entityId);
 
         FacingSystem system = systemFor(sim);
@@ -218,11 +205,9 @@ public class FacingSystemTest {
     @Test
     public void secondaryAimSelectsAimSheetAndForcesWeaponUp() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        marine.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        sim.addUnit(marine);
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .secondary(MarineSecondary.ROCKET_LAUNCHER, 0));
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.world().setTargetId(marine.entityId, enemy.entityId);
         sim.world().setSecondaryActionTimer(marine.entityId, 0.5f);
 
@@ -243,10 +228,8 @@ public class FacingSystemTest {
     @Test
     public void corpseFreezesPoseAndZeroesSelectorAndFlip() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(marine);
-        Entity keepalive = new Entity("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38);
-        sim.addUnit(keepalive);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
+        Entity keepalive = sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
         long id = marine.entityId;
         EntityWorld world = sim.getEntityWorld();
         BattleComponents c = sim.getBattleComponents();
@@ -275,10 +258,8 @@ public class FacingSystemTest {
     @Test
     public void endToEndFrameMatchesIndependentDerivation() {
         BattleSimulation sim = openArena(40, 40);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 10, 10);
-        sim.addUnit(marine);
-        Entity enemy = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 13, 10);
-        sim.addUnit(enemy);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 10));
+        Entity enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 13, 10));
 
         // Well inside the 1.0s attack-cooldown window (30 ticks) — no shots
         // fired yet, so both units are guaranteed still alive.

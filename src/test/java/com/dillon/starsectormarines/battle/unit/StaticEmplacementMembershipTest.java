@@ -44,12 +44,9 @@ public class StaticEmplacementMembershipTest {
     @Test
     public void mobileUnitsAreMoversAndThinkersStaticEmplacementsAreNeither() {
         BattleSimulation sim = openSim();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2).toEntity();
-        sim.addUnit(marine);
-        sim.addUnit(turret);
-        sim.addUnit(hub);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2));
+        Entity turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
+        Entity hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 21, 2));
 
         assertTrue(sim.world().hasMovement(marine.entityId));
         assertTrue(sim.world().hasAiState(marine.entityId));
@@ -82,11 +79,9 @@ public class StaticEmplacementMembershipTest {
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.seedSquadId = sid;
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2).toEntity();
         sim.addUnit(marine);
-        sim.addUnit(turret);
-        sim.addUnit(hub);
+        Entity turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
+        Entity hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 21, 2));
 
         // Each advance() drives rebuildOccupancyMap + the destination-index
         // rebuild and the parallel per-unit dispatch — all walks over every live
@@ -105,14 +100,10 @@ public class StaticEmplacementMembershipTest {
     @Test
     public void droneCarriesDroneStateSeededToNaNGoalsAndItsHomeHubId() {
         BattleSimulation sim = openSim();
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 5, 5).toEntity();
-        sim.addUnit(hub);
-        Entity drone = Drone.create("d", Faction.DEFENDER, 10, 10, hub.entityId).toEntity();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21).toEntity();
-        sim.addUnit(drone);
-        sim.addUnit(marine);
-        sim.addUnit(turret);
+        Entity hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 5, 5));
+        Entity drone = sim.spawn(Drone.create("d", Faction.DEFENDER, 10, 10, hub.entityId));
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2));
+        Entity turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
 
         // The drone carries DRONE_STATE (presence IS "is a live drone"); the hub,
         // marine, and turret — none a drone — don't.
@@ -136,11 +127,9 @@ public class StaticEmplacementMembershipTest {
     public void rollFallbackOnHitSkipsStaticEmplacements() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity turret = MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8).toEntity();
-        Entity hub = DroneHub.create("h", Faction.DEFENDER, 9, 9).toEntity();
-        sim.addUnit(turret);
-        sim.addUnit(hub);
-        sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 2, 2));
+        Entity turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8));
+        Entity hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 9, 9));
+        sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 2, 2));
 
         // A static emplacement takes damage like anything else, but has no
         // AI_STATE — the fall-back roll must skip it before the fail-loud

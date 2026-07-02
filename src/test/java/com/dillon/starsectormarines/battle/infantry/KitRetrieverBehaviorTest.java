@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -34,17 +35,14 @@ public class KitRetrieverBehaviorTest {
     @Test
     public void retrievalUpdateTicksAllThreeCooldownsAndWritesMovingIntentOnAnInRangeEnemy() {
         BattleSimulation sim = openArena(30, 10);
-        Entity retriever = new Entity("r", Faction.MARINE, UnitType.MARINE, 5, 5);
-        retriever.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        retriever.seedSecondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
-        sim.addUnit(retriever);
+        Entity retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo));
         sim.world().setAttackRange(retriever.entityId, 10f);
         sim.world().setCooldownTimer(retriever.entityId, 0.6f);
         sim.world().setSecondaryCooldownTimer(retriever.entityId, 0.6f);
         sim.world().setRepositionCooldown(retriever.entityId, 0.6f);
 
-        Entity enemy = new Entity("e", Faction.DEFENDER, UnitType.MARINE, 8, 5);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 8, 5));
 
         EquipmentDrop drop = new EquipmentDrop(20, 5, null);
         sim.task().setEquipmentDropTarget(retriever.entityId, drop);
@@ -72,8 +70,7 @@ public class KitRetrieverBehaviorTest {
         // tickCooldowns) — the retrieval-path tickCooldowns call must sit
         // AFTER the demote check, or a demote tick would double-tick.
         BattleSimulation sim = openArena(30, 10);
-        Entity retriever = new Entity("r", Faction.MARINE, UnitType.MARINE, 5, 5);
-        sim.addUnit(retriever);
+        Entity retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5));
         sim.world().setCooldownTimer(retriever.entityId, 0.6f);
 
         EquipmentDrop drop = new EquipmentDrop(20, 5, null);

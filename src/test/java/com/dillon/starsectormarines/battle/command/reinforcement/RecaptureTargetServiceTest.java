@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
@@ -73,9 +74,7 @@ public class RecaptureTargetServiceTest {
 
     /** A lone alive defender at {@code (x,y)} — contributes biome presence only (no squad/node assignment). */
     private static Entity presence(BattleSimulation sim, String id, int x, int y) {
-        Entity u = new Entity(id, Faction.DEFENDER, UnitType.MILITIA, x, y);
-        sim.addUnit(u);
-        return u;
+        return sim.spawn(new EntitySpec(id, Faction.DEFENDER, UnitType.MILITIA, x, y));
     }
 
     private static RecaptureTarget targetFor(RecaptureTargetService reg, TacticalNode node) {

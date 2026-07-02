@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -52,9 +53,8 @@ public class AssaultCommandTest {
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE,
-                Math.round(centroidX), Math.round(centroidY));
-        sim.addUnit(leader);
+        Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
+                Math.round(centroidX), Math.round(centroidY)));
         int sid = sim.mintSquad(Faction.MARINE, leader);
         sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
@@ -65,7 +65,7 @@ public class AssaultCommandTest {
     }
 
     private static void addDefender(BattleSimulation sim, int cellX, int cellY) {
-        sim.addUnit(new Entity("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
+        sim.spawn(new EntitySpec("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
     }
 
     @Test

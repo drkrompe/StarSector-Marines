@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -74,8 +75,7 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity leader = new Entity("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
-        sim.addUnit(leader);
+        Entity leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
         squad.leaderId = leader.entityId;
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
@@ -102,8 +102,7 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity leader = new Entity("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
-        sim.addUnit(leader);
+        Entity leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
         squad.leaderId = leader.entityId;
 
         // Simulate a posture switch: the squad carries a waypoint left by a
@@ -128,14 +127,12 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity member = new Entity("m", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
-        sim.addUnit(member);
+        Entity member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
         squad.leaderId = member.entityId;
         sim.world().setAttackRange(member.entityId, 10f);
         sim.world().setCooldownTimer(member.entityId, 0.6f);
 
-        Entity enemy = new Entity("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
         patrol.execute(member, squad, sim);
@@ -165,13 +162,11 @@ public class GuardPostPatrolTest {
         // Member sits well outside the box (radius 5); leash can never exceed
         // the full box radius regardless of the odds tally, so any member
         // farther than that from the anchor is unconditionally outside it.
-        Entity member = new Entity("m", Faction.DEFENDER, UnitType.MARINE, anchorX + 10, anchorY);
-        sim.addUnit(member);
+        Entity member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX + 10, anchorY));
         squad.leaderId = member.entityId;
         sim.world().setAttackRange(member.entityId, 10f);
 
-        Entity enemy = new Entity("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY);
-        sim.addUnit(enemy);
+        Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
         patrol.execute(member, squad, sim);

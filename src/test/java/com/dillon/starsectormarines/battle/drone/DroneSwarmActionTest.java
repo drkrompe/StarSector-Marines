@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -41,10 +42,8 @@ public class DroneSwarmActionTest {
     @Test
     public void patrolBranchPicksASectorWaypointWhenNoneIsSetYet() {
         BattleSimulation sim = openArena(60, 60);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30).toEntity();
-        sim.addUnit(hub);
-        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId).toEntity();
-        sim.addUnit(drone);
+        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 30, 30));
+        Entity drone = sim.spawn(Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId));
         Squad squad = new Squad(0, Faction.DEFENDER);
         squad.aliveMembers = 1;
         squad.droneHubId = hub.entityId;
@@ -68,8 +67,7 @@ public class DroneSwarmActionTest {
     @Test
     public void nonDroneMemberFailsImmediately() {
         BattleSimulation sim = openArena(20, 20);
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 2, 2);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 2, 2));
         Squad squad = new Squad(0, Faction.MARINE);
 
         ActionStatus status = DroneSwarmAction.INSTANCE.execute(marine, squad, sim);
@@ -80,10 +78,8 @@ public class DroneSwarmActionTest {
     @Test
     public void pursuitBranchDecaysTheLatchWhenNothingRefreshesItThisTick() {
         BattleSimulation sim = openArena(60, 60);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 30, 30).toEntity();
-        sim.addUnit(hub);
-        Entity drone = Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId).toEntity();
-        sim.addUnit(drone);
+        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 30, 30));
+        Entity drone = sim.spawn(Drone.create("d0", Faction.DEFENDER, 30, 20, hub.entityId));
         Squad squad = new Squad(0, Faction.DEFENDER);
         squad.aliveMembers = 1;
         squad.droneHubId = hub.entityId;

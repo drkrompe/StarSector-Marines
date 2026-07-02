@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -44,9 +45,7 @@ public class InfantryUnitPrepTest {
     }
 
     private static Entity turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        Entity t = MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y).toEntity();
-        sim.addUnit(t);
-        return t;
+        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y));
     }
 
     @Test

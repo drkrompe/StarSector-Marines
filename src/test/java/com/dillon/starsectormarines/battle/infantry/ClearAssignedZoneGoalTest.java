@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -100,8 +101,7 @@ public class ClearAssignedZoneGoalTest {
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, leftZone);
         // Live defender in the same zone.
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 3, 3);
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 3, 3));
 
         assertTrue(ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "in target zone + defenders alive → goal stays relevant for the clear");
@@ -131,8 +131,7 @@ public class ClearAssignedZoneGoalTest {
         // Live defender in the target zone — otherwise zoneClear short-
         // returns and relevance yields. The point of the test is the
         // reachability check is positive, not the empty-zone case.
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3));
 
         assertTrue(ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "reachable + occupied CLEAR_ZONE assignment should make the goal relevant");
@@ -250,8 +249,7 @@ public class ClearAssignedZoneGoalTest {
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
         // Defender in target zone — without the morale gate this would be
         // a positive-relevance pull.
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3));
         WorldState broken = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
 
         assertEquals(0f, ClearAssignedZoneGoal.INSTANCE.relevance(broken, squad, sim),
@@ -274,8 +272,7 @@ public class ClearAssignedZoneGoalTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3));
 
         float r = ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim);
         assertTrue(r > 0f && r < 1.0f,

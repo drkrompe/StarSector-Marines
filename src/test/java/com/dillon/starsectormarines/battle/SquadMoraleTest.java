@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -59,8 +60,7 @@ public class SquadMoraleTest {
      * the marine side of the wall instead.
      */
     private static void hideDefender(BattleSimulation sim) {
-        Entity d = new Entity("d-hidden", Faction.DEFENDER, UnitType.MARINE, 18, 6);
-        sim.addUnit(d);
+        sim.spawn(new EntitySpec("d-hidden", Faction.DEFENDER, UnitType.MARINE, 18, 6));
     }
 
     /**
@@ -75,9 +75,8 @@ public class SquadMoraleTest {
         first.seedSquadId = squadId;
         sim.addUnit(first);
         for (int i = 1; i < size; i++) {
-            Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, 1 + i, 1);
-            u.seedSquadId = squadId;
-            sim.addUnit(u);
+            sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 1 + i, 1)
+                    .squad(squadId));
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
@@ -140,8 +139,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         sq.morale = 0.2f;
         sq.timeSinceUnderFire = 10f; // out of the under-fire window
-        Entity defender = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 10, 1);
-        sim.addUnit(defender);
+        sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 10, 1));
 
         sim.advance(BattleSimulation.TICK_DT);
 
@@ -485,9 +483,8 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 2);
         float before = sq.morale;
 
-        Entity civilian = new Entity("c", Faction.DEFENDER, UnitType.MARINE, 8, 8);
-        civilian.seedSquadId = Entity.NO_SQUAD;
-        sim.addUnit(civilian);
+        Entity civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
+                .squad(Entity.NO_SQUAD));
         sim.applyDamage(civilian, sim.world().hp(civilian.entityId) + 1000f, 1f);
 
         assertEquals(before, sq.morale, 1e-6f,

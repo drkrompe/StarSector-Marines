@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -46,13 +47,10 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.seedSquadId = defSquadId;
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
 
         // Marine inside KILL_ZONE_RANGE_CELLS (8). Open floor → LOS clear.
-        Entity marine = new Entity("m1", Faction.MARINE, UnitType.MARINE, 10, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
 
         // Drive a few sim ticks. Each tick the alert-update pass increments
         // killZoneLosTicks (capped at the threshold).
@@ -94,9 +92,7 @@ public class KillZoneIntegrationTest {
         // Pre-set the counter to half the threshold to simulate prior ticks.
         defSquad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD / 2;
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.seedSquadId = defSquadId;
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
         // No marines anywhere → no close-LOS sighting this tick → counter resets.
 
         sim.advance(1.0f / 30f);
@@ -114,11 +110,8 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = false;
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.seedSquadId = defSquadId;
-        sim.addUnit(defender);
-        Entity marine = new Entity("m1", Faction.MARINE, UnitType.MARINE, 10, 5);
-        sim.addUnit(marine);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
+        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
 
         for (int i = 0; i < 10; i++) {
             sim.advance(1.0f / 30f);
@@ -143,9 +136,7 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
-        defender.seedSquadId = defSquadId;
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
         // Tank up so the marine's return fire doesn't kill us before the
         // ambush-blown threshold lands — the accumulator only ticks while at
         // least one squadmate is alive, and a dead squad short-circuits the
@@ -158,8 +149,7 @@ public class KillZoneIntegrationTest {
         // shots don't matter for this test — we control the under-fire signal
         // via postShot below — but the marine has to exist so the
         // EliminateFactionObjective doesn't auto-complete the battle.
-        Entity marine = new Entity("m1", Faction.MARINE, UnitType.MARINE, 17, 5);
-        sim.addUnit(marine);
+        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 17, 5));
 
         float dt = 1.0f / 30f;
         int totalTicks = (int) Math.ceil((SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);

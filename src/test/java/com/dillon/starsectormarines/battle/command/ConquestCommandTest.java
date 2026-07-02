@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -110,9 +111,8 @@ public class ConquestCommandTest {
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE,
-                Math.round(centroidX), Math.round(centroidY));
-        sim.addUnit(leader);
+        Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
+                Math.round(centroidX), Math.round(centroidY)));
         int sid = sim.mintSquad(Faction.MARINE, leader);
         sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
@@ -123,9 +123,7 @@ public class ConquestCommandTest {
     }
 
     private static Entity addDefender(BattleSimulation sim, int cellX, int cellY) {
-        Entity d = new Entity("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY);
-        sim.addUnit(d);
-        return d;
+        return sim.spawn(new EntitySpec("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
     }
 
     @Test
@@ -403,7 +401,7 @@ public class ConquestCommandTest {
         CompoundService service = sim.getCompoundService();
         service.register(node);
         CompoundCaptureSystem capture = new CompoundCaptureSystem();
-        sim.addUnit(new Entity("cap-m", Faction.MARINE, UnitType.MARINE, node.anchorX, node.anchorY));
+        sim.spawn(new EntitySpec("cap-m", Faction.MARINE, UnitType.MARINE, node.anchorX, node.anchorY));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {

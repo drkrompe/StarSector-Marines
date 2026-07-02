@@ -38,14 +38,10 @@ public class CivilianCombatMembershipTest {
     @Test
     public void combatantsHaveCombatNonCombatantsDoNot() {
         BattleSimulation sim = openSim();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        Entity civilian = new Entity("c", Faction.CIVILIAN, UnitType.CIVILIAN, 4, 4);
-        Entity engineer = new Entity("e", Faction.CIVILIAN, UnitType.ENGINEER, 5, 5);
-        Entity scientist = new Entity("s", Faction.CIVILIAN, UnitType.SCIENTIST, 6, 6);
-        sim.addUnit(marine);
-        sim.addUnit(civilian);
-        sim.addUnit(engineer);
-        sim.addUnit(scientist);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2));
+        Entity civilian = sim.spawn(new EntitySpec("c", Faction.CIVILIAN, UnitType.CIVILIAN, 4, 4));
+        Entity engineer = sim.spawn(new EntitySpec("e", Faction.CIVILIAN, UnitType.ENGINEER, 5, 5));
+        Entity scientist = sim.spawn(new EntitySpec("s", Faction.CIVILIAN, UnitType.SCIENTIST, 6, 6));
 
         // A combatant carries COMBAT; the three non-combatant types do not.
         assertTrue(sim.world().hasCombat(marine.entityId));
@@ -65,13 +61,10 @@ public class CivilianCombatMembershipTest {
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.seedSquadId = sid;
-        Entity civilian = new Entity("c", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10);
-        Entity engineer = new Entity("e", Faction.CIVILIAN, UnitType.ENGINEER, 11, 11);
-        Entity scientist = new Entity("s", Faction.CIVILIAN, UnitType.SCIENTIST, 12, 12);
         sim.addUnit(marine);
-        sim.addUnit(civilian);
-        sim.addUnit(engineer);
-        sim.addUnit(scientist);
+        Entity civilian = sim.spawn(new EntitySpec("c", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10));
+        Entity engineer = sim.spawn(new EntitySpec("e", Faction.CIVILIAN, UnitType.ENGINEER, 11, 11));
+        Entity scientist = sim.spawn(new EntitySpec("s", Faction.CIVILIAN, UnitType.SCIENTIST, 12, 12));
 
         // Each advance() drives AttackerIndexService.rebuild + InfantryWeapons.tick
         // — both all-live-units walks that read a COMBAT column. The component-less

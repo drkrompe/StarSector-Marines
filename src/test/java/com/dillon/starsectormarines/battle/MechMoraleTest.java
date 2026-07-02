@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -46,8 +47,7 @@ public class MechMoraleTest {
     }
 
     private static void hideEnemy(BattleSimulation sim) {
-        Entity d = new Entity("e-hidden", Faction.MARINE, UnitType.MARINE, 18, 6);
-        sim.addUnit(d);
+        sim.spawn(new EntitySpec("e-hidden", Faction.MARINE, UnitType.MARINE, 18, 6));
     }
 
     private static Squad mechSquad(BattleSimulation sim, int size, MechRole role) {
@@ -59,9 +59,8 @@ public class MechMoraleTest {
         // added (mirrors BattleSetup's spawn path).
         sim.world().attachMechLoadout(first.entityId, MechLoadoutComponent.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
-            Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
-            u.seedSquadId = squadId;
-            sim.addUnit(u);
+            Entity u = sim.spawn(new EntitySpec("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1)
+                    .squad(squadId));
             sim.world().attachMechLoadout(u.entityId, MechLoadoutComponent.defaultLoadout(role));
         }
         Squad sq = sim.getSquad(squadId);

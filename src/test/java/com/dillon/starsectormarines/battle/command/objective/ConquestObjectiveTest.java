@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -63,7 +64,7 @@ public class ConquestObjectiveTest {
     private static void captureAll(BattleSimulation sim, CompoundService service,
                                    CompoundCaptureSystem system, int... anchorCells) {
         for (int i = 0; i < anchorCells.length; i += 2) {
-            sim.addUnit(new Entity("cap-m-" + i, Faction.MARINE, UnitType.MARINE,
+            sim.spawn(new EntitySpec("cap-m-" + i, Faction.MARINE, UnitType.MARINE,
                     anchorCells[i], anchorCells[i + 1]));
         }
         int ticks = 2 + (int) Math.ceil(
@@ -83,7 +84,7 @@ public class ConquestObjectiveTest {
         // screen + the warning lands in the log for diagnosis.
         BattleSimulation sim = openSim();
         ConquestObjective obj = new ConquestObjective(sim.getCompoundService());
-        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
 
         obj.tick(sim);
         assertFalse(obj.isComplete(),

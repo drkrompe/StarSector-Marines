@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -112,9 +113,8 @@ public class GarrisonCordonTest {
         var posts = guardPostsForRoom(sim);
         // Pick the first post and place the defender across the room from it.
         var post = posts.get(0);
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7)
+                .squad(squad.id));
 
         // Verify the guard cell is inside the defender zone (sanity for the test fixture).
         int roomZone = sim.getZoneGraph().zoneIdAt(6, 6);
@@ -150,15 +150,13 @@ public class GarrisonCordonTest {
         var post = posts.get(0);
 
         // Defender already on the guard cell.
-        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY);
-        d1.seedSquadId = squad.id;
-        sim.addUnit(d1);
+        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY)
+                .squad(squad.id));
 
         // Place an attacker visible from the guard cell (just inside the room).
         // The guard cell is one cardinal step inside from the doorway, so a
         // sibling cell two off should usually be in LoS.
-        Entity attacker = new Entity("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2);
-        sim.addUnit(attacker);
+        Entity attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2));
         assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1.entityId), sim.world().cellY(d1.entityId), sim.world().cellX(attacker.entityId), sim.world().cellY(attacker.entityId)),
                 "test prerequisite: attacker must be visible from the guard cell");
 

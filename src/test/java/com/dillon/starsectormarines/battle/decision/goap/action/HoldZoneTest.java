@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -112,8 +113,8 @@ public class HoldZoneTest {
         // code produced; roles() should fan them out to the four hold cells.
         List<Entity> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            Entity m = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4);
-            sim.addUnit(m); // register so RoleAssigner's getCellX read routes through the registry
+            // register so RoleAssigner's getCellX read routes through the registry
+            Entity m = sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4));
             members.add(m);
         }
 
@@ -154,10 +155,8 @@ public class HoldZoneTest {
         Squad squad = new Squad(7, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Entity member = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        sim.addUnit(member);
-        Entity target = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 6, 4);
-        sim.addUnit(target);
+        Entity member = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
+        Entity target = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 6, 4));
 
         sim.world().setAttackRange(member.entityId, 10f);
         sim.world().setCooldownTimer(member.entityId, 0.6f); // cooldown pending

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -61,7 +62,7 @@ public class HitResponseSystemTest {
         mech.seedSquadId = sid;
         sim.addUnit(mech);
         sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
-        sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
+        sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
 
@@ -73,10 +74,9 @@ public class HitResponseSystemTest {
     public void civilianKeepsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity civilian = new Entity("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8);
-        civilian.seedSquadId = Entity.NO_SQUAD;
-        sim.addUnit(civilian);
-        sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
+        Entity civilian = sim.spawn(new EntitySpec("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8)
+                .squad(Entity.NO_SQUAD));
+        sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
 
         boolean rolledAtLeastOnce = false;
         for (int i = 0; i < 100; i++) {
