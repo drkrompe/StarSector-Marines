@@ -6,7 +6,9 @@
 > `assignedObjective`+`equipmentDropTarget`→TASK, the reprio gate→`HitResponseSystem`),
 > and finally `deathPoseIdx`→the `DeathEvent`. **`Entity` is now its `long` id +
 > immutable identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction
-> inputs + the path/burst methods** — no mutable per-unit state. Each field's by-id
+> inputs + the path/burst methods** — no mutable per-unit state. (The downstream
+> [`identity-collapse`](identity-collapse.md) Phase A later removed `rng`, both methods,
+> and the String `id` too — leaving `entityId` + `faction`/`type` + `seed*`.) Each field's by-id
 > access lands on a per-component **Service** (Service-direct, no `World` delegator —
 > [[feedback_world_facade_deprecated]]). The sibling scan-conversion win (making the
 > registry-shaped loops column-walk a `Query`) is the OPEN epic

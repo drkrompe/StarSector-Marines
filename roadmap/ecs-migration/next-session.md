@@ -71,9 +71,13 @@ decision cluster: **7a** `homeCell`→HOME + `HomeService` (`eb676efb`), **7b**
 (tolerant reads) (`7537de69`) · **8** `deathPoseIdx`→folded into the `DeathEvent`
 (`6f528fc8`).
 
-**`Entity` now carries NO mutable per-unit state** — it's the `long` id + immutable
-identity (`id`/`faction`/`type`/`rng`) + write-only `seed*` construction inputs + the
-path/burst methods. Every migrated field's by-id access is Service-direct
+**`Entity` now carries NO mutable per-unit state** — and after identity-collapse Phase A
+(2026-07-02) no methods and no readable identity field either. It's the `long` `entityId`
++ immutable `faction`/`type` + write-only `seed*` construction inputs (the human name is
+now the write-only `seedName`, mirrored into the `IDENTITY_NAME` column). `rng` dissolved
+into `ThreadLocalRandom`; `advanceAlongPath`/`beginBurst` moved to `MovementService`/
+`CombatService`; the String `id` moved to the `IDENTITY_NAME` column, read by id via
+`IdentityService.name(id)`. Every migrated field's by-id access is Service-direct
 ([[feedback_world_facade_deprecated]]).
 
 **DONE — convoy `Vehicle` folded into the world** ([`complete/vehicle-into-world.md`](complete/vehicle-into-world.md)):
@@ -166,12 +170,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    `DRONE_STATE` component id 29 + `DroneStateService`; `Drone` rewritten into a factory keeping its
    tuning constants; `DroneSwarmAction`'s `execute` + 7 helpers rewritten to `(Entity + droneState)`
    byte-identically; patrol goals seed to `Float.NaN`; all `instanceof Drone` → `UnitType.isDrone()`).
-   **PHASE B COMPLETE — no `Entity` subclasses remain, no live per-instance state outside components,
-   no state-reach `instanceof`.** Commit chain B1 `a4180ef0` → B2 `2d9eb894` → B3 (this commit).
-   **Next: Phase A** (rng → thread-local, String `id` → IDENTITY name column, `advanceAlongPath`/
-   `beginBurst` → owning services) + **Phase C** (spawn-spec: `EntitySpec` replaces the `new Entity`
-   + `seed*` writes, dedupes the deboard loadout). Phase D (bare-`long` sweep) stays the deferred
-   follow-up. Full designs: [`stories/identity-collapse.md`](stories/identity-collapse.md).
+   **PHASE B COMPLETE** (B1 `a4180ef0` → B2 `2d9eb894` → B3 `38764ca7`) — no `Entity` subclasses
+   remain, no live per-instance state outside components, no state-reach `instanceof`.
+   **PHASE A COMPLETE (2026-07-02)** — `rng` → `ThreadLocalRandom` (`4e6238c0`); `advanceAlongPath`/
+   `beginBurst` → `MovementService`/`CombatService` (`ead4ec0d`); String `id` → `IDENTITY_NAME` column
+   + new `IdentityService`, UI selection key → `entityId` (`e0240ac6`). The base `Entity` now holds
+   only `entityId` + immutable `faction`/`type` + write-only `seed*` (incl. `seedName`): no methods,
+   no readable identity field — everything a `long` + an `IDENTITY` read can serve.
+   **Next: Phase C** (spawn-spec: `EntitySpec` replaces the `new Entity` + `seed*` writes, dedupes
+   the deboard loadout). Phase D (bare-`long` sweep) stays the deferred follow-up. Full designs:
+   [`stories/identity-collapse.md`](stories/identity-collapse.md).
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
@@ -180,14 +188,14 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+e0240ac6 ecs-migration: identity-collapse A - String id into IDENTITY name column
+ead4ec0d ecs-migration: identity-collapse A - rehome Entity base methods to services
+4e6238c0 ecs-migration: identity-collapse A1 - dissolve Entity.rng into ThreadLocalRandom
+38764ca7 ecs-migration: identity-collapse B3 - dissolve Drone into DRONE_STATE; Phase B COMPLETE
 b418d835 ecs-migration: FiringSystem sweep - all 11 remaining fire sites + KitRetriever author intent
 426f21db ecs-migration: FiringSystem critique fixes - defer FIRING combat effects to the flush
 c07a11ef ecs-migration: FiringSystem proving slice - fire-intent contract + EngagePosture flip
 74765c9b ecs-migration: live-appearance Phase 2 critique fixes (doc invariant, query hardening)
-9bd3c7fa ecs-migration: live-appearance Phase 2 - renderer reads authored SPRITE
-ee215e14 ecs-migration: live-appearance Phase 1 critique fixes (S1-S3, N1, N3)
-9f1c33f0 ecs-migration: live-appearance Phase 1 - SPRITE on live units + dormant FacingSystem
-f1ad8753 ecs-migration: vehicle-into-world 4d-2 — dissolve Vehicle into VehicleMission (handle DELETED)
 ```
 (Doc hash-fill + critique micro-commits are elided from this window.)
 
@@ -200,8 +208,13 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `b418d835` (FiringSystem sweep) or your own recent work
-  at the top.
+- `git log --oneline -5` shows `e0240ac6` (identity-collapse Phase A: name column) or your
+  own recent work at the top.
+- **identity-collapse Phases A + B COMPLETE (2026-07-02)** — `Entity` is fully hollowed: no
+  subclasses, no live state outside components, no methods, no readable identity field. The
+  base handle is `entityId` + immutable `faction`/`type` + write-only `seed*`. **Next: Phase C**
+  (spawn-spec `EntitySpec`); Phase D (bare-`long` sweep) is the committed follow-up.
+  [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -214,7 +227,8 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next epic candidates:** **identity-collapse** (item 9, large/foundational),
-  **statelessify `VehicleController`** (item 10, small/self-contained).
+  playtest. **Next-up:** **identity-collapse Phase C** (spawn-spec, item 9 — Phases A+B shipped);
+  other candidates: **statelessify `VehicleController`** (item 10, small/self-contained),
+  Phase D bare-`long` sweep (large, committed follow-up).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

@@ -4,18 +4,26 @@
 > session). Scope DECIDED: value-first sequencing — do A → B (+ C) this arc; **Phase D
 > (the bare-`long` sweep) is committed, not optional — deferred to a follow-up session.**
 > The endgame is still `entity = long` everywhere. B1 (DroneHubUnit → `HUB_STATE`) and
-> B1/B2/B3 all SHIPPED — **Phase B COMPLETE** (no `Entity` subclasses left). Next: Phase A
-> (side-quests) + Phase C (spawn-spec).**
+> B1/B2/B3 all SHIPPED — **Phase B COMPLETE** (no `Entity` subclasses left). **Phase A COMPLETE
+> (2026-07-02)** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base methods→Services (`ead4ec0d`),
+> String `id`→`IDENTITY_NAME` column + `IdentityService` (`e0240ac6`). **Next: Phase C**
+> (spawn-spec); Phase D (bare-`long` sweep) is the committed follow-up.**
 > The last open ECS-migration epic that touches the identity layer: turn `Entity` from a
 > ~305-line heap object held in the roster's `Entity[]` into a bare `long` id, so
 > `entity = id` is literally true everywhere. The spatial index goes id-native as a
 > byproduct, which reopens [`systems-to-columns`](systems-to-columns.md) (closed at its
 > Phase-0 terminus). Backlog item 9 in [`../next-session.md`](../next-session.md).
 
-## Where `Entity` is today
+## Where `Entity` was (pre-Phase-A baseline)
+
+> **Phase A (2026-07-02) dissolved everything in this section except `entityId` +
+> `faction`/`type` + the `seed*` inputs — see the header.** `rng` → `ThreadLocalRandom`;
+> the two methods → `MovementService`/`CombatService`; the String `id` → the `seedName` seed
+> mirrored into the `IDENTITY_NAME` column (read by id via `IdentityService.name`). Kept below
+> as the epic's starting point.
 
 The [`entity-field-migration`](entity-field-migration.md) already hollowed the **base**
-`Entity`: it now carries only
+`Entity`: at the start of this epic it carried only
 
 - `entityId` (the `long` — the identity),
 - immutable identity: `id` (String, human-readable name), `faction`, `type` (`UnitType`),
@@ -24,7 +32,7 @@ The [`entity-field-migration`](entity-field-migration.md) already hollowed the *
 - two methods: `advanceAlongPath(World, float)` and `beginBurst(CombatService, Entity)`.
 
 `faction` and `type` are **already mirrored** into the world's `IDENTITY` component
-(`IDENTITY_FACTION` / `IDENTITY_TYPE`, readable by id). So a base-`Entity` ref exists today
+(`IDENTITY_FACTION` / `IDENTITY_TYPE`, readable by id). So a base-`Entity` ref existed
 almost entirely to (a) name the type in a method signature, (b) reach `.entityId`, (c) read
 the String `id` or `rng`, or (d) call the two methods.
 
@@ -96,11 +104,16 @@ the substance of this epic; the base-handle sweep is downstream plumbing.
 
 ## The decomposition (phases, in dependency order)
 
-**Phase A — identity side-quests + base-method rehoming.** Independent, small (~15–20 files).
-`rng` → thread-local; String `id` → `IDENTITY` name column + selection-key on `entityId`;
-`advanceAlongPath` → `MovementService`; `beginBurst` → `CombatService`. After A the base `Entity`
-is `entityId` + `faction`/`type` (already-in-world) + `seed*` — nothing a `long` + `IDENTITY` read
-can't serve.
+**Phase A — identity side-quests + base-method rehoming. ✅ COMPLETE (2026-07-02).**
+Shipped as three commits: **A1** `rng` → `ThreadLocalRandom.current()` (per-worker stream, the
+`Entity.rng` field deleted; `4e6238c0`); **A-methods** `advanceAlongPath` → `MovementService`,
+`beginBurst` → `CombatService(long, long)` (both deleted from `Entity`; `ead4ec0d`); **A2** String
+`id` → a new `IDENTITY_NAME` OBJECT column (field 2) + `IdentityService.name(id)` data owner
+(`sim.identity()`/`roster.identity()`), the `Entity.id` field becoming the immutable write-only
+`seedName`, and the UI selection key moving off the String onto the `long` `entityId` (`e0240ac6`).
+The base `Entity` now is `entityId` + `faction`/`type` (already-in-world) + `seed*` (incl.
+`seedName`) — nothing a `long` + an `IDENTITY` read can't serve; no methods, no readable identity
+field. All three slices: green suite + background critique cleared.
 
 **Phase B — subclass live-state → components (the value).** Cheapest-first, per recon:
 - ~~**B1 · `DroneHubUnit`**~~ — **SHIPPED (2026-07-01; Sonnet-implemented, main-thread reviewed;
