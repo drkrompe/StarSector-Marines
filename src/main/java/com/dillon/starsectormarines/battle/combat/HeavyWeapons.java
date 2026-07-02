@@ -136,9 +136,9 @@ public class HeavyWeapons {
         // wall-blocked round correctly counts as a miss. AoE-kind shots skip
         // this and resolve at endpoint via the Detonations pipeline below.
         if (!isAoe && hit) {
-            damageService.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target);
-            hitResponse.rollReprioritizeOnHit(target, shooter);
+            damageService.applyDamage(target.entityId, weapon.damage, weapon.vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target.entityId);
+            hitResponse.rollReprioritizeOnHit(target.entityId, shooter.entityId);
         }
 
         // AOE PATH — queue a detonation at the (possibly wall-snapped)

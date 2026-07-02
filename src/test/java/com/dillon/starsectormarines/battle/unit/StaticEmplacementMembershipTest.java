@@ -134,8 +134,8 @@ public class StaticEmplacementMembershipTest {
         // fallbackTimer read. (Pre-narrowing a hub could roll a fall-back it had
         // no behavior to execute; now neither emplacement can.)
         for (int i = 0; i < 100; i++) {
-            hitResponse.rollFallbackOnHit(turret);
-            hitResponse.rollFallbackOnHit(hub);
+            hitResponse.rollFallbackOnHit(turret.entityId);
+            hitResponse.rollFallbackOnHit(hub.entityId);
         }
 
         assertFalse(sim.world().hasAiState(turret.entityId));

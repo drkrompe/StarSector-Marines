@@ -119,8 +119,8 @@ public final class TurretFireSystem implements TurretFireSink {
 
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
-                damageService.applyDamage(target, kind.damage, 1f, 1f);
-                hitResponse.rollFallbackOnHit(target);
+                damageService.applyDamage(target.entityId, kind.damage, 1f, 1f);
+                hitResponse.rollFallbackOnHit(target.entityId);
             }
         }
 

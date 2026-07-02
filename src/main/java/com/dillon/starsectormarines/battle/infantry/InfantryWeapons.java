@@ -160,9 +160,9 @@ public class InfantryWeapons {
         boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         if (hit) {
-            damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target);
-            hitResponse.rollReprioritizeOnHit(target, shooter);
+            damageService.applyDamage(target.entityId, damage, vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target.entityId);
+            hitResponse.rollReprioritizeOnHit(target.entityId, shooter.entityId);
         }
 
         // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash

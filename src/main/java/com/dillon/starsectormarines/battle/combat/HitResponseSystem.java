@@ -80,27 +80,27 @@ public final class HitResponseSystem {
         this.tickIndexSupplier = tickIndexSupplier;
     }
 
-    public void rollFallbackOnHit(Entity target) {
+    public void rollFallbackOnHit(long target) {
         World world = roster.world();
-        if (!roster.isAliveById(target.entityId)) return;
+        if (!roster.isAliveById(target)) return;
         // Static emplacements (turrets, drone hubs) have no AI_STATE — they don't
         // fall back. This presence gate replaces the old per-subclass instanceof
         // check and also (correctly) covers drone hubs, which previously could roll
         // a fall-back they had no behavior to execute. It must precede the
         // fallbackTimer read below, which is fail-loud without AI_STATE.
-        if (!world.hasAiState(target.entityId)) return;
-        if (world.fallbackTimer(target.entityId) > 0f) return;
-        if (roster.squad().hasSquad(target.entityId)) return;
+        if (!world.hasAiState(target)) return;
+        if (world.fallbackTimer(target) > 0f) return;
+        if (roster.squad().hasSquad(target)) return;
         if (ThreadLocalRandom.current().nextFloat() >= FALLBACK_CHANCE) return;
-        int[] fallback = tacticalScoring.findFallbackPosition(target.entityId);
-        if (fallback[0] == world.cellX(target.entityId) && fallback[1] == world.cellY(target.entityId)) return;
+        int[] fallback = tacticalScoring.findFallbackPosition(target);
+        if (fallback[0] == world.cellX(target) && fallback[1] == world.cellY(target)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
-    public void rollReprioritizeOnHit(Entity target, Entity shooter) {
+    public void rollReprioritizeOnHit(long target, long shooter) {
         World world = roster.world();
-        if (!roster.isAliveById(target.entityId)) return;
-        boolean qualifies = world.hasMechLoadout(target.entityId) || target.type.isTurret();
+        if (!roster.isAliveById(target)) return;
+        boolean qualifies = world.hasMechLoadout(target) || roster.identity().type(target).isTurret();
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();
         // One reprio roll per (target, tick) across the parallel workers. Fast-path the
@@ -108,24 +108,24 @@ public final class HitResponseSystem {
         // the roll via compute() — it wins iff it transitions this target's last-rolled
         // tick to the current tick (the off-entity replacement for the old
         // AtomicIntegerFieldUpdater CAS on Entity.lastReprioTickIndex).
-        Integer prevTick = lastReprioTickByTarget.get(target.entityId);
+        Integer prevTick = lastReprioTickByTarget.get(target);
         if (prevTick != null && prevTick == simTickIndex) return;
         boolean[] claimed = {false};
-        lastReprioTickByTarget.compute(target.entityId, (k, prev) -> {
+        lastReprioTickByTarget.compute(target, (k, prev) -> {
             if (prev != null && prev == simTickIndex) return prev;   // another worker already claimed it
             claimed[0] = true;
             return simTickIndex;
         });
         if (!claimed[0]) return;
-        long expectedTargetId = world.targetId(target.entityId);
+        long expectedTargetId = world.targetId(target);
         Entity expectedTarget = roster.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
-        if (shooter != null && expectedTarget == shooter) return;
+        if (shooter != 0L && expectedTarget.entityId == shooter) return;
         VisionService vision = roster.vision();
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                world.cellX(target.entityId), world.cellY(target.entityId),
+                world.cellX(target), world.cellY(target),
                 world.cellX(expectedTarget.entityId), world.cellY(expectedTarget.entityId),
-                vision.airLosRadius(target.entityId), vision.airLosRadius(expectedTarget.entityId));
+                vision.airLosRadius(target), vision.airLosRadius(expectedTarget.entityId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (ThreadLocalRandom.current().nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);

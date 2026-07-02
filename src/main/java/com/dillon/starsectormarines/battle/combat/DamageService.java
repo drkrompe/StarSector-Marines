@@ -178,15 +178,15 @@ public final class DamageService {
      * {@link #flushPendingDamage()}. No per-call object allocation in either
      * path.
      */
-    public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
+    public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
         if (!insideParallel && !deferCombatEffects) {
-            damageApplier.apply(target.entityId, damage, vsTurretMult, moraleImpact);
+            damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
             return;
         }
         synchronized (dmgLock) {
             int i = dmgCount;
             if (i == dmgTargetId.length) growDamageArrays(i * 2);
-            dmgTargetId[i] = target.entityId;
+            dmgTargetId[i] = target;
             dmgDamage[i] = damage;
             dmgVsTurretMult[i] = vsTurretMult;
             dmgMoraleImpact[i] = moraleImpact;
@@ -202,16 +202,16 @@ public final class DamageService {
     }
 
     /** Target-reprioritize write. Inline writes unconditionally; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
-    public void applyReprio(Entity target, long expectedTargetId) {
+    public void applyReprio(long target, long expectedTargetId) {
         if (!insideParallel && !deferCombatEffects) {
-            reprioApplier.apply(target.entityId, expectedTargetId);
+            reprioApplier.apply(target, expectedTargetId);
             return;
         }
         synchronized (pendingTargetMutations) {
             PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
                     ? new PendingTargetMutation()
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.targetId = target.entityId;
+            m.targetId = target;
             m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
             m.expectedTargetId = expectedTargetId;
             pendingTargetMutations.add(m);
@@ -219,16 +219,16 @@ public final class DamageService {
     }
 
     /** Fallback-cell write. Inline applies the 3 field writes + path-clear; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) drains in {@link #flushPendingTargetMutations()}. */
-    public void applyFallback(Entity target, int fbX, int fbY) {
+    public void applyFallback(long target, int fbX, int fbY) {
         if (!insideParallel && !deferCombatEffects) {
-            fallbackApplier.apply(target.entityId, fbX, fbY);
+            fallbackApplier.apply(target, fbX, fbY);
             return;
         }
         synchronized (pendingTargetMutations) {
             PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
                     ? new PendingTargetMutation()
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.targetId = target.entityId;
+            m.targetId = target;
             m.kind = PendingTargetMutation.Kind.FALLBACK;
             m.fallbackCellX = fbX;
             m.fallbackCellY = fbY;

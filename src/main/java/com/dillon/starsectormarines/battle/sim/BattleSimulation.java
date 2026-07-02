@@ -695,7 +695,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
-        damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
+        damageService.applyDamage(target.entityId, damage, vsTurretMult, moraleImpact);
     }
 
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */

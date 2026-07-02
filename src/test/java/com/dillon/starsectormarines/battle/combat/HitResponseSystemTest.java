@@ -45,7 +45,7 @@ public class HitResponseSystemTest {
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 3, 5).squad(sid));
 
-        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine);
+        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine.entityId);
 
         assertEquals(0f, sim.world().fallbackTimer(marine.entityId), 1e-6f,
                 "GOAP-driven infantry must never enter the legacy fall-back state — morale owns retreat");
@@ -60,7 +60,7 @@ public class HitResponseSystemTest {
         sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
-        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
+        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech.entityId);
 
         assertEquals(0f, sim.world().fallbackTimer(mech.entityId), 1e-6f,
                 "mech-squad members must never enter the legacy fall-back — Stage 1 mechs are implacable");
@@ -77,7 +77,7 @@ public class HitResponseSystemTest {
         boolean rolledAtLeastOnce = false;
         for (int i = 0; i < 100; i++) {
             sim.world().setFallbackTimer(civilian.entityId, 0f);
-            hitResponse.rollFallbackOnHit(civilian);
+            hitResponse.rollFallbackOnHit(civilian.entityId);
             if (sim.world().fallbackTimer(civilian.entityId) > 0f) {
                 rolledAtLeastOnce = true;
                 break;
