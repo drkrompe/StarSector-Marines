@@ -107,7 +107,7 @@ public final class InfantryUnitPrep {
 
         MarineSecondary sec = sim.world().secondaryWeapon(id);
         float range = sec.range;
-        // Hardened-target scan: any MapTurret, DroneHubUnit, or HEAVY_MECH in
+        // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
         // rocket range with LoS that the squad-coordination gate doesn't
         // block. Closest one wins — tilts toward turrets / hubs (typically
         // closer in a defensive posture) while still letting a near mech

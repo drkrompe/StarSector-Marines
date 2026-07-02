@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -141,7 +140,7 @@ public class BattleSimulation implements BattleControl {
     private final EquipmentDropSystem equipmentDropSystem;
     /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
-    /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
+    /** Death-event handler for destroyed drone hubs ({@code UnitType.isDroneHub()}) — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
     /** Drone-crash system — death-event handler that attaches a {@code CRASHING} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over the world's {@code CRASHING} query. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
@@ -421,6 +420,9 @@ public class BattleSimulation implements BattleControl {
     /** Data owner for the HOME component (garrison idle-post) — {@code sim.home().hasHome(id)} / {@code homeCellX(id)}. */
     public HomeService home() { return rosterService.home(); }
 
+    /** Data owner for the HUB_STATE component (drone-hub spawn cadence) — {@code sim.hubState().isHub(id)} / {@code spawnCooldown(id)}. */
+    public HubStateService hubState() { return rosterService.hubState(); }
+
     /** Data owner for the TASK component (objective/kit assignment) — {@code sim.task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. */
     public TaskService task() { return rosterService.task(); }
 
@@ -582,6 +584,8 @@ public class BattleSimulation implements BattleControl {
     public com.dillon.starsectormarines.battle.decision.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
     public HitResponseSystem getHitResponseSystem() { return hitResponse; }
+    /** Death-event handler for destroyed drone hubs — exposes {@code isDemolished(id)} for the renderer / tests, replacing the old subclass's {@code demolished} field. */
+    public com.dillon.starsectormarines.battle.drone.HubDemolitionSystem getHubDemolitionSystem() { return hubDemolition; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);

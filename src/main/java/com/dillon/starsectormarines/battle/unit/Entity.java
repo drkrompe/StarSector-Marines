@@ -199,8 +199,8 @@ public class Entity {
      * {@code update()} (see {@code SquadDetailPanel}). These fields are write-only
      * <em>construction</em> input: the ctor archetype seed, the subclass overrides
      * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
-     * {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} /
-     * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), and the
+     * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), the
+     * {@link com.dillon.starsectormarines.battle.drone.DroneHub#create} factory, and the
      * shuttle/vehicle deboard loadout.
      */
     public float seedMaxHp;
@@ -279,8 +279,9 @@ public class Entity {
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The behavior-dispatch role a
      * unit spawns with — default {@link UnitRole#COMBATANT} (matches pre-role behavior),
-     * overridden by the subclass ctors ({@code Drone}/{@code DroneHubUnit}/{@code MapTurret}),
-     * the deboard loadout, and the setup/reinforcement spawn code before
+     * overridden by the subclass ctors ({@code Drone}/{@code MapTurret}), the
+     * {@code DroneHub} factory, the deboard loadout, and the setup/reinforcement
+     * spawn code before
      * {@link UnitRosterService#allocate} consumes it into the universal {@code ROLE}
      * component (the {@code UnitRole} ordinal). The live role thereafter lives in the
      * world component, reached by id via the {@code RoleService} data owner
@@ -319,6 +320,21 @@ public class Entity {
      */
     public int seedHomeCellX = -1;
     public int seedHomeCellY = -1;
+
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Sim-seconds until a
+     * drone hub's first launch attempt. {@link UnitRosterService#allocate} consumes
+     * it only when {@code type.isDroneHub()}: it seeds the entity world's
+     * {@code HUB_STATE} component (field
+     * {@link BattleComponents#HUB_STATE_SPAWN_COOLDOWN}), canonical thereafter;
+     * reached by id via the {@code HubStateService} data owner
+     * ({@code sim.hubState().spawnCooldown(id)}), ticked down by
+     * {@code battle.drone.DroneHubBehavior}. Ignored (never consumed) for every
+     * non-hub type, so this keeps {@link UnitRosterService#allocate} free of any
+     * {@code battle.drone} import — a transient seed the Phase-C spawn-spec will
+     * absorb. Write-only construction input; set by the {@code DroneHub} factory.
+     */
+    public float seedHubSpawnCooldown = 0f;
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The primary handheld

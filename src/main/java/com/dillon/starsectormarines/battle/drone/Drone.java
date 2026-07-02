@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
 
 /**
- * Autonomous defensive drone launched from a {@link DroneHubUnit}. Combatant
+ * Autonomous defensive drone launched from a {@link DroneHub}. Combatant
  * with HP, faction = DEFENDER, targetable by marines like any other unit. Its
  * continuous-flight {@link AirBody} is a world {@code KINEMATICS} component: the
  * ctor builds + positions it and hands it to {@link Entity#seedBody}, then
@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  *
  * <p>Per-instance vanilla sprite path (the {@link UnitType#DRONE} sheet field
  * is empty) so the renderer hooks the dedicated drone pass instead of the
- * generic unit-sheet path — same convention used by {@link DroneHubUnit} and
+ * generic unit-sheet path — same convention used by {@link DroneHub} and
  * {@link com.dillon.starsectormarines.battle.turret.MapTurret}.
  *
  * <p>The {@link UnitRole#STRUCTURE} role is a temporary stand-in: it keeps the
@@ -55,8 +55,17 @@ public class Drone extends Entity {
      */
     public static final float DRONE_AIR_LOS_RADIUS = 3.0f;
 
-    /** Hub that launched this drone. Held so the hub's active-drone bookkeeping can drop dead drones; patrol behavior reads it for the patrol-around-this-anchor goal. */
-    public final DroneHubUnit homeHub;
+    /**
+     * Entity id of the hub that launched this drone, {@code 0L} if none (test
+     * fixtures that never register a hub). Held as an id, not an {@link Entity}
+     * ref — the hub can be destroyed (and registry-released) while the drone
+     * still flies, so callers resolve position/liveness by id
+     * ({@code sim.world().cellX(homeHubId)}, {@code sim.world().isAlive(homeHubId)})
+     * rather than holding a stale reference. Read so the hub's active-drone
+     * bookkeeping can drop dead drones; patrol behavior reads it for the
+     * patrol-around-this-anchor goal.
+     */
+    public final long homeHubId;
 
     /**
      * Radius (cells) around the hub's anchor within which the drone picks
@@ -80,7 +89,7 @@ public class Drone extends Entity {
     public static final float AGGRO_RANGE_CELLS = 32f;
 
     /**
-     * Maximum distance (cells) from {@link #homeHub} the drone is willing to
+     * Maximum distance (cells) from {@link #homeHubId} the drone is willing to
      * stray when pursuing a target. The "follow allowance" cap — drones aren't
      * fighter aircraft, they're a screen anchored to their launching hub. A
      * marine fleeing beyond this radius outruns the drone's leash and the
@@ -211,9 +220,9 @@ public class Drone extends Entity {
      */
     public static final float CRASH_SPIN_DEG_PER_SEC = 720f;
 
-    public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
+    public Drone(String id, Faction faction, int cellX, int cellY, long homeHubId) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
-        this.homeHub = homeHub;
+        this.homeHubId = homeHubId;
         this.seedMaxHp = DRONE_MAX_HP;
         this.seedHp = DRONE_MAX_HP;
         this.seedPrimaryWeapon = MarineWeapon.DRONE_PULSE;

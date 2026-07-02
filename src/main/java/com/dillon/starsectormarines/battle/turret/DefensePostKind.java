@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 /**
@@ -42,9 +42,9 @@ public enum DefensePostKind {
      *
      * <p>Hosts no {@link com.dillon.starsectormarines.battle.turret.MapTurret}
      * — the hub's {@link com.dillon.starsectormarines.battle.turret.DefensePost#turrets}
-     * list is empty, and a future {@code DroneHubUnit} spawned by
-     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup} will occupy the
-     * center cell and drive the drone spawn cadence.
+     * list is empty; a {@link DroneHub#create}-built entity spawned by
+     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup} occupies the
+     * center cell and drives the drone spawn cadence.
      */
     DRONE_HUB(0, 0, 75, 0);
 

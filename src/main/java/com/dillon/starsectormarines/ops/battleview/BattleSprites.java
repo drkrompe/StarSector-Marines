@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -425,7 +426,7 @@ public class BattleSprites {
     public void ensureDroneHubSprite() {
         if (droneHubSpriteLoadAttempted) return;
         droneHubSpriteLoadAttempted = true;
-        String path = com.dillon.starsectormarines.battle.drone.DroneHubUnit.SPRITE_PATH;
+        String path = DroneHub.SPRITE_PATH;
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);

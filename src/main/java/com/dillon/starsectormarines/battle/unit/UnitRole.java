@@ -76,7 +76,7 @@ public enum UnitRole {
     /**
      * Static structure with HP but no AI — targetable, takes damage, dies
      * when hp depletes, but the per-tick behavior dispatch is a no-op.
-     * Used by the drones spawned from a {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit}
+     * Used by the drones spawned from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}
      * until their patrol behavior arrives in a follow-up commit.
      */
     STRUCTURE,

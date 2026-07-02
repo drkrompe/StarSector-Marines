@@ -147,11 +147,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    their single owners by design. **Open on the story:** playtest verification + optional
    Phase 3 stance normalization (deliberate behavior change).
    [`stories/firing-system.md`](stories/firing-system.md).
-9. **Identity-collapse (`Entity` handle → bare `long` id)** — dissolve the ~305-line `Entity`
-   heap object (now only immutable identity + `seed*` inputs + path/burst methods) so entity =
-   id everywhere; the spatial index goes id-native and **reopens systems-to-columns as a
-   byproduct**. Large, foundational; touches many call sites. See
-   [`spatial-index-options.md`](spatial-index-options.md). Candidate.
+9. **Identity-collapse (`Entity` handle → bare `long` id)** — **ACTIVE (2026-07-01).** Full
+   design + recon in [`stories/identity-collapse.md`](stories/identity-collapse.md). Scope
+   DECIDED: value-first — do Phase A (side-quests) → B (subclass componentization, the value) →
+   C (spawn-spec) this arc; **Phase D (the ~150–200-file bare-`long` sweep) is committed but
+   deferred to a follow-up session** (endgame is still `entity = long` everywhere; the spatial
+   index goes id-native there and reopens systems-to-columns). **B1 SHIPPED** — the `DroneHubUnit`
+   subclass is deleted (live state → `HUB_STATE` component + `HubStateService`; `demolished` → a
+   `HubDemolitionSystem` side-table; `Drone.homeHub` → `homeHubId`; config/ctor → a `DroneHub`
+   factory; all `instanceof DroneHubUnit` → `UnitType.isDroneHub()`). **Next: B2** (`MapTurret` —
+   its burst triplet folds onto existing COMBAT columns for free), then **B3** (`Drone`, hairiest).
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.fs.starfarer.api.combat.ShipAPI;
@@ -38,12 +38,12 @@ public final class FootprintCircleShape implements ProxyShape {
     /**
      * Ground footprint (long-axis cells) of a proxied structure. New proxied target kinds register
      * their size here; both current kinds already publish it ({@code TurretKind.visualCells},
-     * {@link DroneHubUnit#VISUAL_CELLS}). Falls back to {@link #DEFAULT_FOOTPRINT_CELLS} for anything
+     * {@link DroneHub#VISUAL_CELLS}). Falls back to {@link #DEFAULT_FOOTPRINT_CELLS} for anything
      * unrecognized so a new target type is hittable (just not perfectly sized) before it's wired in.
      */
     private static float footprintCells(Entity unit) {
         if (unit instanceof MapTurret) return ((MapTurret) unit).kind.visualCells;
-        if (unit instanceof DroneHubUnit) return DroneHubUnit.VISUAL_CELLS;
+        if (unit.type.isDroneHub()) return DroneHub.VISUAL_CELLS;
         return DEFAULT_FOOTPRINT_CELLS;
     }
 }

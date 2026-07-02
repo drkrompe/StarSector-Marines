@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -478,23 +477,24 @@ public final class TacticalScoring {
 
     /**
      * Hardened target classification — counts static emplacements
-     * ({@link MapTurret}, {@link DroneHubUnit}) and heavy mechs. Anything else
-     * (infantry archetypes, aliens, militia) is soft. Drives the weapon-affinity
-     * bias in {@link #findBestTarget} (rocketeers prefer hardened) and the
-     * rocket-eligibility gates in {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
+     * ({@link MapTurret}, drone hubs — {@code UnitType.isDroneHub()}) and heavy
+     * mechs. Anything else (infantry archetypes, aliens, militia) is soft.
+     * Drives the weapon-affinity bias in {@link #findBestTarget} (rocketeers
+     * prefer hardened) and the rocket-eligibility gates in
+     * {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
      * and {@link com.dillon.starsectormarines.battle.infantry.EngagePosture} —
      * marines burn a rocket on anything that earns the {@code vsTurretMult}
      * (3.5×) bonus payoff.
      */
     public static boolean isHardened(Entity target) {
         if (target instanceof MapTurret) return true;
-        if (target instanceof DroneHubUnit) return true;
+        if (target.type.isDroneHub()) return true;
         return target.type == UnitType.HEAVY_MECH;
     }
 
     /**
      * True when {@code shooter} carries a loaded rocket and {@code target} is
-     * a hardened class ({@link MapTurret}, {@link DroneHubUnit}, heavy mech) —
+     * a hardened class ({@link MapTurret}, a drone hub, heavy mech) —
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */

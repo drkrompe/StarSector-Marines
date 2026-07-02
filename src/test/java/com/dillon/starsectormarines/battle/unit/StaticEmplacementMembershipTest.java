@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,7 +45,7 @@ public class StaticEmplacementMembershipTest {
         BattleSimulation sim = openSim();
         Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
         MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
-        DroneHubUnit hub = new DroneHubUnit("h", Faction.DEFENDER, 21, 2);
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
         sim.addUnit(marine);
         sim.addUnit(turret);
         sim.addUnit(hub);
@@ -55,6 +56,14 @@ public class StaticEmplacementMembershipTest {
         assertFalse(sim.world().hasAiState(turret.entityId));
         assertFalse(sim.world().hasMovement(hub.entityId));
         assertFalse(sim.world().hasAiState(hub.entityId));
+
+        // The drone hub carries HUB_STATE (presence IS "is a live drone hub");
+        // the turret and marine — neither a drone hub — don't.
+        assertTrue(sim.hubState().isHub(hub.entityId));
+        assertFalse(sim.hubState().isHub(turret.entityId));
+        assertFalse(sim.hubState().isHub(marine.entityId));
+        assertEquals(DroneHub.INITIAL_SPAWN_DELAY_SEC, sim.hubState().spawnCooldown(hub.entityId), 1e-4f);
+        assertEquals(-1, sim.hubState().droneSquadId(hub.entityId));
     }
 
     @Test
@@ -64,7 +73,7 @@ public class StaticEmplacementMembershipTest {
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.seedSquadId = sid;
         MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21);
-        DroneHubUnit hub = new DroneHubUnit("h", Faction.DEFENDER, 21, 2);
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 21, 2);
         sim.addUnit(marine);
         sim.addUnit(turret);
         sim.addUnit(hub);
@@ -88,7 +97,7 @@ public class StaticEmplacementMembershipTest {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         MapTurret turret = new MapTurret("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8);
-        DroneHubUnit hub = new DroneHubUnit("h", Faction.DEFENDER, 9, 9);
+        Entity hub = DroneHub.create("h", Faction.DEFENDER, 9, 9);
         sim.addUnit(turret);
         sim.addUnit(hub);
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 2, 2));

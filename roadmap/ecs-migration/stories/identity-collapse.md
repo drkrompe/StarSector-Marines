@@ -102,11 +102,27 @@ is `entityId` + `faction`/`type` (already-in-world) + `seed*` — nothing a `lon
 can't serve.
 
 **Phase B — subclass live-state → components (the value).** Cheapest-first, per recon:
-- **B1 · `DroneHubUnit`** — `HUB_STATE` for `spawnCooldown`/`dronesLaunched`/`droneSquad`;
-  `demolished` as a shared demolition flag; establish `homeHubId` (Drone's link) as a component/
-  side-table. Convert the 4 type-tag `instanceof` (renderer HP-bar sizing, footprint, `isHardened`)
-  to `UnitType`/presence lookups; 1 real state-cast (`DroneHubBehavior`). Lowest blast radius —
-  **the proving slice.**
+- ~~**B1 · `DroneHubUnit`**~~ — **SHIPPED (2026-07-01; Sonnet-implemented, main-thread reviewed;
+  full suite green, 864 tests).** The `DroneHubUnit` class is **deleted**. Live state →
+  `HUB_STATE` component (`spawnCooldown`/`dronesLaunched`/`droneSquadId`, id 27) + `HubStateService`
+  data owner (`sim.hubState()`); `droneSquad` object-ref → a `droneSquadId` INT resolved via
+  `getSquad` (`-1`/`NO_SQUAD` sentinel since `0` is a valid squad id). `demolished` → a
+  `LongOpenHashSet` side-table in `HubDemolitionSystem` (it's a defensive double-fire guard read
+  *after* roster release, so it can't be a live-only column; `isDemolished(id)` exposed for
+  tests/renderer). `Drone.homeHub` (a `DroneHubUnit` ref) → `homeHubId` (long, `0L` = none) —
+  the recon-recommended hub-first link, touching only `DroneSwarmAction`'s anchor reads in the
+  otherwise-B3 drone file. Config + construction → a new non-`Entity` `DroneHub` factory
+  (`DroneHub.create(...) → Entity`, `UnitType.DRONE_HUB_STRUCTURE`); `allocate` attaches `HUB_STATE`
+  keyed off a new `UnitType.isDroneHub()` predicate, seeded from a transient `Entity.seedHubSpawnCooldown`
+  (keeps `allocate` free of any `battle.drone` import — the Phase-C spawn-spec absorbs it). All 4
+  type-tag `instanceof DroneHubUnit` (footprint, HP-bar sizing, hub render, `isHardened`) → the
+  `type.isDroneHub()` gate. `HUB_STATE` added to the `DeadBodySystem` corpse-remove mask (live-only).
+  Tests: `StaticEmplacementMembershipTest` extended (HUB_STATE presence + seed values), the three
+  `HubDemolitionSystemTest` cases migrated to `isDemolished(id)` + hub-before-drone allocation
+  ordering, new `DroneHubBehaviorTest` (cadence: spawn-cooldown ticks one `TICK_DT`/update, resets
+  to `SPAWN_INTERVAL_SEC` after a launch attempt). **This proves the whole Phase-B pattern:** subclass
+  live-state → component + service, subclass → factory, state-cast/type-tag `instanceof` → `UnitType`
+  predicate, entity-ref field → id.
 - **B2 · `MapTurret`** — **fold `burstRemaining`/`burstTimer`/`burstTargetId` onto the existing
   COMBAT burst columns** (the turret is the sole writer of its shadow copies; deletes 3 fields +
   ~12 sites for free); `TURRET_STATE` for `facingDegrees`/`recoilTimer`; `kind` → side-table by id;

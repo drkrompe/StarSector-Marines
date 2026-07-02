@@ -43,9 +43,9 @@ public enum UnitType {
     SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
     /** Static ground turret. Combatant so it targets and gets targeted, but its sprite + stats come from {@link MapTurret#kind} at construction — the values here are zero placeholders that {@link MapTurret} overwrites. */
     TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
-    /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
+    /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.drone.DroneHub}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
     DRONE_HUB_STRUCTURE ("",                       null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
-    /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
+    /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
     DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f);
 
     public final String spritePath;
@@ -108,6 +108,17 @@ public enum UnitType {
      * predicate becomes two.
      */
     public boolean isStatic() { return this == TURRET || this == DRONE_HUB_STRUCTURE; }
+
+    /**
+     * Whether this archetype is a drone launch hub — the classification gate
+     * that replaced the old {@code instanceof} subclass checks once the hub's
+     * live state moved off a dedicated {@link Entity} subclass and onto the
+     * world {@code HUB_STATE} component. Used by {@code UnitRosterService.allocate}
+     * to attach {@code HUB_STATE} (presence IS "is a live drone hub") and by the
+     * render/scoring type-tag sites (footprint sizing, HP-bar sizing,
+     * {@code TacticalScoring.isHardened}) that used to cast to the subclass.
+     */
+    public boolean isDroneHub() { return this == DRONE_HUB_STRUCTURE; }
 
     /**
      * Whether this archetype's body renders as a facing-indexed frame of

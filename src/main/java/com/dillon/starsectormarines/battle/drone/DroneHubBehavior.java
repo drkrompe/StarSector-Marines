@@ -6,11 +6,11 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
- * Per-tick driver for a {@link DroneHubUnit}: counts down the spawn timer and
- * asks {@link DroneSpawner} to launch a drone whenever the hub is below its
- * active-drone cap. The hub itself fires nothing and moves nowhere — this
- * behavior exists only to keep the spawn cadence on the same tick dispatch
- * every other unit's logic uses.
+ * Per-tick driver for a drone hub ({@code UnitType.isDroneHub()}): counts down
+ * the {@code HUB_STATE} spawn cooldown and asks {@link DroneSpawner} to launch
+ * a drone whenever the hub is below its active-drone cap. The hub itself fires
+ * nothing and moves nowhere — this behavior exists only to keep the spawn
+ * cadence on the same tick dispatch every other unit's logic uses.
  */
 public final class DroneHubBehavior implements UnitBehavior {
 
@@ -20,28 +20,30 @@ public final class DroneHubBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        if (!(u instanceof DroneHubUnit)) return;
-        DroneHubUnit hub = (DroneHubUnit) u;
-        if (!sim.world().isAlive(hub.entityId)) return;
-        hub.spawnCooldown -= BattleSimulation.TICK_DT;
-        if (hub.spawnCooldown > 0f) return;
-        int active = countActiveDrones(sim, hub);
-        if (active < DroneHubUnit.MAX_ACTIVE_DRONES) {
-            DroneSpawner.tryLaunch(hub, sim);
+        if (!u.type.isDroneHub()) return;
+        if (!sim.world().isAlive(u.entityId)) return;
+        float cooldown = sim.hubState().spawnCooldown(u.entityId) - BattleSimulation.TICK_DT;
+        if (cooldown > 0f) {
+            sim.hubState().setSpawnCooldown(u.entityId, cooldown);
+            return;
+        }
+        int active = countActiveDrones(sim, u);
+        if (active < DroneHub.MAX_ACTIVE_DRONES) {
+            DroneSpawner.tryLaunch(u, sim);
         }
         // Reset whether or not the launch placed a drone — a failed try (no
         // free cell within the search radius) waits the same interval before
         // re-attempting. Avoids a busy-loop scanning every tick when the area
         // around the hub is fully crowded.
-        hub.spawnCooldown = DroneHubUnit.SPAWN_INTERVAL_SEC;
+        sim.hubState().setSpawnCooldown(u.entityId, DroneHub.SPAWN_INTERVAL_SEC);
     }
 
-    private static int countActiveDrones(BattleView sim, DroneHubUnit hub) {
+    private static int countActiveDrones(BattleView sim, Entity hub) {
         int n = 0;
         for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
             Entity u = sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
-            if (((Drone) u).homeHub == hub) n++;
+            if (((Drone) u).homeHubId == hub.entityId) n++;
         }
         return n;
     }

@@ -9,11 +9,11 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
- * Spawns a single {@link Drone} for a {@link DroneHubUnit}: spirals out from
- * the hub anchor to find the first walkable cell beyond the embankment ring,
- * places the drone there, and registers it with the sim. No-op if the hub is
- * dead or every nearby cell is occupied — the hub's per-tick behavior just
- * re-tries on the next interval.
+ * Spawns a single {@link Drone} for a drone-hub {@link Entity}: spirals out
+ * from the hub anchor to find the first walkable cell beyond the embankment
+ * ring, places the drone there, and registers it with the sim. No-op if the
+ * hub is dead or every nearby cell is occupied — the hub's per-tick behavior
+ * just re-tries on the next interval.
  */
 public final class DroneSpawner {
 
@@ -25,15 +25,17 @@ public final class DroneSpawner {
     private DroneSpawner() {}
 
     /**
-     * Tries to spawn one drone for {@code hub}. Returns the spawned drone on
-     * success, or {@code null} if no eligible cell was found within the
-     * search radius. Mints {@link DroneHubUnit#droneSquad} lazily on the first
-     * successful launch so every drone from this hub coordinates through the
-     * same {@link Squad} (encircle bearings, sector patrols). Subsequent
-     * launches join the existing squad; if its leader is dead, the new drone
-     * takes over.
+     * Tries to spawn one drone for {@code hub} (a live drone-hub
+     * {@link Entity}, {@code hub.type.isDroneHub()}). Returns the spawned drone
+     * on success, or {@code null} if no eligible cell was found within the
+     * search radius. Mints the hub's {@code HUB_STATE} squad id (via
+     * {@code sim.hubState().setDroneSquadId}) lazily on the first successful
+     * launch so every drone from this hub coordinates through the same
+     * {@link Squad} (encircle bearings, sector patrols). Subsequent launches
+     * join the existing squad; if its leader is dead, the new drone takes
+     * over.
      */
-    public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
+    public static Drone tryLaunch(Entity hub, BattleSimulation sim) {
         if (!sim.world().isAlive(hub.entityId)) return null;
         NavigationGrid grid = sim.getGrid();
         World world = sim.world();
@@ -41,23 +43,25 @@ public final class DroneSpawner {
         int hubY = world.cellY(hub.entityId);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
-        String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);
-        Drone drone = new Drone(id, hub.faction, cell[0], cell[1], hub);
+        String id = "drone-" + hub.id + "-" + sim.hubState().incrementDronesLaunched(hub.entityId);
+        Drone drone = new Drone(id, hub.faction, cell[0], cell[1], hub.entityId);
         // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
         // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
         // queue before the next phase reads units.
         sim.queueSpawn(drone);
 
-        if (hub.droneSquad == null) {
+        if (!sim.hubState().hasDroneSquad(hub.entityId)) {
             int squadId = sim.mintSquad(hub.faction, drone);
             Squad squad = sim.getSquad(squadId);
             squad.droneHubId = hub.entityId;
-            hub.droneSquad = squad;
+            sim.hubState().setDroneSquadId(hub.entityId, squadId);
             joinDroneSquad(sim, drone, squadId);
         } else {
-            joinDroneSquad(sim, drone, hub.droneSquad.id);
-            if (sim.resolveUnit(hub.droneSquad.leaderId) == null) {
-                hub.droneSquad.leaderId = drone.entityId;
+            int squadId = sim.hubState().droneSquadId(hub.entityId);
+            joinDroneSquad(sim, drone, squadId);
+            Squad squad = sim.getSquad(squadId);
+            if (sim.resolveUnit(squad.leaderId) == null) {
+                squad.leaderId = drone.entityId;
             }
         }
         return drone;

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
@@ -87,7 +86,7 @@ public enum MarineWeapon {
                 0.10f, 0.15f),
     /**
      * Drone-mounted pulse laser — built-in armament for the autonomous
-     * defender drones launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit}.
+     * defender drones launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}.
      * Light 2-round burst with a cyan tracer (visually reads as overhead
      * laser fire). Lower damage and shorter range than the marine PULSE_RIFLE
      * — drones are a screen, not a heavy hitter; sustained drone fire whittles

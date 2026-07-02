@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
@@ -1636,10 +1636,10 @@ public final class BattleSetup {
             }
             // DRONE_HUB has no turrets — the hub structure occupies the sealed
             // center cell (already flipped non-walkable by the stamper's
-            // sealInnerCell call). Spawning the DroneHubUnit here gives it HP
+            // sealInnerCell call). Spawning the hub here gives it HP
             // and a render target; the drones it'll launch come in a follow-up.
             if (post.tier == DefensePostKind.DRONE_HUB) {
-                DroneHubUnit hub = new DroneHubUnit("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
+                Entity hub = DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
                 sim.addUnit(hub);
                 spawned.add(hub);
             }

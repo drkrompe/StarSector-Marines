@@ -274,9 +274,9 @@ public final class DroneSwarmAction implements Action {
      * outside the leash are pulled radially inward to the leash boundary.
      */
     private static float[] clampGoalToLeash(Drone d, BattleView sim, float gx, float gy) {
-        if (d.homeHub == null) return new float[]{gx, gy};
-        float hubX = sim.world().cellX(d.homeHub.entityId) + 0.5f;
-        float hubY = sim.world().cellY(d.homeHub.entityId) + 0.5f;
+        if (d.homeHubId == 0L) return new float[]{gx, gy};
+        float hubX = sim.world().cellX(d.homeHubId) + 0.5f;
+        float hubY = sim.world().cellY(d.homeHubId) + 0.5f;
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -302,15 +302,15 @@ public final class DroneSwarmAction implements Action {
      */
     private static void pickSectorWaypoint(Drone d, AirBody body, BattleView sim,
                                            int slotIdx, int slotCount) {
-        if (d.homeHub == null) {
+        if (d.homeHubId == 0L) {
             d.patrolGoalX = body.x;
             d.patrolGoalY = body.y;
             return;
         }
         Random rng = d.rng;
         NavigationGrid grid = sim.getGrid();
-        float anchorX = sim.world().cellX(d.homeHub.entityId) + 0.5f;
-        float anchorY = sim.world().cellY(d.homeHub.entityId) + 0.5f;
+        float anchorX = sim.world().cellX(d.homeHubId) + 0.5f;
+        float anchorY = sim.world().cellY(d.homeHubId) + 0.5f;
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -161,10 +161,10 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
-            if (!(u instanceof DroneHubUnit)) continue;
+            if (!u.type.isDroneHub()) continue;
             float cx = cam.cellToScreenX(world.cellX(u.entityId) + 0.5f);
             float cy = cam.cellToScreenY(world.cellY(u.entityId) + 0.5f);
-            emitWholeSprite(out, hub, 0f, DroneHubUnit.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
+            emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }
 
@@ -432,8 +432,8 @@ public final class UnitRenderService implements RenderSystem {
             float barY;
             if (u instanceof MapTurret) {
                 barY = cy + ((MapTurret) u).kind.visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
-            } else if (u instanceof DroneHubUnit) {
-                barY = cy + DroneHubUnit.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            } else if (u.type.isDroneHub()) {
+                barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }

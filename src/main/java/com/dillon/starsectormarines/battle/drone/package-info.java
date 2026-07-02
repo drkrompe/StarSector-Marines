@@ -3,8 +3,8 @@
  *
  * <p>Category: actor domain (entity + behavior/GOAP + lifecycle).
  * <br>Charter:  the drone GOAP composer ({@code GoapDroneBehavior}) +
- *           {@code DefendHubGoal} + {@code DroneSwarmAction}, the hub unit
- *           and its behavior ({@code DroneHubUnit},
+ *           {@code DefendHubGoal} + {@code DroneSwarmAction}, the hub
+ *           config/factory and its behavior ({@code DroneHub},
  *           {@code DroneHubBehavior}), spawning ({@code DroneSpawner}),
  *           and the crash/demolition systems ({@code DroneCrashSystem},
  *           {@code HubDemolitionSystem}).

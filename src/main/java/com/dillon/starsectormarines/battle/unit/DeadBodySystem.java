@@ -63,19 +63,21 @@ public final class DeadBodySystem {
         // that already has it, and still adds it fresh for a non-sheet death
         // (turret / drone-hub / drone) that never carried one live.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
-        // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, and SQUAD are all optional (a
-        // non-combatant civilian has no COMBAT; a static turret/hub has no
+        // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, and HUB_STATE are all
+        // optional (a non-combatant civilian has no COMBAT; a static turret/hub has no
         // MOVEMENT/AI_STATE; only armed units carry a secondary; only squad members
-        // carry SQUAD) and removed when present — transmute treats a remove of a
-        // component the entity lacks as a no-op, so listing them unconditionally is
-        // safe. VISION and ROLE are universal but live-only (a corpse neither sees nor
-        // acts), so they're removed too. SQUAD and ROLE are read pre-transmute by the
-        // death cascade in resolve() (squad membership; the drop-carrier role check),
-        // which runs before releaseFromRegistry and this buffered transmute.
+        // carry SQUAD; only a drone hub carries HUB_STATE) and removed when present —
+        // transmute treats a remove of a component the entity lacks as a no-op, so
+        // listing them unconditionally is safe (a non-hub death's HUB_STATE remove is
+        // simply a no-op). VISION and ROLE are universal but live-only (a corpse neither
+        // sees nor acts), so they're removed too. SQUAD and ROLE are read pre-transmute
+        // by the death cascade in resolve() (squad membership; the drop-carrier role
+        // check), which runs before releaseFromRegistry and this buffered transmute.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
-                components.SQUAD, components.ROLE, components.HOME, components.TASK};
+                components.SQUAD, components.ROLE, components.HOME, components.TASK,
+                components.HUB_STATE};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

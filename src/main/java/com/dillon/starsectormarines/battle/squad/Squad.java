@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -319,7 +319,7 @@ public final class Squad {
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
      * {@link com.dillon.starsectormarines.battle.drone.DroneSpawner} mints the
-     * squad on the hub's first launch. Held as an id, not a {@link DroneHubUnit}
+     * squad on the hub's first launch. Held as an id, not a hub {@link Entity}
      * ref: the hub can be destroyed (and registry-released) while the squad is
      * torn down, so resolve on demand via {@code sim.resolveUnit(droneHubId)} —
      * {@code null} means the hub is gone.
@@ -373,7 +373,7 @@ public final class Squad {
     }
 
     /**
-     * True when this squad belongs to a {@link DroneHubUnit}. Routed to
+     * True when this squad belongs to a {@link DroneHub}-created hub. Routed to
      * {@code GoapDroneBehavior} by the replan dispatch — drone squads have
      * their own action library (encircle-on-engage, sector-on-patrol) and
      * skip the infantry/mech action sets entirely.

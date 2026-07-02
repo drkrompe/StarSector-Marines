@@ -860,9 +860,9 @@ public final class DefensePostStamper implements GenStage {
      * DRONE_HUB post: 3×3 sandbag embankment ring around a sealed STONE launch
      * pad at {@code (cx, cy)}. Geometry mirrors {@link #stampMedium} — same
      * 8-cell ring, same outward-facing embankment art — but the center cell is
-     * sealed (non-walkable STONE, no doodad) instead of hosting a turret. A
-     * follow-up commit will spawn a {@code DroneHubUnit} at the sealed center
-     * cell to drive periodic drone launches; the empty
+     * sealed (non-walkable STONE, no doodad) instead of hosting a turret.
+     * {@code BattleSetup} spawns a {@code DroneHub}-built entity at the sealed
+     * center cell to drive periodic drone launches; the empty
      * {@link DefensePost#turrets} list keeps the existing
      * {@code BattleSetup.spawnDefensePostTurrets} loop a no-op for this tier.
      * <pre>

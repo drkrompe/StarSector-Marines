@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.SquadService;
 import com.dillon.starsectormarines.battle.sim.RoleService;
 import com.dillon.starsectormarines.battle.sim.HomeService;
+import com.dillon.starsectormarines.battle.sim.HubStateService;
 import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -125,6 +126,7 @@ public final class UnitRosterService {
     private final SquadService squadService = new SquadService(entityWorld, components);
     private final RoleService roleService = new RoleService(entityWorld, components);
     private final HomeService homeService = new HomeService(entityWorld, components);
+    private final HubStateService hubStateService = new HubStateService(entityWorld, components);
     private final TaskService taskService = new TaskService(entityWorld, components);
     // Data owner for the convoy-vehicle world entities (ground archetype). Takes `this`
     // because adoption must mint through the shared allocateVehicle; the ref is stored,
@@ -239,6 +241,9 @@ public final class UnitRosterService {
     /** Data owner for the HOME component (garrison idle-post) — inject into consumers that gate on hasHome / read the post cell. */
     public HomeService home() { return homeService; }
 
+    /** Data owner for the HUB_STATE component (drone-hub spawn cadence) — inject into consumers that gate on isHub / read the spawn/launch state. */
+    public HubStateService hubState() { return hubStateService; }
+
     /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
     public TaskService task() { return taskService; }
 
@@ -291,6 +296,9 @@ public final class UnitRosterService {
         //     so a unit spawned between the facing pass and render still draws
         //     sanely. Kept on the row through the corpse transmute (the death
         //     write overwrites the index with the death pose).
+        //   - HUB_STATE iff the unit is a drone hub (UnitType.isDroneHub()) —
+        //     presence IS "is a live drone hub", the classification gate that
+        //     replaced the old instanceof-subclass checks.
         // Identity is written once here and persists alive→dead (the corpse
         // transmute's row-move carries it — as does the cell, which IS the death cell
         // by the time the corpse forms); Position and Health seed from the
@@ -323,10 +331,15 @@ public final class UnitRosterService {
         // TASK at spawn — a plain combatant recruited as a retriever gains TASK then (a
         // serial addComponent). Optional; live-only.
         boolean hasTask = u.seedAssignedObjective != null;
+        // HUB_STATE iff the unit is a drone hub (UnitType.isDroneHub()). Presence IS
+        // "is a live drone hub" — the DroneHub factory config/entity has no other
+        // marker, so the archetype membership itself is the classification gate that
+        // replaced the old instanceof-subclass checks.
+        boolean isHub = u.type.isDroneHub();
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0)];
+                  + (sheetDrawn ? 1 : 0) + (isHub ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -345,6 +358,7 @@ public final class UnitRosterService {
         if (hasHome) archetype[c++] = components.HOME;
         if (hasTask) archetype[c++] = components.TASK;
         if (sheetDrawn) archetype[c++] = components.SPRITE;
+        if (isHub) archetype[c++] = components.HUB_STATE;
         entityWorld.createEntity(id, archetype);
         // SHEET/FLIP_V stay 0 from the zero-init append; INDEX is seeded to the
         // south-idle frame so a unit spawned between this tick's FacingSystem
@@ -405,6 +419,14 @@ public final class UnitRosterService {
         // deboards with one); the kit-target field appends null.
         if (hasTask) {
             entityWorld.setObject(id, components.TASK, BattleComponents.TASK_ASSIGNED_OBJECTIVE, u.seedAssignedObjective);
+        }
+        // Seed the hub's live state (the HUB_STATE component was attached above iff
+        // the unit is a drone hub). spawnCooldown seeds to the hub's initial launch
+        // delay from the write-only seed; droneSquadId seeds to NO_SQUAD (-1) because
+        // 0 is a valid squad id, so a fresh-row zero can't mean "no squad yet".
+        if (isHub) {
+            entityWorld.setFloat(id, components.HUB_STATE, BattleComponents.HUB_STATE_SPAWN_COOLDOWN, u.seedHubSpawnCooldown);
+            entityWorld.setInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID, Entity.NO_SQUAD);
         }
         // Seed the non-zero defaults of the mobile-only components: AI_STATE's
         // fall-back cell is -1/-1 ("no cached cell"; readers treat a non-negative

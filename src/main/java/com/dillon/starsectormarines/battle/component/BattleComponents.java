@@ -210,6 +210,13 @@ public final class BattleComponents {
     /** {@link #VEHICLE_MISSION} field 0: the convoy mission-state payload (OBJECT) — the {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag. Liveness is {@code state == GONE}. */
     public static final int VEHICLE_MISSION_STATE = 0;
 
+    /** {@link #HUB_STATE} field 0: sim-seconds until the hub's next drone-launch attempt (FLOAT). */
+    public static final int HUB_STATE_SPAWN_COOLDOWN = 0;
+    /** {@link #HUB_STATE} field 1: lifetime count of drones the hub has launched (INT). */
+    public static final int HUB_STATE_DRONES_LAUNCHED = 1;
+    /** {@link #HUB_STATE} field 2: the squad id the hub's drones join, {@code Entity.NO_SQUAD} (-1) = none minted yet (INT). */
+    public static final int HUB_STATE_DRONE_SQUAD_ID = 2;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -537,6 +544,26 @@ public final class BattleComponents {
      * GONE}, not {@link #HEALTH}.
      */
     public final ComponentType VEHICLE_MISSION;
+    /**
+     * Optional drone-hub live state — {@code float spawnCooldown; int
+     * dronesLaunched; int droneSquadId}. Presence <em>IS</em> "is a live drone
+     * hub" — added at spawn only for {@code UnitType.DRONE_HUB_STRUCTURE}
+     * ({@link com.dillon.starsectormarines.battle.unit.UnitType#isDroneHub()}),
+     * absent on every other unit. {@code spawnCooldown} is the sim-seconds
+     * countdown to the hub's next launch attempt, ticked by
+     * {@code battle.drone.DroneHubBehavior}; {@code dronesLaunched} is the
+     * lifetime launch count {@code battle.drone.DroneSpawner} folds into each
+     * drone's greppable id; {@code droneSquadId} is the squad the hub's drones
+     * join, minted lazily on the first successful launch — {@code
+     * Entity.NO_SQUAD} ({@code -1}) is the "no squad yet" sentinel <em>because
+     * {@code 0} is a valid squad id</em>, so a fresh-row zero can't be
+     * mistaken for "already minted". Live-only (a demolished hub is a corpse;
+     * see {@code battle.drone.HubDemolitionSystem}'s side-table for the
+     * separate {@code demolished} flag, which is not world state). The data
+     * owner is {@code battle.sim.HubStateService}. See
+     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B1).
+     */
+    public final ComponentType HUB_STATE;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -649,6 +676,7 @@ public final class BattleComponents {
         GROUND_KINEMATICS = world.register(24, "GroundKinematics", FieldKind.OBJECT);
         GROUND_TURRET     = world.register(25, "GroundTurret", FieldKind.OBJECT);
         VEHICLE_MISSION   = world.register(26, "VehicleMission", FieldKind.OBJECT);
+        HUB_STATE       = world.register(27, "HubState", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

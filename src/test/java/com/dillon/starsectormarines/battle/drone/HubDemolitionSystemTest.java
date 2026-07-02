@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -11,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * End-to-end coverage for the hub side of the death-event seam: a
- * {@link DroneHubUnit} killed through the real damage path publishes a
- * {@code DeathEvent}, and {@link HubDemolitionSystem} (subscribed to the sim's
- * dispatcher) flips the hub cell to rubble, drops a smoking wreck, and
- * cascade-kills the hub's launched drones when the mailbox drains.
+ * End-to-end coverage for the hub side of the death-event seam: a drone hub
+ * ({@link DroneHub}-built entity) killed through the real damage path
+ * publishes a {@code DeathEvent}, and {@link HubDemolitionSystem} (subscribed
+ * to the sim's dispatcher) flips the hub cell to rubble, drops a smoking
+ * wreck, and cascade-kills the hub's launched drones when the mailbox drains.
  *
  * <p>Also pins the buffering contract (demolition waits for the drain, not the
  * inline {@code applyDamage}) and the same-tick cascade→crash ordering: the
@@ -43,7 +44,7 @@ public class HubDemolitionSystemTest {
     @Test
     public void deadHubIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        DroneHubUnit hub = new DroneHubUnit("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
         sim.addUnit(hub);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
@@ -51,12 +52,13 @@ public class HubDemolitionSystemTest {
 
         assertFalse(sim.world().isAlive(hub.entityId), "the hub should be dead after a lethal hit");
         // Buffered: the handler has NOT run yet — death published, not drained.
-        assertFalse(hub.demolished,
+        assertFalse(sim.getHubDemolitionSystem().isDemolished(hub.entityId),
                 "demolition must wait for the dispatcher drain, not fire inline at death");
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(hub.demolished, "drain → hub-demolition handler flips the dead hub");
+        assertTrue(sim.getHubDemolitionSystem().isDemolished(hub.entityId),
+                "drain → hub-demolition handler flips the dead hub");
         assertEquals(CellTopology.GroundKind.RUBBLE, sim.getTopology().getGroundKind(10, 10),
                 "the hub cell flips to walkable rubble");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
@@ -67,17 +69,17 @@ public class HubDemolitionSystemTest {
     public void hubDeathCascadeKillsItsOwnDronesAndStartsTheirCrashSameTick() {
         BattleSimulation sim = openArena(30, 30);
         // The hub that dies, with two drones it launched.
-        DroneHubUnit deadHub = new DroneHubUnit("h0", Faction.DEFENDER, 10, 10);
-        Drone d1 = new Drone("d1", Faction.DEFENDER, 10, 11, deadHub);
-        Drone d2 = new Drone("d2", Faction.DEFENDER, 10, 9, deadHub);
+        Entity deadHub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
+        sim.addUnit(deadHub);
+        Drone d1 = new Drone("d1", Faction.DEFENDER, 10, 11, deadHub.entityId);
+        Drone d2 = new Drone("d2", Faction.DEFENDER, 10, 9, deadHub.entityId);
         // A second, untouched hub with its own drone — the cascade must leave
         // a drone that calls a DIFFERENT hub home completely alone.
-        DroneHubUnit liveHub = new DroneHubUnit("h1", Faction.DEFENDER, 20, 20);
-        Drone control = new Drone("c0", Faction.DEFENDER, 20, 21, liveHub);
-        sim.addUnit(deadHub);
+        Entity liveHub = DroneHub.create("h1", Faction.DEFENDER, 20, 20);
+        sim.addUnit(liveHub);
+        Drone control = new Drone("c0", Faction.DEFENDER, 20, 21, liveHub.entityId);
         sim.addUnit(d1);
         sim.addUnit(d2);
-        sim.addUnit(liveHub);
         sim.addUnit(control);
 
         sim.applyDamage(deadHub, 100_000f, 3.5f, 0f);
@@ -95,18 +97,18 @@ public class HubDemolitionSystemTest {
         // The other hub's drone is untouched.
         assertTrue(sim.world().isAlive(control.entityId), "a drone homed to a live hub is not part of the cascade");
         assertFalse(isCrashing(sim, control.entityId), "the untouched drone never starts crashing");
-        assertFalse(liveHub.demolished, "the undamaged hub is not demolished");
+        assertFalse(sim.getHubDemolitionSystem().isDemolished(liveHub.entityId), "the undamaged hub is not demolished");
     }
 
     @Test
     public void liveHubIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        DroneHubUnit hub = new DroneHubUnit("h0", Faction.DEFENDER, 10, 10);
+        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10);
         sim.addUnit(hub);
 
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(sim.world().isAlive(hub.entityId), "no damage → still alive");
-        assertFalse(hub.demolished, "a live hub is never demolished");
+        assertFalse(sim.getHubDemolitionSystem().isDemolished(hub.entityId), "a live hub is never demolished");
     }
 }
