@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -29,17 +29,19 @@ public class CombatServiceTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void allocateSeedsThePrimaryWeaponFromTheUnitSeed() {
         UnitRosterService r = roster();
-        Entity u = unit("u");
-        u.seedPrimaryWeapon = MarineWeapon.PULSE_RIFLE;
-        long id = r.allocate(u);
+        long id = r.spawn(unit("u")).entityId;
         CombatService combat = r.combat();
+        // seedPrimaryWeapon set the weapon ref only (no stat derivation) — the
+        // EntitySpec equivalent is the post-spawn setter, not .primaryWeapon()
+        // (which also derives range/damage/accuracy/cooldown from the weapon).
+        combat.setPrimaryWeapon(id, MarineWeapon.PULSE_RIFLE);
 
         assertTrue(combat.has(id));
         // Seeded from the write-only seed (no Entity deref afterward) — the SAME
@@ -50,7 +52,7 @@ public class CombatServiceTest {
     @Test
     public void primaryWeaponDefaultsToNullWhenUnseeded() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));   // no seedPrimaryWeapon set
+        long id = r.spawn(unit("u")).entityId;   // no seedPrimaryWeapon set
 
         // A combatant with no per-weapon profile (the militia/alien/turret shape):
         // the OBJECT column appends null, so the getter reads null — the
@@ -61,7 +63,7 @@ public class CombatServiceTest {
     @Test
     public void setterHitsTheSharedWorldSlot() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));
+        long id = r.spawn(unit("u")).entityId;
         CombatService combat = r.combat();
 
         // The deboard-loadout seam: setPrimaryWeapon writes the same column the
@@ -73,7 +75,7 @@ public class CombatServiceTest {
     @Test
     public void isFailLoudOnceCombatIsGoneOrTheIdIsUnknown() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));
+        long id = r.spawn(unit("u")).entityId;
         CombatService combat = r.combat();
 
         // The corpse transmute removes COMBAT (a corpse does not fight) — reads are

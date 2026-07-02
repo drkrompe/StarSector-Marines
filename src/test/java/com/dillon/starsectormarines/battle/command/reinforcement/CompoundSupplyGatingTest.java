@@ -197,13 +197,12 @@ public class CompoundSupplyGatingTest {
         TacticalNode compound = compoundAt(TacticalNode.Kind.BARRACKS, 5, 5);
         service.register(compound);
 
-        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5);
-        int sid = sim.mintSquad(Faction.DEFENDER, defender);
+        int sid = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
         Squad squad = sim.getSquad(sid);
         squad.assignedNode = compound;
         squad.originalSize = 4;
         squad.aliveMembers = 1; // 25% — below the 50% threshold
-        sim.addUnit(defender);
+        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5).squad(sid));
         TestUnits.kill(sim, defender); // kill the leader so MARINE_HELD reads cleanly
 
         captureCompound(sim, service, system, 5, 5);

@@ -58,10 +58,8 @@ public class CivilianCombatMembershipTest {
     @Test
     public void fullTickWithCiviliansPresentDoesNotFailLoud() {
         BattleSimulation sim = openSim();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.seedSquadId = sid;
-        sim.addUnit(marine);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2).squad(sid));
         Entity civilian = sim.spawn(new EntitySpec("c", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10));
         Entity engineer = sim.spawn(new EntitySpec("e", Faction.CIVILIAN, UnitType.ENGINEER, 11, 11));
         Entity scientist = sim.spawn(new EntitySpec("s", Faction.CIVILIAN, UnitType.SCIENTIST, 12, 12));

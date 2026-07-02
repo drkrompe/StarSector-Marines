@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -31,17 +31,15 @@ public class TaskServiceTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE, 0, 0);
     }
 
     @Test
     public void allocateSeedsTheAssignedObjectiveFromTheSeed() {
         UnitRosterService r = roster();
         Objective obj = new ChargeSiteObjective(3, 3, 5f, "site");
-        Entity u = unit("p");
-        u.seedAssignedObjective = obj;
-        long id = r.allocate(u);
+        long id = r.spawn(unit("p").assignedObjective(obj)).entityId;
         TaskService task = r.task();
 
         assertTrue(task.has(id));
@@ -52,7 +50,7 @@ public class TaskServiceTest {
     @Test
     public void anUntaskedUnitReadsTolerantNull() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // seedAssignedObjective defaults to null
+        long id = r.spawn(unit("m")).entityId;   // seedAssignedObjective defaults to null
         TaskService task = r.task();
 
         assertFalse(task.has(id));
@@ -65,7 +63,7 @@ public class TaskServiceTest {
     @Test
     public void setEquipmentDropTargetAddsTaskThenClearNullsTheField() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // starts untasked
+        long id = r.spawn(unit("m")).entityId;   // starts untasked
         TaskService task = r.task();
         Objective obj = new ChargeSiteObjective(4, 4, 5f, "kit");
         EquipmentDrop kit = new EquipmentDrop(4, 4, obj);
@@ -84,7 +82,7 @@ public class TaskServiceTest {
     @Test
     public void setAssignedObjectiveAddsTaskToAFreshUnit() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // starts untasked
+        long id = r.spawn(unit("m")).entityId;   // starts untasked
         TaskService task = r.task();
         Objective obj = new ChargeSiteObjective(5, 5, 5f, "promoted");
 

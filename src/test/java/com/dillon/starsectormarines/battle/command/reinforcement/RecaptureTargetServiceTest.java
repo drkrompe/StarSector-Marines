@@ -60,14 +60,13 @@ public class RecaptureTargetServiceTest {
 
     /** A defender garrison squad assigned to {@code node} with {@code alive} live members. The leader unit is killed so it never counts toward biome presence. */
     private static Squad garrison(BattleSimulation sim, TacticalNode node, int alive, int original) {
-        Entity leader = new Entity("garr-" + node.anchorX + "-" + node.anchorY,
-                Faction.DEFENDER, UnitType.MILITIA, node.anchorX, node.anchorY);
-        int sid = sim.mintSquad(Faction.DEFENDER, leader);
+        int sid = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
         Squad squad = sim.getSquad(sid);
         squad.assignedNode = node;
         squad.originalSize = original;
         squad.aliveMembers = alive;
-        sim.addUnit(leader);
+        Entity leader = sim.spawn(new EntitySpec("garr-" + node.anchorX + "-" + node.anchorY,
+                Faction.DEFENDER, UnitType.MILITIA, node.anchorX, node.anchorY).squad(sid));
         TestUnits.kill(sim, leader);
         return squad;
     }

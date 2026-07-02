@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -28,16 +28,14 @@ public class SquadServiceTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void allocateSeedsSquadMembershipFromTheSeed() {
         UnitRosterService r = roster();
-        Entity u = unit("u");
-        u.seedSquadId = 7;
-        long id = r.allocate(u);
+        long id = r.spawn(unit("u").squad(7)).entityId;
         SquadService squad = r.squad();
 
         assertTrue(squad.hasSquad(id));
@@ -47,7 +45,7 @@ public class SquadServiceTest {
     @Test
     public void aSoloUnitCarriesNoSquadComponent() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));   // seedSquadId defaults to NO_SQUAD
+        long id = r.spawn(unit("u")).entityId;   // seedSquadId defaults to NO_SQUAD
         // Presence IS membership: a NO_SQUAD seed attaches no component, so the
         // sentinel is never a stored value — hasSquad just reads false.
         assertFalse(r.squad().hasSquad(id));
@@ -56,7 +54,7 @@ public class SquadServiceTest {
     @Test
     public void assignSquadJoinsAFreshUnit() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));   // starts solo
+        long id = r.spawn(unit("u")).entityId;   // starts solo
         SquadService squad = r.squad();
         assertFalse(squad.hasSquad(id));
 
@@ -70,7 +68,7 @@ public class SquadServiceTest {
     @Test
     public void squadIdIsFailLoudOnANonMemberOrUnknownId() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));   // solo — no SQUAD component
+        long id = r.spawn(unit("u")).entityId;   // solo — no SQUAD component
         SquadService squad = r.squad();
 
         assertFalse(squad.hasSquad(id));

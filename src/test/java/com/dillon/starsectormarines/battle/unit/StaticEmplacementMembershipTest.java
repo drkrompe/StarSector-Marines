@@ -76,10 +76,8 @@ public class StaticEmplacementMembershipTest {
     @Test
     public void fullTickWithStaticEmplacementsPresentDoesNotFailLoud() {
         BattleSimulation sim = openSim();
-        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 2, 2);
-        int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.seedSquadId = sid;
-        sim.addUnit(marine);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2).squad(sid));
         Entity turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
         Entity hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 21, 2));
 

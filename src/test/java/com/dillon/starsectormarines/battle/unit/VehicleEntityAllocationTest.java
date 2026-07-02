@@ -30,8 +30,8 @@ public class VehicleEntityAllocationTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity ground(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec ground(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     private static ComponentType[] vehicleArchetype(UnitRosterService r) {
@@ -42,9 +42,9 @@ public class VehicleEntityAllocationTest {
     @Test
     public void allocateVehicleSharesTheSingleIdMintWithGroundAllocateAndNeverCollides() {
         UnitRosterService r = roster();
-        long g1 = r.allocate(ground("g1"));
+        long g1 = r.spawn(ground("g1")).entityId;
         long v1 = r.allocateVehicle(vehicleArchetype(r));
-        long g2 = r.allocate(ground("g2"));
+        long g2 = r.spawn(ground("g2")).entityId;
         long v2 = r.allocateVehicle(vehicleArchetype(r));
         // Strictly monotonic across the one nextId authority — vehicles interleave the
         // ground ids with no overlap (the dual-mint trap the epic closes; air shares

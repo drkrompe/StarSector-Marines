@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -44,8 +45,7 @@ public class HubDemolitionSystemTest {
     @Test
     public void deadHubIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
-        sim.addUnit(hub);
+        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         sim.applyDamage(hub, 100_000f, 3.5f, 0f);
@@ -69,18 +69,16 @@ public class HubDemolitionSystemTest {
     public void hubDeathCascadeKillsItsOwnDronesAndStartsTheirCrashSameTick() {
         BattleSimulation sim = openArena(30, 30);
         // The hub that dies, with two drones it launched.
-        Entity deadHub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
-        sim.addUnit(deadHub);
-        Entity d1 = Drone.create("d1", Faction.DEFENDER, 10, 11, deadHub.entityId).toEntity();
-        Entity d2 = Drone.create("d2", Faction.DEFENDER, 10, 9, deadHub.entityId).toEntity();
+        Entity deadHub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
+        EntitySpec d1Spec = Drone.create("d1", Faction.DEFENDER, 10, 11, deadHub.entityId);
+        EntitySpec d2Spec = Drone.create("d2", Faction.DEFENDER, 10, 9, deadHub.entityId);
         // A second, untouched hub with its own drone — the cascade must leave
         // a drone that calls a DIFFERENT hub home completely alone.
-        Entity liveHub = DroneHub.create("h1", Faction.DEFENDER, 20, 20).toEntity();
-        sim.addUnit(liveHub);
-        Entity control = Drone.create("c0", Faction.DEFENDER, 20, 21, liveHub.entityId).toEntity();
-        sim.addUnit(d1);
-        sim.addUnit(d2);
-        sim.addUnit(control);
+        Entity liveHub = sim.spawn(DroneHub.create("h1", Faction.DEFENDER, 20, 20));
+        EntitySpec controlSpec = Drone.create("c0", Faction.DEFENDER, 20, 21, liveHub.entityId);
+        Entity d1 = sim.spawn(d1Spec);
+        Entity d2 = sim.spawn(d2Spec);
+        Entity control = sim.spawn(controlSpec);
 
         sim.applyDamage(deadHub, 100_000f, 3.5f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
@@ -103,8 +101,7 @@ public class HubDemolitionSystemTest {
     @Test
     public void liveHubIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = DroneHub.create("h0", Faction.DEFENDER, 10, 10).toEntity();
-        sim.addUnit(hub);
+        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
 
         sim.advance(BattleSimulation.TICK_DT);
 

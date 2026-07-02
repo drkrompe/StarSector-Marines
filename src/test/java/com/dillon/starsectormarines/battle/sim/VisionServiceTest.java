@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -26,15 +27,15 @@ public class VisionServiceTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void allocateSeedsTheVisionColumnsFromTheUnitSeeds() {
         UnitRosterService r = roster();
-        Entity u = unit("u");
-        long id = r.allocate(u);
+        Entity u = r.spawn(unit("u"));
+        long id = u.entityId;
         VisionService vision = r.vision();
 
         assertTrue(vision.has(id));
@@ -46,7 +47,7 @@ public class VisionServiceTest {
     @Test
     public void mutatorsHitTheSharedWorldSlot() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));
+        long id = r.spawn(unit("u")).entityId;
         VisionService vision = r.vision();
 
         // The night-multiplier seam: setVisionRange writes the same column the
@@ -61,7 +62,7 @@ public class VisionServiceTest {
     @Test
     public void isFailLoudOnceVisionIsGoneOrTheIdIsUnknown() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("u"));
+        long id = r.spawn(unit("u")).entityId;
         VisionService vision = r.vision();
 
         // The corpse transmute removes VISION (a corpse does not see) — reads are

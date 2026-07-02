@@ -33,11 +33,12 @@ public class InfantryUnitPrepTest {
     }
 
     private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
-        Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
-        u.seedPrimaryWeapon = MarineWeapon.PULSE_RIFLE;
-        u.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        u.seedSecondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
-        sim.addUnit(u);
+        Entity u = sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y)
+                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo));
+        // Primary weapon ref only — .primaryWeapon() would derive the weapon's
+        // damage/accuracy/range/cooldown; this test keeps the UnitType.MARINE
+        // defaults and sets attackRange separately below, so set the ref by id.
+        sim.combat().setPrimaryWeapon(u.entityId, MarineWeapon.PULSE_RIFLE);
         // attackRange is a Group-S registry-backed stat — set after the unit is
         // registered (the accessor is fail-loud pre-allocate).
         sim.world().setAttackRange(u.entityId, MarineWeapon.PULSE_RIFLE.range);

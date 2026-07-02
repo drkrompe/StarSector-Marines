@@ -33,8 +33,8 @@ public class AirEntityAllocationTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity ground(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec ground(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     private static ComponentType[] airArchetype(UnitRosterService r) {
@@ -45,9 +45,9 @@ public class AirEntityAllocationTest {
     @Test
     public void allocateAirSharesTheSingleIdMintWithGroundAllocateAndNeverCollides() {
         UnitRosterService r = roster();
-        long g1 = r.allocate(ground("g1"));
+        long g1 = r.spawn(ground("g1")).entityId;
         long air = r.allocateAir(airArchetype(r));
-        long g2 = r.allocate(ground("g2"));
+        long g2 = r.spawn(ground("g2")).entityId;
         // Strictly monotonic across the one nextId authority — air interleaves the
         // ground ids with no overlap (the dual-mint trap the epic closes).
         assertTrue(g1 < air && air < g2,

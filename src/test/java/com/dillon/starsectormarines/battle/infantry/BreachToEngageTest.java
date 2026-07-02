@@ -52,10 +52,8 @@ public class BreachToEngageTest {
         // have. Other members nearby in row-major.
         int lx = Math.round(cx);
         int ly = Math.round(cy);
-        Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, lx, ly);
-        int sid = sim.mintSquad(Faction.MARINE, first);
-        first.seedSquadId = sid;
-        sim.addUnit(first);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, lx, ly).squad(sid));
         for (int i = 1; i < memberCount; i++) {
             sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, lx + i, ly)
                     .squad(sid));

@@ -70,10 +70,8 @@ public class SquadMoraleTest {
      * spawn pipeline. {@code originalSize} is stamped explicitly to match.
      */
     private static Squad marineSquad(BattleSimulation sim, int size) {
-        Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1);
-        int squadId = sim.mintSquad(Faction.MARINE, first);
-        first.seedSquadId = squadId;
-        sim.addUnit(first);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1).squad(squadId));
         for (int i = 1; i < size; i++) {
             sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 1 + i, 1)
                     .squad(squadId));

@@ -38,10 +38,8 @@ public class BreachAndAdvanceTest {
     }
 
     private static Squad squad(BattleSimulation sim, int memberCount, int startX, int startY) {
-        Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, startX, startY);
-        int sid = sim.mintSquad(Faction.MARINE, first);
-        first.seedSquadId = sid;
-        sim.addUnit(first);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, startX, startY).squad(sid));
         for (int i = 1; i < memberCount; i++) {
             sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY)
                     .squad(sid));
@@ -97,10 +95,8 @@ public class BreachAndAdvanceTest {
     public void advancePhaseRoutesToForwardCell() {
         BattleSimulation sim = openArena(20, 20);
         // Place both members AT their stack-up cells already.
-        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 8, 5);
-        int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.seedSquadId = sid;
-        sim.addUnit(m0);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 8, 5).squad(sid));
         Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);
@@ -149,10 +145,8 @@ public class BreachAndAdvanceTest {
     @Test
     public void arrivalAtForwardCellClearsPathAndPinsRender() {
         BattleSimulation sim = openArena(20, 20);
-        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.seedSquadId = sid;
-        sim.addUnit(m0);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
         Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);
@@ -179,10 +173,8 @@ public class BreachAndAdvanceTest {
     @Test
     public void successWhenAllMembersAtForward() {
         BattleSimulation sim = openArena(20, 20);
-        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        int sid = sim.mintSquad(Faction.MARINE, m0);
-        m0.seedSquadId = sid;
-        sim.addUnit(m0);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
         Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);

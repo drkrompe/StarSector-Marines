@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -41,14 +42,12 @@ public class BreakLOSTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity marineAt(int x, int y, int squadId) {
-        Entity u = new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
-        u.seedSquadId = squadId;
-        return u;
+    private static Entity marineAt(BattleSimulation sim, int x, int y, int squadId) {
+        return sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, x, y).squad(squadId));
     }
 
-    private static Entity defenderAt(int x, int y) {
-        return new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity defenderAt(BattleSimulation sim, int x, int y) {
+        return sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, x, y));
     }
 
     @Test
@@ -76,10 +75,9 @@ public class BreakLOSTest {
         // rows 3..11, so row 2 is open across the entire column). Defender at
         // (10, 2) has LOS to the marine; findFallbackPosition must pick a
         // different (hidden) cell.
-        Entity marine = marineAt(2, 2, squadId);
-        sim.addUnit(marine);
+        Entity marine = marineAt(sim, 2, 2, squadId);
         sim.world().setFallbackCell(marine.entityId, -1, -1);
-        sim.addUnit(defenderAt(11, 7));
+        defenderAt(sim, 11, 7);
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertTrue(sim.world().fallbackCellX(marine.entityId) >= 0 && sim.world().fallbackCellY(marine.entityId) >= 0,
@@ -104,11 +102,10 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(2, 2, squadId);
-        sim.addUnit(marine);
+        Entity marine = marineAt(sim, 2, 2, squadId);
         // Force "arrived" — fallback cell == current cell.
         sim.world().setFallbackCell(marine.entityId, 2, 2);
-        sim.addUnit(defenderAt(11, 11));
+        defenderAt(sim, 11, 11);
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.SUCCESS, status,
@@ -129,11 +126,10 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(5, 7, squadId);
-        sim.addUnit(marine);
+        Entity marine = marineAt(sim, 5, 7, squadId);
         // Pre-cache a destination that's not the current cell.
         sim.world().setFallbackCell(marine.entityId, 4, 7);
-        sim.addUnit(defenderAt(11, 7));
+        defenderAt(sim, 11, 7);
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status,
@@ -154,12 +150,11 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(2, 2, squadId);
-        sim.addUnit(marine);
+        Entity marine = marineAt(sim, 2, 2, squadId);
         // Cached destination on the open side of the map — fully visible to
         // the defender at (5, 2). Pre-fix: held this cell forever.
         sim.world().setFallbackCell(marine.entityId, 3, 2);
-        sim.addUnit(defenderAt(5, 2));
+        defenderAt(sim, 5, 2);
 
         BreakLOS.INSTANCE.execute(marine, squad, sim);
         boolean changed = (sim.world().fallbackCellX(marine.entityId) != 3 || sim.world().fallbackCellY(marine.entityId) != 2);

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -27,17 +27,14 @@ public class HomeServiceTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.DEFENDER, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.DEFENDER, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void allocateSeedsThePostFromTheSeed() {
         UnitRosterService r = roster();
-        Entity u = unit("g");
-        u.seedHomeCellX = 4;
-        u.seedHomeCellY = 7;
-        long id = r.allocate(u);
+        long id = r.spawn(unit("g").home(4, 7)).entityId;
         HomeService home = r.home();
 
         assertTrue(home.hasHome(id));
@@ -48,7 +45,7 @@ public class HomeServiceTest {
     @Test
     public void aRoamingUnitCarriesNoHomeComponent() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // seedHomeCell defaults to -1
+        long id = r.spawn(unit("m")).entityId;   // seedHomeCell defaults to -1
         // Presence IS "has a post": a -1 seed attaches no component, so the sentinel is
         // never a stored value — hasHome just reads false.
         assertFalse(r.home().hasHome(id));
@@ -57,7 +54,7 @@ public class HomeServiceTest {
     @Test
     public void setHomeAssignsAPostToAFreshUnit() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // starts postless
+        long id = r.spawn(unit("m")).entityId;   // starts postless
         HomeService home = r.home();
         assertFalse(home.hasHome(id));
 
@@ -72,7 +69,7 @@ public class HomeServiceTest {
     @Test
     public void cellReadsAreFailLoudOnAPostlessOrUnknownId() {
         UnitRosterService r = roster();
-        long id = r.allocate(unit("m"));   // postless — no HOME component
+        long id = r.spawn(unit("m")).entityId;   // postless — no HOME component
         HomeService home = r.home();
 
         assertFalse(home.hasHome(id));

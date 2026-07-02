@@ -38,10 +38,8 @@ public class OverwatchPostureTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity defenderAt(int x, int y, int squadId) {
-        Entity u = new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
-        u.seedSquadId = squadId;
-        return u;
+    private static Entity defenderAt(BattleSimulation sim, int x, int y, int squadId) {
+        return sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, x, y).squad(squadId));
     }
 
     @Test
@@ -80,8 +78,7 @@ public class OverwatchPostureTest {
         squad.holdsFireUntilKillZone = true;
         squad.aliveMembers = 1;
 
-        Entity defender = defenderAt(5, 5, squadId);
-        sim.addUnit(defender);
+        Entity defender = defenderAt(sim, 5, 5, squadId);
         // Seed a known non-default cooldown (after registration, so it routes
         // through the registry): if any action accidentally fires, cooldownTimer
         // would jump to attackCooldown. We assert it doesn't change.

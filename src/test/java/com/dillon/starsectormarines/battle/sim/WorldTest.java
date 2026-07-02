@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -27,15 +28,15 @@ public class WorldTest {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
 
-    private static Entity unit(String label) {
-        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static EntitySpec unit(String label) {
+        return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void readsAndWritesTheWorldHealthSlotById() {
         UnitRosterService r = roster();
-        Entity u = unit("u");
-        long id = r.allocate(u);
+        Entity u = r.spawn(unit("u"));
+        long id = u.entityId;
         World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Seeded hp == type.maxHp, readable by id with no Entity deref —
@@ -51,8 +52,7 @@ public class WorldTest {
     @Test
     public void isFailLoudOnceHealthIsGoneOrTheIdIsUnknown() {
         UnitRosterService r = roster();
-        Entity u = unit("u");
-        long id = r.allocate(u);
+        long id = r.spawn(unit("u")).entityId;
         World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Roster release alone no longer makes hp unreadable — HEALTH stays

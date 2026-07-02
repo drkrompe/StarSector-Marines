@@ -42,10 +42,8 @@ public class HitResponseSystemTest {
     public void squadMemberInfantrySkipsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 3, 5);
-        int sid = sim.mintSquad(Faction.MARINE, marine);
-        marine.seedSquadId = sid;
-        sim.addUnit(marine);
+        int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 3, 5).squad(sid));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine);
 
@@ -57,10 +55,8 @@ public class HitResponseSystemTest {
     public void squadMemberMechSkipsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity mech = new Entity("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
-        int sid = sim.mintSquad(Faction.DEFENDER, mech);
-        mech.seedSquadId = sid;
-        sim.addUnit(mech);
+        int sid = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
+        Entity mech = sim.spawn(new EntitySpec("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5).squad(sid));
         sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
