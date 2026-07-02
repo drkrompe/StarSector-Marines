@@ -88,7 +88,7 @@ abstract class AbstractZoneAction implements Action {
      */
     protected final void advanceIntoZone(Entity member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));
@@ -136,7 +136,7 @@ abstract class AbstractZoneAction implements Action {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
     }
 
     /**

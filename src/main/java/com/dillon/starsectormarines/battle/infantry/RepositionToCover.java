@@ -67,7 +67,7 @@ public final class RepositionToCover implements Action {
      */
     public static boolean tryReposition(Entity member, BattleControl sim) {
         if (sim.world().repositionCooldown(member.entityId) > 0f) return false;
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
                 member.entityId, target.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));

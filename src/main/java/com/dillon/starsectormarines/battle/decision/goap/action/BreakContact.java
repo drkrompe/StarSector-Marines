@@ -63,7 +63,7 @@ public final class BreakContact implements Action {
                         sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         } else {
             // In position — hold and fire stanced at anything that drifts in.
             if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
@@ -82,7 +82,7 @@ public final class BreakContact implements Action {
      * duplication is cheaper than another helper class.
      */
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);

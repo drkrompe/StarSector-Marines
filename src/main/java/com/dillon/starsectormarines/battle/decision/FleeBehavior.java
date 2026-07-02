@@ -79,7 +79,7 @@ public final class FleeBehavior implements UnitBehavior {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        sim.advanceMovement(u);
+        sim.advanceMovement(u.entityId);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class FleeBehavior implements UnitBehavior {
         int[] path = sim.world().path(u.entityId);
         int pathIdx = sim.world().pathIdx(u.entityId);
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(u);
+            sim.advanceMovement(u.entityId);
             // Re-fetch after advance — pathIdx may have incremented.
             if (sim.world().pathIdx(u.entityId) >= Paths.cellCount(sim.world().path(u.entityId))) {
                 // Arrived this tick — clear the path and start dwelling.
@@ -119,7 +119,7 @@ public final class FleeBehavior implements UnitBehavior {
             sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.advanceMovement(u);
+        sim.advanceMovement(u.entityId);
     }
 
     /**

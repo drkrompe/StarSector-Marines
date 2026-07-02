@@ -30,6 +30,6 @@ public final class FallbackBehavior implements UnitBehavior {
         if (sim.world().moveProgress(u.entityId) == 0f) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), fx, fy, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(u);
+        sim.advanceMovement(u.entityId);
     }
 }

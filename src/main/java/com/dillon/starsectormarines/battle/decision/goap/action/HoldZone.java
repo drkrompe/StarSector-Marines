@@ -151,7 +151,7 @@ public final class HoldZone extends AbstractZoneAction {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), postX, postY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 
@@ -172,7 +172,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     private ActionStatus engageInZone(Entity member, Squad squad, BattleControl sim, Faction enemy) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
@@ -218,7 +218,7 @@ public final class HoldZone extends AbstractZoneAction {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 

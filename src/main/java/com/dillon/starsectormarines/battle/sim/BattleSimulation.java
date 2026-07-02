@@ -571,14 +571,14 @@ public class BattleSimulation implements BattleControl {
      * over {@link UnitRosterService#getOrNull(long)};
      * the canonical read path replacing the old {@code u.target} field.
      */
-    public Entity targetOf(Entity u) {
-        return rosterService.getOrNull(world.targetId(u.entityId));
+    public Entity targetOf(long u) {
+        return rosterService.getOrNull(world.targetId(u));
     }
 
     /**
      * Resolves an arbitrary entity id to its {@link Entity}, or {@code null} when
      * the id is unknown / released. The generic counterpart to
-     * {@link #targetOf(Entity)} — used by readers of id-typed combat/secondary
+     * {@link #targetOf(long)} — used by readers of id-typed combat/secondary
      * cross-references (the {@code COMBAT.burstTargetId} / {@code
      * SECONDARY_WEAPON.aimTargetId} world columns, {@code
      * TURRET_STATE.burstTargetId} via {@code TurretStateService}) where there's
@@ -1179,8 +1179,8 @@ public class BattleSimulation implements BattleControl {
      * have yet.
      */
     /** Delegates to {@link MovementService#advanceAlongPath(World, long, float)}. Kept so existing behavior call sites compile unchanged. */
-    public void advanceMovement(Entity u) {
-        movement().advanceAlongPath(world, u.entityId, TICK_DT);
+    public void advanceMovement(long u) {
+        movement().advanceAlongPath(world, u, TICK_DT);
     }
 
     /**

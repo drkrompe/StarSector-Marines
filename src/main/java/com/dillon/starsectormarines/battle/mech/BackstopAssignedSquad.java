@@ -123,7 +123,7 @@ public final class BackstopAssignedSquad implements Action {
             pathIdx = sim.world().pathIdx(member.entityId);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         } else {
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
@@ -131,7 +131,7 @@ public final class BackstopAssignedSquad implements Action {
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw
         // everything you have at whatever the marines are shooting at."
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));

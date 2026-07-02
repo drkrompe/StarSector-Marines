@@ -72,7 +72,7 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
@@ -134,7 +134,7 @@ public final class EngagePosture implements Action {
             }
             int[] memberPath = sim.world().path(member.entityId);
             if (sim.world().pathIdx(member.entityId) < Paths.cellCount(memberPath)) {
-                sim.advanceMovement(member);
+                sim.advanceMovement(member.entityId);
             } else {
                 sim.world().setMoveProgress(member.entityId, 0f);
                 sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
@@ -158,7 +158,7 @@ public final class EngagePosture implements Action {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         }
 
         return ActionStatus.RUNNING;

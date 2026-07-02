@@ -162,7 +162,7 @@ public final class PatrolMotion {
             pathIdx = sim.world().pathIdx(member.entityId);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
             return true;
         }
         sim.world().setMoveProgress(member.entityId, 0f);
@@ -183,7 +183,7 @@ public final class PatrolMotion {
      * executes the shot in the serial FIRING phase.
      */
     public static void fireIfAble(Entity member, BattleControl sim) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
             sim.world().setTargetId(member.entityId, Entity.idOf(target));

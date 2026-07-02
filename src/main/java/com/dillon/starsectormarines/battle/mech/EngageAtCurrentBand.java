@@ -88,7 +88,7 @@ public final class EngageAtCurrentBand implements Action {
             }
         }
         if (sim.world().pathIdx(u.entityId) < Paths.cellCount(sim.world().path(u.entityId))) {
-            sim.advanceMovement(u);
+            sim.advanceMovement(u.entityId);
         } else {
             sim.world().setMoveProgress(u.entityId, 0f);
             sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));

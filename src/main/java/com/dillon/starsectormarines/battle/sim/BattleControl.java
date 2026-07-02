@@ -32,8 +32,8 @@ public interface BattleControl extends BattleView {
     /** Drop the unit's path. */
     void clearPath(Entity u);
 
-    /** Advance the unit one tick along its current path. */
-    void advanceMovement(Entity u);
+    /** Advance the unit (by entity id) one tick along its current path. */
+    void advanceMovement(long u);
 
     /** Stanced-fire convenience (STANCED). */
     void fireShot(Entity shooter, Entity target);

@@ -70,7 +70,7 @@ public final class HoldPost implements Action {
             return returnToHome(member, sim, homeX, homeY);
         }
 
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
@@ -157,7 +157,7 @@ public final class HoldPost implements Action {
             pathIdx = sim.world().pathIdx(member.entityId);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         } else {
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));

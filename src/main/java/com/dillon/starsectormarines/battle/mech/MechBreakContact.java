@@ -61,7 +61,7 @@ public final class MechBreakContact implements Action {
                         sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         } else {
             if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
@@ -79,7 +79,7 @@ public final class MechBreakContact implements Action {
      * pulling back" read.
      */
     private static void opportunisticMechFire(Entity u, BattleControl sim) {
-        Entity target = sim.targetOf(u);
+        Entity target = sim.targetOf(u.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(u.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(u.entityId);

@@ -113,7 +113,7 @@ public final class GarrisonCordon implements Action {
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
             return ActionStatus.RUNNING;
         }
         if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
@@ -131,7 +131,7 @@ public final class GarrisonCordon implements Action {
      * this to a shared static.
      */
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);

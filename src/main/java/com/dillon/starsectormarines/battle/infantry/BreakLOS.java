@@ -81,7 +81,7 @@ public final class BreakLOS implements Action {
                     sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                     sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 }

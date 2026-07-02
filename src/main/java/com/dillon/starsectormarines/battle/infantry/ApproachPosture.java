@@ -56,7 +56,7 @@ public final class ApproachPosture implements Action {
         // squad walking past a close mech to engage a distant turret because
         // member.target was locked at approach start; shouldKeepPursuing's
         // closer-visible-target check is what unsticks that case.
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);
@@ -87,7 +87,7 @@ public final class ApproachPosture implements Action {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
 
         return ActionStatus.RUNNING;
     }

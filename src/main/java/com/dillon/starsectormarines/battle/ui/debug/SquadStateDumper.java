@@ -157,7 +157,7 @@ public final class SquadStateDumper {
             o.put("hp", sim.world().hp(u.entityId));
             o.put("maxHp", sim.world().maxHp(u.entityId));
             o.put("moveProgress", sim.world().moveProgress(u.entityId));
-            Entity dumpTarget = sim.targetOf(u);
+            Entity dumpTarget = sim.targetOf(u.entityId);
             o.put("targetId", dumpTarget != null ? sim.identity().name(dumpTarget.entityId) : null);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
@@ -174,7 +174,7 @@ public final class SquadStateDumper {
     }
 
     private static Object computeTargetReachable(Entity self, BattleSimulation sim) {
-        Entity target = sim.targetOf(self);
+        Entity target = sim.targetOf(self.entityId);
         if (target == null) return JSONObject.NULL;
         int[] path = GridPathfinder.findPath(sim.getGrid(),
                 sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),

@@ -161,7 +161,7 @@ public final class HoldPortalCordon implements Action {
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 
@@ -183,7 +183,7 @@ public final class HoldPortalCordon implements Action {
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
             return ActionStatus.RUNNING;
         }
         if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
@@ -207,7 +207,7 @@ public final class HoldPortalCordon implements Action {
      * rip a burst from the post.
      */
     private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
             target = sim.getTacticalScoring().findBestTarget(member.entityId);

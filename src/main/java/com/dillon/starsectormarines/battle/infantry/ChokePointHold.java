@@ -228,7 +228,7 @@ public final class ChokePointHold implements Action {
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), targetX, targetY,
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
             return ActionStatus.RUNNING;
         }
 

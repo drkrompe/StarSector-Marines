@@ -78,7 +78,7 @@ public final class ClearZone extends AbstractZoneAction {
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
-        Entity target = sim.targetOf(member);
+        Entity target = sim.targetOf(member.entityId);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
@@ -140,7 +140,7 @@ public final class ClearZone extends AbstractZoneAction {
             }
             sim.setPath(member, path);
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 

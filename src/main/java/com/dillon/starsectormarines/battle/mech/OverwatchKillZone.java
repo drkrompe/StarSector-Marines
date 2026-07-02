@@ -113,7 +113,7 @@ public final class OverwatchKillZone implements Action {
             pathIdx = sim.world().pathIdx(member.entityId);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
+            sim.advanceMovement(member.entityId);
         } else {
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));

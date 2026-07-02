@@ -42,7 +42,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         if (sim.world().moveProgress(u.entityId) == 0f) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(u);
+        sim.advanceMovement(u.entityId);
     }
 
     /**
@@ -56,7 +56,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * reposition cooldowns now tick during retrieval too.
      */
     private static void fireOpportunistically(Entity u, BattleControl sim) {
-        Entity target = sim.targetOf(u);
+        Entity target = sim.targetOf(u.entityId);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(u.entityId);
             sim.world().setTargetId(u.entityId, Entity.idOf(target));

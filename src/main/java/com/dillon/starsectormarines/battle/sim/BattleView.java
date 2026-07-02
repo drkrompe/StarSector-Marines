@@ -70,8 +70,8 @@ public interface BattleView {
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 
-    /** The unit {@code u} is currently targeting, resolved through the registry, or {@code null}. */
-    Entity targetOf(Entity u);
+    /** The unit that entity id {@code u} is currently targeting, resolved through the registry, or {@code null}. */
+    Entity targetOf(long u);
 
     Squad getSquad(int id);
 

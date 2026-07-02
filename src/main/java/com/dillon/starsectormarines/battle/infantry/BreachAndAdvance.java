@@ -175,7 +175,7 @@ public final class BreachAndAdvance implements Action {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member);
+        sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;
     }
 
