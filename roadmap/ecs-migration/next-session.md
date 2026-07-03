@@ -219,8 +219,10 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    `systems-to-columns` (the id-native spatial-index work). **Next: the facade `setPath`/`clearPath` →
    `long`** (ripples the ~30 behavior + 3 test callers to `.entityId`; the D1 `writeFallbackInline`
    `getOrNull` follow-up rides along), then the atomic `Action.execute(Entity→long)` flip (interface + ~30
-   implementors, one commit). Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity (later storage
-   finale — the Option B/C scope). Full record + corrected sequence: the story doc § Phase D.
+   implementors, one commit). Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity — the **storage
+   finale**, now called out as its own dedicated closing session (roster `Entity[]`→`long[]`, sister index
+   id-native, Entity-returning queries → `long`, `DeathEvent` → `long`, **delete `Entity`**): story doc
+   § "Storage finale". Full record + corrected sequence: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
     per-craft handle with mutable motion state) into components + a stateless system, the air
     `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;

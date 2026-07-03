@@ -377,9 +377,43 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   `clearPath(Entity)` params → `long`, rippling the ~30 behavior callers + 3 test sites to `.entityId`
   (mechanical — delegatable), plus the D1 `writeFallbackInline` `getOrNull` follow-up. Then the **atomic
   `Action.execute(Entity member)` flip** (interface + ~30 implementors + dispatcher + `AbstractZoneAction`
-  + test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → the finale
-  (Entity-returning queries → `long`, roster `Entity[]` → `long[]`, sister `UnitSpatialIndex` id-native,
-  `DeathEvent` → `long`, rehome `idOf`/`NO_SQUAD`, delete `Entity`).
+  + test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → **the storage
+  finale** — its own dedicated closing session (scope + rationale in § "Storage finale" below).
+
+## Storage finale — the dedicated closing session (the `entity = long` terminus)
+
+The one milestone that *literally* makes `entity = long` and **deletes `Entity.java`**. Called out
+as its own session (not tail-text) because it is the **largest single structural piece** of the whole
+migration — it converts the roster spine and every remaining `Entity`-typed storage/return in one
+coherent pass — and because it is only safe to do **last**, once every caller is already `long`-native.
+
+**Entry precondition (why last, not now).** Params-first is what de-risks this: by the time we reach
+it, every method *parameter* and behavior body already takes/holds `long`, so flipping the *returns*
+and the *storage* is a mechanical find-and-replace, not a semantics change. Pulling it forward would
+force backward `long`→`Entity` re-resolves at every not-yet-converted caller — the exact churn the
+phase ordering exists to avoid. **Gate: behavior tier (`Action.execute` + all behaviors) + sim facade
++ air/vehicle/ui all long-native** before this session opens.
+
+**Scope (one dedicated session — its own commit chain + critique pass):**
+- Roster dense `Entity[]` → `long[]` (the `denseArray()`/`liveCount()` spine + swap-and-pop release);
+  `UnitRosterService` becomes id-native storage.
+- Sister `UnitSpatialIndex` → id-native (the `LongBucket` shape D7 proved; its `gather` has many
+  callers, so this is the widest single ripple in the session).
+- Every `Entity`-returning query/resolve method → `long` (`targetOf`, `getOrNull`/`resolveUnit` at the
+  boundary, the `closestVisible*` family, …); the transient `Entity` locals evaporate.
+- `DeathEvent` payload → `long`.
+- Rehome the two remaining statics off `Entity`: `Entity.idOf` and `NO_SQUAD`.
+- **Delete `Entity.java`.**
+
+**Tracked follow-ups to fold in here (don't lose):**
+- `clearPath`/`setPath` should own an internal null/liveness guard rather than lean on the caller
+  (D1 critique — `writeFallbackInline` transitionally does `clearPath(getOrNull(id))`).
+- [`../spatial-index-options.md`](../spatial-index-options.md) — the id-native `LinkedUnitSpatialIndex`
+  shape this enables (stale `Unit`/`denseIdx` names to reconcile).
+
+**Definition of done.** `Entity.java` is gone; no `Entity` type in the battle tier; `entity = long`
+holds at every layer (params, returns, storage, events); the overview.md "naming north star did NOT
+fully reach" caveat is struck; full suite green. **This closes the identity-collapse epic.**
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 
