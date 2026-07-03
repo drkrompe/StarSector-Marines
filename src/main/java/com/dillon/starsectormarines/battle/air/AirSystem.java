@@ -566,7 +566,7 @@ public class AirSystem {
                 aim.minRange = mt.mount.kind.minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
-                aim.target = roster.getOrNull(mt.targetId);
+                aim.target = roster.isLive(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
@@ -590,7 +590,7 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
+                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget.entityId, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
@@ -607,7 +607,7 @@ public class AirSystem {
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
                     if (mt.mount.kind.burstCount > 1
-                            && aim.target != null && world.isAlive(aim.target.entityId)) {
+                            && aim.target != 0L && world.isAlive(aim.target)) {
                         mt.burstRemaining = mt.mount.kind.burstCount - 1;
                         mt.burstTimer = mt.mount.kind.burstSpacing;
                         mt.setBurstTarget(aim.target);

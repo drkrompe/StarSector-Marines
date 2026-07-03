@@ -66,14 +66,14 @@ public final class MountedTurret {
         this.ammo = mount.kind.startingAmmo;
     }
 
-    /** Null-safe write into {@link #targetId} — same {@code null}→{@code 0L} convention as {@link Entity#idOf}. */
-    public void setTarget(Entity t) {
-        this.targetId = (t == null) ? 0L : t.entityId;
+    /** Write the locked target id ({@code 0L} = none) into {@link #targetId}. */
+    public void setTarget(long t) {
+        this.targetId = t;
     }
 
-    /** Null-safe write into {@link #burstTargetId} — same {@code null}→{@code 0L} convention as {@link Entity#idOf}. */
-    public void setBurstTarget(Entity t) {
-        this.burstTargetId = (t == null) ? 0L : t.entityId;
+    /** Write the burst-locked target id ({@code 0L} = none) into {@link #burstTargetId}. */
+    public void setBurstTarget(long t) {
+        this.burstTargetId = t;
     }
 
     /** True once every mount on the shuttle has fired its magazine dry. */

@@ -192,11 +192,11 @@ public class TacticalScoringTest {
         // distance-only score, the picker would pick the fleer (distance 10
         // vs 15). With the density penalty (3 neighbors × 5 = 15) the fleer's
         // effective score becomes 25 vs the lone enemy's 15.
-        Entity picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
-        assertNotNull(picked);
-        assertEquals(lone, picked,
+        long picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
+        assertTrue(picked != 0L);
+        assertEquals(lone.entityId, picked,
                 "picker should avoid the cluster and pick the isolated lone enemy");
-        assertNotEquals(fleer, picked,
+        assertNotEquals(fleer.entityId, picked,
                 "wounded fleer in a cluster must NOT be the lowest-cost target");
     }
 
@@ -220,8 +220,8 @@ public class TacticalScoringTest {
 
         Entity farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
-        assertEquals(farEnemy, picked,
+        long picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
+        assertEquals(farEnemy.entityId, picked,
                 "target selection must not be gated by squad centroid distance");
     }
 
@@ -333,8 +333,8 @@ public class TacticalScoringTest {
         Entity closer = unit(sim, Faction.DEFENDER, 9, 10);
         unit(sim, Faction.DEFENDER, 11, 10);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
-        assertEquals(closer, picked,
+        long picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
+        assertEquals(closer.entityId, picked,
                 "in-zone enemy at dist 4 must beat across-zone enemy at dist 6 (bias > 2)");
     }
 
@@ -371,8 +371,8 @@ public class TacticalScoringTest {
         Entity acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
         Entity inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
-        assertEquals(acrossClose, picked,
+        long picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
+        assertEquals(acrossClose.entityId, picked,
                 "very close across-zone enemy (adjusted 11) must beat distant in-zone (16)");
     }
 
@@ -386,8 +386,8 @@ public class TacticalScoringTest {
         Entity near = unit(sim, Faction.DEFENDER, 7, 5);
         Entity far = unit(sim, Faction.DEFENDER, 15, 5);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
-        assertEquals(near, picked,
+        long picked = sim.getTacticalScoring().findBestTarget(marine.entityId);
+        assertEquals(near.entityId, picked,
                 "same-zone targets — pick nearest, bias is 0");
     }
 
@@ -472,8 +472,8 @@ public class TacticalScoringTest {
         Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(rocketeer.entityId);
-        assertEquals(mech, picked, "rocketeer must prefer the hardened mech over the soft infantry");
+        long picked = sim.getTacticalScoring().findBestTarget(rocketeer.entityId);
+        assertEquals(mech.entityId, picked, "rocketeer must prefer the hardened mech over the soft infantry");
     }
 
     @Test
@@ -490,8 +490,8 @@ public class TacticalScoringTest {
         // Mech is actually CLOSER than the infantry here — without affinity
         // the picker would lock the mech. Affinity must flip it.
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(smg.entityId);
-        assertEquals(infantry, picked, "SMG marine must prefer infantry even when mech is closer");
+        long picked = sim.getTacticalScoring().findBestTarget(smg.entityId);
+        assertEquals(infantry.entityId, picked, "SMG marine must prefer infantry even when mech is closer");
     }
 
     @Test
@@ -508,8 +508,8 @@ public class TacticalScoringTest {
         Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(dryRocketeer.entityId);
-        assertEquals(infantry, picked, "no rockets left -> pick the closer infantry, not the distant mech");
+        long picked = sim.getTacticalScoring().findBestTarget(dryRocketeer.entityId);
+        assertEquals(infantry.entityId, picked, "no rockets left -> pick the closer infantry, not the distant mech");
     }
 
     @Test
@@ -524,8 +524,8 @@ public class TacticalScoringTest {
 
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
 
-        Entity picked = sim.getTacticalScoring().findBestTarget(rifleMarine.entityId);
-        assertEquals(mech, picked, "single visible target is picked regardless of weapon affinity");
+        long picked = sim.getTacticalScoring().findBestTarget(rifleMarine.entityId);
+        assertEquals(mech.entityId, picked, "single visible target is picked regardless of weapon affinity");
     }
 
     // ---------------------------------------------------------------------
@@ -918,7 +918,7 @@ public class TacticalScoringTest {
         unit(sim, Faction.DEFENDER, 20, 5);             // distance 15
         Entity near = unit(sim, Faction.DEFENDER, 12, 5); // distance 7
 
-        assertEquals(near, sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
+        assertEquals(near.entityId, sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
                 "nearest in-range enemy is the opportunistic target");
     }
 
@@ -930,7 +930,7 @@ public class TacticalScoringTest {
         Entity marine = unit(sim, Faction.MARINE, 5, 5);
         unit(sim, Faction.DEFENDER, 35, 5);             // distance 30 > 24
 
-        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
                 "enemy beyond attack range yields no opportunistic target");
     }
 
@@ -943,7 +943,7 @@ public class TacticalScoringTest {
         unit(sim, Faction.MARINE, 8, 5);                       // friendly
         unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 10, 5); // non-combatant
 
-        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
                 "friendlies and non-combatants are not opportunistic targets");
     }
 
@@ -958,7 +958,7 @@ public class TacticalScoringTest {
         Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
         Entity enemy  = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 9, 4));
 
-        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine.entityId),
                 "in-range but no LoS → no opportunistic shot");
     }
 }

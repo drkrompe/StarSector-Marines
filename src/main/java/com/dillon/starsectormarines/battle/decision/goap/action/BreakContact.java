@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -82,18 +81,18 @@ public final class BreakContact implements Action {
      * duplication is cheaper than another helper class.
      */
     private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member);
-        if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) return;
+        if (target == 0L) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (d > sim.world().attackRange(member)) return;
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
-        sim.combat().setFireIntent(member, Entity.idOf(target), stance, false);
+                sim.world().cellX(target), sim.world().cellY(target))) return;
+        sim.combat().setFireIntent(member, target, stance, false);
     }
 }

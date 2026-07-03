@@ -252,7 +252,7 @@ public final class TacticalScoring {
      * visible targets; falls back to nearest of any LOS so the unit pathfinds
      * toward them and visibility eventually opens.
      */
-    public Entity findBestTarget(long self) {
+    public long findBestTarget(long self) {
         World world = roster.world();
         return findBestTarget(world.cellX(self), world.cellY(self),
                 roster.identity().faction(self),
@@ -279,7 +279,7 @@ public final class TacticalScoring {
      * returned target because the per-weapon fire gate handles that downstream;
      * we only ask "is the current pick clearly the wrong choice right now?".
      */
-    public Entity refreshTargetIfNotShootable(long self) {
+    public long refreshTargetIfNotShootable(long self) {
         World world = roster.world();
         int sx = world.cellX(self);
         int sy = world.cellY(self);
@@ -289,7 +289,7 @@ public final class TacticalScoring {
             int cy = world.cellY(cur.entityId);
             if (cellDistance(sx, sy, cx, cy) <= world.attackRange(self)
                     && grid.hasLineOfSight(sx, sy, cx, cy)) {
-                return cur;
+                return cur.entityId;
             }
         }
         return findBestTarget(self);
@@ -303,8 +303,8 @@ public final class TacticalScoring {
      * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
      * when the caller doesn't squad up and isn't itself in the unit list.
      */
-    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, long excludeFromCrowding) {
+    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                               int selfSquadId, long excludeFromCrowding) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
                 0f);
     }
@@ -344,9 +344,9 @@ public final class TacticalScoring {
      * When no enemy combatants remain anywhere the method returns null —
      * caller treats null as "hold position, no target."
      */
-    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, long excludeFromCrowding,
-                                 float shooterAirRadius) {
+    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                               int selfSquadId, long excludeFromCrowding,
+                               float shooterAirRadius) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
                 excludeFromCrowding, shooterAirRadius, /*allowNoLos*/ false);
     }
@@ -360,9 +360,9 @@ public final class TacticalScoring {
      * scored; the any-distance bucket still tracks the nearest non-visible
      * enemy for the path-toward-them fallback.
      */
-    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                                 int selfSquadId, long excludeFromCrowding,
-                                 float shooterAirRadius, boolean allowNoLos) {
+    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                               int selfSquadId, long excludeFromCrowding,
+                               float shooterAirRadius, boolean allowNoLos) {
         long _profT0 = System.nanoTime();
         try {
             return findBestTargetImpl(selfCellX, selfCellY, selfFaction, selfSquadId,
@@ -373,9 +373,9 @@ public final class TacticalScoring {
         }
     }
 
-    private Entity findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
-                                      int selfSquadId, long excludeFromCrowding,
-                                      float shooterAirRadius, boolean allowNoLos) {
+    private long findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
+                                    int selfSquadId, long excludeFromCrowding,
+                                    float shooterAirRadius, boolean allowNoLos) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
         // excludes released slots (no isAlive() filter inside the loop).
 
@@ -418,7 +418,8 @@ public final class TacticalScoring {
                 best = other;
             }
         }
-        return best != null ? best : bestAny;
+        Entity chosen = best != null ? best : bestAny;
+        return chosen == null ? 0L : chosen.entityId;
     }
 
     /**
@@ -756,7 +757,7 @@ public final class TacticalScoring {
      * off the heavier {@link #findBestTarget} scoring path. Cheap distance and
      * range tests gate the per-candidate LoS raycast.
      */
-    public Entity closestEnemyInAttackRange(long self) {
+    public long closestEnemyInAttackRange(long self) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
         int sx = world.cellX(self);
@@ -782,7 +783,7 @@ public final class TacticalScoring {
             bestDist = d;
             best = other;
         }
-        return best;
+        return best == null ? 0L : best.entityId;
     }
 
     /**
@@ -901,9 +902,9 @@ public final class TacticalScoring {
      * invoke this in the fallback path — when {@link #findFiringPositionWithin}
      * for the current target has already returned null.
      */
-    public Entity findEngageableEnemyWithin(long self,
-                                            int anchorX, int anchorY,
-                                            float maxDistFromAnchor) {
+    public long findEngageableEnemyWithin(long self,
+                                          int anchorX, int anchorY,
+                                          float maxDistFromAnchor) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
         int sx = world.cellX(self);
@@ -929,7 +930,7 @@ public final class TacticalScoring {
                 best = enemy;
             }
         }
-        return best;
+        return best == null ? 0L : best.entityId;
     }
 
     /**

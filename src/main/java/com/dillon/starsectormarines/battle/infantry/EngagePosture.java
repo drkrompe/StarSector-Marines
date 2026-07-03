@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -72,28 +71,28 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        Entity target = sim.targetOf(member);
-        if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) return ActionStatus.FAILURE;
+        if (target == 0L) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
         // engages from where they stand instead of running into rifle range.
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target.entityId,
+        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target,
                 sim.world().attackRange(member));
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
-                sim.vision().airLosRadius(member), sim.vision().airLosRadius(target.entityId));
+                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(target), sim.world().cellY(target),
+                sim.vision().airLosRadius(member), sim.vision().airLosRadius(target));
 
         if (inRange && visible) {
             boolean startedSecondary = false;
@@ -103,12 +102,12 @@ public final class EngagePosture implements Action {
             long mid = member;
             if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
                     && sim.world().secondaryCooldownTimer(mid) <= 0f
-                    && TacticalScoring.isHardened(target.type)
+                    && TacticalScoring.isHardened(sim.identity().type(target))
                     && dist <= sim.world().secondaryWeapon(mid).range
-                    && sim.getTacticalScoring().shouldCommitRocket(member, target.entityId)) {
+                    && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
                 sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration);
                 sim.world().setSecondaryFired(mid, false);
-                sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
+                sim.world().setSecondaryAimTargetId(mid, target);
                 startedSecondary = true;
             }
             // The pre-gate mirrors the old inline `dist <= attackRange` check
@@ -130,7 +129,7 @@ public final class EngagePosture implements Action {
                 // cell already wins cover-preferred no-ops out; exposed
                 // members move when their cooldown expires — see
                 // RepositionToCover).
-                sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, true);
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, true);
             }
             int[] memberPath = sim.world().path(member);
             if (sim.world().pathIdx(member) < Paths.cellCount(memberPath)) {
@@ -147,7 +146,7 @@ public final class EngagePosture implements Action {
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (sim.world().moveProgress(member) == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
+                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.

@@ -119,27 +119,27 @@ public final class DroneSwarmAction implements Action {
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
         sim.world().setCooldownTimer(id, s.cooldownTimer);
-        sim.world().setTargetId(id, Entity.idOf(s.target));
+        sim.world().setTargetId(id, s.target);
 
         float dt = BattleSimulation.TICK_DT;
 
         // Determine which target (if any) the drone is committing to. Engagement
         // target wins; absent that, an agro-scan hit promotes to pursuit. Both
         // refresh the pursuit latch.
-        Entity lockedOn = s.target;
-        if (lockedOn == null) {
+        long lockedOn = s.target;
+        if (lockedOn == 0L) {
             lockedOn = tryAgroScan(member, sim);
         }
-        if (lockedOn != null) {
-            droneState.setPursuitGoalX(id, sim.world().cellX(lockedOn.entityId) + 0.5f);
-            droneState.setPursuitGoalY(id, sim.world().cellY(lockedOn.entityId) + 0.5f);
+        if (lockedOn != 0L) {
+            droneState.setPursuitGoalX(id, sim.world().cellX(lockedOn) + 0.5f);
+            droneState.setPursuitGoalY(id, sim.world().cellY(lockedOn) + 0.5f);
             droneState.setPursuitTimer(id, Drone.PURSUIT_LATCH_SECONDS);
         }
 
-        if (s.target != null) {
+        if (s.target != 0L) {
             tickEngage(member, body, s, slotIdx, slotCount, sim, droneState, dt);
         } else if (droneState.pursuitTimer(id) > 0f) {
-            tickPursue(member, body, droneState, lockedOn != null, slotIdx, slotCount, sim, dt);
+            tickPursue(member, body, droneState, lockedOn != 0L, slotIdx, slotCount, sim, dt);
         } else {
             tickPatrol(member, body, droneState, sim, slotIdx, slotCount, dt);
         }
@@ -152,9 +152,9 @@ public final class DroneSwarmAction implements Action {
         // visually orbits the target.
         sim.world().setRenderPos(id, body.x - 0.5f, body.y - 0.5f);
 
-        if (s.fireThisTick && s.target != null) {
-            sim.fireShot(member, s.target.entityId, FireStance.STANCED);
-            sim.combat().beginBurst(member, s.target.entityId);
+        if (s.fireThisTick && s.target != 0L) {
+            sim.fireShot(member, s.target, FireStance.STANCED);
+            sim.combat().beginBurst(member, s.target);
         }
         return ActionStatus.RUNNING;
     }
@@ -185,8 +185,8 @@ public final class DroneSwarmAction implements Action {
     private static void tickEngage(long member, AirBody body, TurretAim.State s,
                                    int slotIdx, int slotCount,
                                    BattleView sim, DroneStateService droneState, float dt) {
-        float tx = sim.world().cellX(s.target.entityId) + 0.5f;
-        float ty = sim.world().cellY(s.target.entityId) + 0.5f;
+        float tx = sim.world().cellX(s.target) + 0.5f;
+        float ty = sim.world().cellY(s.target) + 0.5f;
         float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
 
         float baseBearingDeg = (360f * slotIdx) / slotCount;
@@ -265,19 +265,19 @@ public final class DroneSwarmAction implements Action {
      * for its squad-aware crowding + threat-density scoring, then post-filters
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
-    private static Entity tryAgroScan(long member, BattleView sim) {
+    private static long tryAgroScan(long member, BattleView sim) {
         float dAir = sim.vision().airLosRadius(member);
-        Entity candidate = sim.getTacticalScoring().findBestTarget(
+        long candidate = sim.getTacticalScoring().findBestTarget(
                 sim.world().cellX(member), sim.world().cellY(member), sim.identity().faction(member),
                 sim.squad().hasSquad(member) ? sim.squad().squadId(member) : Entity.NO_SQUAD, member, dAir);
-        if (candidate == null) return null;
+        if (candidate == 0L) return 0L;
         float dist = TacticalScoring.cellDistance(
-                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));
-        if (dist > Drone.AGGRO_RANGE_CELLS) return null;
+                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate));
+        if (dist > Drone.AGGRO_RANGE_CELLS) return 0L;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId),
-                dAir, sim.vision().airLosRadius(candidate.entityId));
-        return visible ? candidate : null;
+                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate),
+                dAir, sim.vision().airLosRadius(candidate));
+        return visible ? candidate : 0L;
     }
 
     /**

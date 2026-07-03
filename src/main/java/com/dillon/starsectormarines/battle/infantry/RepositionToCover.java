@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -67,10 +66,10 @@ public final class RepositionToCover implements Action {
      */
     public static boolean tryReposition(long member, BattleControl sim) {
         if (sim.world().repositionCooldown(member) > 0f) return false;
-        Entity target = sim.targetOf(member);
-        if (target == null) return false;
+        long target = sim.targetOf(member);
+        if (target == 0L) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
-                member, target.entityId, sim.world().cellX(member), sim.world().cellY(member));
+                member, target, sim.world().cellX(member), sim.world().cellY(member));
         if (dest == null) return false;
         if (dest[0] == sim.world().cellX(member) && dest[1] == sim.world().cellY(member)) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

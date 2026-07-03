@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -183,18 +182,18 @@ public final class PatrolMotion {
      * executes the shot in the serial FIRING phase.
      */
     public static void fireIfAble(long member, BattleControl sim) {
-        Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) return;
+        if (target == 0L) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (dist <= sim.world().attackRange(member) && visible) {
-            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.MOVING, false);
+            sim.combat().setFireIntent(member, target, FireStance.MOVING, false);
         }
     }
 }

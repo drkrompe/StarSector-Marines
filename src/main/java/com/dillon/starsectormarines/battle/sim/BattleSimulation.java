@@ -560,19 +560,22 @@ public class BattleSimulation implements BattleControl {
      * {@code [0, liveCount())} over {@link UnitRosterService#denseArray()} (or
      * resolve ids via {@link UnitRosterService#getOrNull(long)}) and pull
      * component columns by id through {@link #world()}. Same roster instance
-     * {@link #targetOf(Entity)} and the spatial-index rebuilds use; exposed here
+     * {@link #targetOf(long)} and the spatial-index rebuilds use; exposed here
      * so static scorers (TacticalScoring, etc.) can match the established consumer
      * pattern without threading the roster service through every helper signature.
      */
     public UnitRosterService getRoster() { return rosterService; }
     /**
-     * Resolves a unit's {@code world.targetId(id)} to the current target reference,
-     * or {@code null} when the target was released / never set. Short delegate
-     * over {@link UnitRosterService#getOrNull(long)};
-     * the canonical read path replacing the old {@code u.target} field.
+     * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
+     * none is set <em>or the target is no longer live</em>. The lazy-validity
+     * gate: a target released since it was locked isn't proactively cleared from
+     * {@code world.targetId(u)}, so a stale id resolves to {@code 0L} here (the
+     * long-native replacement for the old {@code getOrNull(targetId) == null}
+     * check) — callers treat {@code 0L} as "no target, re-acquire".
      */
-    public Entity targetOf(long u) {
-        return rosterService.getOrNull(world.targetId(u));
+    public long targetOf(long u) {
+        long t = world.targetId(u);
+        return rosterService.isLive(t) ? t : 0L;
     }
 
     /**
@@ -1218,13 +1221,13 @@ public class BattleSimulation implements BattleControl {
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, Entity target, boolean aerialShooter) {
+                             TurretKind kind, long target, boolean aerialShooter) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter);
     }
 
     /** Delegates to {@link TurretFireSystem}. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, Entity target, boolean aerialShooter, boolean hasLos) {
+                             TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);
     }
 

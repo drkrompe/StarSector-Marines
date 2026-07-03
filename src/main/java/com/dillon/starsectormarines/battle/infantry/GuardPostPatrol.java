@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -124,12 +123,12 @@ public final class GuardPostPatrol implements Action {
             return returnTo(member, sim, homeX, homeY);
         }
 
-        Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target != null) {
+        if (target != 0L) {
             return engage(member, target, squad, sim);
         }
 
@@ -151,33 +150,33 @@ public final class GuardPostPatrol implements Action {
      * ground — it stops trading shots from the perimeter and paths back toward
      * the strongpoint even if it could still fire from where it stands.
      */
-    private ActionStatus engage(long member, Entity target, Squad squad, BattleControl sim) {
+    private ActionStatus engage(long member, long target, Squad squad, BattleControl sim) {
         float leash = effectiveLeash(member, squad, sim);
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean withinLeash = TacticalScoring.cellDistance(anchorX, anchorY,
                 sim.world().cellX(member), sim.world().cellY(member)) <= leash;
 
         if (inRange && visible && withinLeash) {
-            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
         int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target.entityId, anchorX, anchorY, leash);
+                member, target, anchorX, anchorY, leash);
         if (firingPos == null) {
-            Entity alt = sim.getTacticalScoring().findEngageableEnemyWithin(
+            long alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, anchorX, anchorY, leash);
-            if (alt != null) {
-                sim.world().setTargetId(member, Entity.idOf(alt));
+            if (alt != 0L) {
+                sim.world().setTargetId(member, alt);
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target.entityId, anchorX, anchorY, leash);
+                        member, target, anchorX, anchorY, leash);
             }
         }
         if (firingPos == null || (firingPos[0] == sim.world().cellX(member) && firingPos[1] == sim.world().cellY(member))) {

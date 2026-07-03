@@ -172,28 +172,28 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     private ActionStatus engageInZone(long member, Squad squad, BattleControl sim, Faction enemy) {
-        Entity target = sim.targetOf(member);
-        boolean targetOutOfZone = target != null
-                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
-        if (target == null
+        long target = sim.targetOf(member);
+        boolean targetOutOfZone = target != 0L
+                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId;
+        if (target == 0L
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
-            target = pickInZoneTarget(member, sim, enemy);
-            if (target == null) target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = Entity.idOf(pickInZoneTarget(member, sim, enemy));
+            if (target == 0L) target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) {
+        if (target == 0L) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (inRange && visible) {
-            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             // Movement gate, not a fire gate — FiringSystem owns the cooldown
             // check for the shot itself. This read only preserves the old
             // control flow: on the ready tick the member stands to shoot;
@@ -204,12 +204,12 @@ public final class HoldZone extends AbstractZoneAction {
             }
         }
 
-        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId) {
+        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 sim.world().setTargetId(member, 0L);
                 hold(member, sim);

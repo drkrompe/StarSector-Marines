@@ -84,9 +84,9 @@ public final class BreachToEngage implements Goal {
         if (squad.moraleBroken) return 0f;
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
         if (squadZone < 0) return 0f;
-        Entity target = effectiveTarget(squad, sim);
-        if (target == null) return 0f;
-        int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        long target = effectiveTarget(squad, sim);
+        if (target == 0L) return 0f;
+        int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target));
         if (targetZone < 0 || targetZone == squadZone) return 0f;
         if (anyInZoneEnemyVisible(squad, squadZone, sim)) return 0f;
         // Reachability check — fall through to EliminateEnemies if the target
@@ -108,9 +108,9 @@ public final class BreachToEngage implements Goal {
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
-        Entity target = effectiveTarget(squad, sim);
-        if (target == null || squadZone < 0) return null;
-        int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        long target = effectiveTarget(squad, sim);
+        if (target == 0L || squadZone < 0) return null;
+        int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target));
         if (targetZone < 0 || targetZone == squadZone) return null;
 
         List<Integer> path = ZoneQueries.zonePathBfs(squadZone, targetZone, sim);
@@ -166,14 +166,14 @@ public final class BreachToEngage implements Goal {
         // box oriented from the doorway toward the target. Cover-aware
         // scoring picks the best per slot; reject already-picked cells so
         // members spread.
-        int dirX = Integer.signum(sim.world().cellX(target.entityId) - dwX);
-        int dirY = Integer.signum(sim.world().cellY(target.entityId) - dwY);
+        int dirX = Integer.signum(sim.world().cellX(target) - dwX);
+        int dirY = Integer.signum(sim.world().cellY(target) - dwY);
         if (dirX == 0 && dirY == 0) {
             // Target on the doorway — degenerate; pick any cardinal away
             // from the squad's zone.
             dirX = 1;
         }
-        if (!pickForwardCells(forwardZone, dwX, dwY, dirX, dirY, sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
+        if (!pickForwardCells(forwardZone, dwX, dwY, dirX, dirY, sim.world().cellX(target), sim.world().cellY(target),
                 aliveCount, forwardX, forwardY, sim)) {
             return null;
         }
@@ -303,11 +303,11 @@ public final class BreachToEngage implements Goal {
      * still have an answer for newly-spawned squads that haven't ticked
      * targeting yet.
      */
-    private static Entity effectiveTarget(Squad squad, BattleView sim) {
+    private static long effectiveTarget(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            Entity t = sim.targetOf(u.entityId);
-            if (t != null) return t;
+            long t = sim.targetOf(u.entityId);
+            if (t != 0L) return t;
         }
         int cx = Math.round(squad.centroidX);
         int cy = Math.round(squad.centroidY);

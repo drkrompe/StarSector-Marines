@@ -78,26 +78,26 @@ public final class ClearZone extends AbstractZoneAction {
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
-        Entity target = sim.targetOf(member);
-        boolean targetOutOfZone = target != null
-                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
-        if (target == null
+        long target = sim.targetOf(member);
+        boolean targetOutOfZone = target != 0L
+                && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId;
+        if (target == 0L
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             Entity inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            target = inZone != null ? Entity.idOf(inZone) : sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) return ActionStatus.RUNNING;
+        if (target == 0L) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (inRange && visible) {
-            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             // Movement gate, not a fire gate — FiringSystem owns the cooldown
             // check for the shot itself. This read only preserves the old
             // control flow: on the ready tick the member stands to shoot;
@@ -111,11 +111,11 @@ public final class ClearZone extends AbstractZoneAction {
         // Out of range / no LOS — close on the target IFF the target is in
         // the zone we're clearing. Out-of-zone targets we don't pursue —
         // that's Story K's "doesn't push into rooms it's not clearing" rule.
-        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId) {
+        if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             int[] path = dest == null ? GridPathfinder.EMPTY_PATH
                     : GridPathfinder.findPath(sim.getGrid(),
                             sim.world().cellX(member), sim.world().cellY(member),

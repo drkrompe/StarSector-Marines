@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -88,23 +87,23 @@ abstract class AbstractZoneAction implements Action {
      */
     protected final void advanceIntoZone(long member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
-        Entity target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
 
         boolean inContact = false;
-        if (target != null) {
+        if (target != 0L) {
             float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                    sim.world().cellX(target), sim.world().cellY(target));
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                    sim.world().cellX(target), sim.world().cellY(target));
             inContact = d <= sim.world().attackRange(member) && visible;
         }
 
         if (inContact) {
-            sim.combat().setFireIntent(member, Entity.idOf(target),
+            sim.combat().setFireIntent(member, target,
                     haltOnContact ? FireStance.STANCED : FireStance.MOVING, false);
         } else {
             // Opportunistic return fire while advancing. The pursuit target
@@ -116,9 +115,9 @@ abstract class AbstractZoneAction implements Action {
             // zone push, the trigger just stops it being a sitting duck.
             // FiringSystem's beginBurst tracks the intent target, so the
             // follow-up burst tracks the enemy we shot, not the pursuit target.
-            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
-            if (opportune != null) {
-                sim.combat().setFireIntent(member, Entity.idOf(opportune), FireStance.MOVING, false);
+            long opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+            if (opportune != 0L) {
+                sim.combat().setFireIntent(member, opportune, FireStance.MOVING, false);
             }
         }
 

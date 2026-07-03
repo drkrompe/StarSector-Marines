@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -79,18 +78,18 @@ public final class MechBreakContact implements Action {
      * pulling back" read.
      */
     private static void opportunisticMechFire(long u, BattleControl sim) {
-        Entity target = sim.targetOf(u);
-        if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(u, target.entityId)) {
+        long target = sim.targetOf(u);
+        if (target == 0L
+                || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {
             target = sim.getTacticalScoring().findBestTarget(u);
-            sim.world().setTargetId(u, Entity.idOf(target));
+            sim.world().setTargetId(u, target);
         }
-        if (target == null) return;
+        if (target == 0L) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (dist > sim.world().attackRange(u)) return;
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         MechLoadoutComponent m = sim.world().mechLoadout(u);
         MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
     }

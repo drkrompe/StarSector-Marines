@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -56,24 +55,24 @@ public final class ApproachPosture implements Action {
         // squad walking past a close mech to engage a distant turret because
         // member.target was locked at approach start; shouldKeepPursuing's
         // closer-visible-target check is what unsticks that case.
-        Entity target = sim.targetOf(member);
-        if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+        long target = sim.targetOf(member);
+        if (target == 0L
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target == null) return ActionStatus.FAILURE;
+        if (target == 0L) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                sim.world().cellX(target), sim.world().cellY(target));
         if (inRange && visible) return ActionStatus.SUCCESS;
 
         if (sim.world().moveProgress(member) == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
+            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop

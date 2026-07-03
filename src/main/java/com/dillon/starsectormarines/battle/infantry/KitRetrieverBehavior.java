@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -56,20 +55,20 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * reposition cooldowns now tick during retrieval too.
      */
     private static void fireOpportunistically(long u, BattleControl sim) {
-        Entity target = sim.targetOf(u);
-        if (target == null) {
+        long target = sim.targetOf(u);
+        if (target == 0L) {
             target = sim.getTacticalScoring().findBestTarget(u);
-            sim.world().setTargetId(u, Entity.idOf(target));
+            sim.world().setTargetId(u, target);
         }
-        if (target == null) return;
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        if (target == 0L) return;
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
         boolean canFire = dist <= sim.world().attackRange(u)
-                && sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                && sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
         if (canFire) {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
             // Authors intent; FiringSystem applies the cooldown gate and
             // executes the shot.
-            sim.combat().setFireIntent(u, Entity.idOf(target), FireStance.MOVING, false);
+            sim.combat().setFireIntent(u, target, FireStance.MOVING, false);
         }
     }
 }

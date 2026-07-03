@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -131,17 +130,17 @@ public final class BackstopAssignedSquad implements Action {
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw
         // everything you have at whatever the marines are shooting at."
-        Entity target = sim.targetOf(member);
-        if (target == null) {
+        long target = sim.targetOf(member);
+        if (target == 0L) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, Entity.idOf(target));
+            sim.world().setTargetId(member, target);
         }
-        if (target != null) {
+        if (target != 0L) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                    sim.world().cellX(target), sim.world().cellY(target));
             boolean inRange = dist <= sim.world().attackRange(member);
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+                    sim.world().cellX(target), sim.world().cellY(target));
             if (inRange) {
                 MechCombatantBehavior.tryFireMechWeapons(member, m, target, dist, sim, visible);
             }

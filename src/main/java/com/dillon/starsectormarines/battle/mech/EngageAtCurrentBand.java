@@ -50,16 +50,16 @@ public final class EngageAtCurrentBand implements Action {
 
     @Override
     public ActionStatus execute(long u, Squad squad, BattleControl sim) {
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
-        sim.world().setTargetId(u, Entity.idOf(target));
-        if (target == null) return ActionStatus.RUNNING;
+        long target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        sim.world().setTargetId(u, target);
+        if (target == 0L) return ActionStatus.RUNNING;
 
         // Loadout component reached by id (zero-alloc direct lookup).
         MechLoadoutComponent m = sim.world().mechLoadout(u);
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
         boolean inRange = dist <= sim.world().attackRange(u);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
 
         // The fire pass runs outside the inRange-and-visible gate because LRMs
         // are indirect-fire capable — a mech with line of sight blocked by a
@@ -75,7 +75,7 @@ public final class EngageAtCurrentBand implements Action {
         // indirect path above).
         boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
         if (!closeEngagement && sim.world().moveProgress(u) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target.entityId);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.
                 // Drop and let the mech's per-tick target acquisition re-pick.

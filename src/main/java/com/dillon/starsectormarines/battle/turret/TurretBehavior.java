@@ -76,7 +76,7 @@ public final class TurretBehavior implements UnitBehavior {
 
         turretState.setFacingDegrees(id, s.facingDegrees);
         sim.world().setCooldownTimer(id, s.cooldownTimer);
-        sim.world().setTargetId(id, Entity.idOf(s.target));
+        sim.world().setTargetId(id, s.target);
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
         // salvo finishes its rounds before the aim loop kicks another.
@@ -91,7 +91,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
                         sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget.entityId), sim.world().cellY(currentBurstTarget.entityId));
-                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, currentBurstTarget,
+                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, currentBurstTarget.entityId,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
@@ -112,16 +112,16 @@ public final class TurretBehavior implements UnitBehavior {
                 sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
-                if (s.target != null) {
+                if (s.target != 0L) {
                     turretState.setBurstRemaining(id, kind.burstCount - 1);
                     turretState.setBurstTimer(id, kind.burstSpacing);
-                    turretState.setBurstTargetId(id, s.target.entityId);
+                    turretState.setBurstTargetId(id, s.target);
                 }
             } else {
                 // Single-shot kinds keep the existing Entity-vs-Entity fire path
                 // so morale impact + ShotEvent tagging stay correct for the
                 // unchanged ground turrets (Arbalest, Hephaestus, etc.).
-                sim.fireShot(u, s.target.entityId);
+                sim.fireShot(u, s.target);
                 turretState.setRecoilTimer(id, 0f);
             }
         }

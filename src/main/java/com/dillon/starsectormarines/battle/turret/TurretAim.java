@@ -52,8 +52,8 @@ public final class TurretAim {
         /** Sim-seconds until the turret can fire again. Decremented each tick; reset to {@link #attackCooldown} on a fire. */
         public float cooldownTimer;
         public float attackCooldown;
-        /** Active target; null when no enemy is locked. Mutated by the acquisition pass and dropped when out of range / LOS. */
-        public Entity target;
+        /** Active target entity id; {@code 0L} when no enemy is locked. Mutated by the acquisition pass and dropped when out of range / LOS. */
+        public long target;
 
         /** Output: true when the caller should fire this tick. Reset every {@link #tick} call. */
         public boolean fireThisTick;
@@ -102,24 +102,24 @@ public final class TurretAim {
         s.fireThisTick = false;
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
-        if (s.target == null) {
+        if (s.target == 0L) {
             s.target = scoring.findBestTarget(
                     s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, /*allowNoLos*/ s.indirectFire);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
-        if (s.target == null) return;
+        if (s.target == 0L) return;
 
         // Target is freshly acquired from findBestTarget this tick (callers
         // recreate State each tick), so a by-id cell read is always live.
-        int tcx = world.cellX(s.target.entityId);
-        int tcy = world.cellY(s.target.entityId);
+        int tcx = world.cellX(s.target);
+        int tcy = world.cellY(s.target);
         float dist = TacticalScoring.cellDistance(
                 s.originCellX, s.originCellY, tcx, tcy);
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canSeePair(grid,
                 s.originCellX, s.originCellY, tcx, tcy,
-                shooterAirR, vision.airLosRadius(s.target.entityId));
+                shooterAirR, vision.airLosRadius(s.target));
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
         // hide attackers from artillery that's been ranged in) and only drop
@@ -128,7 +128,7 @@ public final class TurretAim {
         // no-LoS accuracy multiplier.
         boolean dropOnNoLos = !s.indirectFire;
         if (!inRange || (dropOnNoLos && !visible)) {
-            s.target = null;
+            s.target = 0L;
             return;
         }
 

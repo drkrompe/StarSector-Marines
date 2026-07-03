@@ -280,7 +280,7 @@ public class GroundSystem {
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
                 if (gt.burstTimer <= 0f && currentBurstTarget != null && world.isAlive(gt.burstTargetId)) {
-                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget, false);
+                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget.entityId, false);
                     gt.ammo--;
                     gt.burstRemaining--;
                     gt.burstTimer = kind.burstSpacing;
@@ -305,22 +305,22 @@ public class GroundSystem {
             aim.minRange = kind.minRange;
             aim.cooldownTimer = gt.cooldownTimer;
             aim.attackCooldown = kind.cooldown;
-            aim.target = (gt.targetId != 0L) ? roster.getOrNull(gt.targetId) : null;
+            aim.target = roster.isLive(gt.targetId) ? gt.targetId : 0L;
 
             TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
             gt.facingDeg = aim.facingDegrees;
             gt.cooldownTimer = aim.cooldownTimer;
-            gt.targetId = (aim.target != null) ? aim.target.entityId : 0L;
+            gt.targetId = aim.target;
 
-            if (aim.fireThisTick && aim.target != null) {
+            if (aim.fireThisTick && aim.target != 0L) {
                 fireSink.fire(mountWorldX, mountWorldY, faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 gt.ammo--;
-                if (kind.burstCount > 1 && world.isAlive(aim.target.entityId)) {
+                if (kind.burstCount > 1 && world.isAlive(aim.target)) {
                     gt.burstRemaining = kind.burstCount - 1;
                     gt.burstTimer = kind.burstSpacing;
-                    gt.burstTargetId = aim.target.entityId;
+                    gt.burstTargetId = aim.target;
                 }
             }
         }

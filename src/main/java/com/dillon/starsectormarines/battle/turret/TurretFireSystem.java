@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.ShotRaycast;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -68,9 +67,9 @@ public final class TurretFireSystem implements TurretFireSink {
 
     @Override
     public void fire(float fromX, float fromY, Faction shooterFaction,
-                     TurretKind kind, Entity target, boolean aerialShooter, boolean hasLos) {
-        int tcx = world.cellX(target.entityId);
-        int tcy = world.cellY(target.entityId);
+                     TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
+        int tcx = world.cellX(target);
+        int tcy = world.cellY(target);
         float distToTarget = (float) Math.sqrt(
                 (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
                 (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));
@@ -119,8 +118,8 @@ public final class TurretFireSystem implements TurretFireSink {
 
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
-                damageService.applyDamage(target.entityId, kind.damage, 1f, 1f);
-                hitResponse.rollFallbackOnHit(target.entityId);
+                damageService.applyDamage(target, kind.damage, 1f, 1f);
+                hitResponse.rollFallbackOnHit(target);
             }
         }
 
