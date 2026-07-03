@@ -216,10 +216,13 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    `DamageService.OccupancyApplier`/`applyOccupancyDelta` + `NavigationService` `setPath`/`clearPath`/
    `applyOccupancyDeltaInline` internals → `long`. The `BattleSimulation.setPath(Entity)`/`clearPath(Entity)`
    facade KEPT `Entity` (delegates `.entityId`), so the ~30 behavior callers don't move yet. Reopens
-   `systems-to-columns` (the id-native spatial-index work). **Next: the facade `setPath`/`clearPath` →
-   `long`** (ripples the ~30 behavior + 3 test callers to `.entityId`; the D1 `writeFallbackInline`
-   `getOrNull` follow-up rides along), then the atomic `Action.execute(Entity→long)` flip (interface + ~30
-   implementors, one commit). Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity — the **storage
+   `systems-to-columns` (the id-native spatial-index work). **D8 SHIPPED (`404bb3c5`, 869 green):** the
+   facade `BattleControl.setPath`/`clearPath` params → `long` — 44 behavior + test callers across ~27 files
+   pass `.entityId` (2 parallel Sonnet passes); `writeFallbackInline` dropped its `getOrNull` backward
+   resolve; `EquipmentDropSystem`/`SquadFallbackSystem` path-clearer `Consumer<Entity>` → `LongConsumer`.
+   **Next: the atomic `Action.execute(Entity→long)` flip** (interface + ~30 implementors + dispatcher +
+   test anon impls, one commit — every implementor shares the signature, so it's a single atomic flip).
+   Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity — the **storage
    finale**, now called out as its own dedicated closing session (roster `Entity[]`→`long[]`, sister index
    id-native, Entity-returning queries → `long`, `DeathEvent` → `long`, **delete `Entity`**): story doc
    § "Storage finale". Full record + corrected sequence: the story doc § Phase D.
@@ -231,6 +234,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+404bb3c5 ecs-migration: identity-collapse D8 - facade setPath/clearPath -> long
 c296b13b ecs-migration: identity-collapse D7 - dest-index id-native; NavigationService setPath/clearPath internals -> long
 da6c022c ecs-migration: identity-collapse D6 - facade fire* + applyDamage front-door -> long
 51d6f1c  ecs-migration: identity-collapse D5 - weapon-fire methods -> long
@@ -262,7 +266,7 @@ goap, campaign) interleave on HEAD.
   the FiringSystem sweep, 862 tests). `Vehicle.java` is **gone**: convoy vehicles are
   world entities; mission state is `VehicleMission` in `VEHICLE_MISSION`, reached via
   `convoy.mission(id)`; identity/kinematics/turret are their own columns read by id.
-- `git log --oneline -5` shows `c296b13b` (identity-collapse D7) or your own recent work at the top.
+- `git log --oneline -5` shows `404bb3c5` (identity-collapse D8) or your own recent work at the top.
 - **identity-collapse Phases A + B + C COMPLETE (2026-07-02)** — `Entity` is now a bare handle:
   `{entityId, faction, type, NO_SQUAD, idOf}`. No subclasses, no live/seed state, no ctor beyond
   `Entity(faction, type)`; all construction flows through `EntitySpec` + `UnitRosterService.spawn(spec)`
@@ -285,12 +289,16 @@ goap, campaign) interleave on HEAD.
   (new `LongBucket` primitive-long store; `gather` skips released ids), unblocking the dest-index gate:
   `DamageService.OccupancyApplier`/`applyOccupancyDelta` + `NavigationService` setPath/clearPath internals
   → `long`. The `BattleSimulation.setPath(Entity)`/`clearPath(Entity)` facade KEPT Entity (delegates
-  `.entityId`), so the ~30 behavior callers don't move yet. Reopens `systems-to-columns`.
-  **SEQUENCING CORRECTION:** the behaviors share one atomic `Action.execute(Entity)` interface, gated
-  bottom-up — a sequential cascade, only the caller ripple fans out. **Next: the facade
-  `setPath`/`clearPath` → `long`** (ripples the ~30 behavior + 3 test callers to `.entityId`), then the
-  atomic `Action.execute(Entity→long)` flip. Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity
-  (later storage finale). [`stories/identity-collapse.md`](stories/identity-collapse.md).
+  `.entityId`), so the ~30 behavior callers don't move yet. Reopens `systems-to-columns`. **D8 SHIPPED
+  (`404bb3c5`, 869 green):** the facade `BattleControl.setPath`/`clearPath` params → `long` (44 behavior +
+  test callers across ~27 files pass `.entityId` via 2 parallel Sonnet passes; `writeFallbackInline`
+  dropped its `getOrNull` backward resolve; `EquipmentDropSystem`/`SquadFallbackSystem` path-clearer →
+  `LongConsumer`). **SEQUENCING CORRECTION:** the behaviors share one atomic `Action.execute(Entity)`
+  interface, gated bottom-up — a sequential cascade, only the caller ripple fans out. **Next: the atomic
+  `Action.execute(Entity→long)` flip** (interface + ~30 implementors + dispatcher + test anon impls, one
+  commit — every implementor shares the signature). Sister `UnitSpatialIndex` + roster `Entity[]` stay
+  Entity — the **storage finale** (its own dedicated closing session; story doc § "Storage finale").
+  [`stories/identity-collapse.md`](stories/identity-collapse.md).
 - **live authored-appearance: core loop CLOSED 2026-07-01** — Phases 1+2 shipped
   (`9f1c33f0` + `ee215e14` critique fixes + `9bd3c7fa`; suite 843 green). Remaining phases
   are art/scope-gated (Phase 3 needs walk-cycle sheets; Phase 4 scopes on its own), so the
@@ -303,11 +311,12 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — the facade `setPath`/`clearPath` → `long`**
-  (now that the dest-index is id-native as of D7): flip `BattleControl.setPath`/`clearPath` params →
-  `long`, rippling the ~30 behavior + 3 test callers to `.entityId`; then the atomic
-  `Action.execute(Entity→long)` flip. D0+D1 `240df7f9`; D2 `a782ad71`; D3 `14a6d774`; D4 `d6b61af2`;
-  D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`.
+  playtest. **Next-up:** **identity-collapse Phase D — the atomic `Action.execute(Entity→long)` flip**
+  (D8 landed the facade `setPath`/`clearPath` → `long`): `Action.execute`'s `member` param → `long` across
+  the interface + ~30 implementors + dispatcher + `AbstractZoneAction` + test anon impls, in ONE commit
+  (every implementor shares the signature; bodies already read by id). Then `mintSquad` → air/vehicle/ui →
+  the **storage finale** (§ "Storage finale" in the story doc). D0+D1 `240df7f9`; D2 `a782ad71`;
+  D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`; D8 `404bb3c5`.
   Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

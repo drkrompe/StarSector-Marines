@@ -6,7 +6,8 @@
 > shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`; D5
 > (weapon-fire methods) shipped `51d6f1c`; D6 (sim-facade `fire*` + `applyDamage(Entity)` front-door)
 > shipped `da6c022c`; D7 (dest-index id-native + `NavigationService` setPath/clearPath internals)
-> shipped `c296b13b`. NOTE: this stretch is a bottom-up cascade of sequential
+> shipped `c296b13b`; D8 (facade `setPath`/`clearPath` → `long`, ~44 caller ripple) shipped `404bb3c5`.
+> NOTE: this stretch is a bottom-up cascade of sequential
 > slices, NOT a parallel behavior-cluster fan-out — see the § Phase D "SEQUENCING CORRECTION".**
 > The endgame is still `entity = long` everywhere. **Phase A** — `rng`→`ThreadLocalRandom` (`4e6238c0`), base
 > methods→Services (`ead4ec0d`), String `id`→`IDENTITY_NAME` + `IdentityService` (`e0240ac6`).
@@ -373,12 +374,19 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   Reopens [`systems-to-columns`](systems-to-columns.md) (the id-native spatial-index work). Sister
   `UnitSpatialIndex` (still `Entity` buckets, more `gather` callers) + roster `Entity[]` are the later
   storage-finale scope, deliberately deferred.
-- **Next — the facade `setPath`/`clearPath` → `long`:** `BattleControl.setPath(Entity, int[])` /
-  `clearPath(Entity)` params → `long`, rippling the ~30 behavior callers + 3 test sites to `.entityId`
-  (mechanical — delegatable), plus the D1 `writeFallbackInline` `getOrNull` follow-up. Then the **atomic
-  `Action.execute(Entity member)` flip** (interface + ~30 implementors + dispatcher + `AbstractZoneAction`
-  + test anon impls, one commit) → `mintSquad` (nullable leader→`0L`) → air/vehicle/ui → **the storage
-  finale** — its own dedicated closing session (scope + rationale in § "Storage finale" below).
+- ~~**D8 · facade `setPath`/`clearPath` → `long`**~~ — **SHIPPED (`404bb3c5`; suite green, 869 tests).**
+  `BattleControl.setPath(Entity, int[])`/`clearPath(Entity)` params → `long` (impls delegate the id to the
+  id-native `NavigationService`). `writeFallbackInline` dropped its `clearPath(getOrNull(id))` backward
+  resolve for a direct `clearPath(targetId)` (the D1-noted transitional resolve is gone). 44 behavior +
+  test call sites across ~27 files (infantry/mech/decision/goap) pass `.entityId` (2 parallel Sonnet
+  passes over disjoint clusters); `EquipmentDropSystem` + `SquadFallbackSystem` path-clearer
+  `Consumer<Entity>` → `LongConsumer` (`this::clearPath` method-refs re-bind to `clearPath(long)`).
+- **Next — the atomic `Action.execute(Entity member)` flip:** the one non-mechanical hop left before the
+  finale — `Action.execute`'s `member` param → `long` (interface + ~30 implementors + dispatcher +
+  `AbstractZoneAction` + test anon impls, in ONE commit, since every implementor shares the signature).
+  Bodies already read everything by id / pass `.entityId`, so the flip is switching `member` from a handle
+  to an id and dropping the now-redundant `.entityId`. Then `mintSquad` (nullable leader→`0L`) →
+  air/vehicle/ui → **the storage finale** (§ "Storage finale").
 
 ## Storage finale — the dedicated closing session (the `entity = long` terminus)
 
