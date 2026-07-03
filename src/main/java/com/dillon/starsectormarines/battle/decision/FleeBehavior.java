@@ -54,7 +54,7 @@ public final class FleeBehavior implements UnitBehavior {
     private FleeBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
+    public void update(long u, BattleSimulation sim) {
         Entity threat = findNearestThreat(u, sim);
         if (threat != null) {
             updateFleeing(u, threat, sim);
@@ -67,59 +67,59 @@ public final class FleeBehavior implements UnitBehavior {
      * Threat present — rebuild the flee path periodically and run. Cancels any
      * in-flight wander dwell so the civilian doesn't stand around mid-panic.
      */
-    private static void updateFleeing(Entity u, Entity threat, BattleSimulation sim) {
-        sim.world().setWanderDwellTimer(u.entityId, 0f);
-        int[] path = sim.world().path(u.entityId);
-        int pathIdx = sim.world().pathIdx(u.entityId);
+    private static void updateFleeing(long u, Entity threat, BattleSimulation sim) {
+        sim.world().setWanderDwellTimer(u, 0f);
+        int[] path = sim.world().path(u);
+        int pathIdx = sim.world().pathIdx(u);
         boolean needsRepath = pathIdx >= Paths.cellCount(path)
                 || cellsTraveled(pathIdx) >= REPATH_CELL_THRESHOLD;
-        if (needsRepath && sim.world().moveProgress(u.entityId) == 0f) {
+        if (needsRepath && sim.world().moveProgress(u) == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
-                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        sim.advanceMovement(u.entityId);
+        sim.advanceMovement(u);
     }
 
     /**
      * No threat in range — wander. Advances any active wander path; on arrival
      * starts a dwell, and when dwell expires picks a new destination.
      */
-    private static void updateIdle(Entity u, BattleSimulation sim) {
-        int[] path = sim.world().path(u.entityId);
-        int pathIdx = sim.world().pathIdx(u.entityId);
+    private static void updateIdle(long u, BattleSimulation sim) {
+        int[] path = sim.world().path(u);
+        int pathIdx = sim.world().pathIdx(u);
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(u.entityId);
+            sim.advanceMovement(u);
             // Re-fetch after advance — pathIdx may have incremented.
-            if (sim.world().pathIdx(u.entityId) >= Paths.cellCount(sim.world().path(u.entityId))) {
+            if (sim.world().pathIdx(u) >= Paths.cellCount(sim.world().path(u))) {
                 // Arrived this tick — clear the path and start dwelling.
-                sim.clearPath(u.entityId);
-                sim.world().setWanderDwellTimer(u.entityId, randomDwellSeconds(ThreadLocalRandom.current()));
+                sim.clearPath(u);
+                sim.world().setWanderDwellTimer(u, randomDwellSeconds(ThreadLocalRandom.current()));
             }
             return;
         }
 
-        if (sim.world().wanderDwellTimer(u.entityId) > 0f) {
-            sim.world().setWanderDwellTimer(u.entityId, sim.world().wanderDwellTimer(u.entityId) - BattleSimulation.TICK_DT);
-            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
-            sim.world().setMoveProgress(u.entityId, 0f);
+        if (sim.world().wanderDwellTimer(u) > 0f) {
+            sim.world().setWanderDwellTimer(u, sim.world().wanderDwellTimer(u) - BattleSimulation.TICK_DT);
+            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
+            sim.world().setMoveProgress(u, 0f);
             return;
         }
 
-        if (sim.world().moveProgress(u.entityId) != 0f) return;
+        if (sim.world().moveProgress(u) != 0f) return;
         int[] dest = pickWanderDestination(u, sim);
         if (dest == null) {
-            sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
+            sim.world().setWanderDwellTimer(u, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
-        if (Paths.isEmpty(sim.world().path(u.entityId))) {
+        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
+        if (Paths.isEmpty(sim.world().path(u))) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
-            sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
+            sim.world().setWanderDwellTimer(u, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.advanceMovement(u.entityId);
+        sim.advanceMovement(u);
     }
 
     /**
@@ -127,14 +127,14 @@ public final class FleeBehavior implements UnitBehavior {
      * sides spook civilians — they don't know which marines are friendly and
      * gunfire is gunfire regardless of who's behind the trigger.
      */
-    private static Entity findNearestThreat(Entity self, BattleSimulation sim) {
+    private static Entity findNearestThreat(long self, BattleSimulation sim) {
         Entity best = null;
         float bestDist = PERCEPTION_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            if (u == self) continue;
+            if (u.entityId == self) continue;
             if (!u.type.combatant) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
             if (d <= bestDist) {
                 bestDist = d;
                 best = u;
@@ -150,10 +150,10 @@ public final class FleeBehavior implements UnitBehavior {
      * furthest walkable cell along the ray as the destination. Falls back to
      * the map edge in that direction if the ray is short.
      */
-    private static int[] pickFleeDestination(Entity self, Entity threat, BattleSimulation sim) {
+    private static int[] pickFleeDestination(long self, Entity threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        float dx = sim.world().cellX(self.entityId) - sim.world().cellX(threat.entityId);
-        float dy = sim.world().cellY(self.entityId) - sim.world().cellY(threat.entityId);
+        float dx = sim.world().cellX(self) - sim.world().cellX(threat.entityId);
+        float dy = sim.world().cellY(self) - sim.world().cellY(threat.entityId);
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
@@ -167,8 +167,8 @@ public final class FleeBehavior implements UnitBehavior {
         int[] best = null;
         int maxSteps = Math.max(grid.getWidth(), grid.getHeight());
         for (int step = 1; step <= maxSteps; step++) {
-            int cx = sim.world().cellX(self.entityId) + Math.round(nx * step);
-            int cy = sim.world().cellY(self.entityId) + Math.round(ny * step);
+            int cx = sim.world().cellX(self) + Math.round(nx * step);
+            int cy = sim.world().cellY(self) + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
             float distFromThreat = TacticalScoring.cellDistance(cx, cy, sim.world().cellX(threat.entityId), sim.world().cellY(threat.entityId));
@@ -185,7 +185,7 @@ public final class FleeBehavior implements UnitBehavior {
      * Square-ring sampling is biased toward the corners but is cheap and the
      * bias doesn't read in motion — the destinations still look local.
      */
-    private static int[] pickWanderDestination(Entity u, BattleSimulation sim) {
+    private static int[] pickWanderDestination(long u, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         Random rng = ThreadLocalRandom.current();
         int span = WANDER_MAX_RADIUS * 2 + 1;
@@ -193,11 +193,11 @@ public final class FleeBehavior implements UnitBehavior {
             int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;
             int dy = rng.nextInt(span) - WANDER_MAX_RADIUS;
             if (Math.abs(dx) + Math.abs(dy) < WANDER_MIN_RADIUS) continue;
-            int cx = sim.world().cellX(u.entityId) + dx;
-            int cy = sim.world().cellY(u.entityId) + dy;
+            int cx = sim.world().cellX(u) + dx;
+            int cy = sim.world().cellY(u) + dy;
             if (!grid.inBounds(cx, cy)) continue;
             if (!grid.isWalkable(cx, cy)) continue;
-            if (cx == sim.world().cellX(u.entityId) && cy == sim.world().cellY(u.entityId)) continue;
+            if (cx == sim.world().cellX(u) && cy == sim.world().cellY(u)) continue;
             return new int[]{cx, cy};
         }
         return null;

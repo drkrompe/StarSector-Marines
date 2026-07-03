@@ -137,11 +137,11 @@ public final class UnitUpdateSystem {
         long t0 = System.nanoTime();
         TickInnerProfile.Bucket bucket;
         if (sim.world().hasAiState(u.entityId) && sim.world().fallbackTimer(u.entityId) > 0f) {
-            FallbackBehavior.INSTANCE.update(u, sim);
+            FallbackBehavior.INSTANCE.update(u.entityId, sim);
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {
             UnitRole role = sim.role().role(u.entityId);
-            behaviorFor(role).update(u, sim);
+            behaviorFor(role).update(u.entityId, sim);
             bucket = innerBucketForRole(role);
         }
         // Route through TickInnerProfile.current() so workers in the parallel

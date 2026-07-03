@@ -52,8 +52,8 @@ public final class GoapDroneBehavior implements UnitBehavior {
     private GoapDroneBehavior() {}
 
     @Override
-    public void update(Entity unit, BattleSimulation sim) {
-        Squad squad = sim.squadOf(unit.entityId);
+    public void update(long unit, BattleSimulation sim) {
+        Squad squad = sim.squadOf(unit);
         if (squad == null) return;
 
         SquadPlan plan = squad.currentPlan;
@@ -64,7 +64,7 @@ public final class GoapDroneBehavior implements UnitBehavior {
         // the end between the isComplete() check and here. Skip this tick.
         if (step == null || step.slotOf(unit) == null) return;
 
-        ActionStatus status = step.action.execute(unit.entityId, squad, sim);
+        ActionStatus status = step.action.execute(unit, squad, sim);
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state — see
             // GoapInfantryBehavior.update for the locking rationale (avoid

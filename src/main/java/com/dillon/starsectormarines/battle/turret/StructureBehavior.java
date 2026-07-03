@@ -17,7 +17,7 @@ public final class StructureBehavior implements UnitBehavior {
     private StructureBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
+    public void update(long u, BattleSimulation sim) {
         // intentional no-op
     }
 }

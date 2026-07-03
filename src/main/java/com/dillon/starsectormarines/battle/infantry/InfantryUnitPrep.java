@@ -34,9 +34,9 @@ public final class InfantryUnitPrep {
      * fire, no re-target). Returns {@code false} when the unit is not aiming
      * and the caller should proceed normally.
      */
-    public static boolean tickAimAndShortCircuit(Entity unit, BattleControl sim) {
+    public static boolean tickAimAndShortCircuit(long unit, BattleControl sim) {
         World w = sim.world();
-        long id = unit.entityId;
+        long id = unit;
         // Presence-gate before any SECONDARY_WEAPON read: a unit without the
         // capability lacks the component (the timer read would fail loud).
         if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
@@ -48,7 +48,7 @@ public final class InfantryUnitPrep {
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
             Entity aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
             if (aimTarget != null) {
-                sim.fireSecondary(unit.entityId, aimTarget.entityId);
+                sim.fireSecondary(unit, aimTarget.entityId);
             }
             w.setSecondaryFired(id, true);
             w.setSecondaryCooldownTimer(id, sec.cooldown);
@@ -67,8 +67,8 @@ public final class InfantryUnitPrep {
      * doesn't freeze cooldown drain (otherwise the marine arrives at firing
      * range with a stale full cooldown and a perceived response lag).
      */
-    public static void tickCooldowns(Entity unit, World world) {
-        long id = unit.entityId;
+    public static void tickCooldowns(long unit, World world) {
+        long id = unit;
         float cd = world.cooldownTimer(id);
         if (cd > 0f) world.setCooldownTimer(id, cd - BattleSimulation.TICK_DT);
         if (world.hasSecondaryWeapon(id)) {
@@ -98,8 +98,8 @@ public final class InfantryUnitPrep {
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
      * Returns {@code false} when nothing changed.
      */
-    public static boolean tryOpportunityRocket(Entity unit, BattleView sim) {
-        long id = unit.entityId;
+    public static boolean tryOpportunityRocket(long unit, BattleView sim) {
+        long id = unit;
         if (!sim.world().hasSecondaryWeapon(id)) return false;
         if (sim.world().secondaryAmmo(id) <= 0) return false;
         if (sim.world().secondaryCooldownTimer(id) > 0f) return false;
@@ -115,19 +115,19 @@ public final class InfantryUnitPrep {
         Entity bestHardened = null;
         float bestDistSq = Float.MAX_VALUE;
         ArrayList<Entity> scratch = new ArrayList<>();
-        sim.getUnitIndex().gather(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId), range, scratch);
+        sim.getUnitIndex().gather(sim.world().cellX(unit), sim.world().cellY(unit), range, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity other = scratch.get(i);
             if (!TacticalScoring.isHardened(other.type)) continue;
             if (!sim.world().isAlive(other.entityId)) continue;
-            if (other.faction == unit.faction) continue;
-            float dx = sim.world().cellX(other.entityId) - sim.world().cellX(unit.entityId);
-            float dy = sim.world().cellY(other.entityId) - sim.world().cellY(unit.entityId);
+            if (other.faction == sim.identity().faction(unit)) continue;
+            float dx = sim.world().cellX(other.entityId) - sim.world().cellX(unit);
+            float dy = sim.world().cellY(other.entityId) - sim.world().cellY(unit);
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            if (!sim.getTacticalScoring().shouldCommitRocket(unit.entityId, other.entityId)) continue;
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit), sim.world().cellY(unit), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
+            if (!sim.getTacticalScoring().shouldCommitRocket(unit, other.entityId)) continue;
             bestHardened = other;
             bestDistSq = d2;
         }
@@ -140,8 +140,8 @@ public final class InfantryUnitPrep {
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent
         // from the first frame of the aim window.
-        sim.world().setMoveProgress(unit.entityId, 0f);
-        sim.world().setRenderPos(unit.entityId, sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId));
+        sim.world().setMoveProgress(unit, 0f);
+        sim.world().setRenderPos(unit, sim.world().cellX(unit), sim.world().cellY(unit));
         return true;
     }
 }

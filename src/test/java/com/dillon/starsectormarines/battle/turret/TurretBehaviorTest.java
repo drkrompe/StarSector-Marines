@@ -36,7 +36,7 @@ public class TurretBehaviorTest {
         BattleSimulation sim = openArena(20, 20);
         Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
 
-        TurretBehavior.INSTANCE.update(turret, sim);
+        TurretBehavior.INSTANCE.update(turret.entityId, sim);
 
         // Seeded to 1f (past the renderer's recoil window); one update ages it
         // by exactly one TICK_DT since nothing fired to reset it to 0.
@@ -54,7 +54,7 @@ public class TurretBehaviorTest {
         // VULCAN's 22-cell range.
         Entity enemy = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 20));
 
-        TurretBehavior.INSTANCE.update(turret, sim);
+        TurretBehavior.INSTANCE.update(turret.entityId, sim);
 
         long id = turret.entityId;
         assertEquals(TurretKind.VULCAN.burstCount - 1, sim.turretState().burstRemaining(id),

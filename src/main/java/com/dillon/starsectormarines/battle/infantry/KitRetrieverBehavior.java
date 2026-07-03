@@ -27,11 +27,11 @@ public final class KitRetrieverBehavior implements UnitBehavior {
     private KitRetrieverBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
-        EquipmentDrop drop = sim.task().equipmentDropTarget(u.entityId);
+    public void update(long u, BattleSimulation sim) {
+        EquipmentDrop drop = sim.task().equipmentDropTarget(u);
         if (drop == null || drop.consumed) {
-            sim.role().setRole(u.entityId, UnitRole.COMBATANT);
-            sim.task().clearEquipmentDropTarget(u.entityId);
+            sim.role().setRole(u, UnitRole.COMBATANT);
+            sim.task().clearEquipmentDropTarget(u);
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }
@@ -39,10 +39,10 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         InfantryUnitPrep.tickCooldowns(u, sim.world());
         fireOpportunistically(u, sim);
 
-        if (sim.world().moveProgress(u.entityId) == 0f) {
-            sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), drop.cellX, drop.cellY, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(u) == 0f) {
+            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(u.entityId);
+        sim.advanceMovement(u);
     }
 
     /**
@@ -55,21 +55,21 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * change from the old inline (primary-only) decrement: secondary and
      * reposition cooldowns now tick during retrieval too.
      */
-    private static void fireOpportunistically(Entity u, BattleControl sim) {
-        Entity target = sim.targetOf(u.entityId);
+    private static void fireOpportunistically(long u, BattleControl sim) {
+        Entity target = sim.targetOf(u);
         if (target == null) {
-            target = sim.getTacticalScoring().findBestTarget(u.entityId);
-            sim.world().setTargetId(u.entityId, Entity.idOf(target));
+            target = sim.getTacticalScoring().findBestTarget(u);
+            sim.world().setTargetId(u, Entity.idOf(target));
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean canFire = dist <= sim.world().attackRange(u.entityId)
-                && sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean canFire = dist <= sim.world().attackRange(u)
+                && sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (canFire) {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
             // Authors intent; FiringSystem applies the cooldown gate and
             // executes the shot.
-            sim.combat().setFireIntent(u.entityId, Entity.idOf(target), FireStance.MOVING, false);
+            sim.combat().setFireIntent(u, Entity.idOf(target), FireStance.MOVING, false);
         }
     }
 }

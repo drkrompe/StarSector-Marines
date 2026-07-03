@@ -47,7 +47,7 @@ public class KitRetrieverBehaviorTest {
         EquipmentDrop drop = new EquipmentDrop(20, 5, null);
         sim.task().setEquipmentDropTarget(retriever.entityId, drop);
 
-        KitRetrieverBehavior.INSTANCE.update(retriever, sim);
+        KitRetrieverBehavior.INSTANCE.update(retriever.entityId, sim);
 
         float dt = BattleSimulation.TICK_DT;
         assertEquals(0.6f - dt, sim.world().cooldownTimer(retriever.entityId), 1e-6f,
@@ -77,7 +77,7 @@ public class KitRetrieverBehaviorTest {
         drop.consumed = true;
         sim.task().setEquipmentDropTarget(retriever.entityId, drop);
 
-        KitRetrieverBehavior.INSTANCE.update(retriever, sim);
+        KitRetrieverBehavior.INSTANCE.update(retriever.entityId, sim);
 
         // No squad assigned — GoapInfantryBehavior.update no-ops entirely
         // (mirrors FiringSystemTest's squadless-defender pattern), so

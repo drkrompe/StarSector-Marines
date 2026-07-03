@@ -19,12 +19,12 @@ public final class DroneHubBehavior implements UnitBehavior {
     private DroneHubBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
-        if (!u.type.isDroneHub()) return;
-        if (!sim.world().isAlive(u.entityId)) return;
-        float cooldown = sim.hubState().spawnCooldown(u.entityId) - BattleSimulation.TICK_DT;
+    public void update(long u, BattleSimulation sim) {
+        if (!sim.identity().type(u).isDroneHub()) return;
+        if (!sim.world().isAlive(u)) return;
+        float cooldown = sim.hubState().spawnCooldown(u) - BattleSimulation.TICK_DT;
         if (cooldown > 0f) {
-            sim.hubState().setSpawnCooldown(u.entityId, cooldown);
+            sim.hubState().setSpawnCooldown(u, cooldown);
             return;
         }
         int active = countActiveDrones(sim, u);
@@ -35,15 +35,15 @@ public final class DroneHubBehavior implements UnitBehavior {
         // free cell within the search radius) waits the same interval before
         // re-attempting. Avoids a busy-loop scanning every tick when the area
         // around the hub is fully crowded.
-        sim.hubState().setSpawnCooldown(u.entityId, DroneHub.SPAWN_INTERVAL_SEC);
+        sim.hubState().setSpawnCooldown(u, DroneHub.SPAWN_INTERVAL_SEC);
     }
 
-    private static int countActiveDrones(BattleView sim, Entity hub) {
+    private static int countActiveDrones(BattleView sim, long hub) {
         int n = 0;
         for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
             Entity u = sim.liveUnitAt(i);
             if (!u.type.isDrone()) continue;
-            if (sim.droneState().homeHubId(u.entityId) == hub.entityId) n++;
+            if (sim.droneState().homeHubId(u.entityId) == hub) n++;
         }
         return n;
     }

@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
@@ -27,8 +26,8 @@ public final class CombatantBehavior implements UnitBehavior {
     private CombatantBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
-        if (sim.world().hasMechLoadout(u.entityId)) {
+    public void update(long u, BattleSimulation sim) {
+        if (sim.world().hasMechLoadout(u)) {
             GoapMechBehavior.INSTANCE.update(u, sim);
         } else {
             GoapInfantryBehavior.INSTANCE.update(u, sim);

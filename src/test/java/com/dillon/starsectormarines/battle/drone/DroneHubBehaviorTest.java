@@ -33,7 +33,7 @@ public class DroneHubBehaviorTest {
         BattleSimulation sim = openArena(20, 20);
         Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
 
-        DroneHubBehavior.INSTANCE.update(hub, sim);
+        DroneHubBehavior.INSTANCE.update(hub.entityId, sim);
 
         assertEquals(DroneHub.INITIAL_SPAWN_DELAY_SEC - BattleSimulation.TICK_DT,
                 sim.hubState().spawnCooldown(hub.entityId), 1e-4f,
@@ -49,7 +49,7 @@ public class DroneHubBehaviorTest {
         // a launch — the reset must fire whether or not the attempt actually
         // found a free cell (a failed try still waits the full interval).
         sim.hubState().setSpawnCooldown(hub.entityId, 0.005f);
-        DroneHubBehavior.INSTANCE.update(hub, sim);
+        DroneHubBehavior.INSTANCE.update(hub.entityId, sim);
 
         assertEquals(DroneHub.SPAWN_INTERVAL_SEC, sim.hubState().spawnCooldown(hub.entityId), 1e-4f,
                 "a launch attempt resets the cooldown to SPAWN_INTERVAL_SEC");

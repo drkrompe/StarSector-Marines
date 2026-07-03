@@ -26,8 +26,8 @@ public final class DroneSpawner {
     private DroneSpawner() {}
 
     /**
-     * Tries to spawn one drone for {@code hub} (a live drone-hub
-     * {@link Entity}, {@code hub.type.isDroneHub()}). Returns the spawned drone
+     * Tries to spawn one drone for {@code hub} (a live drone-hub entity id,
+     * {@code sim.identity().type(hub).isDroneHub()}). Returns the spawned drone
      * on success, or {@code null} if no eligible cell was found within the
      * search radius. Mints the hub's {@code HUB_STATE} squad id (via
      * {@code sim.hubState().setDroneSquadId}) lazily on the first successful
@@ -36,30 +36,30 @@ public final class DroneSpawner {
      * join the existing squad; if its leader is dead, the new drone takes
      * over.
      */
-    public static Entity tryLaunch(Entity hub, BattleSimulation sim) {
-        if (!sim.world().isAlive(hub.entityId)) return null;
+    public static Entity tryLaunch(long hub, BattleSimulation sim) {
+        if (!sim.world().isAlive(hub)) return null;
         NavigationGrid grid = sim.getGrid();
         World world = sim.world();
-        int hubX = world.cellX(hub.entityId);
-        int hubY = world.cellY(hub.entityId);
+        int hubX = world.cellX(hub);
+        int hubY = world.cellY(hub);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
-        String id = "drone-" + sim.identity().name(hub.entityId) + "-" + sim.hubState().incrementDronesLaunched(hub.entityId);
-        EntitySpec droneSpec = Drone.create(id, hub.faction, cell[0], cell[1], hub.entityId);
+        String id = "drone-" + sim.identity().name(hub) + "-" + sim.hubState().incrementDronesLaunched(hub);
+        EntitySpec droneSpec = Drone.create(id, sim.identity().faction(hub), cell[0], cell[1], hub);
 
         // Resolve the hub's drone squad (mint one on first launch) BEFORE the spawn
         // so the squad id can be stamped on the spec — allocate then seeds the SQUAD
         // component for both the serial (inline) and parallel (deferred flush) paths,
         // replacing the old post-spawn assignSquad/seedSquadId split.
-        boolean newSquad = !sim.hubState().hasDroneSquad(hub.entityId);
+        boolean newSquad = !sim.hubState().hasDroneSquad(hub);
         int squadId;
         if (newSquad) {
-            squadId = sim.mintSquad(hub.faction, droneSpec.type);
+            squadId = sim.mintSquad(sim.identity().faction(hub), droneSpec.type);
             Squad squad = sim.getSquad(squadId);
-            squad.droneHubId = hub.entityId;
-            sim.hubState().setDroneSquadId(hub.entityId, squadId);
+            squad.droneHubId = hub;
+            sim.hubState().setDroneSquadId(hub, squadId);
         } else {
-            squadId = sim.hubState().droneSquadId(hub.entityId);
+            squadId = sim.hubState().droneSquadId(hub);
         }
         droneSpec.squad(squadId);
 

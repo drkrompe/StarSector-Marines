@@ -28,18 +28,18 @@ public final class MechCombatantBehavior implements UnitBehavior {
     private MechCombatantBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u.entityId);
-        sim.world().setTargetId(u.entityId, Entity.idOf(target));
+    public void update(long u, BattleSimulation sim) {
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        sim.world().setTargetId(u, Entity.idOf(target));
         if (target == null) return;
 
         // The mech's loadout is a component, reached by id (zero-alloc direct
         // store lookup, not the cold-face handle — this is per-tick decide work).
-        MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
+        MechLoadoutComponent m = sim.world().mechLoadout(u);
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(u.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(u);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         // The fire pass runs OUTSIDE the marine's `inRange && visible` gate
         // because LRMs are indirect-fire-capable: a mech with line of sight
@@ -47,7 +47,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // penalty). Chaingun + SRM still need LOS — that gating lives inside
         // tryFireMechWeapons.
         if (inRange) {
-            tryFireMechWeapons(u.entityId, m, target, dist, sim, visible);
+            tryFireMechWeapons(u, m, target, dist, sim, visible);
         }
 
         // Close engagement = in chaingun range with LOS. Outside that, the
@@ -55,23 +55,23 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // its short-range weapons (LRMs already fire from here via the indirect
         // path above).
         boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
-        if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u.entityId, target.entityId);
+        if (!closeEngagement && sim.world().moveProgress(u) == 0f) {
+            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target.entityId);
             if (dest == null) {
                 // No reachable firing or vantage cell. Drop the target; the
                 // mech's next acquisition cycle picks something it can engage.
                 // LRMs already fired indirectly this tick if range allowed.
-                sim.world().setTargetId(u.entityId, 0L);
+                sim.world().setTargetId(u, 0L);
             } else {
-                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        if (sim.world().pathIdx(u.entityId) < Paths.cellCount(sim.world().path(u.entityId))) {
-            sim.advanceMovement(u.entityId);
+        if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {
+            sim.advanceMovement(u);
         } else {
-            sim.world().setMoveProgress(u.entityId, 0f);
-            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            sim.world().setMoveProgress(u, 0f);
+            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
         }
     }
 

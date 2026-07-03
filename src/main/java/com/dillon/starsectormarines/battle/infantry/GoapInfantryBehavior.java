@@ -85,7 +85,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * when the unit is locked in aim (existing or freshly initiated) — caller
      * should skip {@code action.execute} this frame.
      */
-    public static boolean prepareForAction(Entity unit, BattleControl sim) {
+    public static boolean prepareForAction(long unit, BattleControl sim) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
         if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
@@ -93,8 +93,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     }
 
     @Override
-    public void update(Entity unit, BattleSimulation sim) {
-        Squad squad = sim.squadOf(unit.entityId);
+    public void update(long unit, BattleSimulation sim) {
+        Squad squad = sim.squadOf(unit);
         if (squad == null) return;
 
         if (!prepareForAction(unit, sim)) return;
@@ -112,7 +112,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // the end between the isComplete() check and here. Skip this tick.
         if (step == null || step.slotOf(unit) == null) return;
 
-        ActionStatus status = step.action.execute(unit.entityId, squad, sim);
+        ActionStatus status = step.action.execute(unit, squad, sim);
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state. Two members
             // both observing the same step's SUCCESS would double-advance

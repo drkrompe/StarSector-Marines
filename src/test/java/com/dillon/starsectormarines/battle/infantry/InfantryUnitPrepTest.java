@@ -56,7 +56,7 @@ public class InfantryUnitPrepTest {
         // Past pulse-rifle range (24), well inside rocket range (32).
         Entity turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
+        boolean started = InfantryUnitPrep.tryOpportunityRocket(marine.entityId, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration,
                 sim.world().secondaryActionTimer(marine.entityId), 0.001f);
@@ -70,7 +70,7 @@ public class InfantryUnitPrepTest {
         sim.world().setSecondaryAmmo(marine.entityId, 0);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine.entityId, sim));
         assertEquals(0f, sim.world().secondaryActionTimer(marine.entityId), 0.001f);
     }
 
@@ -81,7 +81,7 @@ public class InfantryUnitPrepTest {
         sim.world().setSecondaryCooldownTimer(marine.entityId, 1.0f);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine.entityId, sim));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class InfantryUnitPrepTest {
         // 50 cells away — well past rocket range (32).
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 55, 5);
 
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine.entityId, sim));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class InfantryUnitPrepTest {
         Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim),
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine.entityId, sim),
                 "LOS-blocked turret must not trigger opportunity fire");
     }
 
@@ -120,10 +120,10 @@ public class InfantryUnitPrepTest {
         sim.squad().assignSquad(marineC.entityId, squadId);
         turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 28, 5);
 
-        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));
-        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineB, sim),
+        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA.entityId, sim));
+        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineB.entityId, sim),
                 "second squadmate joins when one inbound rocket can't kill the turret");
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marineC, sim),
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marineC.entityId, sim),
                 "third squadmate must hold fire — projected damage already exceeds turret HP");
     }
 
@@ -139,8 +139,8 @@ public class InfantryUnitPrepTest {
         sim.squad().assignSquad(marineB.entityId, squadId);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marineB, sim),
+        assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA.entityId, sim));
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(marineB.entityId, sim),
                 "Vulcan dies to one rocket — second squadmate must skip");
     }
 
@@ -152,7 +152,7 @@ public class InfantryUnitPrepTest {
         Entity defenderRocketeer = rocketeer(sim, Faction.DEFENDER, 5, 5);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
-        assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),
+        assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer.entityId, sim),
                 "friendly turret must not be a rocket target");
     }
 }

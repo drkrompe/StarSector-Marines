@@ -17,19 +17,19 @@ public final class FallbackBehavior implements UnitBehavior {
     private FallbackBehavior() {}
 
     @Override
-    public void update(Entity u, BattleSimulation sim) {
-        sim.world().setFallbackTimer(u.entityId, sim.world().fallbackTimer(u.entityId) - BattleSimulation.TICK_DT);
-        int fx = sim.world().fallbackCellX(u.entityId);
-        int fy = sim.world().fallbackCellY(u.entityId);
-        if (sim.world().cellX(u.entityId) == fx && sim.world().cellY(u.entityId) == fy) {
-            sim.clearPath(u.entityId);
-            sim.world().setMoveProgress(u.entityId, 0f);
-            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+    public void update(long u, BattleSimulation sim) {
+        sim.world().setFallbackTimer(u, sim.world().fallbackTimer(u) - BattleSimulation.TICK_DT);
+        int fx = sim.world().fallbackCellX(u);
+        int fy = sim.world().fallbackCellY(u);
+        if (sim.world().cellX(u) == fx && sim.world().cellY(u) == fy) {
+            sim.clearPath(u);
+            sim.world().setMoveProgress(u, 0f);
+            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
             return;
         }
-        if (sim.world().moveProgress(u.entityId) == 0f) {
-            sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), fx, fy, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(u) == 0f) {
+            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), fx, fy, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(u.entityId);
+        sim.advanceMovement(u);
     }
 }
