@@ -424,6 +424,20 @@ fed from an `Entity`-returning query (`targetOf`/`findBestTarget`/`liveUnitAt`) 
 acting-unit subsystem params now as more D-slices, or fold the whole remaining param+return tail into the
 storage finale as one coherent pass. The facade being param-clean means either order is safe.
 
+**D11 candidate — recon'd, not started: the `UnitBehavior.update(Entity u)` flip** (the D9 analogue for the
+per-unit *dispatch entry*). Interface `UnitBehavior.update(Entity u, BattleSimulation)` + 11 implementors
+(`FallbackBehavior`, `FleeBehavior`, `DroneHubBehavior`, `Goap{Infantry,Mech,Drone}Behavior`,
+`CombatantBehavior`, `KitRetrieverBehavior`, `MechCombatantBehavior`, `StructureBehavior`, `TurretBehavior`)
++ their private helpers that receive the acting unit (`FleeBehavior.updateFleeing/updateIdle/pickWanderDestination`,
+`GoapInfantryBehavior.prepareForAction` → `InfantryUnitPrep.tickAimAndShortCircuit/tickCooldowns/tryOpportunityRocket`,
+`KitRetrieverBehavior.fireOpportunistically`). Dispatcher = `UnitUpdateSystem.updateUnit` (keeps `Entity u`
+from the roster walk, passes `.entityId` — the D9 dispatcher pattern). Specials: acting-unit `u.type`/`u.faction`
+→ `sim.identity().type/faction(u)` (`DroneHubBehavior` hub check, `TurretBehavior` faction). **GOTCHA — do NOT
+blind-sed:** `FleeBehavior.findNearestThreat` and `DroneHubBehavior.countActiveDrones` each hold a **loop-local
+`Entity u`** (`liveUnitAt(i)`) that collides with the acting-unit param name — a blanket `u.entityId`→`u` would
+wrongly collapse the loop-local. Hand-edit per method (the acting-unit param in those two is `self`/`hub`, the
+loop var is `u` and STAYS `Entity`). Compile + full-suite gated like D9; worth a critique pass for the collision.
+
 ## Storage finale — the dedicated closing session (the `entity = long` terminus)
 
 The one milestone that *literally* makes `entity = long` and **deletes `Entity.java`**. Called out
