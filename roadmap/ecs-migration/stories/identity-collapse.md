@@ -402,6 +402,27 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   same-file/shared helpers whose acting-unit param was named `u`/`self` — caught by compile, not a new
   slice. Reopens nothing new; the spatial index was already id-native (D7). **Next: `mintSquad` (nullable
   leader→`0L`) → air/vehicle/ui → the storage finale** (§ "Storage finale").
+- ~~**D10 · `mintSquad(Faction, Entity leader)` → `long`**~~ — **SHIPPED (`739fd228`; suite green, 869
+  tests).** The `mintSquad(Faction, Entity leader)` front-door → `(Faction, long leaderId)` at all three
+  layers (`BattleControl` interface + `BattleSimulation` facade + `UnitRosterService` impl). `0L` was
+  already the no-leader sentinel, so the body dropped the null-guard (`leaderId` feeds `squad.leaderId`
+  directly); the `mechSquad` denormalization reads `identityService.type(leaderId).isMech()` off the
+  leader's immutable `IDENTITY_TYPE` column (seeded at adopt — the leader is an already-live unit) instead
+  of the `leader.type` handle field. The sibling `mintSquad(Faction, UnitType)` overload (the spec-based
+  pre-spawn mint **every production caller** uses) is unchanged; the `Entity` overload was **test-only** in
+  its callers — 5 sites (`ReinforceContact` ×2, `Sabotage`/`Conquest`/`Assault` command tests) pass
+  `.entityId`. **MILESTONE:** with mintSquad flipped, the **`BattleControl`/`BattleView` sim facade now has
+  ZERO `Entity` *params*** — every mutate/read front-door takes `long`. The only `Entity` left on the facade
+  are the three *return* types (`liveUnitAt`/`targetOf`/`resolveUnit`), which are storage-finale scope.
+
+**Where D leaves the param-flip (2026-07-03).** The **sim facade is param-clean**, but ~41 files still
+thread `Entity` *params* through **subsystem internals** (not the facade): infantry/decision behaviors (6+6),
+`combathybrid/bridge` (5), turret (4), drone (3), mech (2), + a long tail. These split two ways — an
+acting-unit/`self` param that can flip now (D9-style, callers pass `.entityId`), vs. a `target`/`other` param
+fed from an `Entity`-returning query (`targetOf`/`findBestTarget`/`liveUnitAt`) that is cheapest to flip
+*with* those returns in the storage finale. **Open sequencing question (for the next session):** sweep the
+acting-unit subsystem params now as more D-slices, or fold the whole remaining param+return tail into the
+storage finale as one coherent pass. The facade being param-clean means either order is safe.
 
 ## Storage finale — the dedicated closing session (the `entity = long` terminus)
 
