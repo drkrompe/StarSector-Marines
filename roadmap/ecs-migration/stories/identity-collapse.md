@@ -479,6 +479,39 @@ phase ordering exists to avoid. **Gate: behavior tier (`Action.execute` + all be
 - Rehome the two remaining statics off `Entity`: `Entity.idOf` and `NO_SQUAD`.
 - **Delete `Entity.java`.**
 
+**Execution — sliced green-per-commit (IN PROGRESS 2026-07-03).** The finale is being run as
+green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same discipline as A–D:
+- ~~**F1 · `DeathEvent` payload → `long`**~~ — **SHIPPED (`5eb8dff0`; 869 green).** `DeathEvent`
+  record `Entity unit` → `long unitId`. Publisher (`DamageResolver`, `HubDemolitionSystem` cascade)
+  passes the id it already holds; the 5 subscribers classify by id — turret/hub demolition read
+  `identity().type(id).isX()` off their roster, `DroneCrashSystem` reads the kept-through-transmute
+  `IDENTITY_TYPE` column directly (no roster handle), `MechWreck`/`DeadBody` read id-keyed corpse
+  columns. `SimProxyMirror` (bridge, still `Entity`) compares `link.unit.entityId == event.unitId()`.
+- ~~**F2 · the "target web" → `long`**~~ — **SHIPPED (`a671b0c0`; 869 green; 33 files).** A unit's
+  acquired/current target is a `long` id everywhere it flows — ONE coherent cut because the behavior
+  callers share a single `target` local fed by BOTH `findBestTarget` AND `targetOf`, so those seams
+  couldn't flip independently without backward `getOrNull`/`idOf` wrapping. Flipped: `TacticalScoring`
+  `findBestTarget`(×4)/`refreshTargetIfNotShootable`/`closestEnemyInAttackRange`/`findEngageableEnemyWithin`
+  returns (internals keep `Entity` locals off the still-`Entity[]` `denseArray`; convert at `return`);
+  facade `targetOf` (isLive-gated so a stale released target id still resolves to `0L` — the long-native
+  `getOrNull==null` lazy-validity, a real semantic that had to be preserved); the whole turret-fire chain
+  (`TurretAim.State.target` field, `TurretFireSink`/`TurretFireSystem.fire`, `fireShotFrom`×2, all THREE
+  `TurretAim.State` consumers — `TurretBehavior`/`AirSystem`/`GroundSystem` — `MountedTurret` setters);
+  mech `tryFire*` family; `DroneSwarmAction` `s.target`/`tryAgroScan`; `BreachToEngage.effectiveTarget`;
+  `EngagePosture` `isHardened(target.type)`→`isHardened(identity().type(id))`. `currentBurstTarget` stays
+  `Entity` (`resolveUnit`, F3). `ClearZone`/`HoldZone` bridge their `liveUnitAt` in-zone pickers with
+  `Entity.idOf` (F3 follow-up).
+- **F3 · `resolveUnit` + `liveUnitAt` → `long`** (next) — the two remaining `Entity`-returning facade
+  methods. `resolveUnit(id)` → `isLive(id) ? id : 0L`; `liveUnitAt(idx)` → the id at the dense slot.
+  Un-bridges the `ClearZone`/`HoldZone` `Entity.idOf` + the `currentBurstTarget` resolves.
+- **F4 · `UnitSpatialIndex` id-native** — buckets `Entity[]`→`LongBucket` (D7 shape); `gather` emits
+  `long`; `TacticalScoring`'s `ArrayList<Entity>` scratch + `filterEnemyCombatants`/`resolveThreatColumns`/
+  `countCombatantsWithin` + all other `gather` callers go id-native.
+- **F5 · roster storage + delete `Entity.java`** — dense `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`;
+  `getOrNull`/`get`/`denseArray` deleted-or-`long`; `adopt` spec-only; `PendingSpawn(long,spec)`;
+  `getPendingSpawns`/`getDeathsThisFrame`→`long`; rehome `idOf`/`NO_SQUAD`; the remaining `Entity`
+  consumers (render/ui/worldstate/roles) + ~60 test files; **delete `Entity.java`**.
+
 **Tracked follow-ups to fold in here (don't lose):**
 - `clearPath`/`setPath` should own an internal null/liveness guard rather than lean on the caller
   (D1 critique — `writeFallbackInline` transitionally does `clearPath(getOrNull(id))`).

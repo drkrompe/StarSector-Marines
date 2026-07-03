@@ -240,6 +240,8 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+a671b0c0 ecs-migration: identity-collapse F2 - the target web -> long
+5eb8dff0 ecs-migration: identity-collapse F1 - DeathEvent payload Entity -> long
 1a44f09a ecs-migration: identity-collapse D12 - remaining scattered acting-unit params -> long
 72dfcdfb ecs-migration: identity-collapse D11 - UnitBehavior.update(Entity u) -> long
 739fd228 ecs-migration: identity-collapse D10 - mintSquad(Faction, Entity leader) -> long
@@ -321,8 +323,11 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — the STORAGE FINALE** (§ "Storage finale" in the story
-  doc). **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
+  playtest. **Next-up:** **identity-collapse — the STORAGE FINALE, IN PROGRESS** (§ "Storage finale — Execution"
+  in the story doc). Running as green-per-commit slices F1–F5: **F1** (`DeathEvent`→`long`, `5eb8dff0`)
+  + **F2** (the target web→`long`, `a671b0c0`) SHIPPED, suite green (869); **F3** (`resolveUnit`/`liveUnitAt`
+  →`long`) is next, then **F4** (`UnitSpatialIndex` id-native), **F5** (roster storage `Entity[]`→`long[]`
+  + delete `Entity.java`). **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
   scope is now `long`: the sim facade (D10 — `BattleControl`/`BattleView` take `long` on every front-door),
   the GOAP `Action.execute` (D9), the `UnitBehavior.update` dispatch entry (D11), and the scattered subsystem
   acting-unit params (D12). The only `Entity` that remains is **finale-coupled**: `target`/`candidate`/`threat`
