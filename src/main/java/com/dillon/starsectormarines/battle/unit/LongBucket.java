@@ -10,7 +10,8 @@ import java.util.Arrays;
  *
  * <p><b>Order-agnostic.</b> {@link #removeValue} swaps the removed slot with the
  * last element — spatial buckets and gather scratch don't care about element
- * order, so removal is O(1) amortized instead of O(n) shift.
+ * order, so removal skips the O(n) element shift a mid-list {@code ArrayList.remove}
+ * would do (the linear find to locate the value remains, but there's no compaction).
  *
  * <p>{@link #ids} and {@link #size} are public for direct hot-loop iteration,
  * matching the SoA column-array style used elsewhere in the battle tier — read

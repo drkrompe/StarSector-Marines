@@ -1107,7 +1107,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
-     * Delegates to {@link NavigationService#setPath(Entity, int[])}. Kept on the
+     * Delegates to {@link NavigationService#setPath(long, int[])}. Kept on the
      * sim's surface so AI behaviors in {@code battle.ai} can route movement
      * through {@code sim.setPath(...)} — which keeps the occupancy/destIndex
      * bookkeeping in sync — rather than writing the MOVEMENT path by id directly.
@@ -1123,7 +1123,7 @@ public class BattleSimulation implements BattleControl {
         damageService.flushPendingOccupancyDeltas();
     }
 
-    /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(Entity)}. */
+    /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(long)}. */
     public void clearPath(Entity u) {
         navigation.clearPath(u.entityId);
     }
