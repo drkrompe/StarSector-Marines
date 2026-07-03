@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -175,8 +174,8 @@ public final class ChokePointHold implements Action {
      * stable in practice.
      */
     @Override
-    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(losCells.size());
+    public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Long>> slots = new ArrayList<>(losCells.size());
         for (int i = 0; i < losCells.size(); i++) {
             final int idx = i;
             final int cellX = losCells.get(i)[0];
@@ -184,7 +183,7 @@ public final class ChokePointHold implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     slotName(idx),
                     1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), cellX, cellY)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), cellX, cellY)));
         }
         return slots;
     }

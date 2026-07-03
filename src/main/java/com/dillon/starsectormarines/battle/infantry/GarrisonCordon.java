@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -73,13 +72,13 @@ public final class GarrisonCordon implements Action {
      * (no planter slot to compete with).
      */
     @Override
-    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(posts.size());
+    public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Long>> slots = new ArrayList<>(posts.size());
         for (HoldPortalCordon.GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
                     1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), post.cellX, post.cellY)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), post.cellX, post.cellY)));
         }
         return slots;
     }

@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -273,9 +272,9 @@ public final class SquadStateDumper {
             so.put("isCurrent", i == plan.currentIndex() && !plan.isComplete());
             so.put("action", step.action.name());
             JSONObject slotJson = new JSONObject();
-            for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
+            for (Map.Entry<String, List<Long>> e : step.assignments.entrySet()) {
                 JSONArray ids = new JSONArray();
-                for (Entity u : e.getValue()) ids.put(sim.identity().name(u.entityId));
+                for (long u : e.getValue()) ids.put(sim.identity().name(u));
                 slotJson.put(e.getKey(), ids);
             }
             so.put("assignments", slotJson);

@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
@@ -89,17 +88,17 @@ public final class HoldZone extends AbstractZoneAction {
      * ordering, so the spread cells fill first.
      */
     @Override
-    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+    public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
         if (holdX == null || holdX.length == 0) {
             return List.of(new RoleAssigner.Slot<>("hold:overflow",
                     Math.max(1, squad.aliveMembers), c -> 0f));
         }
-        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(holdX.length + 1);
+        List<RoleAssigner.Slot<Long>> slots = new ArrayList<>(holdX.length + 1);
         for (int i = 0; i < holdX.length; i++) {
             final int hx = holdX[i];
             final int hy = holdY[i];
             slots.add(new RoleAssigner.Slot<>("hold:" + i, 1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), hx, hy)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), hx, hy)));
         }
         slots.add(new RoleAssigner.Slot<>("hold:overflow",
                 Math.max(1, squad.aliveMembers), c -> -1_000_000f));

@@ -3,7 +3,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 
 import java.util.List;
@@ -93,7 +92,7 @@ public interface Action {
      * {@code squad.aliveMembers} is fine; the assigner only fills what's
      * available.
      */
-    default List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+    default List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
         return List.of(new RoleAssigner.Slot<>("any", squad.aliveMembers, c -> 0f));
     }
 

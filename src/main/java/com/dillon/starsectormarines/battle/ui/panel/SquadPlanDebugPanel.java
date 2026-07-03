@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -490,7 +489,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
                     renderHighlightButton(font, i, x0 + bodyW, lineY, alphaMult);
                 }
                 lineY -= DETAIL_LINE_H;
-                for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
+                for (Map.Entry<String, List<Long>> e : step.assignments.entrySet()) {
                     lineY = drawLineIfVisible(font,
                             "    " + e.getKey() + " → " + memberIds(e.getValue(), ctx.getSim()),
                             lineX, lineY, DETAIL_LABEL_FG, alphaMult, vpBottomY, vpTopY);
@@ -583,14 +582,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /** Comma-joined unit names, capped so a large slot list doesn't blow the panel. Falls back to the numeric entityId when no sim is available. */
-    private static String memberIds(List<Entity> members, BattleSimulation sim) {
+    private static String memberIds(List<Long> members, BattleSimulation sim) {
         if (members == null || members.isEmpty()) return "(none)";
         StringBuilder sb = new StringBuilder();
         int max = Math.min(members.size(), 4);
         for (int i = 0; i < max; i++) {
             if (i > 0) sb.append(", ");
-            Entity m = members.get(i);
-            sb.append(sim != null ? sim.identity().name(m.entityId) : Long.toString(m.entityId));
+            long m = members.get(i);
+            sb.append(sim != null ? sim.identity().name(m) : Long.toString(m));
         }
         if (members.size() > max) sb.append(", +").append(members.size() - max);
         return sb.toString();

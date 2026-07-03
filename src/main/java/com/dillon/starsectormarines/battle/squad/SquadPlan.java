@@ -57,7 +57,7 @@ public final class SquadPlan {
          * implementations can index by slot index when natural (e.g. portal[0],
          * portal[1] in a cordon).
          */
-        public final Map<String, List<Entity>> assignments;
+        public final Map<String, List<Long>> assignments;
 
         public Step(Action action) {
             this.action = action;
@@ -76,18 +76,18 @@ public final class SquadPlan {
 
         /** Id-native overload — the by-id form the {@link Action#execute(long, Squad, com.dillon.starsectormarines.battle.sim.BattleControl)} bodies call as the member handle collapses to a bare {@code long}. */
         public String slotOf(long unitId) {
-            for (Map.Entry<String, List<Entity>> e : assignments.entrySet()) {
-                for (Entity u : e.getValue()) {
-                    if (u.entityId == unitId) return e.getKey();
+            for (Map.Entry<String, List<Long>> e : assignments.entrySet()) {
+                for (long u : e.getValue()) {
+                    if (u == unitId) return e.getKey();
                 }
             }
             return null;
         }
 
         /** Flattened view of every assigned member across all slots. Order is slot-major, member-order-within-slot inside that. */
-        public List<Entity> allAssignedMembers() {
-            List<Entity> out = new ArrayList<>();
-            for (List<Entity> v : assignments.values()) out.addAll(v);
+        public List<Long> allAssignedMembers() {
+            List<Long> out = new ArrayList<>();
+            for (List<Long> v : assignments.values()) out.addAll(v);
             return out;
         }
     }

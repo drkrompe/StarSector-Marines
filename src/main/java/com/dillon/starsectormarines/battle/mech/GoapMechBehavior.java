@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
@@ -153,15 +152,15 @@ public final class GoapMechBehavior implements UnitBehavior {
         }
 
         if (plan != null && !plan.isComplete()) {
-            List<Entity> aliveMembers = new ArrayList<>(squad.aliveMembers);
+            List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long u = sim.liveUnitAt(i);
                 if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
-                aliveMembers.add(sim.getRoster().get(i));
+                aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {
-                List<RoleAssigner.Slot<Entity>> slots = step.action.roles(squad, sim);
-                Map<String, List<Entity>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                List<RoleAssigner.Slot<Long>> slots = step.action.roles(squad, sim);
+                Map<String, List<Long>> assignment = RoleAssigner.assign(aliveMembers, slots);
                 step.assignments.putAll(assignment);
             }
         }

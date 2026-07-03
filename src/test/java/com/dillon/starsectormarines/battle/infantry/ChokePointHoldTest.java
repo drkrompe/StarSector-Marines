@@ -74,8 +74,8 @@ public class ChokePointHoldTest {
         ChokePointHold hold = new ChokePointHold(portalId, portalX, portalY, cells);
         SquadPlan.Step step = new SquadPlan.Step(hold);
         for (int i = 0; i < members.size() && i < cells.size(); i++) {
-            List<Entity> bucket = new ArrayList<>(1);
-            bucket.add(members.get(i));
+            List<Long> bucket = new ArrayList<>(1);
+            bucket.add(members.get(i).entityId);
             step.assignments.put(ChokePointHold.slotName(i), bucket);
         }
         List<SquadPlan.Step> steps = new ArrayList<>(1);

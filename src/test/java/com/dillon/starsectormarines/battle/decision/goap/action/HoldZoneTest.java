@@ -111,24 +111,24 @@ public class HoldZoneTest {
         squad.aliveMembers = 4;
         // Four members clustered near the doorway — exactly the bunch the old
         // code produced; roles() should fan them out to the four hold cells.
-        List<Entity> members = new ArrayList<>();
+        List<Long> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             // register so RoleAssigner's getCellX read routes through the registry
             Entity m = sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4));
-            members.add(m);
+            members.add(m.entityId);
         }
 
-        List<RoleAssigner.Slot<Entity>> slots = hold.roles(squad, sim);
-        Map<String, List<Entity>> assigned = RoleAssigner.assign(members, slots);
+        List<RoleAssigner.Slot<Long>> slots = hold.roles(squad, sim);
+        Map<String, List<Long>> assigned = RoleAssigner.assign(members, slots);
 
         // Every member must land on a distinct "hold:i" cell; overflow stays empty.
         assertTrue(assigned.getOrDefault("hold:overflow", List.of()).isEmpty(),
                 "with enough cells nobody falls through to the anchor overflow");
         Set<Integer> cellIdx = new HashSet<>();
         int placed = 0;
-        for (Map.Entry<String, List<Entity>> e : assigned.entrySet()) {
+        for (Map.Entry<String, List<Long>> e : assigned.entrySet()) {
             if (!e.getKey().startsWith("hold:") || e.getKey().equals("hold:overflow")) continue;
-            for (Entity ignored : e.getValue()) {
+            for (long ignored : e.getValue()) {
                 int idx = Integer.parseInt(e.getKey().substring("hold:".length()));
                 assertTrue(cellIdx.add(idx), "no two members share a hold cell");
                 placed++;

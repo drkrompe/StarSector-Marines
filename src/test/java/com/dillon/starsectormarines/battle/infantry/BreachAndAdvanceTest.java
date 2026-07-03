@@ -58,7 +58,7 @@ public class BreachAndAdvanceTest {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
-            step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(sim.getRoster().get(i))));
+            step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(u)));
             slotIdx++;
         }
         SquadPlan plan = new SquadPlan(List.of(step));

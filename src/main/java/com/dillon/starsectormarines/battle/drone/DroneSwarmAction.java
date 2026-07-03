@@ -361,9 +361,9 @@ public final class DroneSwarmAction implements Action {
         SquadPlan.Step step = plan.currentStep();
         if (step == null) return 0;
         int i = 0;
-        for (List<Entity> bucket : step.assignments.values()) {
+        for (List<Long> bucket : step.assignments.values()) {
             for (int k = 0; k < bucket.size(); k++) {
-                if (bucket.get(k).entityId == member) return i + k;
+                if (bucket.get(k) == member) return i + k;
             }
             i += bucket.size();
         }
@@ -382,7 +382,7 @@ public final class DroneSwarmAction implements Action {
         SquadPlan.Step step = plan.currentStep();
         if (step == null) return Math.max(1, squad.aliveMembers);
         int total = 0;
-        for (List<Entity> bucket : step.assignments.values()) total += bucket.size();
+        for (List<Long> bucket : step.assignments.values()) total += bucket.size();
         return Math.max(1, total);
     }
 }

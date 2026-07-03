@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -104,15 +103,15 @@ public final class BreachAndAdvance implements Action {
 
     /** One slot per breach position, named "breacher:N". Members are scored by negated distance to their slot's stack-up cell — closest member wins, so the squad's natural order at the door is preserved. */
     @Override
-    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(stackUpX.length);
+    public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Long>> slots = new ArrayList<>(stackUpX.length);
         for (int i = 0; i < stackUpX.length; i++) {
             final int sx = stackUpX[i];
             final int sy = stackUpY[i];
             slots.add(new RoleAssigner.Slot<>(
                     "breacher:" + i,
                     1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), sx, sy)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), sx, sy)));
         }
         return slots;
     }

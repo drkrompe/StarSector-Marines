@@ -124,8 +124,8 @@ public class GarrisonCordonTest {
         GarrisonCordon cordon = new GarrisonCordon(posts);
         // Attach a plan that puts d1 in the slot for the chosen post.
         SquadPlan.Step step = new SquadPlan.Step(cordon);
-        List<Entity> bucket = new ArrayList<>(1);
-        bucket.add(d1);
+        List<Long> bucket = new ArrayList<>(1);
+        bucket.add(d1.entityId);
         step.assignments.put(post.slotName(), bucket);
         // Empty other slot.
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
@@ -162,8 +162,8 @@ public class GarrisonCordonTest {
 
         GarrisonCordon cordon = new GarrisonCordon(posts);
         SquadPlan.Step step = new SquadPlan.Step(cordon);
-        List<Entity> bucket = new ArrayList<>(1);
-        bucket.add(d1);
+        List<Long> bucket = new ArrayList<>(1);
+        bucket.add(d1.entityId);
         step.assignments.put(post.slotName(), bucket);
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
         squad.currentPlan = new SquadPlan(List.of(step));
