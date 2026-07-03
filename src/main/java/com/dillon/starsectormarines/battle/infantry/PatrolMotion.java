@@ -119,7 +119,7 @@ public final class PatrolMotion {
      */
     private static boolean ticksDwell(long member, Squad squad, BattleView sim) {
         if (member == squad.leaderId) return true;
-        return squad.leaderId == 0L || sim.resolveUnit(squad.leaderId) == null;
+        return squad.leaderId == 0L || sim.resolveUnit(squad.leaderId) == 0L;
     }
 
     public static boolean hasValidWaypoint(Squad squad) {

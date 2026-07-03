@@ -104,8 +104,8 @@ public final class SquadStateDumper {
         o.put("moraleBroken", squad.moraleBroken);
         o.put("timeSinceContact", squad.timeSinceContact);
         o.put("timeSinceReplan", squad.timeSinceReplan);
-        Entity leaderUnit = sim.resolveUnit(squad.leaderId);
-        o.put("leaderId", leaderUnit != null ? sim.identity().name(leaderUnit.entityId) : null);
+        long leaderUnit = sim.resolveUnit(squad.leaderId);
+        o.put("leaderId", leaderUnit != 0L ? sim.identity().name(leaderUnit) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
         o.put("assignedObjective", buildAssignmentJson(squad.assignedObjective));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Squad cohesion math shared by the GOAP infantry postures
@@ -69,13 +68,13 @@ public final class InfantryCohesion {
             }
         }
 
-        Entity leader = sim.resolveUnit(squad.leaderId);
-        if (leader != null && leader.entityId != self) {
-            float dx = sim.world().cellX(leader.entityId) - sim.world().cellX(self);
-            float dy = sim.world().cellY(leader.entityId) - sim.world().cellY(self);
+        long leader = sim.resolveUnit(squad.leaderId);
+        if (leader != 0L && leader != self) {
+            float dx = sim.world().cellX(leader) - sim.world().cellX(self);
+            float dy = sim.world().cellY(leader) - sim.world().cellY(self);
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist <= COHESION_RADIUS) return null;
-            return new int[]{sim.world().cellX(leader.entityId), sim.world().cellY(leader.entityId)};
+            return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
         }
 
         // Leaderless fallback — others-centroid (legacy behavior).

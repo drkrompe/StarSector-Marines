@@ -40,8 +40,8 @@ public final class TurretBehavior implements UnitBehavior {
         // burstTargetId (not the inherited COMBAT one — see the
         // BattleComponents#TURRET_STATE class doc).
         int burstRemaining = turretState.burstRemaining(id);
-        Entity currentBurstTarget = sim.resolveUnit(turretState.burstTargetId(id));
-        if (burstRemaining > 0 && currentBurstTarget == null) {
+        long currentBurstTarget = sim.resolveUnit(turretState.burstTargetId(id));
+        if (burstRemaining > 0 && currentBurstTarget == 0L) {
             burstRemaining = 0;
             turretState.setBurstRemaining(id, 0);
             turretState.setBurstTargetId(id, 0L);
@@ -90,8 +90,8 @@ public final class TurretBehavior implements UnitBehavior {
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
-                        sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget.entityId), sim.world().cellY(currentBurstTarget.entityId));
-                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, currentBurstTarget.entityId,
+                        sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget), sim.world().cellY(currentBurstTarget));
+                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;

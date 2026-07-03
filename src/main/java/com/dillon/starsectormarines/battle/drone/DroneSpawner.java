@@ -73,7 +73,7 @@ public final class DroneSpawner {
         // is queued (entityId still 0 here), so leaderId stays 0 until a serial spawn
         // assigns a real id — matching the pre-spec behavior.
         Squad squad = sim.getSquad(squadId);
-        if (newSquad || sim.resolveUnit(squad.leaderId) == null) {
+        if (newSquad || sim.resolveUnit(squad.leaderId) == 0L) {
             squad.leaderId = drone.entityId;
         }
         return drone;

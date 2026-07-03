@@ -579,16 +579,15 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
-     * Resolves an arbitrary entity id to its {@link Entity}, or {@code null} when
-     * the id is unknown / released. The generic counterpart to
-     * {@link #targetOf(long)} — used by readers of id-typed combat/secondary
-     * cross-references (the {@code COMBAT.burstTargetId} / {@code
-     * SECONDARY_WEAPON.aimTargetId} world columns, {@code
-     * TURRET_STATE.burstTargetId} via {@code TurretStateService}) where there's
-     * no companion holder unit to thread.
+     * Resolves an arbitrary entity id to itself if it's a live roster unit, or
+     * {@code 0L} when the id is unknown / released. The long-native liveness gate
+     * (the old {@code getOrNull(id) != null} check) — used by readers of id-typed
+     * combat/secondary cross-references (the {@code COMBAT.burstTargetId} / {@code
+     * SECONDARY_WEAPON.aimTargetId} world columns, {@code TURRET_STATE.burstTargetId}
+     * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
-    public Entity resolveUnit(long id) {
-        return rosterService.getOrNull(id);
+    public long resolveUnit(long id) {
+        return rosterService.isLive(id) ? id : 0L;
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }

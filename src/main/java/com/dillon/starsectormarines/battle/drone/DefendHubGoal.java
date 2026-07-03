@@ -43,7 +43,7 @@ public final class DefendHubGoal implements Goal {
     public float relevance(WorldState state, Squad squad, BattleView sim) {
         // Hub alive? Resolve the id — null means destroyed (or no hub), so the
         // goal has no further work and drops to 0 relevance.
-        if (sim.resolveUnit(squad.droneHubId) == null) return 0f;
+        if (sim.resolveUnit(squad.droneHubId) == 0L) return 0f;
         return 1f;
     }
 

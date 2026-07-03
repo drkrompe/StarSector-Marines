@@ -526,13 +526,13 @@ public class AirSystem {
                 // Resolve the burst victim once per tick — null surfaces both
                 // "released from registry" and "id was 0L all along," same path
                 // as TurretBehavior's TURRET_STATE-shadow read.
-                Entity currentBurstTarget = roster.getOrNull(mt.burstTargetId);
-                if (mt.burstRemaining > 0 && currentBurstTarget == null) {
+                long currentBurstTarget = roster.isLive(mt.burstTargetId) ? mt.burstTargetId : 0L;
+                if (mt.burstRemaining > 0 && currentBurstTarget == 0L) {
                     // A burst whose victim died is dead too — release the lock so
                     // the aim loop can re-acquire a fresh target next tick.
                     mt.burstRemaining = 0;
                     mt.burstTargetId = 0L;
-                    currentBurstTarget = null;
+                    currentBurstTarget = 0L;
                 }
                 // Pin the slew target during a burst so the barrel tracks the
                 // salvo victim even if a closer enemy walked into LOS mid-burst.
@@ -590,7 +590,7 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget.entityId, /*aerialShooter*/ true);
+                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;

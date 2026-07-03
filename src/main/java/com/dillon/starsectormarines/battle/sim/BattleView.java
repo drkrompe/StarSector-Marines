@@ -92,8 +92,8 @@ public interface BattleView {
     /** Live projectiles in flight. */
     List<Projectile> getActiveProjectiles();
 
-    /** Resolve a unit id through the registry, or {@code null} if no live unit holds it. */
-    Entity resolveUnit(long id);
+    /** Resolve a unit id to itself if a live unit holds it, else {@code 0L}. */
+    long resolveUnit(long id);
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
     World world();

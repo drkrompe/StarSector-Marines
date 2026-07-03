@@ -272,21 +272,20 @@ public class GroundSystem {
             float mountWorldX = body.x + type.turretMountX * cc - type.turretMountY * cs;
             float mountWorldY = body.y + type.turretMountX * cs + type.turretMountY * cc;
 
-            Entity currentBurstTarget = (gt.burstTargetId != 0L)
-                    ? roster.getOrNull(gt.burstTargetId) : null;
+            long currentBurstTarget = roster.isLive(gt.burstTargetId) ? gt.burstTargetId : 0L;
 
             // Burst continuation fires ahead of fresh acquisition — the turret
             // commits to its salvo target, matching shuttle turret behavior.
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
-                if (gt.burstTimer <= 0f && currentBurstTarget != null && world.isAlive(gt.burstTargetId)) {
-                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget.entityId, false);
+                if (gt.burstTimer <= 0f && currentBurstTarget != 0L && world.isAlive(gt.burstTargetId)) {
+                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget, false);
                     gt.ammo--;
                     gt.burstRemaining--;
                     gt.burstTimer = kind.burstSpacing;
                     if (gt.burstRemaining == 0) gt.burstTargetId = 0L;
                 }
-                if (currentBurstTarget == null || !world.isAlive(gt.burstTargetId)) {
+                if (currentBurstTarget == 0L || !world.isAlive(gt.burstTargetId)) {
                     gt.burstRemaining = 0;
                     gt.burstTargetId = 0L;
                 }

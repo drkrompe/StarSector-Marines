@@ -46,9 +46,9 @@ public final class InfantryUnitPrep {
         w.setRenderPos(id, w.cellX(id), w.cellY(id));
         float fireAt = sec.aimDuration * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
-            Entity aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
-            if (aimTarget != null) {
-                sim.fireSecondary(unit, aimTarget.entityId);
+            long aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
+            if (aimTarget != 0L) {
+                sim.fireSecondary(unit, aimTarget);
             }
             w.setSecondaryFired(id, true);
             w.setSecondaryCooldownTimer(id, sec.cooldown);
