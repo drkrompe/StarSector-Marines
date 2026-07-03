@@ -386,6 +386,25 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 
+## HUD suppression — ship-info widget hidden (NEW, 2026-07-02)
+
+The distracting element is the **bottom-left ship-info widget** (hull/flux/CR/weapon-group
+text) + its **"press [X] to switch ships"** prompt — nonsense in our RTS battles where the
+player pilots nothing. Root cause: we did `setPlayerShipExternal(null)` +
+`setDisablePlayerShipControlOneFrame(true)` but **never called `hideShipInfo()`**. Fixed:
+`SpectatorCanvasPlugin.advance()` now calls `getCombatUI().hideShipInfo()` each frame (it's a
+one-frame hide the UI re-asserts each tick). Per-file build-clean; **awaiting Ctrl+Shift+K
+playtest.** Full survey + backup levers in [`hud-suppression-options.md`](hud-suppression-options.md).
+- **Playtest watch-item:** does `hideShipInfo()` also kill the "press [X] to switch ships"
+  prompt, or does the prompt survive (it exists because the player owns owner-0 carriers with
+  no flagship)? If it survives, the backup is a per-ship `setControlsLocked(true)` /
+  non-selectable pass on owner-0 ships so there's nothing to switch *to*.
+- **Broader context:** no public HUD off-switch (`isUIShowingHUD()` read-only), no above-HUD
+  draw hook, and reflection is sandboxed out — so the strategy is *starve the state*, not a
+  master toggle. Secondary (optional, separate thread): pause-text + time-flow indicator are
+  state-triggered and killable via time-lock, but that trades away player pause/fast-forward —
+  deferred, not bundled with this fix.
+
 ## Reusable combathybrid pieces
 
 - `CombatHybridCampaignPlugin` — tag-armed `BattleCreationPlugin` selection (`PROBE_FLAG`).

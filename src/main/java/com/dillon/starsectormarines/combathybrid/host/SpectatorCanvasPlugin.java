@@ -135,9 +135,13 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
             fleetRestored = true;
         }
 
-        // Spectator: never let a player ship take WASD; we own the camera.
+        // Spectator: never let a player ship take WASD; we own the camera. Also hide the
+        // bottom-left ship-info widget (hull/flux/CR/weapon groups + the "press [X] to switch
+        // ships" prompt) — the player pilots nothing by design, so that chrome is noise. Both
+        // are one-frame flags that the UI re-asserts each tick, so we re-call them every frame.
         if (engine.getCombatUI() != null) {
             engine.getCombatUI().setDisablePlayerShipControlOneFrame(true);
+            engine.getCombatUI().hideShipInfo();
         }
 
         // Pan speed scales with zoom so it feels constant on screen at any zoom level.
