@@ -65,7 +65,7 @@ public final class GarrisonPatrol implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
         // CONTEST — re-clear the first room (largest first) that holds an enemy
@@ -109,12 +109,12 @@ public final class GarrisonPatrol implements Action {
      * O(units) pass {@code zoneClear} already runs, and the reachability probe
      * fires only for the (few) enemies actually inside the room.
      */
-    private boolean zoneHasEngageableEnemy(int zoneId, Entity member, Faction enemy, BattleControl sim) {
+    private boolean zoneHasEngageableEnemy(int zoneId, long member, Faction enemy, BattleControl sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity e = sim.liveUnitAt(i);
             if (e.faction != enemy || !e.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != zoneId) continue;
-            if (sim.getTacticalScoring().hasReachableFiringSpot(member.entityId, e.entityId)) return true;
+            if (sim.getTacticalScoring().hasReachableFiringSpot(member, e.entityId)) return true;
         }
         return false;
     }

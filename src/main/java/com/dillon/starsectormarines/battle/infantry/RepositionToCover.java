@@ -65,22 +65,22 @@ public final class RepositionToCover implements Action {
      * informational — callers don't have to act on it, but a debug overlay
      * can use it to read "this tick: shifted vs. held."
      */
-    public static boolean tryReposition(Entity member, BattleControl sim) {
-        if (sim.world().repositionCooldown(member.entityId) > 0f) return false;
-        Entity target = sim.targetOf(member.entityId);
+    public static boolean tryReposition(long member, BattleControl sim) {
+        if (sim.world().repositionCooldown(member) > 0f) return false;
+        Entity target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
-                member.entityId, target.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+                member, target.entityId, sim.world().cellX(member), sim.world().cellY(member));
         if (dest == null) return false;
-        if (dest[0] == sim.world().cellX(member.entityId) && dest[1] == sim.world().cellY(member.entityId)) return false;
-        sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
-        sim.world().setRepositionCooldown(member.entityId, COOLDOWN_SECONDS);
+        if (dest[0] == sim.world().cellX(member) && dest[1] == sim.world().cellY(member)) return false;
+        sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
+        sim.world().setRepositionCooldown(member, COOLDOWN_SECONDS);
         return true;
     }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Standalone-action path — exists for testability and for future
         // callers that might want to schedule reposition as a planner step.
         // Inline path through tryReposition is the production hot path.

@@ -89,7 +89,7 @@ public class OverwatchPostureTest {
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
         Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 8, 5));
 
-        ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
+        ActionStatus status = OverwatchPosture.INSTANCE.execute(defender.entityId, squad, sim);
         assertEquals(ActionStatus.RUNNING, status);
         assertEquals(startCooldown, sim.world().cooldownTimer(defender.entityId), 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");

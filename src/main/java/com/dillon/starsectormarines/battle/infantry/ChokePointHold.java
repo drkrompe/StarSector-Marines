@@ -193,7 +193,7 @@ public final class ChokePointHold implements Action {
     public static String slotName(int idx) { return "losCell:" + idx; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Stamp portal id idempotently — the predicate evaluator needs to know
         // which portal cell to sample. Writing the same value on every tick is
         // harmless and saves a "has the squad been stamped" flag. Under the
@@ -218,24 +218,24 @@ public final class ChokePointHold implements Action {
         int targetX = cell[0];
         int targetY = cell[1];
 
-        boolean atPost = (sim.world().cellX(member.entityId) == targetX && sim.world().cellY(member.entityId) == targetY);
+        boolean atPost = (sim.world().cellX(member) == targetX && sim.world().cellY(member) == targetY);
         if (!atPost) {
             // Transit: walk to the bound LOS cell. No opportunistic fire —
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
-            if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), targetX, targetY,
+            if (sim.world().moveProgress(member) == 0f) {
+                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member), targetX, targetY,
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
             return ActionStatus.RUNNING;
         }
 
         // On-post — pin in place between bursts.
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
 
         // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
         // every on-post member with LoS to the portal cell fires. The
@@ -251,19 +251,19 @@ public final class ChokePointHold implements Action {
         // LoS gate is by-cell: bound cells were picked with LoS at
         // construction, but a movable doodad or transient cover change might
         // have closed it. Re-check before firing.
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY)) {
+        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
-        float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY);
-        if (d > sim.world().attackRange(member.entityId)) return ActionStatus.RUNNING;
+        float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member), portalX, portalY);
+        if (d > sim.world().attackRange(member)) return ActionStatus.RUNNING;
 
         // STANCED fire — on-post, deliberate. Author intent; FiringSystem
         // applies the cooldown gate and executes the shot, still landing the
         // concentrated burst this tick. Same shape as HoldPortalCordon's
         // on-post branch so burst follow-ups behave identically (machine guns
         // rip a burst when the trigger fires).
-        sim.combat().setFireIntent(member.entityId, Entity.idOf(portalIntruder), FireStance.STANCED, false);
-        sim.world().setTargetId(member.entityId, Entity.idOf(portalIntruder));
+        sim.combat().setFireIntent(member, Entity.idOf(portalIntruder), FireStance.STANCED, false);
+        sim.world().setTargetId(member, Entity.idOf(portalIntruder));
         return ActionStatus.RUNNING;
     }
 

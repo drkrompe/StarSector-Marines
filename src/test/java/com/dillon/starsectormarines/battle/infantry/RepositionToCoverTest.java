@@ -56,7 +56,7 @@ public class RepositionToCoverTest {
         // Cooldown set — the action must refuse to move.
         sim.world().setRepositionCooldown(marine.entityId, 0.5f);
 
-        boolean moved = RepositionToCover.tryReposition(marine, sim);
+        boolean moved = RepositionToCover.tryReposition(marine.entityId, sim);
         assertFalse(moved, "cooldown > 0 must block reposition");
         assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "no path queued when cooldown blocks the move");
     }
@@ -68,7 +68,7 @@ public class RepositionToCoverTest {
         sim.world().setTargetId(marine.entityId, 0L);
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
-        boolean moved = RepositionToCover.tryReposition(marine, sim);
+        boolean moved = RepositionToCover.tryReposition(marine.entityId, sim);
         assertFalse(moved, "reposition needs a target to compute threat direction");
     }
 
@@ -86,7 +86,7 @@ public class RepositionToCoverTest {
         sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
-        boolean moved = RepositionToCover.tryReposition(marine, sim);
+        boolean moved = RepositionToCover.tryReposition(marine.entityId, sim);
         // Either no move (best cell IS current) or the action stamps a
         // cooldown but doesn't queue a path. The contract is "didn't actually
         // move" so the marine sits in their cozy cover.
@@ -109,7 +109,7 @@ public class RepositionToCoverTest {
         sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
-        boolean moved = RepositionToCover.tryReposition(marine, sim);
+        boolean moved = RepositionToCover.tryReposition(marine.entityId, sim);
         assertTrue(moved, "open-ground marine within reach of a heavy crate should shift");
         assertEquals(RepositionToCover.COOLDOWN_SECONDS, sim.world().repositionCooldown(marine.entityId), 1e-6f,
                 "successful reposition stamps the cooldown so the marine doesn't churn");

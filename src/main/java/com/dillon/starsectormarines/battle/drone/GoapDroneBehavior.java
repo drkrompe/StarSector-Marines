@@ -64,7 +64,7 @@ public final class GoapDroneBehavior implements UnitBehavior {
         // the end between the isComplete() check and here. Skip this tick.
         if (step == null || step.slotOf(unit) == null) return;
 
-        ActionStatus status = step.action.execute(unit, squad, sim);
+        ActionStatus status = step.action.execute(unit.entityId, squad, sim);
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state — see
             // GoapInfantryBehavior.update for the locking rationale (avoid

@@ -112,7 +112,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // the end between the isComplete() check and here. Skip this tick.
         if (step == null || step.slotOf(unit) == null) return;
 
-        ActionStatus status = step.action.execute(unit, squad, sim);
+        ActionStatus status = step.action.execute(unit.entityId, squad, sim);
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state. Two members
             // both observing the same step's SUCCESS would double-advance

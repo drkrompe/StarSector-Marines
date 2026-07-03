@@ -68,11 +68,11 @@ public class PatrolMotionTest {
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member, squad, sim, KEEP, false);
+        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
         assertEquals(4.0f, squad.patrolDwellTimer, 1e-6,
                 "a non-leader must not drain the dwell while the leader is alive");
 
-        PatrolMotion.advance(leader, squad, sim, KEEP, false);
+        PatrolMotion.advance(leader.entityId, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "the live leader drains the dwell as before");
     }
@@ -90,7 +90,7 @@ public class PatrolMotionTest {
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member, squad, sim, KEEP, false);
+        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "a leaderless squad must still drain its dwell so patrol never freezes");
     }
@@ -107,7 +107,7 @@ public class PatrolMotionTest {
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member, squad, sim, KEEP, false);
+        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "a stale (dead) leaderId must still drain the dwell, not freeze the patrol");
     }
@@ -127,7 +127,7 @@ public class PatrolMotionTest {
         squad.patrolWaypointX = 9; squad.patrolWaypointY = 4;  // east room — unreachable
         squad.centroidX = 2; squad.centroidY = 4;              // far from waypoint → not "arrived"
 
-        PatrolMotion.advance(member, squad, sim, KEEP, false);
+        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
 
         assertTrue(squad.patrolWaypointX < 0 && squad.patrolWaypointY < 0,
                 "an unreachable waypoint must be invalidated so the patrol re-rolls instead of freezing");
@@ -146,7 +146,7 @@ public class PatrolMotionTest {
         squad.patrolWaypointX = 4; squad.patrolWaypointY = 7;  // west room — reachable
         squad.centroidX = 2; squad.centroidY = 4;
 
-        PatrolMotion.advance(member, squad, sim, KEEP, false);
+        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
 
         assertEquals(4, squad.patrolWaypointX, "a reachable waypoint must not be re-rolled");
         assertEquals(7, squad.patrolWaypointY, "a reachable waypoint must not be re-rolled");
@@ -163,7 +163,7 @@ public class PatrolMotionTest {
         sim.world().setAttackRange(marine.entityId, 10f);
         sim.world().setCooldownTimer(marine.entityId, 0.6f);
 
-        PatrolMotion.fireIfAble(marine, sim);
+        PatrolMotion.fireIfAble(marine.entityId, sim);
 
         assertEquals(0.6f, sim.world().cooldownTimer(marine.entityId), 1e-6f,
                 "fireIfAble must not decrement cooldownTimer itself anymore");
@@ -182,7 +182,7 @@ public class PatrolMotionTest {
         Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 9, 3));
         sim.world().setAttackRange(marine.entityId, 2f); // enemy is 6 cells away
 
-        PatrolMotion.fireIfAble(marine, sim);
+        PatrolMotion.fireIfAble(marine.entityId, sim);
 
         assertEquals(0L, sim.combat().fireTargetId(marine.entityId),
                 "an out-of-range enemy must not get a fire intent");

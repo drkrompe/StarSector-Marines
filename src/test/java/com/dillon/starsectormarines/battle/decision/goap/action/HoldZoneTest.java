@@ -161,7 +161,7 @@ public class HoldZoneTest {
         sim.world().setAttackRange(member.entityId, 10f);
         sim.world().setCooldownTimer(member.entityId, 0.6f); // cooldown pending
 
-        ActionStatus status = hold.execute(member, squad, sim);
+        ActionStatus status = hold.execute(member.entityId, squad, sim);
 
         assertEquals(ActionStatus.RUNNING, status);
         assertEquals(target.entityId, sim.combat().fireTargetId(member.entityId),

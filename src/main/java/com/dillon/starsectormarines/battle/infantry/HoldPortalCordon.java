@@ -126,7 +126,7 @@ public final class HoldPortalCordon implements Action {
     }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
@@ -148,20 +148,20 @@ public final class HoldPortalCordon implements Action {
      * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
      * of which this branch maintains.
      */
-    private ActionStatus executePlanter(Entity member, BattleControl sim) {
-        boolean onSite = (sim.world().cellX(member.entityId) == chargeCellX && sim.world().cellY(member.entityId) == chargeCellY);
+    private ActionStatus executePlanter(long member, BattleControl sim) {
+        boolean onSite = (sim.world().cellX(member) == chargeCellX && sim.world().cellY(member) == chargeCellY);
         if (onSite) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), chargeCellX, chargeCellY,
+        if (sim.world().moveProgress(member) == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 
@@ -173,22 +173,22 @@ public final class HoldPortalCordon implements Action {
      * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
      * is the layer that would change that).
      */
-    private ActionStatus executeHolder(Entity member, GuardPost post, BattleControl sim) {
-        boolean atPost = (sim.world().cellX(member.entityId) == post.cellX && sim.world().cellY(member.entityId) == post.cellY);
+    private ActionStatus executeHolder(long member, GuardPost post, BattleControl sim) {
+        boolean atPost = (sim.world().cellX(member) == post.cellX && sim.world().cellY(member) == post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), post.cellX, post.cellY,
+            if (sim.world().moveProgress(member) == 0f) {
+                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
             return ActionStatus.RUNNING;
         }
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
         opportunisticFire(member, sim, FireStance.STANCED);
@@ -206,20 +206,20 @@ public final class HoldPortalCordon implements Action {
      * queue the same way EngagePosture does it so machine-gun weapons still
      * rip a burst from the post.
      */
-    private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member.entityId);
+    private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
+        Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return;
-        float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (d > sim.world().attackRange(member.entityId)) return;
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        if (d > sim.world().attackRange(member)) return;
+        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
-        sim.combat().setFireIntent(member.entityId, Entity.idOf(target), stance, false);
+        sim.combat().setFireIntent(member, Entity.idOf(target), stance, false);
     }
 
     private GuardPost postForSlot(String slotName) {

@@ -45,27 +45,27 @@ public final class MechBreakContact implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member.entityId)) {
-            int[] dest = sim.getTacticalScoring().findFallbackPosition(member.entityId);
-            sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
+            sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 
-        boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
-                      && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
+        boolean atDest = sim.world().cellX(member) == sim.world().fallbackCellX(member)
+                      && sim.world().cellY(member) == sim.world().fallbackCellY(member);
         if (!atDest) {
             opportunisticMechFire(member, sim);
-            if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
-                        sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
+            if (sim.world().moveProgress(member) == 0f) {
+                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member),
+                        sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             opportunisticMechFire(member, sim);
         }
         return ActionStatus.RUNNING;
@@ -78,20 +78,20 @@ public final class MechBreakContact implements Action {
      * accuracy penalty — preserves the "arc artillery over cover while
      * pulling back" read.
      */
-    private static void opportunisticMechFire(Entity u, BattleControl sim) {
-        Entity target = sim.targetOf(u.entityId);
+    private static void opportunisticMechFire(long u, BattleControl sim) {
+        Entity target = sim.targetOf(u);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(u.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(u.entityId);
-            sim.world().setTargetId(u.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(u, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(u);
+            sim.world().setTargetId(u, Entity.idOf(target));
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (dist > sim.world().attackRange(u.entityId)) return;
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),
+        if (dist > sim.world().attackRange(u)) return;
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
+        MechLoadoutComponent m = sim.world().mechLoadout(u);
         MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
     }
 }

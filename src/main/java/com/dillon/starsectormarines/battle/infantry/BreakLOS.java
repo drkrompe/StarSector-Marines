@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -56,18 +55,18 @@ public final class BreakLOS implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member.entityId)) {
-            int[] dest = sim.getTacticalScoring().findFallbackPosition(member.entityId);
-            sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
+            sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 
-        boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
-                      && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
+        boolean atDest = sim.world().cellX(member) == sim.world().fallbackCellX(member)
+                      && sim.world().cellY(member) == sim.world().fallbackCellY(member);
         if (atDest) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
             // of the threat") is implicit: findFallbackPosition only picks
             // cells hidden from every enemy, so by definition no enemy still
@@ -75,13 +74,13 @@ public final class BreakLOS implements Action {
             // replan picks Overwatch or Engage from this fresh position.
             return ActionStatus.SUCCESS;
         }
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
-                    sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
+        if (sim.world().moveProgress(member) == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
+                    sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),
                     sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 }

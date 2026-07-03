@@ -65,8 +65,8 @@ abstract class AbstractZoneAction implements Action {
     @Override public int requiredMembers() { return 1; }
 
     /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId}. */
-    protected final boolean memberInZone(Entity member, BattleView sim) {
-        return sim.getZoneGraph().zoneIdAt(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId)) == targetZoneId;
+    protected final boolean memberInZone(long member, BattleView sim) {
+        return sim.getZoneGraph().zoneIdAt(sim.world().cellX(member), sim.world().cellY(member)) == targetZoneId;
     }
 
     /**
@@ -86,25 +86,25 @@ abstract class AbstractZoneAction implements Action {
      *        goal take over; when false (commitment semantics), the member
      *        keeps pushing into the zone while firing.
      */
-    protected final void advanceIntoZone(Entity member, Squad squad, BattleControl sim,
+    protected final void advanceIntoZone(long member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
-        Entity target = sim.targetOf(member.entityId);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+        Entity target = sim.targetOf(member);
+        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
 
         boolean inContact = false;
         if (target != null) {
-            float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-            inContact = d <= sim.world().attackRange(member.entityId) && visible;
+            inContact = d <= sim.world().attackRange(member) && visible;
         }
 
         if (inContact) {
-            sim.combat().setFireIntent(member.entityId, Entity.idOf(target),
+            sim.combat().setFireIntent(member, Entity.idOf(target),
                     haltOnContact ? FireStance.STANCED : FireStance.MOVING, false);
         } else {
             // Opportunistic return fire while advancing. The pursuit target
@@ -116,27 +116,27 @@ abstract class AbstractZoneAction implements Action {
             // zone push, the trigger just stops it being a sitting duck.
             // FiringSystem's beginBurst tracks the intent target, so the
             // follow-up burst tracks the enemy we shot, not the pursuit target.
-            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member.entityId);
+            Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
             if (opportune != null) {
-                sim.combat().setFireIntent(member.entityId, Entity.idOf(opportune), FireStance.MOVING, false);
+                sim.combat().setFireIntent(member, Entity.idOf(opportune), FireStance.MOVING, false);
             }
         }
 
         if (haltOnContact && inContact) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
                 squad.timeSinceReplan = Planner.REPLAN_PERIOD;
             }
             return;
         }
 
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(member) == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
     }
 
     /**

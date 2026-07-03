@@ -46,29 +46,29 @@ public final class BreakContact implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member.entityId)) {
-            int[] dest = sim.getTacticalScoring().findFallbackPosition(member.entityId);
-            sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
+            sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 
-        boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
-                      && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
+        boolean atDest = sim.world().cellX(member) == sim.world().fallbackCellX(member)
+                      && sim.world().cellY(member) == sim.world().fallbackCellY(member);
         if (!atDest) {
             // Transit — opportunistic suppression while pulling back.
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
-                        sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
+            if (sim.world().moveProgress(member) == 0f) {
+                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member),
+                        sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),
                         sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
             // In position — hold and fire stanced at anything that drifts in.
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             opportunisticFire(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;
@@ -81,19 +81,19 @@ public final class BreakContact implements Action {
      * structurally — shared lift if a fourth caller shows up; for now
      * duplication is cheaper than another helper class.
      */
-    private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
-        Entity target = sim.targetOf(member.entityId);
+    private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
+        Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return;
-        float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (d > sim.world().attackRange(member.entityId)) return;
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        if (d > sim.world().attackRange(member)) return;
+        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
-        sim.combat().setFireIntent(member.entityId, Entity.idOf(target), stance, false);
+        sim.combat().setFireIntent(member, Entity.idOf(target), stance, false);
     }
 }

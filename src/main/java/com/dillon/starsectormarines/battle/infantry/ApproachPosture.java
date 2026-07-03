@@ -47,7 +47,7 @@ public final class ApproachPosture implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Cooldown ticks are handled by GoapInfantryBehavior.prepareForAction
         // before this method runs — see InfantryUnitPrep.
 
@@ -56,24 +56,24 @@ public final class ApproachPosture implements Action {
         // squad walking past a close mech to engage a distant turret because
         // member.target was locked at approach start; shouldKeepPursuing's
         // closer-visible-target check is what unsticks that case.
-        Entity target = sim.targetOf(member.entityId);
+        Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(member.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        boolean inRange = dist <= sim.world().attackRange(member);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (inRange && visible) return ActionStatus.SUCCESS;
 
-        if (sim.world().moveProgress(member.entityId) == 0f) {
+        if (sim.world().moveProgress(member) == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
+            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop
@@ -81,13 +81,13 @@ public final class ApproachPosture implements Action {
                 // unit can actually engage. Returning RUNNING (not FAILURE)
                 // keeps the squad-level Approach plan alive; the re-acquire
                 // happens on the next per-member tick.
-                sim.world().setTargetId(member.entityId, 0L);
+                sim.world().setTargetId(member, 0L);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
 
         return ActionStatus.RUNNING;
     }

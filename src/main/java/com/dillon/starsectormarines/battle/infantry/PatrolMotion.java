@@ -46,7 +46,7 @@ public final class PatrolMotion {
      */
     public interface WaypointSource {
         /** Next waypoint {@code {x,y}}, or null to keep the current one and dwell. */
-        int[] next(Entity member, Squad squad, BattleView sim);
+        int[] next(long member, Squad squad, BattleView sim);
 
         /** Whether the current squad waypoint must be replaced before moving to it. */
         default boolean needsNew(Squad squad) {
@@ -62,7 +62,7 @@ public final class PatrolMotion {
      * opportunistic fire at visible in-range enemies during both the hold and
      * the move (garrison / guard postures; plain district patrols pass false).
      */
-    public static ActionStatus advance(Entity member, Squad squad, BattleControl sim,
+    public static ActionStatus advance(long member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
         if (squad.patrolDwellTimer > 0f) {
             if (ticksDwell(member, squad, sim)) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
@@ -118,8 +118,8 @@ public final class PatrolMotion {
      * drains faster while leaderless (self-corrects on the next promotion) but
      * the patrol never freezes.
      */
-    private static boolean ticksDwell(Entity member, Squad squad, BattleView sim) {
-        if (member.entityId == squad.leaderId) return true;
+    private static boolean ticksDwell(long member, Squad squad, BattleView sim) {
+        if (member == squad.leaderId) return true;
         return squad.leaderId == 0L || sim.resolveUnit(squad.leaderId) == null;
     }
 
@@ -134,12 +134,12 @@ public final class PatrolMotion {
         return Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS;
     }
 
-    private static void onHold(Entity member, BattleControl sim, boolean fire) {
+    private static void onHold(long member, BattleControl sim, boolean fire) {
         if (fire) fireIfAble(member, sim);
         hold(member, sim);
     }
 
-    private static boolean onMove(Entity member, BattleControl sim, int tx, int ty, boolean fire) {
+    private static boolean onMove(long member, BattleControl sim, int tx, int ty, boolean fire) {
         if (fire) fireIfAble(member, sim);
         return moveToward(member, sim, tx, ty);
     }
@@ -152,29 +152,29 @@ public final class PatrolMotion {
      * place. Callers driving a re-rollable waypoint use the {@code false} return
      * to pick a different target instead of parking forever.
      */
-    public static boolean moveToward(Entity member, BattleControl sim, int tx, int ty) {
-        int[] path = sim.world().path(member.entityId);
-        int pathIdx = sim.world().pathIdx(member.entityId);
-        if (sim.world().moveProgress(member.entityId) == 0f && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
-            path = sim.world().path(member.entityId);
-            pathIdx = sim.world().pathIdx(member.entityId);
+    public static boolean moveToward(long member, BattleControl sim, int tx, int ty) {
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if (sim.world().moveProgress(member) == 0f && pathIdx >= Paths.cellCount(path)) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), tx, ty, sim.getOccupancyMap()));
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
             return true;
         }
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         return false;
     }
 
     /** Stop and clear any path — park the member on its current cell. */
-    public static void hold(Entity member, BattleControl sim) {
-        sim.clearPath(member.entityId);
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+    public static void hold(long member, BattleControl sim) {
+        sim.clearPath(member);
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 
     /**
@@ -182,19 +182,19 @@ public final class PatrolMotion {
      * movement. {@code battle.combat.FiringSystem} owns the cooldown gate and
      * executes the shot in the serial FIRING phase.
      */
-    public static void fireIfAble(Entity member, BattleControl sim) {
-        Entity target = sim.targetOf(member.entityId);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+    public static void fireIfAble(long member, BattleControl sim) {
+        Entity target = sim.targetOf(member);
+        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        if (dist <= sim.world().attackRange(member.entityId) && visible) {
-            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.MOVING, false);
+        if (dist <= sim.world().attackRange(member) && visible) {
+            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.MOVING, false);
         }
     }
 }

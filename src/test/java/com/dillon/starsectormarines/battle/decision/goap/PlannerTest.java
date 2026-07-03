@@ -128,7 +128,7 @@ public class PlannerTest {
             @Override public WorldState effects() { return eff; }
             @Override public float cost(WorldState s, Squad sq, BattleView sim) { return cost; }
             @Override public int requiredMembers() { return 1; }
-            @Override public ActionStatus execute(Entity m, Squad sq, BattleControl sim) {
+            @Override public ActionStatus execute(long m, Squad sq, BattleControl sim) {
                 return ActionStatus.SUCCESS;
             }
         };

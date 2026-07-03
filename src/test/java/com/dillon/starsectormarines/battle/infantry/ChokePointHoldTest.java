@@ -102,7 +102,7 @@ public class ChokePointHoldTest {
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
 
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
-        hold.execute(d1, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
 
         assertEquals(portalId, squad.chokePointPortalId,
                 "execute must stamp Squad.chokePointPortalId so the evaluator can scope the predicate");
@@ -120,7 +120,7 @@ public class ChokePointHoldTest {
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
-        hold.execute(d1, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
 
         assertEquals(0f, sim.world().cooldownTimer(d1.entityId), 1e-6f,
                 "no enemy on the portal cell → no shot, cooldown stays at zero");
@@ -148,7 +148,7 @@ public class ChokePointHoldTest {
         assertTrue(sim.getGrid().hasLineOfSight(5, 5, 6, 3),
                 "test prerequisite: defender at (5,5) must have LoS to the doorway at (6,3)");
 
-        hold.execute(d1, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
 
         assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId),
                 "enemy on portal cell + LoS + range → defender authors a fire intent");
@@ -187,8 +187,8 @@ public class ChokePointHoldTest {
         // true and both holders on-post with LoS, both must fire — that's the
         // deterministic concentrated-burst property the action exists to
         // express.
-        hold.execute(d1, squad, sim);
-        hold.execute(d2, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
+        hold.execute(d2.entityId, squad, sim);
 
         assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId));
         assertEquals(attacker.entityId, sim.combat().fireTargetId(d2.entityId));
@@ -217,7 +217,7 @@ public class ChokePointHoldTest {
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
-        hold.execute(d1, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
 
         assertTrue(Paths.isEmpty(sim.world().path(d1.entityId)), "on-post member should have its path cleared");
         assertEquals(0f, sim.world().moveProgress(d1.entityId), 1e-6f);
@@ -236,7 +236,7 @@ public class ChokePointHoldTest {
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
-        hold.execute(d1, squad, sim);
+        hold.execute(d1.entityId, squad, sim);
 
         assertEquals(portalId, squad.chokePointPortalId,
                 "portal id is stamped even on transit ticks (idempotent)");

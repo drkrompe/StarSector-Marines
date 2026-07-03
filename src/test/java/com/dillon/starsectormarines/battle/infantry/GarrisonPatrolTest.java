@@ -76,14 +76,14 @@ public class GarrisonPatrolTest {
         squad.centroidX = 30; squad.centroidY = 2;
 
         // First tick picks the initial waypoint (largest room).
-        patrol.execute(leader, squad, sim);
+        patrol.execute(leader.entityId, squad, sim);
 
         Set<Integer> visited = new HashSet<>();
         for (int i = 0; i < 6; i++) {
             squad.patrolDwellTimer = 0f;                 // dwell expired
             squad.centroidX = squad.patrolWaypointX;     // parked on the waypoint → arrived
             squad.centroidY = squad.patrolWaypointY;
-            patrol.execute(leader, squad, sim);
+            patrol.execute(leader.entityId, squad, sim);
             visited.add(sim.getZoneGraph().zoneIdAt(squad.patrolWaypointX, squad.patrolWaypointY));
         }
 

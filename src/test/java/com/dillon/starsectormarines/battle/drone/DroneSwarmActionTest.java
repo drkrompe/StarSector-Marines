@@ -54,7 +54,7 @@ public class DroneSwarmActionTest {
         // the patrol branch and roll a fresh sector waypoint.
         assertTrue(Float.isNaN(sim.droneState().patrolGoalX(drone.entityId)));
 
-        ActionStatus status = DroneSwarmAction.INSTANCE.execute(drone, squad, sim);
+        ActionStatus status = DroneSwarmAction.INSTANCE.execute(drone.entityId, squad, sim);
 
         assertEquals(ActionStatus.RUNNING, status, "the swarm action runs perpetually");
         assertFalse(Float.isNaN(sim.droneState().patrolGoalX(drone.entityId)),
@@ -70,7 +70,7 @@ public class DroneSwarmActionTest {
         Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 2, 2));
         Squad squad = new Squad(0, Faction.MARINE);
 
-        ActionStatus status = DroneSwarmAction.INSTANCE.execute(marine, squad, sim);
+        ActionStatus status = DroneSwarmAction.INSTANCE.execute(marine.entityId, squad, sim);
 
         assertEquals(ActionStatus.FAILURE, status, "a non-drone member is rejected via the type-tag gate");
     }
@@ -91,7 +91,7 @@ public class DroneSwarmActionTest {
         sim.droneState().setPursuitGoalY(drone.entityId, 20f);
         sim.droneState().setPursuitTimer(drone.entityId, Drone.PURSUIT_LATCH_SECONDS);
 
-        DroneSwarmAction.INSTANCE.execute(drone, squad, sim);
+        DroneSwarmAction.INSTANCE.execute(drone.entityId, squad, sim);
 
         assertEquals(Drone.PURSUIT_LATCH_SECONDS - BattleSimulation.TICK_DT,
                 sim.droneState().pursuitTimer(drone.entityId), 1e-4f,

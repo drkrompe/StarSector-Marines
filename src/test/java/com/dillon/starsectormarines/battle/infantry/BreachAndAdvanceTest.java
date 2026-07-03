@@ -81,7 +81,7 @@ public class BreachAndAdvanceTest {
         // No members are near the stack-up cells yet → first execute should
         // path members toward the stack-up cell, not the forward cell.
         Entity m0 = sim.liveUnitAt(0);
-        action.execute(m0, sq, sim);
+        action.execute(m0.entityId, sq, sim);
         int[] path = sim.world().path(m0.entityId);
         assertNotEquals(0, Paths.cellCount(path), "stack-up phase queues a path");
         // Path destination is the stack-up cell, not the forward cell.
@@ -111,7 +111,7 @@ public class BreachAndAdvanceTest {
         BreachAndAdvance action = new BreachAndAdvance(99, stackX, stackY, forwardX, forwardY);
         attach(sim, sq, action);
 
-        action.execute(m0, sq, sim);
+        action.execute(m0.entityId, sq, sim);
         // Squad is stacked → advance phase → path to forward cell.
         int[] path = sim.world().path(m0.entityId);
         int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
@@ -136,7 +136,7 @@ public class BreachAndAdvanceTest {
         sq.breachStackupTimer = BreachAndAdvance.STACKUP_TIMEOUT_SECONDS + 0.1f;
 
         Entity m0 = sim.liveUnitAt(0);
-        action.execute(m0, sq, sim);
+        action.execute(m0.entityId, sq, sim);
         int[] path = sim.world().path(m0.entityId);
         int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
         assertEquals(14, destX, "timeout commits the breach — path heads for forward cell");
@@ -164,7 +164,7 @@ public class BreachAndAdvanceTest {
         BreachAndAdvance action = new BreachAndAdvance(99, stackX, stackY, forwardX, forwardY);
         attach(sim, sq, action);
 
-        action.execute(m0, sq, sim);
+        action.execute(m0.entityId, sq, sim);
         assertTrue(Paths.isEmpty(sim.world().path(m0.entityId)), "arrived members clear their path");
         assertEquals(0f, sim.world().moveProgress(m0.entityId), 1e-6f);
         assertEquals(14f, sim.world().renderX(m0.entityId), 1e-6f, "render pinned at the destination cell");
@@ -192,7 +192,7 @@ public class BreachAndAdvanceTest {
 
         // Both members at their forward cells; first execute should detect
         // squad-wide success and return SUCCESS for the plan to advance.
-        ActionStatus status = action.execute(m0, sq, sim);
+        ActionStatus status = action.execute(m0.entityId, sq, sim);
         assertSame(ActionStatus.SUCCESS, status,
                 "all alive members at their forward cells → plan step SUCCESS");
     }

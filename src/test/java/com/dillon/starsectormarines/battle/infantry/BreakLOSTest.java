@@ -79,7 +79,7 @@ public class BreakLOSTest {
         sim.world().setFallbackCell(marine.entityId, -1, -1);
         defenderAt(sim, 11, 7);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
         assertTrue(sim.world().fallbackCellX(marine.entityId) >= 0 && sim.world().fallbackCellY(marine.entityId) >= 0,
                 "BreakLOS must stash a destination cell on the unit");
         // Status is RUNNING if the picked cell differs from the start cell,
@@ -107,7 +107,7 @@ public class BreakLOSTest {
         sim.world().setFallbackCell(marine.entityId, 2, 2);
         defenderAt(sim, 11, 11);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
         assertEquals(ActionStatus.SUCCESS, status,
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
         assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path");
@@ -131,7 +131,7 @@ public class BreakLOSTest {
         sim.world().setFallbackCell(marine.entityId, 4, 7);
         defenderAt(sim, 11, 7);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
         assertEquals(ActionStatus.RUNNING, status,
                 "pre-cached destination, not arrived → RUNNING");
         assertEquals(4, sim.world().fallbackCellX(marine.entityId), "cached destination must not be recomputed mid-transit");
@@ -156,7 +156,7 @@ public class BreakLOSTest {
         sim.world().setFallbackCell(marine.entityId, 3, 2);
         defenderAt(sim, 5, 2);
 
-        BreakLOS.INSTANCE.execute(marine, squad, sim);
+        BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
         boolean changed = (sim.world().fallbackCellX(marine.entityId) != 3 || sim.world().fallbackCellY(marine.entityId) != 2);
         assertTrue(changed,
                 "cached (3,2) was visible to defender at (5,2); refresh should have picked a new cell");

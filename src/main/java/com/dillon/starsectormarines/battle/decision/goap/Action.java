@@ -13,7 +13,8 @@ import java.util.List;
  * <b>stateless singletons</b> so the planner can hold a single shared
  * instance per action type and run search in parallel across squads
  * without contention. All per-step state lives on the {@link SquadPlan}
- * step and the assigned {@link Entity}'s fields, never on the action.
+ * step and the assigned member's world components (reached by its
+ * {@code long} entity id), never on the action.
  *
  * <p>The {@link #preconditions()} / {@link #effects()} pair is what the
  * planner reasons about; {@link #cost(WorldState, Squad, BattleView)}
@@ -105,7 +106,7 @@ public interface Action {
      *   <li>{@link ActionStatus#FAILURE} — invalidate the plan, trigger replan.</li>
      * </ul>
      */
-    ActionStatus execute(Entity member, Squad squad, BattleControl sim);
+    ActionStatus execute(long member, Squad squad, BattleControl sim);
 
     /**
      * Cells this action operates on, for the debug-overlay highlight tool. The

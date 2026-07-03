@@ -107,7 +107,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         CompoundService.Record record = sim.getCompoundService().getRecord(compoundNode);
         if (record != null && record.state == CompoundService.CompoundState.MARINE_HELD) {
             return ActionStatus.SUCCESS;
@@ -143,20 +143,20 @@ public final class HoldZone extends AbstractZoneAction {
 
         // No enemies: fan out to the assigned post and hold there, rather than
         // freezing wherever the member first crossed into the zone.
-        if (sim.world().cellX(member.entityId) == postX && sim.world().cellY(member.entityId) == postY) {
+        if (sim.world().cellX(member) == postX && sim.world().cellY(member) == postY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), postX, postY, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(member) == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), postX, postY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 
     /** This member's hold-cell index from its {@code "hold:i"} role slot, or {@code -1} for the overflow slot / no binding (→ hold on the anchor). */
-    private static int assignedSlot(Entity member, Squad squad) {
+    private static int assignedSlot(long member, Squad squad) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         if (step == null) return -1;
@@ -171,35 +171,35 @@ public final class HoldZone extends AbstractZoneAction {
         }
     }
 
-    private ActionStatus engageInZone(Entity member, Squad squad, BattleControl sim, Faction enemy) {
-        Entity target = sim.targetOf(member.entityId);
+    private ActionStatus engageInZone(long member, Squad squad, BattleControl sim, Faction enemy) {
+        Entity target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
             target = pickInZoneTarget(member, sim, enemy);
-            if (target == null) target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+            if (target == null) target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(member.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        boolean inRange = dist <= sim.world().attackRange(member);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (inRange && visible) {
-            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
             // Movement gate, not a fire gate — FiringSystem owns the cooldown
             // check for the shot itself. This read only preserves the old
             // control flow: on the ready tick the member stands to shoot;
             // between shots it keeps creeping toward a better firing position
             // (the block below).
-            if (sim.combat().cooldownTimer(member.entityId) <= 0f) {
+            if (sim.combat().cooldownTimer(member) <= 0f) {
                 return ActionStatus.RUNNING;
             }
         }
@@ -208,21 +208,21 @@ public final class HoldZone extends AbstractZoneAction {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
+        if (sim.world().moveProgress(member) == 0f) {
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
             if (dest == null) {
-                sim.world().setTargetId(member.entityId, 0L);
+                sim.world().setTargetId(member, 0L);
                 hold(member, sim);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 
-    private Entity pickInZoneTarget(Entity self, BattleView sim, Faction enemy) {
+    private Entity pickInZoneTarget(long self, BattleView sim, Faction enemy) {
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -230,8 +230,8 @@ public final class HoldZone extends AbstractZoneAction {
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
@@ -240,10 +240,10 @@ public final class HoldZone extends AbstractZoneAction {
         return best;
     }
 
-    private static void hold(Entity member, BattleControl sim) {
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+    private static void hold(long member, BattleControl sim) {
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 
     /**

@@ -65,12 +65,12 @@ public final class OverwatchKillZone implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Per-member role branching. Non-LR_SUPPORT members (and non-mechs that
         // can't happen here but stay defensive) fall through to parity
         // engagement so mixed-role squads have every member doing something
         // sensible. Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutComponent m = sim.world().mechLoadout(member.entityId);
+        MechLoadoutComponent m = sim.world().mechLoadout(member);
         if (m == null || m.role != MechRole.LR_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
@@ -100,23 +100,23 @@ public final class OverwatchKillZone implements Action {
 
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
-        int[] path = sim.world().path(member.entityId);
-        int pathIdx = sim.world().pathIdx(member.entityId);
-        if ((sim.world().cellX(member.entityId) != m.overwatchCellX || sim.world().cellY(member.entityId) != m.overwatchCellY)
-                && sim.world().moveProgress(member.entityId) == 0f
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if ((sim.world().cellX(member) != m.overwatchCellX || sim.world().cellY(member) != m.overwatchCellY)
+                && sim.world().moveProgress(member) == 0f
                 && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));
-            path = sim.world().path(member.entityId);
-            pathIdx = sim.world().pathIdx(member.entityId);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
 
         // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)
@@ -125,13 +125,13 @@ public final class OverwatchKillZone implements Action {
         // LR mech parked at its overwatch cell can otherwise stay locked onto
         // an enemy that's slid behind cover while ignoring a fresh enemy now
         // standing in its kill lane.
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(member.entityId);
-        sim.world().setTargetId(member.entityId, Entity.idOf(target));
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
+        sim.world().setTargetId(member, Entity.idOf(target));
         if (target != null) {
-            float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-            boolean inRange = dist <= sim.world().attackRange(member.entityId);
-            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            boolean inRange = dist <= sim.world().attackRange(member);
+            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             if (inRange) {
                 MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
@@ -151,7 +151,7 @@ public final class OverwatchKillZone implements Action {
      * distance from the mech's current cell. Returns {@code null} when no cell
      * satisfies the filter — caller falls back to parity engagement.
      */
-    private static int[] pickOverwatchCell(Entity member, Squad squad, BattleView sim) {
+    private static int[] pickOverwatchCell(long member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
@@ -173,7 +173,7 @@ public final class OverwatchKillZone implements Action {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float walk = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), cx, cy);
+                float walk = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member), cx, cy);
                 float score = walk
                         - OVERWATCH_COVER_WEIGHT * cover
                         - OVERWATCH_COVER_WEIGHT * doodadCover;

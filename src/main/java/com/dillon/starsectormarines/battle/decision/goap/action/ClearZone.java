@@ -45,7 +45,7 @@ public final class ClearZone extends AbstractZoneAction {
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Quick exit when the zone reads clear for this squad's enemy faction.
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather
@@ -78,32 +78,32 @@ public final class ClearZone extends AbstractZoneAction {
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
-        Entity target = sim.targetOf(member.entityId);
+        Entity target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
                 || targetOutOfZone
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
             Entity inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.RUNNING;
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(member.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        boolean inRange = dist <= sim.world().attackRange(member);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (inRange && visible) {
-            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
             // Movement gate, not a fire gate — FiringSystem owns the cooldown
             // check for the shot itself. This read only preserves the old
             // control flow: on the ready tick the member stands to shoot;
             // between shots it keeps creeping toward a better firing position
             // (the block below).
-            if (sim.combat().cooldownTimer(member.entityId) <= 0f) {
+            if (sim.combat().cooldownTimer(member) <= 0f) {
                 return ActionStatus.RUNNING;
             }
         }
@@ -114,11 +114,11 @@ public final class ClearZone extends AbstractZoneAction {
         if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
+        if (sim.world().moveProgress(member) == 0f) {
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
             int[] path = dest == null ? GridPathfinder.EMPTY_PATH
                     : GridPathfinder.findPath(sim.getGrid(),
-                            sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                            sim.world().cellX(member), sim.world().cellY(member),
                             dest[0], dest[1], sim.getOccupancyMap());
             if (path.length == 0) {
                 // No reachable firing cell for this in-zone target: either
@@ -135,12 +135,12 @@ public final class ClearZone extends AbstractZoneAction {
                 // survivor is unreachable idles here pending a make-passage /
                 // breach action — the documented limitation, surfaced via
                 // SquadStateDumper.clearZoneReachability.
-                sim.world().setTargetId(member.entityId, 0L);
+                sim.world().setTargetId(member, 0L);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member.entityId, path);
+            sim.setPath(member, path);
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 
@@ -151,8 +151,8 @@ public final class ClearZone extends AbstractZoneAction {
      * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
      * to the normal squad-aware picker).
      */
-    private Entity pickInZoneTarget(Entity self, BattleView sim) {
-        Faction enemy = enemyOf(self.faction);
+    private Entity pickInZoneTarget(long self, BattleView sim) {
+        Faction enemy = enemyOf(sim.identity().faction(self));
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -160,8 +160,8 @@ public final class ClearZone extends AbstractZoneAction {
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
@@ -186,8 +186,8 @@ public final class ClearZone extends AbstractZoneAction {
      * is geometrically stuck — surfaced via clearZoneReachability in
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
-    private Entity pickNearestInZoneEnemy(Entity self, BattleView sim) {
-        Faction enemy = enemyOf(self.faction);
+    private Entity pickNearestInZoneEnemy(long self, BattleView sim) {
+        Faction enemy = enemyOf(sim.identity().faction(self));
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -195,7 +195,7 @@ public final class ClearZone extends AbstractZoneAction {
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

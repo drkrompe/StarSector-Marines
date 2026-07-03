@@ -131,7 +131,7 @@ public class GarrisonCordonTest {
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
         squad.currentPlan = new SquadPlan(List.of(step));
 
-        cordon.execute(d1, squad, sim);
+        cordon.execute(d1.entityId, squad, sim);
 
         int[] path = sim.world().path(d1.entityId);
         assertNotEquals(0, Paths.cellCount(path),
@@ -168,7 +168,7 @@ public class GarrisonCordonTest {
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
         squad.currentPlan = new SquadPlan(List.of(step));
 
-        cordon.execute(d1, squad, sim);
+        cordon.execute(d1.entityId, squad, sim);
 
         assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId),
                 "on-post holder with visible enemy in range → authors a fire intent (opportunistic, no portal trigger required)");

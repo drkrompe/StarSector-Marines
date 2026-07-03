@@ -61,7 +61,7 @@ public final class EngagePosture implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Cooldown ticks + mid-aim short-circuit are handled by
         // GoapInfantryBehavior.prepareForAction before this method runs —
         // see InfantryUnitPrep. By the time we get here, the unit is ready
@@ -72,15 +72,15 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        Entity target = sim.targetOf(member.entityId);
+        Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
@@ -88,24 +88,24 @@ public final class EngagePosture implements Action {
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member.entityId, target.entityId,
-                sim.world().attackRange(member.entityId));
+        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target.entityId,
+                sim.world().attackRange(member));
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
-                sim.vision().airLosRadius(member.entityId), sim.vision().airLosRadius(target.entityId));
+                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
+                sim.vision().airLosRadius(member), sim.vision().airLosRadius(target.entityId));
 
         if (inRange && visible) {
             boolean startedSecondary = false;
             // Rocket eligibility broadened from MapTurret-only to any hardened
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
             // vsTurretMult bonus is worth burning a tube on.
-            long mid = member.entityId;
+            long mid = member;
             if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
                     && sim.world().secondaryCooldownTimer(mid) <= 0f
                     && TacticalScoring.isHardened(target.type)
                     && dist <= sim.world().secondaryWeapon(mid).range
-                    && sim.getTacticalScoring().shouldCommitRocket(member.entityId, target.entityId)) {
+                    && sim.getTacticalScoring().shouldCommitRocket(member, target.entityId)) {
                 sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration);
                 sim.world().setSecondaryFired(mid, false);
                 sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
@@ -120,7 +120,7 @@ public final class EngagePosture implements Action {
             // is strictly suppressive (it can only hold an intent that would
             // have failed the system's check anyway), so skipping it here
             // never lets a shot through the system wouldn't already allow.
-            if (!startedSecondary && dist <= sim.world().attackRange(member.entityId)) {
+            if (!startedSecondary && dist <= sim.world().attackRange(member)) {
                 // Author intent instead of firing inline — FiringSystem
                 // applies the uniform cooldown/range/LoS gate (the old inline
                 // `cooldownTimer<=0 && dist<=attackRange` check) and executes
@@ -130,14 +130,14 @@ public final class EngagePosture implements Action {
                 // cell already wins cover-preferred no-ops out; exposed
                 // members move when their cooldown expires — see
                 // RepositionToCover).
-                sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, true);
+                sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, true);
             }
-            int[] memberPath = sim.world().path(member.entityId);
-            if (sim.world().pathIdx(member.entityId) < Paths.cellCount(memberPath)) {
-                sim.advanceMovement(member.entityId);
+            int[] memberPath = sim.world().path(member);
+            if (sim.world().pathIdx(member) < Paths.cellCount(memberPath)) {
+                sim.advanceMovement(member);
             } else {
-                sim.world().setMoveProgress(member.entityId, 0f);
-                sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+                sim.world().setMoveProgress(member, 0f);
+                sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range
@@ -145,20 +145,20 @@ public final class EngagePosture implements Action {
             // otherwise path to a firing position. Stage 2 retires this when
             // per-member action assignment lets us put approach-only members
             // on {@link ApproachPosture} concurrently with engage-only members.
-            if (sim.world().moveProgress(member.entityId) == 0f) {
+            if (sim.world().moveProgress(member) == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member.entityId, target.entityId);
+                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target.entityId);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.
                     // Drop and let findBestTarget re-pick next tick.
-                    sim.world().setTargetId(member.entityId, 0L);
+                    sim.world().setTargetId(member, 0L);
                     return ActionStatus.RUNNING;
                 }
-                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
             }
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         }
 
         return ActionStatus.RUNNING;

@@ -48,8 +48,8 @@ public final class InfantryCohesion {
      * is fine; the failure mode was units stuck navigating <em>to</em>
      * the battlefield. See {@code memory/squad_leader_cohesion.md}.
      */
-    public static int[] cohesionOverride(Entity self, BattleView sim) {
-        Squad squad = sim.squadOf(self.entityId);
+    public static int[] cohesionOverride(long self, BattleView sim) {
+        Squad squad = sim.squadOf(self);
         if (squad == null || squad.aliveMembers <= 1) return null;
 
         // Engagement override — committed to a fight, don't drift back
@@ -57,22 +57,22 @@ public final class InfantryCohesion {
         // engagement-overrides-regroup rule is per-member, not per-squad:
         // one marine peeking from far cover doesn't pull the rest into
         // their lane.
-        Entity target = sim.targetOf(self.entityId);
+        Entity target = sim.targetOf(self);
         if (target != null) {
             float td = (float) Math.sqrt(
-                    (float) (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId)) * (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId))
-                  + (float) (sim.world().cellY(target.entityId) - sim.world().cellY(self.entityId)) * (sim.world().cellY(target.entityId) - sim.world().cellY(self.entityId)));
-            if (td <= sim.world().attackRange(self.entityId)
-                    && sim.getGrid().hasLineOfSight(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),
+                    (float) (sim.world().cellX(target.entityId) - sim.world().cellX(self)) * (sim.world().cellX(target.entityId) - sim.world().cellX(self))
+                  + (float) (sim.world().cellY(target.entityId) - sim.world().cellY(self)) * (sim.world().cellY(target.entityId) - sim.world().cellY(self)));
+            if (td <= sim.world().attackRange(self)
+                    && sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self),
                             sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) {
                 return null;
             }
         }
 
         Entity leader = sim.resolveUnit(squad.leaderId);
-        if (leader != null && leader != self) {
-            float dx = sim.world().cellX(leader.entityId) - sim.world().cellX(self.entityId);
-            float dy = sim.world().cellY(leader.entityId) - sim.world().cellY(self.entityId);
+        if (leader != null && leader.entityId != self) {
+            float dx = sim.world().cellX(leader.entityId) - sim.world().cellX(self);
+            float dy = sim.world().cellY(leader.entityId) - sim.world().cellY(self);
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist <= COHESION_RADIUS) return null;
             return new int[]{sim.world().cellX(leader.entityId), sim.world().cellY(leader.entityId)};
@@ -82,12 +82,12 @@ public final class InfantryCohesion {
         // squad.centroid is sum/count over all alive members including self.
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
         int othersCount = squad.aliveMembers - 1;
-        float sumX = squad.centroidX * squad.aliveMembers - sim.world().cellX(self.entityId);
-        float sumY = squad.centroidY * squad.aliveMembers - sim.world().cellY(self.entityId);
+        float sumX = squad.centroidX * squad.aliveMembers - sim.world().cellX(self);
+        float sumY = squad.centroidY * squad.aliveMembers - sim.world().cellY(self);
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
-        float dx = cx - sim.world().cellX(self.entityId);
-        float dy = cy - sim.world().cellY(self.entityId);
+        float dx = cx - sim.world().cellX(self);
+        float dy = cy - sim.world().cellY(self);
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist <= COHESION_RADIUS) return null;
         return new int[]{Math.round(cx), Math.round(cy)};

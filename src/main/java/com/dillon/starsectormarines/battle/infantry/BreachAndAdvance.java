@@ -118,7 +118,7 @@ public final class BreachAndAdvance implements Action {
     }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
@@ -146,15 +146,15 @@ public final class BreachAndAdvance implements Action {
             // timer by ~N× (or drop increments under torn writes), either
             // way mis-tripping the timeout. One canonical writer per tick
             // gives a deterministic timer regardless of worker count.
-            if (member.entityId == squad.leaderId) {
+            if (member == squad.leaderId) {
                 squad.breachStackupTimer += BattleSimulation.TICK_DT;
             }
         }
 
-        if (sim.world().cellX(member.entityId) == destX && sim.world().cellY(member.entityId) == destY) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        if (sim.world().cellX(member) == destX && sim.world().cellY(member) == destY) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             // Squad-wide success: all members are at their forward cells.
             // Per-member success would advance the plan after the first
             // arrives, which would let the rest scramble independently.
@@ -171,11 +171,11 @@ public final class BreachAndAdvance implements Action {
             return ActionStatus.RUNNING;
         }
 
-        if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(member) == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
         }
-        sim.advanceMovement(member.entityId);
+        sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 

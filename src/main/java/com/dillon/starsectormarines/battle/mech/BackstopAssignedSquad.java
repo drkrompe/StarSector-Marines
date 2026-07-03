@@ -68,10 +68,10 @@ public final class BackstopAssignedSquad implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
         // Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutComponent m = sim.world().mechLoadout(member.entityId);
+        MechLoadoutComponent m = sim.world().mechLoadout(member);
         if (m == null || m.role != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
@@ -110,37 +110,37 @@ public final class BackstopAssignedSquad implements Action {
         }
 
         // Path to the backstop cell. Same idempotent pattern as overwatch.
-        int[] path = sim.world().path(member.entityId);
-        int pathIdx = sim.world().pathIdx(member.entityId);
-        if ((sim.world().cellX(member.entityId) != m.overwatchCellX || sim.world().cellY(member.entityId) != m.overwatchCellY)
-                && sim.world().moveProgress(member.entityId) == 0f
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if ((sim.world().cellX(member) != m.overwatchCellX || sim.world().cellY(member) != m.overwatchCellY)
+                && sim.world().moveProgress(member) == 0f
                 && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));
-            path = sim.world().path(member.entityId);
-            pathIdx = sim.world().pathIdx(member.entityId);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw
         // everything you have at whatever the marines are shooting at."
-        Entity target = sim.targetOf(member.entityId);
+        Entity target = sim.targetOf(member);
         if (target == null) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
         if (target != null) {
-            float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-            boolean inRange = dist <= sim.world().attackRange(member.entityId);
-            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+            boolean inRange = dist <= sim.world().attackRange(member);
+            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             if (inRange) {
                 MechCombatantBehavior.tryFireMechWeapons(member, m, target, dist, sim, visible);
@@ -154,7 +154,7 @@ public final class BackstopAssignedSquad implements Action {
      * target. Returns {@code null} when no friendly infantry squad exists
      * (mech-only side, or all infantry wiped) — caller falls back to parity.
      */
-    private static Squad pickBackedSquad(Entity member, Squad selfSquad, BattleView sim) {
+    private static Squad pickBackedSquad(long member, Squad selfSquad, BattleView sim) {
         Squad best = null;
         float bestDist = Float.MAX_VALUE;
         for (Squad other : sim.getSquads()) {
@@ -163,7 +163,7 @@ public final class BackstopAssignedSquad implements Action {
             if (other.aliveMembers == 0) continue;
             if (other.isMechSquad()) continue;
             float dist = TacticalScoring.cellDistance(
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().cellX(member), sim.world().cellY(member),
                     Math.round(other.centroidX), Math.round(other.centroidY));
             if (dist < bestDist) {
                 bestDist = dist;
@@ -187,7 +187,7 @@ public final class BackstopAssignedSquad implements Action {
      * cell. Returns {@code null} when no walkable cell exists within a
      * small search radius (essentially never, but defensive).
      */
-    private static int[] pickBackstopCell(Entity member, Squad selfSquad, Squad backed, BattleView sim) {
+    private static int[] pickBackstopCell(long member, Squad selfSquad, Squad backed, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         float cx = backed.centroidX;
         float cy = backed.centroidY;
@@ -196,9 +196,9 @@ public final class BackstopAssignedSquad implements Action {
         // the mech's current cell to the centroid (so it just trails the
         // squad) when no contact is known.
         float threatDx = selfSquad.lastSeenEnemyX >= 0 ? selfSquad.lastSeenEnemyX - cx
-                : cx - sim.world().cellX(member.entityId);
+                : cx - sim.world().cellX(member);
         float threatDy = selfSquad.lastSeenEnemyY >= 0 ? selfSquad.lastSeenEnemyY - cy
-                : cy - sim.world().cellY(member.entityId);
+                : cy - sim.world().cellY(member);
         float len = (float) Math.sqrt(threatDx * threatDx + threatDy * threatDy);
         if (len < 1e-3f) {
             // Degenerate — mech is on top of the centroid with no threat

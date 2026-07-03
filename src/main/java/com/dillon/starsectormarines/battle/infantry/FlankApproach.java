@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -52,27 +51,27 @@ public final class FlankApproach implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         float dx = squad.centroidX - waypointX;
         float dy = squad.centroidY - waypointY;
         if (Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS) {
             return ActionStatus.SUCCESS;
         }
 
-        int[] path = sim.world().path(member.entityId);
-        int pathIdx = sim.world().pathIdx(member.entityId);
-        if (sim.world().moveProgress(member.entityId) == 0f && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if (sim.world().moveProgress(member) == 0f && pathIdx >= Paths.cellCount(path)) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
                     waypointX, waypointY, sim.getOccupancyMap()));
-            path = sim.world().path(member.entityId);
-            pathIdx = sim.world().pathIdx(member.entityId);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
         return ActionStatus.RUNNING;
     }

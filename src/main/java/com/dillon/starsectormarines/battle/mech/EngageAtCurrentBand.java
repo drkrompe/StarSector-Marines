@@ -49,17 +49,17 @@ public final class EngageAtCurrentBand implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity u, Squad squad, BattleControl sim) {
-        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u.entityId);
-        sim.world().setTargetId(u.entityId, Entity.idOf(target));
+    public ActionStatus execute(long u, Squad squad, BattleControl sim) {
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        sim.world().setTargetId(u, Entity.idOf(target));
         if (target == null) return ActionStatus.RUNNING;
 
         // Loadout component reached by id (zero-alloc direct lookup).
-        MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
+        MechLoadoutComponent m = sim.world().mechLoadout(u);
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(u.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(u);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         // The fire pass runs outside the inRange-and-visible gate because LRMs
         // are indirect-fire capable — a mech with line of sight blocked by a
@@ -74,24 +74,24 @@ public final class EngageAtCurrentBand implements Action {
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
         boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
-        if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u.entityId, target.entityId);
+        if (!closeEngagement && sim.world().moveProgress(u) == 0f) {
+            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target.entityId);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.
                 // Drop and let the mech's per-tick target acquisition re-pick.
                 // LRM indirect fire above already ran for this tick — chaingun /
                 // SRM stay quiet until a reachable target is acquired.
-                sim.world().setTargetId(u.entityId, 0L);
+                sim.world().setTargetId(u, 0L);
             } else {
-                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        if (sim.world().pathIdx(u.entityId) < Paths.cellCount(sim.world().path(u.entityId))) {
-            sim.advanceMovement(u.entityId);
+        if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {
+            sim.advanceMovement(u);
         } else {
-            sim.world().setMoveProgress(u.entityId, 0f);
-            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            sim.world().setMoveProgress(u, 0f);
+            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
         }
         return ActionStatus.RUNNING;
     }

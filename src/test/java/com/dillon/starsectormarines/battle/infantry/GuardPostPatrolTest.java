@@ -83,12 +83,12 @@ public class GuardPostPatrolTest {
         // Drive many waypoint advances: each iteration expires the dwell and
         // parks the squad on its current waypoint so squadHasArrived → a fresh
         // roll. Every rolled waypoint must land inside the anchor±radius box.
-        patrol.execute(leader, squad, sim);
+        patrol.execute(leader.entityId, squad, sim);
         for (int i = 0; i < 200; i++) {
             squad.patrolDwellTimer = 0f;
             squad.centroidX = squad.patrolWaypointX;
             squad.centroidY = squad.patrolWaypointY;
-            patrol.execute(leader, squad, sim);
+            patrol.execute(leader.entityId, squad, sim);
             assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
                             && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
                     "waypoint (" + squad.patrolWaypointX + "," + squad.patrolWaypointY
@@ -114,7 +114,7 @@ public class GuardPostPatrolTest {
         squad.patrolDwellTimer = 0f;
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(leader, squad, sim);
+        patrol.execute(leader.entityId, squad, sim);
 
         assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
                         && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
@@ -135,7 +135,7 @@ public class GuardPostPatrolTest {
         Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(member, squad, sim);
+        patrol.execute(member.entityId, squad, sim);
 
         assertEquals(0.6f, sim.world().cooldownTimer(member.entityId), 1e-6f,
                 "engage() must not decrement cooldownTimer itself anymore — "
@@ -169,7 +169,7 @@ public class GuardPostPatrolTest {
         Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(member, squad, sim);
+        patrol.execute(member.entityId, squad, sim);
 
         assertEquals(0L, sim.combat().fireTargetId(member.entityId),
                 "outside the leash — no fire intent even though in range + LoS");

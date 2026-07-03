@@ -58,10 +58,10 @@ public final class HoldPost implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        boolean hasHome = sim.home().hasHome(member.entityId);
-        int homeX = hasHome ? sim.home().homeCellX(member.entityId) : sim.world().cellX(member.entityId);
-        int homeY = hasHome ? sim.home().homeCellY(member.entityId) : sim.world().cellY(member.entityId);
+    public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        boolean hasHome = sim.home().hasHome(member);
+        int homeX = hasHome ? sim.home().homeCellX(member) : sim.world().cellX(member);
+        int homeY = hasHome ? sim.home().homeCellY(member) : sim.world().cellY(member);
 
         // Squad retreating to a new post — every member walks home regardless
         // of alert level. updateSquadFallback drops the flag once everyone
@@ -70,11 +70,11 @@ public final class HoldPost implements Action {
             return returnToHome(member, sim, homeX, homeY);
         }
 
-        Entity target = sim.targetOf(member.entityId);
+        Entity target = sim.targetOf(member);
         if (target == null
-                || !sim.getTacticalScoring().shouldKeepPursuing(member.entityId, target.entityId)) {
-            target = sim.getTacticalScoring().findBestTarget(member.entityId);
-            sim.world().setTargetId(member.entityId, Entity.idOf(target));
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target.entityId)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, Entity.idOf(target));
         }
 
         if (target != null) {
@@ -89,34 +89,34 @@ public final class HoldPost implements Action {
         return returnToHome(member, sim, homeX, homeY);
     }
 
-    private static ActionStatus executeWithTarget(Entity member, Entity target, BattleControl sim, int homeX, int homeY) {
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+    private static ActionStatus executeWithTarget(long member, Entity target, BattleControl sim, int homeX, int homeY) {
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        boolean inRange = dist <= sim.world().attackRange(member.entityId);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+        boolean inRange = dist <= sim.world().attackRange(member);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         if (inRange && visible) {
-            sim.combat().setFireIntent(member.entityId, Entity.idOf(target), FireStance.STANCED, false);
+            sim.combat().setFireIntent(member, Entity.idOf(target), FireStance.STANCED, false);
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
         int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member.entityId, target.entityId, homeX, homeY, HOLD_RADIUS);
+                member, target.entityId, homeX, homeY, HOLD_RADIUS);
         if (firingPos == null) {
             // Current target unreachable from any cell within the hold ring.
             // Switch to any engageable enemy that fits and re-pick.
             Entity alt = sim.getTacticalScoring().findEngageableEnemyWithin(
-                    member.entityId, homeX, homeY, HOLD_RADIUS);
+                    member, homeX, homeY, HOLD_RADIUS);
             if (alt != null) {
-                sim.world().setTargetId(member.entityId, Entity.idOf(alt));
+                sim.world().setTargetId(member, Entity.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                        member.entityId, target.entityId, homeX, homeY, HOLD_RADIUS);
+                        member, target.entityId, homeX, homeY, HOLD_RADIUS);
             }
         }
-        if (firingPos == null || (firingPos[0] == sim.world().cellX(member.entityId) && firingPos[1] == sim.world().cellY(member.entityId))) {
+        if (firingPos == null || (firingPos[0] == sim.world().cellX(member) && firingPos[1] == sim.world().cellY(member))) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -124,7 +124,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus investigateClamped(Entity member, BattleControl sim,
+    private static ActionStatus investigateClamped(long member, BattleControl sim,
                                                    Squad squad, int homeX, int homeY) {
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
@@ -138,8 +138,8 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus returnToHome(Entity member, BattleControl sim, int homeX, int homeY) {
-        if (sim.world().cellX(member.entityId) == homeX && sim.world().cellY(member.entityId) == homeY) {
+    private static ActionStatus returnToHome(long member, BattleControl sim, int homeX, int homeY) {
+        if (sim.world().cellX(member) == homeX && sim.world().cellY(member) == homeY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -147,26 +147,26 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static void moveToward(Entity member, BattleControl sim, int tx, int ty) {
-        int[] path = sim.world().path(member.entityId);
-        int pathIdx = sim.world().pathIdx(member.entityId);
-        if (sim.world().moveProgress(member.entityId) == 0f && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
-            path = sim.world().path(member.entityId);
-            pathIdx = sim.world().pathIdx(member.entityId);
+    private static void moveToward(long member, BattleControl sim, int tx, int ty) {
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if (sim.world().moveProgress(member) == 0f && pathIdx >= Paths.cellCount(path)) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), tx, ty, sim.getOccupancyMap()));
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member.entityId);
+            sim.advanceMovement(member);
         } else {
-            sim.world().setMoveProgress(member.entityId, 0f);
-            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setMoveProgress(member, 0f);
+            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
     }
 
-    private static void hold(Entity member, BattleControl sim) {
-        sim.clearPath(member.entityId);
-        sim.world().setMoveProgress(member.entityId, 0f);
-        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+    private static void hold(long member, BattleControl sim) {
+        sim.clearPath(member);
+        sim.world().setMoveProgress(member, 0f);
+        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 }

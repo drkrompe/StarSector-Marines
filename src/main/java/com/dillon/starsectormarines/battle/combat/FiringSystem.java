@@ -137,7 +137,7 @@ public final class FiringSystem {
                 sim.fireShot(shooter.entityId, target.entityId, stance);
                 combat.setCooldownTimer(shooterId, combat.attackCooldown(shooterId));
                 combat.beginBurst(shooterId, ft);
-                if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooter, sim);
+                if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooter.entityId, sim);
             }
         }
     }

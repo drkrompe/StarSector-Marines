@@ -47,7 +47,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // penalty). Chaingun + SRM still need LOS — that gating lives inside
         // tryFireMechWeapons.
         if (inRange) {
-            tryFireMechWeapons(u, m, target, dist, sim, visible);
+            tryFireMechWeapons(u.entityId, m, target, dist, sim, visible);
         }
 
         // Close engagement = in chaingun range with LOS. Outside that, the
@@ -95,17 +95,17 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       chunk of the salvo flies wide."</li>
      * </ul>
      */
-    public static void tryFireMechWeapons(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireMechWeapons(long u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         tryFireChaingun(u, m, target, dist, sim, hasLos);
         tryFireSrm(u, m, target, dist, sim, hasLos);
         tryFireLrm(u, m, target, dist, sim, hasLos);
     }
 
     /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
-    public static void tryFireChaingun(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireChaingun(long u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
-            sim.fireMechWeapon(u.entityId, target.entityId, m.chaingun);
+            sim.fireMechWeapon(u, target.entityId, m.chaingun);
             m.chaingunCooldown = m.chaingun.cooldown;
             if (m.chaingun.burstCount > 1) {
                 m.chaingunBurstRemaining = m.chaingun.burstCount - 1;
@@ -116,10 +116,10 @@ public final class MechCombatantBehavior implements UnitBehavior {
     }
 
     /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
-    public static void tryFireSrm(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireSrm(long u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
-            sim.fireMechWeapon(u.entityId, target.entityId, m.srmPod);
+            sim.fireMechWeapon(u, target.entityId, m.srmPod);
             m.srmAmmoSalvos--;
             m.srmCooldown = m.srmPod.cooldown;
             if (m.srmPod.burstCount > 1) {
@@ -136,14 +136,14 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * only fires when not actively in close engagement. No-LOS shots get the
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public static void tryFireLrm(Entity u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireLrm(long u, MechLoadoutComponent m, Entity target, float dist, BattleControl sim, boolean hasLos) {
         if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range
                 && dist >  m.chaingun.range) {
             float accMult = hasLos
                     ? 1.0f
                     : com.dillon.starsectormarines.battle.mech.MechWeapon.LRM_NO_LOS_ACC_MULT;
-            sim.fireMechWeapon(u.entityId, target.entityId, m.lrmArtillery, accMult);
+            sim.fireMechWeapon(u, target.entityId, m.lrmArtillery, accMult);
             m.lrmAmmoSalvos--;
             m.lrmCooldown = m.lrmArtillery.cooldown;
             if (m.lrmArtillery.burstCount > 1) {

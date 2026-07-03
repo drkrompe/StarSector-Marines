@@ -71,8 +71,15 @@ public final class SquadPlan {
          * the worst case — fine for the per-member dispatch path.
          */
         public String slotOf(Entity unit) {
+            return slotOf(unit.entityId);
+        }
+
+        /** Id-native overload — the by-id form the {@link Action#execute(long, Squad, com.dillon.starsectormarines.battle.sim.BattleControl)} bodies call as the member handle collapses to a bare {@code long}. */
+        public String slotOf(long unitId) {
             for (Map.Entry<String, List<Entity>> e : assignments.entrySet()) {
-                if (e.getValue().contains(unit)) return e.getKey();
+                for (Entity u : e.getValue()) {
+                    if (u.entityId == unitId) return e.getKey();
+                }
             }
             return null;
         }
