@@ -381,12 +381,27 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   test call sites across ~27 files (infantry/mech/decision/goap) pass `.entityId` (2 parallel Sonnet
   passes over disjoint clusters); `EquipmentDropSystem` + `SquadFallbackSystem` path-clearer
   `Consumer<Entity>` → `LongConsumer` (`this::clearPath` method-refs re-bind to `clearPath(long)`).
-- **Next — the atomic `Action.execute(Entity member)` flip:** the one non-mechanical hop left before the
-  finale — `Action.execute`'s `member` param → `long` (interface + ~30 implementors + dispatcher +
-  `AbstractZoneAction` + test anon impls, in ONE commit, since every implementor shares the signature).
-  Bodies already read everything by id / pass `.entityId`, so the flip is switching `member` from a handle
-  to an id and dropping the now-redundant `.entityId`. Then `mintSquad` (nullable leader→`0L`) →
-  air/vehicle/ui → **the storage finale** (§ "Storage finale").
+- ~~**D9 · the atomic `Action.execute(Entity member)` flip**~~ — **SHIPPED (`68838b84`; suite green, 869
+  tests).** `Action.execute`'s `member` param → `long` (interface + all 24 concrete implementors +
+  `AbstractZoneAction`'s `memberInZone`/`advanceIntoZone` + every private helper that received `member`,
+  in ONE atomic commit). Bodies already read everything by id, so the bulk was a mechanical
+  `Entity member`→`long member` + `member.entityId`→`member` sweep. The non-mechanical bits: (a)
+  `DroneSwarmAction` — `member.type`/`member.faction` → `sim.identity().type/faction(member)`,
+  `resolveSlotIndex`'s `List<Entity>.indexOf(member)` → an `entityId ==` scan; (b) the shared
+  `PatrolMotion` helper class (`advance`/`WaypointSource.next`/`onHold`/`onMove`/`moveToward`/`hold`/
+  `fireIfAble`) → `long`; (c) the adjacent `u`/`self`-named cluster flipped for consistency —
+  `MechCombatantBehavior.tryFire*` (acting-unit `u`→`long`, `target` kept `Entity`),
+  `EngageAtCurrentBand.execute`, `MechBreakContact.opportunisticMechFire`,
+  `InfantryCohesion.cohesionOverride`, `ClearZone`/`HoldZone`'s `pickInZoneTarget`/`pickNearestInZoneEnemy`;
+  (d) `SquadPlan.Step.slotOf(long)` overload added (the `Entity` overload delegates) — the role/slot
+  system (`Slot<Entity>`, `assignments` `List<Entity>`) deliberately **stays `Entity`**. Callers: 3
+  dispatchers (`Goap{Infantry,Mech,Drone}Behavior`) + `FiringSystem.tryReposition` pass `.entityId`; 13
+  test files' `.execute(x,…)` / helper call sites pass `.entityId`; `PlannerTest`'s anon `Action` flipped.
+  6 now-dead `Entity` imports dropped. **SEQUENCING CONFIRMED:** the "~30 implementors" were indeed one
+  atomic commit (shared interface), but the flip rippled one hop past `member`-named params into
+  same-file/shared helpers whose acting-unit param was named `u`/`self` — caught by compile, not a new
+  slice. Reopens nothing new; the spatial index was already id-native (D7). **Next: `mintSquad` (nullable
+  leader→`0L`) → air/vehicle/ui → the storage finale** (§ "Storage finale").
 
 ## Storage finale — the dedicated closing session (the `entity = long` terminus)
 

@@ -220,10 +220,16 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    facade `BattleControl.setPath`/`clearPath` params → `long` — 44 behavior + test callers across ~27 files
    pass `.entityId` (2 parallel Sonnet passes); `writeFallbackInline` dropped its `getOrNull` backward
    resolve; `EquipmentDropSystem`/`SquadFallbackSystem` path-clearer `Consumer<Entity>` → `LongConsumer`.
-   **Next: the atomic `Action.execute(Entity→long)` flip** (interface + ~30 implementors + dispatcher +
-   test anon impls, one commit — every implementor shares the signature, so it's a single atomic flip).
-   Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity — the **storage
-   finale**, now called out as its own dedicated closing session (roster `Entity[]`→`long[]`, sister index
+   **D9 SHIPPED (`68838b84`, 869 green):** the atomic `Action.execute(Entity member→long)` flip — the interface +
+   all 24 implementors + `AbstractZoneAction` + every private helper that received `member`, in ONE commit.
+   Mostly mechanical (`Entity member`→`long member`, `member.entityId`→`member`); the non-mechanical spots
+   were `DroneSwarmAction` (`member.type`/`faction`→`identity()`, `indexOf`→`entityId` scan), the shared
+   `PatrolMotion` helper class, the adjacent `u`/`self`-named cluster (`MechCombatantBehavior.tryFire*` acting-unit
+   `u`→`long` with `target` kept `Entity`, `EngageAtCurrentBand`, `MechBreakContact`, `InfantryCohesion`,
+   `ClearZone`/`HoldZone` pick-target helpers), and a new `SquadPlan.Step.slotOf(long)` overload (roles/slots
+   stay `Entity`). 47 files; 6 dead `Entity` imports dropped. **Next: `mintSquad` (nullable leader→`0L`) →
+   air/vehicle/ui → the storage finale.** Sister `UnitSpatialIndex` + roster `Entity[]` stay Entity — the
+   **storage finale**, its own dedicated closing session (roster `Entity[]`→`long[]`, sister index
    id-native, Entity-returning queries → `long`, `DeathEvent` → `long`, **delete `Entity`**): story doc
    § "Storage finale". Full record + corrected sequence: the story doc § Phase D.
 10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
@@ -234,6 +240,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+68838b84   ecs-migration: identity-collapse D9 - atomic Action.execute(member) -> long
 404bb3c5 ecs-migration: identity-collapse D8 - facade setPath/clearPath -> long
 c296b13b ecs-migration: identity-collapse D7 - dest-index id-native; NavigationService setPath/clearPath internals -> long
 da6c022c ecs-migration: identity-collapse D6 - facade fire* + applyDamage front-door -> long
@@ -311,12 +318,13 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — the atomic `Action.execute(Entity→long)` flip**
-  (D8 landed the facade `setPath`/`clearPath` → `long`): `Action.execute`'s `member` param → `long` across
-  the interface + ~30 implementors + dispatcher + `AbstractZoneAction` + test anon impls, in ONE commit
-  (every implementor shares the signature; bodies already read by id). Then `mintSquad` → air/vehicle/ui →
-  the **storage finale** (§ "Storage finale" in the story doc). D0+D1 `240df7f9`; D2 `a782ad71`;
-  D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`; D8 `404bb3c5`.
+  playtest. **Next-up:** **identity-collapse Phase D — `mintSquad` (nullable leader→`0L`) → air/vehicle/ui →
+  the storage finale** (§ "Storage finale" in the story doc). The behavior tier is now fully `long`-native:
+  **D9 SHIPPED (`68838b84`, 869 green)** flipped the atomic `Action.execute(Entity member→long)` (interface + all
+  24 implementors + `AbstractZoneAction` + private helpers + shared `PatrolMotion` + the `u`/`self`-named mech/
+  cohesion/zone-pick helper cluster + a `SquadPlan.Step.slotOf(long)` overload; roles/slots stay `Entity`;
+  47 files, 6 dead `Entity` imports dropped). D0+D1 `240df7f9`; D2 `a782ad71`;
+  D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`; D8 `404bb3c5`; D9 `68838b84`.
   Other candidates: **statelessify `VehicleController`** (item 10, small/self-contained).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.
