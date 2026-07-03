@@ -718,18 +718,19 @@ public final class UnitRosterService {
      * the same tick. The squads map is pre-sized to avoid rehash, so
      * concurrent get() callers see consistent state.
      */
-    public int mintSquad(Faction faction, Entity leader) {
+    public int mintSquad(Faction faction, long leaderId) {
         synchronized (squads) {
             Squad squad = new Squad(nextSquadId++, faction);
-            // leader may be null (some callers mint an empty squad first, then
+            // leaderId may be 0L (some callers mint an empty squad first, then
             // attach members) — 0L is the no-leader sentinel.
-            squad.leaderId = (leader != null) ? leader.entityId : 0L;
-            // Denormalize squad type from the first member (squads are
-            // homogeneous) so isMechSquad() needs no leader deref and survives
-            // leader death. Keyed off the archetype rather than the loadout
+            squad.leaderId = leaderId;
+            // Denormalize squad type from the leader (squads are homogeneous) so
+            // isMechSquad() needs no leader deref and survives leader death. Read
+            // off the immutable IDENTITY archetype rather than the loadout
             // component because the component is attached after the unit is
-            // allocated (post-mint), so the store isn't populated yet here.
-            squad.mechSquad = leader != null && leader.type.isMech();
+            // allocated (post-mint), so the store isn't populated yet here; the
+            // leader (an already-live unit) has its IDENTITY_TYPE seeded at adopt.
+            squad.mechSquad = leaderId != 0L && identityService.type(leaderId).isMech();
             squads.put(squad.id, squad);
             return squad.id;
         }
@@ -741,7 +742,7 @@ public final class UnitRosterService {
      * spec-based construction path uses: the caller holds an {@link EntitySpec},
      * not a live {@link Entity}, so the squad is born with {@code leaderId == 0}
      * and leadership (if any) is set after the members spawn. Sibling to
-     * {@link #mintSquad(Faction, Entity)} (mint led by an existing unit);
+     * {@link #mintSquad(Faction, long)} (mint led by an existing unit);
      * synchronized for the same drone-hub same-tick reason.
      */
     public int mintSquad(Faction faction, UnitType type) {

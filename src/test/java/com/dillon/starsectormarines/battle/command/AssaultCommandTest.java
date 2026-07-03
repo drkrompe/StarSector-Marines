@@ -55,7 +55,7 @@ public class AssaultCommandTest {
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
         Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY)));
-        int sid = sim.mintSquad(Faction.MARINE, leader);
+        int sid = sim.mintSquad(Faction.MARINE, leader.entityId);
         sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;

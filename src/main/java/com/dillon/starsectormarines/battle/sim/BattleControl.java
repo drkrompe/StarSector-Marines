@@ -48,8 +48,8 @@ public interface BattleControl extends BattleView {
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
     void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult);
 
-    /** Mint a new squad for {@code faction} led by an existing {@code leader} (may be null for a leaderless squad); returns the new squad id. */
-    int mintSquad(Faction faction, Entity leader);
+    /** Mint a new squad for {@code faction} led by an existing unit {@code leaderId} ({@code 0L} for a leaderless squad); returns the new squad id. */
+    int mintSquad(Faction faction, long leaderId);
 
     /**
      * Mint a new (as-yet-leaderless) squad for {@code faction}, denormalizing

@@ -752,8 +752,8 @@ public class BattleSimulation implements BattleControl {
         clearPath(targetId);
     }
 
-    public int mintSquad(Faction faction, Entity leader) {
-        return rosterService.mintSquad(faction, leader);
+    public int mintSquad(Faction faction, long leaderId) {
+        return rosterService.mintSquad(faction, leaderId);
     }
 
     public int mintSquad(Faction faction, UnitType type) {

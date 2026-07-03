@@ -42,7 +42,7 @@ public class ReinforceContactTest {
     private static Squad addDefenderSquad(BattleSimulation sim, float cx, float cy) {
         Entity leader = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE,
                 Math.round(cx), Math.round(cy)));
-        int sid = sim.mintSquad(Faction.DEFENDER, leader);
+        int sid = sim.mintSquad(Faction.DEFENDER, leader.entityId);
         sim.squad().assignSquad(leader.entityId, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 4;
@@ -71,7 +71,7 @@ public class ReinforceContactTest {
     public void relevanceZeroForMarines() {
         BattleSimulation sim = openSim();
         Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 35, 5));
-        int sid = sim.mintSquad(Faction.MARINE, leader);
+        int sid = sim.mintSquad(Faction.MARINE, leader.entityId);
         sim.squad().assignSquad(leader.entityId, sid);
         Squad s = sim.getSquad(sid);
         s.alertLevel = SquadAlertLevel.SUSPICIOUS;
