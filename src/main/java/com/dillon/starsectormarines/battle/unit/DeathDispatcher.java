@@ -62,7 +62,7 @@ public final class DeathDispatcher {
      * Registers a handler. Handlers fire in subscription order on every
      * {@link #drain()}. Subscribe once at sim setup — there is no unsubscribe;
      * a handler that wants to ignore an event filters inside its own callback
-     * (e.g. {@code event.unit().type.isTurret()}).
+     * (e.g. {@code identity().type(event.unitId()).isTurret()}).
      */
     public void subscribe(Consumer<DeathEvent> handler) {
         handlers.add(handler);

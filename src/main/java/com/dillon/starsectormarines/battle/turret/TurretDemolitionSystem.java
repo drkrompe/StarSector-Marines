@@ -66,9 +66,9 @@ public final class TurretDemolitionSystem {
      * called twice).
      */
     public void onDeath(DeathEvent event) {
-        Entity u = event.unit();
-        if (!u.type.isTurret()) return;
-        if (!demolishedTurrets.add(u.entityId)) return;
+        long u = event.unitId();
+        if (!roster.identity().type(u).isTurret()) return;
+        if (!demolishedTurrets.add(u)) return;
         // Death cell from the event snapshot — the turret is released by the
         // time this drains, so its Group-C cell accessors are fail-loud.
         int cx = event.cellX();

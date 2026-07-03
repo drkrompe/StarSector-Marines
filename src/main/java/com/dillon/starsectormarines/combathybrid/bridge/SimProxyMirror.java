@@ -108,7 +108,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
         // sim → vanilla: one subscription routes each death to its link by identity.
         sim.subscribeDeath(event -> {
             for (ProxyLink link : links) {
-                if (link.unit == event.unit()) {
+                if (link.unit.entityId == event.unitId()) {
                     link.simDead = true;
                     break;
                 }

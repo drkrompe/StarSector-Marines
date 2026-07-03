@@ -138,9 +138,10 @@ public final class DamageResolver {
             // drain (post-release) where the Group-C cell accessors fail loud.
             // Roll the corpse prone-pose here (the normal-death path is the one that
             // leaves a ground body); the drone-cascade path publishes -1 (no corpse).
-            // Resolve the still-registered handle for the event (release is below);
-            // DeathEvent goes id-native in the Phase-D finale.
-            deathDispatcher.publish(new DeathEvent(roster.getOrNull(targetId), tcx, tcy, rng.nextInt(4)));
+            // Publish the id directly — the target is still registered here (release
+            // is below), and handlers read the id-keyed corpse columns + the event
+            // snapshot, never a live handle.
+            deathDispatcher.publish(new DeathEvent(targetId, tcx, tcy, rng.nextInt(4)));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is

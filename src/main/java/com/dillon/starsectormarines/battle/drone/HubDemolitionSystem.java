@@ -76,15 +76,15 @@ public final class HubDemolitionSystem {
      * method safe if ever called twice).
      */
     public void onDeath(DeathEvent event) {
-        Entity u = event.unit();
-        if (!u.type.isDroneHub()) return;
-        if (!demolishedHubs.add(u.entityId)) return;
+        long u = event.unitId();
+        if (!roster.identity().type(u).isDroneHub()) return;
+        if (!demolishedHubs.add(u)) return;
         // Death cell from the event snapshot — the hub is released by drain time.
         int cx = event.cellX();
         int cy = event.cellY();
         mapEditor.flipCellToRubble(cx, cy);
         effects.spawnSmokingWreck(cx, cy);
-        cascadeKillDrones(u.entityId);
+        cascadeKillDrones(u);
     }
 
     /** True iff the hub with entity id {@code hubId} has already been demolished — the double-fire guard's observable state. Exposed for tests. */
@@ -128,7 +128,7 @@ public final class HubDemolitionSystem {
             // the next wave (the dispatcher is wave-drained for exactly this).
             // Snapshot the cell while the drone is still registered.
             // -1 pose: a cascade-killed drone crashes-and-fades (Crashing), no ground corpse.
-            deathDispatcher.publish(new DeathEvent(d, world.cellX(d.entityId), world.cellY(d.entityId), -1));
+            deathDispatcher.publish(new DeathEvent(d.entityId, world.cellX(d.entityId), world.cellY(d.entityId), -1));
             roster.releaseFromRegistry(d.entityId);
         }
     }

@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
@@ -47,13 +46,13 @@ public final class MechWreckSystem {
      * once — but the guard keeps the method safe if ever called twice).
      */
     public void onDeath(DeathEvent event) {
-        Entity u = event.unit();
+        long u = event.unitId();
         World world = roster.world();
         // MECH_LOADOUT rides the corpse archetype (kept off the corpse-remove
         // mask), so the dead mech's loadout is still readable here even though the
         // unit left the live registry. A non-mech death has none → null, and we
         // skip. (mechLoadout is the null-safe by-id read.)
-        MechLoadoutComponent m = world.mechLoadout(u.entityId);
+        MechLoadoutComponent m = world.mechLoadout(u);
         if (m == null || m.wreckSpawned) return;
         // Read the death cell off the event snapshot: the unit is released by
         // the time this drains, so its Group-C cell accessors are fail-loud.
@@ -63,6 +62,6 @@ public final class MechWreckSystem {
         // removeComponent row-move back to a plain corpse) so the mech-fire query
         // stops seeing it. Mirrors the CrashingComponent lifecycle: the component
         // is removed once its terminal event fires.
-        world.removeMechLoadout(u.entityId);
+        world.removeMechLoadout(u);
     }
 }

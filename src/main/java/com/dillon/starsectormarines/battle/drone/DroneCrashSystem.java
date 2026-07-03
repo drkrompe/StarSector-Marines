@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -68,9 +68,15 @@ public final class DroneCrashSystem {
      * non-drone deaths and a drone that somehow already carries the component.
      */
     public void onDeath(DeathEvent event) {
-        Entity u = event.unit();
-        if (!u.type.isDrone()) return;
-        if (world.has(u.entityId, components.CRASHING)) return;
+        long u = event.unitId();
+        // Classify by id off the IDENTITY_TYPE column (kept through the corpse
+        // transmute). This system holds only the raw world, not a roster /
+        // IdentityService handle, so read the type column directly — the
+        // IdentityService.type(id) equivalent, matching the raw-world style this
+        // system already uses for KINEMATICS / CRASHING.
+        UnitType type = (UnitType) world.getObject(u, components.IDENTITY, BattleComponents.IDENTITY_TYPE);
+        if (!type.isDrone()) return;
+        if (world.has(u, components.CRASHING)) return;
         // The drone's world entity outlives its registry release (it transmuted to
         // the corpse archetype on this same death drain), so attach CRASHING to it
         // — a one-component row-move onto the corpse. CRASHING is off the
@@ -81,12 +87,12 @@ public final class DroneCrashSystem {
         // body for the fall), then detach KINEMATICS — a corpse doesn't fly, and
         // the body's lifecycle has moved to the crash component (the
         // MECH_LOADOUT "survive the transmute, detach once read" precedent).
-        AirBody body = (AirBody) world.getObject(u.entityId, components.KINEMATICS, BattleComponents.KINEMATICS_BODY);
-        world.addComponent(u.entityId, components.CRASHING);
-        world.setObject(u.entityId, components.CRASHING, BattleComponents.CRASHING_STATE,
+        AirBody body = (AirBody) world.getObject(u, components.KINEMATICS, BattleComponents.KINEMATICS_BODY);
+        world.addComponent(u, components.CRASHING);
+        world.setObject(u, components.CRASHING, BattleComponents.CRASHING_STATE,
                 new CrashingComponent(body, Drone.CRASH_DURATION_SEC, Drone.CRASH_SPIN_DEG_PER_SEC));
         effects.spawnSmokePlume(body.x, body.y);
-        world.removeComponent(u.entityId, components.KINEMATICS);
+        world.removeComponent(u, components.KINEMATICS);
     }
 
     /**

@@ -93,8 +93,7 @@ public final class DeadBodySystem {
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */
     public void onDeath(DeathEvent event) {
-        Entity u = event.unit();
-        long id = u.entityId;
+        long id = event.unitId();
         BattleComponents c = components;
         // IDENTITY and POSITION ride the row-move — the live cell IS the death
         // cell (the event's snapshot is the same value; demolition handlers
