@@ -522,10 +522,17 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
   role/plan storage flips WITH the roster's `Entity[]`→`long[]`, not with the facade. (2) `isRoofShielded` /
   `applyExternalDamage` (flyby strafing's only callers, plus the combat bridge) take a `liveUnitAt`-sourced
   arg → `Entity`→`long`; `SimProxyMirror` (bridge, `ProxyLink.unit` still `Entity`) appends `.entityId`.
-- **F4 · `UnitSpatialIndex` id-native** (next) — buckets `Entity[]`→`LongBucket` (D7 shape); `gather` emits
-  `long`; `TacticalScoring`'s `ArrayList<Entity>` scratch + `filterEnemyCombatants`/`resolveThreatColumns`/
-  `countCombatantsWithin` + all other `gather` callers go id-native.
-- **F5 · roster storage + delete `Entity.java`** — dense `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`;
+- ~~**F4 · `UnitSpatialIndex` id-native**~~ — **SHIPPED (`7080ce8b`; 869 green; 6 files).** The primary
+  index carries bare ids. Inner `Bucket.units` `Entity[]`→`long[]` (the snapshot `cellX`/`cellY` parallel
+  arrays stay — the "no by-id probe in gather" perf choice is preserved); `gather(...)` out
+  `ArrayList<Entity>`→`LongBucket`; `add(roster,Entity)`→`add(roster,long)`; `rebuild` reads
+  `dense[i].entityId` (denseArray stays `Entity[]` until F5); `clear()` drops the null-out loop (a `long[]`
+  pins nothing). 10 `gather` sites (`TacticalScoring`×7, `InfantryUnitPrep`, `AirSystem`, `WorldStateBuilder`)
+  iterate `LongBucket.ids[0..size)`; `.faction`/`.type`→`identity()`. `filterEnemyCombatants` dropped
+  `static` (it now needs `roster.identity()`) and compacts the `LongBucket` in place (`ids[write++]`;
+  `size=write`); `resolveThreatColumns(List<Entity>)`→`(LongBucket)`. Sister `UnitDestinationSpatialIndex`
+  (already id-native from D7) untouched; `AttackerIndexService.getAttackersOf` stays `Entity` (F5).
+- **F5 · roster storage + delete `Entity.java`** (next — the terminus) — dense `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`;
   `getOrNull`/`get`/`denseArray` deleted-or-`long`; `adopt` spec-only; `PendingSpawn(long,spec)`;
   `getPendingSpawns`/`getDeathsThisFrame`→`long`; rehome `idOf`/`NO_SQUAD`; the remaining `Entity`
   consumers (render/ui/worldstate/roles) + ~60 test files; **delete `Entity.java`**.
