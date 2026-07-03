@@ -151,13 +151,13 @@ public final class HoldPortalCordon implements Action {
     private ActionStatus executePlanter(Entity member, BattleControl sim) {
         boolean onSite = (sim.world().cellX(member.entityId) == chargeCellX && sim.world().cellY(member.entityId) == chargeCellY);
         if (onSite) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
         }
@@ -179,14 +179,14 @@ public final class HoldPortalCordon implements Action {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
             opportunisticFire(member, sim, FireStance.MOVING);
             if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member.entityId);
             return ActionStatus.RUNNING;
         }
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
         sim.world().setMoveProgress(member.entityId, 0f);
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // On-post fire — STANCED, full accuracy. This is the whole reason

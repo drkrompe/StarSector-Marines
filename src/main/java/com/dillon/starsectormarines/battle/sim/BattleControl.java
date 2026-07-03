@@ -27,10 +27,10 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 public interface BattleControl extends BattleView {
 
     /** Replace a unit's path; queues the occupancy/destIndex delta. Pass an empty path (or {@link #clearPath}) to drop the current path. */
-    void setPath(Entity u, int[] newPath);
+    void setPath(long u, int[] newPath);
 
     /** Drop the unit's path. */
-    void clearPath(Entity u);
+    void clearPath(long u);
 
     /** Advance the unit (by entity id) one tick along its current path. */
     void advanceMovement(long u);

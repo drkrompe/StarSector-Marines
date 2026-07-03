@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Stateless per-tick sweep over the active equipment drops owned by
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  *
  * <p>Constructor-injected: {@link UnitRosterService} for the dense-registry
  * iteration the pickup + assignment passes do (live marines only), a
- * {@link Consumer Consumer&lt;Entity&gt;} path-clearer (the sim's
+ * {@link LongConsumer} path-clearer (the sim's
  * {@code clearPath} method-ref) so a freshly-assigned retriever drops its stale
  * path and re-pathfinds toward the kit on its next behavior tick, and the
  * {@link EquipmentDropService} that owns the drop list.
@@ -33,10 +33,10 @@ import java.util.function.Consumer;
 public final class EquipmentDropSystem {
 
     private final UnitRosterService rosterService;
-    private final Consumer<Entity> pathClearer;
+    private final LongConsumer pathClearer;
     private final EquipmentDropService drops;
 
-    public EquipmentDropSystem(UnitRosterService rosterService, Consumer<Entity> pathClearer,
+    public EquipmentDropSystem(UnitRosterService rosterService, LongConsumer pathClearer,
                                EquipmentDropService drops) {
         this.rosterService = rosterService;
         this.pathClearer = pathClearer;
@@ -94,7 +94,7 @@ public final class EquipmentDropSystem {
                 task.setEquipmentDropTarget(nearest.entityId, drop);
                 // Wipe any stale path so the retriever re-pathfinds to the drop
                 // next tick instead of continuing toward their old target.
-                pathClearer.accept(nearest);
+                pathClearer.accept(nearest.entityId);
             }
         }
 

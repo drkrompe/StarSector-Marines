@@ -224,7 +224,7 @@ public final class ChokePointHold implements Action {
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
             if (sim.world().moveProgress(member.entityId) == 0f) {
-                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), targetX, targetY,
                         sim.getOccupancyMap()));
             }
@@ -233,7 +233,7 @@ public final class ChokePointHold implements Action {
         }
 
         // On-post — pin in place between bursts.
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
         sim.world().setMoveProgress(member.entityId, 0f);
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
 

@@ -54,7 +54,7 @@ public final class OverwatchPosture implements Action {
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Drop any in-flight path — the squad is on overwatch, not moving.
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
         sim.world().setMoveProgress(member.entityId, 0f);
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // Deliberately do NOT fire and do NOT touch cooldownTimer — the

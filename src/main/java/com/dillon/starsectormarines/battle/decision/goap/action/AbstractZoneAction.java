@@ -123,7 +123,7 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (haltOnContact && inContact) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
@@ -133,7 +133,7 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member.entityId);

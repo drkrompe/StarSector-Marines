@@ -285,7 +285,7 @@ public class TacticalScoringTest {
         // Ally currently far but path destination at (4, 5) → within radius of (4, 4).
         Entity a2 = unit(sim, Faction.MARINE, 12, 12);
         int[] path = new int[]{12, 12, 4, 5};
-        sim.setPath(a2, path);
+        sim.setPath(a2.entityId, path);
 
         int count = sim.getTacticalScoring().alliesNearForSpread(self.entityId, 4, 4);
         assertEquals(2, count,

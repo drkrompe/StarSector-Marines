@@ -138,7 +138,7 @@ public final class ClearZone extends AbstractZoneAction {
                 sim.world().setTargetId(member.entityId, 0L);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member, path);
+            sim.setPath(member.entityId, path);
         }
         sim.advanceMovement(member.entityId);
         return ActionStatus.RUNNING;

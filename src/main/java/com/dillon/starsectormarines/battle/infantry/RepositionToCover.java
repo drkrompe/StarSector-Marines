@@ -73,7 +73,7 @@ public final class RepositionToCover implements Action {
                 member.entityId, target.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         if (dest == null) return false;
         if (dest[0] == sim.world().cellX(member.entityId) && dest[1] == sim.world().cellY(member.entityId)) return false;
-        sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+        sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                 sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         sim.world().setRepositionCooldown(member.entityId, COOLDOWN_SECONDS);
         return true;

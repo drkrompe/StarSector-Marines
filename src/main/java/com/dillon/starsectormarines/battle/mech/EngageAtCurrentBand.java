@@ -83,7 +83,7 @@ public final class EngageAtCurrentBand implements Action {
                 // SRM stay quiet until a reachable target is acquired.
                 sim.world().setTargetId(u.entityId, 0L);
             } else {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }

@@ -152,7 +152,7 @@ public final class BreachAndAdvance implements Action {
         }
 
         if (sim.world().cellX(member.entityId) == destX && sim.world().cellY(member.entityId) == destY) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Squad-wide success: all members are at their forward cells.
@@ -172,7 +172,7 @@ public final class BreachAndAdvance implements Action {
         }
 
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member.entityId);

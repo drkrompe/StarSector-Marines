@@ -155,7 +155,7 @@ public final class EngagePosture implements Action {
                     sim.world().setTargetId(member.entityId, 0L);
                     return ActionStatus.RUNNING;
                 }
-                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
             sim.advanceMovement(member.entityId);

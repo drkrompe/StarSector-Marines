@@ -22,13 +22,13 @@ public final class FallbackBehavior implements UnitBehavior {
         int fx = sim.world().fallbackCellX(u.entityId);
         int fy = sim.world().fallbackCellY(u.entityId);
         if (sim.world().cellX(u.entityId) == fx && sim.world().cellY(u.entityId) == fy) {
-            sim.clearPath(u);
+            sim.clearPath(u.entityId);
             sim.world().setMoveProgress(u.entityId, 0f);
             sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
             return;
         }
         if (sim.world().moveProgress(u.entityId) == 0f) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), fx, fy, sim.getOccupancyMap()));
+            sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), fx, fy, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u.entityId);
     }

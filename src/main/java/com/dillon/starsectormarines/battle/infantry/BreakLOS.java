@@ -65,7 +65,7 @@ public final class BreakLOS implements Action {
         boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
                       && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
         if (atDest) {
-            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
             sim.world().setMoveProgress(member.entityId, 0f);
             sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
@@ -76,7 +76,7 @@ public final class BreakLOS implements Action {
             return ActionStatus.SUCCESS;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                     sim.getOccupancyMap()));

@@ -156,7 +156,7 @@ public final class PatrolMotion {
         int[] path = sim.world().path(member.entityId);
         int pathIdx = sim.world().pathIdx(member.entityId);
         if (sim.world().moveProgress(member.entityId) == 0f && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
             path = sim.world().path(member.entityId);
             pathIdx = sim.world().pathIdx(member.entityId);
@@ -172,7 +172,7 @@ public final class PatrolMotion {
 
     /** Stop and clear any path — park the member on its current cell. */
     public static void hold(Entity member, BattleControl sim) {
-        sim.clearPath(member);
+        sim.clearPath(member.entityId);
         sim.world().setMoveProgress(member.entityId, 0f);
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }

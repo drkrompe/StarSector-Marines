@@ -40,7 +40,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         fireOpportunistically(u, sim);
 
         if (sim.world().moveProgress(u.entityId) == 0f) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), drop.cellX, drop.cellY, sim.getOccupancyMap()));
+            sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u.entityId);
     }

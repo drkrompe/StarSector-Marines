@@ -76,7 +76,7 @@ public final class FleeBehavior implements UnitBehavior {
         if (needsRepath && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         sim.advanceMovement(u.entityId);
@@ -94,7 +94,7 @@ public final class FleeBehavior implements UnitBehavior {
             // Re-fetch after advance — pathIdx may have incremented.
             if (sim.world().pathIdx(u.entityId) >= Paths.cellCount(sim.world().path(u.entityId))) {
                 // Arrived this tick — clear the path and start dwelling.
-                sim.clearPath(u);
+                sim.clearPath(u.entityId);
                 sim.world().setWanderDwellTimer(u.entityId, randomDwellSeconds(ThreadLocalRandom.current()));
             }
             return;
@@ -113,7 +113,7 @@ public final class FleeBehavior implements UnitBehavior {
             sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+        sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         if (Paths.isEmpty(sim.world().path(u.entityId))) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
             sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);

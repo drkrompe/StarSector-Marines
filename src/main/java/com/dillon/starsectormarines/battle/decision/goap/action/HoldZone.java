@@ -148,7 +148,7 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), postX, postY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member.entityId);
@@ -215,7 +215,7 @@ public final class HoldZone extends AbstractZoneAction {
                 hold(member, sim);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         }
         sim.advanceMovement(member.entityId);
@@ -241,7 +241,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     private static void hold(Entity member, BattleControl sim) {
-        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member.entityId);
         sim.world().setMoveProgress(member.entityId, 0f);
         sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }

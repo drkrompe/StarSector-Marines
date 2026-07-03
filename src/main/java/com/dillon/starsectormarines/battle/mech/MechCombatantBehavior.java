@@ -63,7 +63,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 // LRMs already fired indirectly this tick if range allowed.
                 sim.world().setTargetId(u.entityId, 0L);
             } else {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                sim.setPath(u.entityId, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }

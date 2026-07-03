@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Stateless tick consumer that evaluates per-squad fall-back chains and
@@ -44,11 +44,11 @@ public final class SquadFallbackSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
-    private final Consumer<Entity> pathClearer;
+    private final LongConsumer pathClearer;
 
     public SquadFallbackSystem(NavigationService navigation,
                                UnitRosterService roster,
-                               Consumer<Entity> pathClearer) {
+                               LongConsumer pathClearer) {
         this.navigation = navigation;
         this.roster = roster;
         this.pathClearer = pathClearer;
@@ -135,7 +135,7 @@ public final class SquadFallbackSystem {
             int[] cell = cells.get(idx++);
             roster.home().setHome(u.entityId, cell[0], cell[1]);
             // Wipe stale path — next garrison tick re-paths to the new home.
-            pathClearer.accept(u);
+            pathClearer.accept(u.entityId);
         }
     }
 }

@@ -115,7 +115,7 @@ public final class BackstopAssignedSquad implements Action {
         if ((sim.world().cellX(member.entityId) != m.overwatchCellX || sim.world().cellY(member.entityId) != m.overwatchCellY)
                 && sim.world().moveProgress(member.entityId) == 0f
                 && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            sim.setPath(member.entityId, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));

@@ -150,7 +150,7 @@ public class FacingSystemTest {
         // The next path cell sits at y+1. In this sim's cell space dy>0 is NORTH
         // (facingFromDelta's convention, matching the renderer) — trust the
         // delta math over screen-direction intuition.
-        sim.setPath(marine, new int[]{5, 5, 5, 6});
+        sim.setPath(marine.entityId, new int[]{5, 5, 5, 6});
 
         systemFor(sim).tick();
 
@@ -175,7 +175,7 @@ public class FacingSystemTest {
         // the tick's AI may have set, so the assertion pins the dead-target
         // fallthrough rather than whatever the AI decided that tick.
         sim.world().setTargetId(marine.entityId, enemy.entityId);
-        sim.clearPath(marine);
+        sim.clearPath(marine.entityId);
         sim.world().setCooldownTimer(marine.entityId, 0f);
 
         systemFor(sim).tick();

@@ -749,9 +749,7 @@ public class BattleSimulation implements BattleControl {
     private void writeFallbackInline(long targetId, int fbX, int fbY) {
         world.setFallbackCell(targetId, fbX, fbY);
         world.setFallbackTimer(targetId, HitResponseSystem.FALLBACK_DURATION);
-        // clearPath still takes the handle; resolve the (non-lethal, still-live)
-        // target — clearPath goes id-native later in Phase D.
-        clearPath(rosterService.getOrNull(targetId));
+        clearPath(targetId);
     }
 
     public int mintSquad(Faction faction, Entity leader) {
@@ -1112,10 +1110,10 @@ public class BattleSimulation implements BattleControl {
      * through {@code sim.setPath(...)} — which keeps the occupancy/destIndex
      * bookkeeping in sync — rather than writing the MOVEMENT path by id directly.
      * Pass {@link GridPathfinder#EMPTY_PATH} (or call
-     * {@link #clearPath(Entity)}) to drop the current path.
+     * {@link #clearPath(long)}) to drop the current path.
      */
-    public void setPath(Entity u, int[] newPath) {
-        navigation.setPath(u.entityId, newPath);
+    public void setPath(long u, int[] newPath) {
+        navigation.setPath(u, newPath);
     }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */
@@ -1124,8 +1122,8 @@ public class BattleSimulation implements BattleControl {
     }
 
     /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(long)}. */
-    public void clearPath(Entity u) {
-        navigation.clearPath(u.entityId);
+    public void clearPath(long u) {
+        navigation.clearPath(u);
     }
 
     /**
