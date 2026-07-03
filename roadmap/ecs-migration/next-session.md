@@ -240,6 +240,8 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+1a44f09a ecs-migration: identity-collapse D12 - remaining scattered acting-unit params -> long
+72dfcdfb ecs-migration: identity-collapse D11 - UnitBehavior.update(Entity u) -> long
 739fd228 ecs-migration: identity-collapse D10 - mintSquad(Faction, Entity leader) -> long
 68838b84 ecs-migration: identity-collapse D9 - atomic Action.execute(member) -> long
 404bb3c5 ecs-migration: identity-collapse D8 - facade setPath/clearPath -> long
@@ -319,17 +321,19 @@ goap, campaign) interleave on HEAD.
   intended `attackCooldown` spacing (the double-tick bug had them firing ~2× fast) and
   the overall intent-flip feel; (b) optional Phase 3 stance normalization via
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
-  playtest. **Next-up:** **identity-collapse Phase D — decide: sweep the remaining subsystem `Entity`-param
-  tail (~41 files) as more D-slices, or fold it into the storage finale.** The **sim facade is now
-  `Entity`-param-clean** (D10, `739fd228`): `BattleControl`/`BattleView` take `long` on every mutate/read
-  front-door; the only `Entity` left there are the 3 *returns* (`liveUnitAt`/`targetOf`/`resolveUnit`),
-  storage-finale scope. What remains are `Entity` *params* on subsystem internals (infantry/decision/turret/
-  drone/mech/`combathybrid/bridge`), split into flip-now acting-unit params vs. finale-coupled `target`/query
-  params — see the story doc § "Where D leaves the param-flip" for the open sequencing question. Then the
-  **storage finale** (roster `Entity[]`→`long[]`, sister `UnitSpatialIndex` id-native, Entity-returning
-  queries → `long`, `DeathEvent` → `long`, **delete `Entity`**). The behavior tier is fully `long`-native:
-  **D9 (`68838b84`)** the atomic `Action.execute(member→long)` (47 files); **D10 (`739fd228`)** `mintSquad`.
-  D0+D1 `240df7f9`; D2 `a782ad71`; D3 `14a6d774`; D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`;
-  D8 `404bb3c5`; D9 `68838b84`; D10 `739fd228`. Other candidate: **statelessify `VehicleController`** (item 10).
+  playtest. **Next-up:** **identity-collapse Phase D — the STORAGE FINALE** (§ "Storage finale" in the story
+  doc). **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
+  scope is now `long`: the sim facade (D10 — `BattleControl`/`BattleView` take `long` on every front-door),
+  the GOAP `Action.execute` (D9), the `UnitBehavior.update` dispatch entry (D11), and the scattered subsystem
+  acting-unit params (D12). The only `Entity` that remains is **finale-coupled**: `target`/`candidate`/`threat`
+  params fed from `Entity`-returning queries (`targetOf`/`findBestTarget`/`liveUnitAt` — flip *with* the
+  returns), the `combathybrid/bridge` presentation layer (iterates `getDeathsThisFrame()`/`targetable`),
+  roster/spatial storage, `DeathEvent`, and the `Entity.idOf`/`slotOf(Entity)`/`adopt`/`PendingSpawn` seams.
+  So the **storage finale** is the whole remaining tail as one coherent pass: roster `Entity[]`→`long[]`,
+  sister `UnitSpatialIndex` id-native (`LongBucket`, D7-proven), Entity-returning queries → `long`, `DeathEvent`
+  → `long`, rehome `Entity.idOf`/`NO_SQUAD`, **delete `Entity.java`**. **Follow-up:** `NavigationService.pathDestX`/
+  `pathDestY` are dead (zero callers) — delete in the finale. D0+D1 `240df7f9`; D2 `a782ad71`; D3 `14a6d774`;
+  D4 `d6b61af2`; D5 `51d6f1c`; D6 `da6c022c`; D7 `c296b13b`; D8 `404bb3c5`; D9 `68838b84`; D10 `739fd228`;
+  D11 `72dfcdfb`; D12 `1a44f09a`. Other candidate: **statelessify `VehicleController`** (item 10).
 - Working model note (2026-07-01): implementation delegated to Sonnet 5 subagents from
   prescriptive specs; planning/review/suite/commit on the main thread.

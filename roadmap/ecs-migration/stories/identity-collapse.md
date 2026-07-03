@@ -415,28 +415,44 @@ caller ripple (as D2/D3 did). Everything funnels through the shared `BattleSimul
   ZERO `Entity` *params*** — every mutate/read front-door takes `long`. The only `Entity` left on the facade
   are the three *return* types (`liveUnitAt`/`targetOf`/`resolveUnit`), which are storage-finale scope.
 
-**Where D leaves the param-flip (2026-07-03).** The **sim facade is param-clean**, but ~41 files still
-thread `Entity` *params* through **subsystem internals** (not the facade): infantry/decision behaviors (6+6),
-`combathybrid/bridge` (5), turret (4), drone (3), mech (2), + a long tail. These split two ways — an
-acting-unit/`self` param that can flip now (D9-style, callers pass `.entityId`), vs. a `target`/`other` param
-fed from an `Entity`-returning query (`targetOf`/`findBestTarget`/`liveUnitAt`) that is cheapest to flip
-*with* those returns in the storage finale. **Open sequencing question (for the next session):** sweep the
-acting-unit subsystem params now as more D-slices, or fold the whole remaining param+return tail into the
-storage finale as one coherent pass. The facade being param-clean means either order is safe.
+**Where D leaves the param-flip (2026-07-03).** Sequencing question RESOLVED (user: sweep params-first).
+The **acting-unit param sweep is DONE** (D9→D12): the sim facade is param-clean (D10), the GOAP
+`Action.execute` (D9) + the `UnitBehavior.update` dispatch entry (D11) + every scattered acting-unit
+subsystem param (D12) are `long`. **Every `Entity` param outside storage-finale scope is now `long`.**
+What remains is exclusively **finale-coupled**: `target`/`candidate`/`threat` params fed from
+`Entity`-returning queries (`targetOf`/`findBestTarget`/`liveUnitAt` — flip *with* those returns),
+the `combathybrid/bridge` presentation layer (iterates `getDeathsThisFrame()`/`targetable` `Entity`
+collections), roster/spatial storage, `DeathEvent`, and the `Entity.idOf`/`slotOf(Entity)`/roster
+`adopt`/`PendingSpawn` seams. **Next is the storage finale** (§ below) — no more incremental param slices.
 
-**D11 candidate — recon'd, not started: the `UnitBehavior.update(Entity u)` flip** (the D9 analogue for the
-per-unit *dispatch entry*). Interface `UnitBehavior.update(Entity u, BattleSimulation)` + 11 implementors
-(`FallbackBehavior`, `FleeBehavior`, `DroneHubBehavior`, `Goap{Infantry,Mech,Drone}Behavior`,
-`CombatantBehavior`, `KitRetrieverBehavior`, `MechCombatantBehavior`, `StructureBehavior`, `TurretBehavior`)
-+ their private helpers that receive the acting unit (`FleeBehavior.updateFleeing/updateIdle/pickWanderDestination`,
-`GoapInfantryBehavior.prepareForAction` → `InfantryUnitPrep.tickAimAndShortCircuit/tickCooldowns/tryOpportunityRocket`,
-`KitRetrieverBehavior.fireOpportunistically`). Dispatcher = `UnitUpdateSystem.updateUnit` (keeps `Entity u`
-from the roster walk, passes `.entityId` — the D9 dispatcher pattern). Specials: acting-unit `u.type`/`u.faction`
-→ `sim.identity().type/faction(u)` (`DroneHubBehavior` hub check, `TurretBehavior` faction). **GOTCHA — do NOT
-blind-sed:** `FleeBehavior.findNearestThreat` and `DroneHubBehavior.countActiveDrones` each hold a **loop-local
-`Entity u`** (`liveUnitAt(i)`) that collides with the acting-unit param name — a blanket `u.entityId`→`u` would
-wrongly collapse the loop-local. Hand-edit per method (the acting-unit param in those two is `self`/`hub`, the
-loop var is `u` and STAYS `Entity`). Compile + full-suite gated like D9; worth a critique pass for the collision.
+- ~~**D11 · the `UnitBehavior.update(Entity u)` flip**~~ — **SHIPPED (`72dfcdfb`; suite green, 869 tests).**
+  The D9 analogue for the per-unit *dispatch entry*: interface `UnitBehavior.update(Entity u, BattleSimulation)`
+  → `(long u, …)` + 11 implementors (`FallbackBehavior`, `FleeBehavior`, `DroneHubBehavior`,
+  `Goap{Infantry,Mech,Drone}Behavior`, `CombatantBehavior`, `KitRetrieverBehavior`, `MechCombatantBehavior`,
+  `StructureBehavior`, `TurretBehavior`) + acting-unit helpers (`FleeBehavior.updateFleeing/updateIdle/
+  pickWanderDestination/findNearestThreat/pickFleeDestination`, `GoapInfantryBehavior.prepareForAction` →
+  `InfantryUnitPrep.tickAimAndShortCircuit/tickCooldowns/tryOpportunityRocket`,
+  `KitRetrieverBehavior.fireOpportunistically`, `DroneSpawner.tryLaunch`, `DroneHubBehavior.countActiveDrones`).
+  Dispatcher `UnitUpdateSystem.updateUnit` keeps `Entity u` (roster walk), passes `.entityId`. Specials:
+  `DroneHubBehavior` `u.type.isDroneHub()` → `sim.identity().type(u)`; `TurretBehavior` `u.faction` ×3 +
+  `DroneSpawner` `hub.faction` ×2 + `InfantryUnitPrep` `unit.faction` → `sim.identity().faction(id)`.
+  **The loop-local gotcha held:** `FleeBehavior.findNearestThreat` + `DroneHubBehavior.countActiveDrones`
+  (and the `Goap*.replanIfNeeded` / `DroneSpawner` scans) keep their loop-local `Entity u` — sed targeted only
+  the acting-param name (`self`/`hub`/`unit`), and the two true `u`-collision methods were hand-edited.
+  `FleeBehavior`'s `u == self` reference-identity → `u.entityId == self`. `DroneSpawner.tryLaunch(long hub)`
+  still **returns `Entity`** (finale scope; discarded at its only caller). 4 test files + 2 dead `Entity`
+  imports. Clean compile first pass. **Critique: SHIP** (loop-local handling verified equivalent; the 3
+  type-check-both-ways sites all read the intended variable).
+- ~~**D12 · remaining scattered acting-unit params**~~ — **SHIPPED (`1a44f09a`; suite green, 869 tests).**
+  The last cleanly-flippable acting-unit `Entity` params (NOT query-fed): `NavigationService.pathDestX`/
+  `pathDestY`, `FogOfWarService.addContributor`, `BattleSetup.attachMechLoadout`,
+  `SquadStateDumper.computeTargetReachable` → `long`. Callers pass `.entityId` (3 `addContributor` in
+  `BattleSimulation` incl. a `for (Entity u : snapshot)` loop var; 3 `attachMechLoadout` + 1
+  `computeTargetReachable` in-file). **Loop-local near-miss (compiler-caught, no silent bug):** a file-wide
+  `u.entityId`→`u` sed on `FogOfWarService` also hit a *second* method's per-frame `for (Entity u : roster)`
+  loop var (`isCellRevealed(cellX(u.entityId),…)`) — flagged as `Entity`→`long` at compile, reverted.
+  **Follow-up:** `pathDestX`/`pathDestY` have **zero callers** — dead code, deletion candidate.
+  **This completes the params-first acting-unit sweep** — only finale-coupled `Entity` remains.
 
 ## Storage finale — the dedicated closing session (the `entity = long` terminus)
 
