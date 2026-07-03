@@ -501,9 +501,17 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
   `EngagePosture` `isHardened(target.type)`→`isHardened(identity().type(id))`. `currentBurstTarget` stays
   `Entity` (`resolveUnit`, F3). `ClearZone`/`HoldZone` bridge their `liveUnitAt` in-zone pickers with
   `Entity.idOf` (F3 follow-up).
-- **F3 · `resolveUnit` + `liveUnitAt` → `long`** (next) — the two remaining `Entity`-returning facade
-  methods. `resolveUnit(id)` → `isLive(id) ? id : 0L`; `liveUnitAt(idx)` → the id at the dense slot.
-  Un-bridges the `ClearZone`/`HoldZone` `Entity.idOf` + the `currentBurstTarget` resolves.
+- ~~**F3a · `resolveUnit` → `long`**~~ — **SHIPPED (`30f7ced8`; 869 green; 13 files).**
+  `BattleView/BattleControl.resolveUnit(long)` → `isLive(id) ? id : 0L` (the long-native
+  `getOrNull != null` liveness gate). All ~11 consumers read only `.entityId` on the resolved local →
+  uniform (`long X`, `== 0L`, `X`). **Un-bridged the F2 `currentBurstTarget.entityId`** in all three
+  turret-fire consumers (TurretBehavior via `resolveUnit`; AirSystem/GroundSystem via the sibling
+  `roster.getOrNull` → `roster.isLive(id) ? id : 0L`).
+- **F3b · `liveUnitAt` → `long`** (next) — the last `Entity`-returning facade method. `liveUnitAt(idx)`
+  → `get(idx).entityId` transitionally (until F5 flips `get`/`denseArray` to `long[]`). ~50 roster-walk
+  consumers `Entity u = liveUnitAt(i)` → `long u`, with `u.faction`/`u.type` → `identity().faction(u)`/
+  `type(u)` — a wider ripple than F3a (many `.faction`/`.type` reads, not just `.entityId`). Also
+  un-bridges the `ClearZone`/`HoldZone` `Entity.idOf` in-zone pickers (they scan `liveUnitAt`).
 - **F4 · `UnitSpatialIndex` id-native** — buckets `Entity[]`→`LongBucket` (D7 shape); `gather` emits
   `long`; `TacticalScoring`'s `ArrayList<Entity>` scratch + `filterEnemyCombatants`/`resolveThreatColumns`/
   `countCombatantsWithin` + all other `gather` callers go id-native.
