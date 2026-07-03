@@ -532,10 +532,23 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
   `static` (it now needs `roster.identity()`) and compacts the `LongBucket` in place (`ids[write++]`;
   `size=write`); `resolveThreatColumns(List<Entity>)`→`(LongBucket)`. Sister `UnitDestinationSpatialIndex`
   (already id-native from D7) untouched; `AttackerIndexService.getAttackersOf` stays `Entity` (F5).
-- **F5 · roster storage + delete `Entity.java`** (next — the terminus) — dense `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`;
-  `getOrNull`/`get`/`denseArray` deleted-or-`long`; `adopt` spec-only; `PendingSpawn(long,spec)`;
-  `getPendingSpawns`/`getDeathsThisFrame`→`long`; rehome `idOf`/`NO_SQUAD`; the remaining `Entity`
-  consumers (render/ui/worldstate/roles) + ~60 test files; **delete `Entity.java`**.
+- **F5 · roster storage + delete `Entity.java`** (the terminus) — sub-sliced green-per-commit; F5 recon
+  found ~928 `Entity` tokens over 161 files (many `{@link}`/prose), so it runs as F5a→F5b→F5c:
+  - ~~**F5a · role/plan storage id-native**~~ — **SHIPPED (`7227310e`; 869 green; 17 files).**
+    `Action.roles()`→`List<RoleAssigner.Slot<Long>>`; `SquadPlan.Step.assignments`→`Map<String,List<Long>>`;
+    `allAssignedMembers()`/`slotOf(long)` walk `List<Long>`. `RoleAssigner`/`Slot<C>`/`Scorer<C>` were
+    already generic — zero change; the `Entity` coupling was only ever at the callers. 5 `roles()` overrides
+    flip `Slot<Entity>`→`Slot<Long>` (Scorer lambdas drop `.entityId` — the `Long` candidate auto-unboxes);
+    the 3 GOAP replan loops **shed the F3b `getRoster().get(i)` bridge** (`aliveMembers` is `List<Long>` from
+    `liveUnitAt(i)`), closing the F3b↔F5 seam. Consumers (`DroneSwarmAction`, `SquadStateDumper`,
+    `SquadPlanDebugPanel`) + 4 role tests id-native.
+  - **F5b · spawn/death boundary** (next) — `spawn`/`queueSpawn`→`long`; `PendingSpawn(long,spec)`; `adopt`
+    spec-only; `getPendingSpawns`/`getDeathsThisFrame`→`long` + consumers (`BattleScreen`,
+    `GroundSimPresentation`). The bulk: ~60 test files do `Entity e = sim.spawn(...)`.
+  - **F5c · roster storage + delete** — dense `Entity[]`→`long[]`; `getOrNull`/`get`/`denseArray`
+    deleted-or-`long`; last render/ui/bridge (`SimProxyMirror`/`GroundBattleConfig` `targetable`) +
+    `AttackerIndexService` consumers; rehome `Entity.idOf`/`NO_SQUAD`; drop the dead `SquadPlan.slotOf(Entity)`
+    overload; **delete `Entity.java`**.
 
 **Tracked follow-ups to fold in here (don't lose):**
 - `clearPath`/`setPath` should own an internal null/liveness guard rather than lean on the caller

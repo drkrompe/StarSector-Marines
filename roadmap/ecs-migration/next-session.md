@@ -240,6 +240,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+7227310e ecs-migration: identity-collapse F5a - role/plan storage id-native (Slot<Long>)
 7080ce8b ecs-migration: identity-collapse F4 - UnitSpatialIndex id-native (gather -> long)
 58e3d4f6 ecs-migration: identity-collapse F3b - liveUnitAt facade -> long
 30f7ced8 ecs-migration: identity-collapse F3a - resolveUnit -> long
@@ -332,11 +333,13 @@ goap, campaign) interleave on HEAD.
   (`liveUnitAt` facade→`long`, `58e3d4f6`, 51 files) SHIPPED, suite green (869) — the last
   `Entity`-returning facade method is gone. **F4** (`UnitSpatialIndex` id-native — inner `Bucket.units`
   `Entity[]`→`long[]`, `gather` out → `LongBucket`, `TacticalScoring` scratch/`filterEnemyCombatants`/
-  `resolveThreatColumns` id-native) SHIPPED (`7080ce8b`, 6 files, 869 green). **Next up: F5 — the terminus**
-  (roster storage `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`; `getOrNull`/`get`/`denseArray`
-  deleted-or-`long`; `PendingSpawn(long,spec)`; `getPendingSpawns`/`getDeathsThisFrame`→`long`; rehome
-  `Entity.idOf`/`NO_SQUAD`; the remaining render/ui/worldstate/**role-storage** Entity consumers +
-  ~60 test files; **delete `Entity.java`**). Note the **F3b↔F5 seam surfaced in F3b**: the
+  `resolveThreatColumns` id-native) SHIPPED (`7080ce8b`, 6 files, 869 green). **F5 (the terminus) is sub-sliced F5a→F5b→F5c**
+  (recon: ~928 `Entity` tokens / 161 files). **F5a — role/plan storage id-native** (`Slot<Entity>`→`Slot<Long>`,
+  `assignments`→`List<Long>`, the 3 GOAP loops shed the F3b `getRoster()` bridge) SHIPPED (`7227310e`, 17
+  files, 869 green). **Next up: F5b — spawn/death boundary** (`spawn`/`queueSpawn`→`long`,
+  `PendingSpawn(long)`, `getDeathsThisFrame`→`long`; the bulk is ~60 test files doing `Entity e = sim.spawn(..)`),
+  then **F5c — roster dense `Entity[]`→`long[]` + rehome `idOf`/`NO_SQUAD` + delete `Entity.java`**. Note the
+  **F3b↔F5 seam (now closed by F5a)**: the
   GOAP-replan role gather (`aliveMembers`) can't leave `Entity` while `Action.roles()` pins
   `RoleAssigner.Slot<Entity>` — it reads members via `getRoster().get(i)` off the still-`Entity` dense
   store, so role/plan storage flips WITH the roster in F5, not with the facade. **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
