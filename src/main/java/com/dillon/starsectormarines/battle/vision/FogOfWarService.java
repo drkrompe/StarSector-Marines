@@ -135,7 +135,7 @@ public final class FogOfWarService {
      * on the fog bitmap. Assigned to the smallest cohort. Runs an immediate
      * shadowcast so the unit's surroundings reveal on the spawn frame.
      */
-    public void addContributor(Entity u, UnitRosterService roster) {
+    public void addContributor(long u, UnitRosterService roster) {
         if (!initialized) return;
 
         World world = roster.world();
@@ -148,13 +148,13 @@ public final class FogOfWarService {
 
         VisionService vision = roster.vision();
         ContributorEntry entry = new ContributorEntry();
-        entry.unitId = u.entityId;
-        entry.lastCellX = world.cellX(u.entityId);
-        entry.lastCellY = world.cellY(u.entityId);
+        entry.unitId = u;
+        entry.lastCellX = world.cellX(u);
+        entry.lastCellY = world.cellY(u);
 
-        int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(u.entityId));
+        int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(u));
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
-                range, vision.airLosRadius(u.entityId), shadowScratch, 0);
+                range, vision.airLosRadius(u), shadowScratch, 0);
         entry.previousCells = new int[count];
         System.arraycopy(shadowScratch, 0, entry.previousCells, 0, count);
         entry.previousCellCount = count;

@@ -349,12 +349,12 @@ public final class NavigationService {
     }
 
     /** X coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
-    public int pathDestX(Entity u) {
-        return Paths.destX(roster.world().path(u.entityId));
+    public int pathDestX(long u) {
+        return Paths.destX(roster.world().path(u));
     }
     /** Y coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
-    public int pathDestY(Entity u) {
-        return Paths.destY(roster.world().path(u.entityId));
+    public int pathDestY(long u) {
+        return Paths.destY(roster.world().path(u));
     }
 
     private void incrementOccupancy(int x, int y) {

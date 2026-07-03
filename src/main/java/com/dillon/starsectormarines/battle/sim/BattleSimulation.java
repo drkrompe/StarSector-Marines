@@ -630,7 +630,7 @@ public class BattleSimulation implements BattleControl {
     public Entity spawn(EntitySpec spec) {
         Entity e = rosterService.spawn(spec);
         if (fogOfWar.getVisionState().isContributor(e.faction)) {
-            fogOfWar.addContributor(e, rosterService);
+            fogOfWar.addContributor(e.entityId, rosterService);
         }
         return e;
     }
@@ -644,7 +644,7 @@ public class BattleSimulation implements BattleControl {
     public Entity queueSpawn(EntitySpec spec) {
         Entity e = rosterService.queueSpawn(spec);
         if (e.entityId != 0L && fogOfWar.getVisionState().isContributor(e.faction)) {
-            fogOfWar.addContributor(e, rosterService);
+            fogOfWar.addContributor(e.entityId, rosterService);
         }
         return e;
     }
@@ -658,7 +658,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.flushPendingSpawns();
         for (Entity u : snapshot) {
             if (fogOfWar.getVisionState().isContributor(u.faction)) {
-                fogOfWar.addContributor(u, rosterService);
+                fogOfWar.addContributor(u.entityId, rosterService);
             }
         }
     }

@@ -165,7 +165,7 @@ public final class SquadStateDumper {
             // in the same flood-filled zone (see [[zone_graph_ignores_edges]]).
             // Future make-passage actions (breach door, blow wall) should
             // key off this flag. JSONObject.NULL when the unit has no target.
-            o.put("targetReachable", computeTargetReachable(u, sim));
+            o.put("targetReachable", computeTargetReachable(u.entityId, sim));
             o.put("cooldownTimer", sim.world().cooldownTimer(u.entityId));
             o.put("pathLen", Paths.cellCount(sim.world().path(u.entityId)));
             arr.put(o);
@@ -173,11 +173,11 @@ public final class SquadStateDumper {
         return arr;
     }
 
-    private static Object computeTargetReachable(Entity self, BattleSimulation sim) {
-        Entity target = sim.targetOf(self.entityId);
+    private static Object computeTargetReachable(long self, BattleSimulation sim) {
+        Entity target = sim.targetOf(self);
         if (target == null) return JSONObject.NULL;
         int[] path = GridPathfinder.findPath(sim.getGrid(),
-                sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),
+                sim.world().cellX(self), sim.world().cellY(self),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         return path.length > 0;
     }

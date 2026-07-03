@@ -1039,7 +1039,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member.entityId, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1086,7 +1086,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member.entityId, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1142,7 +1142,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member.entityId, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1165,9 +1165,9 @@ public final class BattleSetup {
      * {@code addComponent} row-move keyed by {@code entityId}, which the registry
      * assigns at allocate time.
      */
-    private static void attachMechLoadout(BattleSimulation sim, Entity unit, MechRole mechRole) {
+    private static void attachMechLoadout(BattleSimulation sim, long unit, MechRole mechRole) {
         if (mechRole != null) {
-            sim.world().attachMechLoadout(unit.entityId, MechLoadoutComponent.defaultLoadout(mechRole));
+            sim.world().attachMechLoadout(unit, MechLoadoutComponent.defaultLoadout(mechRole));
         }
     }
 
