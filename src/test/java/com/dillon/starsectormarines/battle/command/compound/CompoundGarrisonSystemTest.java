@@ -231,8 +231,8 @@ public class CompoundGarrisonSystemTest {
                 "no duplicate shuttle while compound stays MARINE_HELD");
 
         // Defender recaptures: kill the marine, add a defender, tick capture system.
-        for (Entity u : TestUnits.snapshot(sim)) {
-            if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
+        for (long u : TestUnits.snapshot(sim)) {
+            if (sim.identity().faction(u) == Faction.MARINE) TestUnits.kill(sim, u);
         }
         sim.spawn(new EntitySpec("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
         // MARINE_HELD → CONTESTED → DEFENDER_HELD
@@ -251,8 +251,8 @@ public class CompoundGarrisonSystemTest {
         tickGarrison(garrison, sim, service, 1);
 
         // Second marine capture → second garrison shuttle.
-        for (Entity u : TestUnits.snapshot(sim)) {
-            if (u.faction == Faction.DEFENDER) TestUnits.kill(sim, u);
+        for (long u : TestUnits.snapshot(sim)) {
+            if (sim.identity().faction(u) == Faction.DEFENDER) TestUnits.kill(sim, u);
         }
         sim.spawn(new EntitySpec("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(

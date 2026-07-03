@@ -3,7 +3,6 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Per-tick driver for a drone hub ({@code UnitType.isDroneHub()}): counts down
@@ -41,9 +40,9 @@ public final class DroneHubBehavior implements UnitBehavior {
     private static int countActiveDrones(BattleView sim, long hub) {
         int n = 0;
         for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (!u.type.isDrone()) continue;
-            if (sim.droneState().homeHubId(u.entityId) == hub) n++;
+            long u = sim.liveUnitAt(i);
+            if (!sim.identity().type(u).isDrone()) continue;
+            if (sim.droneState().homeHubId(u) == hub) n++;
         }
         return n;
     }

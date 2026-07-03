@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
@@ -42,12 +41,12 @@ public final class ObjectiveLostTrigger implements ReinforcementTrigger {
 
         Map<Integer, int[]> tally = new HashMap<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            int zoneId = graph.zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            long u = sim.liveUnitAt(i);
+            int zoneId = graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u));
             if (zoneId < 0) continue;
             int[] counts = tally.computeIfAbsent(zoneId, k -> new int[2]);
-            if (u.faction == Faction.DEFENDER) counts[0]++;
-            else if (u.faction == Faction.MARINE) counts[1]++;
+            if (sim.identity().faction(u) == Faction.DEFENDER) counts[0]++;
+            else if (sim.identity().faction(u) == Faction.MARINE) counts[1]++;
         }
 
         for (Map.Entry<Integer, int[]> e : tally.entrySet()) {

@@ -94,10 +94,10 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Entity u = ctx.sim.liveUnitAt(i);
-            if (!RenderAppearance.of(u.type).drawsFootprint) continue;
-            float x0 = cam.cellToScreenX(world.cellX(u.entityId));
-            float y0 = cam.cellToScreenY(world.cellY(u.entityId));
+            long u = ctx.sim.liveUnitAt(i);
+            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsFootprint) continue;
+            float x0 = cam.cellToScreenX(world.cellX(u));
+            float y0 = cam.cellToScreenY(world.cellY(u));
             GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
         }
     }
@@ -118,9 +118,9 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Entity u = ctx.sim.liveUnitAt(i);
-            if (!u.type.isTurret()) continue;
-            long id = u.entityId;
+            long u = ctx.sim.liveUnitAt(i);
+            if (!ctx.sim.identity().type(u).isTurret()) continue;
+            long id = u;
             TurretKind kind = turretState.kind(id);
             float facingDegrees = turretState.facingDegrees(id);
             float cx = cam.cellToScreenX(world.cellX(id) + 0.5f);
@@ -165,10 +165,10 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Entity u = ctx.sim.liveUnitAt(i);
-            if (!u.type.isDroneHub()) continue;
-            float cx = cam.cellToScreenX(world.cellX(u.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(world.cellY(u.entityId) + 0.5f);
+            long u = ctx.sim.liveUnitAt(i);
+            if (!ctx.sim.identity().type(u).isDroneHub()) continue;
+            float cx = cam.cellToScreenX(world.cellX(u) + 0.5f);
+            float cy = cam.cellToScreenY(world.cellY(u) + 0.5f);
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }
@@ -426,25 +426,25 @@ public final class UnitRenderService implements RenderSystem {
         FogOfWarService vis = ctx.sim.getFogOfWar();
 
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Entity u = ctx.sim.liveUnitAt(i);
-            if (!RenderAppearance.of(u.type).drawsHpBar) continue;
+            long u = ctx.sim.liveUnitAt(i);
+            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsHpBar) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
             if (uv == FogOfWarService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
-            float cx = cam.cellToScreenX(world.renderX(u.entityId) + 0.5f);
-            float cy = cam.cellToScreenY(world.renderY(u.entityId) + 0.5f);
+            float cx = cam.cellToScreenX(world.renderX(u) + 0.5f);
+            float cy = cam.cellToScreenY(world.renderY(u) + 0.5f);
             float barY;
-            if (u.type.isTurret()) {
-                barY = cy + turretState.kind(u.entityId).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
-            } else if (u.type.isDroneHub()) {
+            if (ctx.sim.identity().type(u).isTurret()) {
+                barY = cy + turretState.kind(u).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            } else if (ctx.sim.identity().type(u).isDroneHub()) {
                 barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }
             HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
-                    world.hp(u.entityId) / world.maxHp(u.entityId), barAlpha);
+                    world.hp(u) / world.maxHp(u), barAlpha);
         }
     }
 }

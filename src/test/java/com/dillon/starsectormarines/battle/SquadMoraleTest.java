@@ -85,12 +85,12 @@ public class SquadMoraleTest {
     public void hitDrainsByDropOnHit() {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity target = sim.liveUnitAt(0);
-        float startingHp = sim.world().hp(target.entityId);
+        long target = sim.liveUnitAt(0);
+        float startingHp = sim.world().hp(target);
         // Damage low enough that the unit survives so we isolate the hit drain.
-        sim.applyDamage(target.entityId, 1f, 1f);
-        assertTrue(sim.world().hp(target.entityId) < startingHp, "test prerequisite: damage actually landed");
-        assertTrue(sim.world().isAlive(target.entityId), "test prerequisite: target survived the hit");
+        sim.applyDamage(target, 1f, 1f);
+        assertTrue(sim.world().hp(target) < startingHp, "test prerequisite: damage actually landed");
+        assertTrue(sim.world().isAlive(target), "test prerequisite: target survived the hit");
         assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "single hit on a squadmate drops morale by exactly MORALE_DROP_ON_HIT");
     }
@@ -99,10 +99,10 @@ public class SquadMoraleTest {
     public void deathDrainsByHitPlusDeath() {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity target = sim.liveUnitAt(0);
+        long target = sim.liveUnitAt(0);
         // Overkill damage — guaranteed kill.
-        sim.applyDamage(target.entityId, sim.world().hp(target.entityId) + 1000f, 1f);
-        assertFalse(sim.world().isAlive(target.entityId), "test prerequisite: target died");
+        sim.applyDamage(target, sim.world().hp(target) + 1000f, 1f);
+        assertFalse(sim.world().isAlive(target), "test prerequisite: target died");
         float expected = 1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT
                               - SquadMoraleSystem.MORALE_DROP_ON_DEATH;
         assertEquals(expected, sq.morale, 1e-5f,
@@ -169,7 +169,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Half the squad dead → cap = 2/4 = 0.5.
-        List<Entity> units = TestUnits.snapshot(sim);
+        List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         sq.morale = 0.49f;
@@ -192,8 +192,8 @@ public class SquadMoraleTest {
         // accumulating "many hits worth" inside a single test tick goes
         // through the cooldown gate. The hysteresis math we're verifying
         // sits downstream of how morale got there.
-        Entity b = sim.liveUnitAt(1);
-        sim.applyDamage(b.entityId, sim.world().hp(b.entityId) + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
+        long b = sim.liveUnitAt(1);
+        sim.applyDamage(b, sim.world().hp(b) + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
         sq.morale = 0.15f;
         sq.moraleDrainCooldown = 0f;
         // The kill reset timeSinceUnderFire; this test validates hysteresis
@@ -247,7 +247,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Three deaths → 1-of-4 alive, cap = 0.25.
-        List<Entity> units = TestUnits.snapshot(sim);
+        List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         TestUnits.kill(sim, units.get(2));
@@ -275,7 +275,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Three kills → 1-of-4 alive.
-        List<Entity> units = TestUnits.snapshot(sim);
+        List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         TestUnits.kill(sim, units.get(2));
@@ -289,9 +289,9 @@ public class SquadMoraleTest {
         sq.morale = 0.25f;
         sq.moraleBroken = false;
 
-        Entity survivor = units.get(3);
-        sim.applyDamage(survivor.entityId, 1f, 1f);
-        assertTrue(sim.world().isAlive(survivor.entityId), "test prerequisite: 1 damage shouldn't kill");
+        long survivor = units.get(3);
+        sim.applyDamage(survivor, 1f, 1f);
+        assertTrue(sim.world().isAlive(survivor), "test prerequisite: 1 damage shouldn't kill");
 
         // Hit drain for cap=0.25 is 0.05/0.25 = 0.20 → morale = 0.05.
         assertEquals(0.05f, sq.morale, 1e-5f,
@@ -312,7 +312,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Two deaths.
-        List<Entity> units = TestUnits.snapshot(sim);
+        List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         sq.morale = 0.20f;
@@ -338,10 +338,10 @@ public class SquadMoraleTest {
         // is the guardrail against "hail of bullets insta-break."
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity target = sim.liveUnitAt(0);
+        long target = sim.liveUnitAt(0);
         float startMorale = sq.morale;
 
-        for (int i = 0; i < 10; i++) sim.applyDamage(target.entityId, 1f, 1f);
+        for (int i = 0; i < 10; i++) sim.applyDamage(target, 1f, 1f);
 
         assertEquals(startMorale - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "10 hits inside one cooldown window drain by exactly one hit");
@@ -356,9 +356,9 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        Entity target = sim.liveUnitAt(0);
+        long target = sim.liveUnitAt(0);
 
-        sim.applyDamage(target.entityId, 1f, 1f);
+        sim.applyDamage(target, 1f, 1f);
         float afterFirst = sq.morale;
 
         // Tick past the cooldown so the next hit can drain again. The
@@ -372,7 +372,7 @@ public class SquadMoraleTest {
         for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);
         float moraleAfterCooldown = sq.morale;
 
-        sim.applyDamage(target.entityId, 1f, 1f);
+        sim.applyDamage(target, 1f, 1f);
 
         assertEquals(moraleAfterCooldown - SquadMoraleSystem.MORALE_DROP_ON_HIT,
                 sq.morale, 1e-5f,
@@ -387,17 +387,17 @@ public class SquadMoraleTest {
         // hit a tick ago.
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity a = sim.liveUnitAt(0);
-        Entity b = sim.liveUnitAt(1);
+        long a = sim.liveUnitAt(0);
+        long b = sim.liveUnitAt(1);
 
         // Burn the cooldown with a non-lethal hit.
-        sim.applyDamage(a.entityId, 1f, 1f);
+        sim.applyDamage(a, 1f, 1f);
         float afterHit = sq.morale;
         assertTrue(sq.moraleDrainCooldown > 0f,
                 "test prerequisite: first hit puts the cooldown on");
 
         // Kill b immediately — death drain should still apply.
-        sim.applyDamage(b.entityId, sim.world().hp(b.entityId) + 1000f, 1f);
+        sim.applyDamage(b, sim.world().hp(b) + 1000f, 1f);
 
         assertEquals(afterHit - SquadMoraleSystem.MORALE_DROP_ON_DEATH,
                 sq.morale, 1e-5f,
@@ -412,7 +412,7 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        List<Entity> units = TestUnits.snapshot(sim);
+        List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         sq.morale = 0.10f;
@@ -433,10 +433,10 @@ public class SquadMoraleTest {
         // 1.5, etc.). A militia hit should bleed only 40% of a marine hit.
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity target = sim.liveUnitAt(0);
+        long target = sim.liveUnitAt(0);
         float before = sq.morale;
 
-        sim.applyDamage(target.entityId, 1f, 1f, UnitType.MILITIA.moraleImpact);
+        sim.applyDamage(target, 1f, 1f, UnitType.MILITIA.moraleImpact);
 
         float expected = before - SquadMoraleSystem.MORALE_DROP_ON_HIT
                 * UnitType.MILITIA.moraleImpact;
@@ -453,16 +453,16 @@ public class SquadMoraleTest {
         // involves cooldowns and recovery).
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        Entity a = sim.liveUnitAt(0);
+        long a = sim.liveUnitAt(0);
 
-        sim.applyDamage(a.entityId, 1f, 1f, UnitType.MARINE.moraleImpact);
+        sim.applyDamage(a, 1f, 1f, UnitType.MARINE.moraleImpact);
         float marineDrain = 1.0f - sq.morale;
 
         // Reset state and apply the heavy-mech hit identically.
         sq.morale = 1.0f;
         sq.moraleDrainCooldown = 0f;
-        Entity b = sim.liveUnitAt(1);
-        sim.applyDamage(b.entityId, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
+        long b = sim.liveUnitAt(1);
+        sim.applyDamage(b, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
         float mechDrain = 1.0f - sq.morale;
 
         assertTrue(mechDrain > marineDrain,

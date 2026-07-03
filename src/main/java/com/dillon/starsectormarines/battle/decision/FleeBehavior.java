@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -55,8 +54,8 @@ public final class FleeBehavior implements UnitBehavior {
 
     @Override
     public void update(long u, BattleSimulation sim) {
-        Entity threat = findNearestThreat(u, sim);
-        if (threat != null) {
+        long threat = findNearestThreat(u, sim);
+        if (threat != 0L) {
             updateFleeing(u, threat, sim);
             return;
         }
@@ -67,7 +66,7 @@ public final class FleeBehavior implements UnitBehavior {
      * Threat present — rebuild the flee path periodically and run. Cancels any
      * in-flight wander dwell so the civilian doesn't stand around mid-panic.
      */
-    private static void updateFleeing(long u, Entity threat, BattleSimulation sim) {
+    private static void updateFleeing(long u, long threat, BattleSimulation sim) {
         sim.world().setWanderDwellTimer(u, 0f);
         int[] path = sim.world().path(u);
         int pathIdx = sim.world().pathIdx(u);
@@ -127,14 +126,14 @@ public final class FleeBehavior implements UnitBehavior {
      * sides spook civilians — they don't know which marines are friendly and
      * gunfire is gunfire regardless of who's behind the trigger.
      */
-    private static Entity findNearestThreat(long self, BattleSimulation sim) {
-        Entity best = null;
+    private static long findNearestThreat(long self, BattleSimulation sim) {
+        long best = 0L;
         float bestDist = PERCEPTION_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.entityId == self) continue;
-            if (!u.type.combatant) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            long u = sim.liveUnitAt(i);
+            if (u == self) continue;
+            if (!sim.identity().type(u).combatant) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(u), sim.world().cellY(u));
             if (d <= bestDist) {
                 bestDist = d;
                 best = u;
@@ -150,10 +149,10 @@ public final class FleeBehavior implements UnitBehavior {
      * furthest walkable cell along the ray as the destination. Falls back to
      * the map edge in that direction if the ray is short.
      */
-    private static int[] pickFleeDestination(long self, Entity threat, BattleSimulation sim) {
+    private static int[] pickFleeDestination(long self, long threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        float dx = sim.world().cellX(self) - sim.world().cellX(threat.entityId);
-        float dy = sim.world().cellY(self) - sim.world().cellY(threat.entityId);
+        float dx = sim.world().cellX(self) - sim.world().cellX(threat);
+        float dy = sim.world().cellY(self) - sim.world().cellY(threat);
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
@@ -171,7 +170,7 @@ public final class FleeBehavior implements UnitBehavior {
             int cy = sim.world().cellY(self) + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
-            float distFromThreat = TacticalScoring.cellDistance(cx, cy, sim.world().cellX(threat.entityId), sim.world().cellY(threat.entityId));
+            float distFromThreat = TacticalScoring.cellDistance(cx, cy, sim.world().cellX(threat), sim.world().cellY(threat));
             if (distFromThreat >= MIN_DISTANCE_FROM_THREAT) {
                 best = new int[]{cx, cy};
             }

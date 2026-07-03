@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -58,9 +57,9 @@ public final class OverwatchKillZoneGoal implements Goal {
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
+            long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            MechLoadoutComponent m = sim.world().mechLoadout(u);
             if (m != null && m.role == MechRole.LR_SUPPORT) return 1f;
         }
         return 0f;

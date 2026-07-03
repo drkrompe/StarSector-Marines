@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -76,9 +75,9 @@ public final class RecaptureTargetSystem {
         EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
         int totalDefenders = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction != Faction.DEFENDER) continue;
-            present.merge(biomeMap.biomeAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)), 1, Integer::sum);
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.DEFENDER) continue;
+            present.merge(biomeMap.biomeAt(sim.world().cellX(u), sim.world().cellY(u)), 1, Integer::sum);
             totalDefenders++;
         }
         for (BiomeKind b : BiomeKind.values()) {

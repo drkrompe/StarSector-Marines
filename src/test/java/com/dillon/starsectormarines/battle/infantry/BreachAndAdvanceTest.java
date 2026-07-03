@@ -56,9 +56,9 @@ public class BreachAndAdvanceTest {
         SquadPlan.Step step = new SquadPlan.Step(action);
         int slotIdx = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(u)));
+            long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(sim.getRoster().get(i))));
             slotIdx++;
         }
         SquadPlan plan = new SquadPlan(List.of(step));
@@ -80,9 +80,9 @@ public class BreachAndAdvanceTest {
 
         // No members are near the stack-up cells yet → first execute should
         // path members toward the stack-up cell, not the forward cell.
-        Entity m0 = sim.liveUnitAt(0);
-        action.execute(m0.entityId, sq, sim);
-        int[] path = sim.world().path(m0.entityId);
+        long m0 = sim.liveUnitAt(0);
+        action.execute(m0, sq, sim);
+        int[] path = sim.world().path(m0);
         assertNotEquals(0, Paths.cellCount(path), "stack-up phase queues a path");
         // Path destination is the stack-up cell, not the forward cell.
         int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
@@ -135,9 +135,9 @@ public class BreachAndAdvanceTest {
         // timer says we've waited long enough.
         sq.breachStackupTimer = BreachAndAdvance.STACKUP_TIMEOUT_SECONDS + 0.1f;
 
-        Entity m0 = sim.liveUnitAt(0);
-        action.execute(m0.entityId, sq, sim);
-        int[] path = sim.world().path(m0.entityId);
+        long m0 = sim.liveUnitAt(0);
+        action.execute(m0, sq, sim);
+        int[] path = sim.world().path(m0);
         int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
         assertEquals(14, destX, "timeout commits the breach — path heads for forward cell");
     }

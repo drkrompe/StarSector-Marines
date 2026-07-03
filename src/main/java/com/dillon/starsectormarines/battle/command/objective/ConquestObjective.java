@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -84,8 +83,8 @@ public final class ConquestObjective implements Objective {
 
     private static boolean anyMarineInPlay(BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction == Faction.MARINE) return true;
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) == Faction.MARINE) return true;
         }
         World world = sim.world();
         for (long id : sim.getAirEntityIds()) {

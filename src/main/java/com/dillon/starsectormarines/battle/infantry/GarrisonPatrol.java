@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -111,10 +110,10 @@ public final class GarrisonPatrol implements Action {
      */
     private boolean zoneHasEngageableEnemy(int zoneId, long member, Faction enemy, BattleControl sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity e = sim.liveUnitAt(i);
-            if (e.faction != enemy || !e.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != zoneId) continue;
-            if (sim.getTacticalScoring().hasReachableFiringSpot(member, e.entityId)) return true;
+            long e = sim.liveUnitAt(i);
+            if (sim.identity().faction(e) != enemy || !sim.identity().type(e).combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e), sim.world().cellY(e)) != zoneId) continue;
+            if (sim.getTacticalScoring().hasReachableFiringSpot(member, e)) return true;
         }
         return false;
     }

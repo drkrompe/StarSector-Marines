@@ -158,7 +158,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             float max = proxy.getMaxHitpoints();
             float vanillaDamage = max - proxy.getHitpoints();
             if (vanillaDamage > 0f && sim.world().isAlive(link.unit.entityId)) {
-                sim.applyExternalDamage(link.unit, vanillaDamage * damageScale);
+                sim.applyExternalDamage(link.unit.entityId, vanillaDamage * damageScale);
             }
             // Damage sensor, not a health bar: reset so vanilla never owns the kill.
             proxy.setHitpoints(max);

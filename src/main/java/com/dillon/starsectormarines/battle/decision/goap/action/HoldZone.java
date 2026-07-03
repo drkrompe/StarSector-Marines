@@ -178,7 +178,7 @@ public final class HoldZone extends AbstractZoneAction {
         if (target == 0L
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = Entity.idOf(pickInZoneTarget(member, sim, enemy));
+            target = pickInZoneTarget(member, sim, enemy);
             if (target == 0L) target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
@@ -222,16 +222,16 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    private Entity pickInZoneTarget(long self, BattleView sim, Faction enemy) {
-        Entity best = null;
+    private long pickInZoneTarget(long self, BattleView sim, Faction enemy) {
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity other = sim.liveUnitAt(i);
-            if (other.faction != enemy) continue;
-            if (!other.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            long other = sim.liveUnitAt(i);
+            if (sim.identity().faction(other) != enemy) continue;
+            if (!sim.identity().type(other).combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -82,10 +81,10 @@ public final class SquadOverviewPanel implements HudPanel {
         // the unit list rather than nSquads × nUnits.
         Map<Integer, int[]> weaponCounts = new HashMap<>(); // 0: RIF, 1: SMG, 2: DMR, 3: RKT
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction != Faction.MARINE || !sim.squad().hasSquad(u.entityId)) continue;
-            int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u.entityId), k -> new int[4]);
-            MarineWeapon weapon = sim.combat().primaryWeapon(u.entityId);
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.MARINE || !sim.squad().hasSquad(u)) continue;
+            int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u), k -> new int[4]);
+            MarineWeapon weapon = sim.combat().primaryWeapon(u);
             if (weapon != null) {
                 switch (weapon) {
                     case PULSE_RIFLE: counts[0]++; break;
@@ -95,7 +94,7 @@ public final class SquadOverviewPanel implements HudPanel {
             } else {
                 counts[0]++;
             }
-            if (sim.world().hasSecondaryWeapon(u.entityId) && sim.world().secondaryAmmo(u.entityId) > 0) counts[3]++;
+            if (sim.world().hasSecondaryWeapon(u) && sim.world().secondaryAmmo(u) > 0) counts[3]++;
         }
 
         for (Squad s : sim.getSquads()) {

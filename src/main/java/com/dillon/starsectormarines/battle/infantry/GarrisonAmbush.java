@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -100,9 +99,9 @@ public final class GarrisonAmbush implements Goal {
      * swap in {@code state.get(Predicate.HAS_LOS_TO_TARGET)} here.
      */
     private static boolean enemyKnown(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!u.type.combatant) continue;
-            if (u.faction == squad.faction) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.identity().type(u).combatant) continue;
+            if (sim.identity().faction(u) == squad.faction) continue;
             return true;
         }
         return false;

@@ -122,7 +122,7 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
-        TestUnits.kill(sim, attacker);
+        TestUnits.kill(sim, attacker.entityId);
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),

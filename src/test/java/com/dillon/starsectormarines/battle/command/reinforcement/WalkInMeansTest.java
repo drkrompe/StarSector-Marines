@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,15 +55,15 @@ public class WalkInMeansTest {
 
         long defenders = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            if (sim.liveUnitAt(i).faction == Faction.DEFENDER) defenders++;
+            if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.DEFENDER) defenders++;
         }
         assertTrue(defenders > 0, "walk-in spawned at least one defender");
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction != Faction.DEFENDER) continue;
-            assertEquals(0, topo.getBuildingId(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)),
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.DEFENDER) continue;
+            assertEquals(0, topo.getBuildingId(sim.world().cellX(u), sim.world().cellY(u)),
                     "no walk-in unit may spawn inside a building footprint");
-            assertTrue(sim.getGrid().isWalkable(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)), "spawn cell is walkable");
+            assertTrue(sim.getGrid().isWalkable(sim.world().cellX(u), sim.world().cellY(u)), "spawn cell is walkable");
         }
     }
 }

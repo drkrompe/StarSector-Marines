@@ -119,22 +119,22 @@ public final class SquadDetailPanel implements HudPanel {
         // Gather the live members, sort for stable row order, then freeze each
         // into a MemberRow. All accessor reads happen here, while every unit is
         // still registered — render() touches only the frozen values.
-        List<Entity> live = new ArrayList<>();
+        List<Long> live = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squadId) continue;
+            long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squadId) continue;
             live.add(u);
         }
         // Leader first (if set + alive), then stable by entity id so the row
         // order is deterministic across frames (entityId is monotonic + never recycled).
         live.sort(Comparator
-                .comparing((Entity u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
-                .thenComparingLong(u -> u.entityId));
-        for (Entity u : live) {
-            boolean hasSec = sim.world().hasSecondaryWeapon(u.entityId);
-            rows.add(new MemberRow(sim.world().hp(u.entityId), sim.world().maxHp(u.entityId), sim.combat().primaryWeapon(u.entityId),
-                    hasSec ? sim.world().secondaryWeapon(u.entityId) : null,
-                    hasSec ? sim.world().secondaryAmmo(u.entityId) : 0, sim.role().role(u.entityId)));
+                .comparing((Long u) -> currentSquad.leaderId == u ? 0 : 1)
+                .thenComparingLong(u -> u));
+        for (long u : live) {
+            boolean hasSec = sim.world().hasSecondaryWeapon(u);
+            rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u), sim.combat().primaryWeapon(u),
+                    hasSec ? sim.world().secondaryWeapon(u) : null,
+                    hasSec ? sim.world().secondaryAmmo(u) : 0, sim.role().role(u)));
         }
     }
 

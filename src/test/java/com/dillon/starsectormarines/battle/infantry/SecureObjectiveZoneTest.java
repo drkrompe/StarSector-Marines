@@ -198,10 +198,10 @@ public class SecureObjectiveZoneTest {
 
         // Advance objective progress past its duration so isComplete() flips true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (sim.role().role(u.entityId) == UnitRole.PLANTER) {
-                sim.world().setCellPos(u.entityId, 8, 3);
-                sim.world().setMoveProgress(u.entityId, 0f);
+            long u = sim.liveUnitAt(i);
+            if (sim.role().role(u) == UnitRole.PLANTER) {
+                sim.world().setCellPos(u, 8, 3);
+                sim.world().setMoveProgress(u, 0f);
             }
         }
         // Tick the objective enough times to complete.

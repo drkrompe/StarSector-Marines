@@ -400,7 +400,7 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(20, 20);
         Entity marine = unit(sim, Faction.MARINE, 5, 5);
         Entity enemy = unit(sim, Faction.DEFENDER, 10, 5);
-        TestUnits.kill(sim, enemy);
+        TestUnits.kill(sim, enemy.entityId);
         assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine.entityId, enemy.entityId));
     }
 

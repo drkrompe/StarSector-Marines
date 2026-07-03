@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * "Kill every alive unit on the target faction." The default objective both
@@ -36,8 +35,8 @@ public final class EliminateFactionObjective implements Objective {
     public void tick(BattleView sim) {
         if (complete) return;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction == target) return;
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) == target) return;
         }
         World world = sim.world();
         for (long id : sim.getAirEntityIds()) {

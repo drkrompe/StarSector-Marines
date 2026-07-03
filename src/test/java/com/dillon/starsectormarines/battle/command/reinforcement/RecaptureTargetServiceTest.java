@@ -67,7 +67,7 @@ public class RecaptureTargetServiceTest {
         squad.aliveMembers = alive;
         Entity leader = sim.spawn(new EntitySpec("garr-" + node.anchorX + "-" + node.anchorY,
                 Faction.DEFENDER, UnitType.MILITIA, node.anchorX, node.anchorY).squad(sid));
-        TestUnits.kill(sim, leader);
+        TestUnits.kill(sim, leader.entityId);
         return squad;
     }
 
@@ -136,7 +136,7 @@ public class RecaptureTargetServiceTest {
         sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "slice seeds contested with a defender present");
 
-        TestUnits.kill(sim, defender);
+        TestUnits.kill(sim, defender.entityId);
         sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "still contested 1 tick after the last defender died (debounce)");
         sys.tick(TICK, sim);

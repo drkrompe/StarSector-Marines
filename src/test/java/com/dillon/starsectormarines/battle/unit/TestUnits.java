@@ -27,19 +27,19 @@ public final class TestUnits {
     private TestUnits() {}
 
     /**
-     * Kill {@code u} the same way the production damage path does: drive hp
-     * to 0 (in the entity world's HEALTH component) and release the
+     * Kill entity {@code id} the same way the production damage path does: drive
+     * hp to 0 (in the entity world's HEALTH component) and release the
      * dense-registry entry (swap-and-pop). After the call the unit is gone
-     * from the live registry, {@code sim.resolveUnit(u.entityId)} returns
-     * {@code null}, and {@code world().isAlive(id)} is {@code false} (hp
+     * from the live registry, {@code sim.resolveUnit(id)} returns
+     * {@code 0L}, and {@code world().isAlive(id)} is {@code false} (hp
      * {@code <= 0}), exactly as after a real damage kill. Unlike production,
      * no {@code DeathEvent} is published — the world entity stays
      * {@code {IDENTITY, HEALTH(0)}} rather than transmuting to a corpse, so
      * corpse-archetype queries won't see it.
      */
-    public static void kill(BattleSimulation sim, Entity u) {
-        sim.world().setHp(u.entityId, 0f);
-        sim.releaseFromRegistry(u.entityId);
+    public static void kill(BattleSimulation sim, long id) {
+        sim.world().setHp(id, 0f);
+        sim.releaseFromRegistry(id);
     }
 
     /**
@@ -51,8 +51,8 @@ public final class TestUnits {
      * entries at their slots. (Re-snapshotting after a kill reflects swap-and-pop
      * reordering, so don't re-take it mid-sequence when stable indices matter.)
      */
-    public static List<Entity> snapshot(BattleSimulation sim) {
-        List<Entity> out = new ArrayList<>(sim.liveUnitCount());
+    public static List<Long> snapshot(BattleSimulation sim) {
+        List<Long> out = new ArrayList<>(sim.liveUnitCount());
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             out.add(sim.liveUnitAt(i));
         }

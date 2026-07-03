@@ -395,13 +395,13 @@ public class BattleSimulation implements BattleControl {
         return mapEditor.damageWall(x, y, amount);
     }
 
-    public boolean isRoofShielded(Entity target) {
-        if (target == null) return false;
-        return topology.isRoofIntact(world.cellX(target.entityId), world.cellY(target.entityId));
+    public boolean isRoofShielded(long target) {
+        if (target == 0L) return false;
+        return topology.isRoofIntact(world.cellX(target), world.cellY(target));
     }
 
     @Override public int liveUnitCount() { return rosterService.liveCount(); }
-    @Override public Entity liveUnitAt(int index) { return rosterService.get(index); }
+    @Override public long liveUnitAt(int index) { return rosterService.get(index).entityId; }
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
@@ -1262,9 +1262,9 @@ public class BattleSimulation implements BattleControl {
      * not the ground combat tracer pass. Fall-back is also intentionally
      * skipped (strafes pin you down rather than break contact).
      */
-    public void applyExternalDamage(Entity target, float damage) {
-        if (target == null || !world.isAlive(target.entityId) || damage <= 0f) return;
-        damageResolver.resolve(target.entityId, damage, 1f, 0f);
+    public void applyExternalDamage(long target, float damage) {
+        if (target == 0L || !world.isAlive(target) || damage <= 0f) return;
+        damageResolver.resolve(target, damage, 1f, 0f);
     }
 
 

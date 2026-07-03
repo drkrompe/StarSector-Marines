@@ -173,7 +173,7 @@ public class CordonForPlantTest {
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
-        TestUnits.kill(sim, planter);
+        TestUnits.kill(sim, planter.entityId);
 
         assertEquals(0f, CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "dead planter → cordon goal inactive even when squad is in the right zone");

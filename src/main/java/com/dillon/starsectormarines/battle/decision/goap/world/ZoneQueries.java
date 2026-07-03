@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
@@ -108,9 +107,9 @@ public final class ZoneQueries {
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction != enemyFaction) continue;
-            if (graph.zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)) == zoneId) return false;
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != enemyFaction) continue;
+            if (graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)) == zoneId) return false;
         }
         return true;
     }

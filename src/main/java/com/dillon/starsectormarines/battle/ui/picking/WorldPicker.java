@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -65,9 +64,9 @@ public final class WorldPicker implements HudPanel {
                 continue;
             }
 
-            Entity picked = nearestUnit(sim, worldX, worldY);
-            if (picked != null && sim.squad().hasSquad(picked.entityId)) {
-                ctx.getSelection().selectUnit(sim.squad().squadId(picked.entityId), picked.entityId);
+            long picked = nearestUnit(sim, worldX, worldY);
+            if (picked != 0L && sim.squad().hasSquad(picked)) {
+                ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
             } else {
                 ctx.getSelection().clear();
             }
@@ -98,13 +97,13 @@ public final class WorldPicker implements HudPanel {
         return bestId;
     }
 
-    private static Entity nearestUnit(BattleSimulation sim, float worldX, float worldY) {
-        Entity best = null;
+    private static long nearestUnit(BattleSimulation sim, float worldX, float worldY) {
+        long best = 0L;
         float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            float dx = sim.world().renderX(u.entityId) - worldX;
-            float dy = sim.world().renderY(u.entityId) - worldY;
+            long u = sim.liveUnitAt(i);
+            float dx = sim.world().renderX(u) - worldX;
+            float dy = sim.world().renderY(u) - worldY;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;

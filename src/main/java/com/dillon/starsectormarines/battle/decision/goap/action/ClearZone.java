@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
@@ -84,9 +83,9 @@ public final class ClearZone extends AbstractZoneAction {
         if (target == 0L
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            Entity inZone = pickInZoneTarget(member, sim);
-            if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            target = inZone != null ? Entity.idOf(inZone) : sim.getTacticalScoring().findBestTarget(member);
+            long inZone = pickInZoneTarget(member, sim);
+            if (inZone == 0L) inZone = pickNearestInZoneEnemy(member, sim);
+            target = inZone != 0L ? inZone : sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
         if (target == 0L) return ActionStatus.RUNNING;
@@ -147,21 +146,21 @@ public final class ClearZone extends AbstractZoneAction {
     /**
      * Scans enemies of the squad's faction whose cell sits in the target zone
      * and returns the closest visible one. Linear over the unit list — fine
-     * given typical squad-tick budgets. Returns null when no in-zone enemy
+     * given typical squad-tick budgets. Returns {@code 0L} when no in-zone enemy
      * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
      * to the normal squad-aware picker).
      */
-    private Entity pickInZoneTarget(long self, BattleView sim) {
+    private long pickInZoneTarget(long self, BattleView sim) {
         Faction enemy = enemyOf(sim.identity().faction(self));
-        Entity best = null;
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity other = sim.liveUnitAt(i);
-            if (other.faction != enemy) continue;
-            if (!other.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            long other = sim.liveUnitAt(i);
+            if (sim.identity().faction(other) != enemy) continue;
+            if (!sim.identity().type(other).combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
@@ -186,16 +185,16 @@ public final class ClearZone extends AbstractZoneAction {
      * is geometrically stuck — surfaced via clearZoneReachability in
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
-    private Entity pickNearestInZoneEnemy(long self, BattleView sim) {
+    private long pickNearestInZoneEnemy(long self, BattleView sim) {
         Faction enemy = enemyOf(sim.identity().faction(self));
-        Entity best = null;
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity other = sim.liveUnitAt(i);
-            if (other.faction != enemy) continue;
-            if (!other.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId));
+            long other = sim.liveUnitAt(i);
+            if (sim.identity().faction(other) != enemy) continue;
+            if (!sim.identity().type(other).combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

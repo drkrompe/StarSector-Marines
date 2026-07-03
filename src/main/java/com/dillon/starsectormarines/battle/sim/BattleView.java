@@ -58,14 +58,15 @@ public interface BattleView {
     int liveUnitCount();
 
     /**
-     * Live unit at dense index {@code [0, liveUnitCount())}. Iteration order is
-     * registry-dense (insertion order with swap-and-pop on release), <b>not</b>
-     * stable across releases — fine for a within-tick read pass, not for
-     * anything that assumes a fixed battle-long ordering. Safe to call during
-     * the parallel replan window (read-only; the dense array is stable across
-     * the dispatch since spawns are queued).
+     * Entity id of the live unit at dense index {@code [0, liveUnitCount())}.
+     * Iteration order is registry-dense (insertion order with swap-and-pop on
+     * release), <b>not</b> stable across releases — fine for a within-tick read
+     * pass, not for anything that assumes a fixed battle-long ordering. Safe to
+     * call during the parallel replan window (read-only; the dense array is
+     * stable across the dispatch since spawns are queued). Never {@code 0L}: the
+     * dense roster holds only live entities, so every index in range is a real id.
      */
-    Entity liveUnitAt(int index);
+    long liveUnitAt(int index);
 
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();

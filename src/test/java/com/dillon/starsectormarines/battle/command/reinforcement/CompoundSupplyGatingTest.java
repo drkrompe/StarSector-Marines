@@ -203,7 +203,7 @@ public class CompoundSupplyGatingTest {
         squad.originalSize = 4;
         squad.aliveMembers = 1; // 25% — below the 50% threshold
         Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5).squad(sid));
-        TestUnits.kill(sim, defender); // kill the leader so MARINE_HELD reads cleanly
+        TestUnits.kill(sim, defender.entityId); // kill the leader so MARINE_HELD reads cleanly
 
         captureCompound(sim, service, system, 5, 5);
 

@@ -155,9 +155,9 @@ public final class GoapMechBehavior implements UnitBehavior {
         if (plan != null && !plan.isComplete()) {
             List<Entity> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                Entity u = sim.liveUnitAt(i);
-                if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-                aliveMembers.add(u);
+                long u = sim.liveUnitAt(i);
+                if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+                aliveMembers.add(sim.getRoster().get(i));
             }
             for (SquadPlan.Step step : plan.steps()) {
                 List<RoleAssigner.Slot<Entity>> slots = step.action.roles(squad, sim);

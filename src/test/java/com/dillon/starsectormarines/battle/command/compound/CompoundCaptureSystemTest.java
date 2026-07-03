@@ -121,7 +121,7 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
 
         // Marine dies, defender moves in.
-        TestUnits.kill(sim, marine);
+        TestUnits.kill(sim, marine.entityId);
         sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
 
         int holdTicks = (int) Math.ceil(

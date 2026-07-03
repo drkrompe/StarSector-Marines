@@ -135,29 +135,29 @@ public final class SquadStateDumper {
         // stuck" diagnostic cares about the survivors; squad-level aliveMembers
         // carries attrition. The per-member "alive" field is now always true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
+            long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
             JSONObject o = new JSONObject();
-            o.put("id", sim.identity().name(u.entityId));
-            if (selectedUnitEntityId != 0L && selectedUnitEntityId == u.entityId) {
+            o.put("id", sim.identity().name(u));
+            if (selectedUnitEntityId != 0L && selectedUnitEntityId == u) {
                 o.put("selected", true);
             }
-            o.put("alive", sim.world().isAlive(u.entityId));
-            o.put("role", sim.role().role(u.entityId).name());
-            o.put("cellX", sim.world().cellX(u.entityId));
-            o.put("cellY", sim.world().cellY(u.entityId));
+            o.put("alive", sim.world().isAlive(u));
+            o.put("role", sim.role().role(u).name());
+            o.put("cellX", sim.world().cellX(u));
+            o.put("cellY", sim.world().cellY(u));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
             // patrols). Emit anyway so the dump distinguishes "no home" from
             // "home but drifted off" — key signal for diagnosing why a
             // garrison unit's findFiringPositionWithin returned null.
-            boolean hasHome = sim.home().hasHome(u.entityId);
-            o.put("homeCellX", hasHome ? sim.home().homeCellX(u.entityId) : -1);
-            o.put("homeCellY", hasHome ? sim.home().homeCellY(u.entityId) : -1);
-            o.put("currentZone", sim.getZoneGraph().zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)));
-            o.put("hp", sim.world().hp(u.entityId));
-            o.put("maxHp", sim.world().maxHp(u.entityId));
-            o.put("moveProgress", sim.world().moveProgress(u.entityId));
-            long dumpTarget = sim.targetOf(u.entityId);
+            boolean hasHome = sim.home().hasHome(u);
+            o.put("homeCellX", hasHome ? sim.home().homeCellX(u) : -1);
+            o.put("homeCellY", hasHome ? sim.home().homeCellY(u) : -1);
+            o.put("currentZone", sim.getZoneGraph().zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)));
+            o.put("hp", sim.world().hp(u));
+            o.put("maxHp", sim.world().maxHp(u));
+            o.put("moveProgress", sim.world().moveProgress(u));
+            long dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != 0L ? sim.identity().name(dumpTarget) : null);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
@@ -165,9 +165,9 @@ public final class SquadStateDumper {
             // in the same flood-filled zone (see [[zone_graph_ignores_edges]]).
             // Future make-passage actions (breach door, blow wall) should
             // key off this flag. JSONObject.NULL when the unit has no target.
-            o.put("targetReachable", computeTargetReachable(u.entityId, sim));
-            o.put("cooldownTimer", sim.world().cooldownTimer(u.entityId));
-            o.put("pathLen", Paths.cellCount(sim.world().path(u.entityId)));
+            o.put("targetReachable", computeTargetReachable(u, sim));
+            o.put("cooldownTimer", sim.world().cooldownTimer(u));
+            o.put("pathLen", Paths.cellCount(sim.world().path(u)));
             arr.put(o);
         }
         return arr;
@@ -204,30 +204,30 @@ public final class SquadStateDumper {
 
         Faction enemyFaction = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
-        List<Entity> squadmates = new ArrayList<>();
+        List<Long> squadmates = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(u.entityId) && sim.squad().squadId(u.entityId) == squad.id) squadmates.add(u);
+            long u = sim.liveUnitAt(i);
+            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id) squadmates.add(u);
         }
 
         JSONArray enemies = new JSONArray();
         boolean anyUnreachable = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity e = sim.liveUnitAt(i);
-            if (e.faction != enemyFaction) continue;
-            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != targetZoneId) continue;
+            long e = sim.liveUnitAt(i);
+            if (sim.identity().faction(e) != enemyFaction) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e), sim.world().cellY(e)) != targetZoneId) continue;
             boolean reachable = false;
-            for (Entity m : squadmates) {
+            for (long m : squadmates) {
                 int[] path = GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(m.entityId), sim.world().cellY(m.entityId),
-                        sim.world().cellX(e.entityId), sim.world().cellY(e.entityId));
+                        sim.world().cellX(m), sim.world().cellY(m),
+                        sim.world().cellX(e), sim.world().cellY(e));
                 if (path.length > 0) { reachable = true; break; }
             }
             if (!reachable) anyUnreachable = true;
             JSONObject eo = new JSONObject();
-            eo.put("id", sim.identity().name(e.entityId));
-            eo.put("cellX", sim.world().cellX(e.entityId));
-            eo.put("cellY", sim.world().cellY(e.entityId));
+            eo.put("id", sim.identity().name(e));
+            eo.put("cellX", sim.world().cellX(e));
+            eo.put("cellY", sim.world().cellY(e));
             eo.put("reachableFromAnyMember", reachable);
             enemies.put(eo);
         }

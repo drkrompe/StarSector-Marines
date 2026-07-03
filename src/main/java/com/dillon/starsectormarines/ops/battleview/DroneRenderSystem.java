@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -84,13 +83,13 @@ public final class DroneRenderSystem implements RenderSystem {
 
         // Live drones — iterate the dense registry; the corpse never appears.
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Entity u = ctx.sim.liveUnitAt(i);
-            if (!u.type.isDrone()) continue;
+            long u = ctx.sim.liveUnitAt(i);
+            if (!ctx.sim.identity().type(u).isDrone()) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
 
             // The drone's body is a world KINEMATICS component now (read by id).
-            AirBody body = world.kinematics(u.entityId);
+            AirBody body = world.kinematics(u);
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
             float drawAlpha = alphaMult;
@@ -104,7 +103,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    world.hp(u.entityId) / world.maxHp(u.entityId), drawAlpha);
+                    world.hp(u) / world.maxHp(u), drawAlpha);
         }
     }
 }

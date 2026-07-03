@@ -149,7 +149,7 @@ public class ZoneQueriesTest {
         // query must fall back to the centroid instead of anchoring on a corpse.
         Entity deadLeader = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 3));
         squad.leaderId = deadLeader.entityId;
-        TestUnits.kill(sim, deadLeader);
+        TestUnits.kill(sim, deadLeader.entityId);
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
         assertEquals(leftZone, ZoneQueries.squadCurrentZone(squad, sim),
                 "dead leader should not anchor the query");
@@ -200,7 +200,7 @@ public class ZoneQueriesTest {
                 "marine doesn't influence DEFENDER clarity check");
 
         // Kill the defender → zone reads clear again.
-        TestUnits.kill(sim, defender);
+        TestUnits.kill(sim, defender.entityId);
         assertTrue(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
                 "dead defender should not count");
     }

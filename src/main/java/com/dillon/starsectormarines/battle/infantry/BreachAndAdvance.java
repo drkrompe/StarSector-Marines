@@ -190,12 +190,12 @@ public final class BreachAndAdvance implements Action {
         int alive = 0;
         int near = 0;
         float r2 = STACKUP_ARRIVAL_RADIUS * STACKUP_ARRIVAL_RADIUS;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
-                float dx = sim.world().cellX(u.entityId) - stackUpX[i2];
-                float dy = sim.world().cellY(u.entityId) - stackUpY[i2];
+                float dx = sim.world().cellX(u) - stackUpX[i2];
+                float dy = sim.world().cellY(u) - stackUpY[i2];
                 if (dx * dx + dy * dy <= r2) { near++; break; }
             }
         }
@@ -211,13 +211,13 @@ public final class BreachAndAdvance implements Action {
         // Sibling worker may have advanced past the end between isComplete()
         // and currentStep() under parallel dispatch.
         if (step == null) return false;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
             String name = step.slotOf(u);
             if (name == null) continue;
             int s = parseSlotIndex(name);
             if (s < 0 || s >= forwardX.length) continue;
-            if (sim.world().cellX(u.entityId) != forwardX[s] || sim.world().cellY(u.entityId) != forwardY[s]) return false;
+            if (sim.world().cellX(u) != forwardX[s] || sim.world().cellY(u) != forwardY[s]) return false;
         }
         return true;
     }

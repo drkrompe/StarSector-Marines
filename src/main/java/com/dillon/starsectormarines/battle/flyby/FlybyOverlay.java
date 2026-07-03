@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.Global;
@@ -208,7 +207,7 @@ public final class FlybyOverlay {
      * lethal hit swap-and-pops the dense registry; gathering the in-radius set
      * first makes the apply pass a snapshot rather than a corrupted dense walk.
      */
-    private final List<Entity> aoeHits = new ArrayList<>();
+    private final List<Long> aoeHits = new ArrayList<>();
 
     /** Sim-seconds since the current battle started — drives roster spawn scheduling. Reset when the sim instance changes. */
     private float simTime = 0f;
@@ -394,7 +393,7 @@ public final class FlybyOverlay {
             }
             if (f.burstRemaining == 0) {
                 f.strafeRearmTimer = STRAFE_REARM_SEC;
-                f.burstTarget = null;
+                f.burstTarget = 0L;
             }
             return; // bursts and cluster scans are mutually exclusive — finish what you started
         }
@@ -416,8 +415,8 @@ public final class FlybyOverlay {
 
         // Otherwise, opportunistic single-target strafe (small tight burst).
         if (f.aggroTimer <= 0f && f.strafeRearmTimer <= 0f && sim != null) {
-            Entity target = acquireStrafeTarget(f, sim);
-            if (target != null) {
+            long target = acquireStrafeTarget(f, sim);
+            if (target != 0L) {
                 f.burstTarget = target;
                 f.burstRemaining = f.profile.burstSize;
                 f.burstNextFireIn = 0f;
@@ -479,24 +478,24 @@ public final class FlybyOverlay {
     private boolean tryPlanStrafingRun(Fighter f, BattleSimulation sim) {
         Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
         float clusterR2 = CLUSTER_RADIUS_CELLS * CLUSTER_RADIUS_CELLS;
-        List<Entity> enemies = new ArrayList<>();
+        List<Long> enemies = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction == enemy) enemies.add(u);
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) == enemy) enemies.add(u);
         }
         if (enemies.size() < CLUSTER_MIN_UNITS) return false;
 
         // For each enemy, count neighbors within cluster radius. The best
         // anchor is the one with the most neighbors — its neighbors form the
         // cluster we strafe.
-        Entity bestAnchor = null;
+        long bestAnchor = 0L;
         int bestCount = 0;
-        List<Entity> bestNeighbors = new ArrayList<>();
-        for (Entity a : enemies) {
-            List<Entity> neighbors = new ArrayList<>();
-            for (Entity b : enemies) {
-                float dx = (sim.world().renderX(b.entityId) + 0.5f) - (sim.world().renderX(a.entityId) + 0.5f);
-                float dy = (sim.world().renderY(b.entityId) + 0.5f) - (sim.world().renderY(a.entityId) + 0.5f);
+        List<Long> bestNeighbors = new ArrayList<>();
+        for (long a : enemies) {
+            List<Long> neighbors = new ArrayList<>();
+            for (long b : enemies) {
+                float dx = (sim.world().renderX(b) + 0.5f) - (sim.world().renderX(a) + 0.5f);
+                float dy = (sim.world().renderY(b) + 0.5f) - (sim.world().renderY(a) + 0.5f);
                 if (dx * dx + dy * dy <= clusterR2) neighbors.add(b);
             }
             if (neighbors.size() > bestCount) {
@@ -505,11 +504,11 @@ public final class FlybyOverlay {
                 bestNeighbors = neighbors;
             }
         }
-        if (bestCount < CLUSTER_MIN_UNITS || bestAnchor == null) return false;
+        if (bestCount < CLUSTER_MIN_UNITS || bestAnchor == 0L) return false;
 
         // Centroid of the cluster.
         float cx = 0f, cy = 0f;
-        for (Entity u : bestNeighbors) { cx += sim.world().renderX(u.entityId) + 0.5f; cy += sim.world().renderY(u.entityId) + 0.5f; }
+        for (long u : bestNeighbors) { cx += sim.world().renderX(u) + 0.5f; cy += sim.world().renderY(u) + 0.5f; }
         cx /= bestNeighbors.size();
         cy /= bestNeighbors.size();
 
@@ -528,19 +527,19 @@ public final class FlybyOverlay {
     }
 
     /** Forward-cone search used by opportunistic CRUISE strafe (single target). */
-    private Entity acquireStrafeTarget(Fighter f, BattleSimulation sim) {
+    private long acquireStrafeTarget(Fighter f, BattleSimulation sim) {
         Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
         float cosThreshold = (float) Math.cos(Math.toRadians(STRAFE_CONE_HALF_DEG));
         float rad = (float) Math.toRadians(f.headingDeg);
         float dx = (float) Math.cos(rad), dy = (float) Math.sin(rad);
 
-        Entity best = null;
+        long best = 0L;
         float bestDist = STRAFE_RANGE_CELLS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.faction != enemy) continue;
-            float ux = (sim.world().renderX(u.entityId) + 0.5f) - f.worldX;
-            float uy = (sim.world().renderY(u.entityId) + 0.5f) - f.worldY;
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != enemy) continue;
+            float ux = (sim.world().renderX(u) + 0.5f) - f.worldX;
+            float uy = (sim.world().renderY(u) + 0.5f) - f.worldY;
             float dist = (float) Math.sqrt(ux * ux + uy * uy);
             if (dist < 0.001f || dist > bestDist) continue;
             float dot = (ux * dx + uy * dy) / dist;
@@ -552,7 +551,7 @@ public final class FlybyOverlay {
     }
 
     /** CRUISE-burst fire dispatcher — picks the per-class resolution path. */
-    private void fireBurstShot(Fighter f, Entity target, BattleSimulation sim) {
+    private void fireBurstShot(Fighter f, long target, BattleSimulation sim) {
         switch (f.profile.weaponClass) {
             case TRACER:
                 fireOneTracerAt(f, target, sim);
@@ -573,11 +572,11 @@ public final class FlybyOverlay {
      * the deliberate-strafing-run pattern in {@link #fireRunTracer} so the
      * visual landing point and the damage point always agree.
      */
-    private void fireOneTracerAt(Fighter f, Entity target, BattleSimulation sim) {
-        if (target == null) return;
+    private void fireOneTracerAt(Fighter f, long target, BattleSimulation sim) {
+        if (target == 0L) return;
         float spreadRad = (float) Math.toRadians((rng.nextFloat() * 2f - 1f) * f.profile.burstSpreadDeg);
-        float tx = sim.world().renderX(target.entityId) + 0.5f;
-        float ty = sim.world().renderY(target.entityId) + 0.5f;
+        float tx = sim.world().renderX(target) + 0.5f;
+        float ty = sim.world().renderY(target) + 0.5f;
         float dx = tx - f.worldX, dy = ty - f.worldY;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) return;
@@ -599,10 +598,10 @@ public final class FlybyOverlay {
             // aoeHits (applyExternalDamage releases on a kill mid-walk).
             aoeHits.clear();
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                Entity u = sim.liveUnitAt(i);
-                if (u.faction != enemy) continue;
-                float ux = (sim.world().renderX(u.entityId) + 0.5f) - endX;
-                float uy = (sim.world().renderY(u.entityId) + 0.5f) - endY;
+                long u = sim.liveUnitAt(i);
+                if (sim.identity().faction(u) != enemy) continue;
+                float ux = (sim.world().renderX(u) + 0.5f) - endX;
+                float uy = (sim.world().renderY(u) + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Aerial strafing: intact roofs intercept tracer rounds.
                     if (sim.isRoofShielded(u)) continue;
@@ -642,8 +641,8 @@ public final class FlybyOverlay {
                 return;
             case PROJECTILE:
                 // Bombers don't spray — pick an in-cone target each fire tick, miss the tick if nothing's there.
-                Entity target = sim != null ? acquireStrafeTarget(f, sim) : null;
-                if (target == null) return;
+                long target = sim != null ? acquireStrafeTarget(f, sim) : 0L;
+                if (target == 0L) return;
                 spawnProjectile(f, target);
                 playFireSound(f);
                 return;
@@ -669,10 +668,10 @@ public final class FlybyOverlay {
             // aoeHits (applyExternalDamage releases on a kill mid-walk).
             aoeHits.clear();
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                Entity u = sim.liveUnitAt(i);
-                if (u.faction != enemy) continue;
-                float ux = (sim.world().renderX(u.entityId) + 0.5f) - endX;
-                float uy = (sim.world().renderY(u.entityId) + 0.5f) - endY;
+                long u = sim.liveUnitAt(i);
+                if (sim.identity().faction(u) != enemy) continue;
+                float ux = (sim.world().renderX(u) + 0.5f) - endX;
+                float uy = (sim.world().renderY(u) + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Strafing run damage — intact roofs intercept.
                     if (sim.isRoofShielded(u)) continue;
@@ -813,8 +812,8 @@ public final class FlybyOverlay {
     // ---- Projectile (PROJECTILE class) ----------------------------------------
 
     /** Launches one missile toward the target. The projectile lives in {@link #projectiles} and ticks each frame until it impacts, hits a wall, or its fuse runs out. */
-    private void spawnProjectile(Fighter f, Entity target) {
-        if (target == null) return;
+    private void spawnProjectile(Fighter f, long target) {
+        if (target == 0L) return;
         Projectile p = new Projectile();
         p.profile = f.profile;
         p.side = f.side;
@@ -850,10 +849,10 @@ public final class FlybyOverlay {
         }
         // Steer toward target if it's still alive — clamped turn rate, so a fast
         // unit running perpendicular can outrun the lock and force a miss.
-        Entity target = (p.target != null && sim != null && sim.world().isAlive(p.target.entityId)) ? p.target : null;
-        if (target != null) {
-            float dx = (sim.world().renderX(target.entityId) + 0.5f) - p.worldX;
-            float dy = (sim.world().renderY(target.entityId) + 0.5f) - p.worldY;
+        long target = (p.target != 0L && sim != null && sim.world().isAlive(p.target)) ? p.target : 0L;
+        if (target != 0L) {
+            float dx = (sim.world().renderX(target) + 0.5f) - p.worldX;
+            float dy = (sim.world().renderY(target) + 0.5f) - p.worldY;
             float desiredDeg = (float) Math.toDegrees(Math.atan2(dy, dx));
             float diff = wrap180(desiredDeg - p.headingDeg);
             float maxTurn = p.profile.projectileTurnRateDegPerSec * dt;
@@ -869,9 +868,9 @@ public final class FlybyOverlay {
         // cross a wall cell.
         p.worldX += p.vx * dt;
         p.worldY += p.vy * dt;
-        if (target != null) {
-            float dx = (sim.world().renderX(target.entityId) + 0.5f) - p.worldX;
-            float dy = (sim.world().renderY(target.entityId) + 0.5f) - p.worldY;
+        if (target != 0L) {
+            float dx = (sim.world().renderX(target) + 0.5f) - p.worldX;
+            float dy = (sim.world().renderY(target) + 0.5f) - p.worldY;
             float aoeRadius = p.profile.projectileAoeRadiusCells;
             if (dx * dx + dy * dy <= aoeRadius * aoeRadius * 0.25f) {
                 detonateProjectile(p, sim);
@@ -1191,7 +1190,7 @@ public final class FlybyOverlay {
         f.runFireAccumulator = 0f;
         f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
         f.burstRemaining = 0;
-        f.burstTarget = null;
+        f.burstTarget = 0L;
         f.burstNextFireIn = 0f;
         f.strafeRearmTimer = 0f;
         f.aggroTimer = 0f;
@@ -1518,7 +1517,7 @@ public final class FlybyOverlay {
         // Opportunistic CRUISE burst (single target).
         int burstRemaining;
         float burstNextFireIn;
-        Entity burstTarget;
+        long burstTarget;
         float strafeRearmTimer;
 
         // Strafing run state machine.
@@ -1573,7 +1572,7 @@ public final class FlybyOverlay {
         float vx, vy;
         float speed;
         float headingDeg;
-        Entity target;            // may be null or stale; tickProjectile defensively checks isAlive()
+        long target;               // may be 0L or stale; tickProjectile defensively checks isAlive()
         float fuseRemaining;
         /** Sim-seconds until the next smoke trail puff spawns behind the missile. */
         float smokeTrailTimer;

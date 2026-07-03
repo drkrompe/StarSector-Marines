@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -96,10 +95,10 @@ public final class CordonForPlant implements Goal {
 
     /** Returns the in-progress charge an alive squadmate is assigned to, or null. Two callers want it (relevance via zone lookup; customPlan needs the cells). */
     private static ChargeSiteObjective findActiveChargeObjective(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            if (sim.role().role(u.entityId) != UnitRole.PLANTER) continue;
-            if (sim.task().assignedObjective(u.entityId) instanceof ChargeSiteObjective cs) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            if (sim.role().role(u) != UnitRole.PLANTER) continue;
+            if (sim.task().assignedObjective(u) instanceof ChargeSiteObjective cs) {
                 if (cs.isComplete()) continue;
                 return cs;
             }

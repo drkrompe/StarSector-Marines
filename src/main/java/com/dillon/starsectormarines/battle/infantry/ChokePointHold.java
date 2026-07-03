@@ -245,8 +245,8 @@ public final class ChokePointHold implements Action {
         if (!triggerActive(squad, sim)) return ActionStatus.RUNNING;
 
         // Build enemy target — alive combatant standing on the portal cell.
-        Entity portalIntruder = enemyOnPortalCell(squad, sim);
-        if (portalIntruder == null) return ActionStatus.RUNNING;
+        long portalIntruder = enemyOnPortalCell(squad, sim);
+        if (portalIntruder == 0L) return ActionStatus.RUNNING;
 
         // LoS gate is by-cell: bound cells were picked with LoS at
         // construction, but a movable doodad or transient cover change might
@@ -262,8 +262,8 @@ public final class ChokePointHold implements Action {
         // concentrated burst this tick. Same shape as HoldPortalCordon's
         // on-post branch so burst follow-ups behave identically (machine guns
         // rip a burst when the trigger fires).
-        sim.combat().setFireIntent(member, Entity.idOf(portalIntruder), FireStance.STANCED, false);
-        sim.world().setTargetId(member, Entity.idOf(portalIntruder));
+        sim.combat().setFireIntent(member, portalIntruder, FireStance.STANCED, false);
+        sim.world().setTargetId(member, portalIntruder);
         return ActionStatus.RUNNING;
     }
 
@@ -283,14 +283,14 @@ public final class ChokePointHold implements Action {
         return ws.get(Predicate.ENEMY_IN_PORTAL_CELL);
     }
 
-    /** First alive enemy combatant standing on the portal cell, or null. Matches the rule the evaluator uses. */
-    private Entity enemyOnPortalCell(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!u.type.combatant) continue;
-            if (u.faction == squad.faction) continue;
-            if (sim.world().cellX(u.entityId) == portalX && sim.world().cellY(u.entityId) == portalY) return u;
+    /** Entity id of the first alive enemy combatant standing on the portal cell, or {@code 0L}. Matches the rule the evaluator uses. */
+    private long enemyOnPortalCell(Squad squad, BattleView sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.identity().type(u).combatant) continue;
+            if (sim.identity().faction(u) == squad.faction) continue;
+            if (sim.world().cellX(u) == portalX && sim.world().cellY(u) == portalY) return u;
         }
-        return null;
+        return 0L;
     }
 
     /** Parse the trailing index off a {@code losCell:N} slot name; -1 on bad input. */

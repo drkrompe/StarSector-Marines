@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -143,8 +142,8 @@ public final class BreachToEngage implements Goal {
         // Member count — slot count matches alive members so each member has
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(u.entityId) && sim.squad().squadId(u.entityId) == squad.id) aliveCount++;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id) aliveCount++;
         }
         if (aliveCount <= 0) return null;
 
@@ -304,9 +303,9 @@ public final class BreachToEngage implements Goal {
      * targeting yet.
      */
     private static long effectiveTarget(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u.entityId) || sim.squad().squadId(u.entityId) != squad.id) continue;
-            long t = sim.targetOf(u.entityId);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            long t = sim.targetOf(u);
             if (t != 0L) return t;
         }
         int cx = Math.round(squad.centroidX);
@@ -324,13 +323,13 @@ public final class BreachToEngage implements Goal {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int liveN = sim.liveUnitCount();
-        for (int ei = 0; ei < liveN; ei++) { Entity enemy = sim.liveUnitAt(ei);
-            if (!enemy.type.combatant) continue;
-            if (enemy.faction == squad.faction) continue;
-            if (zones.zoneIdAt(sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId)) != squadZone) continue;
-            for (int mi = 0; mi < liveN; mi++) { Entity member = sim.liveUnitAt(mi);
-                if (!sim.squad().hasSquad(member.entityId) || sim.squad().squadId(member.entityId) != squad.id) continue;
-                if (grid.hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId))) {
+        for (int ei = 0; ei < liveN; ei++) { long enemy = sim.liveUnitAt(ei);
+            if (!sim.identity().type(enemy).combatant) continue;
+            if (sim.identity().faction(enemy) == squad.faction) continue;
+            if (zones.zoneIdAt(sim.world().cellX(enemy), sim.world().cellY(enemy)) != squadZone) continue;
+            for (int mi = 0; mi < liveN; mi++) { long member = sim.liveUnitAt(mi);
+                if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
+                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) {
                     return true;
                 }
             }
