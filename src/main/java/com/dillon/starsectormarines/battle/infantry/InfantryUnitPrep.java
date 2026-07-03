@@ -5,9 +5,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 
-import java.util.ArrayList;
 
 /**
  * Per-tick lifecycle housekeeping for the GOAP infantry dispatcher. Called
@@ -112,30 +111,30 @@ public final class InfantryUnitPrep {
         // block. Closest one wins — tilts toward turrets / hubs (typically
         // closer in a defensive posture) while still letting a near mech
         // earn the shot if it's the nearest hardened threat.
-        Entity bestHardened = null;
+        long bestHardened = 0L;
         float bestDistSq = Float.MAX_VALUE;
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         sim.getUnitIndex().gather(sim.world().cellX(unit), sim.world().cellY(unit), range, scratch);
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity other = scratch.get(i);
-            if (!TacticalScoring.isHardened(other.type)) continue;
-            if (!sim.world().isAlive(other.entityId)) continue;
-            if (other.faction == sim.identity().faction(unit)) continue;
-            float dx = sim.world().cellX(other.entityId) - sim.world().cellX(unit);
-            float dy = sim.world().cellY(other.entityId) - sim.world().cellY(unit);
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long other = scratch.ids[i];
+            if (!TacticalScoring.isHardened(sim.identity().type(other))) continue;
+            if (!sim.world().isAlive(other)) continue;
+            if (sim.identity().faction(other) == sim.identity().faction(unit)) continue;
+            float dx = sim.world().cellX(other) - sim.world().cellX(unit);
+            float dy = sim.world().cellY(other) - sim.world().cellY(unit);
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit), sim.world().cellY(unit), sim.world().cellX(other.entityId), sim.world().cellY(other.entityId))) continue;
-            if (!sim.getTacticalScoring().shouldCommitRocket(unit, other.entityId)) continue;
+            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit), sim.world().cellY(unit), sim.world().cellX(other), sim.world().cellY(other))) continue;
+            if (!sim.getTacticalScoring().shouldCommitRocket(unit, other)) continue;
             bestHardened = other;
             bestDistSq = d2;
         }
-        if (bestHardened == null) return false;
+        if (bestHardened == 0L) return false;
 
         sim.world().setSecondaryActionTimer(id, sec.aimDuration);
         sim.world().setSecondaryFired(id, false);
-        sim.world().setSecondaryAimTargetId(id, Entity.idOf(bestHardened));
+        sim.world().setSecondaryAimTargetId(id, bestHardened);
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

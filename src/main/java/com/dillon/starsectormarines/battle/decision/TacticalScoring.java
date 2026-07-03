@@ -618,14 +618,14 @@ public final class TacticalScoring {
      * compound when squads pick targets each tick.
      */
     private float scoreThreatDensity(Entity candidate, int candCellX, int candCellY, Faction selfFaction) {
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         unitIndex.gather(candCellX, candCellY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity other = scratch.get(i);
-            if (other == candidate) continue;
-            if (other.faction == selfFaction) continue;
-            if (!other.type.combatant) continue;
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long other = scratch.ids[i];
+            if (other == candidate.entityId) continue;
+            if (roster.identity().faction(other) == selfFaction) continue;
+            if (!roster.identity().type(other).combatant) continue;
             count++;
         }
         return count * TARGET_THREAT_DENSITY_COST;
@@ -914,23 +914,23 @@ public final class TacticalScoring {
             maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range);
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         unitIndex.gather(anchorX, anchorY, gatherRadius, scratch);
-        Entity best = null;
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity enemy = scratch.get(i);
-            if (!roster.isAliveById(enemy.entityId) || !enemy.type.combatant) continue;
-            if (enemy.faction == selfFaction) continue;
-            int[] pos = findFiringPositionWithin(self, enemy.entityId, anchorX, anchorY, maxDistFromAnchor);
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long enemy = scratch.ids[i];
+            if (!roster.isAliveById(enemy) || !roster.identity().type(enemy).combatant) continue;
+            if (roster.identity().faction(enemy) == selfFaction) continue;
+            int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
-            float d = cellDistance(sx, sy, world.cellX(enemy.entityId), world.cellY(enemy.entityId));
+            float d = cellDistance(sx, sy, world.cellX(enemy), world.cellY(enemy));
             if (d < bestDist) {
                 bestDist = d;
                 best = enemy;
             }
         }
-        return best == null ? 0L : best.entityId;
+        return best;
     }
 
     /**
@@ -941,12 +941,12 @@ public final class TacticalScoring {
      * count (they're combatants); civilians don't.
      */
     public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         unitIndex.gather(cx, cy, radius, scratch);
         int count = 0;
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity u = scratch.get(i);
-            if (u.faction == faction && roster.isAliveById(u.entityId) && u.type.combatant) count++;
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long u = scratch.ids[i];
+            if (roster.identity().faction(u) == faction && roster.isAliveById(u) && roster.identity().type(u).combatant) count++;
         }
         return count;
     }
@@ -1403,13 +1403,13 @@ public final class TacticalScoring {
         // in the scan, so excluding them is exact, not approximate. Replaces
         // the O(scanRange² × totalUnits) inner loop with O(K) per candidate
         // where K is the nearby-enemy count.
-        ArrayList<Entity> threats = new ArrayList<>();
+        LongBucket threats = new LongBucket();
         unitIndex.gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
         filterEnemyCombatants(threats, selfFaction);
         // Project the threat set into parallel SoA columns once, so the
         // per-candidate exposure check reads plain arrays — no registry probe
         // inside the ~1089-candidate scan (cache-locality guardrail).
-        int threatCount = threats.size();
+        int threatCount = threats.size;
         int[] threatCellX = new int[threatCount];
         int[] threatCellY = new int[threatCount];
         float[] threatRange = new float[threatCount];
@@ -1574,14 +1574,14 @@ public final class TacticalScoring {
 
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity other = scratch.get(i);
-            if (other.faction == selfFaction) continue;
-            if (!other.type.combatant) continue;
-            if (grid.hasLineOfSightWithin(cx, cy, world.cellX(other.entityId), world.cellY(other.entityId),
-                    world.attackRange(other.entityId))) return false;
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long other = scratch.ids[i];
+            if (roster.identity().faction(other) == selfFaction) continue;
+            if (!roster.identity().type(other).combatant) continue;
+            if (grid.hasLineOfSightWithin(cx, cy, world.cellX(other), world.cellY(other),
+                    world.attackRange(other))) return false;
         }
         return true;
     }
@@ -1630,10 +1630,10 @@ public final class TacticalScoring {
      * to avoid re-gathering inside the cell loop.
      */
     public int countEnemiesWithLos(long self, int cx, int cy) {
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         filterEnemyCombatants(scratch, roster.identity().faction(self));
-        int n = scratch.size();
+        int n = scratch.size;
         int[] tcx = new int[n];
         int[] tcy = new int[n];
         float[] trange = new float[n];
@@ -1650,14 +1650,14 @@ public final class TacticalScoring {
      * for the {@code ~1089}-candidate scan. Threats come straight off a live
      * spatial gather, so every entry is registered.
      */
-    private void resolveThreatColumns(List<Entity> threats, int count,
+    private void resolveThreatColumns(LongBucket threats, int count,
                                       int[] outCellX, int[] outCellY, float[] outRange) {
         World world = roster.world();
         for (int i = 0; i < count; i++) {
-            Entity t = threats.get(i);
-            outCellX[i] = world.cellX(t.entityId);
-            outCellY[i] = world.cellY(t.entityId);
-            outRange[i] = world.attackRange(t.entityId);
+            long t = threats.ids[i];
+            outCellX[i] = world.cellX(t);
+            outCellY[i] = world.cellY(t);
+            outRange[i] = world.attackRange(t);
         }
     }
 
@@ -1686,17 +1686,18 @@ public final class TacticalScoring {
      * all units; this trims to "things that could threaten me." Compaction is
      * in-place to avoid a second allocation.
      */
-    public static void filterEnemyCombatants(ArrayList<Entity> units, Faction selfFaction) {
+    public void filterEnemyCombatants(LongBucket units, Faction selfFaction) {
         int write = 0;
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Entity u = units.get(i);
-            if (u.faction == selfFaction) continue;
-            if (!u.type.combatant) continue;
-            units.set(write++, u);
+        for (int i = 0, n = units.size; i < n; i++) {
+            long u = units.ids[i];
+            if (roster.identity().faction(u) == selfFaction) continue;
+            if (!roster.identity().type(u).combatant) continue;
+            units.ids[write++] = u;
         }
-        // Trim the tail. ArrayList.subList(write, size).clear() is the
-        // idiomatic in-place truncate.
-        if (write < units.size()) units.subList(write, units.size()).clear();
+        // In-place truncate: LongBucket.size is the live count, so dropping it
+        // to the write cursor discards the filtered-out tail (ids past size are
+        // never read).
+        units.size = write;
     }
 
     /**
@@ -1724,12 +1725,12 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         // Pass 1 — units whose CURRENT cell is in the spread radius.
         unitIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
-        for (int i = 0, n = scratch.size(); i < n; i++) {
-            Entity u = scratch.get(i);
-            if (u.entityId == self || u.faction != selfFaction) continue;
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long u = scratch.ids[i];
+            if (u == self || roster.identity().faction(u) != selfFaction) continue;
             count++;
         }
         // Pass 2 — units whose path DESTINATION is in the spread radius.

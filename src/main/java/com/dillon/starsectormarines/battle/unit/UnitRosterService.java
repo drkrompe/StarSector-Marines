@@ -217,7 +217,7 @@ public final class UnitRosterService {
     public Entity spawn(EntitySpec spec) {
         Entity e = new Entity(spec.faction, spec.type);
         adopt(e, spec);
-        unitIndex.add(this, e);
+        unitIndex.add(this, e.entityId);
         return e;
     }
 
@@ -687,7 +687,7 @@ public final class UnitRosterService {
         for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
             PendingSpawn p = pendingSpawns.get(i);
             adopt(p.entity(), p.spec());
-            unitIndex.add(this, p.entity());
+            unitIndex.add(this, p.entity().entityId);
         }
         pendingSpawns.clear();
     }

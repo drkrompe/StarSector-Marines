@@ -27,7 +27,7 @@ import java.util.Arrays;
  *
  * <p><b>Allocation.</b> {@link Bucket}s are recycled into {@link #pool} between
  * rebuilds and their backing arrays grow-and-stay, so steady-state allocation
- * is zero. Callers passing an output {@link ArrayList} to {@link #gather} pay
+ * is zero. Callers passing an output {@link LongBucket} to {@link #gather} pay
  * nothing per call past clearing the buffer.
  *
  * <p><b>Threading.</b> Single-threaded against the sim today. The squad-GOAP
@@ -46,34 +46,33 @@ public final class UnitSpatialIndex {
     public static final int BUCKET = 16;
 
     /**
-     * One spatial bucket: parallel arrays of unit refs and their rebuild-time
+     * One spatial bucket: parallel arrays of unit ids and their rebuild-time
      * snapshot cell, grown on demand and recycled across rebuilds so
      * steady-state allocation stays zero. The snapshot cell is what lets
      * {@link #gather} filter by distance without reading the position back off
      * the unit (no SoA indirection, no registry probe per candidate).
      */
     private static final class Bucket {
-        Entity[] units = new Entity[8];
+        long[] ids = new long[8];
         int[] cellX = new int[8];
         int[] cellY = new int[8];
         int size;
 
-        void add(Entity u, int x, int y) {
-            if (size == units.length) {
+        void add(long id, int x, int y) {
+            if (size == ids.length) {
                 int cap = size << 1;
-                units = Arrays.copyOf(units, cap);
+                ids = Arrays.copyOf(ids, cap);
                 cellX = Arrays.copyOf(cellX, cap);
                 cellY = Arrays.copyOf(cellY, cap);
             }
-            units[size] = u;
+            ids[size] = id;
             cellX[size] = x;
             cellY[size] = y;
             size++;
         }
 
-        /** Clears for reuse, nulling unit slots so a released unit isn't pinned alive between rebuilds. */
+        /** Clears for reuse. Ids are primitives, so there's no reference to null out — a released unit isn't pinned (the bucket holds no object). */
         void clear() {
-            for (int i = 0; i < size; i++) units[i] = null;
             size = 0;
         }
     }
@@ -107,7 +106,7 @@ public final class UnitSpatialIndex {
      * per-call {@code isAlive()} branch in the inner loop. Cell positions
      * are read via the world POSITION columns by-id adapters
      * ({@code cellXById} / {@code cellYById}), then stored alongside the
-     * {@code Entity} ref in the bucket so {@link #gather} never has to read
+     * id in the bucket so {@link #gather} never has to read
      * them back.
      */
     public void rebuild(UnitRosterService roster) {
@@ -124,11 +123,11 @@ public final class UnitSpatialIndex {
         Entity[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            int x = world.cellX(u.entityId);
-            int y = world.cellY(u.entityId);
+            long id = dense[i].entityId;
+            int x = world.cellX(id);
+            int y = world.cellY(id);
             Bucket bucket = bucketAt(x, y);
-            if (bucket != null) bucket.add(u, x, y);
+            if (bucket != null) bucket.add(id, x, y);
         }
     }
 
@@ -146,14 +145,14 @@ public final class UnitSpatialIndex {
      * the world POSITION column adapters) — the cell is denormalized into the
      * bucket, mirroring {@link #rebuild}.
      */
-    public void add(UnitRosterService roster, Entity u) {
+    public void add(UnitRosterService roster, long id) {
         this.roster = roster;
-        if (!roster.isAliveById(u.entityId)) return;
+        if (!roster.isAliveById(id)) return;
         World world = roster.world();
-        int x = world.cellX(u.entityId);
-        int y = world.cellY(u.entityId);
+        int x = world.cellX(id);
+        int y = world.cellY(id);
         Bucket bucket = bucketAt(x, y);
-        if (bucket != null) bucket.add(u, x, y);
+        if (bucket != null) bucket.add(id, x, y);
     }
 
     /**
@@ -183,7 +182,7 @@ public final class UnitSpatialIndex {
      * combatant flag, or per-unit attack range is left to the caller: the
      * index is a primitive over <em>all</em> alive units, not a slice.
      */
-    public void gather(int cx, int cy, float radius, ArrayList<Entity> out) {
+    public void gather(int cx, int cy, float radius, LongBucket out) {
         out.clear();
         if (radius <= 0f) return;
         int r = (int) Math.ceil(radius);
@@ -199,11 +198,11 @@ public final class UnitSpatialIndex {
             for (int bx = x0; bx <= x1; bx++) {
                 Bucket bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
-                Entity[] units = bucket.units;
+                long[] ids = bucket.ids;
                 int[] bcx = bucket.cellX;
                 int[] bcy = bucket.cellY;
                 for (int i = 0, n = bucket.size; i < n; i++) {
-                    Entity u = units[i];
+                    long id = ids[i];
                     // Skip units released since the last rebuild — the index is a
                     // per-tick snapshot, so a unit killed (and registry-released)
                     // mid-tick lingers in its old bucket until then. The snapshot
@@ -211,10 +210,10 @@ public final class UnitSpatialIndex {
                     // "alive units only" contract still requires the skip so dead
                     // units aren't handed back. (Callers also filter, but gather
                     // owns the contract.)
-                    if (!roster.isAliveById(u.entityId)) continue;
+                    if (!roster.isAliveById(id)) continue;
                     int dx = bcx[i] - cx;
                     int dy = bcy[i] - cy;
-                    if (dx * dx + dy * dy <= r2) out.add(u);
+                    if (dx * dx + dy * dy <= r2) out.add(id);
                 }
             }
         }

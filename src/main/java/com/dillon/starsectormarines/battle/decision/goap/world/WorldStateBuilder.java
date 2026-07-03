@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -140,15 +140,15 @@ public final class WorldStateBuilder {
         // Gather only enemies inside the threat-set window via the per-tick
         // spatial index — eliminates the previous O(total-units) outer scan
         // when the squad's lastSeenEnemy point sits far from most of the map.
-        ArrayList<Entity> threats = new ArrayList<>();
+        LongBucket threats = new LongBucket();
         sim.getUnitIndex().gather(squad.lastSeenEnemyX, squad.lastSeenEnemyY,
                 HAS_LOS_THREAT_SET_RADIUS, threats);
-        for (int i = 0, n = threats.size(); i < n; i++) {
-            Entity enemy = threats.get(i);
-            if (!enemy.type.combatant) continue;
-            if (enemy.faction == squad.faction) continue;
+        for (int i = 0, n = threats.size; i < n; i++) {
+            long enemy = threats.ids[i];
+            if (!sim.identity().type(enemy).combatant) continue;
+            if (sim.identity().faction(enemy) == squad.faction) continue;
             for (long member : members) {
-                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId))) return true;
+                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) return true;
             }
         }
         return false;

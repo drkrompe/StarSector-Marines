@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -264,7 +265,7 @@ public class AirSystem {
      */
     private void tickAirThreat(float dt) {
         if (air.isEmpty()) return;
-        ArrayList<Entity> scratch = new ArrayList<>();
+        LongBucket scratch = new LongBucket();
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
             if (!isAirborneHittable(mission.state)) continue;
@@ -274,11 +275,11 @@ public class AirSystem {
             navigation.getUnitIndex().gather(Math.round(body.x), Math.round(body.y),
                     AA_THREAT_RADIUS_CELLS, scratch);
             int posts = 0;
-            for (int i = 0, n = scratch.size(); i < n; i++) {
-                Entity e = scratch.get(i);
-                if (e.faction == faction) continue;
-                if (!e.type.isTurret()) continue;     // defense posts only — not infantry / mechs
-                if (!world.isAlive(e.entityId)) continue;
+            for (int i = 0, n = scratch.size; i < n; i++) {
+                long e = scratch.ids[i];
+                if (roster.identity().faction(e) == faction) continue;
+                if (!roster.identity().type(e).isTurret()) continue;     // defense posts only — not infantry / mechs
+                if (!world.isAlive(e)) continue;
                 posts++;
             }
             if (posts == 0) continue;
