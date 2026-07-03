@@ -240,6 +240,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+58e3d4f6 ecs-migration: identity-collapse F3b - liveUnitAt facade -> long
 30f7ced8 ecs-migration: identity-collapse F3a - resolveUnit -> long
 a671b0c0 ecs-migration: identity-collapse F2 - the target web -> long
 5eb8dff0 ecs-migration: identity-collapse F1 - DeathEvent payload Entity -> long
@@ -326,10 +327,14 @@ goap, campaign) interleave on HEAD.
   `FireStance.stanceFor(moveProgress)` — a deliberate behavior change, its own slice +
   playtest. **Next-up:** **identity-collapse — the STORAGE FINALE, IN PROGRESS** (§ "Storage finale — Execution"
   in the story doc). Running as green-per-commit slices F1–F5: **F1** (`DeathEvent`→`long`, `5eb8dff0`)
-  + **F2** (the target web→`long`, `a671b0c0`) + **F3a** (`resolveUnit`→`long`, `30f7ced8`) SHIPPED, suite
-  green (869); **F3b** (`liveUnitAt`→`long`, ~50 roster-walk consumers w/ `.faction`/`.type` reads) is
-  next, then **F4** (`UnitSpatialIndex` id-native), **F5** (roster storage `Entity[]`→`long[]` + spawn→long
-  + delete `Entity.java`). **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
+  + **F2** (the target web→`long`, `a671b0c0`) + **F3a** (`resolveUnit`→`long`, `30f7ced8`) + **F3b**
+  (`liveUnitAt` facade→`long`, `58e3d4f6`, 51 files) SHIPPED, suite green (869) — the last
+  `Entity`-returning facade method is gone. **Next up: F4** (`UnitSpatialIndex` id-native — buckets →
+  `LongBucket`, `gather` emits `long`, `TacticalScoring` scratch id-native), then **F5** (roster storage
+  `Entity[]`→`long[]` + spawn→long + delete `Entity.java`). Note the **F3b↔F5 seam surfaced in F3b**: the
+  GOAP-replan role gather (`aliveMembers`) can't leave `Entity` while `Action.roles()` pins
+  `RoleAssigner.Slot<Entity>` — it reads members via `getRoster().get(i)` off the still-`Entity` dense
+  store, so role/plan storage flips WITH the roster in F5, not with the facade. **The params-first acting-unit sweep is DONE (D9→D12).** Every `Entity` *param* outside storage-finale
   scope is now `long`: the sim facade (D10 — `BattleControl`/`BattleView` take `long` on every front-door),
   the GOAP `Action.execute` (D9), the `UnitBehavior.update` dispatch entry (D11), and the scattered subsystem
   acting-unit params (D12). The only `Entity` that remains is **finale-coupled**: `target`/`candidate`/`threat`

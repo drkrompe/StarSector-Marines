@@ -507,12 +507,22 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
   uniform (`long X`, `== 0L`, `X`). **Un-bridged the F2 `currentBurstTarget.entityId`** in all three
   turret-fire consumers (TurretBehavior via `resolveUnit`; AirSystem/GroundSystem via the sibling
   `roster.getOrNull` → `roster.isLive(id) ? id : 0L`).
-- **F3b · `liveUnitAt` → `long`** (next) — the last `Entity`-returning facade method. `liveUnitAt(idx)`
-  → `get(idx).entityId` transitionally (until F5 flips `get`/`denseArray` to `long[]`). ~50 roster-walk
-  consumers `Entity u = liveUnitAt(i)` → `long u`, with `u.faction`/`u.type` → `identity().faction(u)`/
-  `type(u)` — a wider ripple than F3a (many `.faction`/`.type` reads, not just `.entityId`). Also
-  un-bridges the `ClearZone`/`HoldZone` `Entity.idOf` in-zone pickers (they scan `liveUnitAt`).
-- **F4 · `UnitSpatialIndex` id-native** — buckets `Entity[]`→`LongBucket` (D7 shape); `gather` emits
+- ~~**F3b · `liveUnitAt` → `long`**~~ — **SHIPPED (`58e3d4f6`; 869 green; 51 files).** The last
+  `Entity`-returning facade method. `liveUnitAt(idx)` → `get(idx).entityId` transitionally (until F5
+  flips `get`/`denseArray` to `long[]`). ~50 roster-walk consumers `Entity u = liveUnitAt(i)` → `long u`;
+  `.faction`/`.type` → `identity().faction(u)`/`type(u)`; `.entityId` → the id. Un-bridged the F2
+  `Entity.idOf` in `ClearZone`/`HoldZone` in-zone pickers (now return `long`); `ChokePointHold.enemyOnPortalCell`
+  + `BreachToEngage` helpers → `long` (`0L`=none). `TestUnits.kill`/`snapshot` flipped forward
+  (`kill(sim,long)`, `snapshot()`→`List<Long>`; kill callers append `.entityId`). **Two couplings the flip
+  forced — both closed WITHOUT re-adding an `Entity`-returning facade:** (1) the GOAP-replan `aliveMembers`
+  feeds `RoleAssigner.assign`, whose `Action.roles()` pins `Slot<Entity>` (F5 scope). `RoleAssigner` is
+  generic in `<C>` so needs nothing, but `Action` pins `C=Entity` — so `aliveMembers` stays `List<Entity>`,
+  read from the still-`Entity` dense store via `getRoster().get(i)` (the id-based squad-membership check
+  still uses `liveUnitAt(i)`); identical fix in `BreachAndAdvanceTest.attach`. This is the F3b↔F5 seam:
+  role/plan storage flips WITH the roster's `Entity[]`→`long[]`, not with the facade. (2) `isRoofShielded` /
+  `applyExternalDamage` (flyby strafing's only callers, plus the combat bridge) take a `liveUnitAt`-sourced
+  arg → `Entity`→`long`; `SimProxyMirror` (bridge, `ProxyLink.unit` still `Entity`) appends `.entityId`.
+- **F4 · `UnitSpatialIndex` id-native** (next) — buckets `Entity[]`→`LongBucket` (D7 shape); `gather` emits
   `long`; `TacticalScoring`'s `ArrayList<Entity>` scratch + `filterEnemyCombatants`/`resolveThreatColumns`/
   `countCombatantsWithin` + all other `gather` callers go id-native.
 - **F5 · roster storage + delete `Entity.java`** — dense `Entity[]`→`long[]`; `spawn`/`queueSpawn`→`long`;
