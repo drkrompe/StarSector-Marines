@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 /**
  * Construction spec for a ground-roster unit — the mutable bag of "what to spawn"
  * that {@code UnitRosterService.spawn} consumes to mint a world entity. It carries
- * the same data the {@link Entity} {@code seed*} fields used to (identity + cell +
+ * the same data the {@code Entity} {@code seed*} fields used to (identity + cell +
  * the optional capability seeds + the stat block), so a spawn no longer needs a
  * hand-built {@code Entity} handle: the caller describes the unit, {@code spawn}
  * builds it.

@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -11,7 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 /**
  * Config + factory for a bolted-down static defense — a {@link TurretKind}
  * mounted on a single non-walkable map cell. {@link #create} returns a plain
- * {@link Entity} of type {@link UnitType#TURRET} so it slots into existing
+ * {@code Entity} of type {@link UnitType#TURRET} so it slots into existing
  * code paths for free: target acquisition, line-of-sight, the firing pipeline,
  * the deaths-this-frame list, the renderer's unit pass. The differences from a
  * mobile combatant are narrow — immobile, custom firing arc, separate sprite
@@ -25,7 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * On death, {@link BattleSimulation} flips the cell to walkable + rubble so
  * a destroyed turret stops blocking pathing and LOS.
  *
- * <p>A plain config/factory class, <b>not</b> an {@link Entity} subclass — the
+ * <p>A plain config/factory class, <b>not</b> an {@code Entity} subclass — the
  * turret's live per-instance state ({@code facingDegrees}/{@code recoilTimer}/
  * {@code kind}/{@code burstRemaining}/{@code burstTimer}/{@code burstTargetId})
  * lives in the world {@code TURRET_STATE} component (data owner
@@ -38,7 +37,7 @@ public final class MapTurret {
     private MapTurret() {}
 
     /**
-     * Builds a fresh turret {@link Entity} of {@code kind} at
+     * Builds a fresh turret {@code Entity} of {@code kind} at
      * {@code (cellX, cellY)}. Seeds the {@code Entity}'s Group-S stats from
      * {@code kind} (rather than baking them into {@link UnitType#TURRET},
      * which stays a zero-base placeholder) plus {@link EntitySpec#turretKind}

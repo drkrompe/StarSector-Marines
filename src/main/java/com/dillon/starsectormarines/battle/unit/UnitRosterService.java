@@ -38,7 +38,7 @@ import java.util.List;
  * Combines the state slices that all share a lifetime ("until the battle ends"):
  *
  * <ul>
- *   <li><b>The live entity roster</b> — a dense, live-only {@code Entity[]} keyed
+ *   <li><b>The live entity roster</b> — a dense, live-only {@code long[]} keyed
  *       by monotonic {@code long} entity ids ({@link #spawn} adopts, {@link #release}
  *       swap-and-pops), plus the {@link EntityWorld} + {@link BattleComponents}
  *       that hold every per-entity component, plus the {@link World} by-id access
@@ -68,11 +68,10 @@ import java.util.List;
  *
  * <h2>ID strategy</h2>
  * <p>Monotonic {@code long} sequence, {@code nextId} starts at 1 so {@code 0} is
- * the "no entity" sentinel a setup-discarded {@link Entity} carries
- * ({@link Entity#entityId} is 0 before allocation). A stale id resolves to
- * {@link #INVALID_INDEX} via {@link #indexOf(long)} / null via
- * {@link #getOrNull(long)}; {@link #isAliveById(long)} returns false once hp
- * hits zero. The dense {@code Entity[]} swap-and-pop keeps iteration over
+ * the "no entity" sentinel — an id reads 0 before it is minted. A stale id resolves to
+ * {@link #INVALID_INDEX} via {@link #indexOf(long)} / false via
+ * {@link #isLive(long)}; {@link #isAliveById(long)} returns false once hp
+ * hits zero. The dense {@code long[]} swap-and-pop keeps iteration over
  * {@code [0, liveCount())} cache-coherent with no dead entries (battle is
  * ephemeral and high-churn, so hard-delete beats the campaign tier's tombstoned
  * {@code LongIntMap}, which append-only because xstream save/load needs stable
@@ -82,7 +81,7 @@ import java.util.List;
  * <p>Single-writer / multi-reader within a tick. {@link #spawn} and
  * {@link #release(long)} run in serial sim phases (spawn flush and the
  * post-UPDATE_UNITS death drain); the parallel UPDATE_UNITS dispatch reads
- * {@link Entity#entityId} fields and may call {@link #isLive(long)} /
+ * {@code entityId} fields and may call {@link #isLive(long)} /
  * {@link #indexOf(long)} but never mutates.
  *
  * <p>Sibling slice to {@link DamageService},
@@ -120,7 +119,7 @@ public final class UnitRosterService {
      * registrations + the by-id access facade. Owned here because {@link #adopt}
      * is the single spawn seam — minting the id and adopting it into the world stay
      * in one place, and every per-entity component lives keyed by id in the world
-     * (immune to the dense {@code Entity[]} reshuffle on release). The world,
+     * (immune to the dense {@code long[]} reshuffle on release). The world,
      * components, and facade are all transient — battles never save/load mid-fight.
      */
     private final EntityWorld entityWorld = new EntityWorld();
@@ -297,12 +296,11 @@ public final class UnitRosterService {
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
-     * Builds the {@link Entity} handle for a spec and adopts it into the roster: mints
-     * its {@link Entity#entityId}, drops it in the next dense slot, creates its world
-     * entity with the archetype the spec's capabilities imply, and seeds every component
-     * column from the spec. Returns the minted id; grows the backing array by doubling on
-     * overflow. The single construct-and-column-seed seam — {@link #spawn} and
-     * {@link #flushPendingSpawns} both route here.
+     * Adopts a spec into the roster: mints its entity id, drops the id in the next dense
+     * slot, creates its world entity with the archetype the spec's capabilities imply,
+     * and seeds every component column from the spec. Returns the minted id; grows the
+     * backing array by doubling on overflow. The single mint-and-column-seed seam —
+     * {@link #spawn} and {@link #flushPendingSpawns} both route here.
      */
     private long adopt(EntitySpec spec) {
         if (liveCount == dense.length) {
@@ -539,7 +537,7 @@ public final class UnitRosterService {
      * setters.
      *
      * <p>Crucially this shares the single {@link #nextId} authority with
-     * {@link #allocate}, so a shuttle id can never collide with a ground id — the
+     * {@link #adopt(EntitySpec)}, so a shuttle id can never collide with a ground id — the
      * dual-mint trap the air-into-world migration closes (self-minting via
      * {@code EntityWorld.createEntity(comps)} would bump the world's counter but not
      * {@code nextId}, letting a later ground allocate reuse a shuttle's id). Serial-only
@@ -563,7 +561,7 @@ public final class UnitRosterService {
      * through the {@code ConvoyService} data owner. Vehicle liveness is
      * {@code mission.state == GONE}, not {@code HEALTH} — vehicles have no hp.
      *
-     * <p>Shares the single {@link #nextId} authority with {@link #allocate} and
+     * <p>Shares the single {@link #nextId} authority with {@link #adopt(EntitySpec)} and
      * {@link #allocateAir}, so a vehicle id can never collide with a ground or air
      * id — the dual-mint trap (self-minting via {@code EntityWorld.createEntity(comps)}
      * would bump the world's counter but not {@code nextId}, letting a later ground
@@ -581,7 +579,7 @@ public final class UnitRosterService {
      * Hard-removes the entity with id {@code id} via swap-and-pop. The tail
      * entity moves into the freed slot and its id→index mapping updates. No-op if
      * {@code id} is unknown (duplicate-release safety) or {@code 0L} (the
-     * "never allocated" sentinel a setup-discarded {@link Entity} carries).
+     * "never allocated" sentinel a setup-discarded {@code Entity} carries).
      *
      * <p>No per-unit state is moved by the swap — every column lives in the entity
      * world keyed by id, immune to the dense reshuffle: the cell + Group-S stats
@@ -589,7 +587,7 @@ public final class UnitRosterService {
      * snapshot; render position is the universal RENDER_POSITION component kept off
      * the corpse-remove mask), and hp / combat / movement / ai-state / secondary
      * stay under the entity's id until the death drain transmutes it to the corpse
-     * archetype. So the swap only moves the dense {@code Entity[]} slot + fixes the
+     * archetype. So the swap only moves the dense {@code long[]} slot + fixes the
      * tail's id↔slot mapping.
      */
     public void release(long id) {
@@ -688,7 +686,7 @@ public final class UnitRosterService {
         }
     }
 
-    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Entity#squadId}. */
+    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@code squadId}. */
     public Collection<Squad> getSquads() { return squads.values(); }
 
     /**
@@ -720,7 +718,7 @@ public final class UnitRosterService {
      * Mints a new (as-yet-leaderless) squad for {@code faction}, denormalizing
      * {@code mechSquad} from {@code type}; returns its id. The pre-spawn mint the
      * spec-based construction path uses: the caller holds an {@link EntitySpec},
-     * not a live {@link Entity}, so the squad is born with {@code leaderId == 0}
+     * not a live {@code Entity}, so the squad is born with {@code leaderId == 0}
      * and leadership (if any) is set after the members spawn. Sibling to
      * {@link #mintSquad(Faction, long)} (mint led by an existing unit);
      * synchronized for the same drone-hub same-tick reason.

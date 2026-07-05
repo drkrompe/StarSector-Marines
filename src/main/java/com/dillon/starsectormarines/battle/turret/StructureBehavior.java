@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * No-op per-tick behavior for static {@link com.dillon.starsectormarines.battle.unit.UnitRole#STRUCTURE}

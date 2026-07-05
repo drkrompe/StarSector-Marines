@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
- * What a {@link Entity} is doing this battle. Drives the dispatch in
+ * What a {@code Entity} is doing this battle. Drives the dispatch in
  * {@code BattleSimulation.updateUnit}.
  *
  * <ul>

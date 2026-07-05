@@ -4,13 +4,12 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
- * Spawns a single {@link Drone} for a drone-hub {@link Entity}: spirals out
+ * Spawns a single {@link Drone} for a drone-hub {@code Entity}: spirals out
  * from the hub anchor to find the first walkable cell beyond the embankment
  * ring, places the drone there, and registers it with the sim. No-op if the
  * hub is dead or every nearby cell is occupied — the hub's per-tick behavior

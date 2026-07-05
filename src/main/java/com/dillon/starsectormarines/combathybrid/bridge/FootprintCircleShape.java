@@ -43,7 +43,7 @@ public final class FootprintCircleShape implements ProxyShape {
      * <p><b>Turret degradation:</b> a turret's real {@code TurretKind.visualCells} now
      * lives in the world {@code TURRET_STATE} component (read via
      * {@code battle.sim.TurretStateService}), unreachable from here — this method is a
-     * bare static helper ({@link #applyTo}'s signature carries only the {@link Entity}
+     * bare static helper ({@link #applyTo}'s signature carries only the {@code Entity}
      * and a scale factor, no {@code sim}/{@code roster} reference to route a by-id read
      * through). So a turret just falls through to {@link #DEFAULT_FOOTPRINT_CELLS}
      * like any unrecognized kind — a debug-only sizing approximation, not a

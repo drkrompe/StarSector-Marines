@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -27,7 +26,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * marines, militia, aliens, and any future squaddie wielding a
  * {@link MarineWeapon}.
  *
- * <p>Burst continuation state lives on each {@link Entity}
+ * <p>Burst continuation state lives on each {@code Entity}
  * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
  * shared subsystem instance can serve every unit without per-shooter scratch
  * space. Services are constructor-injected; the subsystem pushes events
@@ -127,7 +126,7 @@ public class InfantryWeapons {
     /**
      * Fires the shooter's primary at the target. Per-shot accuracy / damage /
      * vsTurret pull from the marine's {@link MarineWeapon} when assigned;
-     * otherwise from the {@link Entity}'s baked-in stats (militia, aliens,
+     * otherwise from the {@code Entity}'s baked-in stats (militia, aliens,
      * turrets — all the "no MarineWeapon" callers). Accuracy is multiplied
      * by {@code stance.accuracyMult} — STANCED preserves the base roll,
      * MOVING applies the on-the-move suppression penalty.

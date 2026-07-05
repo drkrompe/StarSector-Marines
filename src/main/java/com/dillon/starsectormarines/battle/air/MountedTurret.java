@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
@@ -11,7 +10,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  *
  * <p>Pure data, ticked by {@link AirSystem} using the shared
  * {@link com.dillon.starsectormarines.battle.turret.TurretAim} loop. Not a
- * {@link Entity} — shuttle turrets aren't on the unit list, don't pathfind,
+ * {@code Entity} — shuttle turrets aren't on the unit list, don't pathfind,
  * and can't be targeted independently of their parent shuttle.
  */
 public final class MountedTurret {
@@ -26,7 +25,7 @@ public final class MountedTurret {
     /** Rounds remaining in this mount's magazine. Initialized from {@link TurretKind#startingAmmo} at construction; the hover-loiter exits when every mount on the shuttle hits zero. */
     public int ammo;
     /**
-     * Currently locked enemy as a {@link Entity#entityId} into the registry, or
+     * Currently locked enemy as a {@code entityId} into the registry, or
      * {@code 0L} when nothing's in range/LOS. Persisted across ticks so the aim
      * loop doesn't re-acquire every frame; resolve via
      * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#resolveUnit}
@@ -46,7 +45,7 @@ public final class MountedTurret {
     /** Sim-seconds until the next burst round fires. Counts down while {@link #burstRemaining} &gt; 0. */
     public float burstTimer;
     /**
-     * Target locked when the burst started, as a {@link Entity#entityId} —
+     * Target locked when the burst started, as a {@code entityId} —
      * held across the salvo so the rounds chase the same victim even if a
      * closer one walks into LOS mid-burst. {@code 0L} when no burst is active.
      */

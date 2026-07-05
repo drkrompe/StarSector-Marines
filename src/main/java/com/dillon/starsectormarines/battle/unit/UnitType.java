@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
- * Tier / archetype of a {@link Entity}. Bundles its sprite sheet, whether it's a
+ * Tier / archetype of a {@code Entity}. Bundles its sprite sheet, whether it's a
  * combatant, and the base stat block applied at construction. {@link Faction}
  * stays orthogonal — a MARINE_RED unit can spawn as MARINE or DEFENDER faction
  * depending on which side hired the pirates this mission.
@@ -112,7 +112,7 @@ public enum UnitType {
     /**
      * Whether this archetype is a drone launch hub — the classification gate
      * that replaced the old {@code instanceof} subclass checks once the hub's
-     * live state moved off a dedicated {@link Entity} subclass and onto the
+     * live state moved off a dedicated {@code Entity} subclass and onto the
      * world {@code HUB_STATE} component. Used by {@code UnitRosterService.allocate}
      * to attach {@code HUB_STATE} (presence IS "is a live drone hub") and by the
      * render/scoring type-tag sites (footprint sizing, HP-bar sizing,
@@ -123,7 +123,7 @@ public enum UnitType {
     /**
      * Whether this archetype is a static ground turret — the classification
      * gate that replaced the old {@code instanceof} subclass checks once the
-     * turret's live state moved off a dedicated {@link Entity}
+     * turret's live state moved off a dedicated {@code Entity}
      * subclass and onto the world {@code TURRET_STATE} component. Used by
      * {@code UnitRosterService.allocate} to attach {@code TURRET_STATE}
      * (presence IS "is a live turret") and by the render/scoring type-tag
@@ -135,7 +135,7 @@ public enum UnitType {
     /**
      * Whether this archetype is an autonomous defensive drone — the
      * classification gate that replaced the old {@code instanceof} subclass
-     * checks once the drone's live state moved off a dedicated {@link Entity}
+     * checks once the drone's live state moved off a dedicated {@code Entity}
      * subclass and onto the world {@code DRONE_STATE} component. Used by
      * {@code UnitRosterService.allocate} to attach {@code DRONE_STATE}
      * (presence IS "is a live drone") and by the render/behavior type-tag

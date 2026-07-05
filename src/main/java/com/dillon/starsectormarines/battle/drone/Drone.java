@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -29,7 +28,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  * {@code GoapDroneBehavior}/{@link DroneSwarmAction} for the per-tick
  * patrol/pursue/engage posture.
  *
- * <p>A plain config/factory class, <b>not</b> an {@link Entity} subclass — the
+ * <p>A plain config/factory class, <b>not</b> an {@code Entity} subclass — the
  * drone's live per-instance state ({@code patrolGoalX/Y}/{@code pursuitGoalX/Y}/
  * {@code pursuitTimer}/{@code homeHubId}) lives in the world {@code DRONE_STATE}
  * component (data owner {@code battle.sim.DroneStateService}); {@link #create}
@@ -189,7 +188,7 @@ public final class Drone {
     private Drone() {}
 
     /**
-     * Builds a fresh drone {@link Entity} at {@code (cellX, cellY)}, homed to
+     * Builds a fresh drone {@code Entity} at {@code (cellX, cellY)}, homed to
      * the hub with entity id {@code homeHubId} ({@code 0L} = none — test
      * fixtures that never register a hub). Seeds the config stats above plus
      * {@link EntitySpec#homeHubId} (consumed by {@code UnitRosterService.adopt}

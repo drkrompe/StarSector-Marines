@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -55,7 +54,7 @@ public interface BattleControl extends BattleView {
      * Mint a new (as-yet-leaderless) squad for {@code faction}, denormalizing
      * {@code mechSquad} from {@code type}; returns the new squad id. The pre-spawn
      * mint the spec-based construction path uses — the caller holds an
-     * {@link EntitySpec}, not a live {@link Entity}, so leadership (if any) is set
+     * {@link EntitySpec}, not a live {@code Entity}, so leadership (if any) is set
      * after the members spawn.
      */
     int mintSquad(Faction faction, UnitType type);

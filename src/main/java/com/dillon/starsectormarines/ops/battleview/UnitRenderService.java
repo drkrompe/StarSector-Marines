@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -198,7 +197,7 @@ public final class UnitRenderService implements RenderSystem {
      * <em>not</em> the legacy units list — a corpse entity is spawned on the
      * death event with its draw position frozen at the spot it fell and its pose
      * authored into {@code SPRITE.index}, so this sweep is a pure column walk
-     * over the matched tables, no released {@link Entity} handles anywhere.
+     * over the matched tables, no released {@code Entity} handles anywhere.
      *
      * <p>Two gates, both required: {@link RenderAppearance#hasDeathPose} is the
      * type-level "this type declares a corpse sheet" flag, but {@code SPRITE.index}

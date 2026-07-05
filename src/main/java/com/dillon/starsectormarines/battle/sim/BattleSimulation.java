@@ -18,7 +18,6 @@ import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -610,7 +609,7 @@ public class BattleSimulation implements BattleControl {
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
     }
-    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Entity#squadId}. */
+    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@code squadId}. */
     public Collection<Squad> getSquads()   { return rosterService.getSquads(); }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
     public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
@@ -1161,7 +1160,7 @@ public class BattleSimulation implements BattleControl {
      * fired its one-shot fallback: if alive-strength drops to or below
      * {@link #FALLBACK_TRIGGER_RATIO} of {@link Squad#originalSize}, the squad
      * reassigns to the first {@link TacticalNode.LinkKind#FALLBACK_TO} target.
-     * Each surviving member gets a new {@link Entity#homeCellX home cell} near
+     * Each surviving member gets a new {@code homeCellX} near
      * the new anchor (picked via {@link com.dillon.starsectormarines.battle.setup.BattleSetup#pickCellsNear} so cover is
      * preserved at the new post). {@link Squad#fallbackInProgress} is set so
      * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} routes

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -25,11 +24,11 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * {@code battle.sim.HubStateService}) and asks {@link DroneSpawner} to
  * launch a new drone whenever the hub is below {@link #MAX_ACTIVE_DRONES}.
  *
- * <p>A plain config/factory class, <b>not</b> an {@link Entity} subclass — the
+ * <p>A plain config/factory class, <b>not</b> an {@code Entity} subclass — the
  * hub's live per-instance state ({@code spawnCooldown}/{@code dronesLaunched}/
  * {@code droneSquadId}) lives in the world {@code HUB_STATE} component (data
  * owner {@code battle.sim.HubStateService}); {@link #create} returns a plain
- * {@link Entity} of type {@link UnitType#DRONE_HUB_STRUCTURE} seeded to carry
+ * {@code Entity} of type {@link UnitType#DRONE_HUB_STRUCTURE} seeded to carry
  * it. See {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B1).
  */
 public final class DroneHub {
@@ -58,7 +57,7 @@ public final class DroneHub {
     private DroneHub() {}
 
     /**
-     * Builds a fresh drone-hub {@link Entity} at {@code (cellX, cellY)}. Seeds
+     * Builds a fresh drone-hub {@code Entity} at {@code (cellX, cellY)}. Seeds
      * the config stats above plus {@link EntitySpec#hubSpawnCooldown} (consumed by
      * {@code UnitRosterService.adopt} into the {@code HUB_STATE} component
      * iff {@code type.isDroneHub()}); the caller still owns handing the result

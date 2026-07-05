@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -699,7 +698,7 @@ public class AirSystem {
 
     /**
      * Finds a free cell adjacent to the LZ and spawns a marine there as a fresh
-     * {@link Entity}. Returns {@code false} when no nearby cell is available this
+     * {@code Entity}. Returns {@code false} when no nearby cell is available this
      * tick (rare — only happens if the area around the LZ is fully clogged with
      * units or walls); caller leaves {@code marinesRemaining} unchanged and the
      * shuttle re-tries next interval.

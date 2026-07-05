@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -62,7 +61,7 @@ public final class SquadDetailPanel implements HudPanel {
      * Per-frame snapshot of the selected squad's marine rows, captured in
      * {@link #update} (pre-advance) and read in {@link #render} (post-advance).
      * Snapshots the displayed <em>values</em> rather than holding live
-     * {@link Entity} refs: a member killed during the frame's {@code advance()} is
+     * {@code Entity} refs: a member killed during the frame's {@code advance()} is
      * released from the registry by render time, and reading its Group-C hp /
      * Group-S maxHp accessors would fail loud. Freezing the row at update keeps
      * the just-killed member's last bar on screen for that frame without any

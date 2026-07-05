@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -298,7 +297,7 @@ public final class TacticalScoring {
     }
 
     /**
-     * Primitive-args overload — used by callers that aren't a {@link Entity}
+     * Primitive-args overload — used by callers that aren't a {@code Entity}
      * themselves (today: shuttle-mounted turrets, which live as data on an air
      * craft's {@code AIR_TURRETS} component rather than as grid entities). The
      * selection logic is identical; pass {@link Squad#NO_SQUAD}
@@ -315,7 +314,7 @@ public final class TacticalScoring {
      * Air-LoS aware overload — when {@code shooterAirRadius > 0}, walls within
      * that many cells of the shooter's position are treated as transparent
      * (shuttle-mounted turrets hovering above a building's footprint). When
-     * the candidate target has its own {@link Entity#airLosRadius} > 0 (drones),
+     * the candidate target has its own {@code airLosRadius} > 0 (drones),
      * walls within that radius of the target are also transparent — making
      * the LoS rule symmetric so a marine standing under a drone can fire up
      * at it through the same close-wall band that the drone fires down through.
@@ -333,7 +332,7 @@ public final class TacticalScoring {
      * the picker drops them in favor of an isolated enemy or no-target.
      *
      * <p><b>Weapon affinity</b> — when {@code excludeFromCrowding} is a
-     * {@link Entity} (the marine's own callers pass {@code self} here), hardened
+     * {@code Entity} (the marine's own callers pass {@code self} here), hardened
      * targets (turrets + heavy mechs) get a per-marine score adjustment based
      * on {@code primary.vsTurretMult} / {@code secondary.vsTurretMult}.
      * Rocketeers prefer mechs; rifle/SMG marines prefer infantry. With one
@@ -532,7 +531,7 @@ public final class TacticalScoring {
      *
      * <p>Caller is responsible for {@code target} being a sensible rocket
      * target ({@link #isHardened}) — the gate doesn't re-check eligibility,
-     * just the damage projection. Pass any {@link Entity}; the per-target HP
+     * just the damage projection. Pass any {@code Entity}; the per-target HP
      * read ({@code world.hp}, the world HEALTH column) works on the
      * full unit hierarchy — regular units and turrets alike.
      *
@@ -1230,7 +1229,7 @@ public final class TacticalScoring {
     }
 
     /**
-     * Cover-aware variant of {@link #findFiringPosition(Entity, Entity, int, int)} —
+     * Cover-aware variant of {@code findFiringPosition} —
      * filters the candidate ring to cells whose combined (cell + doodad) cover
      * meets or exceeds the unit's current combined cover against the same
      * threat direction. When no candidate meets that threshold, returns

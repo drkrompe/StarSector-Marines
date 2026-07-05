@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -15,7 +14,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * Mech parity action — the GOAP-side equivalent of the legacy
- * {@link MechCombatantBehavior#update(Entity, BattleSimulation)} loop. Picks
+ * {@code MechCombatantBehavior.update} loop. Picks
  * a target, fires all three weapon tracks at whichever bands their targets
  * sit in, and advances toward a firing position when not already in close
  * engagement. No role gating — every mech runs this regardless of doctrine.

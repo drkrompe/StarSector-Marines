@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.infantry.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.turret.StructureBehavior;
 import com.dillon.starsectormarines.battle.turret.TurretBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -19,7 +18,7 @@ import java.util.stream.IntStream;
 
 /**
  * Parallel per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
- * routes each alive {@link Entity} to its role-specific {@link UnitBehavior}.
+ * routes each alive {@code Entity} to its role-specific {@link UnitBehavior}.
  * This is the entity for-loop: the hot path that ticks every combatant on
  * the battlefield.
  *

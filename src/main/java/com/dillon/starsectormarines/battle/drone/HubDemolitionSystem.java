@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -28,9 +27,9 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * <p>Migrated off the legacy {@code List<Entity>} scan (the old per-tick
  * {@code !isAlive() && !demolished} sweep) to the event seam, following
  * {@code TurretDemolitionSystem}. The {@code demolished} flag used to live as
- * a field on the hub's (now-dissolved) dedicated {@link Entity} subclass; it's
+ * a field on the hub's (now-dissolved) dedicated {@code Entity} subclass; it's
  * now {@link #demolishedHubs}, an id side-table here — the hub itself is a plain
- * {@link Entity} with no per-instance demolition state. Still a defensive
+ * {@code Entity} with no per-instance demolition state. Still a defensive
  * double-fire guard (a death publishes exactly once) and the "already
  * demolished" marker {@link #isDemolished} exposes for tests.
  *
@@ -53,7 +52,7 @@ public final class HubDemolitionSystem {
     private final EffectsService effects;
     private final UnitRosterService roster;
     private final DeathDispatcher deathDispatcher;
-    /** Side-table of demolished hub entity ids — replaces the dissolved hub subclass's {@code demolished} field, since a plain {@link Entity} carries no per-instance demolition state. */
+    /** Side-table of demolished hub entity ids — replaces the dissolved hub subclass's {@code demolished} field, since a plain {@code Entity} carries no per-instance demolition state. */
     private final LongOpenHashSet demolishedHubs = new LongOpenHashSet();
 
     public HubDemolitionSystem(MapEditor mapEditor,

@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -190,7 +189,7 @@ public class GroundSystem {
 
     /**
      * Finds a free cell adjacent to the LZ and spawns a militia there as a
-     * fresh {@link Entity}. Same BFS shape as the shuttle deboard — copied
+     * fresh {@code Entity}. Same BFS shape as the shuttle deboard — copied
      * rather than shared so the air/ground split stays clean and the BFS
      * is small enough that duplication isn't a real cost.
      */

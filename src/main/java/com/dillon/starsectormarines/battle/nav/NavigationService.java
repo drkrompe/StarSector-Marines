@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
 import com.dillon.starsectormarines.DevConfig;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -87,7 +86,7 @@ public final class NavigationService {
 
     /**
      * Dense entity store, for by-id current-cell reads in {@link #setPath} (the
-     * one occupancy path that holds a {@link Entity} ref without the dense index
+     * one occupancy path that holds a {@code Entity} ref without the dense index
      * in hand). Setter-injected after construction because the registry is built
      * after this service; never null once the sim is wired. Part of the
      * {@code world-facade} migration off {@code Entity}'s self-routing accessors.

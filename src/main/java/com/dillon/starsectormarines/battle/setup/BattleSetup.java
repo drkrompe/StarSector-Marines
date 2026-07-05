@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -1152,7 +1151,7 @@ public final class BattleSetup {
         }
     }
 
-    /** Builds a bare defender {@link Entity}. Mech loadout (for mech types) is a
+    /** Builds a bare defender {@code Entity}. Mech loadout (for mech types) is a
      * presence component attached <em>after</em> the unit is added to the sim —
      * see {@link #attachMechLoadout} — because the loadout store is keyed by the
      * entity id, which isn't assigned until {@code addUnit}. */

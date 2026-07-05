@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -28,9 +27,9 @@ import java.util.List;
  * {@code !isAlive() && !demolished} sweep) to the event seam — the first
  * handler proving the {@code retire-legacy-units-list} spine. The
  * {@code demolished} flag used to live as a field on the turret's
- * (now-dissolved) dedicated {@link Entity} subclass; it's now
+ * (now-dissolved) dedicated {@code Entity} subclass; it's now
  * {@link #demolishedTurrets}, an id side-table here — the turret itself is a
- * plain {@link Entity} with no per-instance demolition state. Still a
+ * plain {@code Entity} with no per-instance demolition state. Still a
  * defensive double-fire guard (a death publishes exactly once, so it's
  * belt-and-suspenders) and the "already demolished" marker {@link #isDemolished}
  * exposes for tests.
@@ -45,7 +44,7 @@ public final class TurretDemolitionSystem {
     private final EffectsService effects;
     private final TacticalContextService tactical;
     private final UnitRosterService roster;
-    /** Side-table of demolished turret entity ids — replaces the dissolved turret subclass's {@code demolished} field, since a plain {@link Entity} carries no per-instance demolition state. */
+    /** Side-table of demolished turret entity ids — replaces the dissolved turret subclass's {@code demolished} field, since a plain {@code Entity} carries no per-instance demolition state. */
     private final LongOpenHashSet demolishedTurrets = new LongOpenHashSet();
 
     public TurretDemolitionSystem(MapEditor mapEditor,

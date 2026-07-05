@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * A fireteam of marines that deboarded from one shuttle, or a defender squad
@@ -22,7 +21,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
  * engaged branch in {@link com.dillon.starsectormarines.battle.infantry.HoldPost}
  * and {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}.
  *
- * <p>Squad identity is just an integer key on {@link Entity#squadId}. The
+ * <p>Squad identity is just an integer key on {@code squadId}. The
  * {@link Squad} object holds metadata the AI consults — leader pointer,
  * alert state, the assigned tactical node for garrison/patrol squads, and
  * the last cell an enemy was seen at (for SUSPICIOUS-state convergence).
@@ -74,10 +73,10 @@ public final class Squad {
      * pulls drifting members toward; a fully-wiped squad has {@code leaderId == 0L}
      * and the cohesion helper falls back to the others-centroid.
      *
-     * <p>Held as an id, not a {@link Entity} ref: the leader can die and be
+     * <p>Held as an id, not a {@code Entity} ref: the leader can die and be
      * released from the registry while the squad lives on, so a held object ref
      * would dangle (the {@code isAlive()}-on-a-corpse hazard). Resolve to the
-     * live {@link Entity} on demand via {@code sim.resolveUnit(leaderId)} /
+     * live {@code Entity} on demand via {@code sim.resolveUnit(leaderId)} /
      * {@code registry.getOrNull(leaderId)} — {@code null} means dead-or-none.
      * Compare membership by id ({@code member.entityId == leaderId}).
      */
@@ -327,7 +326,7 @@ public final class Squad {
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
      * {@link com.dillon.starsectormarines.battle.drone.DroneSpawner} mints the
-     * squad on the hub's first launch. Held as an id, not a hub {@link Entity}
+     * squad on the hub's first launch. Held as an id, not a hub {@code Entity}
      * ref: the hub can be destroyed (and registry-released) while the squad is
      * torn down, so resolve on demand via {@code sim.resolveUnit(droneHubId)} —
      * {@code null} means the hub is gone.

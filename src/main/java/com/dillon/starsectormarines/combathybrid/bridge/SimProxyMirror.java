@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * The event-translated sim⇄vanilla coupling: <b>one sim, many proxies</b>. The sim is
  * the source of truth, owned externally and merely <em>referenced</em> here; this bridge
- * spawns one invisible vanilla proxy per targetable sim {@link Entity} and drives them all
+ * spawns one invisible vanilla proxy per targetable sim {@code Entity} and drives them all
  * from a single {@code advance}. It never constructs the sim — the mission sim exists
  * independently and proxies are a thin mirror layer over it.
  *

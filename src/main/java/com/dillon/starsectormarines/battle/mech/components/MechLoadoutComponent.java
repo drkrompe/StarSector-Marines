@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.mech.components;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Per-unit mutable state for the three-weapon mech loadout. Held in the world's
@@ -19,7 +18,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
  * <p>Each weapon track keeps its own cooldown + burst/salvo trackers on this
  * class ({@link #chaingunCooldown} / {@link #chaingunBurstRemaining} /
  * {@link #chaingunBurstTimer} / {@link #chaingunBurstTargetId}, and the SRM
- * salvo equivalents below) rather than borrowing the {@link Entity}-level
+ * salvo equivalents below) rather than borrowing the {@code Entity}-level
  * primary-weapon cooldown/burst state — the three tracks fire concurrently,
  * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
  * either, so there's no marine fire path to reuse.
@@ -49,7 +48,7 @@ public final class MechLoadoutComponent {
     /**
      * Entity id of the target locked at burst start — burst keeps firing here
      * even if the mech's primary target drifts mid-stream. {@code 0L} = no
-     * locked target. Held as an id (not a {@link Entity} ref) so a target killed
+     * locked target. Held as an id (not a {@code Entity} ref) so a target killed
      * mid-burst resolves cleanly to {@code null} via {@code registry.getOrNull}
      * instead of dangling — see {@code entity-id-handle} story. Resolved in the
      * {@code HeavyWeapons} continuation pass; written by {@code MechCombatantBehavior}.

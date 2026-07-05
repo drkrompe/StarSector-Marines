@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
@@ -8,7 +7,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * toward an out-of-LOS cell, then holds until {@code world.fallbackTimer(id)}
  * expires. Applies to every role (the dispatch in
  * {@link BattleSimulation#updateUnit} routes here whenever the timer is
- * positive, regardless of {@link Entity#role}).
+ * positive, regardless of {@code role}).
  */
 public final class FallbackBehavior implements UnitBehavior {
 
