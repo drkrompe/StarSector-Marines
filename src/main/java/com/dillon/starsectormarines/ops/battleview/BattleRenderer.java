@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.ReedsShepp;
-import com.dillon.starsectormarines.battle.vehicle.VehicleController;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -466,8 +466,8 @@ public class BattleRenderer {
     private void renderConvoyDockingPathsDebug(long[] ids, ConvoyService convoy, float alphaMult) {
         boolean any = false;
         for (long id : ids) {
-            VehicleMission v = convoy.mission(id);
-            if (v != null && v.controller != null && v.controller.dockingPath() != null) { any = true; break; }
+            VehicleControlComponent ctl = convoy.control(id);
+            if (ctl != null && ctl.dockingPath() != null) { any = true; break; }
         }
         if (!any) return;
 
@@ -488,7 +488,7 @@ public class BattleRenderer {
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null) continue;
-            VehicleController ctrl = v.controller;
+            VehicleControlComponent ctrl = convoy.control(id);
             if (ctrl == null) continue;
             ReedsShepp.Path path = ctrl.dockingPath();
             if (path == null) continue;
@@ -532,7 +532,7 @@ public class BattleRenderer {
         GroundBody body = convoy.body(selId);
         VehicleType type = convoy.vehicleType(selId);
         GroundTurret turret = convoy.turret(selId);
-        VehicleController ctrl = v.controller;
+        VehicleControlComponent ctrl = convoy.control(selId);
         int wp = (ctrl != null) ? ctrl.waypointIndex() : 1;
         float stuckSecs = (ctrl != null) ? ctrl.wallStuckTime() : 0f;
         float trajProg = (ctrl != null) ? ctrl.trajectoryProgress() : 0f;

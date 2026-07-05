@@ -157,7 +157,7 @@ public class GroundSystem {
                     break;
             }
             if (m.isVisible()) {
-                m.recordTick(convoy.body(id));
+                m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
             }
         }
         tickVehicleTurrets(dt);

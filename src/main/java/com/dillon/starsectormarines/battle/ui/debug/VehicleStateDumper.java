@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -52,10 +53,11 @@ public final class VehicleStateDumper {
             bodyJson.put("speed", round(body.speed));
             root.put("body", bodyJson);
 
-            root.put("waypointIndex", v.controller != null ? v.controller.waypointIndex() : 1);
-            root.put("trajectoryProgress", round(v.controller != null ? v.controller.trajectoryProgress() : 0f));
-            root.put("wallStuckTime", round(v.controller != null ? v.controller.wallStuckTime() : 0f));
-            root.put("hasTrajectory", v.controller != null && v.controller.hasTrajectory());
+            VehicleControlComponent ctl = convoy.control(id);
+            root.put("waypointIndex", ctl != null ? ctl.waypointIndex() : 1);
+            root.put("trajectoryProgress", round(ctl != null ? ctl.trajectoryProgress() : 0f));
+            root.put("wallStuckTime", round(ctl != null ? ctl.wallStuckTime() : 0f));
+            root.put("hasTrajectory", ctl != null && ctl.hasTrajectory());
             root.put("marinesRemaining", v.marinesRemaining);
             root.put("overwatchCountdown", round(v.overwatchCountdown));
             root.put("turretAmmo", turret != null ? turret.ammo : 0);

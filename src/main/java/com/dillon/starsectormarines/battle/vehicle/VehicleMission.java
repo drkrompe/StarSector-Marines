@@ -100,16 +100,18 @@ public final class VehicleMission {
     public int histCount = 0;
 
     /**
-     * Appends one debug-history frame from the current pose. The body is passed in
-     * (not held) because kinematics live in {@code GROUND_KINEMATICS}, reached by
-     * id — {@link GroundSystem} supplies it from {@code convoy.body(id)}.
+     * Appends one debug-history frame from the current pose. The body and wall-stuck
+     * seconds are passed in (not held) because both live id-keyed — kinematics in
+     * {@code GROUND_KINEMATICS}, control state in {@code VEHICLE_CONTROL} — so
+     * {@link GroundSystem} supplies them from {@code convoy.body(id)} /
+     * {@code convoy.control(id).wallStuckTime()}.
      */
-    public void recordTick(GroundBody body) {
+    public void recordTick(GroundBody body, float wallStuckTime) {
         histX[histHead] = body.x;
         histY[histHead] = body.y;
         histFacing[histHead] = body.facingDegrees;
         histSpeed[histHead] = body.speed;
-        histStuck[histHead] = (controller != null) ? controller.wallStuckTime() : 0f;
+        histStuck[histHead] = wallStuckTime;
         histState[histHead] = (byte) state.ordinal();
         histHead = (histHead + 1) % HISTORY_SIZE;
         if (histCount < HISTORY_SIZE) histCount++;
