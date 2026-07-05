@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
 /**
  * Owns one ground vehicle's motion: the active {@link ReferenceCorridor}
@@ -117,7 +118,7 @@ public final class VehicleController {
     private static final int MAX_RECOVERY_ATTEMPTS = 5;
     /**
      * Corridor remaining-length (cells) the vehicle must shave below its best-so-far
-     * to count as real progress and reset {@link #recoveryAttempts}. Above the
+     * to count as real progress and reset {@link VehicleControlComponent#recoveryAttempts}. Above the
      * per-cycle drift of an oscillating box-in (which nets ~0) but below genuine
      * forward travel, so a true grind survives while a thrash caps out.
      */
@@ -139,70 +140,32 @@ public final class VehicleController {
     /** The vehicle variant (kinematics params, footprint) — one stable instance, resolved by id at construction. */
     private final VehicleType type;
     private final NavigationService navigation;
-
-    /** Active corridor for the current direction; rebuilt when inbound flips to outbound. */
-    private ReferenceCorridor corridor;
-    /** Last direction passed to {@link #tick}; a change rebuilds the corridor. {@code null} until the first tick. */
-    private Boolean lastInbound;
-
-    /** Current rolling local plan the body is tracking, or {@code null} when on the coarse-corridor fallback. */
-    private Trajectory trajectory;
-    /** Arc-distance (cells) consumed along {@link #trajectory} since it was planned; resets on replan. */
-    private float trajProgress;
-    /** Sim-seconds since the last local plan; gates the replan cadence. */
-    private float sinceReplan;
-    /** True when last tick's carrot pinned to the trajectory end (consumed) — forces a replan. */
-    private boolean trajCarrotAtEnd;
-
-    /** Active Reeds-Shepp docking path, or {@code null} when not docking. */
-    private ReedsShepp.Path dockingPath;
-    private Pose dockingStartPose;
-    private float dockingTurnRadius;
-    private float dockingProgressCells;
-    private float dockingGoalFacingDeg;
-
-    /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse recovery. */
-    private float wallStuckTime;
-    /** Position where the vehicle first got stuck; wallStuckTime only resets once it moves meaningfully away. */
-    private float stuckOriginX, stuckOriginY;
-
-    /** Recovery phase. {@code REVERSING} means a committed backup maneuver owns the pose until it completes. */
-    private enum Recovery { NONE, REVERSING }
-    private Recovery recovery = Recovery.NONE;
-    /** Cells of backup still owed on the active reverse maneuver. */
-    private float reverseRemaining;
-    /** Recoveries since the last net progress toward the LZ; caps via {@link #MAX_RECOVERY_ATTEMPTS}. */
-    private int recoveryAttempts;
-    /** Best (smallest) corridor remaining-length reached so far; resetting {@link #recoveryAttempts} requires beating it by {@link #RECOVERY_PROGRESS_MARGIN}. */
-    private float recoveryBestRemaining = Float.MAX_VALUE;
-    /** Seconds since the last net progress toward the goal; crossing {@link #STALL_SECONDS} triggers a re-route. */
-    private float timeSinceProgress;
-
-    /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
-    private boolean arrived;
+    /** Per-vehicle motion STATE — the injected component; storage lives here, not on this controller. */
+    private final VehicleControlComponent s;
 
     public VehicleController(VehicleMission mission, GroundBody body, VehicleType type,
-                             NavigationService navigation) {
+                             NavigationService navigation, VehicleControlComponent s) {
         this.mission = mission;
         this.body = body;
         this.type = type;
         this.navigation = navigation;
+        this.s = s;
     }
 
     /** Sim-seconds the vehicle has been continuously wall-blocked. Debug/history read. */
-    public float wallStuckTime() { return wallStuckTime; }
+    public float wallStuckTime() { return s.wallStuckTime(); }
     /** Arc-distance consumed along the current local trajectory, or 0 on the corridor fallback. Debug read. */
-    public float trajectoryProgress() { return trajProgress; }
+    public float trajectoryProgress() { return s.trajectoryProgress(); }
     /** True when the controller is tracking a feasible local plan (vs. the coarse-corridor fallback). Debug read. */
-    public boolean hasTrajectory() { return trajectory != null; }
+    public boolean hasTrajectory() { return s.hasTrajectory(); }
     /** Active waypoint cursor into the coarse corridor. Debug read. */
-    public int waypointIndex() { return corridor != null ? corridor.cursor() : 1; }
+    public int waypointIndex() { return s.waypointIndex(); }
     /** Active Reeds-Shepp docking path, or {@code null} when not docking. Debug overlay read. */
-    public ReedsShepp.Path dockingPath() { return dockingPath; }
+    public ReedsShepp.Path dockingPath() { return s.dockingPath(); }
     /** Start pose of the active docking path. Debug overlay read. */
-    public Pose dockingStartPose() { return dockingStartPose; }
+    public Pose dockingStartPose() { return s.dockingStartPose(); }
     /** Turn radius (cells) of the active docking path. Debug overlay read. */
-    public float dockingTurnRadius() { return dockingTurnRadius; }
+    public float dockingTurnRadius() { return s.dockingTurnRadius(); }
 
     /**
      * Returns {@code true} (exactly once) if the vehicle reached its terminal
@@ -210,8 +173,8 @@ public final class VehicleController {
      * uses this to drive INCOMING→LANDED / DEPARTING→GONE.
      */
     public boolean consumeArrived() {
-        boolean a = arrived;
-        arrived = false;
+        boolean a = s.arrived;
+        s.arrived = false;
         return a;
     }
 
@@ -226,9 +189,9 @@ public final class VehicleController {
         float[] xs = isInbound ? mission.inboundX : mission.outboundX;
         float[] ys = isInbound ? mission.inboundY : mission.outboundY;
 
-        if (lastInbound == null || lastInbound != isInbound) {
+        if (s.lastInbound == null || s.lastInbound != isInbound) {
             initCorridor(xs, ys);
-            lastInbound = isInbound;
+            s.lastInbound = isInbound;
         }
 
         advance(xs, ys, dt, isInbound);
@@ -236,17 +199,17 @@ public final class VehicleController {
 
     /** (Re)build the corridor for a route array and clear all per-route tracking + recovery state. Used on direction flip and on a recovery re-route. */
     private void initCorridor(float[] xs, float[] ys) {
-        corridor = new ReferenceCorridor(xs, ys, 1);
-        trajectory = null;
-        trajProgress = 0f;
-        sinceReplan = 0f;
-        trajCarrotAtEnd = false;
-        dockingPath = null;
-        recovery = Recovery.NONE;
-        recoveryAttempts = 0;
-        recoveryBestRemaining = Float.MAX_VALUE;
-        wallStuckTime = 0f;
-        timeSinceProgress = 0f;
+        s.corridor = new ReferenceCorridor(xs, ys, 1);
+        s.trajectory = null;
+        s.trajProgress = 0f;
+        s.sinceReplan = 0f;
+        s.trajCarrotAtEnd = false;
+        s.dockingPath = null;
+        s.recovery = VehicleControlComponent.Recovery.NONE;
+        s.recoveryAttempts = 0;
+        s.recoveryBestRemaining = Float.MAX_VALUE;
+        s.wallStuckTime = 0f;
+        s.timeSinceProgress = 0f;
     }
 
     /**
@@ -257,7 +220,7 @@ public final class VehicleController {
     private void advance(float[] xs, float[] ys, float dt, boolean isInbound) {
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
-        corridor.advance(body.x, body.y);
+        s.corridor.advance(body.x, body.y);
 
         // --- Committed reverse recovery ------------------------------------
         // A backup maneuver owns the pose until it finishes (or backs into
@@ -266,7 +229,7 @@ public final class VehicleController {
         // tiny-reverse oscillation — and before stall detection so the stall
         // clock is paused while a committed maneuver is in progress (a reverse
         // moves away from the goal, which must not itself read as "stalled").
-        if (recovery == Recovery.REVERSING) {
+        if (s.recovery == VehicleControlComponent.Recovery.REVERSING) {
             advanceReverse(dt);
             return;
         }
@@ -276,25 +239,25 @@ public final class VehicleController {
         // remaining-length dropping a margin below the best reached. No progress
         // for STALL_SECONDS → the truck isn't converging (orbiting a turn it
         // can't make): escalate to a re-route that laps around the failing spot.
-        float rem = corridor.remainingLength(body.x, body.y);
-        if (rem < recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
-            recoveryBestRemaining = rem;
-            recoveryAttempts = 0;
-            timeSinceProgress = 0f;
+        float rem = s.corridor.remainingLength(body.x, body.y);
+        if (rem < s.recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
+            s.recoveryBestRemaining = rem;
+            s.recoveryAttempts = 0;
+            s.timeSinceProgress = 0f;
         } else {
-            timeSinceProgress += dt;
-            if (timeSinceProgress > STALL_SECONDS) {
+            s.timeSinceProgress += dt;
+            if (s.timeSinceProgress > STALL_SECONDS) {
                 boolean rerouted = attemptReroute(body);
-                timeSinceProgress = 0f; // rate-limit retries whether or not it took
+                s.timeSinceProgress = 0f; // rate-limit retries whether or not it took
                 if (rerouted) return;   // next tick drives the fresh corridor cleanly
             }
         }
 
         // --- Terminal docking phase (inbound only) -------------------------
         if (isInbound) {
-            if (dockingPath != null) { advanceDocking(dt); return; }
+            if (s.dockingPath != null) { advanceDocking(dt); return; }
             tryEngageDocking(xs, ys);
-            if (dockingPath != null) { advanceDocking(dt); return; }
+            if (s.dockingPath != null) { advanceDocking(dt); return; }
         }
 
         // --- Arrival -------------------------------------------------------
@@ -308,18 +271,18 @@ public final class VehicleController {
         float threshold = isInbound ? LZ_ARRIVAL_DIST : EXIT_ARRIVAL_DIST;
         if (distToLast < threshold) {
             if (isInbound) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
-            arrived = true;
+            s.arrived = true;
             return;
         }
 
         // --- Rolling local-trajectory refresh ------------------------------
-        sinceReplan += dt;
+        s.sinceReplan += dt;
         if (needsReplan(body)) {
             Pose pose = new Pose(body.x, body.y, body.facingDegrees);
-            trajectory = LocalTrajectoryPlanner.plan(pose, corridor, type, navigation.getGrid());
-            trajProgress = 0f;
-            sinceReplan = 0f;
-            trajCarrotAtEnd = false;
+            s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, navigation.getGrid());
+            s.trajProgress = 0f;
+            s.sinceReplan = 0f;
+            s.trajCarrotAtEnd = false;
         }
 
         // --- Track (trajectory if we have one, else the coarse corridor) ---
@@ -327,14 +290,14 @@ public final class VehicleController {
 
         float[] px, py;
         int startIdx;
-        if (trajectory != null) {
-            px = trajectory.xs();
-            py = trajectory.ys();
+        if (s.trajectory != null) {
+            px = s.trajectory.xs();
+            py = s.trajectory.ys();
             startIdx = 1;   // poses[0] is the plan-time pose; scan forward from 1
         } else {
             px = xs;
             py = ys;
-            startIdx = corridor.cursor();
+            startIdx = s.corridor.cursor();
         }
 
         // Speed-scaled look-ahead: pull the carrot toward the body as the truck
@@ -347,7 +310,7 @@ public final class VehicleController {
                 MIN_LOOKAHEAD_CELLS + speedFrac * (type.lookAheadCells - MIN_LOOKAHEAD_CELLS));
 
         PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, px, py, startIdx, lookAhead);
-        if (trajectory != null) trajCarrotAtEnd = carrot.atEnd;
+        if (s.trajectory != null) s.trajCarrotAtEnd = carrot.atEnd;
 
         // --- Proactive turn-feasibility check (kinematic, not timer-based) ---
         // If the carrot sits inside one of the body's two minimum-turn circles,
@@ -376,7 +339,7 @@ public final class VehicleController {
         //    the bounded steering slew time to reach lock and keeps pursuit on the
         //    planned arc, instead of overshooting at cruise and reversing out (the
         //    "tiny reverses at a missed turn" failure).
-        float remaining = corridor.remainingLength(body.x, body.y);
+        float remaining = s.corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float curveCap = curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
         float targetSpeed = Math.min(Math.min(type.maxSpeed, taper), curveCap);
@@ -389,8 +352,8 @@ public final class VehicleController {
         }
 
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        if (trajectory != null) {
-            trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
+        if (s.trajectory != null) {
+            s.trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
         }
 
         // Skip the footprint gate while the carrot is pulling the body across
@@ -463,11 +426,11 @@ public final class VehicleController {
      * advisory corridor.
      */
     private boolean needsReplan(GroundBody body) {
-        if (trajectory == null) return true;
-        if (sinceReplan >= REPLAN_INTERVAL_SEC) return true;
-        if (trajCarrotAtEnd) return true;
-        if (trajProgress >= trajectory.lengthCells() * REPLAN_CONSUMED_FRACTION) return true;
-        if (corridor.offCorridorDistance(body.x, body.y) > REPLAN_DRIFT_CELLS) return true;
+        if (s.trajectory == null) return true;
+        if (s.sinceReplan >= REPLAN_INTERVAL_SEC) return true;
+        if (s.trajCarrotAtEnd) return true;
+        if (s.trajProgress >= s.trajectory.lengthCells() * REPLAN_CONSUMED_FRACTION) return true;
+        if (s.corridor.offCorridorDistance(body.x, body.y) > REPLAN_DRIFT_CELLS) return true;
         return false;
     }
 
@@ -497,26 +460,26 @@ public final class VehicleController {
                 type.visualLengthCells, type.visualWidthCells, grid);
 
         if (prevOnGrid && !newFeasible) {
-            if (wallStuckTime == 0f) {
-                stuckOriginX = prevX;
-                stuckOriginY = prevY;
+            if (s.wallStuckTime == 0f) {
+                s.stuckOriginX = prevX;
+                s.stuckOriginY = prevY;
             }
-            wallStuckTime += dt;
+            s.wallStuckTime += dt;
             body.x = prevX;
             body.y = prevY;
             body.facingDegrees = prevFacing;
             body.speed = 0f;
-            if (wallStuckTime > WALL_REVERSE_DELAY) {
+            if (s.wallStuckTime > WALL_REVERSE_DELAY) {
                 beginReverseRecovery(body, type);
             }
             return;
         }
 
-        if (wallStuckTime > 0f) {
-            float dx = body.x - stuckOriginX;
-            float dy = body.y - stuckOriginY;
+        if (s.wallStuckTime > 0f) {
+            float dx = body.x - s.stuckOriginX;
+            float dy = body.y - s.stuckOriginY;
             if (dx * dx + dy * dy > STUCK_ESCAPE_DIST * STUCK_ESCAPE_DIST) {
-                wallStuckTime = 0f;
+                s.wallStuckTime = 0f;
             }
         }
     }
@@ -531,14 +494,14 @@ public final class VehicleController {
      * re-routes or deloads in place).
      */
     private boolean beginReverseRecovery(GroundBody body, VehicleType type) {
-        if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) return false;
+        if (s.recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) return false;
         float achievable = maxReverseDistance(body.x, body.y, body.facingDegrees,
                 type, navigation.getGrid());
-        recoveryAttempts++;
+        s.recoveryAttempts++;
         if (achievable < MIN_USEFUL_REVERSE_CELLS) return false; // boxed in — can't gain room
-        reverseRemaining = achievable;
-        recovery = Recovery.REVERSING;
-        trajectory = null; // the forward plan is stale; replan after backing up
+        s.reverseRemaining = achievable;
+        s.recovery = VehicleControlComponent.Recovery.REVERSING;
+        s.trajectory = null; // the forward plan is stale; replan after backing up
         return true;
     }
 
@@ -578,7 +541,7 @@ public final class VehicleController {
         NavigationGrid grid = navigation.getGrid();
 
         float horizon = Math.max(MIN_LOOKAHEAD_CELLS, type.lookAheadCells);
-        Pose ahead = corridor.targetAhead(body.x, body.y, horizon);
+        Pose ahead = s.corridor.targetAhead(body.x, body.y, horizon);
 
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         body.tick(ahead.x, ahead.y, -WALL_REVERSE_SPEED, dt);
@@ -596,16 +559,16 @@ public final class VehicleController {
             return;
         }
 
-        reverseRemaining -= (float) Math.hypot(body.x - prevX, body.y - prevY);
-        if (reverseRemaining <= 0f) endReverseRecovery();
+        s.reverseRemaining -= (float) Math.hypot(body.x - prevX, body.y - prevY);
+        if (s.reverseRemaining <= 0f) endReverseRecovery();
     }
 
     /** Exit the reverse maneuver and force a fresh forward plan from the new, roomier pose. */
     private void endReverseRecovery() {
-        recovery = Recovery.NONE;
-        trajectory = null;
-        sinceReplan = REPLAN_INTERVAL_SEC; // replan on the next forward tick
-        wallStuckTime = 0f;
+        s.recovery = VehicleControlComponent.Recovery.NONE;
+        s.trajectory = null;
+        s.sinceReplan = REPLAN_INTERVAL_SEC; // replan on the next forward tick
+        s.wallStuckTime = 0f;
     }
 
     /**
@@ -649,7 +612,7 @@ public final class VehicleController {
         TerrainCostField cost = mission.routeCostField;
         VehicleClearance clr = mission.routeClearance;
         if (cost == null || clr == null) return false; // not cost-routed — can't lap
-        boolean inbound = lastInbound != null && lastInbound;
+        boolean inbound = s.lastInbound != null && s.lastInbound;
         float[] xs = inbound ? mission.inboundX : mission.outboundX;
         float[] ys = inbound ? mission.inboundY : mission.outboundY;
         NavigationGrid grid = navigation.getGrid();
@@ -667,7 +630,7 @@ public final class VehicleController {
         // the body sits on a passable cell, so an under-the-wheels disc would
         // blank the route's own start and the re-route could never fire. Aiming
         // the disc a little past the body keeps the start + its retreat clear.
-        Pose ahead = corridor.targetAhead(body.x, body.y, REROUTE_AVOID_RADIUS + 1.5f);
+        Pose ahead = s.corridor.targetAhead(body.x, body.y, REROUTE_AVOID_RADIUS + 1.5f);
         int avoidX = (int) Math.floor(ahead.x);
         int avoidY = (int) Math.floor(ahead.y);
         float[][] re = VehicleRoutePlanner.routeAvoiding(cur[0], cur[1], goal[0], goal[1],
@@ -736,12 +699,12 @@ public final class VehicleController {
         if (path == null) return;
         if (!isPathFeasible(start, path, turnRadius, type, navigation.getGrid())) return;
 
-        dockingPath = path;
-        dockingStartPose = start;
-        dockingTurnRadius = turnRadius;
-        dockingProgressCells = 0f;
-        dockingGoalFacingDeg = lzFacingDeg;
-        trajectory = null;   // docking owns the pose now
+        s.dockingPath = path;
+        s.dockingStartPose = start;
+        s.dockingTurnRadius = turnRadius;
+        s.dockingProgressCells = 0f;
+        s.dockingGoalFacingDeg = lzFacingDeg;
+        s.trajectory = null;   // docking owns the pose now
     }
 
     /**
@@ -750,16 +713,16 @@ public final class VehicleController {
      * flag arrival when the path's total length is consumed.
      */
     private void advanceDocking(float dt) {
-        dockingProgressCells += DOCKING_SPEED * dt;
-        float totalCells = dockingPath.lengthCells(dockingTurnRadius);
-        if (dockingProgressCells >= totalCells) {
-            body.teleport(mission.lzX, mission.lzY, dockingGoalFacingDeg);
-            dockingPath = null;
-            arrived = true;
+        s.dockingProgressCells += DOCKING_SPEED * dt;
+        float totalCells = s.dockingPath.lengthCells(s.dockingTurnRadius);
+        if (s.dockingProgressCells >= totalCells) {
+            body.teleport(mission.lzX, mission.lzY, s.dockingGoalFacingDeg);
+            s.dockingPath = null;
+            s.arrived = true;
             return;
         }
-        Pose p = ReedsShepp.sample(dockingStartPose, dockingTurnRadius,
-                dockingPath, dockingProgressCells);
+        Pose p = ReedsShepp.sample(s.dockingStartPose, s.dockingTurnRadius,
+                s.dockingPath, s.dockingProgressCells);
         body.x = p.x;
         body.y = p.y;
         body.facingDegrees = p.facingDeg;

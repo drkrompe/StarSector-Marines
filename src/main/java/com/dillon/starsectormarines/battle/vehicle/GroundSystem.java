@@ -93,7 +93,7 @@ public class GroundSystem {
         long id = convoy.spawn(type, faction, mission);
         // The controller holds the mission + the by-id-resolved body / variant (one stable
         // instance each for the vehicle's life). See ConvoyService / VehicleController.
-        mission.controller = new VehicleController(mission, convoy.body(id), type, navigation);
+        mission.controller = new VehicleController(mission, convoy.body(id), type, navigation, convoy.control(id));
         vehicleIds.add(id);
     }
 
