@@ -73,12 +73,12 @@ public final class Squad {
      * pulls drifting members toward; a fully-wiped squad has {@code leaderId == 0L}
      * and the cohesion helper falls back to the others-centroid.
      *
-     * <p>Held as an id, not a {@code Entity} ref: the leader can die and be
-     * released from the registry while the squad lives on, so a held object ref
-     * would dangle (the {@code isAlive()}-on-a-corpse hazard). Resolve to the
-     * live {@code Entity} on demand via {@code sim.resolveUnit(leaderId)} /
-     * {@code registry.getOrNull(leaderId)} — {@code null} means dead-or-none.
-     * Compare membership by id ({@code member.entityId == leaderId}).
+     * <p>Held as an id, not an object handle: the leader can die and be
+     * released from the registry while the squad lives on, so a held ref
+     * would dangle (the {@code isAlive()}-on-a-corpse hazard). Gate liveness
+     * on demand via {@code sim.resolveUnit(leaderId)} (returns {@code 0L} when
+     * dead-or-none) or {@code registry.isLive(leaderId)}. Compare membership by
+     * id ({@code memberId == leaderId}).
      */
     public long leaderId;
 

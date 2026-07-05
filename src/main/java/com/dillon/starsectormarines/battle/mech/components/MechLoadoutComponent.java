@@ -48,9 +48,9 @@ public final class MechLoadoutComponent {
     /**
      * Entity id of the target locked at burst start — burst keeps firing here
      * even if the mech's primary target drifts mid-stream. {@code 0L} = no
-     * locked target. Held as an id (not a {@code Entity} ref) so a target killed
-     * mid-burst resolves cleanly to {@code null} via {@code registry.getOrNull}
-     * instead of dangling — see {@code entity-id-handle} story. Resolved in the
+     * locked target. Held as an id (not an object handle) so a target killed
+     * mid-burst resolves cleanly via {@code registry.isLive} / {@code sim.resolveUnit}
+     * (→ {@code 0L}) instead of dangling — see {@code entity-id-handle} story. Resolved in the
      * {@code HeavyWeapons} continuation pass; written by {@code MechCombatantBehavior}.
      */
     public long chaingunBurstTargetId;
@@ -63,7 +63,7 @@ public final class MechLoadoutComponent {
     public int srmSalvoRemaining = 0;
     /** Sim-seconds until the next rocket in the current salvo launches. Ignored when {@link #srmSalvoRemaining} == 0. */
     public float srmSalvoTimer = 0f;
-    /** Entity id of the target locked at salvo start, held until the salvo is exhausted so it doesn't smear across enemies. {@code 0L} = none; resolved via {@code registry.getOrNull} (dangling-safe). */
+    /** Entity id of the target locked at salvo start, held until the salvo is exhausted so it doesn't smear across enemies. {@code 0L} = none; resolved via {@code registry.isLive} (dangling-safe). */
     public long srmSalvoTargetId;
 
     /** Sim-seconds until LRM_ARTILLERY can fire another salvo. */
@@ -74,7 +74,7 @@ public final class MechLoadoutComponent {
     public int lrmSalvoRemaining = 0;
     /** Sim-seconds until the next rocket in the current LRM salvo launches. Ignored when {@link #lrmSalvoRemaining} == 0. */
     public float lrmSalvoTimer = 0f;
-    /** Entity id of the target locked at salvo start. {@code 0L} = none; resolved via {@code registry.getOrNull} (dangling-safe). */
+    /** Entity id of the target locked at salvo start. {@code 0L} = none; resolved via {@code registry.isLive} (dangling-safe). */
     public long lrmSalvoTargetId;
 
     /** Latched true once the sim has emitted a smoking-wreck for this mech's death. Prevents re-spawn across ticks if the death-scan pass runs again with the mech still in the units list. */

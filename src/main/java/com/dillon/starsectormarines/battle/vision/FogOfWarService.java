@@ -321,7 +321,7 @@ public final class FogOfWarService {
 
             // No Entity materialization: a dead/released contributor has no HEALTH
             // (isAliveById false), and an alive one's sight stats are read by id off
-            // the VISION component — the field migration drops the getOrNull hop here.
+            // the VISION component — the field migration drops the handle-resolution hop here.
             if (!roster.isAliveById(e.unitId)) {
                 decrementFootprint(e);
                 cohort.contributors.remove(i);

@@ -56,7 +56,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * the corpse archetype) doesn't happen until the buffered death-dispatcher
  * drain, later still. So no row this walk is touching moves out from under
  * it <em>from this walk's own shots</em>. The
- * {@link UnitRosterService#isAliveById}/{@link UnitRosterService#getOrNull}
+ * {@link UnitRosterService#isAliveById}/{@link UnitRosterService#isLive}
  * guards below instead protect against a shooter or target released
  * <em>before</em> this walk started this tick — e.g. an off-tick caller
  * (flyby strafing's {@code applyExternalDamage}, or a test driving

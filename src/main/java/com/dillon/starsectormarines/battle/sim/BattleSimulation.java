@@ -560,7 +560,7 @@ public class BattleSimulation implements BattleControl {
     /**
      * The live entity roster for SoA consumers — bulk readers that iterate
      * {@code [0, liveCount())} over {@link UnitRosterService#denseArray()} (or
-     * resolve ids via {@link UnitRosterService#getOrNull(long)}) and pull
+     * gate ids via {@link UnitRosterService#isLive(long)}) and pull
      * component columns by id through {@link #world()}. Same roster instance
      * {@link #targetOf(long)} and the spatial-index rebuilds use; exposed here
      * so static scorers (TacticalScoring, etc.) can match the established consumer
