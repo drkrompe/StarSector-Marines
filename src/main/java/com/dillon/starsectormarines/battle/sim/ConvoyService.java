@@ -55,7 +55,7 @@ public final class ConvoyService {
      * inbound queue's first waypoint, facing the second) + optional {@link GroundTurret}
      * from {@code type}, mints a world entity from the shared id authority
      * ({@link UnitRosterService#allocateVehicle}), seeds the ground-craft columns
-     * ({@code {GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION}} + {@code GROUND_TURRET}
+     * ({@code {GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION, VEHICLE_CONTROL}} + {@code GROUND_TURRET}
      * iff armed), and returns the entity id. The caller hands a freshly-built
      * {@code mission} (single-use — one mission, one spawn), the air-spawn shape.
      */
@@ -70,15 +70,17 @@ public final class ConvoyService {
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon() ? new GroundTurret(type.turretKind.startingAmmo) : null;
 
-        // VEHICLE_MISSION (the mission bag) is universal; GROUND_TURRET is present only when armed.
+        // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
+        // GROUND_TURRET is present only when armed.
         ComponentType[] archetype = (turret != null)
-                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.GROUND_TURRET}
-                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION};
+                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.GROUND_TURRET}
+                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL};
         long id = roster.allocateVehicle(archetype);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_TYPE, type);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION, faction);
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, body);
         world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, mission);
+        world.setObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE, new VehicleControlComponent());
         if (turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }
