@@ -542,13 +542,29 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
     the 3 GOAP replan loops **shed the F3b `getRoster().get(i)` bridge** (`aliveMembers` is `List<Long>` from
     `liveUnitAt(i)`), closing the F3b↔F5 seam. Consumers (`DroneSwarmAction`, `SquadStateDumper`,
     `SquadPlanDebugPanel`) + 4 role tests id-native.
-  - **F5b · spawn/death boundary** (next) — `spawn`/`queueSpawn`→`long`; `PendingSpawn(long,spec)`; `adopt`
-    spec-only; `getPendingSpawns`/`getDeathsThisFrame`→`long` + consumers (`BattleScreen`,
-    `GroundSimPresentation`). The bulk: ~60 test files do `Entity e = sim.spawn(...)`.
-  - **F5c · roster storage + delete** — dense `Entity[]`→`long[]`; `getOrNull`/`get`/`denseArray`
-    deleted-or-`long`; last render/ui/bridge (`SimProxyMirror`/`GroundBattleConfig` `targetable`) +
-    `AttackerIndexService` consumers; rehome `Entity.idOf`/`NO_SQUAD`; drop the dead `SquadPlan.slotOf(Entity)`
-    overload; **delete `Entity.java`**.
+  - ~~**F5b · spawn/death boundary**~~ — **SHIPPED (`e16dfea7`; 869 green; 66 files).**
+    `spawn`/`queueSpawn`→`long` (roster + `BattleControl`/`BattleSimulation` facade; the deferred
+    `queueSpawn` returns `0L` — the id is minted at the flush, so none exists at queue time, and
+    `DroneSpawner`'s `squad.leaderId` stays `0L` until a serial spawn assigns it, byte-identical to the old
+    `entityId==0`-until-flush handle). `adopt(EntitySpec)` builds the `Entity` handle internally + returns the
+    id; **`PendingSpawn` is spec-only** (the recon's "`(long,spec)`" sketch was wrong — no id at queue time);
+    `flushPendingSpawns()`→`LongList` of the adopted ids (fog registration in `BattleSimulation` reads faction
+    by-id off the returned ids — IDENTITY is seeded in `adopt` before the id is returned); `getPendingSpawns()`
+    **deleted** (its lone caller folded into the flush return). `deathsThisFrame`→`LongList` +
+    `getDeathsThisFrame()`→`LongList`; the `deathSink` captures the dying id directly (dropping the transitional
+    `getOrNull` resolve — strictly more correct), and the two death-voice consumers (`BattleScreen`,
+    `GroundSimPresentation`) read faction + render-pos by-id post-advance (IDENTITY rides the transmute,
+    RENDER_POSITION is universal + off the corpse-remove mask, so both resolve on the just-dead unit).
+    `DroneSpawner.tryLaunch`→`long`. **Deliberate F5c-scope bridge:** `BattleSetup.spawnDefensePostTurrets`
+    KEEPS `List<Entity>` via `getRoster().getOrNull(id)` (non-null immediately post-spawn) — its return + the
+    `MapBuild`/`SimProxyMirror` bridge consumers flip with the roster storage in F5c. ~58 test files flipped
+    `Entity` spawn locals→`long` (6 parallel Sonnet passes over disjoint clusters); `UnitRosterServiceTest`
+    reworked by hand — `get`/`getOrNull`/`denseArray` stay `Entity` until F5c, so its handle-identity
+    `assertSame(handle, r.get(i))` became `assertEquals(id, r.get(i).entityId)`.
+  - **F5c · roster storage + delete** (next, the terminus) — dense `Entity[]`→`long[]`; `getOrNull`/`get`/`denseArray`
+    deleted-or-`long`; **un-bridge F5b's `spawnDefensePostTurrets` `getOrNull`** + the last render/ui/bridge
+    (`SimProxyMirror`/`GroundBattleConfig` `targetable`) + `AttackerIndexService` consumers; rehome
+    `Entity.idOf`/`NO_SQUAD`; drop the dead `SquadPlan.slotOf(Entity)` overload; **delete `Entity.java`**.
 
 **Tracked follow-ups to fold in here (don't lose):**
 - `clearPath`/`setPath` should own an internal null/liveness guard rather than lean on the caller

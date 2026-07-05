@@ -240,6 +240,7 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+e16dfea7 ecs-migration: identity-collapse F5b - spawn/death boundary -> long
 7227310e ecs-migration: identity-collapse F5a - role/plan storage id-native (Slot<Long>)
 7080ce8b ecs-migration: identity-collapse F4 - UnitSpatialIndex id-native (gather -> long)
 58e3d4f6 ecs-migration: identity-collapse F3b - liveUnitAt facade -> long
@@ -336,9 +337,15 @@ goap, campaign) interleave on HEAD.
   `resolveThreatColumns` id-native) SHIPPED (`7080ce8b`, 6 files, 869 green). **F5 (the terminus) is sub-sliced F5a→F5b→F5c**
   (recon: ~928 `Entity` tokens / 161 files). **F5a — role/plan storage id-native** (`Slot<Entity>`→`Slot<Long>`,
   `assignments`→`List<Long>`, the 3 GOAP loops shed the F3b `getRoster()` bridge) SHIPPED (`7227310e`, 17
-  files, 869 green). **Next up: F5b — spawn/death boundary** (`spawn`/`queueSpawn`→`long`,
-  `PendingSpawn(long)`, `getDeathsThisFrame`→`long`; the bulk is ~60 test files doing `Entity e = sim.spawn(..)`),
-  then **F5c — roster dense `Entity[]`→`long[]` + rehome `idOf`/`NO_SQUAD` + delete `Entity.java`**. Note the
+  files, 869 green). **F5b — spawn/death boundary** (`spawn`/`queueSpawn`→`long`; `adopt(EntitySpec)` builds
+  the handle internally; **`PendingSpawn` spec-only** — the deferred `queueSpawn` returns `0L` since no id
+  exists until the flush; `flushPendingSpawns()`→`LongList` of adopted ids; `getPendingSpawns()` deleted;
+  `deathsThisFrame`/`getDeathsThisFrame`→`LongList` with the `deathSink` capturing the id directly;
+  `DroneSpawner.tryLaunch`→`long`; `BattleSetup.spawnDefensePostTurrets` keeps `List<Entity>` via a
+  transitional `getOrNull` bridge = F5c scope) SHIPPED (`e16dfea7`, 66 files, 869 green; ~58 test files via
+  6 parallel Sonnet passes + `UnitRosterServiceTest` reworked by hand). **Next up: F5c — roster dense
+  `Entity[]`→`long[]`, un-bridge `spawnDefensePostTurrets`/`SimProxyMirror`/`AttackerIndexService`, rehome
+  `idOf`/`NO_SQUAD` + delete `Entity.java`** (the terminus). Note the
   **F3b↔F5 seam (now closed by F5a)**: the
   GOAP-replan role gather (`aliveMembers`) can't leave `Entity` while `Action.roles()` pins
   `RoleAssigner.Slot<Entity>` — it reads members via `getRoster().get(i)` off the still-`Entity` dense
