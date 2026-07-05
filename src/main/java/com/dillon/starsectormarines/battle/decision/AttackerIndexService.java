@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -66,9 +65,9 @@ public final class AttackerIndexService {
         attackersByTarget.clear();
         World world = rosterService.world();
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
-            Entity u = rosterService.get(i);
-            if (!u.type.combatant) continue; // non-combatants carry no COMBAT.targetId
-            long targetId = world.targetId(u.entityId);
+            long u = rosterService.get(i);
+            if (!rosterService.identity().type(u).combatant) continue; // non-combatants carry no COMBAT.targetId
+            long targetId = world.targetId(u);
             if (!rosterService.isLive(targetId)) continue;
             LongArrayList bucket = attackersByTarget.get(targetId);
             if (bucket == null) {
@@ -77,7 +76,7 @@ public final class AttackerIndexService {
                         : pool.remove(pool.size() - 1);
                 attackersByTarget.put(targetId, bucket);
             }
-            bucket.add(u.entityId);
+            bucket.add(u);
         }
     }
 }

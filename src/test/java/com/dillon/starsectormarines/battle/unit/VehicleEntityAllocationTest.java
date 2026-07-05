@@ -64,7 +64,7 @@ public class VehicleEntityAllocationTest {
 
         // NOT in the dense ground roster — grid walks iterate [0, liveCount()) and
         // skip convoy vehicles for free (the archetype carries no POSITION/HEALTH).
-        assertNull(r.getOrNull(veh), "a convoy vehicle is not a dense-roster entity");
+        assertFalse(r.isLive(veh), "a convoy vehicle is not a dense-roster entity");
         assertFalse(r.isLive(veh));
         assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(veh));
         assertEquals(0, r.liveCount(), "allocateVehicle must not bump the dense roster count");

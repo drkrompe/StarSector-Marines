@@ -111,7 +111,7 @@ public final class MissionResolver {
         UnitRosterService roster = sim.getRoster();
         int marinesAlive = 0;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            if (roster.get(i).faction == Faction.MARINE) marinesAlive++;
+            if (roster.identity().faction(roster.get(i)) == Faction.MARINE) marinesAlive++;
         }
         int rawMarinesLost = 0;
         BattleComponents c = sim.getBattleComponents();

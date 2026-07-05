@@ -1,12 +1,13 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import org.lwjgl.util.vector.Vector2f;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Host-agnostic description of a ground battle to mirror into a vanilla combat instance.
@@ -33,7 +34,7 @@ public record GroundBattleConfig(
         int gridH,
         float worldUnitsPerCell,
         EnumSet<RenderLayer> sceneLayers,
-        List<Entity> targetable,
+        LongList targetable,
         String proxyVariant,
         float damageScale) {
 
@@ -72,7 +73,7 @@ public record GroundBattleConfig(
     /** Defensive copy of the mutable collections so a config is an immutable snapshot. */
     public GroundBattleConfig {
         sceneLayers = EnumSet.copyOf(sceneLayers);
-        targetable = List.copyOf(targetable);
+        targetable = new LongArrayList(targetable);
     }
 
     /**
@@ -109,9 +110,10 @@ public record GroundBattleConfig(
         Vector2f tmp = new Vector2f();
         float ax = 0f, ay = 0f;
         int n = 0;
-        for (Entity e : targetable) {
-            if (!sim.world().isAlive(e.entityId)) continue;
-            cellToWorld(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId), tmp);
+        for (int i = 0, tn = targetable.size(); i < tn; i++) {
+            long e = targetable.getLong(i);
+            if (!sim.world().isAlive(e)) continue;
+            cellToWorld(sim.world().cellX(e), sim.world().cellY(e), tmp);
             ax += tmp.x;
             ay += tmp.y;
             n++;

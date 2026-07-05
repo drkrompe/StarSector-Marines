@@ -110,7 +110,7 @@ public final class UnitRosterService {
 
     // ---- the dense, live-only entity roster ----
 
-    private Entity[] dense = new Entity[INITIAL_CAPACITY];
+    private long[] dense = new long[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
     private final Long2IntOpenHashMap indexById = new Long2IntOpenHashMap();
@@ -309,9 +309,7 @@ public final class UnitRosterService {
             dense = Arrays.copyOf(dense, dense.length * 2);
         }
         long id = nextId++;
-        Entity e = new Entity(spec.faction, spec.type);
-        e.entityId = id;
-        dense[liveCount] = e;
+        dense[liveCount] = id;
         // Create the minted id's world entity. Every live unit is at least
         // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
         // universal — sight stats + the behavior-dispatch role; both removed on
@@ -600,11 +598,11 @@ public final class UnitRosterService {
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
         if (idx != last) {
-            Entity tail = dense[last];
+            long tail = dense[last];
             dense[idx] = tail;
-            indexById.put(tail.entityId, idx);
+            indexById.put(tail, idx);
         }
-        dense[last] = null;
+        dense[last] = 0L;
         liveCount--;
     }
 
@@ -630,22 +628,8 @@ public final class UnitRosterService {
         return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, 0f) > 0f;
     }
 
-    /**
-     * Returns the {@link Entity} for {@code id}, or {@code null} if the id is
-     * unknown (never allocated) or released. The lazy-validity replacement for the
-     * old {@code target != null && target.isAlive()} idiom — a dangling {@code long}
-     * resolves cleanly to null. {@code id == 0L} (the "no entity" sentinel) returns
-     * null without a map probe — the fast path every "do I have a target" check hits.
-     */
-    public Entity getOrNull(long id) {
-        if (id == 0L) return null;
-        int idx = indexById.get(id);
-        if (idx == INVALID_INDEX) return null;
-        return dense[idx];
-    }
-
-    /** Returns the unit at dense slot {@code idx}. Callers iterate over {@code [0, liveCount())}; no bounds check. */
-    public Entity get(int idx) {
+    /** Returns the entity id at dense slot {@code idx}. Callers iterate over {@code [0, liveCount())}; no bounds check. */
+    public long get(int idx) {
         return dense[idx];
     }
 
@@ -659,13 +643,13 @@ public final class UnitRosterService {
      * per-iteration accessor hop.
      *
      * <p><b>Do not cache across allocations.</b> The backing array is replaced by
-     * {@link #allocate(Entity)} when {@link #liveCount()} hits {@code dense.length};
+     * {@link #adopt(EntitySpec)} when {@link #liveCount()} hits {@code dense.length};
      * a cached reference becomes a stale view of an abandoned array. Safe to alias
      * for the duration of a single tick phase that doesn't allocate (the parallel
      * UPDATE_UNITS dispatch — spawns are queued and flushed in a separate serial
      * phase, so the array is stable across the dispatch).
      */
-    public Entity[] denseArray() {
+    public long[] denseArray() {
         return dense;
     }
 

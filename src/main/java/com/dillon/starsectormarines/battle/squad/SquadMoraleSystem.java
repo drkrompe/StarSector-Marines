@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -103,7 +102,7 @@ public final class SquadMoraleSystem {
         // once-per-tick capture of denseArray / cell arrays is safe. hp/maxHp
         // moved to the entity world's HEALTH columns (migration step 3) — the
         // mech pass reads them by id, a handful of probes per tick.
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
         // Near-miss drain pass: hostile shots that landed near a squadmate
@@ -212,19 +211,19 @@ public final class SquadMoraleSystem {
      * once that lands, this aggregator could be relaxed to "any broken."
      * Today majority is what gives a stable squad-level signal.
      */
-    private void updateMechSquadMorale(Squad squad, Entity[] dense,
+    private void updateMechSquadMorale(Squad squad, long[] dense,
                                        UnitRosterService roster, int liveCount, float dt) {
         World world = roster.world();
         int aliveMechs = 0;
         int brokenMechs = 0;
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
+            long u = dense[i];
             // Dense iteration excludes released units — no isAlive() needed.
-            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
+            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
             // Capability-as-presence: a mech is an entity with a loadout
             // component (was the nullable u.mech field). Null-safe by-id read off
             // the MECH_LOADOUT world component.
-            MechLoadoutComponent m = world.mechLoadout(u.entityId);
+            MechLoadoutComponent m = world.mechLoadout(u);
             if (m == null) continue;
             aliveMechs++;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;
@@ -232,9 +231,9 @@ public final class SquadMoraleSystem {
             // hp lives in the entity world's HEALTH columns — by-id reads via
             // the world facade. Mechs per squad are few, so the per-member
             // probe is cold.
-            float uMaxHp = world.maxHp(u.entityId);
+            float uMaxHp = world.maxHp(u);
             float cap = (uMaxHp > 0f
-                    && world.hp(u.entityId) < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
+                    && world.hp(u) < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
                     ? MECH_MORALE_ARMOR_GONE_CAP
                     : 1.0f;
             if (m.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {
@@ -265,17 +264,17 @@ public final class SquadMoraleSystem {
      * two squad members only rattles one of them (the first found), which
      * matches the "single drain event per shot" intent.
      */
-    private Squad squadHitByMiss(ShotEvent shot, Entity[] dense, UnitRosterService roster, int liveCount) {
+    private Squad squadHitByMiss(ShotEvent shot, long[] dense, UnitRosterService roster, int liveCount) {
         World world = roster.world();
         for (Squad sq : roster.getSquads()) {
             if (sq.aliveMembers <= 0) continue;
             if (sq.faction == shot.shooterFaction) continue;
             for (int i = 0; i < liveCount; i++) {
-                Entity member = dense[i];
+                long member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
-                if (!roster.squad().hasSquad(member.entityId) || roster.squad().squadId(member.entityId) != sq.id) continue;
-                float dx = shot.toX - (world.cellX(member.entityId) + 0.5f);
-                float dy = shot.toY - (world.cellY(member.entityId) + 0.5f);
+                if (!roster.squad().hasSquad(member) || roster.squad().squadId(member) != sq.id) continue;
+                float dx = shot.toX - (world.cellX(member) + 0.5f);
+                float dy = shot.toY - (world.cellY(member) + 0.5f);
                 if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;
             }
         }

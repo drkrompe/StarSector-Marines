@@ -383,31 +383,31 @@ public final class TacticalScoring {
 
         World world = roster.world();
         VisionService vision = roster.vision();
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
-        Entity best = null;
+        long best = 0L;
         float bestScore = Float.MAX_VALUE;
-        Entity bestAny = null;
+        long bestAny = 0L;
         float bestAnyDist = Float.MAX_VALUE;
 
         for (int i = 0; i < liveCount; i++) {
-            Entity other = dense[i];
-            if (other.faction == selfFaction) continue;
+            long other = dense[i];
+            if (roster.identity().faction(other) == selfFaction) continue;
             // Civilians and other non-combatants don't draw fire — they're
             // bystanders. A separate "rules of engagement" toggle could relax
             // this for pirate atrocity scenarios later.
-            if (!other.type.combatant) continue;
+            if (!roster.identity().type(other).combatant) continue;
 
-            int ox = world.cellX(other.entityId);
-            int oy = world.cellY(other.entityId);
+            int ox = world.cellX(other);
+            int oy = world.cellY(other);
             float d = cellDistance(selfCellX, selfCellY, ox, oy);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
             }
             boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, vision.airLosRadius(other.entityId));
+                    shooterAirRadius, vision.airLosRadius(other));
             if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding);
             float density = scoreThreatDensity(other, ox, oy, selfFaction);
@@ -420,8 +420,7 @@ public final class TacticalScoring {
                 best = other;
             }
         }
-        Entity chosen = best != null ? best : bestAny;
-        return chosen == null ? 0L : chosen.entityId;
+        return best != 0L ? best : bestAny;
     }
 
     /**
@@ -450,9 +449,9 @@ public final class TacticalScoring {
      * <p>{@code self} is {@code 0L} for non-combatant callers (shuttle / static
      * turrets) — they get no affinity term.
      */
-    private float scoreWeaponAffinity(long self, Entity target) {
+    private float scoreWeaponAffinity(long self, long target) {
         if (self == 0L) return 0f;
-        if (!isHardened(target.type)) return 0f;
+        if (!isHardened(roster.identity().type(target))) return 0f;
         World world = roster.world();
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
@@ -572,13 +571,13 @@ public final class TacticalScoring {
         if (roster.squad().hasSquad(shooter)) {
             int shooterSquadId = roster.squad().squadId(shooter);
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
-                Entity u = roster.get(i);
-                if (u.entityId == shooter) continue;
-                if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != shooterSquadId) continue;
-                if (!world.hasSecondaryWeapon(u.entityId)) continue;
-                if (world.secondaryActionTimer(u.entityId) <= 0f) continue;
-                if (world.secondaryAimTargetId(u.entityId) != target) continue;
-                MarineSecondary sw = world.secondaryWeapon(u.entityId);
+                long u = roster.get(i);
+                if (u == shooter) continue;
+                if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != shooterSquadId) continue;
+                if (!world.hasSecondaryWeapon(u)) continue;
+                if (world.secondaryActionTimer(u) <= 0f) continue;
+                if (world.secondaryAimTargetId(u) != target) continue;
+                MarineSecondary sw = world.secondaryWeapon(u);
                 total += sw.damage * sw.vsTurretMult;
             }
         }
@@ -619,13 +618,13 @@ public final class TacticalScoring {
      * per visible target inside {@link #findBestTarget}, so the savings
      * compound when squads pick targets each tick.
      */
-    private float scoreThreatDensity(Entity candidate, int candCellX, int candCellY, Faction selfFaction) {
+    private float scoreThreatDensity(long candidate, int candCellX, int candCellY, Faction selfFaction) {
         LongBucket scratch = new LongBucket();
         unitIndex.gather(candCellX, candCellY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
-            if (other == candidate.entityId) continue;
+            if (other == candidate) continue;
             if (roster.identity().faction(other) == selfFaction) continue;
             if (!roster.identity().type(other).combatant) continue;
             count++;
@@ -674,13 +673,13 @@ public final class TacticalScoring {
         // alternative exists, switch unconditionally. If current is visible,
         // switch only when the alternative is closer by at least
         // RETARGET_DISTANCE_MARGIN to dampen thrashing.
-        Entity closerVisible = closestVisibleOtherEnemy(self, currentTarget);
-        if (closerVisible != null) {
+        long closerVisible = closestVisibleOtherEnemy(self, currentTarget);
+        if (closerVisible != 0L) {
             if (!visible) return false;
             float currentDist = cellDistance(sx, sy, tx, ty);
             float candidateDist = cellDistance(sx, sy,
-                    world.cellX(closerVisible.entityId),
-                    world.cellY(closerVisible.entityId));
+                    world.cellX(closerVisible),
+                    world.cellY(closerVisible));
             if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) return false;
         }
 
@@ -692,15 +691,15 @@ public final class TacticalScoring {
         int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
         int density = 0;
 
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Entity other = dense[i];
-            if (other.entityId == currentTarget) continue;
-            if (other.faction == selfFaction) continue;
-            if (!other.type.combatant) continue;
-            int dx = world.cellX(other.entityId) - tx;
-            int dy = world.cellY(other.entityId) - ty;
+            long other = dense[i];
+            if (other == currentTarget) continue;
+            if (roster.identity().faction(other) == selfFaction) continue;
+            if (!roster.identity().type(other).combatant) continue;
+            int dx = world.cellX(other) - tx;
+            int dy = world.cellY(other) - ty;
             if (dx * dx + dy * dy <= r2) {
                 density++;
                 if (density > 1) return false;
@@ -715,26 +714,26 @@ public final class TacticalScoring {
      * "closer visible target appeared" check. Linear scan; the caller pays
      * once per posture tick.
      */
-    private Entity closestVisibleOtherEnemy(long self, long exclude) {
-        Entity best = null;
+    private long closestVisibleOtherEnemy(long self, long exclude) {
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
 
         World world = roster.world();
         VisionService vision = roster.vision();
         Faction selfFaction = roster.identity().faction(self);
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         int sx = world.cellX(self);
         int sy = world.cellY(self);
         float selfAir = vision.airLosRadius(self);
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            if (u.entityId == exclude || u.entityId == self) continue;
-            if (u.faction == selfFaction || !u.type.combatant) continue;
-            int ux = world.cellX(u.entityId);
-            int uy = world.cellY(u.entityId);
+            long u = dense[i];
+            if (u == exclude || u == self) continue;
+            if (roster.identity().faction(u) == selfFaction || !roster.identity().type(u).combatant) continue;
+            int ux = world.cellX(u);
+            int uy = world.cellY(u);
             if (!canSeePair(grid, sx, sy, ux, uy,
-                    selfAir, vision.airLosRadius(u.entityId))) continue;
+                    selfAir, vision.airLosRadius(u))) continue;
             float d = cellDistance(sx, sy, ux, uy);
             if (d < bestDist) {
                 bestDist = d;
@@ -768,24 +767,24 @@ public final class TacticalScoring {
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
 
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
-        Entity best = null;
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0; i < liveCount; i++) {
-            Entity other = dense[i];
-            if (other.faction == selfFaction) continue;
-            if (!other.type.combatant) continue;
-            int ox = world.cellX(other.entityId);
-            int oy = world.cellY(other.entityId);
+            long other = dense[i];
+            if (roster.identity().faction(other) == selfFaction) continue;
+            if (!roster.identity().type(other).combatant) continue;
+            int ox = world.cellX(other);
+            int oy = world.cellY(other);
             float d = cellDistance(sx, sy, ox, oy);
             if (d > range || d >= bestDist) continue;
-            if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other.entityId))) continue;
+            if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
             bestDist = d;
             best = other;
         }
-        return best == null ? 0L : best.entityId;
+        return best;
     }
 
     /**
@@ -796,9 +795,9 @@ public final class TacticalScoring {
      * in the small attacker list rather than O(U) over every unit — total
      * target-selection cost drops from O(U³) to O(U² + U·L).
      */
-    private float scoreCrowding(Faction selfFaction, int selfSquadId, Entity target,
+    private float scoreCrowding(Faction selfFaction, int selfSquadId, long target,
                                 long exclude) {
-        LongArrayList attackers = attackerIndex.getAttackersOf(target.entityId);
+        LongArrayList attackers = attackerIndex.getAttackersOf(target);
         if (attackers == null) return 0f;
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
@@ -1522,14 +1521,14 @@ public final class TacticalScoring {
 
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            if (u.faction == selfFaction) continue;
-            if (!u.type.combatant) continue;
-            sumX += world.cellX(u.entityId);
-            sumY += world.cellY(u.entityId);
+            long u = dense[i];
+            if (roster.identity().faction(u) == selfFaction) continue;
+            if (!roster.identity().type(u).combatant) continue;
+            sumX += world.cellX(u);
+            sumY += world.cellY(u);
             count++;
         }
         if (count == 0) return null;
@@ -1549,13 +1548,13 @@ public final class TacticalScoring {
         ZoneGraph zones = zoneGraph;
         int[] control = new int[zones.getZones().size()];
 
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            int zid = zones.zoneIdAt(world.cellX(u.entityId), world.cellY(u.entityId));
+            long u = dense[i];
+            int zid = zones.zoneIdAt(world.cellX(u), world.cellY(u));
             if (zid < 0 || zid >= control.length) continue;
-            control[zid] += (u.faction == selfFaction) ? 1 : -1;
+            control[zid] += (roster.identity().faction(u) == selfFaction) ? 1 : -1;
         }
         return control;
     }

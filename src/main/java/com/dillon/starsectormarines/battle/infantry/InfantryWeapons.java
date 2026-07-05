@@ -16,9 +16,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -55,7 +54,7 @@ public class InfantryWeapons {
      * reshuffle the slots out from under it. Only mid-burst units are gathered
      * (a small fraction), so the copy is cheap.
      */
-    private final List<Entity> burstScratch = new ArrayList<>();
+    private final LongArrayList burstScratch = new LongArrayList();
 
     public InfantryWeapons(UnitRosterService roster,
                            DamageService damageService, HitResponseSystem hitResponse,
@@ -76,15 +75,15 @@ public class InfantryWeapons {
         // then run the continuation pass over the snapshot — see burstScratch.
         burstScratch.clear();
         World world = roster.world();
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            if (!dense[i].type.combatant) continue; // non-combatants carry no COMBAT (no burst)
-            if (world.burstRemaining(dense[i].entityId) > 0) burstScratch.add(dense[i]);
+            if (!roster.identity().type(dense[i]).combatant) continue; // non-combatants carry no COMBAT (no burst)
+            if (world.burstRemaining(dense[i]) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
-            Entity u = burstScratch.get(i);
-            if (!roster.isAliveById(u.entityId)) continue; // killed earlier this pass
-            long id = u.entityId;
+            long u = burstScratch.getLong(i);
+            if (!roster.isAliveById(u)) continue; // killed earlier this pass
+            long id = u;
             // Alive + in burstScratch ⟹ combatant (gather gated on type.combatant),
             // so the COMBAT primary-weapon read is safe by id.
             MarineWeapon weapon = roster.combat().primaryWeapon(id);

@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
@@ -152,7 +152,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         BattleSetup.MapBuild build = BattleSetup.createConquestBuild(
                 SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL, gridW, gridH);
         BattleSimulation sim = build.sim();
-        List<Entity> targetable = build.structures();
+        LongList targetable = build.structures();
         LOG.info("S3: live Conquest battle [" + gridW + "x" + gridH + "] — "
                 + targetable.size() + " targetable structures, INTERNAL air.");
 

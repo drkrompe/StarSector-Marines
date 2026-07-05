@@ -68,7 +68,7 @@ public class AirEntityAllocationTest {
 
         // NOT in the dense ground roster — grid walks (occupancy, spatial index,
         // win/objective counts) iterate [0, liveCount()) and skip air for free.
-        assertNull(r.getOrNull(air), "air is not a dense-roster entity");
+        assertFalse(r.isLive(air), "air is not a dense-roster entity");
         assertFalse(r.isLive(air));
         assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(air));
         assertEquals(0, r.liveCount(), "allocateAir must not bump the dense roster count");

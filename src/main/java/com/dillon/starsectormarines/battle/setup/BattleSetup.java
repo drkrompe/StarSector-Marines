@@ -76,6 +76,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -142,7 +145,7 @@ public final class BattleSetup {
      * Standalone factories ignore {@code structures}; the combat-bridge host
      * mirrors them as targetable proxies.
      */
-    public record MapBuild(BattleSimulation sim, List<Entity> structures) {}
+    public record MapBuild(BattleSimulation sim, LongList structures) {}
 
     /**
      * Builds the host-agnostic <b>map layer</b> — the part shared by every
@@ -171,7 +174,7 @@ public final class BattleSetup {
         sim.setDefensePosts(defensePosts);
         for (MapVehicle v : vehicles) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
-        List<Entity> structures = spawnDefensePostTurrets(sim, defensePosts);
+        LongList structures = spawnDefensePostTurrets(sim, defensePosts);
         return new MapBuild(sim, structures);
     }
 
@@ -1617,8 +1620,8 @@ public final class BattleSetup {
      * recompute). Returns the spawned structure units (turrets + drone hubs) in spawn
      * order, for callers that need to reference them (the bridge mirrors them as proxies).
      */
-    public static List<Entity> spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
-        List<Entity> spawned = new ArrayList<>();
+    public static LongList spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
+        LongArrayList spawned = new LongArrayList();
         int i = 0;
         int h = 0;
         for (DefensePost post : posts) {
@@ -1629,9 +1632,7 @@ public final class BattleSetup {
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY - 1);
-                // Transitional: the structures list stays List<Entity> for the bridge's
-                // proxy mirror; it goes id-native with the roster storage in F5c.
-                spawned.add(sim.getRoster().getOrNull(turret));
+                spawned.add(turret);
             }
             // DRONE_HUB has no turrets — the hub structure occupies the sealed
             // center cell (already flipped non-walkable by the stamper's
@@ -1639,7 +1640,7 @@ public final class BattleSetup {
             // and a render target; the drones it'll launch come in a follow-up.
             if (post.tier == DefensePostKind.DRONE_HUB) {
                 long hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
-                spawned.add(sim.getRoster().getOrNull(hub));
+                spawned.add(hub);
             }
         }
         return spawned;

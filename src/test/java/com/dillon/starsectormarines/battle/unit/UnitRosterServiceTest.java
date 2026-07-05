@@ -52,9 +52,9 @@ public class UnitRosterServiceTest {
         assertTrue(idB > idA);
         assertTrue(idC > idB);
         assertEquals(3, r.liveCount());
-        assertEquals(a, r.get(0).entityId);
-        assertEquals(b, r.get(1).entityId);
-        assertEquals(c, r.get(2).entityId);
+        assertEquals(a, r.get(0));
+        assertEquals(b, r.get(1));
+        assertEquals(c, r.get(2));
     }
 
     @Test
@@ -75,9 +75,9 @@ public class UnitRosterServiceTest {
         assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(idA));
         // c moved from slot 2 into slot 0; its id should now resolve to index 0.
         assertEquals(0, r.indexOf(idC));
-        assertEquals(c, r.get(0).entityId);
+        assertEquals(c, r.get(0));
         // b stayed at slot 1.
-        assertEquals(b, r.get(1).entityId);
+        assertEquals(b, r.get(1));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class UnitRosterServiceTest {
         assertFalse(r.isLive(idB));
         assertTrue(r.isLive(idA));
         assertEquals(0, r.indexOf(idA));
-        assertEquals(a, r.get(0).entityId);
+        assertEquals(a, r.get(0));
     }
 
     @Test
@@ -139,12 +139,12 @@ public class UnitRosterServiceTest {
         assertEquals(n, r.liveCount());
         for (int i = 0; i < n; i++) {
             assertEquals(i, r.indexOf(ids[i]), "id " + i + " resolves to original slot");
-            assertEquals(units[i], r.get(i).entityId);
+            assertEquals(units[i], r.get(i));
         }
     }
 
     @Test
-    public void denseArrayNullsTheFreedTailSlot() {
+    public void denseArrayZeroesTheFreedTailSlot() {
         UnitRosterService r = roster();
         long a = r.spawn(unit("a"));
         long b = r.spawn(unit("b"));
@@ -152,12 +152,12 @@ public class UnitRosterServiceTest {
 
         r.release(idB);
 
-        Entity[] arr = r.denseArray();
-        assertEquals(a, arr[0].entityId);
-        // The just-released tail slot must be nulled so the GC can reclaim
-        // the unit even though the array reference outlives the entity.
+        long[] arr = r.denseArray();
+        assertEquals(a, arr[0]);
+        // The just-released tail slot is zeroed on pop — a long[] pins nothing
+        // (no GC concern), and 0L is the "no entity" sentinel.
         assertEquals(1, r.liveCount());
-        assertNull(arr[1], "tail slot nulled after pop");
+        assertEquals(0L, arr[1], "tail slot zeroed after pop");
     }
 
     @Test
@@ -170,28 +170,28 @@ public class UnitRosterServiceTest {
     }
 
     @Test
-    public void getOrNullResolvesAliveReturnsNullForReleasedAndZeroSentinel() {
+    public void isLiveTrueForAliveFalseForReleasedZeroAndUnknown() {
         UnitRosterService r = roster();
         long a = r.spawn(unit("a"));
         long b = r.spawn(unit("b"));
         long idA = a;
         long idB = b;
 
-        // Alive id → its unit.
-        assertEquals(idA, r.getOrNull(idA).entityId);
-        assertEquals(idB, r.getOrNull(idB).entityId);
+        // Alive id → live.
+        assertTrue(r.isLive(idA));
+        assertTrue(r.isLive(idB));
 
-        // Released id → null (the dangling-ref case the helper exists for).
+        // Released id → not live (the dangling-id case).
         r.release(idA);
-        assertNull(r.getOrNull(idA));
-        // Sibling still resolves.
-        assertEquals(idB, r.getOrNull(idB).entityId);
+        assertFalse(r.isLive(idA));
+        // Sibling still live.
+        assertTrue(r.isLive(idB));
 
-        // Reserved 0L sentinel → null without probing the map.
-        assertNull(r.getOrNull(0L));
+        // Reserved 0L sentinel → not live.
+        assertFalse(r.isLive(0L));
 
-        // Never-allocated id → null.
-        assertNull(r.getOrNull(9999L));
+        // Never-allocated id → not live.
+        assertFalse(r.isLive(9999L));
     }
 
     @Test
@@ -260,7 +260,7 @@ public class UnitRosterServiceTest {
         // dense swaps by design), so the swap-and-pop moves only the dense
         // Entity[] slot + its id↔index mapping: the tail (c) must now occupy
         // slot 0 and resolve there.
-        assertEquals(c, r.get(0).entityId);
+        assertEquals(c, r.get(0));
     }
 
     @Test

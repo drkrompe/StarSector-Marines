@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -185,7 +184,7 @@ public final class DamageResolver {
      * reads positions via {@code cellXById/cellYById}. The dead leader
      * is still present in the dense view at this point (we run BEFORE
      * {@code releaseFromRegistry} in the same resolve() call) — filtered by
-     * the {@code u.entityId == deadLeaderId} id check. Other dead units cannot
+     * the {@code u == deadLeaderId} id check. Other dead units cannot
      * appear: prior deaths this frame would have released themselves in
      * their own resolve() calls.
      *
@@ -198,17 +197,17 @@ public final class DamageResolver {
         World world = roster.world();
         int lx = world.cellX(deadLeaderId);
         int ly = world.cellY(deadLeaderId);
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            if (u.entityId == deadLeaderId || !roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
-            int dx = world.cellX(u.entityId) - lx;
-            int dy = world.cellY(u.entityId) - ly;
+            long u = dense[i];
+            if (u == deadLeaderId || !roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
+            int dx = world.cellX(u) - lx;
+            int dy = world.cellY(u) - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
-                best = u.entityId;
+                best = u;
             }
         }
         return best;

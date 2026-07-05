@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -104,7 +104,8 @@ public final class SquadAlertSystem {
         NavigationGrid grid = navigation.getGrid();
         World world = roster.world();
         VisionService vision = roster.vision();
-        Entity[] dense = roster.denseArray();
+        IdentityService identity = roster.identity();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
         // Per-tick transient flags. Boxed onto Squad to keep allocation out of
@@ -128,15 +129,15 @@ public final class SquadAlertSystem {
         // the ENGAGED scan stops at the first sighted enemy, and we need the
         // tighter "close + visible" predicate for the kill-zone gate.
         for (int i = 0; i < liveCount; i++) {
-            Entity u = dense[i];
-            if (!roster.squad().hasSquad(u.entityId)) continue;
-            Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
+            long u = dense[i];
+            if (!roster.squad().hasSquad(u)) continue;
+            Squad squad = roster.getSquad(roster.squad().squadId(u));
             if (squad == null) continue;
-            float uAir = vision.airLosRadius(u.entityId);
+            float uAir = vision.airLosRadius(u);
             squad.aliveMembers++;
-            squad.centroidX += world.cellX(u.entityId);
-            squad.centroidY += world.cellY(u.entityId);
-            if (world.fallbackTimer(u.entityId) > 0f) squad._suspiciousThisTick = true;
+            squad.centroidX += world.cellX(u);
+            squad.centroidY += world.cellY(u);
+            if (world.fallbackTimer(u) > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
             // squadmate with LOS to a close enemy combatant — a single
@@ -144,19 +145,19 @@ public final class SquadAlertSystem {
             // squad. The scan is keyed on holdsFireUntilKillZone so non-
             // garrison squads pay nothing.
             if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
-                int uCellX = world.cellX(u.entityId);
-                int uCellY = world.cellY(u.entityId);
+                int uCellX = world.cellX(u);
+                int uCellY = world.cellY(u);
                 for (int j = 0; j < liveCount; j++) {
-                    Entity other = dense[j];
-                    if (other.faction == squad.faction) continue;
-                    if (!other.type.combatant) continue;
-                    int otherCellX = world.cellX(other.entityId);
-                    int otherCellY = world.cellY(other.entityId);
+                    long other = dense[j];
+                    if (identity.faction(other) == squad.faction) continue;
+                    if (!identity.type(other).combatant) continue;
+                    int otherCellX = world.cellX(other);
+                    int otherCellY = world.cellY(other);
                     int dx = otherCellX - uCellX;
                     int dy = otherCellY - uCellY;
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
                     if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                            uAir, vision.airLosRadius(other.entityId))) continue;
+                            uAir, vision.airLosRadius(other))) continue;
                     squad._killZoneSightedThisTick = true;
                     break;
                 }
@@ -165,16 +166,16 @@ public final class SquadAlertSystem {
             // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
             // one engaged squadmate is enough to commit the whole squad.
             if (squad._engagedThisTick) continue;
-            int uCellX = world.cellX(u.entityId);
-            int uCellY = world.cellY(u.entityId);
+            int uCellX = world.cellX(u);
+            int uCellY = world.cellY(u);
             for (int j = 0; j < liveCount; j++) {
-                Entity other = dense[j];
-                if (other.faction == squad.faction) continue;
-                if (!other.type.combatant) continue;
-                int otherCellX = world.cellX(other.entityId);
-                int otherCellY = world.cellY(other.entityId);
+                long other = dense[j];
+                if (identity.faction(other) == squad.faction) continue;
+                if (!identity.type(other).combatant) continue;
+                int otherCellX = world.cellX(other);
+                int otherCellY = world.cellY(other);
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                        uAir, vision.airLosRadius(other.entityId))) continue;
+                        uAir, vision.airLosRadius(other))) continue;
                 squad._engagedThisTick = true;
                 squad.lastSeenEnemyX = otherCellX;
                 squad.lastSeenEnemyY = otherCellY;
@@ -189,12 +190,12 @@ public final class SquadAlertSystem {
         List<ShotEvent> activeShots = shots.getActiveShots();
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
-                Entity u = dense[i];
-                if (!roster.squad().hasSquad(u.entityId)) continue;
-                Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
+                long u = dense[i];
+                if (!roster.squad().hasSquad(u)) continue;
+                Squad squad = roster.getSquad(roster.squad().squadId(u));
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
-                int uCellX = world.cellX(u.entityId);
-                int uCellY = world.cellY(u.entityId);
+                int uCellX = world.cellX(u);
+                int uCellY = world.cellY(u);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
                     float dx = shot.fromX - (uCellX + 0.5f);
@@ -217,13 +218,13 @@ public final class SquadAlertSystem {
         // because the field is only consumed by their gate override.
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
-                Entity u = dense[i];
-                if (!roster.squad().hasSquad(u.entityId)) continue;
-                Squad squad = roster.getSquad(roster.squad().squadId(u.entityId));
+                long u = dense[i];
+                if (!roster.squad().hasSquad(u)) continue;
+                Squad squad = roster.getSquad(roster.squad().squadId(u));
                 if (squad == null || !squad.holdsFireUntilKillZone) continue;
                 if (squad._underFireAtLosThisTick) continue;
-                int uCellX = world.cellX(u.entityId);
-                int uCellY = world.cellY(u.entityId);
+                int uCellX = world.cellX(u);
+                int uCellY = world.cellY(u);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
                     float dx = shot.toX - (uCellX + 0.5f);
@@ -319,11 +320,11 @@ public final class SquadAlertSystem {
      * {@link TacticalScoring#findBestTarget findBestTarget} or holds null if
      * nobody's visible.
      */
-    private void clearSquadMemberTargets(int squadId, UnitRosterService roster, Entity[] dense, int liveCount) {
+    private void clearSquadMemberTargets(int squadId, UnitRosterService roster, long[] dense, int liveCount) {
         World world = roster.world();
         for (int i = 0; i < liveCount; i++) {
-            if (roster.squad().hasSquad(dense[i].entityId) && roster.squad().squadId(dense[i].entityId) == squadId)
-                world.setTargetId(dense[i].entityId, 0L);
+            if (roster.squad().hasSquad(dense[i]) && roster.squad().squadId(dense[i]) == squadId)
+                world.setTargetId(dense[i], 0L);
         }
     }
 }

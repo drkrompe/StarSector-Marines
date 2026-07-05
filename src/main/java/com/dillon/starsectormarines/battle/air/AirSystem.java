@@ -670,10 +670,10 @@ public class AirSystem {
         float sumX = 0f, sumY = 0f;
         int n = 0;
         for (int i = 0, live = roster.liveCount(); i < live; i++) {
-            Entity u = roster.get(i);
-            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != mission.squadId) continue;
-            sumX += world.cellX(u.entityId) + 0.5f;
-            sumY += world.cellY(u.entityId) + 0.5f;
+            long u = roster.get(i);
+            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != mission.squadId) continue;
+            sumX += world.cellX(u) + 0.5f;
+            sumY += world.cellY(u) + 0.5f;
             n++;
         }
         if (n == 0) return;  // squad wiped — hold current hover point

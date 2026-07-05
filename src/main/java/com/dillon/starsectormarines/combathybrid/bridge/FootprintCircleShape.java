@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.fs.starfarer.api.combat.ShipAPI;
 
 /**
@@ -30,8 +30,8 @@ public final class FootprintCircleShape implements ProxyShape {
     private FootprintCircleShape() {}
 
     @Override
-    public void applyTo(ShipAPI proxy, Entity unit, float worldUnitsPerCell) {
-        proxy.setCollisionRadius(footprintCells(unit) * worldUnitsPerCell * 0.5f);
+    public void applyTo(ShipAPI proxy, UnitType type, float worldUnitsPerCell) {
+        proxy.setCollisionRadius(footprintCells(type) * worldUnitsPerCell * 0.5f);
     }
 
     /**
@@ -49,8 +49,8 @@ public final class FootprintCircleShape implements ProxyShape {
      * like any unrecognized kind — a debug-only sizing approximation, not a
      * correctness issue (this whole shape is throwaway dev scaffolding).
      */
-    private static float footprintCells(Entity unit) {
-        if (unit.type.isDroneHub()) return DroneHub.VISUAL_CELLS;
+    private static float footprintCells(UnitType type) {
+        if (type.isDroneHub()) return DroneHub.VISUAL_CELLS;
         return DEFAULT_FOOTPRINT_CELLS;
     }
 }

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -71,14 +70,14 @@ public final class EquipmentDropSystem {
             if (drop.consumed) continue;
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
             for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
-                Entity u = rosterService.get(i);
-                if (u.faction != Faction.MARINE) continue;
-                if (world.cellX(u.entityId) != drop.cellX || world.cellY(u.entityId) != drop.cellY) continue;
-                role.setRole(u.entityId, UnitRole.PLANTER);
+                long u = rosterService.get(i);
+                if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+                if (world.cellX(u) != drop.cellX || world.cellY(u) != drop.cellY) continue;
+                role.setRole(u, UnitRole.PLANTER);
                 // setAssignedObjective first (adds TASK if this was a plain combatant),
                 // then clear the kit target on the now-present component.
-                task.setAssignedObjective(u.entityId, drop.objective);
-                task.clearEquipmentDropTarget(u.entityId);
+                task.setAssignedObjective(u, drop.objective);
+                task.clearEquipmentDropTarget(u);
                 drop.consumed = true;
                 break;
             }
@@ -88,13 +87,13 @@ public final class EquipmentDropSystem {
         for (EquipmentDrop drop : active) {
             if (drop.consumed) continue;
             if (hasLivingRetriever(drop)) continue;
-            Entity nearest = nearestAvailableMarine(drop.cellX, drop.cellY);
-            if (nearest != null) {
-                role.setRole(nearest.entityId, UnitRole.KIT_RETRIEVER);
-                task.setEquipmentDropTarget(nearest.entityId, drop);
+            long nearest = nearestAvailableMarine(drop.cellX, drop.cellY);
+            if (nearest != 0L) {
+                role.setRole(nearest, UnitRole.KIT_RETRIEVER);
+                task.setEquipmentDropTarget(nearest, drop);
                 // Wipe any stale path so the retriever re-pathfinds to the drop
                 // next tick instead of continuing toward their old target.
-                pathClearer.accept(nearest.entityId);
+                pathClearer.accept(nearest);
             }
         }
 
@@ -105,8 +104,8 @@ public final class EquipmentDropSystem {
         RoleService role = rosterService.role();
         TaskService task = rosterService.task();
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
-            Entity u = rosterService.get(i);
-            if (role.role(u.entityId) == UnitRole.KIT_RETRIEVER && task.equipmentDropTarget(u.entityId) == drop) return true;
+            long u = rosterService.get(i);
+            if (role.role(u) == UnitRole.KIT_RETRIEVER && task.equipmentDropTarget(u) == drop) return true;
         }
         return false;
     }
@@ -117,26 +116,26 @@ public final class EquipmentDropSystem {
      * (e.g., a PLANTER whose site already blew but didn't tick through their
      * own update yet) don't strand drops with no retriever. Anyone idle —
      * combatant, finished planter, retriever whose kit got picked up — is
-     * eligible. Returns null only when every alive marine is genuinely busy.
+     * eligible. Returns {@code 0L} only when every alive marine is genuinely busy.
      */
-    private Entity nearestAvailableMarine(int cx, int cy) {
+    private long nearestAvailableMarine(int cx, int cy) {
         World world = rosterService.world();
         RoleService role = rosterService.role();
         TaskService task = rosterService.task();
-        Entity best = null;
+        long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
-            Entity u = rosterService.get(i);
-            if (u.faction != Faction.MARINE) continue;
-            Objective ao = task.assignedObjective(u.entityId);
-            if (role.role(u.entityId) == UnitRole.PLANTER
+            long u = rosterService.get(i);
+            if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+            Objective ao = task.assignedObjective(u);
+            if (role.role(u) == UnitRole.PLANTER
                     && ao != null
                     && !ao.isComplete()) continue;
-            EquipmentDrop edt = task.equipmentDropTarget(u.entityId);
-            if (role.role(u.entityId) == UnitRole.KIT_RETRIEVER
+            EquipmentDrop edt = task.equipmentDropTarget(u);
+            if (role.role(u) == UnitRole.KIT_RETRIEVER
                     && edt != null
                     && !edt.consumed) continue;
-            float d = TacticalScoring.cellDistance(world.cellX(u.entityId), world.cellY(u.entityId), cx, cy);
+            float d = TacticalScoring.cellDistance(world.cellX(u), world.cellY(u), cx, cy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;

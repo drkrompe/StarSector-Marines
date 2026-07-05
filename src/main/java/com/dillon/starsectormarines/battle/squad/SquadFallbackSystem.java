@@ -1,13 +1,13 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongComparator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongConsumer;
 
@@ -40,7 +40,7 @@ public final class SquadFallbackSystem {
     private static final float HOME_ARRIVAL_RADIUS_SQ = 2.0f * 2.0f;
 
     /** Reused scratch for a squad's live members, gathered in entityId (= spawn) order before cover redistribution. Serial-phase use only. */
-    private final List<Entity> memberScratch = new ArrayList<>();
+    private final LongArrayList memberScratch = new LongArrayList();
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
@@ -84,11 +84,11 @@ public final class SquadFallbackSystem {
     private boolean allMembersHome(Squad squad, UnitRosterService roster) {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            Entity u = roster.get(i);
-            if (!roster.squad().hasSquad(u.entityId) || roster.squad().squadId(u.entityId) != squad.id) continue;
-            if (!roster.home().hasHome(u.entityId)) continue;
-            float dx = roster.home().homeCellX(u.entityId) - world.cellX(u.entityId);
-            float dy = roster.home().homeCellY(u.entityId) - world.cellY(u.entityId);
+            long u = roster.get(i);
+            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
+            if (!roster.home().hasHome(u)) continue;
+            float dx = roster.home().homeCellX(u) - world.cellX(u);
+            float dy = roster.home().homeCellY(u) - world.cellY(u);
             if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS_SQ) return false;
         }
         return true;
@@ -102,13 +102,13 @@ public final class SquadFallbackSystem {
      * order explicitly. Returns the reused scratch list (valid until the next
      * call).
      */
-    private List<Entity> squadMembersInSpawnOrder(Squad squad, UnitRosterService roster) {
+    private LongArrayList squadMembersInSpawnOrder(Squad squad, UnitRosterService roster) {
         memberScratch.clear();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            Entity u = roster.get(i);
-            if (roster.squad().hasSquad(u.entityId) && roster.squad().squadId(u.entityId) == squad.id) memberScratch.add(u);
+            long u = roster.get(i);
+            if (roster.squad().hasSquad(u) && roster.squad().squadId(u) == squad.id) memberScratch.add(u);
         }
-        memberScratch.sort((a, b) -> Long.compare(a.entityId, b.entityId));
+        memberScratch.sort((LongComparator) Long::compare);
         return memberScratch;
     }
 
@@ -123,19 +123,19 @@ public final class SquadFallbackSystem {
     private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRosterService roster) {
         List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
-        List<Entity> members = squadMembersInSpawnOrder(squad, roster);
+        LongArrayList members = squadMembersInSpawnOrder(squad, roster);
         int idx = 0;
         for (int i = 0, n = members.size(); i < n; i++) {
-            Entity u = members.get(i);
+            long u = members.getLong(i);
             if (idx >= cells.size()) {
                 // Out of cells — keep the survivor's current home so they
                 // don't end up homeless. They'll just hold where they are.
                 continue;
             }
             int[] cell = cells.get(idx++);
-            roster.home().setHome(u.entityId, cell[0], cell[1]);
+            roster.home().setHome(u, cell[0], cell[1]);
             // Wipe stale path — next garrison tick re-paths to the new home.
-            pathClearer.accept(u.entityId);
+            pathClearer.accept(u);
         }
     }
 }

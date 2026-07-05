@@ -103,7 +103,7 @@ public final class UnitUpdateSystem {
      * than the common one.
      */
     public void tick(BattleSimulation sim) {
-        Entity[] snapshot = roster.denseArray();
+        long[] snapshot = roster.denseArray();
         int liveCount = roster.liveCount();
         damageService.enterParallel();
         try {
@@ -133,15 +133,15 @@ public final class UnitUpdateSystem {
      * classes hold no per-system instance state — they're invoked through their
      * static {@code INSTANCE} singletons.
      */
-    private void updateUnit(Entity u, BattleSimulation sim) {
+    private void updateUnit(long u, BattleSimulation sim) {
         long t0 = System.nanoTime();
         TickInnerProfile.Bucket bucket;
-        if (sim.world().hasAiState(u.entityId) && sim.world().fallbackTimer(u.entityId) > 0f) {
-            FallbackBehavior.INSTANCE.update(u.entityId, sim);
+        if (sim.world().hasAiState(u) && sim.world().fallbackTimer(u) > 0f) {
+            FallbackBehavior.INSTANCE.update(u, sim);
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {
-            UnitRole role = sim.role().role(u.entityId);
-            behaviorFor(role).update(u.entityId, sim);
+            UnitRole role = sim.role().role(u);
+            behaviorFor(role).update(u, sim);
             bucket = innerBucketForRole(role);
         }
         // Route through TickInnerProfile.current() so workers in the parallel

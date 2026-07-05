@@ -120,10 +120,10 @@ public final class UnitSpatialIndex {
                 buckets[i] = null;
             }
         }
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            long id = dense[i].entityId;
+            long id = dense[i];
             int x = world.cellX(id);
             int y = world.cellY(id);
             Bucket bucket = bucketAt(x, y);

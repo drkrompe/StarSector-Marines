@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CollisionClass;
@@ -12,6 +12,9 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
+
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +61,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
     /** One mirrored sim unit ↔ vanilla proxy pair. */
     private static final class ProxyLink {
-        final Entity unit;
+        final long unit;
         final ShipAPI proxy;
         /** Snapshotted at link creation (unit alive) so the despawn log is release-safe — by despawn time the unit may already be out of the roster, so a by-id name lookup isn't safe. */
         final String name;
@@ -66,7 +69,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
         boolean simDead;   // set by the death subscriber when the sim reports this unit dead
         boolean removed;   // proxy already despawned
 
-        ProxyLink(Entity unit, ShipAPI proxy, String name) {
+        ProxyLink(long unit, ShipAPI proxy, String name) {
             this.unit = unit;
             this.proxy = proxy;
             this.name = name;
@@ -75,7 +78,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
     private final GroundBattleConfig cfg;
     private final BattleSimulation sim;
-    private final List<Entity> targetable;
+    private final LongList targetable;
     private final String proxyVariant;
     private final float damageScale;
     /** Backdrop that owns the ground renderer; we hand it the post-tick frame to drive FX + audio. */
@@ -88,7 +91,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
     public SimProxyMirror(GroundBattleConfig cfg, GroundSceneBackdrop backdrop) {
         this.cfg = cfg;
         this.sim = cfg.sim();
-        this.targetable = new ArrayList<>(cfg.targetable());
+        this.targetable = new LongArrayList(cfg.targetable());
         this.proxyVariant = cfg.proxyVariant();
         this.damageScale = cfg.damageScale();
         this.backdrop = backdrop;
@@ -108,16 +111,17 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
         // sim → vanilla: one subscription routes each death to its link by identity.
         sim.subscribeDeath(event -> {
             for (ProxyLink link : links) {
-                if (link.unit.entityId == event.unitId()) {
+                if (link.unit == event.unitId()) {
                     link.simDead = true;
                     break;
                 }
             }
         });
 
-        for (Entity u : targetable) {
+        for (int i = 0, tn = targetable.size(); i < tn; i++) {
+            long u = targetable.getLong(i);
             Vector2f loc = new Vector2f();
-            cfg.cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
+            cfg.cellToWorld(sim.world().cellX(u), sim.world().cellY(u), loc);
             ShipAPI proxy = engine.getFleetManager(FleetSide.ENEMY)
                     .spawnShipOrWing(proxyVariant, loc, 270f);
             proxy.setExtraAlphaMult(0f);                  // invisible; the scene's UNITS layer draws it
@@ -126,9 +130,10 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             // Hittable footprint = the structure's real size, not the frigate hull it spawned from
             // (and it tracks cell density, since the radius is in cells). The seam grows as more
             // proxied target kinds / shapes arrive.
-            ProxyShape.forUnit(u).applyTo(proxy, u, cfg.worldUnitsPerCell());
+            UnitType type = sim.identity().type(u);
+            ProxyShape.forUnit(type).applyTo(proxy, type, cfg.worldUnitsPerCell());
             proxy.getLocation().set(loc);
-            ProxyLink link = new ProxyLink(u, proxy, sim.identity().name(u.entityId));
+            ProxyLink link = new ProxyLink(u, proxy, sim.identity().name(u));
             link.anchor.set(loc);
             links.add(link);
         }
@@ -148,8 +153,8 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
             // Position is sim-owned. Read the live cell only while alive (a released
             // unit's cell accessors are fail-loud); else keep the last-known anchor.
-            if (sim.world().isAlive(link.unit.entityId)) {
-                cfg.cellToWorld(sim.world().cellX(link.unit.entityId), sim.world().cellY(link.unit.entityId), link.anchor);
+            if (sim.world().isAlive(link.unit)) {
+                cfg.cellToWorld(sim.world().cellX(link.unit), sim.world().cellY(link.unit), link.anchor);
             }
             proxy.getLocation().set(link.anchor);
             proxy.getVelocity().set(0f, 0f);
@@ -157,8 +162,8 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
             float max = proxy.getMaxHitpoints();
             float vanillaDamage = max - proxy.getHitpoints();
-            if (vanillaDamage > 0f && sim.world().isAlive(link.unit.entityId)) {
-                sim.applyExternalDamage(link.unit.entityId, vanillaDamage * damageScale);
+            if (vanillaDamage > 0f && sim.world().isAlive(link.unit)) {
+                sim.applyExternalDamage(link.unit, vanillaDamage * damageScale);
             }
             // Damage sensor, not a health bar: reset so vanilla never owns the kill.
             proxy.setHitpoints(max);

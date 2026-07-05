@@ -74,7 +74,7 @@ public class ConvoyServiceTest {
         assertSame(m, convoy.mission(id), "convoy.mission(id) resolves the seeded mission bag");
 
         // Off the dense ground roster — grid systems iterate [0, liveCount()) and skip it.
-        assertNull(r.getOrNull(id), "a convoy vehicle is not a dense-roster entity");
+        assertFalse(r.isLive(id), "a convoy vehicle is not a dense-roster entity");
         assertFalse(r.isLive(id));
         assertEquals(0, r.liveCount(), "spawn must not bump the dense roster count");
     }

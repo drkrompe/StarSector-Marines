@@ -2,12 +2,11 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.sim.PendingOccupancyDelta;
 import com.dillon.starsectormarines.battle.sim.PendingTargetMutation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.LongFunction;
+import java.util.function.LongPredicate;
 
 /**
  * Mailbox for damage + parallel-dispatch safety queues. Owns three queues
@@ -76,14 +75,12 @@ public final class DamageService {
     private final FallbackApplier fallbackApplier;
     private final OccupancyApplier occupancyApplier;
     /**
-     * Entity-id → live {@code Entity} (null if released or never registered) —
-     * the registry's {@code getOrNull}. Used only by the two flush drains to
-     * resolve a queued {@code targetId}/{@code unitId} back to its unit; a null
-     * resolve means the entity was released between enqueue and drain (a target
-     * the queued damage just killed), which replaces the old dangling-ref
-     * {@code isAlive()} check.
+     * Entity-id liveness gate — the registry's {@code isLive}. Used only by the two
+     * flush drains to skip a queued {@code targetId}/{@code unitId} that was released
+     * between enqueue and drain (a target the queued damage just killed), replacing the
+     * old dangling-ref {@code isAlive()} check.
      */
-    private final LongFunction<Entity> resolver;
+    private final LongPredicate isLive;
 
     // ---- SoA damage queue ----
     //
@@ -152,12 +149,12 @@ public final class DamageService {
                          ReprioApplier reprioApplier,
                          FallbackApplier fallbackApplier,
                          OccupancyApplier occupancyApplier,
-                         LongFunction<Entity> resolver) {
+                         LongPredicate isLive) {
         this.damageApplier = damageApplier;
         this.reprioApplier = reprioApplier;
         this.fallbackApplier = fallbackApplier;
         this.occupancyApplier = occupancyApplier;
-        this.resolver = resolver;
+        this.isLive = isLive;
     }
 
     public void enterParallel() { insideParallel = true; }
@@ -295,11 +292,11 @@ public final class DamageService {
         if (pendingTargetMutations.isEmpty()) return;
         for (int i = 0, n = pendingTargetMutations.size(); i < n; i++) {
             PendingTargetMutation m = pendingTargetMutations.get(i);
-            // Liveness-gate on the id rather than holding the unit: a null resolve
+            // Liveness-gate on the id rather than holding the unit: !isLive
             // means the target was released between enqueue and this drain (the
             // preceding flushPendingDamage killed it), so we skip it — no isAlive()
             // on a dangling ref. The appliers themselves take the id.
-            if (resolver.apply(m.targetId) != null) {
+            if (isLive.test(m.targetId)) {
                 switch (m.kind) {
                     case REPRIORITIZE:
                         // The expectedTargetId race-check moved registry-side
@@ -328,10 +325,10 @@ public final class DamageService {
         if (pendingOccupancy.isEmpty()) return;
         for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
             PendingOccupancyDelta d = pendingOccupancy.get(i);
-            // Resolve only to gate on liveness — this drain runs in
-            // APPLY_OCCUPANCY (before any death/release this tick), so a non-null
-            // resolve is expected, but guard anyway; the applier takes the id.
-            if (resolver.apply(d.unitId) != null) {
+            // Gate on liveness — this drain runs in APPLY_OCCUPANCY (before any
+            // death/release this tick), so isLive is expected true, but guard
+            // anyway; the applier takes the id.
+            if (isLive.test(d.unitId)) {
                 occupancyApplier.apply(d.unitId, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
             }
             d.unitId = 0L;

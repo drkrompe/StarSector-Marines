@@ -5,9 +5,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class Detonations {
      * gathering the in-range set first makes the apply pass a snapshot so that
      * release can't reshuffle the dense slots mid-loop.
      */
-    private final List<Entity> aoeScratch = new ArrayList<>();
+    private final LongArrayList aoeScratch = new LongArrayList();
 
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapEditor mapEditor,
@@ -119,12 +119,12 @@ public class Detonations {
             // (read-only over the live registry), then apply — see aoeScratch.
             aoeScratch.clear();
             World world = roster.world();
-            Entity[] dense = roster.denseArray();
+            long[] dense = roster.denseArray();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
-                Entity u = dense[i];
-                if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
-                int ucx = world.cellX(u.entityId);
-                int ucy = world.cellY(u.entityId);
+                long u = dense[i];
+                if (det.friendlyFireImmune && roster.identity().faction(u) == det.shooterFaction) continue;
+                int ucx = world.cellX(u);
+                int ucy = world.cellY(u);
                 float dx = (ucx + 0.5f) - det.endpointX;
                 float dy = (ucy + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;
@@ -135,7 +135,7 @@ public class Detonations {
                 aoeScratch.add(u);
             }
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
-                damageService.applyDamage(aoeScratch.get(i).entityId, det.damage, det.vsTurretMult, 1f);
+                damageService.applyDamage(aoeScratch.getLong(i), det.damage, det.vsTurretMult, 1f);
             }
             aoeScratch.clear();
             int rCells = (int) Math.ceil(det.aoeRadius);

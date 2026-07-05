@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -369,19 +368,19 @@ public final class FogOfWarService {
     private void sweepUnitVisibility(UnitRosterService roster) {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            Entity u = roster.get(i);
+            long u = roster.get(i);
             // i IS the dense index (roster.get(i) == dense[i], dense[i].denseIdx==i),
             // and the visibility/fade arrays are keyed by dense index — so i indexes
             // them directly, no u.denseIdx field read.
             ensureUnitCapacity(i + 1);
 
-            if (visionState.isContributor(u.faction)) {
+            if (visionState.isContributor(roster.identity().faction(u))) {
                 unitVisibility[i] = VIS_VISIBLE;
                 fadeAlpha[i] = 1f;
                 continue;
             }
 
-            boolean revealed = isCellRevealed(world.cellX(u.entityId), world.cellY(u.entityId));
+            boolean revealed = isCellRevealed(world.cellX(u), world.cellY(u));
             byte prev = unitVisibility[i];
 
             if (revealed) {

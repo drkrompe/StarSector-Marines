@@ -6,11 +6,10 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.World;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Death-event handler that converts a destroyed drone hub
@@ -111,25 +110,26 @@ public final class HubDemolitionSystem {
      */
     private void cascadeKillDrones(long hubId) {
         World world = roster.world();
-        List<Entity> doomed = null;
+        IdentityService identity = roster.identity();
+        LongArrayList doomed = null;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            Entity u = roster.get(i);
-            if (u.type.isDrone() && roster.droneState().homeHubId(u.entityId) == hubId) {
-                if (doomed == null) doomed = new ArrayList<>();
+            long u = roster.get(i);
+            if (identity.type(u).isDrone() && roster.droneState().homeHubId(u) == hubId) {
+                if (doomed == null) doomed = new LongArrayList();
                 doomed.add(u);
             }
         }
         if (doomed == null) return;
         for (int i = 0, n = doomed.size(); i < n; i++) {
-            Entity d = doomed.get(i);
-            world.setHp(d.entityId, 0f);
+            long d = doomed.getLong(i);
+            world.setHp(d, 0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
             // Snapshot the cell while the drone is still registered.
             // -1 pose: a cascade-killed drone crashes-and-fades (Crashing), no ground corpse.
-            deathDispatcher.publish(new DeathEvent(d.entityId, world.cellX(d.entityId), world.cellY(d.entityId), -1));
-            roster.releaseFromRegistry(d.entityId);
+            deathDispatcher.publish(new DeathEvent(d, world.cellX(d), world.cellY(d), -1));
+            roster.releaseFromRegistry(d);
         }
     }
 }

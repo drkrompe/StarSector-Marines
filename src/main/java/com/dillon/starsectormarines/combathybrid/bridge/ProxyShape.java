@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.fs.starfarer.api.combat.ShipAPI;
 
 /**
@@ -29,15 +29,15 @@ import com.fs.starfarer.api.combat.ShipAPI;
 @DebugOnly
 public interface ProxyShape {
 
-    /** Size/shape {@code proxy}'s collision to represent {@code unit} at this cell→world scale. */
-    void applyTo(ShipAPI proxy, Entity unit, float worldUnitsPerCell);
+    /** Size/shape {@code proxy}'s collision to represent a {@code type} unit at this cell→world scale. */
+    void applyTo(ShipAPI proxy, UnitType type, float worldUnitsPerCell);
 
     /**
      * The hittable shape for a proxied sim entity. Today every proxied target is a defense structure
      * (turret / drone hub) → {@link FootprintCircleShape#INSTANCE}; branch here as new proxied target
      * kinds arrive (keyed off the entity, the capability the bridge already has in hand).
      */
-    static ProxyShape forUnit(Entity unit) {
+    static ProxyShape forUnit(UnitType type) {
         return FootprintCircleShape.INSTANCE;
     }
 }

@@ -322,7 +322,7 @@ public class BattleSimulation implements BattleControl {
                 this::writeReprioInline,
                 this::writeFallbackInline,
                 navigation::applyOccupancyDeltaInline,
-                rosterService::getOrNull);
+                rosterService::isLive);
         // setPath/clearPath bodies live on NavigationService; they enqueue
         // their occupancy/destIndex delta through the damage service's
         // queued (parallel-safe) path. Wired here since the navigation
@@ -404,7 +404,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     @Override public int liveUnitCount() { return rosterService.liveCount(); }
-    @Override public long liveUnitAt(int index) { return rosterService.get(index).entityId; }
+    @Override public long liveUnitAt(int index) { return rosterService.get(index); }
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }

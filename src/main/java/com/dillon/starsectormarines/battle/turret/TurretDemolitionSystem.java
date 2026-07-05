@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.World;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
@@ -124,12 +125,13 @@ public final class TurretDemolitionSystem {
         // Check whether every turret on the owning post is now dead. A spec
         // with no live turret at its cell counts as dead — covers both the
         // already-demolished and the never-spawned edge cases.
+        IdentityService identity = roster.identity();
         for (DefensePost.TurretSpec spec : owner.turrets) {
             boolean aliveAtSpec = false;
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
-                Entity u = roster.get(i);
-                if (!u.type.isTurret()) continue;
-                if (world.cellX(u.entityId) != spec.cellX || world.cellY(u.entityId) != spec.cellY) continue;
+                long u = roster.get(i);
+                if (!identity.type(u).isTurret()) continue;
+                if (world.cellX(u) != spec.cellX || world.cellY(u) != spec.cellY) continue;
                 aliveAtSpec = true;
                 break;
             }

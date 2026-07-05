@@ -25,8 +25,7 @@ import java.util.ArrayList;
  * they need by id. Bucket sizing + threading mirror {@link UnitSpatialIndex}
  * (same {@link UnitSpatialIndex#BUCKET} cell-side, same recycled-bucket pool,
  * same gather-over-caller-owned-buffer contract); read {@link UnitSpatialIndex}'s
- * class doc for the full rationale. (The sister index still holds {@code Entity}
- * refs pending its own conversion.)
+ * class doc for the full rationale.
  *
  * <p>Incremental updates are routed through {@link #addDestination} and
  * {@link #removeDestination}, called from {@link com.dillon.starsectormarines.battle.nav.NavigationService#setPath}
@@ -68,10 +67,10 @@ public final class UnitDestinationSpatialIndex {
                 buckets[i] = null;
             }
         }
-        Entity[] dense = roster.denseArray();
+        long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            long id = dense[i].entityId;
+            long id = dense[i];
             // Static emplacements (turrets, hubs) have no MOVEMENT component and
             // never path — skip before the fail-loud path read (an empty path
             // would be filtered by the cells<=0 check below anyway).
