@@ -8,10 +8,20 @@ narrative live in the story docs + `complete/` — not here. When a slice ships,
 in its story doc (or move the story to `complete/`) and update the *pointers* below;
 don't accrete another status block.
 
-## Where we are (2026-07-01)
+## Where we are (2026-07-05)
 
-**The storage / topology half is DONE. The systems / identity / perf half is OPEN.**
-Watch the scope: "done" has always meant *storage*, never the whole migration.
+**✅ THE ECS MIGRATION IS DONE.** The storage/topology half was long done; the
+**identity-collapse epic — the systems/identity half — CLOSED 2026-07-05 (`1ed54dc4`):
+`Entity.java` is deleted, `entity = long` holds at every layer (params, returns, storage,
+events), and the id-keyed `EntityWorld` columns are the sole per-unit store.** The dense
+roster is a `long[]`; there is no `Entity` type in the battle tier. Full suite green (869).
+See [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase D + § "Storage
+finale" for the arc. Remaining is *optional* polish, not migration (see the backlog):
+the `battle.unit/` → `entity/` package rename (a pure move, now unblocked), the
+`systems-to-columns` idiom-completion (reopened by the id-native spatial indexes, but
+Phase-0-parked at ~0.02%/frame), statelessify `VehicleController`, the FiringSystem
+playtest, live-appearance Phases 3/4 (art-gated), and a pre-existing dangling-`{@link}`
+javadoc-drift cleanup surfaced during the F5c-6 sweep.
 
 **DONE — storage / engine half** (verified 2026-06-28 by a 9-agent audit):
 - A real, game-agnostic archetype engine — `engine.ecs` (`EntityWorld` /
@@ -240,6 +250,11 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+1ed54dc4 ecs-migration: identity-collapse F5c-6 - delete Entity.java (the terminus) *** EPIC COMPLETE ***
+a68dc325 ecs-migration: identity-collapse F5c-4 - roster storage core dense Entity[] -> long[]
+6a280ad3 ecs-migration: identity-collapse F5c-3 - combat getOrNull consumers -> isLive+id
+3958eb16 ecs-migration: identity-collapse F5c-2 - AttackerIndexService id-native
+f55b28c8 ecs-migration: identity-collapse F5c-1 - rehome NO_SQUAD to Squad; drop dead slotOf(Entity)
 e16dfea7 ecs-migration: identity-collapse F5b - spawn/death boundary -> long
 7227310e ecs-migration: identity-collapse F5a - role/plan storage id-native (Slot<Long>)
 7080ce8b ecs-migration: identity-collapse F4 - UnitSpatialIndex id-native (gather -> long)

@@ -109,7 +109,7 @@ These were the rules every SoA promotion had to follow.
 - **`MountedTurret` non-Unit migration.** Already done — targets route
   through the world's `COMBAT.targetId` column by entity id.
 
-## Naming: `Unit` → `Entity` (DONE, with one caveat)
+## Naming: `Unit` → `Entity` → `long` (DONE — the north star is reached)
 
 The rename followed the **rename-last, not first** discipline — the name `Entity`
 should describe an *achieved* reality, not an aspiration — so it was held until the SoA
@@ -118,13 +118,15 @@ peel + the registry dissolution had hollowed the type, then shipped (`a708ce8`,
 kept their `Unit*` names (`UnitType`, `UnitRosterService`, `UnitRole`,
 `UnitSpatialIndex`, `UnitBehavior`, `UnitUpdateSystem`).
 
-**Caveat the naming north star did NOT fully reach:** `Entity` is *not yet* a bare
-`long` id — it is still a ~305-line heap object held in the roster's `Entity[]`,
-carrying immutable identity + `seed*` construction inputs + ~13 live behavior/capability
-fields (`role`, `assignedObjective`, `equipmentDropTarget`, `primaryWeapon`, …). The
-rename documents what the *storage* became (id-keyed columns in the `EntityWorld`),
-while the handle itself is the subject of the still-open identity-collapse epic
-([`next-session.md`](next-session.md) § Status, backlog item 3).
+**The caveat is struck (identity-collapse terminus, 2026-07-05):** `Entity` is now a
+bare `long` id at every layer — the ~305-line heap object was dissolved (subclasses →
+components, live fields → world columns, the handle → a `long`) and `Entity.java` is
+**deleted**. The roster holds a dense `long[]`; every per-unit datum lives in id-keyed
+`EntityWorld` columns; `entity = id` holds for params, returns, storage, and events. The
+one residual is cosmetic: the package is still `battle.unit/` (a `unit/` → `entity/` move
+is unblocked but deferred as a pure rename). Full record:
+[`next-session.md`](next-session.md) § Status +
+[`stories/identity-collapse.md`](stories/identity-collapse.md) § "Storage finale".
 
 ## What shipped, and what's next
 

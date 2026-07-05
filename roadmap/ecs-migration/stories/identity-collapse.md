@@ -1,6 +1,10 @@
 # Identity-collapse — dissolve the `Entity` handle into a bare `long` id
 
-> **Status: Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
+> **Status: ✅ EPIC COMPLETE (2026-07-05, `1ed54dc4`) — `Entity.java` deleted; `entity = long`
+> holds at every layer (params, returns, storage, events); suite green (869). See § "Storage finale"
+> and § "Definition of done" at the end. Historical phase detail below.**
+>
+> **Phases A + B + C COMPLETE (2026-07-02). Phase D (the bare-`long` sweep)
 > IN PROGRESS (2026-07-02) — D0 (infra) + D1 (combat pipeline) shipped `240df7f9`;
 > D2 (`TacticalScoring` params) shipped `a782ad71`; D3 (sim-facade `targetOf`/`advanceMovement`)
 > shipped `14a6d774`; D4 (`DamageService`/`HitResponse` front-doors) shipped `d6b61af2`; D5
@@ -561,10 +565,26 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
     `Entity` spawn locals→`long` (6 parallel Sonnet passes over disjoint clusters); `UnitRosterServiceTest`
     reworked by hand — `get`/`getOrNull`/`denseArray` stay `Entity` until F5c, so its handle-identity
     `assertSame(handle, r.get(i))` became `assertEquals(id, r.get(i).entityId)`.
-  - **F5c · roster storage + delete** (next, the terminus) — dense `Entity[]`→`long[]`; `getOrNull`/`get`/`denseArray`
-    deleted-or-`long`; **un-bridge F5b's `spawnDefensePostTurrets` `getOrNull`** + the last render/ui/bridge
-    (`SimProxyMirror`/`GroundBattleConfig` `targetable`) + `AttackerIndexService` consumers; rehome
-    `Entity.idOf`/`NO_SQUAD`; drop the dead `SquadPlan.slotOf(Entity)` overload; **delete `Entity.java`**.
+  - ~~**F5c · roster storage + delete `Entity.java`**~~ — **SHIPPED (2026-07-05; the terminus, 5 commits).**
+    Sub-sliced green-per-commit: **F5c-1** (`f55b28c8`) rehome `Entity.NO_SQUAD`→`Squad.NO_SQUAD` + drop the dead
+    `SquadPlan.slotOf(Entity)` overload; **F5c-2** (`3958eb16`) `AttackerIndexService` id-native
+    (`Object2ObjectMap<Entity,ArrayList<Entity>>`→`Long2ObjectMap<LongArrayList>`; `rebuild` drops `getOrNull`
+    for an `isLive(targetId)` gate); **F5c-3** (`6a280ad3`) the combat `getOrNull(id)→Entity` consumers
+    (FiringSystem/HeavyWeapons ×4/InfantryWeapons/HitResponse/`refreshTargetIfNotShootable`) → `isLive(id)` + bare
+    id (`HeavyWeapons.mechScratch List<Entity>`→`LongArrayList`); **F5c-4** (`a68dc325`, the big one — 30 files, 4
+    parallel Sonnet clusters) the roster storage core: `dense Entity[]`→`long[]`, `get`/`denseArray`→`long`/`long[]`,
+    `getOrNull` **deleted**, `adopt` stores the id (**the last `new Entity(...)` gone**), ~17 denseArray/get walk
+    consumers id-native (`dense[i].faction`→`identity().faction(id)`), `best`/`bestAny` locals → `0L` sentinel,
+    `closestVisibleOtherEnemy`/`nearestAvailableMarine`/`squadMembersInSpawnOrder` returns → `long`/`LongArrayList`,
+    scratch `List<Entity>`→`LongArrayList`, `DamageService`'s `LongFunction<Entity>` liveness resolver →
+    `LongPredicate isLive`, and the bridge chain (un-does F5b's `getOrNull` bridge —
+    `spawnDefensePostTurrets`/`MapBuild`/`GroundBattleConfig`/`SimProxyMirror` `targetable`→`LongList`;
+    `ProxyShape`/`FootprintCircleShape` take `UnitType`) — **F5c-5 folded in here** because `getOrNull` couldn't
+    survive `dense→long[]` (its last caller was the bridge); **F5c-6** (`1ed54dc4`) **delete `Entity.java`** — a
+    forced `--rerun-tasks` recompile proved the only refs left were 26 dangling javadoc-only imports (zero code
+    use); 3 parallel Sonnet passes removed those + converted every `{@link Entity...}` javadoc to `{@code ...}`;
+    `battle.unit` package-info charter rewritten. `Entity.idOf` was dead by F5c (deleted with the class);
+    `NO_SQUAD` moved in F5c-1. Suite green (869) at every commit.
 
 **Tracked follow-ups to fold in here (don't lose):**
 - `clearPath`/`setPath` should own an internal null/liveness guard rather than lean on the caller
@@ -572,9 +592,13 @@ green-at-each-step slices (F1…F5), not one non-compiling mega-edit — same di
 - [`../spatial-index-options.md`](../spatial-index-options.md) — the id-native `LinkedUnitSpatialIndex`
   shape this enables (stale `Unit`/`denseIdx` names to reconcile).
 
-**Definition of done.** `Entity.java` is gone; no `Entity` type in the battle tier; `entity = long`
-holds at every layer (params, returns, storage, events); the overview.md "naming north star did NOT
-fully reach" caveat is struck; full suite green. **This closes the identity-collapse epic.**
+**Definition of done — ✅ MET (2026-07-05, `1ed54dc4`).** `Entity.java` is gone; no `Entity` type in the
+battle tier; `entity = long` holds at every layer (params, returns, storage, events); the overview.md
+"naming north star did NOT fully reach" caveat is struck; full suite green (869). **The identity-collapse
+epic is CLOSED.** Residual (cosmetic, out of scope): the package is still `battle.unit/` (a `unit/` →
+`entity/` rename is now unblocked, deferred as a pure move), and a handful of pre-existing dangling
+`{@link}` javadocs to *other* renamed/removed symbols (surfaced during the F5c-6 sweep) remain as a
+follow-up javadoc-drift cleanup.
 
 ## Scope decision (DECIDED 2026-07-01 — value-first sequencing; D committed, deferred)
 
