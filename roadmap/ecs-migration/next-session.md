@@ -20,8 +20,13 @@ finale" for the arc. Remaining is *optional* polish, not migration (see the back
 the `battle.unit/` → `entity/` package rename (a pure move, now unblocked), the
 `systems-to-columns` idiom-completion (reopened by the id-native spatial indexes, but
 Phase-0-parked at ~0.02%/frame), statelessify `VehicleController`, the FiringSystem
-playtest, live-appearance Phases 3/4 (art-gated), and a pre-existing dangling-`{@link}`
-javadoc-drift cleanup surfaced during the F5c-6 sweep.
+playtest, and live-appearance Phases 3/4 (art-gated). The pre-existing dangling-`{@link}`
+javadoc-drift (surfaced during the F5c-6 sweep) is **DONE**: the epic's own
+`getOrNull`/`Entity`-handle tail (`d54c121d`) plus a battle-tier sweep of the older rot
+from the `*SimContext` deletion / `Detonations`+`HitResponseSystem` extraction / the
+`BattleView` boundary (`b7573143` — 18 files, 34 refs, comment-only, each IDE-verified
+clean). Repoint where the symbol moved to an imported class, `{@code}`-downgrade where
+the class isn't imported or the symbol is gone; no code or imports touched.
 
 **DONE — storage / engine half** (verified 2026-06-28 by a 9-agent audit):
 - A real, game-agnostic archetype engine — `engine.ecs` (`EntityWorld` /
