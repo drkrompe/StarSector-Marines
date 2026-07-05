@@ -6,6 +6,7 @@ import org.lwjgl.util.vector.Vector2f;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.longs.LongLists;
 
 import java.util.EnumSet;
 
@@ -73,7 +74,7 @@ public record GroundBattleConfig(
     /** Defensive copy of the mutable collections so a config is an immutable snapshot. */
     public GroundBattleConfig {
         sceneLayers = EnumSet.copyOf(sceneLayers);
-        targetable = new LongArrayList(targetable);
+        targetable = LongLists.unmodifiable(new LongArrayList(targetable));
     }
 
     /**

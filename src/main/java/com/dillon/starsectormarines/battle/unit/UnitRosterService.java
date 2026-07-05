@@ -637,7 +637,7 @@ public final class UnitRosterService {
 
     /**
      * Direct access to the backing array. Indices {@code [0, liveCount())} are
-     * live; slots beyond that are null. Exposed so hot loops can avoid the
+     * live; slots beyond that are {@code 0L}. Exposed so hot loops can avoid the
      * per-iteration accessor hop.
      *
      * <p><b>Do not cache across allocations.</b> The backing array is replaced by
