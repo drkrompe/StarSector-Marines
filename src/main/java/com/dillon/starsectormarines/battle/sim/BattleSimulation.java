@@ -1097,8 +1097,8 @@ public class BattleSimulation implements BattleControl {
         navigation.endTick();
     }
 
-    /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(Entity)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
-    public ArrayList<Entity> getAttackersOf(Entity target) {
+    /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
+    public LongArrayList getAttackersOf(long target) {
         return attackerIndex.getAttackersOf(target);
     }
 

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -797,16 +798,16 @@ public final class TacticalScoring {
      */
     private float scoreCrowding(Faction selfFaction, int selfSquadId, Entity target,
                                 long exclude) {
-        java.util.ArrayList<Entity> attackers = attackerIndex.getAttackersOf(target);
+        LongArrayList attackers = attackerIndex.getAttackersOf(target.entityId);
         if (attackers == null) return 0f;
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
-            Entity u = attackers.get(i);
-            if (u.entityId == exclude || !roster.isAliveById(u.entityId)) continue;
-            if (u.faction != selfFaction) continue;
+            long u = attackers.getLong(i);
+            if (u == exclude || !roster.isAliveById(u)) continue;
+            if (roster.identity().faction(u) != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
-            if (selfSquadId != Squad.NO_SQUAD && roster.squad().hasSquad(u.entityId)
-                    && roster.squad().squadId(u.entityId) == selfSquadId) {
+            if (selfSquadId != Squad.NO_SQUAD && roster.squad().hasSquad(u)
+                    && roster.squad().squadId(u) == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
             }
         }
