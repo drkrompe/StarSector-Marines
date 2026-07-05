@@ -89,15 +89,12 @@ public class GroundSystem {
      * Spawns {@code mission} as a world entity of the given variant / faction and
      * joins it to the system. The caller builds + configures the {@link VehicleMission}
      * (paths, route inputs, loadout) before handing it off; {@link ConvoyService#spawn}
-     * builds the body + turret and seeds every column, then the controller is created
-     * over the by-id-resolved body.
+     * builds the body + turret and seeds every column (including {@code VEHICLE_CONTROL}),
+     * then the id joins this system's backbone and is driven by the shared
+     * {@link VehicleControlSystem}.
      */
     public void add(VehicleType type, Faction faction, VehicleMission mission) {
         long id = convoy.spawn(type, faction, mission);
-        // Thin per-vehicle handle: forwards tick / consumeArrived to the shared stateless
-        // driver by id. All motion state lives in the VEHICLE_CONTROL component (seeded at
-        // spawn), resolved by id — the handle holds no state. See VehicleControlSystem.
-        mission.controller = new VehicleController(id, controlSystem);
         vehicleIds.add(id);
     }
 
@@ -117,8 +114,8 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
-                    m.controller.tick(dt, true);
-                    if (m.controller.consumeArrived()) {
+                    controlSystem.tick(id, dt, true);
+                    if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.LANDED;
                         m.deboardCountdown = type.deboardInterval;
                     }
@@ -150,8 +147,8 @@ public class GroundSystem {
                     break;
 
                 case DEPARTING:
-                    m.controller.tick(dt, false);
-                    if (m.controller.consumeArrived()) {
+                    controlSystem.tick(id, dt, false);
+                    if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
                     }
                     break;

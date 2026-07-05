@@ -48,16 +48,6 @@ public final class VehicleMission {
     public float overwatchCountdown;
 
     /**
-     * Owns this vehicle's motion (corridor cursor, playback/docking state,
-     * recovery). Assigned by {@link GroundSystem#add} when the vehicle joins the
-     * system; {@code null} only before then. Holds refs to this mission plus the
-     * kinematics / variant resolved by id at construction. See
-     * {@code navigation-rework/overview.md}. (The air side has no controller —
-     * a future epic statelessifies this like {@code AirSteeringSystem}.)
-     */
-    public VehicleController controller;
-
-    /**
      * Per-battle routing inputs, stashed by the spawn layer ({@code ConvoyMeans})
      * so the recovery ladder can re-route mid-drive ("lap around" a stuck spot)
      * via {@link VehicleRoutePlanner}. Both {@code null} for vehicles that aren't

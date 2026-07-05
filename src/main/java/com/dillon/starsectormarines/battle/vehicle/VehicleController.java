@@ -5,22 +5,16 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
 /**
- * Per-vehicle motion for one ground vehicle, now split into a thin id handle plus
- * the shared math. The behaviour — corridor tracking, the rolling {@link Trajectory},
- * pure-pursuit + Reeds-Shepp docking, the reverse-recovery ladder — lives in the
- * stateless {@link VehicleControlSystem}, keyed by entity id over the
- * {@code VEHICLE_CONTROL} component ({@link VehicleControlComponent}). This class
- * carries two things:
- * <ul>
- *   <li>a <b>thin per-vehicle shim</b> ({@link #tick(float, boolean)} /
- *       {@link #consumeArrived()}) that {@link GroundSystem} still calls through
- *       {@code mission.controller}; it forwards to {@link VehicleControlSystem} by
- *       the vehicle's id. (Removed when the drive loop flips to the system directly.)</li>
- *   <li>the package-private <b>tuning constants + static geometry</b>
- *       ({@link #curvatureSpeedCap}, {@link #previewTurnDegrees},
- *       {@link #turnIsInfeasibleForward}, {@link #maxReverseDistance}, and the
- *       route/tail helpers) the system references qualified and the unit tests read.</li>
- * </ul>
+ * Ground-vehicle motion math + tuning: the package-private constants and static
+ * geometry ({@link #curvatureSpeedCap}, {@link #previewTurnDegrees},
+ * {@link #turnIsInfeasibleForward}, {@link #maxReverseDistance}, and the route/tail
+ * helpers) that the stateless {@link VehicleControlSystem} references qualified and
+ * the unit tests read. Holds no state and is never instantiated.
+ *
+ * <p>The per-vehicle behaviour — corridor tracking, the rolling {@link Trajectory},
+ * pure-pursuit + Reeds-Shepp docking, the reverse-recovery ladder — lives on
+ * {@link VehicleControlSystem}, keyed by entity id over the {@code VEHICLE_CONTROL}
+ * component ({@link VehicleControlComponent}).
  */
 public final class VehicleController {
 
@@ -115,30 +109,7 @@ public final class VehicleController {
     /** Radius (cells) of the impassable disc the re-route drops on the stuck spot, forcing a different corridor. ≥ a road width so it actually blocks the failing mouth. */
     static final float REROUTE_AVOID_RADIUS = 3.0f;
 
-    /** Entity id of the vehicle this handle drives; forwarded to {@link VehicleControlSystem}. */
-    private final long id;
-    /** The stateless driver every call delegates to (shared across all vehicles). */
-    private final VehicleControlSystem system;
-
-    public VehicleController(long id, VehicleControlSystem system) {
-        this.id = id;
-        this.system = system;
-    }
-
-    /**
-     * Forwards to {@link VehicleControlSystem#tick(long, float, boolean)} for this
-     * vehicle. Thin per-vehicle shim so {@link GroundSystem}'s drive loop can keep
-     * calling {@code mission.controller.tick(...)}; removed when the drive loop
-     * flips to the system directly.
-     */
-    public void tick(float dt, boolean isInbound) {
-        system.tick(id, dt, isInbound);
-    }
-
-    /** Forwards to {@link VehicleControlSystem#consumeArrived(long)} for this vehicle. */
-    public boolean consumeArrived() {
-        return system.consumeArrived(id);
-    }
+    private VehicleController() {}   // static math + tuning holder; not instantiated
 
     /**
      * Forward-speed cap (cells/sec) for the bend in the tracked path within
