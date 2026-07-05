@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
-
 /**
  * Squad-scoped awareness state. Drives the idle vs. engaged branch in
  * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} and
@@ -24,7 +22,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
  * {@link com.dillon.starsectormarines.battle.decision.FallbackBehavior} even if the
  * squad is UNAWARE the moment before. The alert level only governs idle behavior.
  *
- * <p>Squads with {@link Entity#NO_SQUAD} members (solo defenders, civilians,
+ * <p>Squads with {@link Squad#NO_SQUAD} members (solo defenders, civilians,
  * pre-shuttle marines) skip this state machine — they run their
  * {@link com.dillon.starsectormarines.battle.unit.UnitRole} behavior directly.
  */

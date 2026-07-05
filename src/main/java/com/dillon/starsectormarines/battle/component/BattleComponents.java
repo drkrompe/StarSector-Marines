@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.component;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.FieldKind;
@@ -216,7 +217,7 @@ public final class BattleComponents {
     public static final int HUB_STATE_SPAWN_COOLDOWN = 0;
     /** {@link #HUB_STATE} field 1: lifetime count of drones the hub has launched (INT). */
     public static final int HUB_STATE_DRONES_LAUNCHED = 1;
-    /** {@link #HUB_STATE} field 2: the squad id the hub's drones join, {@code Entity.NO_SQUAD} (-1) = none minted yet (INT). */
+    /** {@link #HUB_STATE} field 2: the squad id the hub's drones join, {@code Squad.NO_SQUAD} (-1) = none minted yet (INT). */
     public static final int HUB_STATE_DRONE_SQUAD_ID = 2;
 
     /** {@link #TURRET_STATE} field 0: current barrel facing, degrees (FLOAT). 0° = +Y (north). */
@@ -368,7 +369,7 @@ public final class BattleComponents {
      * roster's squad registry ({@code UnitRosterService.getSquad}). The first
      * <em>universal-domain</em> capability modeled as archetype presence rather than
      * a sentinel: a unit carries SQUAD <em>iff</em> it belongs to a squad, so "has
-     * SQUAD" <em>is</em> membership and the old {@code Entity.NO_SQUAD} sentinel is
+     * SQUAD" <em>is</em> membership and the old {@code Squad.NO_SQUAD} sentinel is
      * never a stored value — a solo defender / civilian / unsquadded turret simply
      * has no SQUAD (the SECONDARY_WEAPON presence precedent, applied to a field that
      * used to default to a sentinel on every unit). Set once at spawn (seeded at
@@ -583,7 +584,7 @@ public final class BattleComponents {
      * lifetime launch count {@code battle.drone.DroneSpawner} folds into each
      * drone's greppable id; {@code droneSquadId} is the squad the hub's drones
      * join, minted lazily on the first successful launch — {@code
-     * Entity.NO_SQUAD} ({@code -1}) is the "no squad yet" sentinel <em>because
+     * Squad.NO_SQUAD} ({@code -1}) is the "no squad yet" sentinel <em>because
      * {@code 0} is a valid squad id</em>, so a fresh-row zero can't be
      * mistaken for "already minted". Live-only (a demolished hub is a corpse;
      * see {@code battle.drone.HubDemolitionSystem}'s side-table for the

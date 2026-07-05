@@ -468,7 +468,7 @@ public class AirSystem {
                             // this reset, marines from cycle N+1 reinforce the
                             // surviving squad from cycle N instead of forming
                             // a fresh fireteam at the LZ.
-                            mission.squadId = Entity.NO_SQUAD;
+                            mission.squadId = Squad.NO_SQUAD;
                             body.teleport(mission.entryX, mission.entryY,
                                     AirBody.facingToward(mission.lzX - mission.entryX, mission.lzY - mission.entryY));
                             world.setAltitudeT(id, 1f);
@@ -559,7 +559,7 @@ public class AirSystem {
                 aim.originX = worldX;
                 aim.originY = worldY;
                 aim.faction = faction;
-                aim.squadId = Entity.NO_SQUAD;
+                aim.squadId = Squad.NO_SQUAD;
                 aim.excludeFromCrowding = 0L;
                 aim.facingDegrees = mt.facingDegrees;
                 aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
@@ -666,7 +666,7 @@ public class AirSystem {
      * stays where it was supporting.
      */
     private void updateHoverFollow(ShuttleMission mission) {
-        if (mission.squadId == Entity.NO_SQUAD) return;
+        if (mission.squadId == Squad.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
         for (int i = 0, live = roster.liveCount(); i < live; i++) {
@@ -717,7 +717,7 @@ public class AirSystem {
         MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
                 ? mission.marineLoadout[slot] : null;
         if (loadout != null) loadout.seedInto(marine);
-        if (mission.squadId == Entity.NO_SQUAD) {
+        if (mission.squadId == Squad.NO_SQUAD) {
             mission.squadId = roster.mintSquad(faction, deboardType);
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than

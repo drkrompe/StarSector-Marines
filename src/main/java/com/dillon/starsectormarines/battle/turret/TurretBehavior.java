@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * Static-defense behavior. Delegates the aim/fire loop to {@link TurretAim} so
@@ -61,7 +61,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.originX = sim.world().cellX(id) + 0.5f;
         s.originY = sim.world().cellY(id) + 0.5f;
         s.faction = sim.identity().faction(u);
-        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
+        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Squad.NO_SQUAD;
         s.excludeFromCrowding = u;
         s.facingDegrees = turretState.facingDegrees(id);
         s.turnRateDegPerSec = kind.turnRateDegPerSec;

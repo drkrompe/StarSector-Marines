@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -70,11 +69,6 @@ public final class SquadPlan {
          * 8 members and slot counts cap around 4, so this is O(squad size) in
          * the worst case — fine for the per-member dispatch path.
          */
-        public String slotOf(Entity unit) {
-            return slotOf(unit.entityId);
-        }
-
-        /** Id-native overload — the by-id form the {@link Action#execute(long, Squad, com.dillon.starsectormarines.battle.sim.BattleControl)} bodies call as the member handle collapses to a bare {@code long}. */
         public String slotOf(long unitId) {
             for (Map.Entry<String, List<Long>> e : assignments.entrySet()) {
                 for (long u : e.getValue()) {

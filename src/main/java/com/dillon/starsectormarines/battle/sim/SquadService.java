@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -25,7 +26,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * <p>{@code SQUAD} is OPTIONAL — <b>presence IS membership</b>: {@link #hasSquad} is
  * the presence check, and {@link #squadId} is <b>fail-loud</b> on a non-member (a
  * solo defender / civilian / unsquadded turret that never carried SQUAD, or a corpse
- * once the death drain transmuted it away). The old {@code Entity.NO_SQUAD} sentinel
+ * once the death drain transmuted it away). The old {@code Squad.NO_SQUAD} sentinel
  * is gone as a stored value — gate every {@link #squadId} read on {@link #hasSquad}.
  * Serial-only.
  */

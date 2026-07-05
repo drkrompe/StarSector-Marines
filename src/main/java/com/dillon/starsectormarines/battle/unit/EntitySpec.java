@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
@@ -38,7 +39,7 @@ public final class EntitySpec {
     public final int cellY;
 
     // ---- optional capability seeds (default = absent) ----
-    public int squadId = Entity.NO_SQUAD;
+    public int squadId = Squad.NO_SQUAD;
     public UnitRole role = UnitRole.COMBATANT;
     public MarineSecondary secondaryWeapon;
     public int secondaryAmmo;

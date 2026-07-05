@@ -41,6 +41,14 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 public final class Squad {
 
     /**
+     * Sentinel for "not part of a squad" — a solo unit (defender / civilian /
+     * unsquadded turret) carries no {@code SQUAD} component, so presence IS
+     * membership. Used as the default {@code squadId} and the "no squad" value in
+     * membership lookups; never a stored column value.
+     */
+    public static final int NO_SQUAD = -1;
+
+    /**
      * Sim-seconds the squad stays ENGAGED after the last LOS to an enemy
      * drops. Generous so a brief duck-behind-cover doesn't yank a garrison
      * back into idle posture, and so SUSPICIOUS still has time to converge.

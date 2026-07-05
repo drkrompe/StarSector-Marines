@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
+
 /**
  * Mutable, shared selection state for the battle HUD. One instance lives on
  * {@link com.dillon.starsectormarines.battle.ui.BattleUiContext}; panels read
@@ -16,7 +18,7 @@ package com.dillon.starsectormarines.battle.ui.picking;
  *
  * <p>Squad ids match {@link com.dillon.starsectormarines.battle.squad.Squad#id}.
  * {@link #NONE} (-1) is the sentinel for "nothing selected" — same convention
- * the sim uses for {@code Entity.NO_SQUAD}. The pinned unit is the world entity id
+ * the sim uses for {@code Squad.NO_SQUAD}. The pinned unit is the world entity id
  * (a {@code long}); {@code 0L} == none (the sim's "no entity" sentinel) — the
  * stable machine identity, replacing the old greppable-string {@code Entity.id}.
  */

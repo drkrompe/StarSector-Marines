@@ -3,8 +3,8 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -71,7 +71,7 @@ public class HitResponseSystemTest {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         long civilian = sim.spawn(new EntitySpec("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8)
-                .squad(Entity.NO_SQUAD));
+                .squad(Squad.NO_SQUAD));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
 
         boolean rolledAtLeastOnce = false;

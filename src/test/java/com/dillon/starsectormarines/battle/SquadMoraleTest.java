@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -482,7 +481,7 @@ public class SquadMoraleTest {
         float before = sq.morale;
 
         long civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
-                .squad(Entity.NO_SQUAD));
+                .squad(Squad.NO_SQUAD));
         sim.applyDamage(civilian, sim.world().hp(civilian) + 1000f, 1f);
 
         assertEquals(before, sq.morale, 1e-6f,

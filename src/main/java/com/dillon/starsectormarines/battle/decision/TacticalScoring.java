@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -256,7 +257,7 @@ public final class TacticalScoring {
         World world = roster.world();
         return findBestTarget(world.cellX(self), world.cellY(self),
                 roster.identity().faction(self),
-                roster.squad().hasSquad(self) ? roster.squad().squadId(self) : Entity.NO_SQUAD,
+                roster.squad().hasSquad(self) ? roster.squad().squadId(self) : Squad.NO_SQUAD,
                 self, roster.vision().airLosRadius(self));
     }
 
@@ -299,7 +300,7 @@ public final class TacticalScoring {
      * Primitive-args overload — used by callers that aren't a {@link Entity}
      * themselves (today: shuttle-mounted turrets, which live as data on an air
      * craft's {@code AIR_TURRETS} component rather than as grid entities). The
-     * selection logic is identical; pass {@link Entity#NO_SQUAD}
+     * selection logic is identical; pass {@link Squad#NO_SQUAD}
      * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
      * when the caller doesn't squad up and isn't itself in the unit list.
      */
@@ -804,7 +805,7 @@ public final class TacticalScoring {
             if (u.entityId == exclude || !roster.isAliveById(u.entityId)) continue;
             if (u.faction != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
-            if (selfSquadId != Entity.NO_SQUAD && roster.squad().hasSquad(u.entityId)
+            if (selfSquadId != Squad.NO_SQUAD && roster.squad().hasSquad(u.entityId)
                     && roster.squad().squadId(u.entityId) == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
             }

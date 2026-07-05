@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -38,8 +38,8 @@ public final class TurretAim {
         public float originX, originY;
         /** Shooter faction — drives the enemy filter in target acquisition. */
         public Faction faction;
-        /** Shooter squad id — feeds crowding logic. {@link Entity#NO_SQUAD} for turrets, which don't squad up. */
-        public int squadId = Entity.NO_SQUAD;
+        /** Shooter squad id — feeds crowding logic. {@link Squad#NO_SQUAD} for turrets, which don't squad up. */
+        public int squadId = Squad.NO_SQUAD;
         /** If the shooter is itself an entity on the units list, pass its id here so target acquisition's crowding pass doesn't count self. {@code 0L} for non-entity shooters. */
         public long excludeFromCrowding;
 

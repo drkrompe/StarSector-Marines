@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.DroneStateService;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
@@ -104,7 +103,7 @@ public final class DroneSwarmAction implements Action {
         s.originX = body.x;
         s.originY = body.y;
         s.faction = sim.identity().faction(member);
-        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Entity.NO_SQUAD;
+        s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Squad.NO_SQUAD;
         s.excludeFromCrowding = member;
         s.facingDegrees = body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
@@ -269,7 +268,7 @@ public final class DroneSwarmAction implements Action {
         float dAir = sim.vision().airLosRadius(member);
         long candidate = sim.getTacticalScoring().findBestTarget(
                 sim.world().cellX(member), sim.world().cellY(member), sim.identity().faction(member),
-                sim.squad().hasSquad(member) ? sim.squad().squadId(member) : Entity.NO_SQUAD, member, dAir);
+                sim.squad().hasSquad(member) ? sim.squad().squadId(member) : Squad.NO_SQUAD, member, dAir);
         if (candidate == 0L) return 0L;
         float dist = TacticalScoring.cellDistance(
                 sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate));

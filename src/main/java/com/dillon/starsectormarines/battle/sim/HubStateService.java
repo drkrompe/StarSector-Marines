@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -63,12 +63,12 @@ public final class HubStateService {
         return n;
     }
 
-    /** The squad id {@code id}'s drones join, or {@link Entity#NO_SQUAD} (-1) if none minted yet. */
+    /** The squad id {@code id}'s drones join, or {@link Squad#NO_SQUAD} (-1) if none minted yet. */
     public int droneSquadId(long id) { return entityWorld.getInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID); }
 
     /** Sets the squad id {@code id}'s drones join — minted lazily on the hub's first successful launch. */
     public void setDroneSquadId(long id, int v) { entityWorld.setInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID, v); }
 
-    /** True iff {@code id} has already minted a drone squad ({@link #droneSquadId} is not {@link Entity#NO_SQUAD}). */
-    public boolean hasDroneSquad(long id) { return droneSquadId(id) != Entity.NO_SQUAD; }
+    /** True iff {@code id} has already minted a drone squad ({@link #droneSquadId} is not {@link Squad#NO_SQUAD}). */
+    public boolean hasDroneSquad(long id) { return droneSquadId(id) != Squad.NO_SQUAD; }
 }

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
@@ -84,10 +84,10 @@ public final class VehicleMission {
 
     /**
      * Squad identity assigned to all marines deboarded from this vehicle. Lazily
-     * set to a fresh id on the first successful deboard; {@link Entity#NO_SQUAD}
+     * set to a fresh id on the first successful deboard; {@link Squad#NO_SQUAD}
      * means "no squad has been created for this vehicle yet."
      */
-    public int squadId = Entity.NO_SQUAD;
+    public int squadId = Squad.NO_SQUAD;
 
     public static final int HISTORY_SIZE = 120;
     public final float[] histX = new float[HISTORY_SIZE];

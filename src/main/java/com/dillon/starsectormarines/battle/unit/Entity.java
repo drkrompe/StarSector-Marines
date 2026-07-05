@@ -20,15 +20,6 @@ package com.dillon.starsectormarines.battle.unit;
 public class Entity {
 
     /**
-     * Sentinel for "not part of a squad" — a solo unit (defender / civilian /
-     * unsquadded turret) carries no {@code SQUAD} component, so presence IS
-     * membership. Read by {@link EntitySpec} (the default {@code squadId}) and the
-     * {@code SquadService} / {@code getSquad} lookups as the "no squad" value; never a
-     * stored column value.
-     */
-    public static final int NO_SQUAD = -1;
-
-    /**
      * Monotonic entity id assigned by {@link UnitRosterService} on adoption.
      * {@code 0} means "not yet adopted" (the "no entity" sentinel a setup-discarded
      * handle carries); a non-zero value is stable for the life of the unit and never

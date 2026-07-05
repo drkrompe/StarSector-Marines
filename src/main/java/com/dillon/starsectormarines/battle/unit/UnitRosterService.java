@@ -365,7 +365,7 @@ public final class UnitRosterService {
         // (NO_SQUAD seed) carries no SQUAD component, so the old sentinel never lands
         // in the world (the SECONDARY_WEAPON precedent). Live-only: removed on the
         // corpse transmute (the death cascade reads membership pre-transmute).
-        boolean inSquad = spec.squadId != Entity.NO_SQUAD;
+        boolean inSquad = spec.squadId != Squad.NO_SQUAD;
         // HOME iff the unit spawns with a garrison post (seedHomeCell >= 0). Presence IS
         // "has a post" — a roaming marine / patrol (the -1 seed) carries no HOME, so the
         // old sentinel never lands in the world (the SQUAD precedent). Live-only.
@@ -483,7 +483,7 @@ public final class UnitRosterService {
         // 0 is a valid squad id, so a fresh-row zero can't mean "no squad yet".
         if (isHub) {
             entityWorld.setFloat(id, components.HUB_STATE, BattleComponents.HUB_STATE_SPAWN_COOLDOWN, spec.hubSpawnCooldown);
-            entityWorld.setInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID, Entity.NO_SQUAD);
+            entityWorld.setInt(id, components.HUB_STATE, BattleComponents.HUB_STATE_DRONE_SQUAD_ID, Squad.NO_SQUAD);
         }
         // Seed the turret's live state (the TURRET_STATE component was attached above
         // iff the unit is a turret). kind seeds from the write-only seed; recoilTimer
@@ -690,7 +690,7 @@ public final class UnitRosterService {
 
     /**
      * Returns the squad with the given id, or {@code null} if
-     * {@code id == Entity.NO_SQUAD} or the squad was never registered.
+     * {@code id == Squad.NO_SQUAD} or the squad was never registered.
      * Synchronized on the same monitor as {@link #mintSquad}'s put — with
      * the pre-sized {@link #squads} (no rehash) the put is a single-slot
      * store, but without happens-before a concurrent get can still see
@@ -698,7 +698,7 @@ public final class UnitRosterService {
      * mid-dispatch caller of mintSquad; everyone else mints at setup.
      */
     public Squad getSquad(int id) {
-        if (id == Entity.NO_SQUAD) return null;
+        if (id == Squad.NO_SQUAD) return null;
         synchronized (squads) {
             return squads.get(id);
         }

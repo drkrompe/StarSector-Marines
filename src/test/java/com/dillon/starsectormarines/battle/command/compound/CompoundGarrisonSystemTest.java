@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
@@ -125,10 +124,10 @@ public class CompoundGarrisonSystemTest {
 
         // Fly the shuttle in and deboard its first marine (squad minted then).
         int guard = 0;
-        while (sim.world().mission(shuttleId).squadId == Entity.NO_SQUAD && guard++ < 8000) {
+        while (sim.world().mission(shuttleId).squadId == Squad.NO_SQUAD && guard++ < 8000) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertTrue(sim.world().mission(shuttleId).squadId != Entity.NO_SQUAD,
+        assertTrue(sim.world().mission(shuttleId).squadId != Squad.NO_SQUAD,
                 "garrison shuttle should deboard within the tick budget");
 
         Squad gsquad = sim.getSquad(sim.world().mission(shuttleId).squadId);

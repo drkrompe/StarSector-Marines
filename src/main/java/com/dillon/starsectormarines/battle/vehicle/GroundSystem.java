@@ -208,7 +208,7 @@ public class GroundSystem {
         MarineLoadout loadout = (m.marineLoadout != null && slot < m.marineLoadout.length)
                 ? m.marineLoadout[slot] : null;
         if (loadout != null) loadout.seedInto(marine);
-        if (m.squadId == Entity.NO_SQUAD) {
+        if (m.squadId == Squad.NO_SQUAD) {
             m.squadId = roster.mintSquad(faction, deboardType);
         }
         marine.squad(m.squadId);
