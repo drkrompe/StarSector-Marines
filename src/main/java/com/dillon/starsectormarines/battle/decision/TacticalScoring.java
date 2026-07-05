@@ -285,13 +285,13 @@ public final class TacticalScoring {
         World world = roster.world();
         int sx = world.cellX(self);
         int sy = world.cellY(self);
-        Entity cur = roster.getOrNull(world.targetId(self));
-        if (cur != null) {
-            int cx = world.cellX(cur.entityId);
-            int cy = world.cellY(cur.entityId);
+        long cur = world.targetId(self);
+        if (roster.isLive(cur)) {
+            int cx = world.cellX(cur);
+            int cy = world.cellY(cur);
             if (cellDistance(sx, sy, cx, cy) <= world.attackRange(self)
                     && grid.hasLineOfSight(sx, sy, cx, cy)) {
-                return cur.entityId;
+                return cur;
             }
         }
         return findBestTarget(self);

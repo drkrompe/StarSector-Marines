@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,14 +117,13 @@ public final class HitResponseSystem {
         });
         if (!claimed[0]) return;
         long expectedTargetId = world.targetId(target);
-        Entity expectedTarget = roster.getOrNull(expectedTargetId);
-        if (expectedTarget == null) return;
-        if (shooter != 0L && expectedTarget.entityId == shooter) return;
+        if (!roster.isLive(expectedTargetId)) return;
+        if (shooter != 0L && expectedTargetId == shooter) return;
         VisionService vision = roster.vision();
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
                 world.cellX(target), world.cellY(target),
-                world.cellX(expectedTarget.entityId), world.cellY(expectedTarget.entityId),
-                vision.airLosRadius(target), vision.airLosRadius(expectedTarget.entityId));
+                world.cellX(expectedTargetId), world.cellY(expectedTargetId),
+                vision.airLosRadius(target), vision.airLosRadius(expectedTargetId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (ThreadLocalRandom.current().nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);

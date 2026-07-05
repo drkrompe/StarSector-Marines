@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -121,9 +120,7 @@ public final class FiringSystem {
 
                 long shooterId = t.entityAt(r);
                 if (!roster.isAliveById(shooterId)) continue; // killed earlier this walk
-                Entity shooter = roster.getOrNull(shooterId);
-                Entity target = roster.getOrNull(ft); // tolerant of death-in-flight
-                if (shooter == null || target == null) continue;
+                if (!roster.isLive(ft)) continue; // target released (death-in-flight)
 
                 if (cooldownTimer[r] > 0f) continue;
                 int sx = w.cellX(shooterId);
@@ -134,10 +131,10 @@ public final class FiringSystem {
                 if (!grid.hasLineOfSight(sx, sy, tx, ty)) continue;
 
                 FireStance stance = FireStance.VALUES[fireStance[r]];
-                sim.fireShot(shooter.entityId, target.entityId, stance);
+                sim.fireShot(shooterId, ft, stance);
                 combat.setCooldownTimer(shooterId, combat.attackCooldown(shooterId));
                 combat.beginBurst(shooterId, ft);
-                if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooter.entityId, sim);
+                if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooterId, sim);
             }
         }
     }

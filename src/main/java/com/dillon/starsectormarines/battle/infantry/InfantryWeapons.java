@@ -92,8 +92,8 @@ public class InfantryWeapons {
             float timer = world.burstTimer(id) - BattleSimulation.TICK_DT;
             world.setBurstTimer(id, timer);
             if (timer > 0f) continue;
-            Entity burstTarget = roster.getOrNull(world.burstTargetId(id));
-            if (burstTarget == null || weapon == null) {
+            long burstTargetId = world.burstTargetId(id);
+            if (!roster.isLive(burstTargetId) || weapon == null) {
                 world.setBurstRemaining(id, 0);
                 world.setBurstTargetId(id, 0L);
                 continue;
@@ -113,7 +113,7 @@ public class InfantryWeapons {
             // burstRemaining stays 0 and it never enters burstScratch above. If
             // turrets are ever rewired to burst via the COMBAT columns, gate
             // this on world.hasMovement(id) (a non-mover is always STANCED).
-            fireShot(u.entityId, burstTarget.entityId, FireStance.stanceFor(world.moveProgress(id)));
+            fireShot(id, burstTargetId, FireStance.stanceFor(world.moveProgress(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
             // invalidate these post-fire writes — no slot re-resolve needed.
