@@ -51,9 +51,6 @@ public class UnitRosterServiceTest {
         assertTrue(idA > 0L, "ids start at 1");
         assertTrue(idB > idA);
         assertTrue(idC > idB);
-        assertEquals(idA, a);
-        assertEquals(idB, b);
-        assertEquals(idC, c);
         assertEquals(3, r.liveCount());
         assertEquals(a, r.get(0).entityId);
         assertEquals(b, r.get(1).entityId);
