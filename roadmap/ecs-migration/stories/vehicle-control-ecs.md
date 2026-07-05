@@ -1,9 +1,16 @@
 # Story: VehicleController → id-keyed component + stateless system
 
-**Status:** planned (design vetted 2026-07-05 via a 4-phase workflow: 5-reader map →
-3 design proposals → judge synthesis → 2 adversarial critiques). Post-epic follow-on to
-identity-collapse — the last per-instance state bag in the battle tier that still lives as
-loose fields on a controller object.
+**Status:** IN PROGRESS — **S1–S4 shipped** (state-migration half done; the motion bag is
+id-keyed and every read goes through `convoy.control(id)`). **S5a/S5b next** (extract the
+stateless system + flip the drive loop). Design vetted 2026-07-05 via a 4-phase workflow
+(5-reader map → 3 design proposals → judge synthesis → 2 adversarial critiques). Post-epic
+follow-on to identity-collapse — the last per-instance state bag in the battle tier that
+lived as loose fields on a controller object.
+
+**Shipped:** S1 `7fe601c9` (component + register(30) + control(id)) · S2 `92842b4d` (seed at
+spawn, both branches) · S3 `d485c3ea` (relocate ~20 fields onto the component, ~60 sites,
+compiler-verified pure flip) · S4 `63b1e1cc` (debug/render reads → component, mission→controller
+coupling severed). Each: `get_file_problems` clean + full suite green.
 
 ## Goal
 
