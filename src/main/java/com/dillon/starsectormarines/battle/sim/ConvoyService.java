@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
@@ -132,6 +133,15 @@ public final class ConvoyService {
         EntityWorld world = roster.entityWorld();
         return world.has(id, c.VEHICLE_MISSION)
                 ? (VehicleMission) world.getObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE)
+                : null;
+    }
+
+    /** The vehicle's motion-control state ({@code VEHICLE_CONTROL} payload), or {@code null} if {@code id} isn't a live ground craft (has-gated). */
+    public VehicleControlComponent control(long id) {
+        BattleComponents c = roster.components();
+        EntityWorld world = roster.entityWorld();
+        return world.has(id, c.VEHICLE_CONTROL)
+                ? (VehicleControlComponent) world.getObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE)
                 : null;
     }
 

@@ -213,6 +213,9 @@ public final class BattleComponents {
     /** {@link #VEHICLE_MISSION} field 0: the convoy mission-state payload (OBJECT) — the {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag. Liveness is {@code state == GONE}. */
     public static final int VEHICLE_MISSION_STATE = 0;
 
+    /** {@link #VEHICLE_CONTROL} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent} payload (OBJECT) — the vehicle's id-keyed ground-motion control state (corridor / rolling plan / docking / reverse recovery). */
+    public static final int VEHICLE_CONTROL_STATE = 0;
+
     /** {@link #HUB_STATE} field 0: sim-seconds until the hub's next drone-launch attempt (FLOAT). */
     public static final int HUB_STATE_SPAWN_COOLDOWN = 0;
     /** {@link #HUB_STATE} field 1: lifetime count of drones the hub has launched (INT). */
@@ -656,6 +659,16 @@ public final class BattleComponents {
      */
     public final ComponentType DRONE_STATE;
 
+    /**
+     * Per-vehicle ground-motion control state — the id-keyed bag that used to live as loose
+     * fields on {@code VehicleController}. Single OBJECT payload
+     * ({@link com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent}),
+     * seeded at spawn and dropped wholesale at despawn (vehicles never corpse-transmute). The
+     * data owner is {@code battle.sim.ConvoyService} ({@code control(id)}). See
+     * {@code roadmap/ecs-migration/stories/vehicle-control-ecs.md}.
+     */
+    public final ComponentType VEHICLE_CONTROL;
+
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
     /**
@@ -770,6 +783,7 @@ public final class BattleComponents {
         HUB_STATE       = world.register(27, "HubState", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         TURRET_STATE    = world.register(28, "TurretState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
         DRONE_STATE     = world.register(29, "DroneState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.LONG);
+        VEHICLE_CONTROL = world.register(30, "VehicleControl", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
