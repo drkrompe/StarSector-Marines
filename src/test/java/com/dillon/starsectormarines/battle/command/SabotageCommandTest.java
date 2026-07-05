@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -46,10 +45,10 @@ public class SabotageCommandTest {
      * {@code SabotageCommand.tick} directly without driving a sim tick.
      */
     private static Squad addSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
+        long leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY)));
-        int sid = sim.mintSquad(Faction.MARINE, leader.entityId);
-        sim.squad().assignSquad(leader.entityId, sid);
+        int sid = sim.mintSquad(Faction.MARINE, leader);
+        sim.squad().assignSquad(leader, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.centroidX = centroidX;
@@ -84,7 +83,7 @@ public class SabotageCommandTest {
         sim.addObjective(site);
 
         Squad squad = addSquad(sim, 2f, 4f);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 4)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 4)
                 .squad(squad.id)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(site));
@@ -154,10 +153,10 @@ public class SabotageCommandTest {
         ChargeSiteObjective cs = new ChargeSiteObjective(x, y, 0.0001f, name);
         // Plant a planter on top + tick once so isComplete() flips true
         // without needing the rest of the sim to be set up properly.
-        Entity p = sim.spawn(new EntitySpec("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y)
+        long p = sim.spawn(new EntitySpec("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(cs));
-        sim.world().setMoveProgress(p.entityId, 0f);
+        sim.world().setMoveProgress(p, 0f);
         cs.tick(sim);
         return cs;
     }

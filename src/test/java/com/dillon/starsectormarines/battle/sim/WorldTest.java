@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -15,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Contract for the {@link World} entity-access facade — the by-id accessors over
  * the archetype {@code EntityWorld}. {@code world.hp(id)} reads/writes the HEALTH
- * column by id with no {@link Entity} dereference; fail-loud on a dead/unknown id
+ * column by id with no {@link com.dillon.starsectormarines.battle.unit.Entity}
+ * dereference; fail-loud on a dead/unknown id
  * (or once the corpse transmute has removed the component). The world it reads is
  * owned by a {@link UnitRosterService} (the spawn seam); this test drives that
  * roster's {@code allocate}/{@code release} directly. Optional capabilities are
@@ -35,8 +35,7 @@ public class WorldTest {
     @Test
     public void readsAndWritesTheWorldHealthSlotById() {
         UnitRosterService r = roster();
-        Entity u = r.spawn(unit("u"));
-        long id = u.entityId;
+        long id = r.spawn(unit("u"));
         World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Seeded hp == type.maxHp, readable by id with no Entity deref —
@@ -52,7 +51,7 @@ public class WorldTest {
     @Test
     public void isFailLoudOnceHealthIsGoneOrTheIdIsUnknown() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;
+        long id = r.spawn(unit("u"));
         World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
 
         // Roster release alone no longer makes hp unreadable — HEALTH stays

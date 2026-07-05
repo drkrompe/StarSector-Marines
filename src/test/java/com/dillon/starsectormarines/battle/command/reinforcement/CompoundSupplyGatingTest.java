@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
@@ -202,8 +201,8 @@ public class CompoundSupplyGatingTest {
         squad.assignedNode = compound;
         squad.originalSize = 4;
         squad.aliveMembers = 1; // 25% — below the 50% threshold
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5).squad(sid));
-        TestUnits.kill(sim, defender.entityId); // kill the leader so MARINE_HELD reads cleanly
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5).squad(sid));
+        TestUnits.kill(sim, defender); // kill the leader so MARINE_HELD reads cleanly
 
         captureCompound(sim, service, system, 5, 5);
 

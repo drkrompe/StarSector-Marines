@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -52,15 +51,15 @@ public class MechMoraleTest {
 
     private static Squad mechSquad(BattleSimulation sim, int size, MechRole role) {
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        Entity first = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1)
+        long first = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1)
                 .squad(squadId));
         // Loadout is a presence component, attached by id after the unit is
         // added (mirrors BattleSetup's spawn path).
-        sim.world().attachMechLoadout(first.entityId, MechLoadoutComponent.defaultLoadout(role));
+        sim.world().attachMechLoadout(first, MechLoadoutComponent.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
-            Entity u = sim.spawn(new EntitySpec("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1)
+            long u = sim.spawn(new EntitySpec("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1)
                     .squad(squadId));
-            sim.world().attachMechLoadout(u.entityId, MechLoadoutComponent.defaultLoadout(role));
+            sim.world().attachMechLoadout(u, MechLoadoutComponent.defaultLoadout(role));
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;

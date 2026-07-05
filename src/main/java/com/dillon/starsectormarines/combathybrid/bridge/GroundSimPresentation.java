@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
@@ -156,10 +156,12 @@ public final class GroundSimPresentation {
 
     /** One marine death cry per frame — the same one-voice-per-frame budget the standalone keeps. */
     private void playDeathVoice(BattleSimulation sim) {
-        for (Entity u : sim.getDeathsThisFrame()) {
-            if (u.faction == Faction.MARINE) {
+        LongList deaths = sim.getDeathsThisFrame();
+        for (int i = 0, n = deaths.size(); i < n; i++) {
+            long u = deaths.getLong(i);
+            if (sim.identity().faction(u) == Faction.MARINE) {
                 playAtCell(SFX_VOICE_DEAD, 1f, 1f,
-                        sim.world().renderX(u.entityId), sim.world().renderY(u.entityId));
+                        sim.world().renderX(u), sim.world().renderY(u));
                 break;
             }
         }

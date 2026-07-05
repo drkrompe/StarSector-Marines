@@ -60,11 +60,11 @@ public interface BattleControl extends BattleView {
      */
     int mintSquad(Faction faction, UnitType type);
 
-    /** Spawn a ground-roster unit from a spec (immediate adopt); returns the handle. The spec-based construction path (identity-collapse Phase C). */
-    Entity spawn(EntitySpec spec);
+    /** Spawn a ground-roster unit from a spec (immediate adopt); returns the minted id. The spec-based construction path (identity-collapse Phase C). */
+    long spawn(EntitySpec spec);
 
-    /** Queue a spec spawn for the serial spawn-flush; returns the handle (entityId assigned at drain in the parallel path). */
-    Entity queueSpawn(EntitySpec spec);
+    /** Queue a spec spawn for the serial spawn-flush; returns the minted id, or {@code 0L} in the parallel path (the id is minted at the drain, so none is available yet). */
+    long queueSpawn(EntitySpec spec);
 
     /**
      * Spawn a shuttle into the air system (shuttle reinforcement / garrison drop) and

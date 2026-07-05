@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -47,11 +46,11 @@ public class BreakContactTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity marineAt(BattleSimulation sim, int x, int y, int squadId) {
+    private static long marineAt(BattleSimulation sim, int x, int y, int squadId) {
         return sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, x, y).squad(squadId));
     }
 
-    private static Entity defenderAt(BattleSimulation sim, int x, int y) {
+    private static long defenderAt(BattleSimulation sim, int x, int y) {
         return sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, x, y));
     }
 
@@ -61,15 +60,15 @@ public class BreakContactTest {
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 6, 7, 1);
-        sim.world().setFallbackCell(marine.entityId, -1, -1);
+        long marine = marineAt(sim, 6, 7, 1);
+        sim.world().setFallbackCell(marine, -1, -1);
         // One defender on the other side of the wall — gives findFallbackPosition
         // a threat to hide from.
         defenderAt(sim, 10, 7);
 
-        ActionStatus status = BreakContact.INSTANCE.execute(marine.entityId, squad, sim);
+        ActionStatus status = BreakContact.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status, "BreakContact runs perpetually");
-        assertTrue(sim.world().fallbackCellX(marine.entityId) >= 0 && sim.world().fallbackCellY(marine.entityId) >= 0,
+        assertTrue(sim.world().fallbackCellX(marine) >= 0 && sim.world().fallbackCellY(marine) >= 0,
                 "the action must have stashed a destination cell on the unit");
     }
 
@@ -79,14 +78,14 @@ public class BreakContactTest {
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 2, 2, 1);
+        long marine = marineAt(sim, 2, 2, 1);
         // Force destination to current cell — simulates "already arrived."
-        sim.world().setFallbackCell(marine.entityId, 2, 2);
+        sim.world().setFallbackCell(marine, 2, 2);
         defenderAt(sim, 11, 11);
 
-        BreakContact.INSTANCE.execute(marine.entityId, squad, sim);
-        assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path should be queued");
-        assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f,
+        BreakContact.INSTANCE.execute(marine, squad, sim);
+        assertTrue(Paths.isEmpty(sim.world().path(marine)), "arrived → no path should be queued");
+        assertEquals(0f, sim.world().moveProgress(marine), 1e-6f,
                 "arrived → moveProgress reset, render position pinned");
     }
 
@@ -99,14 +98,14 @@ public class BreakContactTest {
         // Marine on the hidden side of the column-7 wall; defender on the
         // other side. Cell (10, 7) is in shadow of the wall from (3, 7), so
         // the cached destination is genuinely hidden and must stick.
-        Entity marine = marineAt(sim, 10, 7, 1);
-        sim.world().setFallbackCell(marine.entityId, 10, 7);
+        long marine = marineAt(sim, 10, 7, 1);
+        sim.world().setFallbackCell(marine, 10, 7);
         defenderAt(sim, 3, 7);
 
-        BreakContact.INSTANCE.execute(marine.entityId, squad, sim);
-        assertEquals(10, sim.world().fallbackCellX(marine.entityId),
+        BreakContact.INSTANCE.execute(marine, squad, sim);
+        assertEquals(10, sim.world().fallbackCellX(marine),
                 "hidden destination must hold — the picker's distFromSelf bias is what prevents churn between equally-good cells");
-        assertEquals(7, sim.world().fallbackCellY(marine.entityId));
+        assertEquals(7, sim.world().fallbackCellY(marine));
     }
 
     @Test
@@ -119,12 +118,12 @@ public class BreakContactTest {
         // LoS along row 2 — the cell isn't a real hide. Used to be sticky;
         // now the action must re-evaluate so the morale-broken squad doesn't
         // glue itself into the kill zone.
-        Entity marine = marineAt(sim, 2, 2, 1);
-        sim.world().setFallbackCell(marine.entityId, 2, 2);
+        long marine = marineAt(sim, 2, 2, 1);
+        sim.world().setFallbackCell(marine, 2, 2);
         defenderAt(sim, 5, 2);
 
-        BreakContact.INSTANCE.execute(marine.entityId, squad, sim);
-        boolean cellChanged = sim.world().fallbackCellX(marine.entityId) != 2 || sim.world().fallbackCellY(marine.entityId) != 2;
+        BreakContact.INSTANCE.execute(marine, squad, sim);
+        boolean cellChanged = sim.world().fallbackCellX(marine) != 2 || sim.world().fallbackCellY(marine) != 2;
         assertTrue(cellChanged,
                 "arrived destination was exposed to (5,2); re-pick should have moved fallbackCellX/Y off (2,2)");
     }
@@ -141,15 +140,15 @@ public class BreakContactTest {
         // findFallbackPosition picks — the only guarantee is "it's different
         // from (3, 3) OR (3, 3) became hidden between ticks." For this open
         // patch the defender has LoS to (3, 3), so the action must replace it.
-        Entity marine = marineAt(sim, 2, 2, 1);
-        sim.world().setFallbackCell(marine.entityId, 3, 3);
+        long marine = marineAt(sim, 2, 2, 1);
+        sim.world().setFallbackCell(marine, 3, 3);
         defenderAt(sim, 5, 2);
 
-        BreakContact.INSTANCE.execute(marine.entityId, squad, sim);
+        BreakContact.INSTANCE.execute(marine, squad, sim);
         // Either the cell changed, or it's still visible — but in this layout
         // the defender at (5,2) has LoS to (3,3). The recompute branch should
         // have picked a different cell behind the column-7 wall.
-        boolean changed = (sim.world().fallbackCellX(marine.entityId) != 3 || sim.world().fallbackCellY(marine.entityId) != 3);
+        boolean changed = (sim.world().fallbackCellX(marine) != 3 || sim.world().fallbackCellY(marine) != 3);
         assertTrue(changed,
                 "cached (3,3) was visible to (5,2); recompute should have moved the destination");
     }

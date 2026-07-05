@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}), mirroring
  * {@link AirEntityAllocationTest}: {@link UnitRosterService#allocateVehicle} mints
  * a ground-vehicle entity from the SINGLE id authority (shared with ground
- * {@link UnitRosterService#allocate} and air {@link UnitRosterService#allocateAir},
+ * {@link UnitRosterService#spawn} and air {@link UnitRosterService#allocateAir},
  * so a vehicle id can never collide) and adopts it <em>world-only</em> — present in
  * the {@code EntityWorld} but absent from the dense ground roster, so every grid walk
  * (occupancy, spatial index, fog, win/objective counts) skips it for free. The
@@ -42,9 +42,9 @@ public class VehicleEntityAllocationTest {
     @Test
     public void allocateVehicleSharesTheSingleIdMintWithGroundAllocateAndNeverCollides() {
         UnitRosterService r = roster();
-        long g1 = r.spawn(ground("g1")).entityId;
+        long g1 = r.spawn(ground("g1"));
         long v1 = r.allocateVehicle(vehicleArchetype(r));
-        long g2 = r.spawn(ground("g2")).entityId;
+        long g2 = r.spawn(ground("g2"));
         long v2 = r.allocateVehicle(vehicleArchetype(r));
         // Strictly monotonic across the one nextId authority — vehicles interleave the
         // ground ids with no overlap (the dual-mint trap the epic closes; air shares

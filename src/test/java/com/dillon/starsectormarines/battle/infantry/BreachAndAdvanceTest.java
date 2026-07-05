@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -96,8 +95,8 @@ public class BreachAndAdvanceTest {
         BattleSimulation sim = openArena(20, 20);
         // Place both members AT their stack-up cells already.
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 8, 5).squad(sid));
-        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 6)
+        long m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 8, 5).squad(sid));
+        long m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 8, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
@@ -111,9 +110,9 @@ public class BreachAndAdvanceTest {
         BreachAndAdvance action = new BreachAndAdvance(99, stackX, stackY, forwardX, forwardY);
         attach(sim, sq, action);
 
-        action.execute(m0.entityId, sq, sim);
+        action.execute(m0, sq, sim);
         // Squad is stacked → advance phase → path to forward cell.
-        int[] path = sim.world().path(m0.entityId);
+        int[] path = sim.world().path(m0);
         int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
         int destY = Paths.cellY(path, Paths.cellCount(path) - 1);
         assertEquals(14, destX, "advance phase dest x");
@@ -146,8 +145,8 @@ public class BreachAndAdvanceTest {
     public void arrivalAtForwardCellClearsPathAndPinsRender() {
         BattleSimulation sim = openArena(20, 20);
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
-        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
+        long m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
+        long m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
@@ -164,18 +163,18 @@ public class BreachAndAdvanceTest {
         BreachAndAdvance action = new BreachAndAdvance(99, stackX, stackY, forwardX, forwardY);
         attach(sim, sq, action);
 
-        action.execute(m0.entityId, sq, sim);
-        assertTrue(Paths.isEmpty(sim.world().path(m0.entityId)), "arrived members clear their path");
-        assertEquals(0f, sim.world().moveProgress(m0.entityId), 1e-6f);
-        assertEquals(14f, sim.world().renderX(m0.entityId), 1e-6f, "render pinned at the destination cell");
+        action.execute(m0, sq, sim);
+        assertTrue(Paths.isEmpty(sim.world().path(m0)), "arrived members clear their path");
+        assertEquals(0f, sim.world().moveProgress(m0), 1e-6f);
+        assertEquals(14f, sim.world().renderX(m0), 1e-6f, "render pinned at the destination cell");
     }
 
     @Test
     public void successWhenAllMembersAtForward() {
         BattleSimulation sim = openArena(20, 20);
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        Entity m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
-        Entity m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
+        long m0 = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 14, 5).squad(sid));
+        long m1 = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 14, 6)
                 .squad(sid));
         Squad sq = sim.getSquad(sid);
         sq.aliveMembers = 2;
@@ -192,7 +191,7 @@ public class BreachAndAdvanceTest {
 
         // Both members at their forward cells; first execute should detect
         // squad-wide success and return SUCCESS for the plan to advance.
-        ActionStatus status = action.execute(m0.entityId, sq, sim);
+        ActionStatus status = action.execute(m0, sq, sim);
         assertSame(ActionStatus.SUCCESS, status,
                 "all alive members at their forward cells → plan step SUCCESS");
     }

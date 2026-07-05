@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -31,27 +30,27 @@ public class DroneHubBehaviorTest {
     @Test
     public void spawnCooldownTicksDownByOneTickDtPerUpdate() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
+        long hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
 
-        DroneHubBehavior.INSTANCE.update(hub.entityId, sim);
+        DroneHubBehavior.INSTANCE.update(hub, sim);
 
         assertEquals(DroneHub.INITIAL_SPAWN_DELAY_SEC - BattleSimulation.TICK_DT,
-                sim.hubState().spawnCooldown(hub.entityId), 1e-4f,
+                sim.hubState().spawnCooldown(hub), 1e-4f,
                 "one update decrements the cooldown by exactly one TICK_DT");
     }
 
     @Test
     public void cooldownResetsToTheSteadyStateIntervalAfterALaunchAttempt() {
         BattleSimulation sim = openArena(20, 20);
-        Entity hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
+        long hub = sim.spawn(DroneHub.create("h0", Faction.DEFENDER, 10, 10));
 
         // Force the cooldown to the edge of expiry so the next update attempts
         // a launch — the reset must fire whether or not the attempt actually
         // found a free cell (a failed try still waits the full interval).
-        sim.hubState().setSpawnCooldown(hub.entityId, 0.005f);
-        DroneHubBehavior.INSTANCE.update(hub.entityId, sim);
+        sim.hubState().setSpawnCooldown(hub, 0.005f);
+        DroneHubBehavior.INSTANCE.update(hub, sim);
 
-        assertEquals(DroneHub.SPAWN_INTERVAL_SEC, sim.hubState().spawnCooldown(hub.entityId), 1e-4f,
+        assertEquals(DroneHub.SPAWN_INTERVAL_SEC, sim.hubState().spawnCooldown(hub), 1e-4f,
                 "a launch attempt resets the cooldown to SPAWN_INTERVAL_SEC");
     }
 }

@@ -34,7 +34,7 @@ public class HomeServiceTest {
     @Test
     public void allocateSeedsThePostFromTheSeed() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("g").home(4, 7)).entityId;
+        long id = r.spawn(unit("g").home(4, 7));
         HomeService home = r.home();
 
         assertTrue(home.hasHome(id));
@@ -45,7 +45,7 @@ public class HomeServiceTest {
     @Test
     public void aRoamingUnitCarriesNoHomeComponent() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("m")).entityId;   // seedHomeCell defaults to -1
+        long id = r.spawn(unit("m"));   // seedHomeCell defaults to -1
         // Presence IS "has a post": a -1 seed attaches no component, so the sentinel is
         // never a stored value — hasHome just reads false.
         assertFalse(r.home().hasHome(id));
@@ -54,7 +54,7 @@ public class HomeServiceTest {
     @Test
     public void setHomeAssignsAPostToAFreshUnit() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("m")).entityId;   // starts postless
+        long id = r.spawn(unit("m"));   // starts postless
         HomeService home = r.home();
         assertFalse(home.hasHome(id));
 
@@ -69,7 +69,7 @@ public class HomeServiceTest {
     @Test
     public void cellReadsAreFailLoudOnAPostlessOrUnknownId() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("m")).entityId;   // postless — no HOME component
+        long id = r.spawn(unit("m"));   // postless — no HOME component
         HomeService home = r.home();
 
         assertFalse(home.hasHome(id));

@@ -23,6 +23,9 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.longs.LongLists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,24 +160,14 @@ public final class UnitRosterService {
     /**
      * Deferred spawns queued during the parallel UPDATE_UNITS dispatch (drone-hub
      * launches), drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Each entry
-     * pairs the pre-created {@link Entity} handle (returned to the caller with entityId
-     * 0) with its {@link EntitySpec}; the flush adopts the pair, filling the handle's
-     * id. Serial deboard / setup paths spawn inline via {@link #spawn} instead.
+     * holds only the {@link EntitySpec} — the id isn't minted until the serial flush
+     * adopts it (no id is available at queue time). Serial deboard / setup paths spawn
+     * inline via {@link #spawn} instead.
      */
     private final ArrayList<PendingSpawn> pendingSpawns = new ArrayList<>();
 
-    /** A queued deferred spawn: the pre-created handle (entityId filled at the flush) plus its construction spec. */
-    private record PendingSpawn(Entity entity, EntitySpec spec) {}
-
-    /**
-     * The pre-created handles of the queued deferred spawns, for callers that inspect
-     * pending spawns before the drain (fog-of-war contributor registration).
-     */
-    public List<Entity> getPendingSpawns() {
-        List<Entity> out = new ArrayList<>(pendingSpawns.size());
-        for (PendingSpawn p : pendingSpawns) out.add(p.entity());
-        return out;
-    }
+    /** A queued deferred spawn: its construction spec, adopted (id minted) by {@link #flushPendingSpawns()}. */
+    private record PendingSpawn(EntitySpec spec) {}
 
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -207,27 +200,27 @@ public final class UnitRosterService {
     public Int2ObjectMap<Squad> getSquadsMap() { return squads; }
 
     /**
-     * Spawns a ground-roster unit from an {@link EntitySpec}: builds the {@link Entity}
-     * handle, adopts it (assigns its id + seeds every component column from the spec),
-     * mirrors it into the spatial index so callers outside the tick loop (test
-     * fixtures, AirSystem mid-tick deboard) see it on the next AI query, and returns
-     * the handle. The single immediate-spawn seam; {@code BattleSimulation.spawn}
-     * layers fog-contributor registration on top. Serial phases only.
+     * Spawns a ground-roster unit from an {@link EntitySpec}: {@link #adopt}s it (mints
+     * its id + builds the handle + seeds every component column from the spec), mirrors
+     * it into the spatial index so callers outside the tick loop (test fixtures,
+     * AirSystem mid-tick deboard) see it on the next AI query, and returns the minted
+     * id. The single immediate-spawn seam; {@code BattleSimulation.spawn} layers
+     * fog-contributor registration on top. Serial phases only.
      */
-    public Entity spawn(EntitySpec spec) {
-        Entity e = new Entity(spec.faction, spec.type);
-        adopt(e, spec);
-        unitIndex.add(this, e.entityId);
-        return e;
+    public long spawn(EntitySpec spec) {
+        long id = adopt(spec);
+        unitIndex.add(this, id);
+        return id;
     }
 
     /**
      * Parallel-safe deferred spawn for callers inside the UPDATE_UNITS dispatch
-     * (drone-hub launches). Serial callers spawn immediately via {@link #spawn};
-     * parallel callers get a fresh {@link Entity} handle now (entityId still 0) whose
-     * {@link EntitySpec} is queued into {@link #pendingSpawns}, adopted by
-     * {@link #flushPendingSpawns()} in APPLY_SPAWNS. The parallel flag lives on
-     * {@link DamageService} so the two queue patterns share one source of truth.
+     * (drone-hub launches). Serial callers spawn immediately via {@link #spawn} (a real
+     * id); parallel callers queue only the {@link EntitySpec} into {@link #pendingSpawns}
+     * and get {@code 0L} back — the id is minted when {@link #flushPendingSpawns()} adopts
+     * the spec in APPLY_SPAWNS (there is no id to hand back at queue time). The parallel
+     * flag lives on {@link DamageService} so the two queue patterns share one source of
+     * truth.
      *
      * <p>Within-tick drift: a queued unit isn't in the live roster until the drain.
      * {@code DroneSpawner.isCellOccupied} iterates the live roster, so if two hubs
@@ -235,13 +228,12 @@ public final class UnitRosterService {
      * Hub intervals make same-tick double-spawn rare; the next tick's REBUILD_OCCUPANCY
      * restores the picture.
      */
-    public Entity queueSpawn(EntitySpec spec) {
+    public long queueSpawn(EntitySpec spec) {
         if (!damageService.isParallel()) return spawn(spec);
-        Entity e = new Entity(spec.faction, spec.type);
         synchronized (pendingSpawns) {
-            pendingSpawns.add(new PendingSpawn(e, spec));
+            pendingSpawns.add(new PendingSpawn(spec));
         }
-        return e;
+        return 0L;
     }
 
     /**
@@ -305,19 +297,19 @@ public final class UnitRosterService {
     // ---- allocate / release (the spawn + death seam) ----
 
     /**
-     * Adopts a freshly-built {@link Entity} handle {@code e} into the roster from its
-     * construction {@link EntitySpec}: assigns its {@link Entity#entityId}, drops it in
-     * the next dense slot, creates its world entity with the archetype the spec's
-     * capabilities imply, and seeds every component column from the spec. Returns the
-     * id; grows the backing array by doubling on overflow. The single column-seeding
-     * seam — {@link #spawn} and {@link #flushPendingSpawns} both route here; {@code e}
-     * is always a caller-fresh handle (entityId 0), so there is no re-allocation case.
+     * Builds the {@link Entity} handle for a spec and adopts it into the roster: mints
+     * its {@link Entity#entityId}, drops it in the next dense slot, creates its world
+     * entity with the archetype the spec's capabilities imply, and seeds every component
+     * column from the spec. Returns the minted id; grows the backing array by doubling on
+     * overflow. The single construct-and-column-seed seam — {@link #spawn} and
+     * {@link #flushPendingSpawns} both route here.
      */
-    private long adopt(Entity e, EntitySpec spec) {
+    private long adopt(EntitySpec spec) {
         if (liveCount == dense.length) {
             dense = Arrays.copyOf(dense, dense.length * 2);
         }
         long id = nextId++;
+        Entity e = new Entity(spec.faction, spec.type);
         e.entityId = id;
         dense[liveCount] = e;
         // Create the minted id's world entity. Every live unit is at least
@@ -678,18 +670,22 @@ public final class UnitRosterService {
     }
 
     /**
-     * Drains {@link #pendingSpawns} in FIFO order, adopting each queued (handle, spec)
-     * pair into the roster + entity world and mirroring it into the spatial index.
-     * Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY and INFANTRY_TICK.
+     * Drains {@link #pendingSpawns} in FIFO order, adopting each queued spec into the
+     * roster + entity world (minting its id) and mirroring it into the spatial index.
+     * Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY and INFANTRY_TICK. Returns the minted
+     * ids in drain order for the caller's post-adopt bookkeeping (fog-contributor
+     * registration); empty when nothing was queued.
      */
-    public void flushPendingSpawns() {
-        if (pendingSpawns.isEmpty()) return;
+    public LongList flushPendingSpawns() {
+        if (pendingSpawns.isEmpty()) return LongLists.emptyList();
+        LongList spawned = new LongArrayList(pendingSpawns.size());
         for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
-            PendingSpawn p = pendingSpawns.get(i);
-            adopt(p.entity(), p.spec());
-            unitIndex.add(this, p.entity().entityId);
+            long id = adopt(pendingSpawns.get(i).spec());
+            unitIndex.add(this, id);
+            spawned.add(id);
         }
         pendingSpawns.clear();
+        return spawned;
     }
 
     /**

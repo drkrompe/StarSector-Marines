@@ -68,6 +68,9 @@ import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -226,8 +229,8 @@ public class BattleSimulation implements BattleControl {
     private final TurretFireSystem turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
-    /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
-    private final List<Entity> deathsThisFrame = new ArrayList<>();
+    /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
+    private final LongList deathsThisFrame = new LongArrayList();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
@@ -310,10 +313,10 @@ public class BattleSimulation implements BattleControl {
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
-                // deathSink takes the dying id (still registered at accept-time,
-                // pre-release) — resolve it to the handle deathsThisFrame holds;
-                // the list goes id-native in the Phase-D finale.
-                id -> deathsThisFrame.add(rosterService.getOrNull(id)), deathDispatcher, rng);
+                // deathSink takes the dying id straight into the id-native
+                // deathsThisFrame list (read post-advance by the death-voice
+                // consumers via identity()/world() by-id — IDENTITY survives release).
+                id -> deathsThisFrame.add(id), deathDispatcher, rng);
         this.damageService = new DamageService(
                 damageResolver::resolve,
                 this::writeReprioInline,
@@ -546,7 +549,7 @@ public class BattleSimulation implements BattleControl {
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
-    public List<Entity> getDeathsThisFrame()     { return deathsThisFrame; }
+    public LongList getDeathsThisFrame()         { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
@@ -627,40 +630,38 @@ public class BattleSimulation implements BattleControl {
      * Spawn a ground-roster unit from an {@link EntitySpec} (identity-collapse Phase C):
      * mints the unit + seeds its world columns via {@link UnitRosterService#spawn},
      * registers it as a fog contributor if its faction contributes vision, and returns
-     * the handle. The single immediate-spawn seam.
+     * the minted id. The single immediate-spawn seam.
      */
-    public Entity spawn(EntitySpec spec) {
-        Entity e = rosterService.spawn(spec);
-        if (fogOfWar.getVisionState().isContributor(e.faction)) {
-            fogOfWar.addContributor(e.entityId, rosterService);
+    public long spawn(EntitySpec spec) {
+        long id = rosterService.spawn(spec);
+        if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
+            fogOfWar.addContributor(id, rosterService);
         }
-        return e;
+        return id;
     }
 
     /**
      * Deferred spec spawn — the {@link #spawn(EntitySpec)} twin for callers inside the
      * parallel UPDATE_UNITS dispatch. Serial callers adopt inline (fog registered here);
-     * parallel callers are queued (entityId stays {@code 0L} until the APPLY_SPAWNS
-     * drain, where {@link #flushPendingSpawns} registers fog). Returns the handle.
+     * parallel callers are queued and get {@code 0L} back (the id is minted at the
+     * APPLY_SPAWNS drain, where {@link #flushPendingSpawns} registers fog). Returns the
+     * minted id, or {@code 0L} for the queued path.
      */
-    public Entity queueSpawn(EntitySpec spec) {
-        Entity e = rosterService.queueSpawn(spec);
-        if (e.entityId != 0L && fogOfWar.getVisionState().isContributor(e.faction)) {
-            fogOfWar.addContributor(e.entityId, rosterService);
+    public long queueSpawn(EntitySpec spec) {
+        long id = rosterService.queueSpawn(spec);
+        if (id != 0L && fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
+            fogOfWar.addContributor(id, rosterService);
         }
-        return e;
+        return id;
     }
 
-    /** Mirrors queued drone-hub spawns into the units list. Delegates to {@link UnitRosterService#flushPendingSpawns()}; registers fog-of-war contributors for any player-faction spawns. */
+    /** Mirrors queued drone-hub spawns into the units list. Delegates to {@link UnitRosterService#flushPendingSpawns()} (which mints the ids); registers fog-of-war contributors for any player-faction spawns. */
     private void flushPendingSpawns() {
-        List<Entity> pending = rosterService.getPendingSpawns();
-        int spawnCount = pending.size();
-        if (spawnCount == 0) return;
-        Entity[] snapshot = pending.toArray(new Entity[0]);
-        rosterService.flushPendingSpawns();
-        for (Entity u : snapshot) {
-            if (fogOfWar.getVisionState().isContributor(u.faction)) {
-                fogOfWar.addContributor(u.entityId, rosterService);
+        LongList spawned = rosterService.flushPendingSpawns();
+        for (int i = 0, n = spawned.size(); i < n; i++) {
+            long id = spawned.getLong(i);
+            if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
+                fogOfWar.addContributor(id, rosterService);
             }
         }
     }

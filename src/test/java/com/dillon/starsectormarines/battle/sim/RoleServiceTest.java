@@ -32,7 +32,7 @@ public class RoleServiceTest {
     @Test
     public void allocateSeedsRoleFromTheSeed() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u").role(UnitRole.KIT_RETRIEVER)).entityId;
+        long id = r.spawn(unit("u").role(UnitRole.KIT_RETRIEVER));
 
         assertEquals(UnitRole.KIT_RETRIEVER, r.role().role(id));
     }
@@ -40,7 +40,7 @@ public class RoleServiceTest {
     @Test
     public void defaultRoleIsCombatant() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;   // seedRole defaults to COMBATANT
+        long id = r.spawn(unit("u"));   // seedRole defaults to COMBATANT
 
         assertEquals(UnitRole.COMBATANT, r.role().role(id));
     }
@@ -48,7 +48,7 @@ public class RoleServiceTest {
     @Test
     public void setRoleReassignsALiveUnit() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;
+        long id = r.spawn(unit("u"));
         RoleService role = r.role();
         assertEquals(UnitRole.COMBATANT, role.role(id));
 

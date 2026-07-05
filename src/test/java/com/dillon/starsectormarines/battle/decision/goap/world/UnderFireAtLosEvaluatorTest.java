@@ -3,7 +3,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -49,7 +48,7 @@ public class UnderFireAtLosEvaluatorTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity marineAt(BattleSimulation sim, int x, int y, int squadId) {
+    private static long marineAt(BattleSimulation sim, int x, int y, int squadId) {
         return sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, x, y).squad(squadId));
     }
 
@@ -60,7 +59,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 5, 5, squadId);
+        long marine = marineAt(sim, 5, 5, squadId);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertFalse(s.get(Predicate.UNDER_FIRE_AT_LOS),
@@ -74,7 +73,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 5, 5, squadId);
+        long marine = marineAt(sim, 5, 5, squadId);
 
         // Hostile shot from (10.5, 5.5) aimed at the marine's cell (5.5, 5.5).
         // Open floor → LOS clear from marine cell to (10,5).
@@ -92,7 +91,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 3, 5, squadId);
+        long marine = marineAt(sim, 3, 5, squadId);
 
         // "Shot" originating on the far side of the wall (x=10), targeting near
         // the marine. In a real sim a wall would block the shot — this synthetic
@@ -113,7 +112,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 5, 5, squadId);
+        long marine = marineAt(sim, 5, 5, squadId);
 
         // Marine-faction shot near the marine — same faction, shouldn't trip.
         sim.postShot(new ShotEvent(10.5f, 5.5f, 5.5f, 5.5f, true, Faction.MARINE, 1.0f));
@@ -130,7 +129,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 5, 5, squadId);
+        long marine = marineAt(sim, 5, 5, squadId);
 
         // Hostile shot landing way out of squadmate proximity (target at 14, 14).
         sim.postShot(new ShotEvent(10.5f, 10.5f, 14.5f, 14.5f, true, Faction.DEFENDER, 1.0f));

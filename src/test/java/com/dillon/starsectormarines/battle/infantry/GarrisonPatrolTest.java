@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -69,21 +68,21 @@ public class GarrisonPatrolTest {
         assertEquals(3, zones.size(), "footprint should resolve to the three rooms");
 
         GarrisonPatrol patrol = new GarrisonPatrol(zones);
-        Entity leader = sim.spawn(new EntitySpec("L", Faction.MARINE, UnitType.MARINE, 30, 2));
+        long leader = sim.spawn(new EntitySpec("L", Faction.MARINE, UnitType.MARINE, 30, 2));
         Squad squad = new Squad(1, Faction.MARINE);
-        squad.leaderId = leader.entityId;
+        squad.leaderId = leader;
         squad.aliveMembers = 1;
         squad.centroidX = 30; squad.centroidY = 2;
 
         // First tick picks the initial waypoint (largest room).
-        patrol.execute(leader.entityId, squad, sim);
+        patrol.execute(leader, squad, sim);
 
         Set<Integer> visited = new HashSet<>();
         for (int i = 0; i < 6; i++) {
             squad.patrolDwellTimer = 0f;                 // dwell expired
             squad.centroidX = squad.patrolWaypointX;     // parked on the waypoint → arrived
             squad.centroidY = squad.patrolWaypointY;
-            patrol.execute(leader.entityId, squad, sim);
+            patrol.execute(leader, squad, sim);
             visited.add(sim.getZoneGraph().zoneIdAt(squad.patrolWaypointX, squad.patrolWaypointY));
         }
 

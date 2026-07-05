@@ -1038,8 +1038,8 @@ public final class BattleSetup {
                     squad.holdsFireUntilKillZone = (mechRole == null);
                 }
                 unit.squad(squad.id);
-                Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member.entityId, mechRole);
+                long member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1085,8 +1085,8 @@ public final class BattleSetup {
                     squad.assignedNode = anchor;
                 }
                 unit.squad(squad.id);
-                Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member.entityId, mechRole);
+                long member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1141,8 +1141,8 @@ public final class BattleSetup {
                     // squad centroid as its wander seed when this is null.
                 }
                 unit.squad(squad.id);
-                Entity member = sim.spawn(unit);
-                attachMechLoadout(sim, member.entityId, mechRole);
+                long member = sim.spawn(unit);
+                attachMechLoadout(sim, member, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1623,21 +1623,23 @@ public final class BattleSetup {
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                Entity turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
+                long turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY - 1);
-                spawned.add(turret);
+                // Transitional: the structures list stays List<Entity> for the bridge's
+                // proxy mirror; it goes id-native with the roster storage in F5c.
+                spawned.add(sim.getRoster().getOrNull(turret));
             }
             // DRONE_HUB has no turrets — the hub structure occupies the sealed
             // center cell (already flipped non-walkable by the stamper's
             // sealInnerCell call). Spawning the hub here gives it HP
             // and a render target; the drones it'll launch come in a follow-up.
             if (post.tier == DefensePostKind.DRONE_HUB) {
-                Entity hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
-                spawned.add(hub);
+                long hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
+                spawned.add(sim.getRoster().getOrNull(hub));
             }
         }
         return spawned;

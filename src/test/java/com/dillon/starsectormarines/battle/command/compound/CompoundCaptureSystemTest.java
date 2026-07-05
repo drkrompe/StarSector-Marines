@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.command.compound;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -113,7 +112,7 @@ public class CompoundCaptureSystemTest {
         TacticalNode node = barracksAt(5, 5);
         service.register(node);
 
-        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
 
         // Push to CONTESTED.
         tickN(system, sim, service, 1);
@@ -121,7 +120,7 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
 
         // Marine dies, defender moves in.
-        TestUnits.kill(sim, marine.entityId);
+        TestUnits.kill(sim, marine);
         sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
 
         int holdTicks = (int) Math.ceil(

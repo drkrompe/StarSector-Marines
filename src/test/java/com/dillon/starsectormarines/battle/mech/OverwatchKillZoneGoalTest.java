@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -37,8 +36,8 @@ public class OverwatchKillZoneGoalTest {
 
     private static Squad lrSupportSquadWithContact(BattleSimulation sim) {
         int sid = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        Entity mech = sim.spawn(new EntitySpec("lr0", Faction.DEFENDER, UnitType.HEAVY_MECH, 3, 3).squad(sid));
-        sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.LR_SUPPORT));
+        long mech = sim.spawn(new EntitySpec("lr0", Faction.DEFENDER, UnitType.HEAVY_MECH, 3, 3).squad(sid));
+        sim.world().attachMechLoadout(mech, MechLoadoutComponent.defaultLoadout(MechRole.LR_SUPPORT));
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.lastSeenEnemyX = 8;

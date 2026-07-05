@@ -43,11 +43,11 @@ public class HitResponseSystemTest {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        Entity marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 3, 5).squad(sid));
+        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 3, 5).squad(sid));
 
-        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine.entityId);
+        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine);
 
-        assertEquals(0f, sim.world().fallbackTimer(marine.entityId), 1e-6f,
+        assertEquals(0f, sim.world().fallbackTimer(marine), 1e-6f,
                 "GOAP-driven infantry must never enter the legacy fall-back state — morale owns retreat");
     }
 
@@ -56,13 +56,13 @@ public class HitResponseSystemTest {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
         int sid = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        Entity mech = sim.spawn(new EntitySpec("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5).squad(sid));
-        sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
+        long mech = sim.spawn(new EntitySpec("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5).squad(sid));
+        sim.world().attachMechLoadout(mech, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
-        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech.entityId);
+        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
 
-        assertEquals(0f, sim.world().fallbackTimer(mech.entityId), 1e-6f,
+        assertEquals(0f, sim.world().fallbackTimer(mech), 1e-6f,
                 "mech-squad members must never enter the legacy fall-back — Stage 1 mechs are implacable");
     }
 
@@ -70,15 +70,15 @@ public class HitResponseSystemTest {
     public void civilianKeepsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        Entity civilian = sim.spawn(new EntitySpec("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8)
+        long civilian = sim.spawn(new EntitySpec("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8)
                 .squad(Entity.NO_SQUAD));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
 
         boolean rolledAtLeastOnce = false;
         for (int i = 0; i < 100; i++) {
-            sim.world().setFallbackTimer(civilian.entityId, 0f);
-            hitResponse.rollFallbackOnHit(civilian.entityId);
-            if (sim.world().fallbackTimer(civilian.entityId) > 0f) {
+            sim.world().setFallbackTimer(civilian, 0f);
+            hitResponse.rollFallbackOnHit(civilian);
+            if (sim.world().fallbackTimer(civilian) > 0f) {
                 rolledAtLeastOnce = true;
                 break;
             }

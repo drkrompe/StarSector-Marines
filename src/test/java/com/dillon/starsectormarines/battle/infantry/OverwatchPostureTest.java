@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -38,7 +37,7 @@ public class OverwatchPostureTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity defenderAt(BattleSimulation sim, int x, int y, int squadId) {
+    private static long defenderAt(BattleSimulation sim, int x, int y, int squadId) {
         return sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, x, y).squad(squadId));
     }
 
@@ -78,26 +77,26 @@ public class OverwatchPostureTest {
         squad.holdsFireUntilKillZone = true;
         squad.aliveMembers = 1;
 
-        Entity defender = defenderAt(sim, 5, 5, squadId);
+        long defender = defenderAt(sim, 5, 5, squadId);
         // Seed a known non-default cooldown (after registration, so it routes
         // through the registry): if any action accidentally fires, cooldownTimer
         // would jump to attackCooldown. We assert it doesn't change.
-        sim.world().setCooldownTimer(defender.entityId, 0.1f);
-        float startCooldown = sim.world().cooldownTimer(defender.entityId);
+        sim.world().setCooldownTimer(defender, 0.1f);
+        float startCooldown = sim.world().cooldownTimer(defender);
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
-        Entity marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 8, 5));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 8, 5));
 
-        ActionStatus status = OverwatchPosture.INSTANCE.execute(defender.entityId, squad, sim);
+        ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
         assertEquals(ActionStatus.RUNNING, status);
-        assertEquals(startCooldown, sim.world().cooldownTimer(defender.entityId), 1e-6f,
+        assertEquals(startCooldown, sim.world().cooldownTimer(defender), 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
-        assertTrue(Paths.isEmpty(sim.world().path(defender.entityId)), "Overwatch must not queue a path");
-        assertEquals(5, sim.world().cellX(defender.entityId));
-        assertEquals(5, sim.world().cellY(defender.entityId));
-        assertEquals(0f, sim.world().moveProgress(defender.entityId), 1e-6f);
-        assertEquals(sim.world().cellX(defender.entityId), sim.world().renderX(defender.entityId), 1e-6f);
-        assertEquals(sim.world().cellY(defender.entityId), sim.world().renderY(defender.entityId), 1e-6f);
+        assertTrue(Paths.isEmpty(sim.world().path(defender)), "Overwatch must not queue a path");
+        assertEquals(5, sim.world().cellX(defender));
+        assertEquals(5, sim.world().cellY(defender));
+        assertEquals(0f, sim.world().moveProgress(defender), 1e-6f);
+        assertEquals(sim.world().cellX(defender), sim.world().renderX(defender), 1e-6f);
+        assertEquals(sim.world().cellY(defender), sim.world().renderY(defender), 1e-6f);
     }
 }

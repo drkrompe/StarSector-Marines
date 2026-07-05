@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -35,31 +34,31 @@ public class KitRetrieverBehaviorTest {
     @Test
     public void retrievalUpdateTicksAllThreeCooldownsAndWritesMovingIntentOnAnInRangeEnemy() {
         BattleSimulation sim = openArena(30, 10);
-        Entity retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5)
+        long retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5)
                 .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo));
-        sim.world().setAttackRange(retriever.entityId, 10f);
-        sim.world().setCooldownTimer(retriever.entityId, 0.6f);
-        sim.world().setSecondaryCooldownTimer(retriever.entityId, 0.6f);
-        sim.world().setRepositionCooldown(retriever.entityId, 0.6f);
+        sim.world().setAttackRange(retriever, 10f);
+        sim.world().setCooldownTimer(retriever, 0.6f);
+        sim.world().setSecondaryCooldownTimer(retriever, 0.6f);
+        sim.world().setRepositionCooldown(retriever, 0.6f);
 
-        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 8, 5));
+        long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 8, 5));
 
         EquipmentDrop drop = new EquipmentDrop(20, 5, null);
-        sim.task().setEquipmentDropTarget(retriever.entityId, drop);
+        sim.task().setEquipmentDropTarget(retriever, drop);
 
-        KitRetrieverBehavior.INSTANCE.update(retriever.entityId, sim);
+        KitRetrieverBehavior.INSTANCE.update(retriever, sim);
 
         float dt = BattleSimulation.TICK_DT;
-        assertEquals(0.6f - dt, sim.world().cooldownTimer(retriever.entityId), 1e-6f,
+        assertEquals(0.6f - dt, sim.world().cooldownTimer(retriever), 1e-6f,
                 "primary cooldown ticks by one TICK_DT via InfantryUnitPrep.tickCooldowns");
-        assertEquals(0.6f - dt, sim.world().secondaryCooldownTimer(retriever.entityId), 1e-6f,
+        assertEquals(0.6f - dt, sim.world().secondaryCooldownTimer(retriever), 1e-6f,
                 "secondary cooldown now ticks too — the old inline decrement was primary-only");
-        assertEquals(0.6f - dt, sim.world().repositionCooldown(retriever.entityId), 1e-6f,
+        assertEquals(0.6f - dt, sim.world().repositionCooldown(retriever), 1e-6f,
                 "reposition cooldown now ticks too");
-        assertEquals(enemy.entityId, sim.combat().fireTargetId(retriever.entityId),
+        assertEquals(enemy, sim.combat().fireTargetId(retriever),
                 "an in-range, visible enemy gets a MOVING fire intent written while pathing to the kit");
         assertEquals(FireStance.MOVING.ordinal(),
-                sim.getRoster().entityWorld().getInt(retriever.entityId, sim.getRoster().components().COMBAT,
+                sim.getRoster().entityWorld().getInt(retriever, sim.getRoster().components().COMBAT,
                         BattleComponents.COMBAT_FIRE_STANCE));
     }
 
@@ -70,20 +69,20 @@ public class KitRetrieverBehaviorTest {
         // tickCooldowns) — the retrieval-path tickCooldowns call must sit
         // AFTER the demote check, or a demote tick would double-tick.
         BattleSimulation sim = openArena(30, 10);
-        Entity retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5));
-        sim.world().setCooldownTimer(retriever.entityId, 0.6f);
+        long retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.world().setCooldownTimer(retriever, 0.6f);
 
         EquipmentDrop drop = new EquipmentDrop(20, 5, null);
         drop.consumed = true;
-        sim.task().setEquipmentDropTarget(retriever.entityId, drop);
+        sim.task().setEquipmentDropTarget(retriever, drop);
 
-        KitRetrieverBehavior.INSTANCE.update(retriever.entityId, sim);
+        KitRetrieverBehavior.INSTANCE.update(retriever, sim);
 
         // No squad assigned — GoapInfantryBehavior.update no-ops entirely
         // (mirrors FiringSystemTest's squadless-defender pattern), so
         // cooldownTimer is untouched by this update() call, proving the
         // retrieval-path tickCooldowns call never ran on the demote branch.
-        assertEquals(0.6f, sim.world().cooldownTimer(retriever.entityId), 1e-6f,
+        assertEquals(0.6f, sim.world().cooldownTimer(retriever), 1e-6f,
                 "demote branch must not run the retrieval-path tickCooldowns call");
     }
 }

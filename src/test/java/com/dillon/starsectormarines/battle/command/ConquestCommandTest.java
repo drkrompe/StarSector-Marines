@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -111,10 +110,10 @@ public class ConquestCommandTest {
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
+        long leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY)));
-        int sid = sim.mintSquad(Faction.MARINE, leader.entityId);
-        sim.squad().assignSquad(leader.entityId, sid);
+        int sid = sim.mintSquad(Faction.MARINE, leader);
+        sim.squad().assignSquad(leader, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.centroidX = centroidX;
@@ -122,7 +121,7 @@ public class ConquestCommandTest {
         return squad;
     }
 
-    private static Entity addDefender(BattleSimulation sim, int cellX, int cellY) {
+    private static long addDefender(BattleSimulation sim, int cellX, int cellY) {
         return sim.spawn(new EntitySpec("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
     }
 

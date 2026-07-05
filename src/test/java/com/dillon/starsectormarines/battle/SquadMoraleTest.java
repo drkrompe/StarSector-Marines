@@ -481,9 +481,9 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 2);
         float before = sq.morale;
 
-        Entity civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
+        long civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
                 .squad(Entity.NO_SQUAD));
-        sim.applyDamage(civilian.entityId, sim.world().hp(civilian.entityId) + 1000f, 1f);
+        sim.applyDamage(civilian, sim.world().hp(civilian) + 1000f, 1f);
 
         assertEquals(before, sq.morale, 1e-6f,
                 "killing a non-squad unit must not drain any squad's morale");

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -75,20 +74,20 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
-        squad.leaderId = leader.entityId;
+        long leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
+        squad.leaderId = leader;
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
 
         // Drive many waypoint advances: each iteration expires the dwell and
         // parks the squad on its current waypoint so squadHasArrived → a fresh
         // roll. Every rolled waypoint must land inside the anchor±radius box.
-        patrol.execute(leader.entityId, squad, sim);
+        patrol.execute(leader, squad, sim);
         for (int i = 0; i < 200; i++) {
             squad.patrolDwellTimer = 0f;
             squad.centroidX = squad.patrolWaypointX;
             squad.centroidY = squad.patrolWaypointY;
-            patrol.execute(leader.entityId, squad, sim);
+            patrol.execute(leader, squad, sim);
             assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
                             && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
                     "waypoint (" + squad.patrolWaypointX + "," + squad.patrolWaypointY
@@ -102,8 +101,8 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
-        squad.leaderId = leader.entityId;
+        long leader = sim.spawn(new EntitySpec("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
+        squad.leaderId = leader;
 
         // Simulate a posture switch: the squad carries a waypoint left by a
         // previous (wider) patrol, well outside this post's box. The squad is
@@ -114,7 +113,7 @@ public class GuardPostPatrolTest {
         squad.patrolDwellTimer = 0f;
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(leader.entityId, squad, sim);
+        patrol.execute(leader, squad, sim);
 
         assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
                         && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
@@ -127,23 +126,23 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Entity member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
-        squad.leaderId = member.entityId;
-        sim.world().setAttackRange(member.entityId, 10f);
-        sim.world().setCooldownTimer(member.entityId, 0.6f);
+        long member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY));
+        squad.leaderId = member;
+        sim.world().setAttackRange(member, 10f);
+        sim.world().setCooldownTimer(member, 0.6f);
 
-        Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY));
+        long enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 3, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(member.entityId, squad, sim);
+        patrol.execute(member, squad, sim);
 
-        assertEquals(0.6f, sim.world().cooldownTimer(member.entityId), 1e-6f,
+        assertEquals(0.6f, sim.world().cooldownTimer(member), 1e-6f,
                 "engage() must not decrement cooldownTimer itself anymore — "
                         + "the local decrement was one of the epic's double-tick bugs");
-        assertEquals(enemy.entityId, sim.combat().fireTargetId(member.entityId),
+        assertEquals(enemy, sim.combat().fireTargetId(member),
                 "in range + LoS + inside the leash writes a fire intent for the target");
         assertEquals(FireStance.STANCED.ordinal(),
-                sim.getRoster().entityWorld().getInt(member.entityId, sim.getRoster().components().COMBAT,
+                sim.getRoster().entityWorld().getInt(member, sim.getRoster().components().COMBAT,
                         BattleComponents.COMBAT_FIRE_STANCE),
                 "the authored intent carries the STANCED stance");
     }
@@ -162,18 +161,18 @@ public class GuardPostPatrolTest {
         // Member sits well outside the box (radius 5); leash can never exceed
         // the full box radius regardless of the odds tally, so any member
         // farther than that from the anchor is unconditionally outside it.
-        Entity member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX + 10, anchorY));
-        squad.leaderId = member.entityId;
-        sim.world().setAttackRange(member.entityId, 10f);
+        long member = sim.spawn(new EntitySpec("m", Faction.DEFENDER, UnitType.MARINE, anchorX + 10, anchorY));
+        squad.leaderId = member;
+        sim.world().setAttackRange(member, 10f);
 
-        Entity enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY));
+        long enemy = sim.spawn(new EntitySpec("e", Faction.MARINE, UnitType.MARINE, anchorX + 12, anchorY));
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
-        patrol.execute(member.entityId, squad, sim);
+        patrol.execute(member, squad, sim);
 
-        assertEquals(0L, sim.combat().fireTargetId(member.entityId),
+        assertEquals(0L, sim.combat().fireTargetId(member),
                 "outside the leash — no fire intent even though in range + LoS");
-        assertEquals(enemy.entityId, sim.world().targetId(member.entityId),
+        assertEquals(enemy, sim.world().targetId(member),
                 "the engaged target is still retained for when the leash allows firing again");
     }
 }

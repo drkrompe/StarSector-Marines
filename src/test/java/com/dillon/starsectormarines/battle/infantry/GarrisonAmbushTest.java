@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -124,7 +123,7 @@ public class GarrisonAmbushTest {
         // Put a defender member inside the room too, so the live roster reflects
         // a realistic squad layout (the relevance check itself only consults
         // squad.holdsFireUntilKillZone + the live units for "enemy known").
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6)
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6)
                 .squad(squad.id));
         sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
@@ -140,9 +139,9 @@ public class GarrisonAmbushTest {
         assertEquals(1, portalCount, "test prerequisite: single-portal room");
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+        long d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
                 .squad(squad.id));
-        Entity d2 = sim.spawn(new EntitySpec("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5)
+        long d2 = sim.spawn(new EntitySpec("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5)
                 .squad(squad.id));
         sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
@@ -165,9 +164,9 @@ public class GarrisonAmbushTest {
         assertEquals(2, portalCount, "test prerequisite: multi-portal room with two doorways");
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+        long d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
                 .squad(squad.id));
-        Entity d2 = sim.spawn(new EntitySpec("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5)
+        long d2 = sim.spawn(new EntitySpec("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5)
                 .squad(squad.id));
         sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 

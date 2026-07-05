@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -42,11 +41,11 @@ public class BreakLOSTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Entity marineAt(BattleSimulation sim, int x, int y, int squadId) {
+    private static long marineAt(BattleSimulation sim, int x, int y, int squadId) {
         return sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, x, y).squad(squadId));
     }
 
-    private static Entity defenderAt(BattleSimulation sim, int x, int y) {
+    private static long defenderAt(BattleSimulation sim, int x, int y) {
         return sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, x, y));
     }
 
@@ -75,17 +74,17 @@ public class BreakLOSTest {
         // rows 3..11, so row 2 is open across the entire column). Defender at
         // (10, 2) has LOS to the marine; findFallbackPosition must pick a
         // different (hidden) cell.
-        Entity marine = marineAt(sim, 2, 2, squadId);
-        sim.world().setFallbackCell(marine.entityId, -1, -1);
+        long marine = marineAt(sim, 2, 2, squadId);
+        sim.world().setFallbackCell(marine, -1, -1);
         defenderAt(sim, 11, 7);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
-        assertTrue(sim.world().fallbackCellX(marine.entityId) >= 0 && sim.world().fallbackCellY(marine.entityId) >= 0,
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
+        assertTrue(sim.world().fallbackCellX(marine) >= 0 && sim.world().fallbackCellY(marine) >= 0,
                 "BreakLOS must stash a destination cell on the unit");
         // Status is RUNNING if the picked cell differs from the start cell,
         // SUCCESS if findFallbackPosition decided the start cell was already
         // hidden (in which case the unit was effectively already safe).
-        boolean different = (sim.world().fallbackCellX(marine.entityId) != 2 || sim.world().fallbackCellY(marine.entityId) != 2);
+        boolean different = (sim.world().fallbackCellX(marine) != 2 || sim.world().fallbackCellY(marine) != 2);
         if (different) {
             assertEquals(ActionStatus.RUNNING, status,
                     "in-transit BreakLOS reports RUNNING while the member walks to its hidden cell");
@@ -102,18 +101,18 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 2, 2, squadId);
+        long marine = marineAt(sim, 2, 2, squadId);
         // Force "arrived" — fallback cell == current cell.
-        sim.world().setFallbackCell(marine.entityId, 2, 2);
+        sim.world().setFallbackCell(marine, 2, 2);
         defenderAt(sim, 11, 11);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.SUCCESS, status,
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
-        assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path");
-        assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f);
-        assertEquals(sim.world().cellX(marine.entityId), sim.world().renderX(marine.entityId), 1e-6f);
-        assertEquals(sim.world().cellY(marine.entityId), sim.world().renderY(marine.entityId), 1e-6f);
+        assertTrue(Paths.isEmpty(sim.world().path(marine)), "arrived → no path");
+        assertEquals(0f, sim.world().moveProgress(marine), 1e-6f);
+        assertEquals(sim.world().cellX(marine), sim.world().renderX(marine), 1e-6f);
+        assertEquals(sim.world().cellY(marine), sim.world().renderY(marine), 1e-6f);
     }
 
     @Test
@@ -126,16 +125,16 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 5, 7, squadId);
+        long marine = marineAt(sim, 5, 7, squadId);
         // Pre-cache a destination that's not the current cell.
-        sim.world().setFallbackCell(marine.entityId, 4, 7);
+        sim.world().setFallbackCell(marine, 4, 7);
         defenderAt(sim, 11, 7);
 
-        ActionStatus status = BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
+        ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status,
                 "pre-cached destination, not arrived → RUNNING");
-        assertEquals(4, sim.world().fallbackCellX(marine.entityId), "cached destination must not be recomputed mid-transit");
-        assertEquals(7, sim.world().fallbackCellY(marine.entityId));
+        assertEquals(4, sim.world().fallbackCellX(marine), "cached destination must not be recomputed mid-transit");
+        assertEquals(7, sim.world().fallbackCellY(marine));
     }
 
     @Test
@@ -150,14 +149,14 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Entity marine = marineAt(sim, 2, 2, squadId);
+        long marine = marineAt(sim, 2, 2, squadId);
         // Cached destination on the open side of the map — fully visible to
         // the defender at (5, 2). Pre-fix: held this cell forever.
-        sim.world().setFallbackCell(marine.entityId, 3, 2);
+        sim.world().setFallbackCell(marine, 3, 2);
         defenderAt(sim, 5, 2);
 
-        BreakLOS.INSTANCE.execute(marine.entityId, squad, sim);
-        boolean changed = (sim.world().fallbackCellX(marine.entityId) != 3 || sim.world().fallbackCellY(marine.entityId) != 2);
+        BreakLOS.INSTANCE.execute(marine, squad, sim);
+        boolean changed = (sim.world().fallbackCellX(marine) != 3 || sim.world().fallbackCellY(marine) != 2);
         assertTrue(changed,
                 "cached (3,2) was visible to defender at (5,2); refresh should have picked a new cell");
     }

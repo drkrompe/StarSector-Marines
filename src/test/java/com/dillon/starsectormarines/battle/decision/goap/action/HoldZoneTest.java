@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -114,8 +113,8 @@ public class HoldZoneTest {
         List<Long> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             // register so RoleAssigner's getCellX read routes through the registry
-            Entity m = sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4));
-            members.add(m.entityId);
+            long m = sim.spawn(new EntitySpec("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4));
+            members.add(m);
         }
 
         List<RoleAssigner.Slot<Long>> slots = hold.roles(squad, sim);
@@ -155,21 +154,21 @@ public class HoldZoneTest {
         Squad squad = new Squad(7, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Entity member = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
-        Entity target = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 6, 4));
+        long member = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 4));
+        long target = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 6, 4));
 
-        sim.world().setAttackRange(member.entityId, 10f);
-        sim.world().setCooldownTimer(member.entityId, 0.6f); // cooldown pending
+        sim.world().setAttackRange(member, 10f);
+        sim.world().setCooldownTimer(member, 0.6f); // cooldown pending
 
-        ActionStatus status = hold.execute(member.entityId, squad, sim);
+        ActionStatus status = hold.execute(member, squad, sim);
 
         assertEquals(ActionStatus.RUNNING, status);
-        assertEquals(target.entityId, sim.combat().fireTargetId(member.entityId),
+        assertEquals(target, sim.combat().fireTargetId(member),
                 "in range + LoS writes a fire intent even though the cooldown isn't ready yet");
         assertEquals(FireStance.STANCED.ordinal(),
-                sim.getRoster().entityWorld().getInt(member.entityId, sim.getRoster().components().COMBAT,
+                sim.getRoster().entityWorld().getInt(member, sim.getRoster().components().COMBAT,
                         BattleComponents.COMBAT_FIRE_STANCE));
-        assertTrue(!Paths.isEmpty(sim.world().path(member.entityId)),
+        assertTrue(!Paths.isEmpty(sim.world().path(member)),
                 "a cooldown-pending tick must still fall through to the creep-toward-firing-position movement block");
     }
 }

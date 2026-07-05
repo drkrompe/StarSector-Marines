@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -73,7 +72,7 @@ public class SecureObjectiveZoneTest {
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);
         // Squad member exists but with no assignedObjective.
-        Entity u = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long u = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1));
 
         assertEquals(0f, SecureObjectiveZone.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -87,7 +86,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
@@ -103,7 +102,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
@@ -119,7 +118,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
@@ -148,7 +147,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
@@ -170,7 +169,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
@@ -191,7 +190,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Entity planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
+        long planter = sim.spawn(new EntitySpec("p1", Faction.MARINE, UnitType.MARINE, 2, 2)
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));

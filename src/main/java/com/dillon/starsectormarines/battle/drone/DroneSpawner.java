@@ -36,14 +36,14 @@ public final class DroneSpawner {
      * join the existing squad; if its leader is dead, the new drone takes
      * over.
      */
-    public static Entity tryLaunch(long hub, BattleSimulation sim) {
-        if (!sim.world().isAlive(hub)) return null;
+    public static long tryLaunch(long hub, BattleSimulation sim) {
+        if (!sim.world().isAlive(hub)) return 0L;
         NavigationGrid grid = sim.getGrid();
         World world = sim.world();
         int hubX = world.cellX(hub);
         int hubY = world.cellY(hub);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
-        if (cell == null) return null;
+        if (cell == null) return 0L;
         String id = "drone-" + sim.identity().name(hub) + "-" + sim.hubState().incrementDronesLaunched(hub);
         EntitySpec droneSpec = Drone.create(id, sim.identity().faction(hub), cell[0], cell[1], hub);
 
@@ -66,15 +66,15 @@ public final class DroneSpawner {
         // queueSpawn instead of inline addUnit — DroneHubBehavior runs inside
         // UPDATE_UNITS, which Phase B will fork-join. APPLY_SPAWNS drains the
         // queue before the next phase reads units.
-        Entity drone = sim.queueSpawn(droneSpec);
+        long drone = sim.queueSpawn(droneSpec);
 
         // Designate the drone as squad leader on first launch; on later launches take
         // over only if the current leader is dead/gone. In the parallel path the drone
-        // is queued (entityId still 0 here), so leaderId stays 0 until a serial spawn
-        // assigns a real id — matching the pre-spec behavior.
+        // is queued (queueSpawn returns 0L here), so leaderId stays 0 until a serial
+        // spawn assigns a real id — matching the pre-spec behavior.
         Squad squad = sim.getSquad(squadId);
         if (newSquad || sim.resolveUnit(squad.leaderId) == 0L) {
-            squad.leaderId = drone.entityId;
+            squad.leaderId = drone;
         }
         return drone;
     }

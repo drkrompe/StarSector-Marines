@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -45,10 +44,10 @@ public class DroneCrashSystemTest {
     }
 
     /** A drone homed to a hub kept alive far away — so killing the drone doesn't end the battle. */
-    private static Entity parkArenaWithDrone(BattleSimulation sim) {
+    private static long parkArenaWithDrone(BattleSimulation sim) {
         sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
-        Entity keepAlive = sim.spawn(DroneHub.create("hub", Faction.DEFENDER, 38, 38));
-        return sim.spawn(Drone.create("d0", Faction.DEFENDER, 20, 20, keepAlive.entityId));
+        long keepAlive = sim.spawn(DroneHub.create("hub", Faction.DEFENDER, 38, 38));
+        return sim.spawn(Drone.create("d0", Faction.DEFENDER, 20, 20, keepAlive));
     }
 
     /** Whether {@code id} carries the world's CRASHING component (the post-fold presence check). */
@@ -73,17 +72,17 @@ public class DroneCrashSystemTest {
     @Test
     public void shotDownDroneGetsACrashingComponentThenSettlesIntoAWreck() {
         BattleSimulation sim = openArena(40, 40);
-        Entity drone = parkArenaWithDrone(sim);
+        long drone = parkArenaWithDrone(sim);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
-        sim.applyDamage(drone.entityId, 100_000f, 20f, 20f);
-        assertFalse(sim.world().isAlive(drone.entityId), "lethal hit kills the drone");
+        sim.applyDamage(drone, 100_000f, 20f, 20f);
+        assertFalse(sim.world().isAlive(drone), "lethal hit kills the drone");
         // Buffered: no component until the death mailbox drains in the tick.
-        assertFalse(isCrashing(sim, drone.entityId),
+        assertFalse(isCrashing(sim, drone),
                 "the CrashingComponent component attaches on the death drain, not inline");
 
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(isCrashing(sim, drone.entityId),
+        assertTrue(isCrashing(sim, drone),
                 "drain → the dead drone gets a CrashingComponent component (the crash started)");
         assertEquals(wrecksBefore, sim.getSmokingWrecks().size(),
                 "no wreck yet — the drone is still falling");
@@ -93,7 +92,7 @@ public class DroneCrashSystemTest {
         for (int i = 0; i < 30; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertFalse(isCrashing(sim, drone.entityId),
+        assertFalse(isCrashing(sim, drone),
                 "on impact the CrashingComponent component is detached (crash done)");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
                 "a smoking wreck is dropped at the impact site");
@@ -102,13 +101,13 @@ public class DroneCrashSystemTest {
     @Test
     public void liveDroneCarriesKinematicsAndTheCrashDetachesIt() {
         BattleSimulation sim = openArena(40, 40);
-        Entity drone = parkArenaWithDrone(sim);
+        long drone = parkArenaWithDrone(sim);
 
         // Alive: the drone flies, so it carries a KINEMATICS body — the SAME
         // instance its ctor positioned at the spawn cell center (20.5, 20.5),
         // now world-resident and read by id.
-        assertTrue(hasKinematics(sim, drone.entityId), "a live drone has KINEMATICS");
-        AirBody body = sim.world().kinematics(drone.entityId);
+        assertTrue(hasKinematics(sim, drone), "a live drone has KINEMATICS");
+        AirBody body = sim.world().kinematics(drone);
         assertNotNull(body, "KINEMATICS round-trips the seeded AirBody");
         assertEquals(20.5f, body.x, 1e-4f, "body seeded at the spawn cell center x");
         assertEquals(20.5f, body.y, 1e-4f, "body seeded at the spawn cell center y");
@@ -117,30 +116,30 @@ public class DroneCrashSystemTest {
         // KINEMATICS (it rode the corpse transmute, off the corpseRemove mask) to
         // seed the CrashingComponent, then DETACHES KINEMATICS — the body's
         // lifecycle has moved to the crash component (a corpse doesn't fly).
-        sim.applyDamage(drone.entityId, 100_000f, 20f, 20f);
+        sim.applyDamage(drone, 100_000f, 20f, 20f);
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(isCrashing(sim, drone.entityId), "the dead drone is crashing");
-        assertFalse(hasKinematics(sim, drone.entityId),
+        assertTrue(isCrashing(sim, drone), "the dead drone is crashing");
+        assertFalse(hasKinematics(sim, drone),
                 "KINEMATICS detached on crash — the CrashingComponent owns the body now");
 
         // Read-then-detach identity: the crash took over the EXACT body instance,
         // not a copy — so the fall animates from where the drone actually was.
         CrashingComponent crash = (CrashingComponent) sim.getEntityWorld().getObject(
-                drone.entityId, sim.getBattleComponents().CRASHING, BattleComponents.CRASHING_STATE);
+                drone, sim.getBattleComponents().CRASHING, BattleComponents.CRASHING_STATE);
         assertSame(body, crash.body, "the crash reuses the drone's body instance, not a copy");
     }
 
     @Test
     public void liveDroneNeverGetsACrashingComponent() {
         BattleSimulation sim = openArena(40, 40);
-        Entity drone = parkArenaWithDrone(sim);
+        long drone = parkArenaWithDrone(sim);
 
         for (int i = 0; i < 5; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(sim.world().isAlive(drone.entityId), "no damage → still flying");
-        assertFalse(isCrashing(sim, drone.entityId), "a live drone is never crashing");
+        assertTrue(sim.world().isAlive(drone), "no damage → still flying");
+        assertFalse(isCrashing(sim, drone), "a live drone is never crashing");
         assertEquals(0, crashingCount(sim), "no crash components for an undamaged arena");
     }
 }

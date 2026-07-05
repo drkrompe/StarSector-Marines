@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Phase-1 foundation of the air-into-world epic
  * ({@code roadmap/air/air-entities-into-world.md}): {@link UnitRosterService#allocateAir}
  * mints an air entity from the SINGLE id authority (shared with ground
- * {@link UnitRosterService#allocate}, so a shuttle id can never collide with a
+ * {@link UnitRosterService#spawn}, so a shuttle id can never collide with a
  * ground id) and adopts it <em>world-only</em> — present in the {@code EntityWorld}
  * but absent from the dense ground roster, so every grid walk skips it for free.
  * Plus the {@link World} air-accessor round-trips: has-gated null reads (never a
@@ -45,9 +45,9 @@ public class AirEntityAllocationTest {
     @Test
     public void allocateAirSharesTheSingleIdMintWithGroundAllocateAndNeverCollides() {
         UnitRosterService r = roster();
-        long g1 = r.spawn(ground("g1")).entityId;
+        long g1 = r.spawn(ground("g1"));
         long air = r.allocateAir(airArchetype(r));
-        long g2 = r.spawn(ground("g2")).entityId;
+        long g2 = r.spawn(ground("g2"));
         // Strictly monotonic across the one nextId authority — air interleaves the
         // ground ids with no overlap (the dual-mint trap the epic closes).
         assertTrue(g1 < air && air < g2,

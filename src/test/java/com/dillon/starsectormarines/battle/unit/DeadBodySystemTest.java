@@ -37,7 +37,7 @@ public class DeadBodySystemTest {
     }
 
     /** A target DEFENDER to kill, with a live unit of each faction kept far away so the battle doesn't end. */
-    private static Entity parkArenaWithTarget(BattleSimulation sim) {
+    private static long parkArenaWithTarget(BattleSimulation sim) {
         sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
         return sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 20, 20));
@@ -54,10 +54,10 @@ public class DeadBodySystemTest {
     @Test
     public void killedUnitGetsACorpseEntityOnTheDeathDrain() {
         BattleSimulation sim = openArena(40, 40);
-        Entity target = parkArenaWithTarget(sim);
-        long id = target.entityId;
+        long target = parkArenaWithTarget(sim);
+        long id = target;
 
-        sim.applyDamage(target.entityId, 100_000f, 20f, 20f);
+        sim.applyDamage(target, 100_000f, 20f, 20f);
         assertFalse(sim.world().isAlive(id), "lethal hit kills the unit");
         // Buffered: the corpse spawns when the death mailbox drains in the tick.
         assertEquals(0, corpseCount(sim), "the corpse spawns on the death drain, not inline");
@@ -94,12 +94,12 @@ public class DeadBodySystemTest {
     @Test
     public void corpseFreezesTheRenderPositionWhereTheUnitFell() {
         BattleSimulation sim = openArena(40, 40);
-        Entity target = parkArenaWithTarget(sim);
-        long id = target.entityId;
-        float deathX = sim.world().renderX(target.entityId);
-        float deathY = sim.world().renderY(target.entityId);
+        long target = parkArenaWithTarget(sim);
+        long id = target;
+        float deathX = sim.world().renderX(target);
+        float deathY = sim.world().renderY(target);
 
-        sim.applyDamage(target.entityId, 100_000f, 20f, 20f);
+        sim.applyDamage(target, 100_000f, 20f, 20f);
         sim.advance(BattleSimulation.TICK_DT);
 
         // The unit is gone from the live registry...

@@ -3,7 +3,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -47,10 +46,10 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
 
         // Marine inside KILL_ZONE_RANGE_CELLS (8). Open floor → LOS clear.
-        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
+        long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
 
         // Drive a few sim ticks. Each tick the alert-update pass increments
         // killZoneLosTicks (capped at the threshold).
@@ -92,7 +91,7 @@ public class KillZoneIntegrationTest {
         // Pre-set the counter to half the threshold to simulate prior ticks.
         defSquad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD / 2;
 
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
         // No marines anywhere → no close-LOS sighting this tick → counter resets.
 
         sim.advance(1.0f / 30f);
@@ -110,8 +109,8 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = false;
 
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
-        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
+        long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 10, 5));
 
         for (int i = 0; i < 10; i++) {
             sim.advance(1.0f / 30f);
@@ -136,20 +135,20 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
 
-        Entity defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5).squad(defSquadId));
         // Tank up so the marine's return fire doesn't kill us before the
         // ambush-blown threshold lands — the accumulator only ticks while at
         // least one squadmate is alive, and a dead squad short-circuits the
         // sustained-fire scan to nothing. Set after addUnit — hp/maxHp are
         // registry-backed once allocated.
-        sim.world().setHp(defender.entityId, 1_000_000f);
-        sim.world().setMaxHp(defender.entityId, 1_000_000f);
+        sim.world().setHp(defender, 1_000_000f);
+        sim.world().setMaxHp(defender, 1_000_000f);
         // Marine 12 cells away — well outside KILL_ZONE_RANGE_CELLS (8) so
         // the existing proximity gate would never trip. The marine's actual
         // shots don't matter for this test — we control the under-fire signal
         // via postShot below — but the marine has to exist so the
         // EliminateFactionObjective doesn't auto-complete the battle.
-        Entity marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 17, 5));
+        long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 17, 5));
 
         float dt = 1.0f / 30f;
         int totalTicks = (int) Math.ceil((SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);
@@ -159,8 +158,8 @@ public class KillZoneIntegrationTest {
             // "shot landed near me" distance check miss. Aim at wherever the
             // defender is right now and the LoS test from the marine's cell
             // (17,5) to that point stays clear on this open arena.
-            float toCenterX = sim.world().cellX(defender.entityId) + 0.5f;
-            float toCenterY = sim.world().cellY(defender.entityId) + 0.5f;
+            float toCenterX = sim.world().cellX(defender) + 0.5f;
+            float toCenterY = sim.world().cellY(defender) + 0.5f;
             sim.postShot(new ShotEvent(17.5f, 5.5f, toCenterX, toCenterY, true, Faction.MARINE, 0.1f));
             sim.advance(dt);
         }

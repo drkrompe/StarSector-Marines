@@ -36,7 +36,7 @@ public class CombatServiceTest {
     @Test
     public void allocateSeedsThePrimaryWeaponFromTheUnitSeed() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;
+        long id = r.spawn(unit("u"));
         CombatService combat = r.combat();
         // seedPrimaryWeapon set the weapon ref only (no stat derivation) — the
         // EntitySpec equivalent is the post-spawn setter, not .primaryWeapon()
@@ -52,7 +52,7 @@ public class CombatServiceTest {
     @Test
     public void primaryWeaponDefaultsToNullWhenUnseeded() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;   // no seedPrimaryWeapon set
+        long id = r.spawn(unit("u"));   // no seedPrimaryWeapon set
 
         // A combatant with no per-weapon profile (the militia/alien/turret shape):
         // the OBJECT column appends null, so the getter reads null — the
@@ -63,7 +63,7 @@ public class CombatServiceTest {
     @Test
     public void setterHitsTheSharedWorldSlot() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;
+        long id = r.spawn(unit("u"));
         CombatService combat = r.combat();
 
         // The deboard-loadout seam: setPrimaryWeapon writes the same column the
@@ -75,7 +75,7 @@ public class CombatServiceTest {
     @Test
     public void isFailLoudOnceCombatIsGoneOrTheIdIsUnknown() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;
+        long id = r.spawn(unit("u"));
         CombatService combat = r.combat();
 
         // The corpse transmute removes COMBAT (a corpse does not fight) — reads are

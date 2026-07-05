@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -52,7 +51,7 @@ public class UnitRenderServiceLiveSweepTest {
      * bar, no footprint, no death pose) — the combination that isolates every
      * assertion below to {@code sweepLiveSprites} alone.
      */
-    private static Entity spawnSubject(BattleSimulation sim, int cellX, int cellY) {
+    private static long spawnSubject(BattleSimulation sim, int cellX, int cellY) {
         return sim.spawn(new EntitySpec("subject", Faction.MARINE, UnitType.CIVILIAN, cellX, cellY));
     }
 
@@ -90,12 +89,12 @@ public class UnitRenderServiceLiveSweepTest {
     @Test
     public void fullyDrainedCorpseEmitsNothingFromTheLiveSweep() {
         BattleSimulation sim = openArena(40, 40);
-        Entity subject = spawnSubject(sim, 10, 10);
+        long subject = spawnSubject(sim, 10, 10);
 
-        sim.applyDamage(subject.entityId, 100_000f, 1f, 0f);
+        sim.applyDamage(subject, 100_000f, 1f, 0f);
         sim.advance(BattleSimulation.TICK_DT); // drains the death mailbox -> corpse transmute
 
-        assertFalse(sim.getRoster().isLive(subject.entityId), "the unit is gone from the roster");
+        assertFalse(sim.getRoster().isLive(subject), "the unit is gone from the roster");
         assertEquals(0, collectUnitsLayer(sim),
                 "a fully-transmuted corpse's entity no longer matches liveSprites (lacks HEALTH), "
                         + "so the live sweep draws nothing for it (the dead sweep is also silent here: "
@@ -105,7 +104,7 @@ public class UnitRenderServiceLiveSweepTest {
     @Test
     public void releasedButNotYetTransmutedRowEmitsNothingFromTheLiveSweep() {
         BattleSimulation sim = openArena(40, 40);
-        Entity subject = spawnSubject(sim, 10, 10);
+        long subject = spawnSubject(sim, 10, 10);
 
         // Serial applyDamage resolves inline (DamageResolver.resolve): HEALTH.hp goes
         // <= 0 and the roster releases the dense-array slot SYNCHRONOUSLY, but the
@@ -117,8 +116,8 @@ public class UnitRenderServiceLiveSweepTest {
         // FogOfWarService.getUnitVisibility tolerantly reads as VIS_VISIBLE — so the
         // hp-gate (not the visibility gate) is the only thing standing between this
         // row and a stale draw.
-        sim.applyDamage(subject.entityId, 100_000f, 1f, 0f);
-        assertFalse(sim.getRoster().isLive(subject.entityId),
+        sim.applyDamage(subject, 100_000f, 1f, 0f);
+        assertFalse(sim.getRoster().isLive(subject),
                 "serial applyDamage releases the roster slot inline, before any death drain");
 
         assertEquals(0, collectUnitsLayer(sim),

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -113,7 +112,7 @@ public class GarrisonCordonTest {
         var posts = guardPostsForRoom(sim);
         // Pick the first post and place the defender across the room from it.
         var post = posts.get(0);
-        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7)
+        long d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7)
                 .squad(squad.id));
 
         // Verify the guard cell is inside the defender zone (sanity for the test fixture).
@@ -125,15 +124,15 @@ public class GarrisonCordonTest {
         // Attach a plan that puts d1 in the slot for the chosen post.
         SquadPlan.Step step = new SquadPlan.Step(cordon);
         List<Long> bucket = new ArrayList<>(1);
-        bucket.add(d1.entityId);
+        bucket.add(d1);
         step.assignments.put(post.slotName(), bucket);
         // Empty other slot.
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
         squad.currentPlan = new SquadPlan(List.of(step));
 
-        cordon.execute(d1.entityId, squad, sim);
+        cordon.execute(d1, squad, sim);
 
-        int[] path = sim.world().path(d1.entityId);
+        int[] path = sim.world().path(d1);
         assertNotEquals(0, Paths.cellCount(path),
                 "transit branch must queue a path toward the guard cell");
         // Final cell of the path should be the guard cell.
@@ -150,34 +149,34 @@ public class GarrisonCordonTest {
         var post = posts.get(0);
 
         // Defender already on the guard cell.
-        Entity d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY)
+        long d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY)
                 .squad(squad.id));
 
         // Place an attacker visible from the guard cell (just inside the room).
         // The guard cell is one cardinal step inside from the doorway, so a
         // sibling cell two off should usually be in LoS.
-        Entity attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2));
-        assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1.entityId), sim.world().cellY(d1.entityId), sim.world().cellX(attacker.entityId), sim.world().cellY(attacker.entityId)),
+        long attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2));
+        assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1), sim.world().cellY(d1), sim.world().cellX(attacker), sim.world().cellY(attacker)),
                 "test prerequisite: attacker must be visible from the guard cell");
 
         GarrisonCordon cordon = new GarrisonCordon(posts);
         SquadPlan.Step step = new SquadPlan.Step(cordon);
         List<Long> bucket = new ArrayList<>(1);
-        bucket.add(d1.entityId);
+        bucket.add(d1);
         step.assignments.put(post.slotName(), bucket);
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());
         squad.currentPlan = new SquadPlan(List.of(step));
 
-        cordon.execute(d1.entityId, squad, sim);
+        cordon.execute(d1, squad, sim);
 
-        assertEquals(attacker.entityId, sim.combat().fireTargetId(d1.entityId),
+        assertEquals(attacker, sim.combat().fireTargetId(d1),
                 "on-post holder with visible enemy in range → authors a fire intent (opportunistic, no portal trigger required)");
 
         // FiringSystem (not execute() itself) applies the cooldown gate and
         // fires — drive it directly to observe the actual shot.
         new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
-        assertTrue(sim.world().cooldownTimer(d1.entityId) > 0f,
+        assertTrue(sim.world().cooldownTimer(d1) > 0f,
                 "on-post holder with visible enemy in range → must fire (opportunistic, no portal trigger required)");
         assertTrue(sim.getShotsThisFrame().size() > 0,
                 "shot event must be emitted for the opportunistic fire");

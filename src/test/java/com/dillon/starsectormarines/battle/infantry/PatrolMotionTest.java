@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -51,7 +50,7 @@ public class PatrolMotionTest {
         return new BattleSimulation(grid, topology);
     }
 
-    private static Entity add(BattleSimulation sim, String id, int x, int y) {
+    private static long add(BattleSimulation sim, String id, int x, int y) {
         return sim.spawn(new EntitySpec(id, Faction.MARINE, UnitType.MARINE, x, y));
     }
 
@@ -60,19 +59,19 @@ public class PatrolMotionTest {
         // Control: with a live leader, a non-leader member must NOT drain the
         // shared dwell — that's the once-per-tick guarantee the gate exists for.
         BattleSimulation sim = openArena();
-        Entity leader = add(sim, "L", 3, 3);
-        Entity member = add(sim, "m", 4, 3);
+        long leader = add(sim, "L", 3, 3);
+        long member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 2;
-        squad.leaderId = leader.entityId;
+        squad.leaderId = leader;
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(member, squad, sim, KEEP, false);
         assertEquals(4.0f, squad.patrolDwellTimer, 1e-6,
                 "a non-leader must not drain the dwell while the leader is alive");
 
-        PatrolMotion.advance(leader.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(leader, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "the live leader drains the dwell as before");
     }
@@ -83,14 +82,14 @@ public class PatrolMotionTest {
         // matches the leader gate, so without the fallback the dwell would never
         // expire and the squad would park in onHold forever (the SQ-96 stall).
         BattleSimulation sim = openArena();
-        Entity member = add(sim, "m", 4, 3);
+        long member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = 0L;
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(member, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "a leaderless squad must still drain its dwell so patrol never freezes");
     }
@@ -100,14 +99,14 @@ public class PatrolMotionTest {
         // leaderId points at a unit that isn't live (a death path that didn't
         // promote). resolveUnit returns null → same fallback as the 0L case.
         BattleSimulation sim = openArena();
-        Entity member = add(sim, "m", 4, 3);
+        long member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = 999_999L;   // never-registered id → resolves to null
         squad.patrolDwellTimer = 4.0f;
         squad.patrolWaypointX = 3; squad.patrolWaypointY = 3;
 
-        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(member, squad, sim, KEEP, false);
         assertTrue(squad.patrolDwellTimer < 4.0f,
                 "a stale (dead) leaderId must still drain the dwell, not freeze the patrol");
     }
@@ -119,15 +118,15 @@ public class PatrolMotionTest {
         // invalidate the waypoint so needsNew re-picks next tick rather than
         // leaving the squad parked on an unreachable cell forever.
         BattleSimulation sim = walledRooms();
-        Entity member = add(sim, "m", 2, 4);
+        long member = add(sim, "m", 2, 4);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
-        squad.leaderId = member.entityId;
+        squad.leaderId = member;
         squad.patrolDwellTimer = 0f;          // skip the dwell → hit the move branch
         squad.patrolWaypointX = 9; squad.patrolWaypointY = 4;  // east room — unreachable
         squad.centroidX = 2; squad.centroidY = 4;              // far from waypoint → not "arrived"
 
-        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(member, squad, sim, KEEP, false);
 
         assertTrue(squad.patrolWaypointX < 0 && squad.patrolWaypointY < 0,
                 "an unreachable waypoint must be invalidated so the patrol re-rolls instead of freezing");
@@ -138,15 +137,15 @@ public class PatrolMotionTest {
         // Same setup but the waypoint is in the SAME room — reachable. The
         // waypoint must survive (no spurious re-roll) and the member moves.
         BattleSimulation sim = walledRooms();
-        Entity member = add(sim, "m", 2, 4);
+        long member = add(sim, "m", 2, 4);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
-        squad.leaderId = member.entityId;
+        squad.leaderId = member;
         squad.patrolDwellTimer = 0f;
         squad.patrolWaypointX = 4; squad.patrolWaypointY = 7;  // west room — reachable
         squad.centroidX = 2; squad.centroidY = 4;
 
-        PatrolMotion.advance(member.entityId, squad, sim, KEEP, false);
+        PatrolMotion.advance(member, squad, sim, KEEP, false);
 
         assertEquals(4, squad.patrolWaypointX, "a reachable waypoint must not be re-rolled");
         assertEquals(7, squad.patrolWaypointY, "a reachable waypoint must not be re-rolled");
@@ -158,19 +157,19 @@ public class PatrolMotionTest {
         // firing inline, and no longer touches cooldownTimer itself (the old
         // inline decrement was one of the epic's double-tick bugs).
         BattleSimulation sim = openArena();
-        Entity marine = add(sim, "m", 3, 3);
-        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 5, 3));
-        sim.world().setAttackRange(marine.entityId, 10f);
-        sim.world().setCooldownTimer(marine.entityId, 0.6f);
+        long marine = add(sim, "m", 3, 3);
+        long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 5, 3));
+        sim.world().setAttackRange(marine, 10f);
+        sim.world().setCooldownTimer(marine, 0.6f);
 
-        PatrolMotion.fireIfAble(marine.entityId, sim);
+        PatrolMotion.fireIfAble(marine, sim);
 
-        assertEquals(0.6f, sim.world().cooldownTimer(marine.entityId), 1e-6f,
+        assertEquals(0.6f, sim.world().cooldownTimer(marine), 1e-6f,
                 "fireIfAble must not decrement cooldownTimer itself anymore");
-        assertEquals(enemy.entityId, sim.combat().fireTargetId(marine.entityId),
+        assertEquals(enemy, sim.combat().fireTargetId(marine),
                 "an in-range, visible enemy gets a fire intent written");
         assertEquals(FireStance.MOVING.ordinal(),
-                sim.getRoster().entityWorld().getInt(marine.entityId, sim.getRoster().components().COMBAT,
+                sim.getRoster().entityWorld().getInt(marine, sim.getRoster().components().COMBAT,
                         BattleComponents.COMBAT_FIRE_STANCE),
                 "the authored intent carries the MOVING stance");
     }
@@ -178,13 +177,13 @@ public class PatrolMotionTest {
     @Test
     public void fireIfAbleHoldsIntentWhenOutOfRange() {
         BattleSimulation sim = openArena();
-        Entity marine = add(sim, "m", 3, 3);
-        Entity enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 9, 3));
-        sim.world().setAttackRange(marine.entityId, 2f); // enemy is 6 cells away
+        long marine = add(sim, "m", 3, 3);
+        long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 9, 3));
+        sim.world().setAttackRange(marine, 2f); // enemy is 6 cells away
 
-        PatrolMotion.fireIfAble(marine.entityId, sim);
+        PatrolMotion.fireIfAble(marine, sim);
 
-        assertEquals(0L, sim.combat().fireTargetId(marine.entityId),
+        assertEquals(0L, sim.combat().fireTargetId(marine),
                 "an out-of-range enemy must not get a fire intent");
     }
 }

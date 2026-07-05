@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
@@ -65,14 +64,14 @@ public class RecaptureTargetServiceTest {
         squad.assignedNode = node;
         squad.originalSize = original;
         squad.aliveMembers = alive;
-        Entity leader = sim.spawn(new EntitySpec("garr-" + node.anchorX + "-" + node.anchorY,
+        long leader = sim.spawn(new EntitySpec("garr-" + node.anchorX + "-" + node.anchorY,
                 Faction.DEFENDER, UnitType.MILITIA, node.anchorX, node.anchorY).squad(sid));
-        TestUnits.kill(sim, leader.entityId);
+        TestUnits.kill(sim, leader);
         return squad;
     }
 
     /** A lone alive defender at {@code (x,y)} — contributes biome presence only (no squad/node assignment). */
-    private static Entity presence(BattleSimulation sim, String id, int x, int y) {
+    private static long presence(BattleSimulation sim, String id, int x, int y) {
         return sim.spawn(new EntitySpec(id, Faction.DEFENDER, UnitType.MILITIA, x, y));
     }
 
@@ -132,11 +131,11 @@ public class RecaptureTargetServiceTest {
                 new TacticalMap(List.of(city)), biomes);
         RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
-        Entity defender = presence(sim, "city-def", 10, 55);
+        long defender = presence(sim, "city-def", 10, 55);
         sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "slice seeds contested with a defender present");
 
-        TestUnits.kill(sim, defender.entityId);
+        TestUnits.kill(sim, defender);
         sys.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "still contested 1 tick after the last defender died (debounce)");
         sys.tick(TICK, sim);

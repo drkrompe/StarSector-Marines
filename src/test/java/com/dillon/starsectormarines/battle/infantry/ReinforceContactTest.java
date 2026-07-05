@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -40,10 +39,10 @@ public class ReinforceContactTest {
     }
 
     private static Squad addDefenderSquad(BattleSimulation sim, float cx, float cy) {
-        Entity leader = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE,
+        long leader = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE,
                 Math.round(cx), Math.round(cy)));
-        int sid = sim.mintSquad(Faction.DEFENDER, leader.entityId);
-        sim.squad().assignSquad(leader.entityId, sid);
+        int sid = sim.mintSquad(Faction.DEFENDER, leader);
+        sim.squad().assignSquad(leader, sid);
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 4;
         squad.originalSize = 4;
@@ -70,9 +69,9 @@ public class ReinforceContactTest {
     @Test
     public void relevanceZeroForMarines() {
         BattleSimulation sim = openSim();
-        Entity leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 35, 5));
-        int sid = sim.mintSquad(Faction.MARINE, leader.entityId);
-        sim.squad().assignSquad(leader.entityId, sid);
+        long leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 35, 5));
+        int sid = sim.mintSquad(Faction.MARINE, leader);
+        sim.squad().assignSquad(leader, sid);
         Squad s = sim.getSquad(sid);
         s.alertLevel = SquadAlertLevel.SUSPICIOUS;
         s.lastSeenEnemyX = 20;

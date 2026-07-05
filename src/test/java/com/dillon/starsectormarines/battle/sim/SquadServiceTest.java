@@ -35,7 +35,7 @@ public class SquadServiceTest {
     @Test
     public void allocateSeedsSquadMembershipFromTheSeed() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u").squad(7)).entityId;
+        long id = r.spawn(unit("u").squad(7));
         SquadService squad = r.squad();
 
         assertTrue(squad.hasSquad(id));
@@ -45,7 +45,7 @@ public class SquadServiceTest {
     @Test
     public void aSoloUnitCarriesNoSquadComponent() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;   // seedSquadId defaults to NO_SQUAD
+        long id = r.spawn(unit("u"));   // seedSquadId defaults to NO_SQUAD
         // Presence IS membership: a NO_SQUAD seed attaches no component, so the
         // sentinel is never a stored value — hasSquad just reads false.
         assertFalse(r.squad().hasSquad(id));
@@ -54,7 +54,7 @@ public class SquadServiceTest {
     @Test
     public void assignSquadJoinsAFreshUnit() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;   // starts solo
+        long id = r.spawn(unit("u"));   // starts solo
         SquadService squad = r.squad();
         assertFalse(squad.hasSquad(id));
 
@@ -68,7 +68,7 @@ public class SquadServiceTest {
     @Test
     public void squadIdIsFailLoudOnANonMemberOrUnknownId() {
         UnitRosterService r = roster();
-        long id = r.spawn(unit("u")).entityId;   // solo — no SQUAD component
+        long id = r.spawn(unit("u"));   // solo — no SQUAD component
         SquadService squad = r.squad();
 
         assertFalse(squad.hasSquad(id));

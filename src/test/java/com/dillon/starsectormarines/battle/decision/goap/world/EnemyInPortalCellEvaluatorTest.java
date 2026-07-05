@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -59,7 +58,7 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         // Enemy combatant standing exactly on the doorway cell.
-        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
+        long attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertTrue(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -75,7 +74,7 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         // Enemy one cell away from the doorway — same row, one column off.
-        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 6, 5));
+        long attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 6, 5));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),
@@ -106,7 +105,7 @@ public class EnemyInPortalCellEvaluatorTest {
 
         // A friendly on the doorway must not trigger — the predicate is
         // "enemy in portal cell," scoped by faction.
-        Entity friendly = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, WALL_COL, 5)
+        long friendly = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, WALL_COL, 5)
                 .squad(squad.id));
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
@@ -121,8 +120,8 @@ public class EnemyInPortalCellEvaluatorTest {
         Squad squad = defenderSquad(1);
         squad.chokePointPortalId = portalId;
 
-        Entity attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
-        TestUnits.kill(sim, attacker.entityId);
+        long attacker = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5));
+        TestUnits.kill(sim, attacker);
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),

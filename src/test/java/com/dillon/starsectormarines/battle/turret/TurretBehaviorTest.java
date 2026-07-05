@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -34,33 +33,33 @@ public class TurretBehaviorTest {
     @Test
     public void recoilTimerAgesEachUpdateWhenNoTargetInRange() {
         BattleSimulation sim = openArena(20, 20);
-        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
 
-        TurretBehavior.INSTANCE.update(turret.entityId, sim);
+        TurretBehavior.INSTANCE.update(turret, sim);
 
         // Seeded to 1f (past the renderer's recoil window); one update ages it
         // by exactly one TICK_DT since nothing fired to reset it to 0.
-        assertEquals(1f + BattleSimulation.TICK_DT, sim.turretState().recoilTimer(turret.entityId), 1e-4f,
+        assertEquals(1f + BattleSimulation.TICK_DT, sim.turretState().recoilTimer(turret), 1e-4f,
                 "no target in range → recoil timer just ages, doesn't reset");
     }
 
     @Test
     public void burstKindLatchesRemainingRoundsIntoTurretStateOnFire() {
         BattleSimulation sim = openArena(40, 40);
-        Entity turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
         // Due north of the turret (same cellX): bearing-to-target is exactly 0°,
         // matching the turret's zero-init facingDegrees, so the fire-arc gate
         // passes on the very first update with no slew needed. Well within
         // VULCAN's 22-cell range.
-        Entity enemy = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 20));
+        long enemy = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 20));
 
-        TurretBehavior.INSTANCE.update(turret.entityId, sim);
+        TurretBehavior.INSTANCE.update(turret, sim);
 
-        long id = turret.entityId;
+        long id = turret;
         assertEquals(TurretKind.VULCAN.burstCount - 1, sim.turretState().burstRemaining(id),
                 "the trigger pull fires round 1; the burst pump latches the remaining rounds");
         assertEquals(TurretKind.VULCAN.burstSpacing, sim.turretState().burstTimer(id), 1e-4f);
-        assertEquals(enemy.entityId, sim.turretState().burstTargetId(id),
+        assertEquals(enemy, sim.turretState().burstTargetId(id),
                 "the burst locks onto the acquired target's id");
         assertEquals(0f, sim.turretState().recoilTimer(id), 1e-4f,
                 "firing resets the recoil timer so the renderer's slide restarts");

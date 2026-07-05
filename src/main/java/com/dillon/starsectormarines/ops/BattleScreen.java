@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Entity;
+import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -855,11 +855,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }
         }
-        for (Entity u : sim.getDeathsThisFrame()) {
-            if (u.faction == Faction.MARINE) {
+        LongList deaths = sim.getDeathsThisFrame();
+        for (int i = 0, n = deaths.size(); i < n; i++) {
+            long u = deaths.getLong(i);
+            if (sim.identity().faction(u) == Faction.MARINE) {
                 Vector2f loc = new Vector2f(
-                        sim.world().renderX(u.entityId) * AUDIO_WORLD_UNITS_PER_CELL,
-                        sim.world().renderY(u.entityId) * AUDIO_WORLD_UNITS_PER_CELL);
+                        sim.world().renderX(u) * AUDIO_WORLD_UNITS_PER_CELL,
+                        sim.world().renderY(u) * AUDIO_WORLD_UNITS_PER_CELL);
                 Global.getSoundPlayer().playSound(SFX_VOICE_DEAD, 1f, 1f, loc, zeroVel);
                 break;  // one voice per frame
             }
