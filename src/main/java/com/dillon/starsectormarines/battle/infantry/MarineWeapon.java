@@ -13,7 +13,7 @@ import java.awt.Color;
  * Primary handheld weapon catalog for marines. Each entry maps to a vanilla
  * Starsector weapon for free art / audio, but the stats are ground-combat
  * tuned (cells, not space-combat pixels). Loadout is per-marine, assigned at
- * deboard time in {@link BattleSimulation#tryDeboardMarine} via
+ * deboard time in {@code tryDeboardMarine} via
  * {@link MarineLoadout#primary}.
  *
  * <p>Primaries render as colored line tracers (pulse-laser-style), not full

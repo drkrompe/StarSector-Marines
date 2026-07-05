@@ -134,7 +134,7 @@ public class BattleSimulation implements BattleControl {
     private final FiringSystem firingSystem;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
     private final HeavyWeapons heavy;
-    /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
+    /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link Detonations#queue}. */
     private final Detonations detonations;
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
     private final ObjectivesService objectivesService = new ObjectivesService();
@@ -228,7 +228,7 @@ public class BattleSimulation implements BattleControl {
     private final TurretFireSystem turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
-    /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
+    /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
     private final LongList deathsThisFrame = new LongArrayList();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
@@ -256,7 +256,7 @@ public class BattleSimulation implements BattleControl {
     private final UnitDestinationSpatialIndex destIndex;
 
     private float tickAccumulator = 0f;
-    /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link #rollReprioritizeOnHit}). */
+    /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link HitResponseSystem#rollReprioritizeOnHit}). */
     public int simTickIndex = 0;
     /** Per-phase wall-clock profile of {@link #tick()}. Always-on (cost is a handful of {@code nanoTime} calls per tick); read by the {@code TickProfileDebugPanel} HUD overlay and the {@code TickProfileDumper} JSON dumper. */
     private final TickProfile tickProfile = new TickProfile();
@@ -716,7 +716,7 @@ public class BattleSimulation implements BattleControl {
 
     /**
      * Thread-safe snapshot of in-flight detonations — same justification as
-     * {@link #snapshotActiveShots()}. {@link #queueDetonation} synchronizes
+     * {@link #snapshotActiveShots()}. {@link Detonations#queue} synchronizes
      * on the {@link #detonations} monitor, so locking it here gives readers a
      * consistent view.
      */

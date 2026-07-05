@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * overkill/focus-fire test, which need the real
  * {@link com.dillon.starsectormarines.battle.infantry.EngagePosture} →
  * {@code FiringSystem} pipeline (or at least {@code BattleSimulation.tick}'s
- * full phase order) wired exactly as {@link BattleSimulation#tick()} runs it.
+ * full phase order) wired exactly as {@code BattleSimulation.tick()} runs it.
  *
  * <p>Direct-tick tests below don't bracket {@code FiringSystem.tick} with
  * {@code DamageService.enterCombatEffectDeferral}/{@code exit} — there's no
@@ -257,7 +257,7 @@ public class FiringSystemTest {
 
     /**
      * Cadence golden — the end-to-end {@code EngagePosture} → {@code
-     * FiringSystem} pipeline, driven through real {@link BattleSimulation#tick()}
+     * FiringSystem} pipeline, driven through real {@code BattleSimulation.tick()}
      * calls exactly as the game runs it (not a direct-tick shortcut). A lone
      * squadded marine and a squad-less (therefore inert — {@code
      * GoapInfantryBehavior.update} no-ops without a squad) defender sit in

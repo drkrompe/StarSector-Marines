@@ -1602,7 +1602,7 @@ public final class BattleSetup {
      * (which skips non-walkable cells, so a fully-walled turret pad would bake
      * to cover 0). Once the bake is done and the turret unit is in place we
      * flip the cell non-walkable so marines can't path through (or onto) a
-     * live emplacement. {@link BattleSimulation#demolishDeadTurrets} flips it
+     * live emplacement. {@code TurretDemolitionSystem} flips it
      * back to walkable + rubble on death, so destroyed turrets open up
      * traversal again.
      *

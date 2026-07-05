@@ -35,7 +35,7 @@ public class SquadMoraleTest {
      * 20x12 floor with a wall at column 15 — splits the map into a marine
      * zone (left) and a defender hideout (right). Tests that need a
      * "passive" sim tick stash a defender beyond the wall via {@link
-     * #hideDefender} so {@link BattleSimulation#checkWinCondition} sees
+     * #hideDefender} so {@code WinCheckSystem#tick} sees
      * both factions alive and the sim doesn't auto-complete after one tick.
      * Recovery itself gates on {@link Squad#timeSinceUnderFire}, not on LoS,
      * so the wall is no longer the load-bearing piece for recovery — it's

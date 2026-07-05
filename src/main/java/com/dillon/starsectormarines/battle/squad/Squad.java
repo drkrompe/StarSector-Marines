@@ -161,7 +161,7 @@ public final class Squad {
      * Defense post this squad is garrisoning. Null for regular patrols and for
      * marine squads. Set by {@link BattleSetup} post-{@code allocateDefenders}
      * for squads whose {@link #assignedNode} is a {@link TacticalNode.Kind#GUARDPOST};
-     * cleared by {@link BattleSimulation#demolishDeadTurrets} once every turret on
+     * cleared by {@code TurretDemolitionSystem} once every turret on
      * the post is destroyed, releasing the squad into normal wide-radius patrol.
      */
     public DefensePost defensePost;

@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Pure scoring helpers used by behaviors to pick targets and positions.
  * Stateless; each call takes the sim plus the acting unit and computes a
- * fresh answer. Pulled out of {@link BattleSimulation} so behavior code
+ * fresh answer. Pulled out of {@code BattleSimulation} so behavior code
  * stays thin and the math is reusable / testable in isolation.
  *
  * <p>Conventions:
@@ -790,7 +790,7 @@ public final class TacticalScoring {
      * Adds {@link #TARGET_CROWDING_COST} for every ally targeting the same
      * enemy, plus an additional {@link #TARGET_SQUADMATE_EXTRA_COST} when the
      * ally is a squadmate. Reads the precomputed attackers-by-target index
-     * from the sim ({@link BattleSimulation#getAttackersOf}) so this is O(L)
+     * from the sim ({@code getAttackersOf}) so this is O(L)
      * in the small attacker list rather than O(U) over every unit — total
      * target-selection cost drops from O(U³) to O(U² + U·L).
      */
@@ -821,7 +821,7 @@ public final class TacticalScoring {
      * <p>Stage-2 fallback: when no candidate in the attack-range ring has LOS
      * (typical "turret around the corner" case — the unit's whole approach
      * ring is wall-blocked), falls back to picking a reachable vantage point
-     * from {@link BattleSimulation#getVantagePointsFor}. Vantages are walkable
+     * from {@link NavigationService#getVantagePointsFor}. Vantages are walkable
      * cells with LOS to the target anywhere within
      * {@link #MAX_VANTAGE_SEARCH_RADIUS}; the picker sorts them by Euclidean
      * distance from {@code self} and pathfinds in order, taking the first
@@ -1148,7 +1148,7 @@ public final class TacticalScoring {
      * Computes the vantage-point set for cell ({@code tx}, {@code ty}) —
      * walkable cells within {@link #MAX_VANTAGE_SEARCH_RADIUS} that have
      * line of sight to ({@code tx}, {@code ty}). Pure function of the grid;
-     * called by {@link BattleSimulation#getVantagePointsFor} on cache miss.
+     * called by {@link NavigationService#getVantagePointsFor} on cache miss.
      *
      * <p>Excludes the target's own cell — walking onto your target is
      * never the right destination (and for turrets the cell isn't even
@@ -1706,14 +1706,14 @@ public final class TacticalScoring {
      * of {@code (cx, cy)}. Used by firing-position scorers to discourage
      * AoE-survivable clustering — an ally with a path destination near the
      * candidate counts as a future occupant (their claim is the path-dest
-     * occupancy from {@link BattleSimulation#setPath}, which eagerly updates
+     * occupancy from {@code setPath}, which eagerly updates
      * the map). Counting both current AND dest captures both "they're already
      * here" and "they're coming here" states without double-counting allies
      * that are at-rest at their destination.
      *
      * <p>Both halves route through bucketed spatial indices — the current-cell
-     * half through {@link BattleSimulation#getUnitIndex()}, the path-destination
-     * half through {@link BattleSimulation#getDestIndex()}. A radius-2 window
+     * half through {@code getUnitIndex()}, the path-destination
+     * half through {@code getDestIndex()}. A radius-2 window
      * touches one or two buckets per index, so per-call cost is constant in
      * total unit count. The 2026-05-21 JFR profile flagged the previous O(N)
      * destination walk as the single hottest sim-side leaf (~15% of sim CPU);

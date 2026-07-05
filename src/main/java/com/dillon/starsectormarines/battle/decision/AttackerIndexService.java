@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Per-target attacker index — for each unit currently targeted by at least
  * one alive attacker, holds the list of attacker ids aiming at it. Drives the
- * O(1)-lookup crowding term in {@link TacticalScoring#scoreCrowding} so the
+ * O(1)-lookup crowding term in {@code TacticalScoring#scoreCrowding} so the
  * scorer can walk the (typically &lt; 6 entry) attacker list per candidate
  * enemy instead of scanning every unit on the map.
  *

@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * Fall-back state — unit was recently hit and is breaking contact. Paths
  * toward an out-of-LOS cell, then holds until {@code world.fallbackTimer(id)}
  * expires. Applies to every role (the dispatch in
- * {@link BattleSimulation#updateUnit} routes here whenever the timer is
+ * {@code UnitUpdateSystem#updateUnit} routes here whenever the timer is
  * positive, regardless of {@code role}).
  */
 public final class FallbackBehavior implements UnitBehavior {

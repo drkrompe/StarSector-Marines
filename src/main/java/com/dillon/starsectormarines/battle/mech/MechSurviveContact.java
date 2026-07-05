@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import java.util.List;
 
 /**
- * Mech sibling of {@link SurviveContact} — a mech squad whose per-chassis
+ * Mech sibling of {@link com.dillon.starsectormarines.battle.infantry.SurviveContact} — a mech squad whose per-chassis
  * morale aggregation flips {@link Squad#moraleBroken} pulls back to cover,
  * keeps firing all three weapon tracks, and re-enters the fight if morale
  * recovers. Lives in the {@link Goal.Priority#SURVIVAL} bucket so it
@@ -18,13 +18,13 @@ import java.util.List;
  * MISSION-tier role goals — except those goals carve themselves out when
  * MORALE_BROKEN trips, so in practice SurviveContact wins whenever it's
  * relevant. See the MORALE_BROKEN gate in
- * {@link OverwatchKillZoneGoal#relevance(WorldState, Squad, BattleSimulation)}
- * and {@link BackstopAssignedSquadGoal#relevance(WorldState, Squad, BattleSimulation)}.
+ * {@link OverwatchKillZoneGoal#relevance(WorldState, Squad, BattleView)}
+ * and {@link BackstopAssignedSquadGoal#relevance(WorldState, Squad, BattleView)}.
  *
  * <p>Custom-plan: single-step {@link MechBreakContact}. The action runs
  * perpetually; the 2s replan window is what re-evaluates morale state.
  * Per-mech HP-threshold drain (see
- * {@link BattleSimulation#applyDamage(long, float, float, float)})
+ * {@code applyDamage(long, float, float, float)})
  * is monotonic, so a heavily damaged mech stays broken; combined with the
  * armor-gone cap dropping the morale ceiling to
  * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_ARMOR_GONE_CAP}, the squad is locked

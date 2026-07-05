@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Contract for the {@link World} entity-access facade — the by-id accessors over
  * the archetype {@code EntityWorld}. {@code world.hp(id)} reads/writes the HEALTH
- * column by id with no {@link com.dillon.starsectormarines.battle.unit.Entity}
+ * column by id with no {@code Entity}
  * dereference; fail-loud on a dead/unknown id
  * (or once the corpse transmute has removed the component). The world it reads is
  * owned by a {@link UnitRosterService} (the spawn seam); this test drives that

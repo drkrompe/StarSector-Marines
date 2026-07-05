@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
  * targeting normally next tick.
  *
  * <p>Pickup itself isn't handled here:
- * {@link BattleSimulation#processEquipmentDrops} sweeps every tick and
+ * {@link EquipmentDropSystem#tick()} sweeps every tick and
  * promotes whoever happens to be standing on a drop cell (this retriever
  * or any opportunist who walked over).
  */

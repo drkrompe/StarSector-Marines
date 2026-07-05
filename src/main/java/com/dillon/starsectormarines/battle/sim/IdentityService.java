@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * spawns with (e.g. {@code "m0"}, {@code "drone-dh1-5"}), seeded from the ctor
  * String id and read by debug dumps, logs, and tests. The stable <em>machine</em>
  * identity is the {@code long} entityId, not this string. Type/faction are still
- * read off the {@link com.dillon.starsectormarines.battle.unit.Entity} handle
+ * read off the {@code Entity} handle
  * fields today; those reads move here (via {@code type(id)}/{@code faction(id)}
  * accessors) when the handle collapses to a bare {@code long}
  * (identity-collapse Phase D). Serial-only.

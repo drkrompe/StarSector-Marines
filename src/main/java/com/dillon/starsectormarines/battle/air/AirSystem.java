@@ -109,7 +109,7 @@ public class AirSystem {
     /**
      * The air-craft spawn archetype {@code {AIR_IDENTITY, KINEMATICS,
      * SHUTTLE_MISSION, APPEARANCE}} — adopted into the one entity world by
-     * {@link #add}. Cached once (the component types are world-lifetime). No
+     * {@link UnitRosterService#allocateAir}. Cached once (the component types are world-lifetime). No
      * grid/combat components, so every grid walk skips air for free.
      */
     private final ComponentType[] shuttleArchetype;
@@ -157,7 +157,7 @@ public class AirSystem {
      * ({@link UnitRosterService#allocateAir}), seeds the air-archetype columns, and
      * returns the entity id. Callers configure the rest by id —
      * {@code world.mission(id)} for the mission bag (cycles, loadouts, garrison
-     * node, …) and {@link BattleSimulation#attachAirTurrets} for the optional
+     * node, …) and {@code attachAirTurrets} for the optional
      * turret kit. The craft is an entity-id + components — no handle object.
      */
     public long spawn(ShuttleType type, Faction faction,

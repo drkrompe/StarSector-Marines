@@ -22,8 +22,8 @@ import java.util.List;
  *
  * <p>Stateful subsystem owning the in-flight queue. Both
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons} (marine rocket launcher) and {@link HeavyWeapons}
- * (mech SRM / LRM) queue into here through the shared
- * {@link WeaponSimContext#queueDetonation} primitive on the sim. Tested
+ * (mech SRM / LRM) queue into here through {@link #queue} (wired as a
+ * detonation sink on the sim). Tested
  * implicitly by playtest; a unit-test path can swap the context for a stub.
  *
  * <p>Friendly fire is ON unconditionally — every alive unit within
@@ -104,7 +104,7 @@ public class Detonations {
      * Applies a detonation: AoE damage to every alive unit within
      * {@code aoeRadius} with line of sight to the endpoint, plus wall HP
      * damage at the endpoint cell. Cover reduction + vsTurret multiplier
-     * flow through {@link WeaponSimContext#applyDamage}; LOS-blocked units
+     * flow through {@link DamageService#applyDamage}; LOS-blocked units
      * are spared (the wall absorbed the splash for them).
      */
     private void detonate(PendingDetonation det) {

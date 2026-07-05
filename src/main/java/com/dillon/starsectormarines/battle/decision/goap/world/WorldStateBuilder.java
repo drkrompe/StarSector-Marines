@@ -308,7 +308,7 @@ public final class WorldStateBuilder {
      * BreakLOS posture when this trips, so a squad caught in return fire
      * ducks for cover instead of trading blows at parity.
      *
-     * <p>Scans {@link BattleSimulation#getActiveShots} for hostile shots whose
+     * <p>Scans {@link BattleView#snapshotActiveShots()} for hostile shots whose
      * target endpoint is within 2 cells of any squadmate. A squadmate at the
      * shot's target area with LOS back to {@code (fromX, fromY)} qualifies —
      * the LOS test is what distinguishes "shot through a wall (impossible,
