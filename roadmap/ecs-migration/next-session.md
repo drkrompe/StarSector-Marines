@@ -19,8 +19,8 @@ See [`stories/identity-collapse.md`](stories/identity-collapse.md) § Phase D + 
 finale" for the arc. Remaining is *optional* polish, not migration (see the backlog):
 the `battle.unit/` → `entity/` package rename (a pure move, now unblocked), the
 `systems-to-columns` idiom-completion (reopened by the id-native spatial indexes, but
-Phase-0-parked at ~0.02%/frame), statelessify `VehicleController`, the FiringSystem
-playtest, and live-appearance Phases 3/4 (art-gated). The pre-existing dangling-`{@link}`
+Phase-0-parked at ~0.02%/frame), ~~statelessify `VehicleController`~~ (DONE 2026-07-05 —
+item 10), the FiringSystem playtest, and live-appearance Phases 3/4 (art-gated). The pre-existing dangling-`{@link}`
 javadoc-drift (surfaced during the F5c-6 sweep) is **DONE**: the epic's own
 `getOrNull`/`Entity`-handle tail (`d54c121d`) plus a battle-tier sweep of the older rot
 from the `*SimContext` deletion / `Detonations`+`HitResponseSystem` extraction / the
@@ -247,14 +247,19 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
    **storage finale**, its own dedicated closing session (roster `Entity[]`→`long[]`, sister index
    id-native, Entity-returning queries → `long`, `DeathEvent` → `long`, **delete `Entity`**): story doc
    § "Storage finale". Full record + corrected sequence: the story doc § Phase D.
-10. **Statelessify `VehicleController`** — turn the stateful per-vehicle controller (the last
-    per-craft handle with mutable motion state) into components + a stateless system, the air
-    `AirSteeringSystem`-over-`AirBody` shape. Self-contained follow-up from vehicle-into-world;
-    low leverage (N≈1–4). Candidate.
+10. ✅ **Statelessify `VehicleController`** — DONE 2026-07-05 (`7fe601c9`→`40aafd4e`, S1–S5b).
+    Motion state now lives id-keyed in the `VEHICLE_CONTROL` component; behaviour in the
+    stateless `VehicleControlSystem`; `VehicleController` is a non-instantiable static-math
+    holder. The air `AirSteeringSystem`-over-`AirBody` shape, as planned. Full record:
+    [`stories/vehicle-control-ecs.md`](stories/vehicle-control-ecs.md). Only S6 (cosmetic
+    rename) + a user playtest of the lifecycle remain open.
 
 ## Recent ECS-track commits
 
 ```
+40aafd4e ecs-migration: identity-collapse F6-S5b - flip drive loop, delete controller shim
+a081900c ecs-migration: identity-collapse F6-S5a - stateless VehicleControlSystem
+(F6-S1..S4: 7fe601c9 92842b4d d485c3ea 63b1e1cc — see stories/vehicle-control-ecs.md)
 1ed54dc4 ecs-migration: identity-collapse F5c-6 - delete Entity.java (the terminus) *** EPIC COMPLETE ***
 a68dc325 ecs-migration: identity-collapse F5c-4 - roster storage core dense Entity[] -> long[]
 6a280ad3 ecs-migration: identity-collapse F5c-3 - combat getOrNull consumers -> isLive+id

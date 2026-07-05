@@ -1,16 +1,23 @@
 # Story: VehicleController → id-keyed component + stateless system
 
-**Status:** IN PROGRESS — **S1–S4 shipped** (state-migration half done; the motion bag is
-id-keyed and every read goes through `convoy.control(id)`). **S5a/S5b next** (extract the
-stateless system + flip the drive loop). Design vetted 2026-07-05 via a 4-phase workflow
-(5-reader map → 3 design proposals → judge synthesis → 2 adversarial critiques). Post-epic
-follow-on to identity-collapse — the last per-instance state bag in the battle tier that
-lived as loose fields on a controller object.
+**Status:** CODE COMPLETE — **S1–S5b shipped** (state id-keyed in `VEHICLE_CONTROL`,
+behaviour in the stateless `VehicleControlSystem`; `VehicleController` is now a
+non-instantiable static-math holder). **S6 (cosmetic rename) optional/deferred.**
+**One user checkpoint remains:** playtest the full lifecycle (INCOMING→dock→reverse→DEPARTING) —
+the automated suite only covers the static helpers, so the behavioural cutover in S5b wants a
+human eyeball. Design vetted 2026-07-05 via a 4-phase workflow (5-reader map → 3 design
+proposals → judge synthesis → 2 adversarial critiques). Post-epic follow-on to
+identity-collapse — the last per-instance state bag in the battle tier that lived as loose
+fields on a controller object.
 
 **Shipped:** S1 `7fe601c9` (component + register(30) + control(id)) · S2 `92842b4d` (seed at
 spawn, both branches) · S3 `d485c3ea` (relocate ~20 fields onto the component, ~60 sites,
 compiler-verified pure flip) · S4 `63b1e1cc` (debug/render reads → component, mission→controller
-coupling severed). Each: `get_file_problems` clean + full suite green.
+coupling severed) · S5a `a081900c` (stateless `VehicleControlSystem`; instance logic moved +
+param-threaded, gotchas #1/#2 honored; `VehicleController` → thin `{id,system}` shim; ~16
+constants + 3 helpers promoted) · S5b `40aafd4e` (drive loop → `controlSystem.tick(id,…)`;
+`mission.controller` + the shim deleted; `VehicleController` = static holder). Each:
+`get_file_problems` clean + full suite green.
 
 ## Goal
 
@@ -120,19 +127,27 @@ threading `body`/`type`/`mission`/`grid` as params.
   `convoy.control(id).X()`. After this `VehicleController`'s accessors have no external callers.
   *Files:* `vehicle/VehicleMission.java`, `vehicle/GroundSystem.java`,
   `ops/battleview/BattleRenderer.java`, `battle/ui/debug/VehicleStateDumper.java`.
-- **S5a — Stand up the stateless system (param-threading + constant promotion).** Promote the
-  ~17 instance-only constants (gotcha #2). New `VehicleControlSystem` with all instance methods
-  moved + param-threaded (`body`/`type`/`mission`/`grid`), `s` resolved via `convoy.control(id)`,
-  gotcha #1 honored. `VehicleController.tick()/consumeArrived()` delegate to the system (thin
-  shim) so the drive loop is untouched → green. Statics + `curvatureSpeedCap(...)` calls stay
-  on `VehicleController`. *Files:* `vehicle/VehicleControlSystem.java` (new), `vehicle/VehicleController.java`,
-  `vehicle/GroundSystem.java`.
-- **S5b — Flip the drive loop, delete the shim.** `GroundSystem` calls
-  `controlSystem.tick(id,…)`/`consumeArrived(id)`; drop `new VehicleController(...)` and the
-  `mission.controller` field; delete `VehicleController`'s now-dead instance methods/fields.
-  `VehicleController` = static-math holder. *Files:* `vehicle/GroundSystem.java`,
-  `vehicle/VehicleController.java`, `vehicle/VehicleMission.java`. *Checkpoint:* playtest full lifecycle.
-- **S6 — Optional cosmetic rename.** IDE `rename_refactoring` `VehicleController` →
+- ✅ **S5a — Stand up the stateless system (param-threading + constant promotion).** `a081900c`.
+  New `VehicleControlSystem` (stateless, `convoy` + `navigation`); all instance methods moved +
+  param-threaded (`body`/`type`/`mission`/`s`), `s` resolved via `convoy.control(id)` at the
+  top of the id-keyed public `tick`/`consumeArrived`. Gotcha #1 honored (`s.corridor.advance(...)`
+  the unconditional first statement of `advance`). ~16 instance-only constants + the 3 route/tail
+  static helpers (`lastOnGridIndex`/`appendTail`/`isPathFeasible`) promoted private→package on
+  `VehicleController`, referenced qualified — no constant duplicated (gotcha #2).
+  `VehicleController` reshaped to a thin `{id, system}` shim (its `tick`/`consumeArrived` forward
+  to the system) so the drive loop stayed untouched → green. Method bodies moved verbatim; only
+  signatures, constant/static-helper qualification, and javadoc links changed. Statics +
+  `curvatureSpeedCap(...)` stayed put → tests untouched. *Files:* `vehicle/VehicleControlSystem.java`
+  (new), `vehicle/VehicleController.java`, `vehicle/GroundSystem.java`.
+- ✅ **S5b — Flip the drive loop, delete the shim.** `40aafd4e`. `GroundSystem` calls
+  `controlSystem.tick(id,…)`/`consumeArrived(id)`; `add()` no longer builds a handle; the
+  `mission.controller` field + `VehicleController`'s `{id,system}` shim (ctor + `tick`/`consumeArrived`)
+  deleted; `VehicleController` is now a non-instantiable static-math holder (private ctor).
+  Compiler-verified complete (deleting the field + methods makes any miss a compile error); full
+  build + suite green. *Files:* `vehicle/GroundSystem.java`, `vehicle/VehicleController.java`,
+  `vehicle/VehicleMission.java`. *Checkpoint (user):* playtest full lifecycle — statics-only suite
+  can't catch a behavioural drift in the moved physics.
+- **S6 — Optional cosmetic rename (deferred).** IDE `rename_refactoring` `VehicleController` →
   `VehicleControlMath`; updates the 3 test files + system refs. Off the critical path; resolves
   the `VehicleControlSystem`/`VehicleController` name overlap. Defer unless wanted.
 
