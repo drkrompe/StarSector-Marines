@@ -54,6 +54,8 @@ public class GroundSystem {
     private final Consumer<EntitySpec> addUnitSink;
     /** Spawns each vehicle's world entity (identity + kinematics + mission + turret) at {@link #add} and reaps it at terminal GONE. */
     private final ConvoyService convoy;
+    /** The stateless motion driver every vehicle's {@code mission.controller} shim forwards to — one instance shared across the whole convoy. */
+    private final VehicleControlSystem controlSystem;
 
     /** The backbone: world entity ids of live convoy vehicles. The {@link VehicleMission} bags
      *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
@@ -71,6 +73,7 @@ public class GroundSystem {
         this.rng = rng;
         this.addUnitSink = addUnitSink;
         this.convoy = roster.convoy();
+        this.controlSystem = new VehicleControlSystem(convoy, navigation);
     }
 
     /** Snapshot of the live convoy-vehicle entity ids — the id backbone the render / picking / debug
@@ -91,9 +94,10 @@ public class GroundSystem {
      */
     public void add(VehicleType type, Faction faction, VehicleMission mission) {
         long id = convoy.spawn(type, faction, mission);
-        // The controller holds the mission + the by-id-resolved body / variant (one stable
-        // instance each for the vehicle's life). See ConvoyService / VehicleController.
-        mission.controller = new VehicleController(mission, convoy.body(id), type, navigation, convoy.control(id));
+        // Thin per-vehicle handle: forwards tick / consumeArrived to the shared stateless
+        // driver by id. All motion state lives in the VEHICLE_CONTROL component (seeded at
+        // spawn), resolved by id — the handle holds no state. See VehicleControlSystem.
+        mission.controller = new VehicleController(id, controlSystem);
         vehicleIds.add(id);
     }
 
