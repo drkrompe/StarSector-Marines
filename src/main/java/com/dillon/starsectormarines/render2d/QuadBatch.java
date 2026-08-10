@@ -1,9 +1,6 @@
 package com.dillon.starsectormarines.render2d;
 
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_CLIENT_VERTEX_ARRAY_BIT;
 import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
@@ -45,9 +42,11 @@ import static org.lwjgl.opengl.GL15.glBindBuffer;
  * ({@code glColor4f}+{@code glTexCoord2f}+{@code glVertex2f} × 4 verts), not the
  * float-packing in {@link #append} (which barely registered). The array path
  * collapses that to a fixed handful of calls per flush regardless of quad
- * count: one bulk copy of the interleaved {@code data[]} into a cached
- * <em>direct</em> {@link FloatBuffer}, three strided pointer binds, one
- * {@code glDrawArrays(GL_QUADS, …)}.
+ * count: one bulk copy per attribute array into a cached direct buffer, three
+ * pointer binds, one {@code glDrawArrays(GL_QUADS, …)}. Position, texcoord and
+ * color live in separate packed arrays rather than one interleaved array — see
+ * {@link ClientArray} for why that packing is mandatory rather than a
+ * preference.
  *
  * <p>This is <em>not</em> a VBO — no buffer object, no {@code glBufferData},
  * none of the streaming sync-stall management that comes with it. The data is
@@ -65,29 +64,44 @@ import static org.lwjgl.opengl.GL15.glBindBuffer;
  * within the (possibly POT-padded) GL texture. V is flipped because
  * source pixel-Y is top-down but GL texture-V is bottom-up.
  *
- * <p>NOT thread-safe. NOT a managed resource — backing array is plain
+ * <p>NOT thread-safe. NOT a managed resource — backing arrays are plain
  * {@code float[]} so no close/free needed.
  */
 public final class QuadBatch {
 
-    /** 4 verts per quad, 8 floats per vert: (x, y, u, v, r, g, b, a). */
-    private static final int FLOATS_PER_QUAD = 4 * 8;
+    private static final int VERTS_PER_QUAD = 4;
+    /** Position floats per quad: 4 verts × (x, y). */
+    private static final int POS_FLOATS_PER_QUAD = VERTS_PER_QUAD * 2;
+    /** Texcoord floats per quad: 4 verts × (u, v). */
+    private static final int UV_FLOATS_PER_QUAD = VERTS_PER_QUAD * 2;
+    /** Color floats per quad: 4 verts × (r, g, b, a). */
+    private static final int COL_FLOATS_PER_QUAD = VERTS_PER_QUAD * 4;
 
     private final SpriteAPI sheet;
     private final int sheetPxW;
     private final int sheetPxH;
 
-    private float[] data;
+    /**
+     * One packed array per vertex attribute rather than a single interleaved
+     * array — required by the client-array contract in {@link ClientArray}.
+     */
+    private float[] posData;
+    private float[] uvData;
+    private float[] colData;
     private int quadCount;
 
-    /** Cached direct buffer the flush copies {@link #data} into for {@code glDrawArrays}. */
-    private FloatBuffer vbuf;
+    private final ClientArray posArray = new ClientArray();
+    private final ClientArray uvArray = new ClientArray();
+    private final ClientArray colArray = new ClientArray();
 
     public QuadBatch(SpriteAPI sheet, int sheetPxW, int sheetPxH, int initialQuadCapacity) {
         this.sheet = sheet;
         this.sheetPxW = sheetPxW;
         this.sheetPxH = sheetPxH;
-        this.data = new float[Math.max(1, initialQuadCapacity) * FLOATS_PER_QUAD];
+        int quads = Math.max(1, initialQuadCapacity);
+        this.posData = new float[quads * POS_FLOATS_PER_QUAD];
+        this.uvData = new float[quads * UV_FLOATS_PER_QUAD];
+        this.colData = new float[quads * COL_FLOATS_PER_QUAD];
         this.quadCount = 0;
     }
 
@@ -135,19 +149,15 @@ public final class QuadBatch {
         float tlX = dstCx + (-halfW) * cos - ( halfH) * sin;
         float tlY = dstCy + (-halfW) * sin + ( halfH) * cos;
 
-        int o = quadCount * FLOATS_PER_QUAD;
-        // BL — ↔ (u0, v1)
-        data[o++] = blX; data[o++] = blY; data[o++] = u0; data[o++] = v1;
-        data[o++] = r;   data[o++] = g;   data[o++] = b;  data[o++] = a;
-        // BR — ↔ (u1, v1)
-        data[o++] = brX; data[o++] = brY; data[o++] = u1; data[o++] = v1;
-        data[o++] = r;   data[o++] = g;   data[o++] = b;  data[o++] = a;
-        // TR — ↔ (u1, v0)
-        data[o++] = trX; data[o++] = trY; data[o++] = u1; data[o++] = v0;
-        data[o++] = r;   data[o++] = g;   data[o++] = b;  data[o++] = a;
-        // TL — ↔ (u0, v0)
-        data[o++] = tlX; data[o++] = tlY; data[o++] = u0; data[o++] = v0;
-        data[o++] = r;   data[o++] = g;   data[o++] = b;  data[o] = a;
+        int p = quadCount * POS_FLOATS_PER_QUAD;
+        posData[p++] = blX; posData[p++] = blY;
+        posData[p++] = brX; posData[p++] = brY;
+        posData[p++] = trX; posData[p++] = trY;
+        posData[p++] = tlX; posData[p]   = tlY;
+
+        // BL ↔ (u0, v1), BR ↔ (u1, v1), TR ↔ (u1, v0), TL ↔ (u0, v0)
+        writeQuadUv(u0, v1, u1, v1, u1, v0, u0, v0);
+        writeQuadColor(r, g, b, a);
 
         quadCount++;
     }
@@ -170,26 +180,10 @@ public final class QuadBatch {
         float v0 = texV - ((float) srcY           / sheetPxH) * texV;
         float v1 = texV - ((float) (srcY + srcH)  / sheetPxH) * texV;
 
-        float halfW = dstW * 0.5f;
-        float halfH = dstH * 0.5f;
-        float x0 = dstCx - halfW;
-        float x1 = dstCx + halfW;
-        float y0 = dstCy - halfH;
-        float y1 = dstCy + halfH;
-
-        int o = quadCount * FLOATS_PER_QUAD;
-        // BL — (x0, y0) ↔ (u0, v1)
-        data[o++] = x0; data[o++] = y0; data[o++] = u0; data[o++] = v1;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // BR — (x1, y0) ↔ (u1, v1)
-        data[o++] = x1; data[o++] = y0; data[o++] = u1; data[o++] = v1;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // TR — (x1, y1) ↔ (u1, v0)
-        data[o++] = x1; data[o++] = y1; data[o++] = u1; data[o++] = v0;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // TL — (x0, y1) ↔ (u0, v0)
-        data[o++] = x0; data[o++] = y1; data[o++] = u0; data[o++] = v0;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o] = a;
+        writeAxisAlignedQuad(dstCx, dstCy, dstW, dstH);
+        // BL ↔ (u0, v1), BR ↔ (u1, v1), TR ↔ (u1, v0), TL ↔ (u0, v0)
+        writeQuadUv(u0, v1, u1, v1, u1, v0, u0, v0);
+        writeQuadColor(r, g, b, a);
 
         quadCount++;
     }
@@ -213,6 +207,16 @@ public final class QuadBatch {
         float v0 = texV - ((float) srcY           / sheetPxH) * texV;
         float v1 = texV - ((float) (srcY + srcH)  / sheetPxH) * texV;
 
+        writeAxisAlignedQuad(dstCx, dstCy, dstW, dstH);
+        // V swapped vs append(): bottom corners take v0, top corners take v1.
+        writeQuadUv(u0, v0, u1, v0, u1, v1, u0, v1);
+        writeQuadColor(r, g, b, a);
+
+        quadCount++;
+    }
+
+    /** Writes the BL/BR/TR/TL corners of an axis-aligned dst rect at {@link #quadCount}. */
+    private void writeAxisAlignedQuad(float dstCx, float dstCy, float dstW, float dstH) {
         float halfW = dstW * 0.5f;
         float halfH = dstH * 0.5f;
         float x0 = dstCx - halfW;
@@ -220,27 +224,34 @@ public final class QuadBatch {
         float y0 = dstCy - halfH;
         float y1 = dstCy + halfH;
 
-        int o = quadCount * FLOATS_PER_QUAD;
-        // V swapped vs append(): bottom corners take v0, top corners take v1.
-        // BL — (x0, y0) ↔ (u0, v0)
-        data[o++] = x0; data[o++] = y0; data[o++] = u0; data[o++] = v0;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // BR — (x1, y0) ↔ (u1, v0)
-        data[o++] = x1; data[o++] = y0; data[o++] = u1; data[o++] = v0;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // TR — (x1, y1) ↔ (u1, v1)
-        data[o++] = x1; data[o++] = y1; data[o++] = u1; data[o++] = v1;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
-        // TL — (x0, y1) ↔ (u0, v1)
-        data[o++] = x0; data[o++] = y1; data[o++] = u0; data[o++] = v1;
-        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o] = a;
+        int p = quadCount * POS_FLOATS_PER_QUAD;
+        posData[p++] = x0; posData[p++] = y0;
+        posData[p++] = x1; posData[p++] = y0;
+        posData[p++] = x1; posData[p++] = y1;
+        posData[p++] = x0; posData[p]   = y1;
+    }
 
-        quadCount++;
+    /** Writes the four per-corner UV pairs of the quad at {@link #quadCount}, in vertex order. */
+    private void writeQuadUv(float u0, float v0, float u1, float v1,
+                             float u2, float v2, float u3, float v3) {
+        int t = quadCount * UV_FLOATS_PER_QUAD;
+        uvData[t++] = u0; uvData[t++] = v0;
+        uvData[t++] = u1; uvData[t++] = v1;
+        uvData[t++] = u2; uvData[t++] = v2;
+        uvData[t++] = u3; uvData[t]   = v3;
+    }
+
+    /** Writes {@code (r,g,b,a)} to all four verts of the quad at {@link #quadCount}. */
+    private void writeQuadColor(float r, float g, float b, float a) {
+        int c = quadCount * COL_FLOATS_PER_QUAD;
+        for (int i = 0; i < VERTS_PER_QUAD; i++) {
+            colData[c++] = r; colData[c++] = g; colData[c++] = b; colData[c++] = a;
+        }
     }
 
     /**
-     * Emit all queued quads as one {@code glDrawArrays(GL_QUADS, …)} from a
-     * client-side interleaved vertex array. No-op if empty. Resets the queue.
+     * Emit all queued quads as one {@code glDrawArrays(GL_QUADS, …)} from
+     * client-side vertex arrays. No-op if empty. Resets the queue.
      * Caller owns the surrounding <em>server</em> GL state — see
      * {@link GlStateBracket#textured2D()}; this method owns the <em>client</em>
      * array state, restoring it via {@code glPopClientAttrib}.
@@ -254,12 +265,7 @@ public final class QuadBatch {
         glEnable(GL_TEXTURE_2D);
         sheet.bindTexture();
 
-        int verts = quadCount * 4;
-        int floats = verts * 8;
-        FloatBuffer buf = ensureBuffer(floats);
-        buf.clear();
-        buf.put(data, 0, floats);
-        buf.flip();
+        int verts = quadCount * VERTS_PER_QUAD;
 
         // LWJGL's gl*Pointer(FloatBuffer) overloads throw OpenGLException if a VBO
         // is bound to GL_ARRAY_BUFFER (its ensureArrayVBOdisabled check, on by
@@ -271,36 +277,32 @@ public final class QuadBatch {
         // client-attrib bracket does NOT cover the array-buffer binding.
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        // Interleaved layout: (x, y, u, v, r, g, b, a), stride = 8 floats.
-        int strideBytes = 8 * 4;
+        // Stride 0 + position 0 + exact capacity, one buffer per attribute — see ClientArray.
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
-        buf.position(0); glVertexPointer(2, strideBytes, buf);
-        buf.position(2); glTexCoordPointer(2, strideBytes, buf);
-        buf.position(4); glColorPointer(4, strideBytes, buf);
+        glVertexPointer(2, 0, posArray.upload(posData, verts * 2));
+        glTexCoordPointer(2, 0, uvArray.upload(uvData, verts * 2));
+        glColorPointer(4, 0, colArray.upload(colData, verts * 4));
         glDrawArrays(GL_QUADS, 0, verts);
         glPopClientAttrib();
 
         quadCount = 0;
     }
 
-    /** Lazily (re)allocate the direct buffer to hold at least {@code floats} elements. */
-    private FloatBuffer ensureBuffer(int floats) {
-        if (vbuf == null || vbuf.capacity() < floats) {
-            vbuf = BufferUtils.createFloatBuffer(data.length);
-        }
-        return vbuf;
+    private void ensureCapacity(int neededQuads) {
+        if (posData.length >= neededQuads * POS_FLOATS_PER_QUAD) return;
+        int newQuads = posData.length / POS_FLOATS_PER_QUAD;
+        while (newQuads < neededQuads) newQuads *= 2;
+        posData = grow(posData, newQuads * POS_FLOATS_PER_QUAD, quadCount * POS_FLOATS_PER_QUAD);
+        uvData = grow(uvData, newQuads * UV_FLOATS_PER_QUAD, quadCount * UV_FLOATS_PER_QUAD);
+        colData = grow(colData, newQuads * COL_FLOATS_PER_QUAD, quadCount * COL_FLOATS_PER_QUAD);
     }
 
-    private void ensureCapacity(int neededQuads) {
-        int neededFloats = neededQuads * FLOATS_PER_QUAD;
-        if (data.length >= neededFloats) return;
-        int newLen = data.length;
-        while (newLen < neededFloats) newLen *= 2;
+    private static float[] grow(float[] src, int newLen, int used) {
         float[] grown = new float[newLen];
-        System.arraycopy(data, 0, grown, 0, quadCount * FLOATS_PER_QUAD);
-        data = grown;
+        System.arraycopy(src, 0, grown, 0, used);
+        return grown;
     }
 }
