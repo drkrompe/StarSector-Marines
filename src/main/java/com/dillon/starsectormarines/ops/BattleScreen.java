@@ -180,18 +180,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private MarineOpsContext ctx;
     private BattleLayout layout;
     private BattleCamera camera;
-    /**
-     * Inherited dialog scissor box (= dialog rect in framebuffer px), cached to
-     * derive the UI→FB scale instead of reading {@code GL_SCISSOR_BOX} every
-     * frame: a {@code glGet*} forces a synchronous round-trip that stalls
-     * async-renderer bridge mods (e.g. genir's). The box is in framebuffer px, so
-     * we re-sample whenever the drawable size changes (window resize / fullscreen
-     * toggle), keyed off {@link Display#getWidth()}/{@link Display#getHeight()} —
-     * cached LWJGL values, NOT a GL readback. {@code uiSampledFbW < 0} = unsampled.
-     */
-    private int uiSampledFbW = -1;
-    private int uiSampledFbH = -1;
-    private int uiDialogFbX, uiDialogFbY, uiDialogFbW, uiDialogFbH;
     /** Pan-drag state: true while RMB is held (without shift, which routes to debug damage). */
     private boolean panDragging;
     private int lastDragX;
@@ -1030,39 +1018,28 @@ public class BattleScreen implements Screen, BattleUiContext {
             // rect and would otherwise bleed over the speed-button strip and
             // Back button.
             //
-            // glScissor takes FRAMEBUFFER pixels, but layout.gridX/Y/W/H are
-            // in Starsector's UI-space units (which scale with the user's UI
+            // glScissor takes WINDOW pixels, but layout.gridX/Y/W/H are in
+            // Starsector's UI-space units (which scale with the user's UI
             // scale setting and the framebuffer DPI). Feeding UI units to
             // glScissor directly clips at the wrong place — visible as the
             // top of the play area going black at zoom.
             //
-            // Starsector hands us a scissor already enabled around the dialog
-            // rect (see gl_state_gotchas), so we can sample it to recover the
-            // UI-to-FB scale: query the inherited scissor box (= dialog rect
-            // in FB px), compare against the dialog rect in UI units (from
-            // position), and apply the same scale to the grid sub-rect.
+            // Both spaces are Y-up with origin at the screen's bottom-left and
+            // the UI ortho spans getScreenWidth()×getScreenHeight(), so one
+            // ratio per axis converts absolute UI coords straight to window px
+            // — no dialog-origin term, and BattleLayout builds gridX/gridY off
+            // position.getX()/getY() so they are already absolute. Both inputs
+            // are cached LWJGL/settings values, NOT a GL readback: a glGet*
+            // here forces a synchronous round-trip that stalls async-renderer
+            // bridge mods (same ratio as BridgeRenderer.scaleX/scaleY).
+            //
             // Push SCISSOR_BIT so we restore both the prior box and the
             // enable state on pop.
             glPushAttrib(GL_SCISSOR_BIT);
-            // Sample the inherited dialog scissor box once per drawable size (re-
-            // sampled on resize); a per-frame glGet* here stalls async-renderer
-            // bridge mods.
-            int fbW = Display.getWidth(), fbH = Display.getHeight();
-            if (fbW != uiSampledFbW || fbH != uiSampledFbH) {
-                java.nio.IntBuffer scissorBuf = org.lwjgl.BufferUtils.createIntBuffer(16);
-                org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, scissorBuf);
-                uiDialogFbX = scissorBuf.get(0);
-                uiDialogFbY = scissorBuf.get(1);
-                uiDialogFbW = scissorBuf.get(2);
-                uiDialogFbH = scissorBuf.get(3);
-                uiSampledFbW = fbW; uiSampledFbH = fbH;
-            }
-            float uiDialogW = Math.max(0.001f, position.getWidth());
-            float uiDialogH = Math.max(0.001f, position.getHeight());
-            float sx = uiDialogFbW / uiDialogW;
-            float sy = uiDialogFbH / uiDialogH;
-            int gridFbX = uiDialogFbX + Math.round((layout.gridX - position.getX()) * sx);
-            int gridFbY = uiDialogFbY + Math.round((layout.gridY - position.getY()) * sy);
+            float sx = Display.getWidth()  / Math.max(1f, Global.getSettings().getScreenWidth());
+            float sy = Display.getHeight() / Math.max(1f, Global.getSettings().getScreenHeight());
+            int gridFbX = Math.round(layout.gridX * sx);
+            int gridFbY = Math.round(layout.gridY * sy);
             int gridFbW = Math.round(layout.gridW * sx);
             int gridFbH = Math.round(layout.gridH * sy);
             glEnable(GL_SCISSOR_TEST);
