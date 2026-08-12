@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Status;
 import com.fs.starfarer.api.Global;
@@ -81,6 +82,7 @@ public final class StationingAssignmentService {
         state.contractNextIncidentTick[row] = type == ContractType.CADRE
                 ? StationingIncidentSystem.nextIncidentDay(contractId, day) : -1;
         state.contractIncidentPending[row] = 0;
+        state.contractIncidentType[row] = StationingIncidentType.NONE.toByte();
         state.contractSalvageBaseline[row] = terms.salvageBaseline;
         state.contractSalvageNegotiated[row] = terms.salvageBaseline;
         state.contractCashMultiplier[row] = 100;

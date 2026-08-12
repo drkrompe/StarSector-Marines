@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.StationingIncidentType;
 
 import java.util.EnumSet;
 
@@ -38,6 +39,7 @@ public final class StationingIncidentSystem implements CampaignSystem {
                     && contractState != ContractState.IN_PROGRESS) {
                 state.contractNextIncidentTick[row] = -1;
                 state.contractIncidentPending[row] = 0;
+                state.contractIncidentType[row] = StationingIncidentType.NONE.toByte();
                 continue;
             }
             if (state.contractIncidentPending[row] != 0) continue;
@@ -56,7 +58,8 @@ public final class StationingIncidentSystem implements CampaignSystem {
             }
             if (day >= next) {
                 state.contractIncidentPending[row] = 1;
-                state.contractNextIncidentTick[row] = -1;
+                state.contractIncidentType[row] = StationingIncidentType.pick(
+                        state.contractId[row], next).toByte();
             }
         }
     }

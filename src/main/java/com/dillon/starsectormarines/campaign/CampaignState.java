@@ -140,6 +140,8 @@ public final class CampaignState implements Serializable {
     public int[]   contractNextIncidentTick = filledInts(INITIAL_CAPACITY, -1);
     /** 1 while a Cadre incident awaits a player-facing payload; otherwise 0. */
     public byte[]  contractIncidentPending = new byte[INITIAL_CAPACITY];
+    /** Persisted {@link StationingIncidentType} for an armed incident; NONE otherwise. */
+    public byte[]  contractIncidentType = new byte[INITIAL_CAPACITY];
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -321,6 +323,7 @@ public final class CampaignState implements Serializable {
                 && state != ContractState.OFFERED ? acceptedTick : -1;
         contractNextIncidentTick[i] = -1;
         contractIncidentPending[i] = 0;
+        contractIncidentType[i] = StationingIncidentType.NONE.toByte();
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -473,6 +476,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractIncidentPending = new byte[n];
         }
+        if (contractIncidentType == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractIncidentType = new byte[n];
+        }
         return this;
     }
 
@@ -511,6 +518,7 @@ public final class CampaignState implements Serializable {
         contractNextIncidentTick = Arrays.copyOf(contractNextIncidentTick, n);
         Arrays.fill(contractNextIncidentTick, oldLength, n, -1);
         contractIncidentPending = Arrays.copyOf(contractIncidentPending, n);
+        contractIncidentType = Arrays.copyOf(contractIncidentType, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);

@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
+import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
 import com.dillon.starsectormarines.campaign.systems.StationingContractTerms;
 import com.dillon.starsectormarines.campaign.systems.StationingWithdrawalService;
@@ -174,6 +176,20 @@ public final class StationingScreen implements Screen {
                 MessageFormat.format(Strings.get("stationingRetainer"),
                         NumberFormat.getIntegerInstance().format(
                                 state.contractRetainerPerMonth[row])), x, y, VALUE));
+        StationingIncidentPayload incident = StationingIncidentPayload.from(
+                state, state.contractId[row]);
+        if (incident != null) {
+            y -= ROW + 4f;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    Strings.get("stationingIncidentPending"), x, y, BLOCKED));
+            y -= ROW;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    incidentLabel(incident.type), x, y, VALUE));
+            y -= ROW;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MessageFormat.format(Strings.get("stationingIncidentDetachment"),
+                            captainName, incident.committedMarines), x, y, VALUE));
+        }
         y -= ROW + 8f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 Strings.get("stationingWithdrawWarning"), x, y, BLOCKED));
@@ -258,6 +274,16 @@ public final class StationingScreen implements Screen {
         if (type == ContractType.GARRISON) return "Garrison";
         if (type == ContractType.CADRE) return "Cadre";
         return "Unknown";
+    }
+
+    private static String incidentLabel(StationingIncidentType type) {
+        switch (type) {
+            case FACTORY_ACCIDENT: return Strings.get("stationingIncidentFactoryAccident");
+            case LIVE_FIRE_RAID: return Strings.get("stationingIncidentLiveFireRaid");
+            case DEFECTOR_LEAD: return Strings.get("stationingIncidentDefectorLead");
+            case NONE:
+            default: return Strings.get("stationingIncidentUnknown");
+        }
     }
 
     private static CampaignState state() {

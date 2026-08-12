@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign.systems;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,11 +24,15 @@ class StationingIncidentSystemTest {
 
         system.tick(state, due);
         assertEquals(1, state.contractIncidentPending[0]);
-        assertEquals(-1, state.contractNextIncidentTick[0]);
+        assertEquals(due, state.contractNextIncidentTick[0]);
+        StationingIncidentType armed = StationingIncidentType.fromByte(
+                state.contractIncidentType[0]);
+        assertTrue(armed != StationingIncidentType.NONE);
 
         system.tick(state, due + 20);
         assertEquals(1, state.contractIncidentPending[0]);
-        assertEquals(-1, state.contractNextIncidentTick[0]);
+        assertEquals(due, state.contractNextIncidentTick[0]);
+        assertEquals(armed, StationingIncidentType.fromByte(state.contractIncidentType[0]));
     }
 
     @Test
@@ -61,12 +66,15 @@ class StationingIncidentSystemTest {
     void terminalCadreClearsUnconsumedTrigger() {
         CampaignState state = state(ContractType.CADRE, ContractState.COMPLETED, 10, 100);
         state.contractIncidentPending[0] = 1;
+        state.contractIncidentType[0] = StationingIncidentType.DEFECTOR_LEAD.toByte();
         state.contractNextIncidentTick[0] = 40;
 
         new StationingIncidentSystem().tick(state, 50);
 
         assertEquals(0, state.contractIncidentPending[0]);
         assertEquals(-1, state.contractNextIncidentTick[0]);
+        assertEquals(StationingIncidentType.NONE,
+                StationingIncidentType.fromByte(state.contractIncidentType[0]));
     }
 
     private static CampaignState state(ContractType type, ContractState contractState,

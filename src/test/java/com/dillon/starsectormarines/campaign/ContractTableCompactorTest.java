@@ -25,6 +25,7 @@ class ContractTableCompactorTest {
         state.contractNextPhaseReadyTick[1] = 55;
         state.contractNextIncidentTick[1] = 56;
         state.contractIncidentPending[1] = 1;
+        state.contractIncidentType[1] = StationingIncidentType.LIVE_FIRE_RAID.toByte();
 
         assertEquals(1, ContractTableCompactor.removeTerminal(state));
 
@@ -49,6 +50,8 @@ class ContractTableCompactorTest {
         assertEquals(55, state.contractNextPhaseReadyTick[0]);
         assertEquals(56, state.contractNextIncidentTick[0]);
         assertEquals(1, state.contractIncidentPending[0]);
+        assertEquals(StationingIncidentType.LIVE_FIRE_RAID,
+                StationingIncidentType.fromByte(state.contractIncidentType[0]));
         assertEquals(5, state.contractSalvageBaseline[0] & 0xFF);
         assertEquals(4, state.contractSalvageNegotiated[0] & 0xFF);
         assertEquals(101, state.contractCashMultiplier[0] & 0xFF);
