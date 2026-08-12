@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `975db3ba`, `f736a7d6`
+
 ## Goal
 
 Let the political board consolidate by making houses that lose their final

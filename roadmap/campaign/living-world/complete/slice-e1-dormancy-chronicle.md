@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `500d2c17`
+
 ## Goal
 
 Make politically meaningful consolidation visible without flooding the

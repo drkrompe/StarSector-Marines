@@ -22,6 +22,10 @@ D4 is shipped: intervention contracts distinguish opposed chains from parent
 chains, threatened houses issue one bounded Strike offer, stale offers withdraw,
 and a correctly attributed player victory fails the hostile plot exactly once
 (`dd63a0ba`, `0a2f3c09`, `7b54ec81`).
+E1 is shipped: houses with exhausted stake history become stable-id DORMANT
+tombstones, their political work closes safely, stale consolidation targets
+retarget or clear, and only meaningful disappearances enter the Chronicle
+(`975db3ba`, `f736a7d6`, `eefc505c`, `500d2c17`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -34,19 +38,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice E1 (House consolidation)
+## Next up — Slice E2 (Promotion and throne-claim ambitions)
 
-Let the living world acquire a long-term shape instead of accumulating weak
-houses forever:
+Build the ambition transition that feeds the existing rank ladder and hands off
+at the T3 endgame boundary:
 
-1. Define “empty house” precisely from positive stake across all industries and
-   markets; transition eligible ACTIVE houses to `DORMANT` exactly once.
-2. Terminate or withdraw their active chains and open contracts without deleting
-   rows or invalidating stable ids.
-3. Re-evaluate invalid consolidation ambitions when a target industry vanishes
-   or the house becomes dormant; never let stale targets drive drift/chains.
-4. Add Chronicle outcome only if dormancy crosses the existing intimate/epic
-   news bands; routine low-tier consolidation remains silent.
+1. Define when a consolidating Tier-1/2 house switches to `PROMOTE` rather than
+   continuing horizontal expansion, using persisted rank progress and power.
+2. Define the T3 `CLAIM_THRONE` eligibility threshold and target identity without
+   performing the vanilla faction flip in the living-world layer.
+3. Add deterministic re-evaluation cadence/state so ambition transitions do not
+   flap daily or overwrite player/story-authored ambitions.
+4. Map `PROMOTE`/`CLAIM_THRONE` into chain archetypes only after their resolution
+   payload and T3-endgame handoff contracts are explicit.
 
 ## Open forks still unresolved (design)
 
@@ -93,3 +97,6 @@ houses forever:
 - Slice D4a — separate opposed-chain contract lineage (`dd63a0ba`).
 - Slice D4b — bounded threatened-house intervention offers (`0a2f3c09`).
 - Slice D4c — validated player-success chain intervention (`7b54ec81`).
+- Slice E1a — empty-house dormancy + political cleanup (`975db3ba`, `f736a7d6`).
+- Slice E1b — stale consolidation re-evaluation (`eefc505c`).
+- Slice E1c — selective dormancy Chronicle events (`500d2c17`).

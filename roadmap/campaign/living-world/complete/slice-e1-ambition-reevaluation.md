@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `eefc505c`
+
 ## Goal
 
 Prevent a vanished foothold or dormant house from continuing to drive stake

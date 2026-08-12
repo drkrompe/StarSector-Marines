@@ -158,7 +158,7 @@ Each slice is independently observable.
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
 | ~~**D — Chains + Chronicle**~~ ✅ | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
-| **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
+| **E — Consolidation + ambition** (E1 consolidation ✅) | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
 D adds headlines and decisive events. E is the long tail.
@@ -174,15 +174,17 @@ outcome classification, and debug-intel dispatches: `dc3da47d`, `068943ed`,
 active discovery, and the threatened-house intervention query: `435b704e`,
 `b006dc3`, `3a16315e`), and D4 (separate hostile-chain lineage, expiring
 threatened-house Strike offers, and validated player-success intervention:
-`dd63a0ba`, `0a2f3c09`, `7b54ec81`) — see
+`dd63a0ba`, `0a2f3c09`, `7b54ec81`), and E1 (empty-house dormancy, political
+work cleanup, stale ambition re-evaluation, and selective dormancy dispatches:
+`975db3ba`, `f736a7d6`, `eefc505c`, `500d2c17`) — see
 [`complete/`](complete/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic. Slice E now owns consolidation, ambition re-evaluation, and the
-long-tail transition toward throne claims.
+mutation logic. E2 now owns the long-tail transition toward promotion and throne
+claims, stopping at the T3-endgame boundary rather than flipping factions here.
 
 ## Two payoffs that fall out for free
 
