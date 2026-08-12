@@ -19,8 +19,8 @@ import org.apache.log4j.Logger;
  * <p>Promote semantics mirror the captain XP ladder in {@code MissionResolver}:
  * crossing a {@link HouseRank#promotionThreshold} carries the remainder forward
  * (no progress lost on a big bump) and cascades if a single delta skips a tier.
- * {@link HouseRank#TIER_4} is terminal here — reaching it is the hand-off to the
- * T3 endgame thread, which owns the vanilla faction flip.
+ * Generic progress stops at the Tier-3 threshold: only the isolated T3 endgame
+ * consumer may perform the final Tier-4 rank change alongside vanilla writeback.
  */
 public final class HousePromotion {
 
@@ -37,6 +37,9 @@ public final class HousePromotion {
         if (houseRow < 0) return; // tolerate a missed lookup — this is the shared entry point
         int next = state.housePromotionProgress[houseRow] + delta;
         if (next < 0) next = 0;
+        if (HouseRank.fromByte(state.houseRank[houseRow]) == HouseRank.TIER_3) {
+            next = Math.min(next, HouseRank.TIER_3.promotionThreshold);
+        }
         if (next > Short.MAX_VALUE) next = Short.MAX_VALUE;
         state.housePromotionProgress[houseRow] = (short) next;
     }
@@ -53,7 +56,13 @@ public final class HousePromotion {
         int promotions = 0;
         while (true) {
             HouseRank rank = HouseRank.fromByte(state.houseRank[houseRow]);
-            if (rank == HouseRank.TIER_4) break; // terminal — T3 endgame owns the next step
+            if (rank == HouseRank.TIER_3 || rank == HouseRank.TIER_4) {
+                if (rank == HouseRank.TIER_3
+                        && state.housePromotionProgress[houseRow] > rank.promotionThreshold) {
+                    state.housePromotionProgress[houseRow] = (short) rank.promotionThreshold;
+                }
+                break; // the isolated T3 endgame owns the final rank change
+            }
             int progress = state.housePromotionProgress[houseRow];
             if (progress < rank.promotionThreshold) break;
 

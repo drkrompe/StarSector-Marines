@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Coverage for {@link HousePromotion} — the shared bump-and-promote primitive
  * the player path and the coming {@code AutonomousPromotionSystem} both route
  * through. Verifies threshold crossing, remainder carry, multi-tier cascade,
- * suppression (negative delta), and the TIER_4 terminal.
+ * suppression (negative delta), the Tier-3 handoff cap, and the TIER_4 terminal.
  */
 public class HousePromotionTest {
 
@@ -79,6 +79,30 @@ public class HousePromotionTest {
         assertEquals(0, promotions, "TIER_4 never auto-promotes — T3 endgame owns the next step");
         assertEquals(HouseRank.TIER_4, HouseRank.fromByte(s.houseRank[row]));
         assertEquals(Short.MAX_VALUE, s.housePromotionProgress[row], "progress clamps to the short ceiling");
+    }
+
+    @Test
+    public void tier3ProgressCapsAtHandoffWithoutPromoting() {
+        CampaignState s = new CampaignState();
+        int row = house(s, HouseRank.TIER_3, 990);
+
+        int promotions = HousePromotion.addProgressAndPromote(s, row, 40, 10);
+
+        assertEquals(0, promotions, "generic progress cannot perform the faction-flip rank change");
+        assertEquals(HouseRank.TIER_3, HouseRank.fromByte(s.houseRank[row]));
+        assertEquals(1000, s.housePromotionProgress[row]);
+    }
+
+    @Test
+    public void largeCascadeStopsAtTier3HandoffCap() {
+        CampaignState s = new CampaignState();
+        int row = house(s, HouseRank.TIER_1, 0);
+
+        int promotions = HousePromotion.addProgressAndPromote(s, row, 2_000, 10);
+
+        assertEquals(2, promotions);
+        assertEquals(HouseRank.TIER_3, HouseRank.fromByte(s.houseRank[row]));
+        assertEquals(1000, s.housePromotionProgress[row]);
     }
 
     @Test
