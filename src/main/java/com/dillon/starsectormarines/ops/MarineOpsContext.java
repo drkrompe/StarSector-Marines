@@ -223,14 +223,25 @@ public class MarineOpsContext {
         String key = client.identity();
         List<Mission> cached = missionsByClient.get(key);
         if (cached != null) return cached;
-        List<Mission> generated = Collections.unmodifiableList(
-                MissionGenerator.generate(planet, client));
+        List<Mission> generated;
+        if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
+            Mission rescue = localCivilianRescueMission();
+            generated = rescue != null
+                    ? Collections.singletonList(rescue)
+                    : Collections.emptyList();
+        } else {
+            generated = Collections.unmodifiableList(
+                    MissionGenerator.generate(planet, client));
+        }
         missionsByClient.put(key, generated);
         return generated;
     }
 
     /** Magic factionId for the synthetic debug client. {@link MissionGenerator} branches on this. */
     public static final String DEBUG_CLIENT_FACTION_ID = "marines_debug_client";
+    /** Local mission-only client for a committed civilian distress response. */
+    public static final String DISTRESS_CLIENT_FACTION_ID =
+            "marines_distress_net_client";
 
     private static List<Client> resolveClients(PlanetAPI planet, MarketAPI market) {
         List<Client> out = new ArrayList<>();
@@ -250,6 +261,23 @@ public class MarineOpsContext {
                     RepLevel.NEUTRAL,
                     false, null));
             seen.add(DEBUG_CLIENT_FACTION_ID);
+        }
+
+        // 0b. A committed rescue is visible only at its frozen local market.
+        // The synthetic client is always open: the player already paid the
+        // event's voluntary commitment cost, so faction reputation cannot
+        // relock deployment afterward.
+        CampaignStateScript campaignScript = CampaignStateScript.getInstance();
+        CampaignState campaignState = campaignScript != null
+                ? campaignScript.state() : null;
+        if (market != null && CivilianRescueLocalMission.committedRow(
+                campaignState, market.getId()) >= 0) {
+            String crest = market.getFaction() != null
+                    ? market.getFaction().getCrest() : null;
+            out.add(new Client(DISTRESS_CLIENT_FACTION_ID,
+                    "Distress Net — Civilian Evacuation", crest,
+                    RepLevel.NEUTRAL, false, null));
+            seen.add(DISTRESS_CLIENT_FACTION_ID);
         }
 
         // 1. Planet's owning faction (if it has one)
@@ -300,6 +328,16 @@ public class MarineOpsContext {
         }
 
         return out;
+    }
+
+    private Mission localCivilianRescueMission() {
+        if (market == null || planet == null) return null;
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        CampaignState state = script != null ? script.state() : null;
+        String factionId = market.getFaction() != null
+                ? market.getFaction().getId() : null;
+        return CivilianRescueLocalMission.find(state, market.getId(),
+                planet.getName(), factionId);
     }
 
     /**

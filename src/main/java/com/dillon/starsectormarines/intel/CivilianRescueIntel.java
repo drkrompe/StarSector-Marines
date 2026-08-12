@@ -127,8 +127,9 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
             ui.addButton("Decline the call", BTN_REFUSE + eventId,
                     220f, 24f, 4f);
         } else {
-            ui.addPara("Relief stores are committed. Ground response is "
-                    + "awaiting mission deployment.", 10f);
+            ui.addPara("Relief stores are committed. Deploy the civilian "
+                    + "evacuation from Marine Operations at %s.",
+                    10f, Color.LIGHT_GRAY, Color.WHITE, marketName);
         }
 
         panel.addUIElement(ui).inTL(0f, 0f);
