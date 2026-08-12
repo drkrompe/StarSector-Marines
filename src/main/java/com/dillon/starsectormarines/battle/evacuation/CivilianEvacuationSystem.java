@@ -12,20 +12,19 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public final class CivilianEvacuationSystem {
 
-    /** Guaranteed time after the first marine lands for the response force to establish a perimeter. */
-    static final float MARINE_DEPLOYMENT_BUFFER_SECONDS = 12f;
-    /** Civilians eventually run even if every inbound marine is lost before reaching the ground. */
-    static final float MAX_SHELTER_HOLD_SECONDS = 30f;
+    /** A marine must physically reach the bunker entrance to open it. */
+    static final int RELIEF_TRIGGER_RADIUS = 2;
+    /** Civilians stop when no living marine remains within this distance of the cohort. */
+    static final int ESCORT_RADIUS = 6;
 
     private final CivilianEvacuationTracker tracker;
     private int liftX = -1;
     private int liftY = -1;
+    private int shelterApproachX = -1;
+    private int shelterApproachY = -1;
     private int radius;
     private boolean configured;
-    private boolean released;
-    private float shelterHoldElapsed;
-    private boolean marineArrivalObserved;
-    private float deploymentBufferElapsed;
+    private boolean evacuationTriggered;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -42,6 +41,8 @@ public final class CivilianEvacuationSystem {
         }
         liftX = placement.liftX;
         liftY = placement.liftY;
+        shelterApproachX = placement.shelterApproachX;
+        shelterApproachY = placement.shelterApproachY;
         radius = CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
         configured = true;
         return true;
@@ -49,17 +50,12 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
-        if (!released) {
-            shelterHoldElapsed += BattleSimulation.TICK_DT;
-            if (hasLiveMarine(sim)) marineArrivalObserved = true;
-            if (marineArrivalObserved) {
-                deploymentBufferElapsed += BattleSimulation.TICK_DT;
-            }
-            released = (marineArrivalObserved
-                    && deploymentBufferElapsed
-                    >= MARINE_DEPLOYMENT_BUFFER_SECONDS)
-                    || shelterHoldElapsed >= MAX_SHELTER_HOLD_SECONDS;
+        if (!evacuationTriggered && marineWithin(
+                shelterApproachX, shelterApproachY,
+                RELIEF_TRIGGER_RADIUS, sim)) {
+            evacuationTriggered = true;
         }
+        boolean escorted = evacuationTriggered && cohortHasEscort(sim);
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
             if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE) {
@@ -74,7 +70,7 @@ public final class CivilianEvacuationSystem {
                 board(id, sim);
                 continue;
             }
-            if (!released) {
+            if (!escorted) {
                 sim.clearPath(id);
                 continue;
             }
@@ -102,14 +98,37 @@ public final class CivilianEvacuationSystem {
 
     /** True while the cohort remains behind the sealed shelter barricade. */
     public boolean isShelterProtected() {
-        return configured && !released && !tracker.isSealed();
+        return configured && !evacuationTriggered && !tracker.isSealed();
     }
 
-    private static boolean hasLiveMarine(BattleSimulation sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.MARINE) {
+    public boolean isEvacuationTriggered() {
+        return evacuationTriggered;
+    }
+
+    private boolean cohortHasEscort(BattleSimulation sim) {
+        for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+            long civilian = tracker.entityIdAt(i);
+            if (tracker.state(civilian)
+                    != CivilianEvacuationTracker.State.ACTIVE
+                    || sim.resolveUnit(civilian) == 0L) {
+                continue;
+            }
+            if (marineWithin(sim.world().cellX(civilian),
+                    sim.world().cellY(civilian), ESCORT_RADIUS, sim)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private static boolean marineWithin(int x, int y, int distance,
+                                        BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE) continue;
+            int dx = sim.world().cellX(unit) - x;
+            int dy = sim.world().cellY(unit) - y;
+            if (dx * dx + dy * dy <= distance * distance) return true;
         }
         return false;
     }
