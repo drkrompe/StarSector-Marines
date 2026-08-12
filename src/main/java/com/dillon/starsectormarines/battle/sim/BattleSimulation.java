@@ -354,6 +354,11 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        // Registered rescue civilians report loss through the same once-only
+        // death mailbox as every other post-death reaction. Non-cohort deaths
+        // are harmless tracker no-ops.
+        deathDispatcher.subscribe(event ->
+                civilianEvacuation.markLost(event.unitId()));
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.mechLocomotionSystem = new com.dillon.starsectormarines.battle.mech.MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
@@ -1083,6 +1088,10 @@ public class BattleSimulation implements BattleControl {
         if (result.complete()) {
             complete = true;
             winner = result.winner();
+            // A terminal battle makes every registered civilian still outside
+            // the evacuation boundary unsaved. Incomplete setup cannot seal,
+            // preserving the no-report sentinel instead of scaling bad data.
+            civilianEvacuation.seal();
         }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from
