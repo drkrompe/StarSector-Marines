@@ -25,6 +25,7 @@ class CampaignStateStationingColumnsTest {
         assertEquals(-1, state.contractLastTrainingTick[19]);
         assertEquals(-1L, state.contractSourceContractId[19]);
         assertEquals(-1, state.contractLastDefaultCheckTick[19]);
+        assertEquals(0, state.contractPhaseAttempts[19]);
     }
 
     @Test
@@ -35,6 +36,7 @@ class CampaignStateStationingColumnsTest {
         state.contractLastTrainingTick = null;
         state.contractSourceContractId = null;
         state.contractLastDefaultCheckTick = null;
+        state.contractPhaseAttempts = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -45,6 +47,7 @@ class CampaignStateStationingColumnsTest {
         assertNotNull(state.contractLastTrainingTick);
         assertNotNull(state.contractSourceContractId);
         assertNotNull(state.contractLastDefaultCheckTick);
+        assertNotNull(state.contractPhaseAttempts);
         assertEquals(state.contractId.length, state.contractMarinesCommitted.length);
         assertEquals(state.contractId.length, state.contractLastRetainerTick.length);
         assertEquals(-1, state.contractLastRetainerTick[0]);

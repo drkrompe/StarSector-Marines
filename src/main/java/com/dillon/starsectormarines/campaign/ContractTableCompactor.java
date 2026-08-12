@@ -52,6 +52,7 @@ public final class ContractTableCompactor {
         state.contractOfferExpiresTick[to] = state.contractOfferExpiresTick[from];
         state.contractPhasesTotal[to] = state.contractPhasesTotal[from];
         state.contractPhasesDone[to] = state.contractPhasesDone[from];
+        state.contractPhaseAttempts[to] = state.contractPhaseAttempts[from];
         state.contractCaptainId[to] = state.contractCaptainId[from];
         state.contractMarketId[to] = state.contractMarketId[from];
         state.contractIndustryId[to] = state.contractIndustryId[from];

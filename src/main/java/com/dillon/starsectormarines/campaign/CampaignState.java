@@ -116,6 +116,8 @@ public final class CampaignState implements Serializable {
     public int[]   contractOfferExpiresTick = new int[INITIAL_CAPACITY];
     public byte[]  contractPhasesTotal   = new byte[INITIAL_CAPACITY];
     public byte[]  contractPhasesDone    = new byte[INITIAL_CAPACITY];
+    /** Attempts made at the current phase; reset after phase advancement. */
+    public int[]   contractPhaseAttempts = new int[INITIAL_CAPACITY];
     /** Captain index in {@link #captainRegistry}; -1 if no captain bound yet. */
     public int[]   contractCaptainId     = new int[INITIAL_CAPACITY];
     public int[]   contractMarketId      = new int[INITIAL_CAPACITY];
@@ -297,6 +299,7 @@ public final class CampaignState implements Serializable {
         contractOfferExpiresTick[i] = offerExpiresTick;
         contractPhasesTotal[i]      = phasesTotal;
         contractPhasesDone[i]       = 0;
+        contractPhaseAttempts[i]    = 0;
         contractCaptainId[i]        = captainIdx;
         contractMarketId[i]         = marketIdx;
         contractIndustryId[i]       = industryIdx;
@@ -445,6 +448,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractLastDefaultCheckTick = filledInts(n, -1);
         }
+        if (contractPhaseAttempts == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractPhaseAttempts = new int[n];
+        }
         return this;
     }
 
@@ -465,6 +472,7 @@ public final class CampaignState implements Serializable {
         contractOfferExpiresTick  = Arrays.copyOf(contractOfferExpiresTick, n);
         contractPhasesTotal       = Arrays.copyOf(contractPhasesTotal, n);
         contractPhasesDone        = Arrays.copyOf(contractPhasesDone, n);
+        contractPhaseAttempts     = Arrays.copyOf(contractPhaseAttempts, n);
         contractCaptainId         = Arrays.copyOf(contractCaptainId, n);
         contractMarketId          = Arrays.copyOf(contractMarketId, n);
         contractIndustryId        = Arrays.copyOf(contractIndustryId, n);
