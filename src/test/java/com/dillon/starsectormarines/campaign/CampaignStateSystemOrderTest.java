@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
+import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +25,7 @@ class CampaignStateSystemOrderTest {
 
         int defaults = indexOf(systems, StationingDefaultSystem.class);
         int ambitions = indexOf(systems, HouseAmbitionSystem.class);
+        int drift = indexOf(systems, StakeDriftSystem.class);
         int promotions = indexOf(systems, AutonomousPromotionSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
@@ -34,7 +36,8 @@ class CampaignStateSystemOrderTest {
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
-        assertTrue(ambitions < promotions);
+        assertTrue(ambitions < drift);
+        assertTrue(drift < promotions);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);

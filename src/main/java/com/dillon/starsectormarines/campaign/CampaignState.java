@@ -48,6 +48,8 @@ public final class CampaignState implements Serializable {
     public long[] houseAmbitionTarget = new long[INITIAL_CAPACITY];
     public short[] housePromotionProgress = new short[INITIAL_CAPACITY];
     public int[]  housePower        = new int[INITIAL_CAPACITY];
+    /** Last sector day weekly stake drift evaluated; -1 until the first cadence tick. */
+    public int[]  houseLastDriftTick = filledInts(INITIAL_CAPACITY, -1);
     public long[] houseClaimAgainst = new long[INITIAL_CAPACITY];
     public byte[] houseArchetype    = new byte[INITIAL_CAPACITY];
     public String[] houseDisplayName = new String[INITIAL_CAPACITY];
@@ -206,6 +208,7 @@ public final class CampaignState implements Serializable {
         houseAmbitionTarget[i] = -1L;
         housePromotionProgress[i] = 0;
         housePower[i] = 0;
+        houseLastDriftTick[i] = -1;
         houseClaimAgainst[i] = -1L;
         houseArchetype[i] = archetype.toByte();
         houseDisplayName[i] = displayName;
@@ -372,6 +375,7 @@ public final class CampaignState implements Serializable {
 
     private void ensureHouseCapacity(int needed) {
         if (needed <= houseId.length) return;
+        int oldLength = houseId.length;
         int n = Math.max(needed, houseId.length * 2);
         houseId               = Arrays.copyOf(houseId, n);
         houseMarketId         = Arrays.copyOf(houseMarketId, n);
@@ -383,6 +387,8 @@ public final class CampaignState implements Serializable {
         houseAmbitionTarget   = Arrays.copyOf(houseAmbitionTarget, n);
         housePromotionProgress = Arrays.copyOf(housePromotionProgress, n);
         housePower            = Arrays.copyOf(housePower, n);
+        houseLastDriftTick    = Arrays.copyOf(houseLastDriftTick, n);
+        Arrays.fill(houseLastDriftTick, oldLength, n, -1);
         houseClaimAgainst     = Arrays.copyOf(houseClaimAgainst, n);
         houseArchetype        = Arrays.copyOf(houseArchetype, n);
         houseDisplayName      = Arrays.copyOf(houseDisplayName, n);
@@ -446,6 +452,10 @@ public final class CampaignState implements Serializable {
     private Object readResolve() {
         if (houseArchetype == null) {
             houseArchetype = new byte[houseId != null ? houseId.length : INITIAL_CAPACITY];
+        }
+        if (houseLastDriftTick == null) {
+            int n = houseId != null ? houseId.length : INITIAL_CAPACITY;
+            houseLastDriftTick = filledInts(n, -1);
         }
         if (contractOfferExpiresTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;

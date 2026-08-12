@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtraction
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
+import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
@@ -63,6 +64,7 @@ public class CampaignStateScript implements EveryFrameScript {
         return new ArrayList<>(Arrays.asList(
                 new HousePowerSystem(),
                 new HouseAmbitionSystem(),
+                new StakeDriftSystem(),
                 new AutonomousPromotionSystem(),
                 new RelationshipInteractionSystem(),
                 new ChainAdvancementSystem(),
