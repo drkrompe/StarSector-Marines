@@ -43,16 +43,17 @@ The +90 value decisively crosses a Tier-1 house entering `PROMOTE` at 75/100 and
 crosses a Tier-2 house entering at 225/300, while preserving the shared rank
 ladder's remainder-carry semantics. Suppression floors at zero.
 
-## Throne claim — still gated
+## Throne claim — handoff contract locked
 
-`CLAIM_THRONE` remains an inert persisted handoff marker. Before mapping it to
-`CIVIL_WAR`, the T3-endgame thread must specify:
+`CLAIM_THRONE` remains an inert persisted handoff marker until the append-only
+handoff table and `CIVIL_WAR` producer land. The contract is now fixed in
+[`../t3-endgame/overview.md`](../t3-endgame/overview.md):
 
-- its multi-stage chain and contract composition;
-- the persisted, exactly-once handoff record consumed by the sole
-  vanilla-writing system;
-- market/faction selection and reversibility rules;
-- what caps ordinary Tier-3 progress before the handoff resolves;
-- Chronicle, discovery, intervention, and player-choice outcomes.
+- ordinary progress caps at Tier 3 / 1000;
+- a 180-day civil war targets the strongest same-faction rival and claimant home
+  market;
+- resolution prepares one source-chain-unique handoff record with deterministic
+  source/result faction identity;
+- only the isolated consumer may apply or fail that record and set Tier 4.
 
 No living-world system may infer or perform the vanilla faction flip.
