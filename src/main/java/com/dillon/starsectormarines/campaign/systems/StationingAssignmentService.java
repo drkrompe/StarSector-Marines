@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -49,6 +50,7 @@ public final class StationingAssignmentService {
         if (row < 0 || ContractState.fromByte(state.contractState[row]) != ContractState.OFFERED) {
             return false;
         }
+        if (!ContractEligibility.contractAcceptable(state, contractId)) return false;
         ContractType type = ContractType.fromByte(state.contractType[row]);
         if (!type.isStationing()) return false;
         int patronRow = state.houseIndex(state.contractPatronHouseId[row]);

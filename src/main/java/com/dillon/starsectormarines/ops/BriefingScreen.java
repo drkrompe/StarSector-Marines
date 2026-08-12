@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -615,6 +616,11 @@ public class BriefingScreen implements Screen {
         if (m == null) return;
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         if (m.contractId >= 0L && campaignScript != null) {
+            if (!ContractEligibility.contractAcceptable(
+                    campaignScript.state(), m.contractId)) {
+                rebuild();
+                return;
+            }
             int row = campaignScript.state().contractIndex(m.contractId);
             if (row >= 0 && ContractType.fromByte(campaignScript.state().contractType[row])
                     == ContractType.PLANETARY_ASSAULT

@@ -24,6 +24,7 @@
 
 		# Client list row labels
 		"clientLockedHostile":    "Hostile - unreachable",
+		"clientLockedCredibility": "Insufficient MRB or house standing",
 
 		# Mission popup labels + values
 		"missionPopupType":       "Type:",

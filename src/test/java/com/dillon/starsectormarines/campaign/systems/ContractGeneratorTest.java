@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
@@ -75,6 +76,7 @@ class ContractGeneratorTest {
         CampaignState state = new CampaignState();
         long patronId = state.addHouse(1, 1, HouseFlavor.CORPORATE, HouseRank.TIER_2,
                 HouseStatus.ACTIVE, PatronArchetype.ESTABLISHED, "Stationing Patron");
+        state.playerMrbRep = ContractEligibility.TIER_2_MRB_REQUIRED;
         int day = firstStationingOfferDay(patronId);
 
         new ContractGenerator().tick(state, day);
@@ -86,6 +88,21 @@ class ContractGeneratorTest {
         assertEquals(0, state.contractBasePayout[0]);
         assertEquals(0, state.contractRetainerPerMonth[0]);
         assertEquals(0, state.contractPhasesTotal[0] & 0xFF);
+    }
+
+    @Test
+    void mrbGatePreventsTierTwoGenerationUntilUnlocked() {
+        CampaignState state = new CampaignState();
+        long patronId = state.addHouse(1, 1, HouseFlavor.CORPORATE, HouseRank.TIER_2,
+                HouseStatus.ACTIVE, PatronArchetype.ESTABLISHED, "Locked Patron");
+        int day = firstStationingOfferDay(patronId);
+
+        new ContractGenerator().tick(state, day);
+        assertEquals(0, state.contractCount);
+
+        state.playerMrbRep = ContractEligibility.TIER_2_MRB_REQUIRED;
+        new ContractGenerator().tick(state, day);
+        assertEquals(1, state.contractCount);
     }
 
     private static CampaignState twoActivePatrons() {

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -72,6 +73,7 @@ public final class ContractGenerator implements CampaignSystem {
             if (HouseStatus.fromByte(state.houseStatus[i]) != HouseStatus.ACTIVE) continue;
 
             long patronId = state.houseId[i];
+            if (!ContractEligibility.patronEligible(state, patronId)) continue;
             if (countOpenOffersForPatron(state, patronId) >= PER_PATRON_OFFER_CAP) continue;
 
             long seed = ((long) day << 32) ^ patronId;

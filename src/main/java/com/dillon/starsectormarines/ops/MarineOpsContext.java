@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -350,8 +351,13 @@ public class MarineOpsContext {
                     ? player.getRelationshipLevel(faction.getId())
                     : RepLevel.NEUTRAL;
             boolean locked = !mandatoryPatrons.contains(patronId)
-                    && rep.ordinal() <= RepLevel.HOSTILE.ordinal();
-            String lockReason = locked ? "clientLockedHostile" : null;
+                    && (rep.ordinal() <= RepLevel.HOSTILE.ordinal()
+                        || !ContractEligibility.patronEligible(state, patronId));
+            String lockReason = null;
+            if (locked) {
+                lockReason = rep.ordinal() <= RepLevel.HOSTILE.ordinal()
+                        ? "clientLockedHostile" : "clientLockedCredibility";
+            }
 
             out.add(new Client(factionId != null ? factionId : "patron",
                     name, crest, rep, locked, lockReason, patronId));

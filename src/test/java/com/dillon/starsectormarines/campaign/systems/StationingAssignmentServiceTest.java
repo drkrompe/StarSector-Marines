@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
@@ -58,6 +59,7 @@ class StationingAssignmentServiceTest {
 
     private static Fixture fixture(ContractType type, HouseRank rank, int marines) {
         CampaignState state = new CampaignState();
+        state.playerMrbRep = ContractEligibility.TIER_3_MRB_REQUIRED;
         long patronId = state.addHouse(0, 0, HouseFlavor.CORPORATE, rank,
                 HouseStatus.ACTIVE, PatronArchetype.ESTABLISHED, "Patron");
         long contractId = state.addContract(patronId, -1L, -1L, type,
