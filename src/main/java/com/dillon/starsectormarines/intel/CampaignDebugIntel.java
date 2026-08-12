@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
+import com.dillon.starsectormarines.campaign.ChainState;
+import com.dillon.starsectormarines.campaign.ChronicleBand;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractTableCompactor;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -36,7 +38,7 @@ import java.util.Set;
  *
  * <p>Surfaces:
  * <ul>
- *   <li>Counters (house / stake / chain / rep totals).</li>
+ *   <li>Counters (house / stake / chain / Chronicle / rep totals).</li>
  *   <li>Bypass-gating toggle — lets {@code MissionGenerator} skip rep/rank
  *       checks for any-house-any-mission playtesting.</li>
  *   <li>Per-house row with rank, flavor, status, and a promote button.</li>
@@ -129,11 +131,12 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
         // ---- Counters ----
         ui.addSectionHeading("Campaign state", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 0f);
-        ui.addPara("Houses: %s    Stakes: %s    Chains: %s    Contracts: %s    Player rep rows: %s    LastTickDay: %s",
+        ui.addPara("Houses: %s    Stakes: %s    Chains: %s    Chronicle: %s    Contracts: %s    Player rep rows: %s    LastTickDay: %s",
                 10f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(s.houseCount),
                 String.valueOf(s.stakeCount),
                 String.valueOf(s.chainCount),
+                String.valueOf(s.chronicleCount),
                 String.valueOf(s.contractCount),
                 String.valueOf(s.repCount),
                 String.valueOf(s.lastTickDay));
@@ -195,6 +198,26 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         if (skippedContracts > 0) {
             ui.addPara("... %s more contracts (filtered / truncated)", 6f, Color.LIGHT_GRAY, Color.WHITE,
                     String.valueOf(skippedContracts));
+        }
+
+        // ---- Chronicle ----
+        ui.addSectionHeading("Chronicle — learned political dispatches", Color.WHITE,
+                new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
+        int shownChronicle = 0;
+        int skippedChronicle = 0;
+        for (int i = s.chronicleCount - 1; i >= 0; i--) {
+            if (localMarketSlots != null && !localMarketSlots.contains(s.chronicleMarketId[i])) {
+                skippedChronicle++;
+                continue;
+            }
+            if (shownChronicle >= 100) { skippedChronicle++; continue; }
+            ui.addPara(chronicleSummary(s, i), 8f, Color.LIGHT_GRAY, Color.WHITE);
+            shownChronicle++;
+        }
+        if (shownChronicle == 0 && skippedChronicle == 0) ui.addPara("(none learned)", 8f);
+        if (skippedChronicle > 0) {
+            ui.addPara("... %s more dispatches (filtered / truncated)", 6f,
+                    Color.LIGHT_GRAY, Color.WHITE, String.valueOf(skippedChronicle));
         }
 
         // ---- House list ----
@@ -268,6 +291,26 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int idx = s.houseIndex(houseId);
         if (idx < 0) return "house#" + houseId;
         return s.houseDisplayName[idx] != null ? s.houseDisplayName[idx] : ("house#" + houseId);
+    }
+
+    static String chronicleSummary(CampaignState s, int row) {
+        ChronicleBand band = ChronicleBand.fromByte(s.chronicleBand[row]);
+        ChainState outcome = ChainState.fromByte(s.chronicleChainOutcome[row]);
+        String actor = displayNameFor(s, s.chronicleActorHouseId[row]);
+        String target = displayNameFor(s, s.chronicleTargetHouseId[row]);
+        String market = registryLabel(s.marketRegistry.get(s.chronicleMarketId[row]),
+                "market", s.chronicleMarketId[row]);
+        String industry = registryLabel(s.industryRegistry.get(s.chronicleIndustryId[row]),
+                "industry", s.chronicleIndustryId[row]);
+        return "[" + band.name() + "] " + outcome.name()
+                + " — " + actor + " vs " + target
+                + " — " + industry + " @ " + market
+                + " — happened day " + s.chronicleHappenedTick[row]
+                + ", learned day " + s.chronicleLearnedTick[row];
+    }
+
+    private static String registryLabel(String value, String kind, int slot) {
+        return value != null ? value : kind + "#" + slot;
     }
 
     private static int[] countContractsByState(CampaignState s) {
