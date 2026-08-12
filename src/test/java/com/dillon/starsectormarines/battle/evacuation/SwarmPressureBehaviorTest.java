@@ -47,6 +47,36 @@ class SwarmPressureBehaviorTest {
     }
 
     @Test
+    void hiddenEvacueeIsNotKnownBeforeRunnerSensesIt() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long marine = marine(sim, 4, 2);
+        long evacuee = civilian(sim, "hidden evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        sim.getGrid().setWalkable(6, 2, false);
+
+        assertEquals(marine,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
+    void runnerRemembersEvacueeAfterInitialDiscovery() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        marine(sim, 4, 2);
+        long evacuee = civilian(sim, "discovered evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        assertEquals(evacuee,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+
+        sim.combat().setTargetId(runner, evacuee);
+        sim.getGrid().setWalkable(6, 2, false);
+
+        assertEquals(evacuee,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
     void pathsTowardDistantTargetAndAppliesOnlyContactDamage() {
         BattleSimulation sim = simulation();
         long runner = runner(sim, 2, 2);

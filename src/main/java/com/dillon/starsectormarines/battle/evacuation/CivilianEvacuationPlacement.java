@@ -90,7 +90,8 @@ public final class CivilianEvacuationPlacement {
         int sy = shelter.interiorAnchorY;
         int[] lift = farthestReachableLift(grid, sx, sy);
         if (lift == null) return null;
-        int[] spawns = reachableSpawnCells(grid, sx, sy, lift[0], lift[1]);
+        int[] spawns = reachableSpawnCells(
+                grid, shelter, sx, sy, lift[0], lift[1]);
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
                 sx, sy, lift[0], lift[1], spawns);
@@ -122,6 +123,7 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static int[] reachableSpawnCells(NavigationGrid grid,
+                                              PointOfInterest shelter,
                                               int sx, int sy,
                                               int liftX, int liftY) {
         List<int[]> candidates = new ArrayList<>();
@@ -132,6 +134,12 @@ public final class CivilianEvacuationPlacement {
                  x <= Math.min(grid.getWidth() - 1,
                          sx + SHELTER_ZONE_RADIUS); x++) {
                 if (!grid.isWalkable(x, y)) continue;
+                // POI bounds are the wall ring. Keeping every representative
+                // strictly inside it makes "residential shelter" a physical
+                // placement guarantee rather than a loose radius around one
+                // indoor anchor.
+                if (x <= shelter.left || x >= shelter.right
+                        || y <= shelter.top || y >= shelter.bottom) continue;
                 if (Math.abs(x - sx) + Math.abs(y - sy)
                         > SHELTER_ZONE_RADIUS) continue;
                 if (insideLiftZone(x, y, liftX, liftY)) continue;

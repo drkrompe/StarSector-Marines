@@ -52,10 +52,22 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         sim.advanceMovement(runner);
     }
 
-    /** Registered active evacuees first; nearest marine only when none remain. */
+    /**
+     * Previously acquired evacuees first, then newly sensed evacuees; nearest
+     * marine when no civilian has been discovered. Runners can remember prey
+     * that breaks line of sight, but do not know the cohort's exact position
+     * before seeing it.
+     */
     public static long selectTarget(long runner, BattleSimulation sim) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
+        long remembered = sim.combat().targetId(runner);
+        if (tracker.state(remembered)
+                == CivilianEvacuationTracker.State.ACTIVE
+                && sim.resolveUnit(remembered) != 0L) {
+            return remembered;
+        }
+
         long best = 0L;
         int bestDistance = Integer.MAX_VALUE;
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
@@ -65,6 +77,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                     || sim.resolveUnit(candidate) == 0L) {
                 continue;
             }
+            if (!canSense(runner, candidate, sim)) continue;
             int distance = distanceSquared(runner, candidate, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && candidate < best)) {
@@ -86,6 +99,14 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             }
         }
         return best;
+    }
+
+    private static boolean canSense(long runner, long candidate,
+                                    BattleSimulation sim) {
+        return sim.getGrid().hasLineOfSightWithin(
+                sim.world().cellX(runner), sim.world().cellY(runner),
+                sim.world().cellX(candidate), sim.world().cellY(candidate),
+                sim.vision().visionRange(runner));
     }
 
     private static boolean needsPath(long runner, int targetX, int targetY,

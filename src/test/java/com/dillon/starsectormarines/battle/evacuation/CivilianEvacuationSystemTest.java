@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,32 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CivilianEvacuationSystemTest {
+
+    @Test
+    void cohortSheltersUntilTheFirstMarineArrives() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload =
+                CivilianEvacuationPayload.install(sim,
+                        List.of(residential(12, 10)), 299L);
+        assertNotNull(payload);
+        long first = payload.entityId(0);
+        int startX = sim.world().cellX(first);
+        int startY = sim.world().cellY(first);
+
+        for (int tick = 0; tick < 60; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertEquals(startX, sim.world().cellX(first));
+        assertEquals(startY, sim.world().cellY(first));
+        assertTrue(Paths.isEmpty(sim.movement().path(first)));
+
+        sim.spawn(new EntitySpec("rescue marine", Faction.MARINE,
+                UnitType.MARINE, 2, 2));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertFalse(Paths.isEmpty(sim.movement().path(first)));
+    }
 
     @Test
     void installedCohortRoutesBoardsAndCompletesWithoutCombatVictoryInference() {
