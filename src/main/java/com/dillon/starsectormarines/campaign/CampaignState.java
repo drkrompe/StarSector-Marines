@@ -126,6 +126,8 @@ public final class CampaignState implements Serializable {
     public int[]   contractMarinesCommitted = new int[INITIAL_CAPACITY];
     /** Last day through which stationing retainer was paid; -1 until acceptance. */
     public int[]   contractLastRetainerTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Last day through which Cadre training XP was awarded; -1 until acceptance. */
+    public int[]   contractLastTrainingTick = filledInts(INITIAL_CAPACITY, -1);
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -298,6 +300,8 @@ public final class CampaignState implements Serializable {
         contractMarinesCommitted[i] = 0;
         contractLastRetainerTick[i] = type.isStationing()
                 && state != ContractState.OFFERED ? acceptedTick : -1;
+        contractLastTrainingTick[i] = type == ContractType.CADRE
+                && state != ContractState.OFFERED ? acceptedTick : -1;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -422,6 +426,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractLastRetainerTick = filledInts(n, -1);
         }
+        if (contractLastTrainingTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractLastTrainingTick = filledInts(n, -1);
+        }
         return this;
     }
 
@@ -448,6 +456,8 @@ public final class CampaignState implements Serializable {
         contractMarinesCommitted  = Arrays.copyOf(contractMarinesCommitted, n);
         contractLastRetainerTick  = Arrays.copyOf(contractLastRetainerTick, n);
         Arrays.fill(contractLastRetainerTick, oldLength, n, -1);
+        contractLastTrainingTick  = Arrays.copyOf(contractLastTrainingTick, n);
+        Arrays.fill(contractLastTrainingTick, oldLength, n, -1);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);

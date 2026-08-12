@@ -74,6 +74,7 @@ public final class StationingAssignmentService {
         state.contractRetainerPerMonth[row] = terms.monthlyRetainer;
         state.contractMarinesCommitted[row] = terms.committedMarines;
         state.contractLastRetainerTick[row] = day;
+        state.contractLastTrainingTick[row] = type == ContractType.CADRE ? day : -1;
         state.contractSalvageBaseline[row] = terms.salvageBaseline;
         state.contractSalvageNegotiated[row] = terms.salvageBaseline;
         state.contractCashMultiplier[row] = 100;

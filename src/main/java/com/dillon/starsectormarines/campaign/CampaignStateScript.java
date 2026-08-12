@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
+import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
@@ -57,6 +58,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ChainAdvancementSystem(),
                 new ContractGenerator(),
                 new ContractRetainerSystem(),
+                new CadreTrainingSystem(),
                 new ContractLifecycleSystem(),
                 new StationingReleaseSystem(),
                 new DiscoveryPropagationSystem()
