@@ -63,6 +63,23 @@ class CampaignDebugIntelChronicleTest {
                 CampaignDebugIntel.chronicleSummary(state, 0));
     }
 
+    @Test
+    void throneClaimSummaryNamesClaimantRivalAndFactionFlip() {
+        CampaignState state = new CampaignState();
+        int market = state.marketRegistry.intern("jangala");
+        int source = state.factionRegistry.intern("hegemony");
+        int result = state.factionRegistry.intern("starsector_marines_claimants");
+        long actor = house(state, market, "House Korvath");
+        long target = house(state, market, "House Drennar");
+        state.addChronicleThroneClaimApplied(4L, ChronicleBand.EPIC,
+                actor, target, source, result, market, 20, 23);
+
+        assertEquals("[EPIC/CONFIRMED] FACTION FLIP — House Korvath displaced"
+                        + " House Drennar — hegemony → starsector_marines_claimants"
+                        + " — jangala — happened day 20, learned day 23",
+                CampaignDebugIntel.chronicleSummary(state, 0));
+    }
+
     private static long house(CampaignState state, int market, String name) {
         return state.addHouse(market, 1, HouseFlavor.FEUDAL, HouseRank.TIER_1,
                 HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, name);

@@ -316,6 +316,16 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         } else if (eventType == ChronicleEventType.HOUSE_DORMANT) {
             event = "DORMANT — " + actor + " left active politics";
             location = market;
+        } else if (eventType == ChronicleEventType.THRONE_CLAIM_APPLIED) {
+            String sourceFaction = registryLabel(s.factionRegistry.get(
+                    s.chronicleSourceFactionId[row]), "faction",
+                    s.chronicleSourceFactionId[row]);
+            String resultFaction = registryLabel(s.factionRegistry.get(
+                    s.chronicleResultFactionId[row]), "faction",
+                    s.chronicleResultFactionId[row]);
+            event = "FACTION FLIP — " + actor + " displaced " + target
+                    + " — " + sourceFaction + " → " + resultFaction;
+            location = market;
         } else {
             event = outcome.name() + " — " + actor + " vs " + target;
             location = industry + " @ " + market;
