@@ -31,8 +31,31 @@ public final class StarsectorLootCatalog {
         addCommodity(out, settings, request, Commodities.FUEL, 4f, 20, 120);
         addCommodity(out, settings, request, Commodities.MARINES, 1.5f, 5, 30);
         addCommodity(out, settings, request, Commodities.HEAVY_MACHINERY, 2f, 5, 35);
+        addAiCores(out, settings, request);
         addWeapons(out, settings, request);
         return out;
+    }
+
+    private static void addAiCores(List<LootCandidate> out, SettingsAPI settings,
+                                   LootRollRequest request) {
+        if (AiCoreLootRules.permitsAlpha(request)) {
+            addRareCommodity(out, settings, Commodities.ALPHA_CORE, 150_000, 0.03f);
+        }
+        if (AiCoreLootRules.permitsBeta(request)) {
+            addRareCommodity(out, settings, Commodities.BETA_CORE, 30_000, 0.12f);
+        }
+        if (AiCoreLootRules.permitsGamma(request)) {
+            addRareCommodity(out, settings, Commodities.GAMMA_CORE, 10_000, 0.30f);
+        }
+    }
+
+    private static void addRareCommodity(List<LootCandidate> out, SettingsAPI settings,
+                                         String id, int fallbackValue, float weight) {
+        CommoditySpecAPI spec = settings.getCommoditySpec(id);
+        if (spec == null) return;
+        int value = spec.getBasePrice() > 0f ? Math.round(spec.getBasePrice()) : fallbackValue;
+        out.add(new LootCandidate(LootKind.COMMODITY, id, spec.getName(), spec.getIconName(),
+                Math.max(1, value), spec.getCargoSpace(), weight, 1, 1));
     }
 
     private static void addCommodity(List<LootCandidate> out, SettingsAPI settings,
