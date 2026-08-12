@@ -29,6 +29,10 @@ class CampaignStateThroneClaimColumnsTest {
                 ThroneClaimState.fromByte(state.throneClaimState[row]));
         assertEquals(90, state.throneClaimPreparedTick[row]);
         assertEquals(-1, state.throneClaimAppliedTick[row]);
+        assertEquals(ThroneClaimConsequenceState.PENDING,
+                ThroneClaimConsequenceState.fromByte(
+                        state.throneClaimConsequenceState[row]));
+        assertEquals(-1, state.throneClaimConsequenceAppliedTick[row]);
     }
 
     @Test
@@ -45,6 +49,10 @@ class CampaignStateThroneClaimColumnsTest {
         assertEquals(-1, state.throneClaimMarketId[20]);
         assertEquals(-1, state.throneClaimPreparedTick[20]);
         assertEquals(-1, state.throneClaimAppliedTick[20]);
+        assertEquals(ThroneClaimConsequenceState.PENDING,
+                ThroneClaimConsequenceState.fromByte(
+                        state.throneClaimConsequenceState[20]));
+        assertEquals(-1, state.throneClaimConsequenceAppliedTick[20]);
     }
 
     @Test
@@ -77,6 +85,8 @@ class CampaignStateThroneClaimColumnsTest {
         state.throneClaimState = null;
         state.throneClaimPreparedTick = null;
         state.throneClaimAppliedTick = null;
+        state.throneClaimConsequenceState = null;
+        state.throneClaimConsequenceAppliedTick = null;
         state.throneClaimIndexById = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
@@ -91,6 +101,11 @@ class CampaignStateThroneClaimColumnsTest {
         assertEquals(-1, state.throneClaimMarketId[0]);
         assertEquals(-1, state.throneClaimPreparedTick[0]);
         assertEquals(-1, state.throneClaimAppliedTick[0]);
+        assertNotNull(state.throneClaimConsequenceState);
+        assertEquals(ThroneClaimConsequenceState.PENDING,
+                ThroneClaimConsequenceState.fromByte(
+                        state.throneClaimConsequenceState[0]));
+        assertEquals(-1, state.throneClaimConsequenceAppliedTick[0]);
         assertNotNull(state.throneClaimIndexById);
     }
 }

@@ -142,6 +142,10 @@ public final class CampaignState implements Serializable {
     public byte[] throneClaimState = new byte[INITIAL_CAPACITY];
     public int[] throneClaimPreparedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] throneClaimAppliedTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Post-writeback diplomacy lifecycle; independent from ownership application. */
+    public byte[] throneClaimConsequenceState = new byte[INITIAL_CAPACITY];
+    /** Day diplomacy consequences completed; -1 while pending or failed. */
+    public int[] throneClaimConsequenceAppliedTick = filledInts(INITIAL_CAPACITY, -1);
     public int throneClaimCount = 0;
 
     // ---------- contracts[] (sixth table — see contracts/overview.md §"contracts[]") ----------
@@ -449,6 +453,8 @@ public final class CampaignState implements Serializable {
         throneClaimState[i] = ThroneClaimState.PREPARED.toByte();
         throneClaimPreparedTick[i] = preparedTick;
         throneClaimAppliedTick[i] = -1;
+        throneClaimConsequenceState[i] = ThroneClaimConsequenceState.PENDING.toByte();
+        throneClaimConsequenceAppliedTick[i] = -1;
         throneClaimIndexById.put(id, i);
         return id;
     }
@@ -678,6 +684,10 @@ public final class CampaignState implements Serializable {
         Arrays.fill(throneClaimPreparedTick, oldLength, n, -1);
         throneClaimAppliedTick = Arrays.copyOf(throneClaimAppliedTick, n);
         Arrays.fill(throneClaimAppliedTick, oldLength, n, -1);
+        throneClaimConsequenceState = Arrays.copyOf(throneClaimConsequenceState, n);
+        throneClaimConsequenceAppliedTick = Arrays.copyOf(
+                throneClaimConsequenceAppliedTick, n);
+        Arrays.fill(throneClaimConsequenceAppliedTick, oldLength, n, -1);
     }
 
     private void ensureRepCapacity(int needed) {
@@ -811,6 +821,12 @@ public final class CampaignState implements Serializable {
         }
         if (throneClaimAppliedTick == null) {
             throneClaimAppliedTick = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimConsequenceState == null) {
+            throneClaimConsequenceState = new byte[throneClaimCapacity];
+        }
+        if (throneClaimConsequenceAppliedTick == null) {
+            throneClaimConsequenceAppliedTick = filledInts(throneClaimCapacity, -1);
         }
         if (throneClaimIndexById == null) throneClaimIndexById = new LongIntMap();
         throneClaimIndexById.clear();
