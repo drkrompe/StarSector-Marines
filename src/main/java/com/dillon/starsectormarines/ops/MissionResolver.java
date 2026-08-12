@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.CivilianRescueMissionResolution;
 import com.dillon.starsectormarines.campaign.ChainIntervention;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
@@ -214,6 +215,18 @@ public final class MissionResolver {
             LOG.info("MarineOps: stale stationing mission result " + outcome.missionId
                     + " — no writeback");
             return;
+        }
+        if (outcome.missionSource == MissionSource.CAMPAIGN_EVENT) {
+            CampaignStateScript script = CampaignStateScript.getInstance();
+            CivilianRescueMissionResolution.Result result =
+                    CivilianRescueMissionResolution.apply(
+                            script != null ? script.state() : null,
+                            outcome, currentDayInt());
+            LOG.info("MarineOps: campaign event " + outcome.missionId
+                    + " → " + result);
+            if (result != CivilianRescueMissionResolution.Result.RESOLVED) {
+                return;
+            }
         }
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null
                 ? Global.getSector().getPlayerFleet().getCargo()
