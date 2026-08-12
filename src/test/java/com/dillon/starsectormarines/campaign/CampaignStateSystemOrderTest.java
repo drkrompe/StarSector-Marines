@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
+import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
@@ -49,6 +50,7 @@ class CampaignStateSystemOrderTest {
         int training = indexOf(systems, CadreTrainingSystem.class);
         int incidents = indexOf(systems, StationingIncidentSystem.class);
         int lifecycle = indexOf(systems, ContractLifecycleSystem.class);
+        int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
@@ -67,6 +69,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(retainers < lifecycle);
         assertTrue(training < lifecycle);
         assertTrue(incidents < lifecycle);
+        assertTrue(lifecycle < civilWarParticipation);
+        assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);
     }
 

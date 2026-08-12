@@ -12,7 +12,9 @@ public final class ChainIntervention {
     public static boolean stopOpposedChain(CampaignState state, int contractRow, int day) {
         if (state == null || contractRow < 0 || contractRow >= state.contractCount
                 || ContractState.fromByte(state.contractState[contractRow])
-                    != ContractState.COMPLETED) {
+                    != ContractState.COMPLETED
+                || CivilWarBand.fromByte(state.contractCivilWarBand[contractRow])
+                    != CivilWarBand.NONE) {
             return false;
         }
         long opposedChainId = state.contractOpposedChainId[contractRow];

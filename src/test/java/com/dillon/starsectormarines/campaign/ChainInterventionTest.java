@@ -76,6 +76,19 @@ class ChainInterventionTest {
         assertEquals(18, terminal.state.chainResolvedTick[terminal.chainRow]);
     }
 
+    @Test
+    void bandedCivilWarContractUsesParticipationResolutionInstead() {
+        Fixture fixture = new Fixture();
+        fixture.state.contractState[fixture.contractRow] = ContractState.COMPLETED.toByte();
+        fixture.state.contractCivilWarBand[fixture.contractRow] =
+                CivilWarBand.COALITION_BUILDING.toByte();
+
+        assertFalse(ChainIntervention.stopOpposedChain(
+                fixture.state, fixture.contractRow, 20));
+        assertEquals(ChainState.ACTIVE,
+                ChainState.fromByte(fixture.state.chainState[fixture.chainRow]));
+    }
+
     private static final class Fixture {
         final CampaignState state = new CampaignState();
         final long actor = house(state, "Actor");
