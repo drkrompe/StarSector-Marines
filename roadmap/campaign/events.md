@@ -1,13 +1,13 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE SWARM PAYLOAD CODE COMPLETE (2026-08-12).
+**Status:** CIVILIAN-RESCUE OUTCOME CLOSURE IN PROGRESS (2026-08-12).
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
 `fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
 `5d6257f5`, `c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`,
 `84e9e175`, `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`
+`710d2981`, `38bc6323`, `a27064fc`, `cf442e11`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -302,6 +302,21 @@ The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
 it becomes player-visible. Focused runner, pressure, roster, and factory tests
 plus the full Gradle build pass. Manual playtesting remains intentionally
 deferred for this session.
+
+### Outcome closure — first checkpoint
+
+The debug mission client now exposes direct LOW/MEDIUM/HIGH **SWARM RESCUE**
+entries. They launch the production civilian-rescue battle factory but use a
+dedicated debug source with no campaign-event identity, so resolving one cannot
+mutate a real event row. All three remain zero-payout and bring no scripted air
+support.
+
+Controlled fixtures install both the real eight-member cohort and a real swarm
+roster, then verify zero, partial, and full sealed evacuation reports without
+consulting battle victory. Mission outcomes retain both the representative
+count and the campaign-scaled count. The debrief renders those facts explicitly
+(`3 of 8 reps · 300 of 800 civilians`, for example). A durable terminal event
+dispatch remains the next outcome-closure hunk.
 
 ## Design rules
 

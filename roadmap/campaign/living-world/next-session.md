@@ -114,6 +114,11 @@ LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
 zones, while the rescue factory now omits conventional defenders, defense-post
 turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
 `6b386199`, `88421954`, `710d2981`).
+Outcome closure has its first checkpoint too. The debug client offers direct
+LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
+swarm fixtures verify zero/partial/full evacuation; and Results displays both
+representative and campaign-scaled rescue totals (`38bc6323`, `a27064fc`,
+`cf442e11`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -132,10 +137,10 @@ The event now runs from campaign trigger through its intended battle threat.
 Close the player-facing outcome loop without widening the shipped accounting
 contract:
 
-1. Add a controlled battle-to-campaign fixture for zero, partial, and full
-   evacuation with a swarm roster present.
-2. Surface representative and campaign-scaled rescue totals in battle results;
-   do not infer them from the winning faction.
+1. **Shipped:** controlled zero/partial/full battle-to-campaign fixtures with a
+   swarm roster present.
+2. **Shipped:** representative and campaign-scaled rescue totals in Results,
+   independent of the winning faction.
 3. Give the terminal event a durable player-facing resolution dispatch while
    keeping moral-axis numbers hidden.
 4. Keep the event zero-economy and replay-safe; no credits or salvage should be
@@ -244,3 +249,6 @@ contract:
 - Slice G6b — evacuee-first pressure behavior (`6b386199`).
 - Slice G6c — deterministic risk-scaled roster (`88421954`).
 - Slice G6d — dedicated rescue-factory integration (`710d2981`).
+- Slice G7a — direct debug swarm-rescue missions (`38bc6323`).
+- Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
+- Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
