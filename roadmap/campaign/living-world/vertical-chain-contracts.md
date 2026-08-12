@@ -5,10 +5,11 @@ schemes before those ambitions are admitted to autonomous chain creation.
 `CONSOLIDATE_STAKE` remains the horizontal baseline; vertical chains must earn
 their own identity and payload rather than borrowing it.
 
-**Status:** ordinary `PROMOTE` chain CODE COMPLETE (2026-08-12);
-`CLAIM_THRONE` still gated.
+**Status:** ordinary `PROMOTE` chain and `CLAIM_THRONE` handoff producer CODE
+COMPLETE (2026-08-12); vanilla writeback consumer still gated.
 
-**Implemented:** `0a00ceb0`, `156ac5b1`, `a4cd42c8`
+**Implemented:** `0a00ceb0`, `156ac5b1`, `a4cd42c8`, `76c7579a`,
+`9bf2356b`, `bdb45f7b`, `35ec0ccf`, `77657bb8`, `51fad0ca`
 
 ## Ordinary promotion — locked v1 contract
 
@@ -45,8 +46,7 @@ ladder's remainder-carry semantics. Suppression floors at zero.
 
 ## Throne claim — handoff contract locked
 
-`CLAIM_THRONE` remains an inert persisted handoff marker until the append-only
-handoff table and `CIVIL_WAR` producer land. The contract is now fixed in
+`CLAIM_THRONE` now drives the append-only handoff producer fixed in
 [`../t3-endgame/overview.md`](../t3-endgame/overview.md):
 
 - ordinary progress caps at Tier 3 / 1000;

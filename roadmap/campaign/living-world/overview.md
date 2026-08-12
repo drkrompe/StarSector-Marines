@@ -193,6 +193,11 @@ houses create deterministic same-faction local schemes and resolve through the
 shared stake/rank primitives (`0a00ceb0`, `156ac5b1`, `a4cd42c8`).
 `CLAIM_THRONE` remains the isolated T3-endgame boundary.
 
+That boundary now has a complete producer: Tier-3 progress caps at 1000,
+discoverable/intervenable `CIVIL_WAR` chains resolve into a persisted handoff,
+and no living-world code changes vanilla state or Tier 4 (`76c7579a`,
+`9bf2356b`, `bdb45f7b`, `35ec0ccf`, `77657bb8`, `51fad0ca`).
+
 ## Two payoffs that fall out for free
 
 - **Consolidation endgame.** A zero-stake house → `DORMANT`, no respawn

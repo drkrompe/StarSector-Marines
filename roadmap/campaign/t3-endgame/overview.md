@@ -1,5 +1,11 @@
 # Campaign T3 endgame — the faction flip
 
+**Status:** persisted handoff producer CODE COMPLETE (2026-08-12); isolated
+vanilla consumer not yet implemented.
+
+**Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
+`35ec0ccf`, `77657bb8`, `51fad0ca`
+
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
 > [rank ladder](../themes.md). This is the only place the campaign tier

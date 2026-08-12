@@ -36,6 +36,11 @@ The first vertical payload is also shipped: non-majority Tier-1/2 promotion
 schemes bind a same-faction local rival for 60 days, resolve into +90 actor / -30
 rival promotion progress plus a 20-share material shift, and safely short-circuit
 if another route already promoted the actor (`0a00ceb0`, `156ac5b1`, `a4cd42c8`).
+The throne-claim producer is shipped too: generic progress caps at Tier 3,
+capped claimants run 180-day discoverable/intervenable civil wars, and
+resolution prepares one persisted source-chain-unique handoff without changing
+vanilla state or Tier 4 (`76c7579a`, `9bf2356b`, `bdb45f7b`, `35ec0ccf`,
+`77657bb8`, `51fad0ca`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -48,20 +53,18 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Throne-claim handoff contract
+## Next up — Isolated throne-claim consumer
 
-Specify the one remaining vertical payload without weakening the T3
-vanilla-write isolation boundary:
+Consume prepared handoffs behind the sole vanilla-write boundary:
 
-1. Define the `CLAIM_THRONE` chain stages and the exact persisted handoff record
-   consumed by the isolated T3 endgame system.
-2. Decide how ordinary autonomous progress behaves at the T3 threshold while a
-   throne chain is absent or active, so no internal Tier-4 state outruns the
-   vanilla faction result.
-3. Specify exactly-once market/faction writeback, reversibility, and failure
-   behavior before allowing `CIVIL_WAR` creation or advancement.
-4. Add discovery/Chronicle classification and intervention/player-choice
-   outcomes around that persisted handoff.
+1. Put vanilla faction/market probes and mutation behind a narrow adapter so
+   consumer idempotency can be unit-tested without `Global`.
+2. Validate claimant, source/result faction ids, and target market before any
+   irreversible mutation; invalid prepared rows become terminal `FAILED`.
+3. If the recorded postcondition already holds, finalize without replay.
+   Otherwise apply once, verify, then mark `APPLIED` and set the claimant Tier 4.
+4. Specify and add the sector-wide reputation consequences separately from the
+   ownership/rank atomic boundary.
 
 ## Open forks still unresolved (design)
 
@@ -118,3 +121,7 @@ vanilla-write isolation boundary:
 - Slice F1a — ordinary promotion-chain contract (`0a00ceb0`).
 - Slice F1b — deterministic promotion-chain creation (`156ac5b1`).
 - Slice F1c — exactly-once promotion-chain resolution (`a4cd42c8`).
+- Slice F2a — Tier-3 progress handoff cap (`76c7579a`).
+- Slice F2b — throne-handoff contract + persistence (`49f057ad`, `9bf2356b`).
+- Slice F2c — civil-war creation + handoff preparation (`bdb45f7b`, `35ec0ccf`).
+- Slice F2d — discovery/intervention + replay guards (`77657bb8`, `51fad0ca`).
