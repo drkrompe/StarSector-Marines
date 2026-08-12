@@ -116,6 +116,14 @@ public final class CivilianEvacuationTracker {
         return registered;
     }
 
+    /** Registered identity at insertion index, for the mission objective's tiny cohort sweep. */
+    public long entityIdAt(int index) {
+        if (index < 0 || index >= registered) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        return entityIds[index];
+    }
+
     public int activeCount() {
         return active;
     }
