@@ -1778,7 +1778,13 @@ public final class TacticalScoring {
         return Math.max(0, n);
     }
 
-    public static float cellDistance(int x0, int y0, int x1, int y1) {
+    /**
+     * Euclidean distance in continuous cell space. Takes floats so callers can
+     * pass true positions ({@code world.x/y}); int cell indices widen and keep
+     * compiling — those sites carry a half-cell bias and are being swept to
+     * true positions (phase 2c).
+     */
+    public static float cellDistance(float x0, float y0, float x1, float y1) {
         float dx = x1 - x0;
         float dy = y1 - y0;
         return (float) Math.sqrt(dx * dx + dy * dy);

@@ -51,8 +51,8 @@ public final class RangeFalloff {
         return baseAccuracy * (1f - accuracyFalloff * t);
     }
 
-    /** Cell distance between two unit cells, treating cells as their centers. */
-    public static float dist(int ax, int ay, int bx, int by) {
+    /** Euclidean distance in continuous cell space (int cell indices widen; those callers carry a half-cell bias swept in phase 2c). */
+    public static float dist(float ax, float ay, float bx, float by) {
         float dx = bx - ax;
         float dy = by - ay;
         return (float) Math.sqrt(dx * dx + dy * dy);
