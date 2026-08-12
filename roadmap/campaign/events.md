@@ -1,7 +1,7 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE MISSION-LINEAGE FOUNDATION CODE COMPLETE
-(2026-08-12); battle-side evacuation cohort next.
+**Status:** CIVILIAN-RESCUE EVACUATION-COHORT CONTRACT LOCKED
+(2026-08-12); isolated battle tracker next.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
@@ -202,6 +202,37 @@ and `MissionResolver` rejects event results before ordinary side effects unless
 the strict bridge resolves an explicit report. The factory is not yet emitted
 by `MarineOpsContext`, so the current placeholder battle remains unreachable
 from Distress Net and cannot strand or misclassify an accepted rescue.
+
+### Representative evacuation cohort — locked v1
+
+The battle measures a small representative cohort instead of spawning every
+campaign civilian. V1 uses eight registered evacuees. They are mission payload,
+not the ambient civilians already placed around residential points of interest;
+ambient deaths, survival, and escape never change the rescue report.
+
+The battle tracker owns each registered entity through an append-only lifecycle:
+
+- `ACTIVE` means the evacuee is still in play and has not reached safety.
+- `EVACUATED` means the evacuee crossed the dedicated evacuation boundary.
+- `LOST` means the evacuee died or became impossible to rescue.
+
+Registration is identity-unique, and each transition is one-way and replay-safe.
+Merely surviving the battle never transitions an evacuee to `EVACUATED`. The
+tracker seals only at a terminal rescue decision; sealing converts every still-
+active member to `LOST`, so an explicit zero remains distinguishable from a
+missing or unfinished report. An empty cohort can never produce a valid report.
+
+A sealed report contains `initial`, `evacuated`, and `lost`, with
+`initial = evacuated + lost`. Campaign writeback remains
+`floor(atRisk * evacuated / initial)`, calculated without integer overflow, and
+returns exactly `atRisk` when the full cohort evacuates. Before sealing there is
+no report (`-1`), even if the ordinary combat objective has picked a winner.
+
+This contract hunk deliberately stops before entity spawning, movement, and
+mission emission. The isolated tracker and report scaling land first; later
+battle integration will give the evacuation zone sole authority to mark escape,
+give casualty handling authority to mark loss, and seal at full evacuation or a
+terminal impossible-rescue state.
 
 ## Design rules
 

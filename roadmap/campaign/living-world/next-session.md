@@ -103,18 +103,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Battle-side evacuation cohort
+## In progress — Battle-side evacuation cohort
 
 Give the rescue mission a real measurable objective before exposing its factory:
 
-1. Lock a representative rescue cohort distinct from ambient civilians. Persist
-   no battle entities; the sim owns `initial`, `evacuated`, and terminal state.
+1. **Contract locked:** v1 uses eight identity-registered mission evacuees,
+   distinct from ambient civilians. The tracker owns active/evacuated/lost state
+   and only a non-empty sealed cohort can report.
 2. Spawn the cohort at a civilian shelter and an evacuation zone/lift point.
    Civilians count as rescued only after boarding/escaping, never merely for
    surviving when combat ends.
-3. Define terminal rules for full/partial/zero evacuation and an impossible-
-   rescue state. Scale `floor(atRisk * evacuated / initial)` with exact full
-   rescue when all representatives escape.
+3. Seal remaining active civilians as lost only at a terminal rescue decision.
+   Scale `floor(atRisk * evacuated / initial)` without overflow and preserve an
+   exact full rescue when all representatives escape.
 4. Feed that explicit count into `MissionOutcome`, then add the dedicated local
    Distress Net client and emit the committed-row factory mission exactly once.
 5. Keep swarm faction/roster/AI/art as the following payload slice; the cohort
