@@ -31,7 +31,7 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
     @Override
     public EnumSet<CampaignTable> reads() {
         return EnumSet.of(CampaignTable.HOUSES, CampaignTable.STAKES,
-                CampaignTable.CHAINS);
+                CampaignTable.CHAINS, CampaignTable.THRONE_CLAIMS);
     }
 
     @Override
@@ -78,7 +78,8 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
         if (HouseRank.fromByte(state.houseRank[actorRow]) != HouseRank.TIER_3
                 || state.housePromotionProgress[actorRow]
                     < HouseRank.TIER_3.promotionThreshold
-                || state.houseAmbitionTarget[actorRow] != state.houseFactionId[actorRow]) {
+                || state.houseAmbitionTarget[actorRow] != state.houseFactionId[actorRow]
+                || hasThroneClaim(state, state.houseId[actorRow])) {
             return;
         }
         long targetHouseId = strongestFactionRival(state, actorRow);
@@ -87,6 +88,13 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
                 state.houseMarketId[actorRow], -1, state.houseRank[actorRow],
                 ChainArchetype.CIVIL_WAR, CIVIL_WAR_CHAIN_THRESHOLD,
                 CIVIL_WAR_DISCOVERY_RISK, day);
+    }
+
+    private static boolean hasThroneClaim(CampaignState state, long houseId) {
+        for (int row = 0; row < state.throneClaimCount; row++) {
+            if (state.throneClaimHouseId[row] == houseId) return true;
+        }
+        return false;
     }
 
     static long strongestFactionRival(CampaignState state, int actorRow) {

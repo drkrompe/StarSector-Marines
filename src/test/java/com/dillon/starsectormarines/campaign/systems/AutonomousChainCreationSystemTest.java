@@ -158,6 +158,23 @@ class AutonomousChainCreationSystemTest {
     }
 
     @Test
+    void preparedHandoffPreventsAnotherCivilWarForClaimant() {
+        CampaignState state = new CampaignState();
+        long claimant = house(state, 1, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        house(state, 2, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        int claimantRow = state.houseIndex(claimant);
+        state.housePromotionProgress[claimantRow] = 1000;
+        state.houseAmbition[claimantRow] = HouseAmbition.CLAIM_THRONE.toByte();
+        state.houseAmbitionTarget[claimantRow] = state.houseFactionId[claimantRow];
+        state.prepareThroneClaim(77L, claimant, 1, 2, 1, 20);
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(0, state.chainCount);
+        assertEquals(1, state.throneClaimCount);
+    }
+
+    @Test
     void promotionChainChoosesStrongestSameFactionRivalAndLowestIndustryTie() {
         CampaignState state = new CampaignState();
         long actor = house(state, 1, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
