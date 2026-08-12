@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.ExtractionResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
+import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -71,6 +72,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new RelationshipInteractionSystem(),
                 new AutonomousChainCreationSystem(),
                 new ChainAdvancementSystem(),
+                new HouseConsolidationSystem(),
                 new ContractGenerator(),
                 new VanillaRaidGarrisonSystem(),
                 new InternalFlipGarrisonSystem(),
