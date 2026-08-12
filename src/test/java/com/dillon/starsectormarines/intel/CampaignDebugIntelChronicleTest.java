@@ -23,7 +23,7 @@ class CampaignDebugIntelChronicleTest {
         state.addChronicleChainOutcome(4L, ChainState.RESOLVED, ChronicleBand.INTIMATE,
                 actor, target, market, industry, 20, 23);
 
-        assertEquals("[INTIMATE] RESOLVED — House Korvath vs House Drennar"
+        assertEquals("[INTIMATE/CONFIRMED] RESOLVED — House Korvath vs House Drennar"
                         + " — heavyindustry @ jangala — happened day 20, learned day 23",
                 CampaignDebugIntel.chronicleSummary(state, 0));
     }
@@ -34,7 +34,18 @@ class CampaignDebugIntelChronicleTest {
         state.addChronicleChainOutcome(4L, ChainState.FAILED, ChronicleBand.EPIC,
                 90L, 91L, 6, 7, 20, 23);
 
-        assertEquals("[EPIC] FAILED — house#90 vs house#91"
+        assertEquals("[EPIC/CONFIRMED] FAILED — house#90 vs house#91"
+                        + " — industry#7 @ market#6 — happened day 20, learned day 23",
+                CampaignDebugIntel.chronicleSummary(state, 0));
+    }
+
+    @Test
+    void rumorSummaryStatesUncertaintyAndOngoingAction() {
+        CampaignState state = new CampaignState();
+        state.addChronicleChainRumor(4L, ChronicleBand.INTIMATE,
+                90L, 91L, 6, 7, 20, 23);
+
+        assertEquals("[INTIMATE/RUMOR] RUMOR — house#90 moving against house#91"
                         + " — industry#7 @ market#6 — happened day 20, learned day 23",
                 CampaignDebugIntel.chronicleSummary(state, 0));
     }

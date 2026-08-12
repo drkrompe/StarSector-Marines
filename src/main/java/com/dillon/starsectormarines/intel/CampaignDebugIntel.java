@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ChronicleBand;
+import com.dillon.starsectormarines.campaign.ChronicleConfidence;
+import com.dillon.starsectormarines.campaign.ChronicleEventType;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractTableCompactor;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -295,6 +297,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     static String chronicleSummary(CampaignState s, int row) {
         ChronicleBand band = ChronicleBand.fromByte(s.chronicleBand[row]);
+        ChronicleConfidence confidence = ChronicleConfidence.fromByte(
+                s.chronicleConfidence[row]);
+        ChronicleEventType eventType = ChronicleEventType.fromByte(
+                s.chronicleEventType[row]);
         ChainState outcome = ChainState.fromByte(s.chronicleChainOutcome[row]);
         String actor = displayNameFor(s, s.chronicleActorHouseId[row]);
         String target = displayNameFor(s, s.chronicleTargetHouseId[row]);
@@ -302,8 +308,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 "market", s.chronicleMarketId[row]);
         String industry = registryLabel(s.industryRegistry.get(s.chronicleIndustryId[row]),
                 "industry", s.chronicleIndustryId[row]);
-        return "[" + band.name() + "] " + outcome.name()
-                + " — " + actor + " vs " + target
+        String event = eventType == ChronicleEventType.ACTIVE_CHAIN_RUMOR
+                ? "RUMOR — " + actor + " moving against " + target
+                : outcome.name() + " — " + actor + " vs " + target;
+        return "[" + band.name() + "/" + confidence.name() + "] " + event
                 + " — " + industry + " @ " + market
                 + " — happened day " + s.chronicleHappenedTick[row]
                 + ", learned day " + s.chronicleLearnedTick[row];
