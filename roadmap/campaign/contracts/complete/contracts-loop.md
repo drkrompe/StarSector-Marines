@@ -279,8 +279,14 @@ method together act as a copyable template — see
   fleet—marines, preserves viable assignments, fails wiped/leaderless ones, and
   rejects stale results (`68c6b7c7`). Cadre incidents are now playable using the
   assigned captain and local Cadre transports, with results routed around fleet
-  cargo and ordinary parent-contract completion (`fd7933df`). EXTRACTION remains
-  system-generated.
+  cargo and ordinary parent-contract completion (`fd7933df`). Garrison
+  assignments now react idempotently to explicit vanilla raid targets through
+  a shared rival/raid/internal-flip trigger boundary (`6497e062`), remain
+  reachable while their response is pending (`025ff507`), and launch playable
+  local-detachment defenses whose exactly-once result returns a surviving
+  Garrison to ACTIVE or fails the assignment (`f9ba10ea`). EXTRACTION remains
+  system-generated; rival-strike and internal-flip event producers remain the
+  next living-world integrations.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

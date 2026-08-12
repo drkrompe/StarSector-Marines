@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `025ff507`
+
 ## Goal
 
 Keep a triggered Garrison reachable at its market and show why the assignment

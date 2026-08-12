@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `6497e062`
+
 ## Goal
 
 Turn concrete attacks against a protected market into one persisted reactive

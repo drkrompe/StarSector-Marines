@@ -107,15 +107,15 @@ universe over time, not retrofitted into intel slots.
    windows (`d567c838`, `58a3715f`, `b297a8c5`, `e404b8a9`, `80f12862`,
    `28734a6f`). New work is now gated by MRB tier and per-house standing while
    Recovery and accepted obligations remain reachable (`9de789d4`). Next:
-   Cadre assignments now persist deterministic, exactly-once pending incident
-   triggers (`d07fd3c3`). Pending incidents now persist their archetype, bind
-   the on-site captain/marines/market, and surface in assignment management
-   (`77ce5ead`). The exactly-once resolver debits the stationed pool, preserves
-   viable Cadres, and rejects stale results (`68c6b7c7`); pending incidents are
-   now playable through a local-transport, fixed-captain battle handoff that
-   bypasses fleet cargo and parent-contract completion (`fd7933df`). Next:
-   Garrison defense triggers from rival/raid world events. See
-   `campaign/contracts/overview.md`.
+   Cadre incidents are now a complete persisted-to-playable vertical: trigger,
+   payload, exactly-once resolution, and local-detachment battle handoff
+   (`d07fd3c3`, `77ce5ead`, `68c6b7c7`, `fd7933df`). Garrison defenses now have
+   the same vertical from a shared campaign-event boundary: explicit vanilla
+   raid targets arm persisted responses, pending assignments stay reachable,
+   and local fixed-captain battles resolve exactly once back to ACTIVE or FAILED
+   (`6497e062`, `025ff507`, `f9ba10ea`). Next: connect the shared Garrison
+   trigger to living-world rival strikes and internal political flips. See
+   `campaign/contracts/overview.md` and `campaign/living-world/`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

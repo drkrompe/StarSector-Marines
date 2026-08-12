@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `f9ba10ea`
+
 ## Goal
 
 Turn a persisted Garrison-defense trigger into a playable local battle and
