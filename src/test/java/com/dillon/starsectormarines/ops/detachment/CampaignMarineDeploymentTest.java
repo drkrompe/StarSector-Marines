@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CampaignMarineDeploymentTest {
@@ -41,7 +43,7 @@ class CampaignMarineDeploymentTest {
         MarineSquad second = roster.squads().get(1);
 
         CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(
-                roster, java.util.Collections.singleton(second.id()), 2);
+                roster, Collections.singleton(second.id()), 2);
 
         assertEquals(second.memberIds().get(0), deployment.seat(0).campaignSoldierId);
         assertEquals(second.memberIds().get(1), deployment.seat(1).campaignSoldierId);
@@ -70,5 +72,16 @@ class CampaignMarineDeploymentTest {
 
         assertEquals(1, deployment.size());
         assertNotEquals(reserveMarine.id(), deployment.seat(0).campaignSoldierId);
+    }
+
+    @Test
+    void staleExplicitSelectionDoesNotFallBackToUnselectedFireteams() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(6);
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(
+                roster, Collections.singleton("missing-squad"), 2);
+
+        assertEquals(0, deployment.size());
     }
 }

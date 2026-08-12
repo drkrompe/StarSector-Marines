@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,16 +48,17 @@ public final class CampaignMarineDeployment {
         if (roster == null || requiredSeats <= 0) return EMPTY;
         List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
         List<MarineSoldier> active = new ArrayList<>();
-        if (selectedSquadIds != null && !selectedSquadIds.isEmpty()) {
+        boolean hasExplicitSelection = selectedSquadIds != null && !selectedSquadIds.isEmpty();
+        if (hasExplicitSelection) {
             for (String squadId : selectedSquadIds) {
                 for (MarineSoldier soldier : roster.squadMembers(roster.squadById(squadId))) {
-                    if (soldier.status() == com.dillon.starsectormarines.marine.MarineSoldierStatus.ACTIVE) {
+                    if (soldier.status() == MarineSoldierStatus.ACTIVE) {
                         active.add(soldier);
                     }
                 }
             }
         }
-        if (active.isEmpty()) active.addAll(roster.lineReadySoldiers());
+        if (!hasExplicitSelection) active.addAll(roster.lineReadySoldiers());
         for (int i = 0; i < Math.min(requiredSeats, active.size()); i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();
