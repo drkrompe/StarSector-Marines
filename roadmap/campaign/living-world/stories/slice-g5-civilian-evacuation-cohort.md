@@ -14,8 +14,8 @@ that measures evacuation rather than combat victory or civilian survival.
 - Every registered identity begins `ACTIVE` and may transition exactly once to
   `EVACUATED` or `LOST`; duplicate and conflicting notifications are harmless.
 - Only crossing the dedicated evacuation boundary counts as evacuation.
-- Sealing is terminal and converts remaining active members to lost. An empty or
-  unsealed tracker supplies no valid report.
+- Sealing requires the full expected cohort, is terminal, and converts remaining
+  active members to lost. An incomplete or unsealed tracker supplies no report.
 - A valid report preserves `initial = evacuated + lost` and scales to campaign
   stakes as `floor(atRisk * evacuated / initial)`, with exact full rescue.
 - Winner, marine casualties, ambient civilians, and survivors still on the map

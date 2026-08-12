@@ -218,9 +218,10 @@ The battle tracker owns each registered entity through an append-only lifecycle:
 
 Registration is identity-unique, and each transition is one-way and replay-safe.
 Merely surviving the battle never transitions an evacuee to `EVACUATED`. The
-tracker seals only at a terminal rescue decision; sealing converts every still-
-active member to `LOST`, so an explicit zero remains distinguishable from a
-missing or unfinished report. An empty cohort can never produce a valid report.
+tracker seals only at a terminal rescue decision and only after the full expected
+cohort has registered. Sealing converts every still-active member to `LOST`, so
+an explicit zero remains distinguishable from a missing, incomplete, or
+unfinished report.
 
 A sealed report contains `initial`, `evacuated`, and `lost`, with
 `initial = evacuated + lost`. Campaign writeback remains
