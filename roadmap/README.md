@@ -89,15 +89,17 @@ universe over time, not retrofitted into intel slots.
    75% fence-on-spot overflow. Before moving its five stories to `complete/`,
    run the documented in-game visual/cargo/core smoke test. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-2. **Stationing contracts + Escort smoke** — rank-gated Escort offers now map
-   to one-shot Extraction missions (`fb268bbe`, `df0a5d19`). Verify one Tier-2
-   offer in game. Rank-gated GARRISON + CADRE offers now have dedicated
+2. **Stationing contracts + Escort** — rank-gated Escort offers map to one-shot
+   Extraction missions (`fb268bbe`, `df0a5d19`). Rank-gated GARRISON + CADRE
+   offers have dedicated
    assignment UI, persisted terms, monthly retainers, and personnel return
    (`2487cfaf`, `644b0a1f`, `0b2829ec`). Cadre monthly training XP and safe
    contract-table cleanup are shipped (`68a3673d`, `795b4d9e`), and explicit
    local Escort/Garrison/Cadre debug spawners make each vertical reachable on
-   demand (`c641cff0`). Next: run the in-game layout/payment/training smoke,
-   then design default/extraction consequences. See
+   demand (`c641cff0`). House-power-priced monthly defaults now create linked,
+   playable Recovery missions with success/failure personnel consequences
+   (`1051c22a`, `13e1f22e`, `40cc9454`, `0516486c`). Next: player-initiated
+   withdrawal/ABANDONED consequences, then multi-phase Planetary Assault. See
    `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,

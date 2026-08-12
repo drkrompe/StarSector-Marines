@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `40cc9454`
+
 ## Goal
 
 Populate the existing `housePower[]` cache from the stake ledger so default

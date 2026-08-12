@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `1051c22a`
+
 ## Goal
 
 Turn a stationing default into one durable, linked recovery obligation without

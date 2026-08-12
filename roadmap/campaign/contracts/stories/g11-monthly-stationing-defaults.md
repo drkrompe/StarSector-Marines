@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `0516486c`
+
 ## Goal
 
 Turn stationing non-payment from a deposition-only event into a deterministic,

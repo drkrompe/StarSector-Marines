@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `13e1f22e`
+
 ## Goal
 
 Make the linked recovery obligation playable through Marine Ops and settle the

@@ -66,16 +66,32 @@ src/main/java/com/dillon/starsectormarines/ops/MissionOutcome.java
   + salvageEntitlement (final %, computed in compute())
 ```
 
-## ContractLifecycleSystem — time + patron-driven transitions
+## Contract lifecycle, power, and stationing defaults
 
 ```
 src/main/java/com/dillon/starsectormarines/campaign/systems/
-  ContractLifecycleSystem.java  (replaces GarrisonDefaultSystem)
-    Reads HOUSES + CONTRACTS, writes CONTRACTS + PLAYER_REP. Handles:
-    - patron DEPOSED → contract DEFAULTED
+  HousePowerSystem.java
+    Rebuilds housePower[] from current stake-share totals before downstream
+    promotion/default consumers (`40cc9454`).
+
+  StationingDefaultSystem.java
+    Runs before retainer/training delivery. Handles:
+    - patron DEPOSED → stationing contract DEFAULTED
+    - deterministic whole-month default checks from a persisted clock
+    - 8% zero-power risk, reduced 1 point per 100 power to a 1% floor
+
+  ContractLifecycleSystem.java
+    Runs after retainer/training delivery. Handles:
+    - OFFERED rows past their offer window → EXPIRED
     - stationing expiresTick passed → COMPLETED (if phases done)
       or FAILED (if not)
-    - monthly random default roll — no-op until housePower is populated
+
+  StationingDefaultExtractionSystem.java
+    Creates exactly one linked Recovery contract for stranded personnel.
+
+  ExtractionResolutionSystem.java
+    Settles successful/failed Recovery personnel and the one-time employer
+    breach reputation penalty (`1051c22a`, `13e1f22e`, `0516486c`).
 ```
 
 ## ContractGenerator — patrons put offers on the table
@@ -234,9 +250,10 @@ method together act as a copyable template — see
   `df0a5d19`. Planetary Assault remains blocked on its multi-phase flow;
   Garrison/Cadre now have persisted term/retainer, personnel assignment/release,
   rank-gated generation, and dedicated acceptance UI (`2487cfaf`, `644b0a1f`,
-  `0b2829ec`), plus monthly Cadre training XP (`68a3673d`). Default/extraction
-  consequences remain. EXTRACTION remains system-generated rather than
-  patron-offered.
+  `0b2829ec`), plus monthly Cadre training XP (`68a3673d`). Power-priced monthly
+  defaults create system-generated Recovery missions, whose outcome settles
+  stranded personnel and employer breach reputation (`1051c22a`, `13e1f22e`,
+  `40cc9454`, `0516486c`). Player withdrawal and Planetary Assault remain.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 
