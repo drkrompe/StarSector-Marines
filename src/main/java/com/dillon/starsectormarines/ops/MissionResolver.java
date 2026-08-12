@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
 import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseMissionKey;
+import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseResolution;
 import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
@@ -204,8 +207,8 @@ public final class MissionResolver {
     public static void apply(MissionOutcome outcome) {
         if (outcome == null) return;
         if (outcome.missionSource == MissionSource.STATIONING
-                && !isCurrentStationingIncident(outcome)) {
-            LOG.info("MarineOps: stale Cadre incident result " + outcome.missionId
+                && !isCurrentStationingMission(outcome)) {
+            LOG.info("MarineOps: stale stationing mission result " + outcome.missionId
                     + " — no writeback");
             return;
         }
@@ -402,15 +405,28 @@ public final class MissionResolver {
         ContractType contractType = ContractType.fromByte(state.contractType[row]);
 
         if (outcome.missionSource == MissionSource.STATIONING) {
-            StationingIncidentMissionKey key = StationingIncidentMissionKey.parse(outcome.missionId);
-            StationingIncidentResolution.Result result = key != null
-                    ? StationingIncidentResolution.apply(state, outcome.contractId,
-                            key.dueDay, key.type, outcome.marinesLost,
-                            outcome.newCaptainStatus != null
-                                    && outcome.newCaptainStatus != Status.GARRISONED,
-                            day)
+            boolean captainUnavailable = outcome.newCaptainStatus != null
+                    && outcome.newCaptainStatus != Status.GARRISONED;
+            StationingIncidentMissionKey incidentKey = StationingIncidentMissionKey.parse(
+                    outcome.missionId);
+            if (incidentKey != null) {
+                StationingIncidentResolution.Result result = StationingIncidentResolution.apply(
+                        state, outcome.contractId, incidentKey.dueDay, incidentKey.type,
+                        outcome.marinesLost, captainUnavailable, day);
+                LOG.info("MarineOps: Cadre incident " + outcome.missionId + " → " + result);
+                return;
+            }
+            GarrisonDefenseMissionKey defenseKey = GarrisonDefenseMissionKey.parse(
+                    outcome.missionId);
+            GarrisonDefenseResolution.Result result = defenseKey != null
+                    ? GarrisonDefenseResolution.apply(state, outcome.contractId,
+                            defenseKey.eventKey, outcome.marinesLost,
+                            captainUnavailable, outcome.victory)
                     : null;
-            LOG.info("MarineOps: Cadre incident " + outcome.missionId + " → " + result);
+            if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
+                ContractReputation.failed(state, patronId, -1, day);
+            }
+            LOG.info("MarineOps: Garrison defense " + outcome.missionId + " → " + result);
             return;
         }
 
@@ -456,14 +472,24 @@ public final class MissionResolver {
         }
     }
 
-    private static boolean isCurrentStationingIncident(MissionOutcome outcome) {
-        StationingIncidentMissionKey key = StationingIncidentMissionKey.parse(outcome.missionId);
-        if (key == null || key.contractId != outcome.contractId) return false;
+    private static boolean isCurrentStationingMission(MissionOutcome outcome) {
         CampaignStateScript script = CampaignStateScript.getInstance();
         if (script == null) return false;
-        StationingIncidentPayload payload = StationingIncidentPayload.from(
-                script.state(), outcome.contractId);
-        return payload != null && payload.dueDay == key.dueDay && payload.type == key.type;
+        CampaignState state = script.state();
+        StationingIncidentMissionKey incidentKey = StationingIncidentMissionKey.parse(
+                outcome.missionId);
+        if (incidentKey != null && incidentKey.contractId == outcome.contractId) {
+            StationingIncidentPayload payload = StationingIncidentPayload.from(
+                    state, outcome.contractId);
+            return payload != null && payload.dueDay == incidentKey.dueDay
+                    && payload.type == incidentKey.type;
+        }
+        GarrisonDefenseMissionKey defenseKey = GarrisonDefenseMissionKey.parse(
+                outcome.missionId);
+        if (defenseKey == null || defenseKey.contractId != outcome.contractId) return false;
+        GarrisonDefensePayload payload = GarrisonDefensePayload.from(
+                state, outcome.contractId);
+        return payload != null && payload.eventKey == defenseKey.eventKey;
     }
 
     private static void applyPlanetaryAssaultBridge(CampaignState state, int row,

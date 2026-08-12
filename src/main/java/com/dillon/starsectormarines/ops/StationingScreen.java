@@ -213,16 +213,18 @@ public final class StationingScreen implements Screen {
 
         float buttonY = position.getY() + PAD;
         boolean incidentPending = incident != null;
+        boolean defensePending = defense != null;
+        boolean responsePending = incidentPending || defensePending;
         float gap = 8f;
-        float buttonW = incidentPending ? (width - 2f * gap) / 3f : (width - 12f) / 2f;
+        float buttonW = responsePending ? (width - 2f * gap) / 3f : (width - 12f) / 2f;
         widgets.add(new ButtonWidget(x, buttonY, buttonW, BTN_H, this::onBack));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
                 x + 12f, buttonY + BTN_H - 6f, HEADER));
         float withdrawX;
-        if (incidentPending) {
+        if (responsePending) {
             float respondX = x + buttonW + gap;
             widgets.add(new ButtonWidget(respondX, buttonY, buttonW, BTN_H,
-                    () -> onRespond(incident)));
+                    incidentPending ? () -> onRespond(incident) : () -> onRespond(defense)));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("stationingIncidentRespond"),
                     respondX + 12f, buttonY + BTN_H - 6f, INCIDENT));
@@ -230,9 +232,10 @@ public final class StationingScreen implements Screen {
         } else {
             withdrawX = x + buttonW + 12f;
         }
-        widgets.add(new ButtonWidget(withdrawX, buttonY, buttonW, BTN_H, this::onWithdraw));
+        widgets.add(new ButtonWidget(withdrawX, buttonY, buttonW, BTN_H,
+                defensePending ? null : this::onWithdraw));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                Strings.get("stationingWithdraw"),
+                Strings.get(defensePending ? "garrisonDefenseResolveFirst" : "stationingWithdraw"),
                 withdrawX + 12f, buttonY + BTN_H - 6f, BLOCKED));
     }
 
@@ -297,6 +300,21 @@ public final class StationingScreen implements Screen {
         String factionId = ctx.market != null && ctx.market.getFaction() != null
                 ? ctx.market.getFaction().getId() : null;
         Mission mission = StationingIncidentMissionFactory.create(
+                payload, ctx.planet.getName(), factionId);
+        if (mission == null) {
+            rebuild();
+            return;
+        }
+        ctx.setSelectedMission(mission);
+        ctx.setSelectedCaptainId(payload.captainId);
+        ctx.goTo(ScreenId.BRIEFING);
+    }
+
+    private void onRespond(GarrisonDefensePayload payload) {
+        if (payload == null || ctx.planet == null) return;
+        String factionId = ctx.market != null && ctx.market.getFaction() != null
+                ? ctx.market.getFaction().getId() : null;
+        Mission mission = GarrisonDefenseMissionFactory.create(
                 payload, ctx.planet.getName(), factionId);
         if (mission == null) {
             rebuild();

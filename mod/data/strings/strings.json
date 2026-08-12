@@ -90,6 +90,7 @@
 		"garrisonDefenseVanillaRaid": "A faction raid is attacking the protected market",
 		"garrisonDefenseInternalFlip": "An internal political flip threatens the garrison",
 		"garrisonDefenseUnknown": "Unclassified threat to the protected market",
+		"garrisonDefenseResolveFirst": "Resolve Defense",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",

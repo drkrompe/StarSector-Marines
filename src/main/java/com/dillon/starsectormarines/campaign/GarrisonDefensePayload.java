@@ -12,12 +12,15 @@ public final class GarrisonDefensePayload {
     public final int attackerFactionId;
     public final String captainId;
     public final int committedMarines;
+    public final byte salvageBaseline;
+    public final byte salvageNegotiated;
 
     private GarrisonDefensePayload(long contractId, long eventKey,
                                    GarrisonDefenseTriggerType triggerType,
                                    int triggeredDay, int marketId,
                                    long attackerHouseId, int attackerFactionId,
-                                   String captainId, int committedMarines) {
+                                   String captainId, int committedMarines,
+                                   byte salvageBaseline, byte salvageNegotiated) {
         this.contractId = contractId;
         this.eventKey = eventKey;
         this.triggerType = triggerType;
@@ -27,6 +30,8 @@ public final class GarrisonDefensePayload {
         this.attackerFactionId = attackerFactionId;
         this.captainId = captainId;
         this.committedMarines = committedMarines;
+        this.salvageBaseline = salvageBaseline;
+        this.salvageNegotiated = salvageNegotiated;
     }
 
     public static GarrisonDefensePayload from(CampaignState state, long contractId) {
@@ -46,6 +51,7 @@ public final class GarrisonDefensePayload {
                 type, state.contractDefenseTriggeredTick[row], state.contractMarketId[row],
                 state.contractDefenseAttackerHouseId[row],
                 state.contractDefenseAttackerFactionId[row], captainId,
-                state.contractMarinesCommitted[row]);
+                state.contractMarinesCommitted[row],
+                state.contractSalvageBaseline[row], state.contractSalvageNegotiated[row]);
     }
 }
