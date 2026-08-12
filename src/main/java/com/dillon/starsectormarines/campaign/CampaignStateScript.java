@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
+import com.dillon.starsectormarines.campaign.systems.ExtractionResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -62,6 +63,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new CadreTrainingSystem(),
                 new ContractLifecycleSystem(),
                 new StationingDefaultExtractionSystem(),
+                new ExtractionResolutionSystem(),
                 new StationingReleaseSystem(),
                 new DiscoveryPropagationSystem()
         ));

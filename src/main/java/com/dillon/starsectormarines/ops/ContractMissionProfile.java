@@ -20,6 +20,9 @@ public final class ContractMissionProfile {
         if (type == ContractType.ESCORT) {
             return new ContractMissionProfile(MissionType.EXTRACTION, "Escort");
         }
+        if (type == ContractType.EXTRACTION) {
+            return new ContractMissionProfile(MissionType.EXTRACTION, "Recovery");
+        }
         return null;
     }
 }

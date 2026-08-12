@@ -385,6 +385,7 @@ public final class MissionResolver {
 
         int day = currentDayInt();
         long patronId = state.contractPatronHouseId[row];
+        ContractType contractType = ContractType.fromByte(state.contractType[row]);
 
         // Leaving OFFERED → the offer window no longer applies. Clear to -1 so
         // any debug readout / future filter doesn't misinterpret the stale value.
@@ -399,7 +400,9 @@ public final class MissionResolver {
             state.contractPhasesDone[row] = (byte) phasesDone;
             if (phasesDone >= phasesTotal) {
                 state.contractState[row] = ContractState.COMPLETED.toByte();
-                tickPatronRep(state, patronId, +1, day, true);
+                if (contractType != ContractType.EXTRACTION) {
+                    tickPatronRep(state, patronId, +1, day, true);
+                }
                 LOG.info("MarineOps: contract " + outcome.contractId + " COMPLETED ("
                         + phasesDone + "/" + phasesTotal + ")");
             } else {
@@ -409,10 +412,14 @@ public final class MissionResolver {
             }
             // Every victorious mission leaves a permanent mark on the political map:
             // the patron seizes ground from the target and climbs the rank ladder.
-            applyPoliticalShift(state, row, outcome, day);
+            if (contractType != ContractType.EXTRACTION) {
+                applyPoliticalShift(state, row, outcome, day);
+            }
         } else {
             state.contractState[row] = ContractState.FAILED.toByte();
-            tickPatronRep(state, patronId, -2, day, false);
+            if (contractType != ContractType.EXTRACTION) {
+                tickPatronRep(state, patronId, -2, day, false);
+            }
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
         }
     }

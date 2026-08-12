@@ -56,4 +56,21 @@ class ContractTableCompactorTest {
         assertEquals(0, state.contractIndex(id));
         assertEquals(1, state.contractCount);
     }
+
+    @Test
+    void terminalExtractionIsRetainedUntilParentPersonnelSettles() {
+        CampaignState state = new CampaignState();
+        long parentId = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.DEFAULTED, 1, 30, -1, (byte) 0, 4, 5, -1,
+                0, 1_000, (byte) 25, (byte) 25, (byte) 100);
+        state.contractMarinesCommitted[0] = 50;
+        long extractionId = state.addContract(1L, -1L, -1L, ContractType.EXTRACTION,
+                ContractState.COMPLETED, 2, -1, -1, (byte) 1, -1, 5, -1,
+                1_000, 0, (byte) 25, (byte) 25, (byte) 100);
+        state.contractSourceContractId[1] = parentId;
+
+        assertEquals(0, ContractTableCompactor.removeTerminal(state));
+        assertEquals(0, state.contractIndex(parentId));
+        assertEquals(1, state.contractIndex(extractionId));
+    }
 }

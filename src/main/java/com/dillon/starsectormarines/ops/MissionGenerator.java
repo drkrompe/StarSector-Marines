@@ -188,12 +188,9 @@ public final class MissionGenerator {
         if (profile == null) return null;
 
         long contractId = state.contractId[row];
-        long targetHouseId = state.contractTargetHouseId[row];
-        if (targetHouseId == -1L) return null;
-        int targetHouseRow = state.houseIndex(targetHouseId);
-        if (targetHouseRow < 0) return null;
-
-        String targetMarketStr = state.marketRegistry.get(state.houseMarketId[targetHouseRow]);
+        int targetMarketSlot = targetMarketSlot(state, row);
+        if (targetMarketSlot < 0) return null;
+        String targetMarketStr = state.marketRegistry.get(targetMarketSlot);
         if (targetMarketStr == null) return null;
         MarketAPI targetMarket = Global.getSector() != null
                 ? Global.getSector().getEconomy().getMarket(targetMarketStr)
@@ -249,6 +246,16 @@ public final class MissionGenerator {
                 state.contractSalvageNegotiated[row],
                 state.contractCashMultiplier[row],
                 employerPowers);
+    }
+
+    static int targetMarketSlot(CampaignState state, int row) {
+        if (state == null || row < 0 || row >= state.contractCount) return -1;
+        ContractType type = ContractType.fromByte(state.contractType[row]);
+        if (type == ContractType.EXTRACTION) return state.contractMarketId[row];
+        long targetHouseId = state.contractTargetHouseId[row];
+        if (targetHouseId < 0L) return -1;
+        int targetHouseRow = state.houseIndex(targetHouseId);
+        return targetHouseRow >= 0 ? state.houseMarketId[targetHouseRow] : -1;
     }
 
     private static String pickFirstNonDisruptedIndustry(MarketAPI market) {

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
@@ -310,11 +311,18 @@ public class MarineOpsContext {
         int marketSlot = state.marketRegistry.intern(market.getId());
 
         Set<Long> seenPatrons = new LinkedHashSet<>();
+        Set<Long> recoveryPatrons = new LinkedHashSet<>();
         for (int i = 0; i < state.contractCount; i++) {
             if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
             if (state.contractMarketId[i] != marketSlot) continue;
             long patronId = state.contractPatronHouseId[i];
+            if (ContractType.fromByte(state.contractType[i]) == ContractType.EXTRACTION) {
+                recoveryPatrons.add(patronId);
+            }
             if (!seenPatrons.add(patronId)) continue;
+        }
+
+        for (long patronId : seenPatrons) {
 
             int patronRow = state.houseIndex(patronId);
             if (patronRow < 0) continue;
@@ -331,7 +339,8 @@ public class MarineOpsContext {
             RepLevel rep = (faction != null && player != null)
                     ? player.getRelationshipLevel(faction.getId())
                     : RepLevel.NEUTRAL;
-            boolean locked = rep.ordinal() <= RepLevel.HOSTILE.ordinal();
+            boolean locked = !recoveryPatrons.contains(patronId)
+                    && rep.ordinal() <= RepLevel.HOSTILE.ordinal();
             String lockReason = locked ? "clientLockedHostile" : null;
 
             out.add(new Client(factionId != null ? factionId : "patron",

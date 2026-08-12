@@ -253,7 +253,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 String.valueOf(phasesTotal),
                 daysLeftDisp);
 
-        if (state == ContractState.OFFERED && !type.isStationing()) {
+        if (state == ContractState.OFFERED
+                && !type.isStationing() && type != ContractType.EXTRACTION) {
             ui.addButton("Accept", BTN_ACCEPT + id, 90f, 20f, 2f);
         } else if (state == ContractState.ACTIVE || state == ContractState.IN_PROGRESS) {
             ui.addButton("Force complete", BTN_FORCE_COMPLETE + id, 130f, 20f, 2f);
@@ -441,7 +442,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int row = s.contractIndex(id);
         if (row < 0) return;
         if (ContractState.fromByte(s.contractState[row]) != ContractState.OFFERED) return;
-        if (ContractType.fromByte(s.contractType[row]).isStationing()) return;
+        ContractType type = ContractType.fromByte(s.contractType[row]);
+        if (type.isStationing() || type == ContractType.EXTRACTION) return;
         s.contractState[row] = ContractState.ACTIVE.toByte();
         s.contractOfferExpiresTick[row] = -1;
         s.contractAcceptedTick[row] = Global.getSector() != null
