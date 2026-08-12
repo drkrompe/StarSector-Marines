@@ -218,12 +218,12 @@ public final class ChokePointHold implements Action {
         int targetX = cell[0];
         int targetY = cell[1];
 
-        boolean atPost = (sim.world().cellX(member) == targetX && sim.world().cellY(member) == targetY);
+        boolean atPost = sim.movement().atCell(member, targetX, targetY);
         if (!atPost) {
             // Transit: walk to the bound LOS cell. No opportunistic fire —
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
-            if (sim.world().moveProgress(member) == 0f) {
+            if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), targetX, targetY,
                         sim.getOccupancyMap()));
@@ -288,7 +288,7 @@ public final class ChokePointHold implements Action {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
             if (!sim.identity().type(u).combatant) continue;
             if (sim.identity().faction(u) == squad.faction) continue;
-            if (sim.world().cellX(u) == portalX && sim.world().cellY(u) == portalY) return u;
+            if (sim.movement().atCell(u, portalX, portalY)) return u;
         }
         return 0L;
     }

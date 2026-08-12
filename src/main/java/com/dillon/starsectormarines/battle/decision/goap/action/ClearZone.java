@@ -113,7 +113,7 @@ public final class ClearZone extends AbstractZoneAction {
         if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             int[] path = dest == null ? GridPathfinder.EMPTY_PATH
                     : GridPathfinder.findPath(sim.getGrid(),

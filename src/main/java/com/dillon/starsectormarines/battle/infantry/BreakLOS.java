@@ -61,8 +61,7 @@ public final class BreakLOS implements Action {
             sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 
-        boolean atDest = sim.world().cellX(member) == sim.world().fallbackCellX(member)
-                      && sim.world().cellY(member) == sim.world().fallbackCellY(member);
+        boolean atDest = sim.movement().atCell(member, sim.world().fallbackCellX(member), sim.world().fallbackCellY(member));
         if (atDest) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             sim.world().setMoveProgress(member, 0f);
@@ -74,7 +73,7 @@ public final class BreakLOS implements Action {
             // replan picks Overwatch or Engage from this fresh position.
             return ActionStatus.SUCCESS;
         }
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),

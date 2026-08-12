@@ -55,7 +55,7 @@ public final class CivilianEvacuationSystem {
             }
 
             int[] path = sim.movement().path(id);
-            if (sim.movement().moveProgress(id) == 0f
+            if (sim.movement().mayRepath(id)
                     && (sim.movement().pathIdx(id) >= Paths.cellCount(path)
                     || Paths.destX(path) != liftX
                     || Paths.destY(path) != liftY)) {

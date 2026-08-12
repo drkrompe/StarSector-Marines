@@ -131,7 +131,7 @@ abstract class AbstractZoneAction implements Action {
             return;
         }
 
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
         }

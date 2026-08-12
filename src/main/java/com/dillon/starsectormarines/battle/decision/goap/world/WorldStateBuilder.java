@@ -246,7 +246,7 @@ public final class WorldStateBuilder {
             long u = sim.liveUnitAt(i);
             if (!sim.identity().type(u).combatant) continue;
             if (sim.identity().faction(u) == squad.faction) continue;
-            if (sim.world().cellX(u) == dwX && sim.world().cellY(u) == dwY) return true;
+            if (sim.movement().atCell(u, dwX, dwY)) return true;
         }
         return false;
     }

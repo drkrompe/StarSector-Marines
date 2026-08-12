@@ -72,7 +72,7 @@ public final class FleeBehavior implements UnitBehavior {
         int pathIdx = sim.world().pathIdx(u);
         boolean needsRepath = pathIdx >= Paths.cellCount(path)
                 || cellsTraveled(pathIdx) >= REPATH_CELL_THRESHOLD;
-        if (needsRepath && sim.world().moveProgress(u) == 0f) {
+        if (needsRepath && sim.movement().mayRepath(u)) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
@@ -106,7 +106,7 @@ public final class FleeBehavior implements UnitBehavior {
             return;
         }
 
-        if (sim.world().moveProgress(u) != 0f) return;
+        if (!sim.movement().mayRepath(u)) return;
         int[] dest = pickWanderDestination(u, sim);
         if (dest == null) {
             sim.world().setWanderDwellTimer(u, FAILED_SAMPLE_DWELL);

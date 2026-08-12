@@ -104,10 +104,10 @@ public final class GarrisonCordon implements Action {
      * between bursts so they don't drift off-post.
      */
     private ActionStatus executeHolder(long member, HoldPortalCordon.GuardPost post, BattleControl sim) {
-        boolean atPost = (sim.world().cellX(member) == post.cellX && sim.world().cellY(member) == post.cellY);
+        boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (sim.world().moveProgress(member) == 0f) {
+            if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), post.cellX, post.cellY,
                         sim.getOccupancyMap()));

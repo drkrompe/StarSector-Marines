@@ -142,11 +142,11 @@ public final class HoldZone extends AbstractZoneAction {
 
         // No enemies: fan out to the assigned post and hold there, rather than
         // freezing wherever the member first crossed into the zone.
-        if (sim.world().cellX(member) == postX && sim.world().cellY(member) == postY) {
+        if (sim.movement().atCell(member, postX, postY)) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), postX, postY, sim.getOccupancyMap()));
         }
@@ -207,7 +207,7 @@ public final class HoldZone extends AbstractZoneAction {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 sim.world().setTargetId(member, 0L);

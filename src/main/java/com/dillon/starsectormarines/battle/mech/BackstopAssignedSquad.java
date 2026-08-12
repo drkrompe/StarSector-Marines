@@ -111,8 +111,8 @@ public final class BackstopAssignedSquad implements Action {
         // Path to the backstop cell. Same idempotent pattern as overwatch.
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
-        if ((sim.world().cellX(member) != m.overwatchCellX || sim.world().cellY(member) != m.overwatchCellY)
-                && sim.world().moveProgress(member) == 0f
+        if (!sim.movement().atCell(member, m.overwatchCellX, m.overwatchCellY)
+                && sim.movement().mayRepath(member)
                 && pathIdx >= Paths.cellCount(path)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member),

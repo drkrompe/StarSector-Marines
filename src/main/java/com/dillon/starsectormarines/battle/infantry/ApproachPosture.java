@@ -70,7 +70,7 @@ public final class ApproachPosture implements Action {
                 sim.world().cellX(target), sim.world().cellY(target));
         if (inRange && visible) return ActionStatus.SUCCESS;
 
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
             if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {

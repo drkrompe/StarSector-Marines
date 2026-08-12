@@ -43,7 +43,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
 
-        if (sim.movement().moveProgress(runner) == 0f
+        if (sim.movement().mayRepath(runner)
                 && needsPath(runner, targetX, targetY, sim)) {
             sim.setPath(runner, GridPathfinder.findPath(sim.getGrid(),
                     runnerX, runnerY, targetX, targetY,

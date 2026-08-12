@@ -75,7 +75,7 @@ public final class EngageAtCurrentBand implements Action {
         float preferredDirectRange = m.srmAmmoSalvos > 0
                 ? m.srmPod.range : m.chaingun.range;
         boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
-        if (!closeEngagement && sim.world().moveProgress(u) == 0f) {
+        if (!closeEngagement && sim.movement().mayRepath(u)) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.

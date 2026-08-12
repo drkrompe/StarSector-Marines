@@ -144,7 +144,7 @@ public final class EngagePosture implements Action {
             // otherwise path to a firing position. Stage 2 retires this when
             // per-member action assignment lets us put approach-only members
             // on {@link ApproachPosture} concurrently with engage-only members.
-            if (sim.world().moveProgress(member) == 0f) {
+            if (sim.movement().mayRepath(member)) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
                 if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {

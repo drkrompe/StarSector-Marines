@@ -179,7 +179,7 @@ public final class GuardPostPatrol implements Action {
                         member, target, anchorX, anchorY, leash);
             }
         }
-        if (firingPos == null || (firingPos[0] == sim.world().cellX(member) && firingPos[1] == sim.world().cellY(member))) {
+        if (firingPos == null || sim.movement().atCell(member, firingPos[0], firingPos[1])) {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -283,7 +283,7 @@ public final class GuardPostPatrol implements Action {
     }
 
     private static ActionStatus returnTo(long member, BattleControl sim, int tx, int ty) {
-        if (sim.world().cellX(member) == tx && sim.world().cellY(member) == ty) {
+        if (sim.movement().atCell(member, tx, ty)) {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
-import com.dillon.starsectormarines.battle.sim.World;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import java.util.List;
@@ -107,7 +106,6 @@ public final class TurretDemolitionSystem {
      * cell accessors would fail loud.
      */
     private void releaseGuardpostIfAllTurretsDead(int deadCellX, int deadCellY) {
-        World world = roster.world();
         List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;
@@ -130,7 +128,7 @@ public final class TurretDemolitionSystem {
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = roster.get(i);
                 if (!identity.type(u).isTurret()) continue;
-                if (world.cellX(u) != spec.cellX || world.cellY(u) != spec.cellY) continue;
+                if (!roster.movement().atCell(u, spec.cellX, spec.cellY)) continue;
                 aliveAtSpec = true;
                 break;
             }

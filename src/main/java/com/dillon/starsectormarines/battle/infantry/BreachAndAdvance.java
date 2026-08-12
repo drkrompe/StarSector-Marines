@@ -151,7 +151,7 @@ public final class BreachAndAdvance implements Action {
             }
         }
 
-        if (sim.world().cellX(member) == destX && sim.world().cellY(member) == destY) {
+        if (sim.movement().atCell(member, destX, destY)) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             sim.world().setMoveProgress(member, 0f);
             sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
@@ -171,7 +171,7 @@ public final class BreachAndAdvance implements Action {
             return ActionStatus.RUNNING;
         }
 
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
         }
@@ -217,7 +217,7 @@ public final class BreachAndAdvance implements Action {
             if (name == null) continue;
             int s = parseSlotIndex(name);
             if (s < 0 || s >= forwardX.length) continue;
-            if (sim.world().cellX(u) != forwardX[s] || sim.world().cellY(u) != forwardY[s]) return false;
+            if (!sim.movement().atCell(u, forwardX[s], forwardY[s])) return false;
         }
         return true;
     }

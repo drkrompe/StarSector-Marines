@@ -50,11 +50,10 @@ public final class MechBreakContact implements Action {
             sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 
-        boolean atDest = sim.world().cellX(member) == sim.world().fallbackCellX(member)
-                      && sim.world().cellY(member) == sim.world().fallbackCellY(member);
+        boolean atDest = sim.movement().atCell(member, sim.world().fallbackCellX(member), sim.world().fallbackCellY(member));
         if (!atDest) {
             opportunisticMechFire(member, sim);
-            if (sim.world().moveProgress(member) == 0f) {
+            if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member),
                         sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),

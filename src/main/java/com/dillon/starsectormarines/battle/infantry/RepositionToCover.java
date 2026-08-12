@@ -71,7 +71,7 @@ public final class RepositionToCover implements Action {
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
                 member, target, sim.world().cellX(member), sim.world().cellY(member));
         if (dest == null) return false;
-        if (dest[0] == sim.world().cellX(member) && dest[1] == sim.world().cellY(member)) return false;
+        if (sim.movement().atCell(member, dest[0], dest[1])) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                 sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
         sim.world().setRepositionCooldown(member, COOLDOWN_SECONDS);

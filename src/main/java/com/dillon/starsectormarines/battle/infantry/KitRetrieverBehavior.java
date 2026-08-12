@@ -38,7 +38,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         InfantryUnitPrep.tickCooldowns(u, sim.world());
         fireOpportunistically(u, sim);
 
-        if (sim.world().moveProgress(u) == 0f) {
+        if (sim.movement().mayRepath(u)) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u);

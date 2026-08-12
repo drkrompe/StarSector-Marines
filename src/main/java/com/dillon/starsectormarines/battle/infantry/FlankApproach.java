@@ -61,7 +61,7 @@ public final class FlankApproach implements Action {
 
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
-        if (sim.world().moveProgress(member) == 0f && pathIdx >= Paths.cellCount(path)) {
+        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member),
                     waypointX, waypointY, sim.getOccupancyMap()));

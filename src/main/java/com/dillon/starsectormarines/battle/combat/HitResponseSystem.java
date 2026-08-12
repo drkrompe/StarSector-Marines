@@ -92,7 +92,7 @@ public final class HitResponseSystem {
         if (roster.squad().hasSquad(target)) return;
         if (ThreadLocalRandom.current().nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
-        if (fallback[0] == world.cellX(target) && fallback[1] == world.cellY(target)) return;
+        if (roster.movement().atCell(target, fallback[0], fallback[1])) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 

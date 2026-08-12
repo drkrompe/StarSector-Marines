@@ -61,7 +61,6 @@ public final class EquipmentDropSystem {
         // Live-only over the dense registry — every pass here gates on alive
         // marines and mutates only role/target fields (no death), so a plain
         // dense walk is safe; the corpse never appears.
-        World world = rosterService.world();
         RoleService role = rosterService.role();
         TaskService task = rosterService.task();
 
@@ -72,7 +71,7 @@ public final class EquipmentDropSystem {
             for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
                 long u = rosterService.get(i);
                 if (rosterService.identity().faction(u) != Faction.MARINE) continue;
-                if (world.cellX(u) != drop.cellX || world.cellY(u) != drop.cellY) continue;
+                if (!rosterService.movement().atCell(u, drop.cellX, drop.cellY)) continue;
                 role.setRole(u, UnitRole.PLANTER);
                 // setAssignedObjective first (adds TASK if this was a plain combatant),
                 // then clear the kit target on the now-present component.

@@ -148,14 +148,14 @@ public final class HoldPortalCordon implements Action {
      * of which this branch maintains.
      */
     private ActionStatus executePlanter(long member, BattleControl sim) {
-        boolean onSite = (sim.world().cellX(member) == chargeCellX && sim.world().cellY(member) == chargeCellY);
+        boolean onSite = sim.movement().atCell(member, chargeCellX, chargeCellY);
         if (onSite) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             sim.world().setMoveProgress(member, 0f);
             sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             return ActionStatus.RUNNING;
         }
-        if (sim.world().moveProgress(member) == 0f) {
+        if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
@@ -173,11 +173,11 @@ public final class HoldPortalCordon implements Action {
      * is the layer that would change that).
      */
     private ActionStatus executeHolder(long member, GuardPost post, BattleControl sim) {
-        boolean atPost = (sim.world().cellX(member) == post.cellX && sim.world().cellY(member) == post.cellY);
+        boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (sim.world().moveProgress(member) == 0f) {
+            if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), post.cellX, post.cellY,
                         sim.getOccupancyMap()));

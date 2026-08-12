@@ -115,7 +115,7 @@ public final class HoldPost implements Action {
                         member, target, homeX, homeY, HOLD_RADIUS);
             }
         }
-        if (firingPos == null || (firingPos[0] == sim.world().cellX(member) && firingPos[1] == sim.world().cellY(member))) {
+        if (firingPos == null || sim.movement().atCell(member, firingPos[0], firingPos[1])) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -138,7 +138,7 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus returnToHome(long member, BattleControl sim, int homeX, int homeY) {
-        if (sim.world().cellX(member) == homeX && sim.world().cellY(member) == homeY) {
+        if (sim.movement().atCell(member, homeX, homeY)) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -149,7 +149,7 @@ public final class HoldPost implements Action {
     private static void moveToward(long member, BattleControl sim, int tx, int ty) {
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
-        if (sim.world().moveProgress(member) == 0f && pathIdx >= Paths.cellCount(path)) {
+        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), tx, ty, sim.getOccupancyMap()));
             path = sim.world().path(member);
