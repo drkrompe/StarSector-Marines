@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSelection;
+import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
+import com.dillon.starsectormarines.ops.loot.LootSettlementService;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -38,6 +40,7 @@ public final class LootScreen implements Screen {
     private static final Color BUDGET = new Color(0x80, 0xE0, 0xA0);
     private static final Color META = new Color(0x8F, 0xA8, 0xC0);
     private static final Color NOTICE = new Color(0xE0, 0xB0, 0x70);
+    private static final Color FENCE = new Color(0xE0, 0xB0, 0x70);
 
     private static final float MAX_PANEL_W = 1120f;
     private static final float MAX_PANEL_H = 680f;
@@ -46,7 +49,7 @@ public final class LootScreen implements Screen {
     private static final float GAP = 12f;
     private static final float CARD_H = 128f;
     private static final float HEADER_H = 104f;
-    private static final float FOOTER_H = 72f;
+    private static final float FOOTER_H = 104f;
     private static final float BUTTON_W = 190f;
     private static final float BUTTON_H = 36f;
 
@@ -99,7 +102,7 @@ public final class LootScreen implements Screen {
                 panelX + PAD, headerY - 82f, META));
 
         addGrid(manifest);
-        addFooter();
+        addFooter(LootSettlementService.preview(selection));
     }
 
     private void addGrid(LootManifest manifest) {
@@ -124,18 +127,53 @@ public final class LootScreen implements Screen {
         }
     }
 
-    private void addFooter() {
-        float buttonX = panelX + PAD;
+    private void addFooter(LootSettlementPlan preview) {
         float buttonY = panelY + PAD;
-        widgets.add(new ButtonWidget(buttonX, buttonY, BUTTON_W, BUTTON_H,
+        float backX = panelX + PAD;
+        widgets.add(new ButtonWidget(backX, buttonY, BUTTON_W, BUTTON_H,
                 () -> ctx.goTo(ScreenId.RESULTS)));
         String back = Strings.get("lootBack");
         float backW = Fonts.ORBITRON_20.measureWidth(back);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, back,
-                buttonX + (BUTTON_W - backW) / 2f, buttonY + BUTTON_H - 6f, HEADER));
+                backX + (BUTTON_W - backW) / 2f, buttonY + BUTTON_H - 6f, HEADER));
 
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootPreviewNotice"),
-                buttonX + BUTTON_W + 20f, buttonY + BUTTON_H - 6f, NOTICE));
+        if (preview == null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootCargoUnavailable"),
+                    backX + BUTTON_W + 20f, buttonY + BUTTON_H - 6f, NOTICE));
+            return;
+        }
+
+        float summaryY = buttonY + BUTTON_H + 26f;
+        String carry = MessageFormat.format(Strings.get("lootCarryFmt"),
+                preview.keptUnits, NumberFormat.getIntegerInstance().format(preview.keptValue));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, carry,
+                panelX + PAD, summaryY, BUDGET));
+        String fence = MessageFormat.format(Strings.get("lootFenceFmt"),
+                preview.fencedUnits, NumberFormat.getIntegerInstance().format(preview.fencedCredits));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, fence,
+                panelX + panelW / 2f, summaryY, FENCE));
+
+        float confirmX = panelX + panelW - PAD - BUTTON_W;
+        widgets.add(new ButtonWidget(confirmX, buttonY, BUTTON_W, BUTTON_H, this::confirm));
+        String confirm = Strings.get("lootConfirm");
+        float confirmW = Fonts.ORBITRON_20.measureWidth(confirm);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, confirm,
+                confirmX + (BUTTON_W - confirmW) / 2f,
+                buttonY + BUTTON_H - 6f, HEADER));
+        if (preview.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootNothingSelected"),
+                    backX + BUTTON_W + 20f, buttonY + BUTTON_H - 6f, NOTICE));
+        }
+    }
+
+    private void confirm() {
+        LootSettlementPlan result = LootSettlementService.settle(ctx, selection);
+        if (result == null) {
+            rebuild();
+            return;
+        }
+        ctx.clearResolvedMission();
+        ctx.goTo(ScreenId.MISSION_SELECT);
     }
 
     @Override

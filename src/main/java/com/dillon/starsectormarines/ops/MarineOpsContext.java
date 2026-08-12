@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
+import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -59,6 +60,9 @@ public class MarineOpsContext {
     private MissionOutcome lastOutcome;
     /** Frozen deterministic recovery roll; cargo settlement happens in the later picker. */
     private LootManifest lootManifest = LootManifest.EMPTY;
+    /** Exactly-once gate + receipt for the current manifest's cargo settlement. */
+    private boolean lootSettlementStarted;
+    private LootSettlementPlan lootSettlement;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
@@ -155,6 +159,44 @@ public class MarineOpsContext {
 
     public void setLootManifest(LootManifest manifest) {
         this.lootManifest = manifest != null ? manifest : LootManifest.EMPTY;
+        this.lootSettlementStarted = false;
+        this.lootSettlement = null;
+    }
+
+    public boolean isLootSettlementStarted() {
+        return lootSettlementStarted;
+    }
+
+    public LootSettlementPlan getLootSettlement() {
+        return lootSettlement;
+    }
+
+    /** Claims the exactly-once settlement gate before any cargo mutation. */
+    public boolean tryBeginLootSettlement() {
+        if (lootSettlementStarted) return false;
+        lootSettlementStarted = true;
+        return true;
+    }
+
+    public void completeLootSettlement(LootSettlementPlan settlement) {
+        this.lootSettlement = settlement;
+    }
+
+    /** Explicit Results-screen forfeit; closes the same gate without cargo mutation. */
+    public void forfeitLoot() {
+        if (!lootSettlementStarted) {
+            lootSettlementStarted = true;
+            lootSettlement = new LootSettlementPlan(Collections.emptyList());
+        }
+    }
+
+    /** Clears the finished mission while preserving its closed settlement gate. */
+    public void clearResolvedMission() {
+        selectedMission = null;
+        battleSimulation = null;
+        detachment = null;
+        lastOutcome = null;
+        lootManifest = LootManifest.EMPTY;
     }
 
     /**

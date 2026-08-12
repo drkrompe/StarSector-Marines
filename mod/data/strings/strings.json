@@ -85,6 +85,7 @@
 		"resultsStatusInjuredFmt":"injured ({0}d)",
 		"resultsStatusKia":       "killed in action",
 		"resultsReturn":          "Return",
+		"resultsForfeitSalvage": "Forfeit Salvage",
 		"resultsReviewSalvage":   "Review Salvage",
 
 		# Post-battle salvage picker
@@ -97,6 +98,10 @@
 		"lootSelected":           "Selected",
 		"lootOverBudget":         "Over budget",
 		"lootBack":               "Back to Debrief",
-		"lootPreviewNotice":      "Selection preview — cargo transfer arrives in the next slice."
+		"lootCarryFmt":           "Carry: {0} units · Cr. {1} value",
+		"lootFenceFmt":           "Fence overflow: {0} units · Cr. {1} paid",
+		"lootConfirm":            "Confirm Salvage",
+		"lootNothingSelected":    "Nothing selected — confirming forfeits the recovery pool.",
+		"lootCargoUnavailable":   "Player cargo is unavailable; settlement cannot proceed."
 	}
 }

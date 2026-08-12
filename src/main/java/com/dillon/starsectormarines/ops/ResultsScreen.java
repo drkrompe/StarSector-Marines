@@ -199,13 +199,19 @@ public class ResultsScreen implements Screen {
         if (manifest != null && !manifest.isEmpty()) {
             float groupW = 2f * BTN_W + BTN_GAP;
             float leftX = cardX + (CARD_W - groupW) / 2f;
-            addButton(leftX, btnY, "resultsReturn", () -> ctx.goTo(ScreenId.MISSION_SELECT));
+            addButton(leftX, btnY, "resultsForfeitSalvage", this::returnToMissions);
             addButton(leftX + BTN_W + BTN_GAP, btnY, "resultsReviewSalvage",
                     () -> ctx.goTo(ScreenId.LOOT));
         } else {
             float btnX = cardX + (CARD_W - BTN_W) / 2f;
-            addButton(btnX, btnY, "resultsReturn", () -> ctx.goTo(ScreenId.MISSION_SELECT));
+            addButton(btnX, btnY, "resultsReturn", this::returnToMissions);
         }
+    }
+
+    private void returnToMissions() {
+        ctx.forfeitLoot();
+        ctx.clearResolvedMission();
+        ctx.goTo(ScreenId.MISSION_SELECT);
     }
 
     private void addButton(float x, float y, String labelKey, Runnable onClick) {
