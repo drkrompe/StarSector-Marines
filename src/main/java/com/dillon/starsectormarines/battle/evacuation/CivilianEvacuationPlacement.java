@@ -17,8 +17,8 @@ import java.util.List;
 public final class CivilianEvacuationPlacement {
 
     public static final int LIFT_ZONE_RADIUS = 1;
+    public static final int SHELTER_ZONE_RADIUS = 5;
     private static final int EDGE_BAND = 2;
-    private static final int SHELTER_SPAWN_RADIUS = 5;
 
     public final int shelterX;
     public final int shelterY;
@@ -125,15 +125,15 @@ public final class CivilianEvacuationPlacement {
                                               int sx, int sy,
                                               int liftX, int liftY) {
         List<int[]> candidates = new ArrayList<>();
-        for (int y = Math.max(0, sy - SHELTER_SPAWN_RADIUS);
-             y <= Math.min(grid.getHeight() - 1, sy + SHELTER_SPAWN_RADIUS);
+        for (int y = Math.max(0, sy - SHELTER_ZONE_RADIUS);
+             y <= Math.min(grid.getHeight() - 1, sy + SHELTER_ZONE_RADIUS);
              y++) {
-            for (int x = Math.max(0, sx - SHELTER_SPAWN_RADIUS);
+            for (int x = Math.max(0, sx - SHELTER_ZONE_RADIUS);
                  x <= Math.min(grid.getWidth() - 1,
-                         sx + SHELTER_SPAWN_RADIUS); x++) {
+                         sx + SHELTER_ZONE_RADIUS); x++) {
                 if (!grid.isWalkable(x, y)) continue;
                 if (Math.abs(x - sx) + Math.abs(y - sy)
-                        > SHELTER_SPAWN_RADIUS) continue;
+                        > SHELTER_ZONE_RADIUS) continue;
                 if (insideLiftZone(x, y, liftX, liftY)) continue;
                 if (Paths.isEmpty(GridPathfinder.findPath(
                         grid, x, y, liftX, liftY))) continue;
