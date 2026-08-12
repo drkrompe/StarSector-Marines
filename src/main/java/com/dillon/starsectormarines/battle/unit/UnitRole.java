@@ -94,5 +94,11 @@ public enum UnitRole {
      * when aligned. Patrol motion (drifting around its home hub) lands in a
      * follow-up commit; today the drone fires from its spawn cell.
      */
-    DRONE_PATROL
+    DRONE_PATROL,
+    /**
+     * Mission-local biological attacker. A dedicated behavior pressures only
+     * registered rescue civilians, then marines; it never enters squad GOAP or
+     * broad civilian-faction targeting.
+     */
+    SWARM_PRESSURE
 }
