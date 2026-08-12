@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * Serial movement and boarding driver for the registered rescue cohort.
@@ -11,11 +12,16 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
  */
 public final class CivilianEvacuationSystem {
 
+    /** Civilians wait behind shelter walls for rescuers, but never deadlock a fixture or a mission whose first drop is lost. */
+    static final float MAX_SHELTER_HOLD_SECONDS = 12f;
+
     private final CivilianEvacuationTracker tracker;
     private int liftX = -1;
     private int liftY = -1;
     private int radius;
     private boolean configured;
+    private boolean released;
+    private float shelterHoldElapsed;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -39,6 +45,11 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
+        if (!released) {
+            shelterHoldElapsed += BattleSimulation.TICK_DT;
+            released = hasLiveMarine(sim)
+                    || shelterHoldElapsed >= MAX_SHELTER_HOLD_SECONDS;
+        }
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
             if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE) {
@@ -51,6 +62,10 @@ public final class CivilianEvacuationSystem {
             if (insideLiftZone(sim.world().cellX(id),
                     sim.world().cellY(id))) {
                 board(id, sim);
+                continue;
+            }
+            if (!released) {
+                sim.clearPath(id);
                 continue;
             }
 
@@ -73,6 +88,15 @@ public final class CivilianEvacuationSystem {
 
     public boolean isConfigured() {
         return configured;
+    }
+
+    private static boolean hasLiveMarine(BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.MARINE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void board(long id, BattleSimulation sim) {

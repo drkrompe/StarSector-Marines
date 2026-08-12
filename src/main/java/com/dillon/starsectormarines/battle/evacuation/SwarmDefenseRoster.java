@@ -20,6 +20,8 @@ public final class SwarmDefenseRoster {
     public static final int LOW_COUNT = 12;
     public static final int MEDIUM_COUNT = 24;
     public static final int HIGH_COUNT = 40;
+    /** Production missions also need an approach window; six cells was effectively immediate contact. */
+    public static final int PRODUCTION_SHELTER_APPROACH_DISTANCE = 16;
     /** Gives debug transports time to establish the opening defensive line. */
     public static final int DEBUG_SHELTER_APPROACH_DISTANCE = 24;
 
@@ -37,7 +39,7 @@ public final class SwarmDefenseRoster {
             BattleSimulation sim, CivilianEvacuationPlacement placement,
             RiskLevel risk, long seed) {
         return install(sim, placement, countFor(risk), seed,
-                CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS + 1);
+                PRODUCTION_SHELTER_APPROACH_DISTANCE);
     }
 
     /** Installs a force-scaled debug roster outside the opening approach band. */

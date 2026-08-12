@@ -32,6 +32,10 @@ class CivilianEvacuationPlacementTest {
         for (int i = 0; i < placement.spawnCount(); i++) {
             assertTrue(grid.isWalkable(
                     placement.spawnX(i), placement.spawnY(i)));
+            assertTrue(placement.spawnX(i) > home.left
+                    && placement.spawnX(i) < home.right);
+            assertTrue(placement.spawnY(i) > home.top
+                    && placement.spawnY(i) < home.bottom);
             for (int j = i + 1; j < placement.spawnCount(); j++) {
                 assertTrue(placement.spawnX(i) != placement.spawnX(j)
                         || placement.spawnY(i) != placement.spawnY(j));

@@ -40,7 +40,7 @@ class SwarmDefenseRosterTest {
                 int y = fixture.sim.world().cellY(entity);
                 assertTrue(Math.abs(x - fixture.payload.placement.shelterX)
                         + Math.abs(y - fixture.payload.placement.shelterY)
-                        > CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS);
+                        >= SwarmDefenseRoster.PRODUCTION_SHELTER_APPROACH_DISTANCE);
                 assertTrue(Math.abs(x - fixture.payload.placement.liftX)
                                 > CivilianEvacuationPlacement.LIFT_ZONE_RADIUS
                         || Math.abs(y - fixture.payload.placement.liftY)
