@@ -12,8 +12,10 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public final class CivilianEvacuationSystem {
 
-    /** Civilians wait behind shelter walls for rescuers, but never deadlock a fixture or a mission whose first drop is lost. */
-    static final float MAX_SHELTER_HOLD_SECONDS = 12f;
+    /** Guaranteed time after the first marine lands for the response force to establish a perimeter. */
+    static final float MARINE_DEPLOYMENT_BUFFER_SECONDS = 12f;
+    /** Civilians eventually run even if every inbound marine is lost before reaching the ground. */
+    static final float MAX_SHELTER_HOLD_SECONDS = 30f;
 
     private final CivilianEvacuationTracker tracker;
     private int liftX = -1;
@@ -22,6 +24,8 @@ public final class CivilianEvacuationSystem {
     private boolean configured;
     private boolean released;
     private float shelterHoldElapsed;
+    private boolean marineArrivalObserved;
+    private float deploymentBufferElapsed;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -47,7 +51,13 @@ public final class CivilianEvacuationSystem {
         if (!configured || tracker.isSealed()) return;
         if (!released) {
             shelterHoldElapsed += BattleSimulation.TICK_DT;
-            released = hasLiveMarine(sim)
+            if (hasLiveMarine(sim)) marineArrivalObserved = true;
+            if (marineArrivalObserved) {
+                deploymentBufferElapsed += BattleSimulation.TICK_DT;
+            }
+            released = (marineArrivalObserved
+                    && deploymentBufferElapsed
+                    >= MARINE_DEPLOYMENT_BUFFER_SECONDS)
                     || shelterHoldElapsed >= MAX_SHELTER_HOLD_SECONDS;
         }
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
@@ -88,6 +98,11 @@ public final class CivilianEvacuationSystem {
 
     public boolean isConfigured() {
         return configured;
+    }
+
+    /** True while the cohort remains behind the sealed shelter barricade. */
+    public boolean isShelterProtected() {
+        return configured && !released && !tracker.isSealed();
     }
 
     private static boolean hasLiveMarine(BattleSimulation sim) {

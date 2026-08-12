@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CivilianEvacuationSystemTest {
 
     @Test
-    void cohortSheltersUntilTheFirstMarineArrives() {
+    void cohortGetsDeploymentBufferAfterTheFirstMarineArrives() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload =
                 CivilianEvacuationPayload.install(sim,
@@ -37,11 +37,30 @@ class CivilianEvacuationSystemTest {
         assertEquals(startX, sim.world().cellX(first));
         assertEquals(startY, sim.world().cellY(first));
         assertTrue(Paths.isEmpty(sim.movement().path(first)));
+        assertTrue(sim.isCivilianShelterProtected());
 
         sim.spawn(new EntitySpec("rescue marine", Faction.MARINE,
                 UnitType.MARINE, 2, 2));
         sim.advance(BattleSimulation.TICK_DT);
 
+        assertTrue(sim.isCivilianShelterProtected());
+        assertTrue(Paths.isEmpty(sim.movement().path(first)));
+
+        int halfBufferTicks = (int) Math.floor(
+                CivilianEvacuationSystem.MARINE_DEPLOYMENT_BUFFER_SECONDS
+                        / BattleSimulation.TICK_DT / 2f);
+        for (int tick = 0; tick < halfBufferTicks; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+        assertTrue(sim.isCivilianShelterProtected());
+        assertTrue(Paths.isEmpty(sim.movement().path(first)));
+
+        int remainingBudget = halfBufferTicks + 4;
+        while (sim.isCivilianShelterProtected() && remainingBudget-- > 0) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertFalse(sim.isCivilianShelterProtected());
         assertFalse(Paths.isEmpty(sim.movement().path(first)));
     }
 
@@ -53,7 +72,7 @@ class CivilianEvacuationSystemTest {
                         List.of(residential(12, 10)), 300L);
         assertNotNull(payload);
 
-        for (int tick = 0; tick < 1_200 && !sim.isComplete(); tick++) {
+        for (int tick = 0; tick < 2_400 && !sim.isComplete(); tick++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
 

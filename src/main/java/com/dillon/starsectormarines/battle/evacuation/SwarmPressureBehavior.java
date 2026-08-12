@@ -61,31 +61,33 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     public static long selectTarget(long runner, BattleSimulation sim) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
-        long remembered = sim.combat().targetId(runner);
-        if (tracker.state(remembered)
-                == CivilianEvacuationTracker.State.ACTIVE
-                && sim.resolveUnit(remembered) != 0L) {
-            return remembered;
-        }
-
         long best = 0L;
         int bestDistance = Integer.MAX_VALUE;
-        for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
-            long candidate = tracker.entityIdAt(i);
-            if (tracker.state(candidate)
-                    != CivilianEvacuationTracker.State.ACTIVE
-                    || sim.resolveUnit(candidate) == 0L) {
-                continue;
+        if (!sim.isCivilianShelterProtected()) {
+            long remembered = sim.combat().targetId(runner);
+            if (tracker.state(remembered)
+                    == CivilianEvacuationTracker.State.ACTIVE
+                    && sim.resolveUnit(remembered) != 0L) {
+                return remembered;
             }
-            if (!canSense(runner, candidate, sim)) continue;
-            int distance = distanceSquared(runner, candidate, sim);
-            if (distance < bestDistance
-                    || (distance == bestDistance && candidate < best)) {
-                best = candidate;
-                bestDistance = distance;
+
+            for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+                long candidate = tracker.entityIdAt(i);
+                if (tracker.state(candidate)
+                        != CivilianEvacuationTracker.State.ACTIVE
+                        || sim.resolveUnit(candidate) == 0L) {
+                    continue;
+                }
+                if (!canSense(runner, candidate, sim)) continue;
+                int distance = distanceSquared(runner, candidate, sim);
+                if (distance < bestDistance
+                        || (distance == bestDistance && candidate < best)) {
+                    best = candidate;
+                    bestDistance = distance;
+                }
             }
+            if (best != 0L) return best;
         }
-        if (best != 0L) return best;
 
         bestDistance = Integer.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {

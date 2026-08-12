@@ -8,13 +8,33 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SwarmPressureBehaviorTest {
+
+    @Test
+    void sealedShelterRedirectsVisibleSwarmPressureToMarines() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        6, 4, 10, 8, 8, 6, 8, 6)), 11L);
+        assertNotNull(payload);
+        long runner = runner(sim, 2, 2);
+        long marine = marine(sim, 4, 2);
+
+        assertTrue(sim.isCivilianShelterProtected());
+        assertEquals(marine,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
 
     @Test
     void activeRegisteredEvacueeOutranksCloserMarineAndAmbientCivilian() {
