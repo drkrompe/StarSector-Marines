@@ -52,6 +52,25 @@ class ActiveChainDiscoveryTest {
     }
 
     @Test
+    void civilWarBecomesEpicMarketWideRumor() {
+        CampaignState state = new CampaignState();
+        long actor = Fixture.house(state, HouseRank.TIER_3, "Claimant");
+        long target = Fixture.house(state, HouseRank.TIER_3, "Coalition");
+        long chainId = state.addAutonomousChain(actor, target, 1, -1,
+                HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 180, (byte) 0xFF, 1);
+        int chainRow = state.chainIndex(chainId);
+
+        new DiscoveryPropagationSystem().tick(state, 8);
+
+        assertEquals(1, state.chronicleCount);
+        assertEquals(8, state.chainDiscoveredTick[chainRow]);
+        assertEquals(ChronicleBand.EPIC,
+                ChronicleBand.fromByte(state.chronicleBand[0]));
+        assertEquals(-1, state.chronicleIndustryId[0]);
+    }
+
+    @Test
     void untouchedLowTierChainStaysOutsideRumorEvaluation() {
         Fixture fixture = new Fixture(HouseRank.TIER_2, (byte) 0xFF);
 

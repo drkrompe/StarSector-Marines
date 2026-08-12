@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ChainArchetype;
+import com.dillon.starsectormarines.campaign.ChainIntervention;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.campaign.PatronArchetype;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ThreatInterventionOfferSystemTest {
 
@@ -80,6 +82,37 @@ class ThreatInterventionOfferSystemTest {
         assertEquals(0, unknown.state.contractCount);
         assertEquals(0, ineligible.state.contractCount);
         assertEquals(0, playerBacked.state.contractCount);
+    }
+
+    @Test
+    void discoveredCivilWarOffersMarketWideInterventionBeforeHandoff() {
+        CampaignState state = new CampaignState();
+        long claimant = state.addHouse(1, 1, HouseFlavor.FEUDAL, HouseRank.TIER_3,
+                HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, "Claimant");
+        long coalition = state.addHouse(1, 1, HouseFlavor.FEUDAL, HouseRank.TIER_3,
+                HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, "Coalition");
+        long chainId = state.addAutonomousChain(claimant, coalition, 1, -1,
+                HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 180, (byte) 128, 1);
+        int chainRow = state.chainIndex(chainId);
+        state.playerMrbRep = 20;
+        state.chainDiscoveredTick[chainRow] = 10;
+
+        new ThreatInterventionOfferSystem().tick(state, 20);
+
+        assertEquals(1, state.contractCount);
+        assertEquals(coalition, state.contractPatronHouseId[0]);
+        assertEquals(claimant, state.contractTargetHouseId[0]);
+        assertEquals(1, state.contractMarketId[0]);
+        assertEquals(-1, state.contractIndustryId[0]);
+        assertEquals(chainId, state.contractOpposedChainId[0]);
+
+        state.contractState[0] = ContractState.COMPLETED.toByte();
+        assertTrue(ChainIntervention.stopOpposedChain(state, 0, 21));
+        new ChainAdvancementSystem().tick(state, 22);
+        assertEquals(ChainState.FAILED,
+                ChainState.fromByte(state.chainState[chainRow]));
+        assertEquals(0, state.throneClaimCount);
     }
 
     private static final class Fixture {
