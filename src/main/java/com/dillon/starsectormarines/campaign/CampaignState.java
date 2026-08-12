@@ -145,6 +145,23 @@ public final class CampaignState implements Serializable {
     public int[] moralChoiceRecordedTick = filledInts(INITIAL_CAPACITY, -1);
     public int moralChoiceCount = 0;
 
+    // ---------- campaignEvents[] (black-swan choices; not contracts) ----------
+
+    public long[] eventId = new long[INITIAL_CAPACITY];
+    public byte[] eventType = new byte[INITIAL_CAPACITY];
+    public long[] eventTriggerKey = filledLongs(INITIAL_CAPACITY, -1L);
+    public byte[] eventState = new byte[INITIAL_CAPACITY];
+    public int[] eventMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventCreatedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventDecisionTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventResolvedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventSuppliesRequired = new int[INITIAL_CAPACITY];
+    public int[] eventFuelRequired = new int[INITIAL_CAPACITY];
+    public int[] eventCiviliansAtRisk = new int[INITIAL_CAPACITY];
+    public int[] eventCiviliansRescued = new int[INITIAL_CAPACITY];
+    public int eventCount = 0;
+
     // ---------- chronicle[] (learned events only) ----------
 
     public long[] chronicleId = new long[INITIAL_CAPACITY];
@@ -277,6 +294,7 @@ public final class CampaignState implements Serializable {
     public final LongIntMap chainIndexById     = new LongIntMap();
     public final LongIntMap contractIndexById  = new LongIntMap();
     public LongIntMap throneClaimIndexById     = new LongIntMap();
+    public LongIntMap eventIndexById           = new LongIntMap();
     /** house id → row index in {@code playerReputation[]}. Sparse — only touched houses get rep rows. */
     public final LongIntMap repIndexByHouseId  = new LongIntMap();
 
@@ -289,6 +307,7 @@ public final class CampaignState implements Serializable {
     private long nextContractId = 1;
     private long nextThroneClaimId = 1;
     private long nextMoralChoiceId = 1;
+    private long nextEventId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
@@ -613,6 +632,36 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
+    /** Appends one already-validated black-swan event snapshot. */
+    long appendCampaignEvent(CampaignEventType type, long triggerKey,
+                             int marketId, int createdTick, int deadlineTick,
+                             int suppliesRequired, int fuelRequired,
+                             int civiliansAtRisk) {
+        ensureEventCapacity(eventCount + 1);
+        int i = eventCount++;
+        long id = nextEventId++;
+        eventId[i] = id;
+        eventType[i] = type.toByte();
+        eventTriggerKey[i] = triggerKey;
+        eventState[i] = CampaignEventState.PENDING_CHOICE.toByte();
+        eventMarketId[i] = marketId;
+        eventCreatedTick[i] = createdTick;
+        eventDeadlineTick[i] = deadlineTick;
+        eventDecisionTick[i] = -1;
+        eventResolvedTick[i] = -1;
+        eventSuppliesRequired[i] = suppliesRequired;
+        eventFuelRequired[i] = fuelRequired;
+        eventCiviliansAtRisk[i] = civiliansAtRisk;
+        eventCiviliansRescued[i] = 0;
+        eventIndexById.put(id, i);
+        return id;
+    }
+
+    /** O(1) lookup: campaign event id to row index, or {@code -1}. */
+    public int eventIndex(long id) {
+        return eventIndexById.get(id);
+    }
+
     /**
      * Appends a contract. Returns the new contract id. Salvage / cash columns
      * default to the per-type baseline at the negotiated value; callers should
@@ -874,6 +923,31 @@ public final class CampaignState implements Serializable {
         Arrays.fill(moralChoiceRecordedTick, oldLength, n, -1);
     }
 
+    private void ensureEventCapacity(int needed) {
+        if (needed <= eventId.length) return;
+        int oldLength = eventId.length;
+        int n = Math.max(needed, eventId.length * 2);
+        eventId = Arrays.copyOf(eventId, n);
+        eventType = Arrays.copyOf(eventType, n);
+        eventTriggerKey = Arrays.copyOf(eventTriggerKey, n);
+        Arrays.fill(eventTriggerKey, oldLength, n, -1L);
+        eventState = Arrays.copyOf(eventState, n);
+        eventMarketId = Arrays.copyOf(eventMarketId, n);
+        Arrays.fill(eventMarketId, oldLength, n, -1);
+        eventCreatedTick = Arrays.copyOf(eventCreatedTick, n);
+        Arrays.fill(eventCreatedTick, oldLength, n, -1);
+        eventDeadlineTick = Arrays.copyOf(eventDeadlineTick, n);
+        Arrays.fill(eventDeadlineTick, oldLength, n, -1);
+        eventDecisionTick = Arrays.copyOf(eventDecisionTick, n);
+        Arrays.fill(eventDecisionTick, oldLength, n, -1);
+        eventResolvedTick = Arrays.copyOf(eventResolvedTick, n);
+        Arrays.fill(eventResolvedTick, oldLength, n, -1);
+        eventSuppliesRequired = Arrays.copyOf(eventSuppliesRequired, n);
+        eventFuelRequired = Arrays.copyOf(eventFuelRequired, n);
+        eventCiviliansAtRisk = Arrays.copyOf(eventCiviliansAtRisk, n);
+        eventCiviliansRescued = Arrays.copyOf(eventCiviliansRescued, n);
+    }
+
     /**
      * Backfills {@code houseArchetype} for saves written before that column
      * existed. xstream bypasses the constructor, so any column added after
@@ -1088,6 +1162,47 @@ public final class CampaignState implements Serializable {
             for (int i = 0; i < moralChoiceCount; i++) {
                 nextMoralChoiceId = Math.max(
                         nextMoralChoiceId, moralChoiceId[i] + 1L);
+            }
+        }
+        int eventCapacity = eventId != null ? eventId.length : INITIAL_CAPACITY;
+        if (eventId == null) eventId = new long[eventCapacity];
+        if (eventType == null) eventType = new byte[eventCapacity];
+        if (eventTriggerKey == null) {
+            eventTriggerKey = filledLongs(eventCapacity, -1L);
+        }
+        if (eventState == null) eventState = new byte[eventCapacity];
+        if (eventMarketId == null) eventMarketId = filledInts(eventCapacity, -1);
+        if (eventCreatedTick == null) {
+            eventCreatedTick = filledInts(eventCapacity, -1);
+        }
+        if (eventDeadlineTick == null) {
+            eventDeadlineTick = filledInts(eventCapacity, -1);
+        }
+        if (eventDecisionTick == null) {
+            eventDecisionTick = filledInts(eventCapacity, -1);
+        }
+        if (eventResolvedTick == null) {
+            eventResolvedTick = filledInts(eventCapacity, -1);
+        }
+        if (eventSuppliesRequired == null) {
+            eventSuppliesRequired = new int[eventCapacity];
+        }
+        if (eventFuelRequired == null) eventFuelRequired = new int[eventCapacity];
+        if (eventCiviliansAtRisk == null) {
+            eventCiviliansAtRisk = new int[eventCapacity];
+        }
+        if (eventCiviliansRescued == null) {
+            eventCiviliansRescued = new int[eventCapacity];
+        }
+        if (eventIndexById == null) eventIndexById = new LongIntMap();
+        eventIndexById.clear();
+        for (int i = 0; i < eventCount; i++) {
+            eventIndexById.put(eventId[i], i);
+        }
+        if (nextEventId <= 0L) {
+            nextEventId = 1L;
+            for (int i = 0; i < eventCount; i++) {
+                nextEventId = Math.max(nextEventId, eventId[i] + 1L);
             }
         }
         if (contractOfferExpiresTick == null) {

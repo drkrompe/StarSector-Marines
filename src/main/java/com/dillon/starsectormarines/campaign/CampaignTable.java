@@ -18,5 +18,6 @@ public enum CampaignTable {
     THRONE_CLAIMS,
     PLAYER_REP,
     MORAL_COMPASS,
+    EVENTS,
     CONTRACTS
 }
