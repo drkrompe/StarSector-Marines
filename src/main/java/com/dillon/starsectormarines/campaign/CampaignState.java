@@ -5,8 +5,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * Campaign-tier data model: five structure-of-arrays tables backed by Java
- * primitive arrays, persisted via xstream (no SQLite — see
+ * Campaign-tier data model: structure-of-arrays tables backed by Java primitive
+ * arrays, persisted via xstream (no SQLite — see
  * <code>roadmap/campaign/mechanics.md</code> for the rationale).
  *
  * <p>This is a thin data container. The simulation loop lives in
@@ -95,6 +95,8 @@ public final class CampaignState implements Serializable {
     public int[]   chainLastAdvanceTick = filledInts(INITIAL_CAPACITY, -1);
     /** Day the chain reached a terminal state; -1 while active. */
     public int[]   chainResolvedTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Day Chronicle discovery classified this terminal row; -1 until processed. */
+    public int[]   chainDiscoveryProcessedTick = filledInts(INITIAL_CAPACITY, -1);
     public int     chainCount        = 0;
 
     // ---------- playerReputation[] ----------
@@ -105,6 +107,22 @@ public final class CampaignState implements Serializable {
     public short[] repContractsFailed = new short[INITIAL_CAPACITY];
     public int[]   repLastContractTick = new int[INITIAL_CAPACITY];
     public int     repCount           = 0;
+
+    // ---------- chronicle[] (learned events only) ----------
+
+    public long[] chronicleId = new long[INITIAL_CAPACITY];
+    public byte[] chronicleEventType = new byte[INITIAL_CAPACITY];
+    public long[] chronicleSourceChainId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Terminal {@link ChainState} captured when this dispatch was learned. */
+    public byte[] chronicleChainOutcome = new byte[INITIAL_CAPACITY];
+    public byte[] chronicleBand = new byte[INITIAL_CAPACITY];
+    public long[] chronicleActorHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] chronicleTargetHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    public int[] chronicleMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public int[] chronicleIndustryId = filledInts(INITIAL_CAPACITY, -1);
+    public int[] chronicleHappenedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int chronicleCount = 0;
 
     // ---------- contracts[] (sixth table — see contracts/overview.md §"contracts[]") ----------
 
@@ -188,6 +206,7 @@ public final class CampaignState implements Serializable {
     private long nextHouseId    = 1;
     private long nextStakeId    = 1;
     private long nextChainId    = 1;
+    private long nextChronicleId = 1;
     private long nextContractId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
@@ -310,6 +329,29 @@ public final class CampaignState implements Serializable {
     /** O(1) lookup: chain id → row index in chains table, or {@code -1}. */
     public int chainIndex(long id) {
         return chainIndexById.get(id);
+    }
+
+    /** Appends a learned chain-outcome dispatch. Returns the Chronicle event id. */
+    public long addChronicleChainOutcome(long sourceChainId, ChainState outcome,
+                                         ChronicleBand band,
+                                         long actorHouseId, long targetHouseId,
+                                         int marketId, int industryId,
+                                         int happenedTick, int learnedTick) {
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.CHAIN_OUTCOME.toByte();
+        chronicleSourceChainId[i] = sourceChainId;
+        chronicleChainOutcome[i] = outcome.toByte();
+        chronicleBand[i] = band.toByte();
+        chronicleActorHouseId[i] = actorHouseId;
+        chronicleTargetHouseId[i] = targetHouseId;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = industryId;
+        chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
     }
 
     /** Finds or creates a rep row for the given house id. Returns the row index. */
@@ -476,6 +518,32 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chainLastAdvanceTick, oldLength, n, -1);
         chainResolvedTick = Arrays.copyOf(chainResolvedTick, n);
         Arrays.fill(chainResolvedTick, oldLength, n, -1);
+        chainDiscoveryProcessedTick = Arrays.copyOf(chainDiscoveryProcessedTick, n);
+        Arrays.fill(chainDiscoveryProcessedTick, oldLength, n, -1);
+    }
+
+    private void ensureChronicleCapacity(int needed) {
+        if (needed <= chronicleId.length) return;
+        int oldLength = chronicleId.length;
+        int n = Math.max(needed, chronicleId.length * 2);
+        chronicleId = Arrays.copyOf(chronicleId, n);
+        chronicleEventType = Arrays.copyOf(chronicleEventType, n);
+        chronicleSourceChainId = Arrays.copyOf(chronicleSourceChainId, n);
+        Arrays.fill(chronicleSourceChainId, oldLength, n, -1L);
+        chronicleChainOutcome = Arrays.copyOf(chronicleChainOutcome, n);
+        chronicleBand = Arrays.copyOf(chronicleBand, n);
+        chronicleActorHouseId = Arrays.copyOf(chronicleActorHouseId, n);
+        Arrays.fill(chronicleActorHouseId, oldLength, n, -1L);
+        chronicleTargetHouseId = Arrays.copyOf(chronicleTargetHouseId, n);
+        Arrays.fill(chronicleTargetHouseId, oldLength, n, -1L);
+        chronicleMarketId = Arrays.copyOf(chronicleMarketId, n);
+        Arrays.fill(chronicleMarketId, oldLength, n, -1);
+        chronicleIndustryId = Arrays.copyOf(chronicleIndustryId, n);
+        Arrays.fill(chronicleIndustryId, oldLength, n, -1);
+        chronicleHappenedTick = Arrays.copyOf(chronicleHappenedTick, n);
+        Arrays.fill(chronicleHappenedTick, oldLength, n, -1);
+        chronicleLearnedTick = Arrays.copyOf(chronicleLearnedTick, n);
+        Arrays.fill(chronicleLearnedTick, oldLength, n, -1);
     }
 
     private void ensureRepCapacity(int needed) {
@@ -539,6 +607,38 @@ public final class CampaignState implements Serializable {
         if (chainResolvedTick == null) {
             int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
             chainResolvedTick = filledInts(n, -1);
+        }
+        if (chainDiscoveryProcessedTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainDiscoveryProcessedTick = filledInts(n, -1);
+        }
+        int chronicleCapacity = chronicleId != null ? chronicleId.length : INITIAL_CAPACITY;
+        if (chronicleId == null) chronicleId = new long[chronicleCapacity];
+        if (chronicleEventType == null) chronicleEventType = new byte[chronicleCapacity];
+        if (chronicleSourceChainId == null) {
+            chronicleSourceChainId = filledLongs(chronicleCapacity, -1L);
+        }
+        if (chronicleChainOutcome == null) chronicleChainOutcome = new byte[chronicleCapacity];
+        if (chronicleBand == null) chronicleBand = new byte[chronicleCapacity];
+        if (chronicleActorHouseId == null) {
+            chronicleActorHouseId = filledLongs(chronicleCapacity, -1L);
+        }
+        if (chronicleTargetHouseId == null) {
+            chronicleTargetHouseId = filledLongs(chronicleCapacity, -1L);
+        }
+        if (chronicleMarketId == null) chronicleMarketId = filledInts(chronicleCapacity, -1);
+        if (chronicleIndustryId == null) chronicleIndustryId = filledInts(chronicleCapacity, -1);
+        if (chronicleHappenedTick == null) {
+            chronicleHappenedTick = filledInts(chronicleCapacity, -1);
+        }
+        if (chronicleLearnedTick == null) {
+            chronicleLearnedTick = filledInts(chronicleCapacity, -1);
+        }
+        if (nextChronicleId <= 0L) {
+            nextChronicleId = 1L;
+            for (int i = 0; i < chronicleCount; i++) {
+                nextChronicleId = Math.max(nextChronicleId, chronicleId[i] + 1L);
+            }
         }
         if (contractOfferExpiresTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
