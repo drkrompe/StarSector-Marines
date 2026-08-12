@@ -1,6 +1,9 @@
 # Civil-war participation contract
 
-**Status:** DESIGN LOCKED (2026-08-12); persistence implementation next.
+**Status:** FOUNDATION CODE COMPLETE (2026-08-12); paired offer generation next.
+
+**Implemented:** `926047e8`, `4332927f`, `50591863`, `3610923d`,
+`487134ae`
 
 This document fixes how the player enters an autonomous `CIVIL_WAR` without
 turning every discovered plot intervention into a kingmaker decision. The
@@ -87,12 +90,18 @@ its terminal consequences must consume the failed chain's persisted attribution.
 
 ## Implementation slices
 
-1. Persist chain allegiance/contribution and contract band/applied tick, including
-   growth, compaction, and legacy-save backfill.
-2. Add a pure validator/recorder for completed civil-war contributions.
-3. Snapshot successful claimant attribution into `throneClaims[]`.
+1. ~~Persist chain allegiance/contribution and contract band/applied tick,
+   including growth, compaction, and legacy-save backfill.~~
+2. ~~Add a pure validator/recorder for completed civil-war contributions.~~
+3. ~~Snapshot successful claimant attribution into `throneClaims[]`.~~
 4. Generate paired band offers and wire acceptance/withdrawal behavior.
-5. Apply weighted/decisive outcomes and exactly-once player consequences.
+5. Apply exactly-once player consequences from terminal attributed outcomes.
+
+Weighted and decisive chain outcomes landed with the validator: early bands
+apply ±15/±30 progress; open-conflict claimant work arms threshold resolution;
+open-conflict incumbent work fails the rebellion. A daily system after contract
+lifecycle recovers completed mission-mode or stationing contributions exactly
+once. Banded contracts are excluded from the older generic intervention shortcut.
 
 ## Non-goals for the foundation
 

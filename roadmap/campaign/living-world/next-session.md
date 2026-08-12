@@ -55,6 +55,12 @@ be attributed (`ad6ff5fd`, `527535fb`).
 Applied claims now also emit a dedicated immutable faction-flip dispatch that
 names the claimant, displaced rival, source/result factions, market, and actual
 writeback day (`d7be2649`, `31be86ed`).
+The civil-war participation foundation is shipped: existing lineage encodes
+claimant vs incumbent work, contracts snapshot their progress band, the first
+successful operation locks chain allegiance, early work applies ±15/±30
+progress, open-conflict assaults are decisive, completed stationing work is
+recoverable, and successful claimant attribution snapshots into the throne
+handoff (`926047e8`, `4332927f`, `50591863`, `3610923d`, `487134ae`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -67,17 +73,18 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Civil-war participation persistence
+## Next up — Paired civil-war offers
 
-Implement the contract fixed in
+Build the player-facing producer for the contract fixed in
 [`civil-war-participation.md`](civil-war-participation.md):
 
-1. Add chain allegiance/contribution and contract band/applied-tick columns with
-   growth, compaction, and legacy-save coverage.
-2. Record completed aligned contracts exactly once and lock allegiance on the
-   first successful contribution.
-3. Snapshot successful claimant attribution into the throne handoff.
-4. Then generate paired band offers and apply weighted/decisive outcomes.
+1. For each discovered active civil war, create at most one historical offer per
+   side per band using the locked contract-type mapping.
+2. Choose and persist a concrete local industry/objective without changing the
+   market-wide chain sentinel.
+3. On acceptance, withdraw the opposite offered row and prevent contradictory
+   active work; on allegiance lock, expire every remaining opposite offer.
+4. Expire outstanding offers when the chain becomes terminal or leaves its band.
 
 ## Open forks still unresolved (design)
 
@@ -146,3 +153,8 @@ Implement the contract fixed in
 - Slice F4b — replay-safe diplomatic rupture (`527535fb`).
 - Slice F5a — immutable faction-flip Chronicle snapshot (`d7be2649`).
 - Slice F5b — faction-flip dispatch rendering (`31be86ed`).
+- Slice F6a — civil-war participation contract (`926047e8`).
+- Slice F6b — persisted participation schema (`4332927f`).
+- Slice F6c — validated weighted/decisive contributions (`50591863`).
+- Slice F6d — throne attribution snapshot (`3610923d`).
+- Slice F6e — recoverable contribution integration (`487134ae`).

@@ -56,6 +56,9 @@ prepares one append-only `throneClaims[]` row keyed uniquely by source chain:
 | `throneClaimSourceFactionId` | Persisted incumbent faction-registry slot |
 | `throneClaimResultFactionId` | Predeclared Claimant League faction-registry slot |
 | `throneClaimMarketId` | Claimant home market; the first vanilla flip target |
+| `throneClaimPlayerAllegiance` | `NONE`, `CLAIMANT`, or `INCUMBENT` captured from the source chain |
+| `throneClaimPlayerContribution` | Saturating successful-operation weight captured at preparation |
+| `throneClaimPlayerLastContributionTick` | Last attributed operation day; `-1` when autonomous |
 | `throneClaimState` | `PREPARED`, `APPLIED`, or `FAILED` |
 | `throneClaimPreparedTick` | Campaign day the political chain completed |
 | `throneClaimAppliedTick` | Vanilla-write day; `-1` until terminal |
@@ -126,7 +129,7 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
 
 - ~~Contract composition and player choices across the three progress bands.~~
   Locked in [civil-war participation](../living-world/civil-war-participation.md);
-  implementation remains.
+  persistence and contribution resolution are shipped; offers remain.
 - Player reputation consequences for those explicit choices.
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.

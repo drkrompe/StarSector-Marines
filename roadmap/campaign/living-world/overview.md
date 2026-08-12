@@ -209,6 +209,13 @@ faction-flip snapshot and debug dispatch are now shipped (`d7be2649`,
 `31be86ed`). Civil-war player choices and the kingmaker capstone remain follow-up
 slices.
 
+Those player choices now have a complete persistence and resolution foundation:
+civil-war contracts reuse parent/opposed lineage for side identity, snapshot one
+of three offer bands, lock allegiance on first successful work, apply weighted or
+decisive chain effects once, and carry claimant-side attribution into a successful
+throne handoff (`926047e8`, `4332927f`, `50591863`, `3610923d`, `487134ae`).
+Paired offer generation and terminal player consequences remain.
+
 ## Two payoffs that fall out for free
 
 - **Consolidation endgame.** A zero-stake house → `DORMANT`, no respawn
