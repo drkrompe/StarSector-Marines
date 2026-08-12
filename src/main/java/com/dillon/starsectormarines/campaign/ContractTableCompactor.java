@@ -44,6 +44,7 @@ public final class ContractTableCompactor {
         state.contractPatronHouseId[to] = state.contractPatronHouseId[from];
         state.contractTargetHouseId[to] = state.contractTargetHouseId[from];
         state.contractChainId[to] = state.contractChainId[from];
+        state.contractOpposedChainId[to] = state.contractOpposedChainId[from];
         state.contractSourceContractId[to] = state.contractSourceContractId[from];
         state.contractType[to] = state.contractType[from];
         state.contractState[to] = state.contractState[from];

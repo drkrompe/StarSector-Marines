@@ -20,6 +20,7 @@ class ContractTableCompactorTest {
         state.contractLastRetainerTick[1] = 50;
         state.contractLastTrainingTick[1] = 51;
         state.contractSourceContractId[1] = 99L;
+        state.contractOpposedChainId[1] = 98L;
         state.contractLastDefaultCheckTick[1] = 52;
         state.contractPhaseAttempts[1] = 4;
         state.contractNextPhaseReadyTick[1] = 55;
@@ -50,6 +51,7 @@ class ContractTableCompactorTest {
         assertEquals(50, state.contractLastRetainerTick[0]);
         assertEquals(51, state.contractLastTrainingTick[0]);
         assertEquals(99L, state.contractSourceContractId[0]);
+        assertEquals(98L, state.contractOpposedChainId[0]);
         assertEquals(52, state.contractLastDefaultCheckTick[0]);
         assertEquals(4, state.contractPhaseAttempts[0]);
         assertEquals(55, state.contractNextPhaseReadyTick[0]);

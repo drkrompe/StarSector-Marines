@@ -137,6 +137,8 @@ public final class CampaignState implements Serializable {
     public long[]  contractTargetHouseId = new long[INITIAL_CAPACITY];
     /** Parent chain id, or -1 for one-off contracts. */
     public long[]  contractChainId       = new long[INITIAL_CAPACITY];
+    /** Hostile chain this intervention opposes, or -1 for ordinary contracts. */
+    public long[]  contractOpposedChainId = filledLongs(INITIAL_CAPACITY, -1L);
     /** Parent contract id for system-generated followups; -1 for ordinary contracts. */
     public long[]  contractSourceContractId = filledLongs(INITIAL_CAPACITY, -1L);
     public byte[]  contractType          = new byte[INITIAL_CAPACITY];
@@ -424,6 +426,7 @@ public final class CampaignState implements Serializable {
         contractPatronHouseId[i]    = patronHouseIdValue;
         contractTargetHouseId[i]    = targetHouseIdValue;
         contractChainId[i]          = chainIdValue;
+        contractOpposedChainId[i]   = -1L;
         contractSourceContractId[i] = -1L;
         contractType[i]             = type.toByte();
         contractState[i]            = state.toByte();
@@ -710,6 +713,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractSourceContractId = filledLongs(n, -1L);
         }
+        if (contractOpposedChainId == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractOpposedChainId = filledLongs(n, -1L);
+        }
         if (contractLastDefaultCheckTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractLastDefaultCheckTick = filledInts(n, -1);
@@ -765,6 +772,8 @@ public final class CampaignState implements Serializable {
         contractPatronHouseId     = Arrays.copyOf(contractPatronHouseId, n);
         contractTargetHouseId     = Arrays.copyOf(contractTargetHouseId, n);
         contractChainId           = Arrays.copyOf(contractChainId, n);
+        contractOpposedChainId    = Arrays.copyOf(contractOpposedChainId, n);
+        Arrays.fill(contractOpposedChainId, oldLength, n, -1L);
         contractSourceContractId  = Arrays.copyOf(contractSourceContractId, n);
         Arrays.fill(contractSourceContractId, oldLength, n, -1L);
         contractType              = Arrays.copyOf(contractType, n);

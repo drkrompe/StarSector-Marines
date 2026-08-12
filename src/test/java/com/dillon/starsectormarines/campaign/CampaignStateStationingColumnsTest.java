@@ -24,6 +24,7 @@ class CampaignStateStationingColumnsTest {
         assertEquals(-1, state.contractLastRetainerTick[19]);
         assertEquals(-1, state.contractLastTrainingTick[19]);
         assertEquals(-1L, state.contractSourceContractId[19]);
+        assertEquals(-1L, state.contractOpposedChainId[19]);
         assertEquals(-1, state.contractLastDefaultCheckTick[19]);
         assertEquals(0, state.contractPhaseAttempts[19]);
         assertEquals(-1, state.contractNextPhaseReadyTick[19]);
@@ -46,6 +47,7 @@ class CampaignStateStationingColumnsTest {
         state.contractLastRetainerTick = null;
         state.contractLastTrainingTick = null;
         state.contractSourceContractId = null;
+        state.contractOpposedChainId = null;
         state.contractLastDefaultCheckTick = null;
         state.contractPhaseAttempts = null;
         state.contractNextPhaseReadyTick = null;
@@ -66,6 +68,7 @@ class CampaignStateStationingColumnsTest {
         assertNotNull(state.contractLastRetainerTick);
         assertNotNull(state.contractLastTrainingTick);
         assertNotNull(state.contractSourceContractId);
+        assertNotNull(state.contractOpposedChainId);
         assertNotNull(state.contractLastDefaultCheckTick);
         assertNotNull(state.contractPhaseAttempts);
         assertNotNull(state.contractNextPhaseReadyTick);
@@ -82,6 +85,7 @@ class CampaignStateStationingColumnsTest {
         assertEquals(-1, state.contractLastRetainerTick[0]);
         assertEquals(-1, state.contractLastTrainingTick[0]);
         assertEquals(-1L, state.contractSourceContractId[0]);
+        assertEquals(-1L, state.contractOpposedChainId[0]);
         assertEquals(-1, state.contractLastDefaultCheckTick[0]);
         assertEquals(-1, state.contractNextIncidentTick[0]);
         assertEquals(0, state.contractIncidentPending[0]);
