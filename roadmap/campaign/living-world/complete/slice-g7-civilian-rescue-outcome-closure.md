@@ -1,8 +1,8 @@
 # Slice G7 — civilian-rescue outcome closure
 
-**Status:** IN PROGRESS (2026-08-12)
+**Status:** CODE COMPLETE (2026-08-12)
 
-**Implemented:** `38bc6323`, `a27064fc`, `cf442e11`
+**Implemented:** `38bc6323`, `a27064fc`, `cf442e11`, `9e0417aa`
 
 ## Goal
 
@@ -25,9 +25,11 @@ changing its zero-economy, explicit-report, or hidden-moral contracts.
 - Focused suites and `gradlew.bat build --no-daemon --max-workers=1` pass.
   Manual playtesting remains skipped for this session.
 
-## Remaining
+## Terminal dispatch checkpoint
 
-1. Persist a source-unique terminal resolution dispatch only after the matching
-   committed event accepts its explicit report.
-2. Render that dispatch through an existing player-facing campaign surface.
-3. Keep moral-axis numbers hidden and add no payout or salvage consequence.
+- The persisted event row remains the source of truth; no parallel political
+  Chronicle schema is introduced for this non-political event.
+- When no live call exists, Distress Net retains the newest resolved rescue and
+  renders its market, exact rescued/at-risk totals, and resolution day.
+- A newer pending or committed call always takes presentation priority.
+- The dispatch exposes no moral-axis numbers and adds no payout or salvage.

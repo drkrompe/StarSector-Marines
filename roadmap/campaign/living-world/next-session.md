@@ -118,7 +118,8 @@ Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
 representative and campaign-scaled rescue totals (`38bc6323`, `a27064fc`,
-`cf442e11`).
+`cf442e11`). Distress Net now retains the newest terminal rescue result after
+the active call closes (`9e0417aa`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -131,21 +132,14 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — civilian-rescue outcome closure
+## Next up — black-swan event follow-through
 
-The event now runs from campaign trigger through its intended battle threat.
-Close the player-facing outcome loop without widening the shipped accounting
-contract:
-
-1. **Shipped:** controlled zero/partial/full battle-to-campaign fixtures with a
-   swarm roster present.
-2. **Shipped:** representative and campaign-scaled rescue totals in Results,
-   independent of the winning faction.
-3. Give the terminal event a durable player-facing resolution dispatch while
-   keeping moral-axis numbers hidden.
-4. Keep the event zero-economy and replay-safe; no credits or salvage should be
-   manufactured by the presentation layer.
-5. Defer roster/stat tuning to a later manual playtest session.
+The first black-swan event now runs from deterministic trigger through choice,
+mission emission, swarm battle, explicit report, campaign writeback, debrief,
+hidden moral consequence, and durable terminal dispatch. The next design hunk
+should choose whether to generalize this infrastructure for a second event
+archetype or return to another living-world spine. Keep swarm roster/stat tuning
+deferred until manual playtesting resumes.
 
 ## Open forks still unresolved (design)
 
@@ -252,3 +246,4 @@ contract:
 - Slice G7a — direct debug swarm-rescue missions (`38bc6323`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
+- Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
