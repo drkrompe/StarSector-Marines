@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
+import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
@@ -21,6 +22,7 @@ class CampaignStateSystemOrderTest {
 
         int defaults = indexOf(systems, StationingDefaultSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
+        int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
         int training = indexOf(systems, CadreTrainingSystem.class);
         int incidents = indexOf(systems, StationingIncidentSystem.class);
@@ -29,6 +31,7 @@ class CampaignStateSystemOrderTest {
 
         assertTrue(defaults < retainers);
         assertTrue(raidDefense < defaults);
+        assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);
         assertTrue(retainers < lifecycle);
         assertTrue(training < lifecycle);

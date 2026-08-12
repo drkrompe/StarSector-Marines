@@ -30,6 +30,13 @@ public final class GarrisonDefenseTrigger {
                     && (attackerHouseId < 0L || attackerHouseId == patronId)) {
                 continue;
             }
+            if (triggerType == GarrisonDefenseTriggerType.INTERNAL_FLIP) {
+                int patronRow = state.houseIndex(patronId);
+                if (attackerFactionId < 0 || patronRow < 0
+                        || state.houseFactionId[patronRow] == attackerFactionId) {
+                    continue;
+                }
+            }
             state.contractState[row] = ContractState.IN_PROGRESS.toByte();
             state.contractDefenseEventKey[row] = eventKey;
             state.contractDefenseTriggeredTick[row] = day;
