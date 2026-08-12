@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ChainIntervention;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
 import com.dillon.starsectormarines.campaign.ContractReputation;
@@ -462,6 +463,9 @@ public final class MissionResolver {
             // the patron seizes ground from the target and climbs the rank ladder.
             if (contractType != ContractType.EXTRACTION) {
                 applyPoliticalShift(state, row, outcome, day);
+            }
+            if (ContractState.fromByte(state.contractState[row]) == ContractState.COMPLETED) {
+                ChainIntervention.stopOpposedChain(state, row, day);
             }
         } else {
             state.contractState[row] = ContractState.FAILED.toByte();
