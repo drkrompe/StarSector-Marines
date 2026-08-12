@@ -3,9 +3,11 @@
 ## State of play
 
 The autonomous political sim ([`overview.md`](overview.md)) is being built
-along the A–E slice spine. **A (genesis seeding) and B (player transfer) are
-shipped** — see [`complete/`](complete/). The board is now seeded with
-contested stakes, and player ops permanently move them.
+along the A–E slice spine. **A (genesis seeding), B (player transfer), and C1
+(autonomous promotion) are shipped.** The board is seeded with contested
+stakes, player ops permanently move them, and ACTIVE houses with a strict
+majority of claimed stake on their home market now gain one promotion point per
+day through the shared `HousePromotion` policy (`11987f9a`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -18,11 +20,10 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice C (Drift)
+## Next up — Slice C2 (Drift)
 
-The breathing loop. Make `AutonomousPromotionSystem` (currently a stub) live,
-and add the weekly share-drift loop. Per [`overview.md`](overview.md) §"The
-hybrid engine":
+The breathing loop now needs its weekly share-drift half. Per
+[`overview.md`](overview.md) §"The hybrid engine":
 
 1. **Drift loop (weekly cadence).** Each `ACTIVE` house with an ambition
    siphons ~3–5 byte-share from a weaker *visible* rival (or the unclaimed
@@ -32,11 +33,10 @@ hybrid engine":
    `StakeLedger.seizeShare` with a small amount; a zero-sum `transferShare`
    variant can be added to `StakeLedger` if drift should never expand into
    open share.
-2. **Autonomous promotion.** Fill in `AutonomousPromotionSystem.tick`: walk
-   `houses[]`, compute a `stakeBasedDelta` from each house's holdings vs its
-   market total, and call `HousePromotion.addProgressAndPromote`. The primitive
-   already exists and is tested — this is the `stakeBasedDelta` formula + the
-   walk.
+2. ~~**Autonomous promotion.**~~ **Shipped (`11987f9a`).** ACTIVE non-T4 houses
+   gain one point per day while they own a strict majority of all claimed share
+   on their home market. Ties, minorities, empty markets, and off-market
+   expansion holdings grant none.
 
 **Prerequisite to confirm:** drift needs houses to *have ambitions* (currently
 always `NONE`) and a notion of "visible rival." Ambition assignment is the
@@ -78,3 +78,4 @@ same-market locality directly rather than the `relationships[]` table.
 - Ambition layer doc (`ambition.md`).
 - Slice B — `StakeLedger` + `HousePromotion` + `MissionResolver` wiring +
   tests + this doc set.
+- Slice C1 — home-market-majority autonomous promotion (`11987f9a`).

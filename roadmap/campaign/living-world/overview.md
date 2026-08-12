@@ -156,15 +156,16 @@ Each slice is independently observable.
 | --- | --- | --- |
 | ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
-| **C — Drift** | The breathing loop; `AutonomousPromotionSystem` live on real holdings | Shares creep; houses promote on their own. First "the world has a life." |
+| **C — Drift** *(C1 promotion shipped)* | Autonomous promotion live on real holdings; weekly share drift next | Majority houses promote on their own; shares still need to creep. |
 | **D — Chains + Chronicle** | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value with **zero** autonomous sim and directly unstub
 the keystone. C–D are the living world. E is the long tail.
 
-**Shipped:** A (genesis seeding) and B (player stake transfer + promotion) —
-see [`complete/`](complete/). The reusable primitives they introduced —
+**Shipped:** A (genesis seeding), B (player stake transfer + promotion), and
+C1 (glacial home-market-majority autonomous promotion, `11987f9a`) — see
+[`complete/`](complete/) and [`stories/`](stories/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)

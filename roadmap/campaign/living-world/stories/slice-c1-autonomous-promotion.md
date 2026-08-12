@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `11987f9a`
+
 ## Goal
 
 Turn the first living-world stub into a real, deliberately slow political
