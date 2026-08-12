@@ -12,7 +12,8 @@ public enum ChainArchetype {
     CONSOLIDATE_STAKE,
     SABOTAGE_PROMOTION,
     ELEVATE_HEIR,
-    CIVIL_WAR;
+    CIVIL_WAR,
+    PROMOTE;
 
     private static final ChainArchetype[] VALUES = values();
 

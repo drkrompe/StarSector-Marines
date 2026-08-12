@@ -94,20 +94,61 @@ class AutonomousChainCreationSystemTest {
     }
 
     @Test
-    void verticalAmbitionsWaitForDedicatedChainPayloads() {
+    void throneClaimWaitsForDedicatedChainPayload() {
         CampaignState state = new CampaignState();
-        long promoting = house(state, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
         long claimant = house(state, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
         long rival = house(state, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
-        state.addStake(promoting, 1, 7, (short) 40);
         state.addStake(claimant, 1, 7, (short) 40);
         state.addStake(rival, 1, 7, (short) 80);
-        int promotingRow = state.houseIndex(promoting);
         int claimantRow = state.houseIndex(claimant);
-        state.houseAmbition[promotingRow] = HouseAmbition.PROMOTE.toByte();
-        state.houseAmbitionTarget[promotingRow] = HouseRank.TIER_3.ordinal();
         state.houseAmbition[claimantRow] = HouseAmbition.CLAIM_THRONE.toByte();
         state.houseAmbitionTarget[claimantRow] = state.houseFactionId[claimantRow];
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(0, state.chainCount);
+    }
+
+    @Test
+    void promotionChainChoosesStrongestSameFactionRivalAndLowestIndustryTie() {
+        CampaignState state = new CampaignState();
+        long actor = house(state, 1, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        long sameFaction = house(state, 1, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        long foreign = house(state, 1, 2, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        state.addStake(actor, 1, 9, (short) 40);
+        state.addStake(actor, 1, 7, (short) 40);
+        state.addStake(sameFaction, 1, 9, (short) 90);
+        state.addStake(sameFaction, 1, 7, (short) 90);
+        state.addStake(foreign, 1, 7, (short) 200);
+        promote(state, actor, HouseRank.TIER_3);
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(1, state.chainCount);
+        assertEquals(actor, state.chainActorHouseId[0]);
+        assertEquals(sameFaction, state.chainTarget[0]);
+        assertEquals(1, state.chainMarketId[0]);
+        assertEquals(7, state.chainIndustryId[0]);
+        assertEquals(ChainArchetype.PROMOTE,
+                ChainArchetype.fromByte(state.chainArchetype[0]));
+        assertEquals(AutonomousChainCreationSystem.PROMOTION_CHAIN_THRESHOLD,
+                state.chainThreshold[0]);
+        assertEquals(AutonomousChainCreationSystem.PROMOTION_DISCOVERY_RISK,
+                state.chainDiscoveryRisk[0]);
+    }
+
+    @Test
+    void majorityOrInvalidPromotionIntentCreatesNoChain() {
+        CampaignState state = new CampaignState();
+        long majority = house(state, 1, HouseRank.TIER_1, HouseStatus.ACTIVE);
+        long rival = house(state, 1, HouseRank.TIER_1, HouseStatus.ACTIVE);
+        long invalid = house(state, 2, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        state.addStake(majority, 1, 7, (short) 101);
+        state.addStake(rival, 1, 7, (short) 99);
+        state.addStake(invalid, 2, 9, (short) 40);
+        state.addStake(rival, 2, 9, (short) 80);
+        promote(state, majority, HouseRank.TIER_2);
+        promote(state, invalid, HouseRank.TIER_2);
 
         new AutonomousChainCreationSystem().tick(state, 30);
 
@@ -120,9 +161,20 @@ class AutonomousChainCreationSystemTest {
         state.houseAmbitionTarget[row] = industryId;
     }
 
+    private static void promote(CampaignState state, long houseId, HouseRank targetRank) {
+        int row = state.houseIndex(houseId);
+        state.houseAmbition[row] = HouseAmbition.PROMOTE.toByte();
+        state.houseAmbitionTarget[row] = targetRank.ordinal();
+    }
+
     private static long house(CampaignState state, int market, HouseRank rank,
                               HouseStatus status) {
-        return state.addHouse(market, 1, HouseFlavor.FEUDAL, rank, status,
+        return house(state, market, 1, rank, status);
+    }
+
+    private static long house(CampaignState state, int market, int faction,
+                              HouseRank rank, HouseStatus status) {
+        return state.addHouse(market, faction, HouseFlavor.FEUDAL, rank, status,
                 PatronArchetype.NEWCOMER, "House");
     }
 }
