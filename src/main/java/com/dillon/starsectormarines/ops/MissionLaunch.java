@@ -42,7 +42,9 @@ public final class MissionLaunch {
                                                    List<ShuttleType> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings) {
-        Detachment det = DetachmentResolver.resolve(m, committedShuttles, committedWings);
+        Detachment det = m.source == MissionSource.STATIONING
+                ? DetachmentResolver.resolveStationed(m)
+                : DetachmentResolver.resolve(m, committedShuttles, committedWings);
 
         // Heavy-armaments availability on the target world drives whether the
         // defender side fields a HEAVY_MECH (see BattleSetup).

@@ -7,9 +7,13 @@ package com.dillon.starsectormarines.ops;
  *       Stateless, rerolled per visit.</li>
  *   <li>{@link #STORY} — hand-authored, eligibility-gated, single-completion. Persisted
  *       via {@code MarineRosterScript}'s completed-id set.</li>
+ *   <li>{@link #STATIONING} — event mission fought by a detachment already
+ *       committed to a stationing contract.</li>
  * </ul>
  */
 public enum MissionSource {
     GENERATED,
-    STORY
+    STORY,
+    /** Battle fought by personnel already committed to a stationing assignment. */
+    STATIONING
 }

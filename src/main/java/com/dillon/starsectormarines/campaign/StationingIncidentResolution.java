@@ -14,7 +14,7 @@ public final class StationingIncidentResolution {
 
     public static Result apply(CampaignState state, long contractId,
                                int expectedDueDay, StationingIncidentType expectedType,
-                               int marinesLost, boolean captainLost, int day) {
+                               int marinesLost, boolean captainUnavailable, int day) {
         StationingIncidentPayload payload = StationingIncidentPayload.from(state, contractId);
         if (payload == null || payload.dueDay != expectedDueDay
                 || payload.type != expectedType || marinesLost < 0) {
@@ -28,7 +28,7 @@ public final class StationingIncidentResolution {
         state.contractIncidentPending[row] = 0;
         state.contractIncidentType[row] = StationingIncidentType.NONE.toByte();
 
-        if (captainLost || survivors == 0) {
+        if (captainUnavailable || survivors == 0) {
             state.contractState[row] = ContractState.FAILED.toByte();
             state.contractNextIncidentTick[row] = -1;
             return Result.ASSIGNMENT_FAILED;

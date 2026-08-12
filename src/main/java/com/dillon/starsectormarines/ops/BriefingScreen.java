@@ -288,9 +288,17 @@ public class BriefingScreen implements Screen {
         float buttonsTop = layout.leftCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
         MarineRosterScript script = MarineRosterScript.getInstance();
-        List<MarineCaptain> captains = script != null
-                ? script.roster().active()
-                : java.util.Collections.<MarineCaptain>emptyList();
+        List<MarineCaptain> captains;
+        if (m.source == MissionSource.STATIONING) {
+            MarineCaptain assigned = ctx.getSelectedCaptain();
+            captains = assigned != null
+                    ? java.util.Collections.singletonList(assigned)
+                    : java.util.Collections.<MarineCaptain>emptyList();
+        } else {
+            captains = script != null
+                    ? script.roster().active()
+                    : java.util.Collections.<MarineCaptain>emptyList();
+        }
 
         if (captains.isEmpty()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingNoCaptains"),
@@ -319,6 +327,22 @@ public class BriefingScreen implements Screen {
         // (e.g. a big DEBUG_SEED_PLAYER_VALKYRIES) the lowest sections (employer
         // readout) truncate first; transports + the gate, which come first, win.
         float floor = layout.rightCol.y + INNER_PAD + BTN_H + SECTION_GAP;
+
+        if (m.source == MissionSource.STATIONING) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    Strings.get("briefingStationedDetachment"), x, y, HEADER_COLOR));
+            y -= ROW_GAP;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("briefingStationedPersonnel"), x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    m.requirements, valueX, y, VALUE_COLOR));
+            y -= ROW_GAP;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("briefingTransport"), x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("briefingStationedLocalLifts"), valueX, y, VALUE_COLOR));
+            return;
+        }
 
         // Debug air picker (dev-gated) sits at the top so its toggles never
         // truncate under a tall transport/carrier list below.
@@ -433,7 +457,8 @@ public class BriefingScreen implements Screen {
         // Deploy gating — when transport is short, the button is non-functional
         // and the label flips to a red "Insufficient Transport".
         Mission m = ctx.getSelectedMission();
-        boolean canAccept = m == null || isTransportSufficient(m, effectivePlayerShuttles());
+        boolean canAccept = m == null || m.source == MissionSource.STATIONING
+                || isTransportSufficient(m, effectivePlayerShuttles());
 
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H,
                 canAccept ? this::onAccept : null);
@@ -638,7 +663,11 @@ public class BriefingScreen implements Screen {
         // command powers) and build the battle. The deselected transports are
         // already filtered out of effectivePlayerShuttles().
         BattleSimulation sim = MissionLaunch.buildSimulation(
-                ctx, m, effectivePlayerShuttles(), committedWings(), debugWings());
+                ctx, m,
+                m.source == MissionSource.STATIONING
+                        ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
+                m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
+                m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }

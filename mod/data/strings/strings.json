@@ -60,6 +60,9 @@
 		"briefingPhaseSalvageFmt": "{0}% contract / {1}% this phase — +{2}% cash",
 		"briefingSalvageMinus":   "−",
 		"briefingSalvagePlus":    "+",
+		"briefingStationedDetachment": "ON-SITE DETACHMENT",
+		"briefingStationedPersonnel": "Personnel",
+		"briefingStationedLocalLifts": "Local Cadre transports",
 
 		# Stationing assignment screen
 		"stationingHeader":       "Stationing Contract",
@@ -81,6 +84,7 @@
 		"stationingIncidentDefectorLead": "A defector revealed a sensitive lead",
 		"stationingIncidentUnknown": "Unclassified Cadre incident",
 		"stationingIncidentDetachment": "On site: {0} with {1} marines",
+		"stationingIncidentRespond": "Respond",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",

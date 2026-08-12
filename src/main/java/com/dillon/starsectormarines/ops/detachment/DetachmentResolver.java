@@ -53,6 +53,13 @@ public final class DetachmentResolver {
         return new Detachment(manifest, marineWings, powers);
     }
 
+    /** Resolves local stationing resources without consulting the player's fleet. */
+    public static Detachment resolveStationed(Mission m) {
+        List<ShuttleAssignment> manifest = buildShuttleManifest(m, Collections.emptyList());
+        List<CommandPower> powers = PowerCatalog.resolve(Collections.emptyList(), m);
+        return new Detachment(manifest, m.clientFighterSupport, powers);
+    }
+
     /**
      * Ships that source command powers. Slice 1 = the whole player fleet (same
      * scan set the wing/shuttle resolvers use), preserving today's "your fleet is

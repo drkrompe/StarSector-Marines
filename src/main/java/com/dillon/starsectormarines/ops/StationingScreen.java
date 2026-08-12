@@ -35,6 +35,7 @@ public final class StationingScreen implements Screen {
     private static final Color VALUE = new Color(0xE0, 0xE8, 0xFF);
     private static final Color ACCEPT = new Color(0xC8, 0xFF, 0xE0);
     private static final Color BLOCKED = new Color(0xFF, 0x80, 0x80);
+    private static final Color INCIDENT = new Color(0xFF, 0xD0, 0x70);
     private static final float PAD = 24f;
     private static final float ROW = 34f;
     private static final float BTN_H = 32f;
@@ -195,11 +196,24 @@ public final class StationingScreen implements Screen {
                 Strings.get("stationingWithdrawWarning"), x, y, BLOCKED));
 
         float buttonY = position.getY() + PAD;
-        float buttonW = (width - 12f) / 2f;
+        boolean incidentPending = incident != null;
+        float gap = 8f;
+        float buttonW = incidentPending ? (width - 2f * gap) / 3f : (width - 12f) / 2f;
         widgets.add(new ButtonWidget(x, buttonY, buttonW, BTN_H, this::onBack));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
                 x + 12f, buttonY + BTN_H - 6f, HEADER));
-        float withdrawX = x + buttonW + 12f;
+        float withdrawX;
+        if (incidentPending) {
+            float respondX = x + buttonW + gap;
+            widgets.add(new ButtonWidget(respondX, buttonY, buttonW, BTN_H,
+                    () -> onRespond(incident)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("stationingIncidentRespond"),
+                    respondX + 12f, buttonY + BTN_H - 6f, INCIDENT));
+            withdrawX = respondX + buttonW + gap;
+        } else {
+            withdrawX = x + buttonW + 12f;
+        }
         widgets.add(new ButtonWidget(withdrawX, buttonY, buttonW, BTN_H, this::onWithdraw));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 Strings.get("stationingWithdraw"),
@@ -260,6 +274,21 @@ public final class StationingScreen implements Screen {
         } else {
             rebuild();
         }
+    }
+
+    private void onRespond(StationingIncidentPayload payload) {
+        if (payload == null || ctx.planet == null) return;
+        String factionId = ctx.market != null && ctx.market.getFaction() != null
+                ? ctx.market.getFaction().getId() : null;
+        Mission mission = StationingIncidentMissionFactory.create(
+                payload, ctx.planet.getName(), factionId);
+        if (mission == null) {
+            rebuild();
+            return;
+        }
+        ctx.setSelectedMission(mission);
+        ctx.setSelectedCaptainId(payload.captainId);
+        ctx.goTo(ScreenId.BRIEFING);
     }
 
     private void selectFirstActiveCaptain() {

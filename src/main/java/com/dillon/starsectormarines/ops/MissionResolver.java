@@ -15,6 +15,9 @@ import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.StakeLedger;
+import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
+import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
+import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -199,6 +202,13 @@ public final class MissionResolver {
     }
 
     public static void apply(MissionOutcome outcome) {
+        if (outcome == null) return;
+        if (outcome.missionSource == MissionSource.STATIONING
+                && !isCurrentStationingIncident(outcome)) {
+            LOG.info("MarineOps: stale Cadre incident result " + outcome.missionId
+                    + " — no writeback");
+            return;
+        }
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null
                 ? Global.getSector().getPlayerFleet().getCargo()
                 : null;
@@ -207,7 +217,8 @@ public final class MissionResolver {
             if (outcome.payoutEarned > 0) {
                 cargo.getCredits().add(outcome.payoutEarned);
             }
-            if (outcome.marinesLost > 0) {
+            if (outcome.marinesLost > 0
+                    && outcome.missionSource != MissionSource.STATIONING) {
                 cargo.removeCommodity(Commodities.MARINES, outcome.marinesLost);
             }
         }
@@ -390,6 +401,19 @@ public final class MissionResolver {
         long patronId = state.contractPatronHouseId[row];
         ContractType contractType = ContractType.fromByte(state.contractType[row]);
 
+        if (outcome.missionSource == MissionSource.STATIONING) {
+            StationingIncidentMissionKey key = StationingIncidentMissionKey.parse(outcome.missionId);
+            StationingIncidentResolution.Result result = key != null
+                    ? StationingIncidentResolution.apply(state, outcome.contractId,
+                            key.dueDay, key.type, outcome.marinesLost,
+                            outcome.newCaptainStatus != null
+                                    && outcome.newCaptainStatus != Status.GARRISONED,
+                            day)
+                    : null;
+            LOG.info("MarineOps: Cadre incident " + outcome.missionId + " → " + result);
+            return;
+        }
+
         // Leaving OFFERED → the offer window no longer applies. Clear to -1 so
         // any debug readout / future filter doesn't misinterpret the stale value.
         if (prior == ContractState.OFFERED) {
@@ -430,6 +454,16 @@ public final class MissionResolver {
             }
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
         }
+    }
+
+    private static boolean isCurrentStationingIncident(MissionOutcome outcome) {
+        StationingIncidentMissionKey key = StationingIncidentMissionKey.parse(outcome.missionId);
+        if (key == null || key.contractId != outcome.contractId) return false;
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return false;
+        StationingIncidentPayload payload = StationingIncidentPayload.from(
+                script.state(), outcome.contractId);
+        return payload != null && payload.dueDay == key.dueDay && payload.type == key.type;
     }
 
     private static void applyPlanetaryAssaultBridge(CampaignState state, int row,
