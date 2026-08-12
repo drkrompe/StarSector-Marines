@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.turret.TurretBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -166,6 +167,7 @@ public final class UnitUpdateSystem {
             case STRUCTURE:      return StructureBehavior.INSTANCE;
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
             case DRONE_PATROL:   return GoapDroneBehavior.INSTANCE;
+            case SWARM_PRESSURE: return SwarmPressureBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
@@ -188,6 +190,7 @@ public final class UnitUpdateSystem {
             case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
             case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
             case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
+            case SWARM_PRESSURE:return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
             default:            return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
         }
     }

@@ -1,0 +1,113 @@
+package com.dillon.starsectormarines.battle.evacuation;
+
+import com.dillon.starsectormarines.battle.decision.UnitBehavior;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+
+/** Direct pressure behavior for swarm runners; no squad or infantry GOAP. */
+public final class SwarmPressureBehavior implements UnitBehavior {
+
+    public static final SwarmPressureBehavior INSTANCE =
+            new SwarmPressureBehavior();
+
+    private SwarmPressureBehavior() {}
+
+    @Override
+    public void update(long runner, BattleSimulation sim) {
+        tickCooldown(runner, sim);
+        long target = selectTarget(runner, sim);
+        sim.combat().setTargetId(runner, target);
+        if (target == 0L) {
+            sim.clearPath(runner);
+            return;
+        }
+
+        int runnerX = sim.world().cellX(runner);
+        int runnerY = sim.world().cellY(runner);
+        int targetX = sim.world().cellX(target);
+        int targetY = sim.world().cellY(target);
+        float dx = targetX - runnerX;
+        float dy = targetY - runnerY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance <= sim.combat().attackRange(runner)) {
+            sim.clearPath(runner);
+            if (sim.combat().cooldownTimer(runner) <= 0f) {
+                sim.applyDamage(target,
+                        sim.combat().attackDamage(runner), 1f,
+                        sim.identity().type(runner).moraleImpact);
+                sim.combat().setCooldownTimer(runner,
+                        sim.combat().attackCooldown(runner));
+            }
+            return;
+        }
+
+        if (sim.movement().moveProgress(runner) == 0f
+                && needsPath(runner, targetX, targetY, sim)) {
+            sim.setPath(runner, GridPathfinder.findPath(sim.getGrid(),
+                    runnerX, runnerY, targetX, targetY,
+                    sim.getOccupancyMap()));
+        }
+        sim.advanceMovement(runner);
+    }
+
+    /** Registered active evacuees first; nearest marine only when none remain. */
+    public static long selectTarget(long runner, BattleSimulation sim) {
+        CivilianEvacuationTracker tracker =
+                sim.getCivilianEvacuationTracker();
+        long best = 0L;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+            long candidate = tracker.entityIdAt(i);
+            if (tracker.state(candidate)
+                    != CivilianEvacuationTracker.State.ACTIVE
+                    || sim.resolveUnit(candidate) == 0L) {
+                continue;
+            }
+            int distance = distanceSquared(runner, candidate, sim);
+            if (distance < bestDistance
+                    || (distance == bestDistance && candidate < best)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        if (best != 0L) return best;
+
+        bestDistance = Integer.MAX_VALUE;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long candidate = sim.liveUnitAt(i);
+            if (sim.identity().faction(candidate) != Faction.MARINE) continue;
+            int distance = distanceSquared(runner, candidate, sim);
+            if (distance < bestDistance
+                    || (distance == bestDistance && candidate < best)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private static boolean needsPath(long runner, int targetX, int targetY,
+                                     BattleSimulation sim) {
+        int[] path = sim.movement().path(runner);
+        return sim.movement().pathIdx(runner) >= Paths.cellCount(path)
+                || Paths.destX(path) != targetX
+                || Paths.destY(path) != targetY;
+    }
+
+    private static void tickCooldown(long runner, BattleSimulation sim) {
+        float cooldown = sim.combat().cooldownTimer(runner);
+        if (cooldown > 0f) {
+            sim.combat().setCooldownTimer(runner,
+                    Math.max(0f, cooldown - BattleSimulation.TICK_DT));
+        }
+    }
+
+    private static int distanceSquared(long a, long b,
+                                       BattleSimulation sim) {
+        int dx = sim.world().cellX(a) - sim.world().cellX(b);
+        int dy = sim.world().cellY(a) - sim.world().cellY(b);
+        return dx * dx + dy * dy;
+    }
+}
