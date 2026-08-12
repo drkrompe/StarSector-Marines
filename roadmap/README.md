@@ -113,9 +113,11 @@ universe over time, not retrofitted into intel slots.
    the same vertical from a shared campaign-event boundary: explicit vanilla
    raid targets arm persisted responses, pending assignments stay reachable,
    and local fixed-captain battles resolve exactly once back to ACTIVE or FAILED
-   (`6497e062`, `025ff507`, `f9ba10ea`). Next: connect the shared Garrison
-   trigger to living-world rival strikes and internal political flips. See
-   `campaign/contracts/overview.md` and `campaign/living-world/`.
+   (`6497e062`, `025ff507`, `f9ba10ea`). Player-launched rival Strike contracts
+   now arm that shared defense path at the target house's market (`8c899ca5`).
+   Next: connect internal political/market flips as the remaining Garrison
+   trigger producer. See `campaign/contracts/overview.md` and
+   `campaign/living-world/`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `8c899ca5`
+
 ## Goal
 
 Connect player-launched rival Strike contracts to the shared reactive

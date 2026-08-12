@@ -285,8 +285,9 @@ method together act as a copyable template — see
   reachable while their response is pending (`025ff507`), and launch playable
   local-detachment defenses whose exactly-once result returns a surviving
   Garrison to ACTIVE or fails the assignment (`f9ba10ea`). EXTRACTION remains
-  system-generated; rival-strike and internal-flip event producers remain the
-  next living-world integrations.
+  system-generated. Player-launched rival Strike contracts now arm that same
+  defense path at the target house's market with stable attacker/event identity
+  (`8c899ca5`); internal political flips remain the next world integration.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 
