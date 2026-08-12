@@ -1,6 +1,6 @@
 # Captain-to-fireteam command
 
-**Status:** IN PROGRESS — Slice 1 shipped (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–2 shipped (2026-08-12)
 
 ## Problem
 

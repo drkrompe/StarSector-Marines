@@ -85,8 +85,11 @@ universe over time, not retrofitted into intel slots.
    enlistment, reserve management, armory allocation/presets, explicit
    deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery, and debrief are
    shipped (`aee9b9cf`, `b7bb10db`, `b3da11ad`, `4737404d`, `c35e88d4`,
-   `822572b7`). Next: define the captain-to-fireteam command relationship and
-   rank-scaled formation capacity before adding another personnel surface. See
+   `822572b7`). Captain home-command persistence and armory management are also
+   shipped (`9c4c4ee8`, `aa26d3ec`), as are debug personnel fixtures and the
+   production shortfall/recruitment route (`605cda22`, `59c4864b`, `75413bfc`).
+   Next: make briefing selection honor the active captain's home formation and
+   rank-scaled whole-fireteam limit. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit

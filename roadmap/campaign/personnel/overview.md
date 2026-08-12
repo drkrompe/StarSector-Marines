@@ -20,6 +20,11 @@ return with individual experience and dispositions.
   the campaign clock, while the Results screen presents a fireteam debrief.
 - Armory equipment remains finite and allocation-aware. Whole-fireteam presets
   apply atomically or report why the issue cannot be completed.
+- Deployment readiness reports selection and company shortages separately.
+  Mission-scoped armory visits can bulk-enlist the missing line personnel from
+  real cargo and return to briefing or assignment.
+- Debug-picker missions use selectable non-persistent Recruit/Mixed/Veteran
+  fixtures and cannot write their results into campaign state.
 
 ## Invariants
 
