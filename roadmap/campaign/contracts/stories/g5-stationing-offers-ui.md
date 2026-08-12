@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE — in-game smoke pending (2026-08-12)
 
+**Implemented in:** `0b2829ec`
+
 ## Goal
 
 Expose Garrison/Cadre as their own commercial commitment rather than forcing
