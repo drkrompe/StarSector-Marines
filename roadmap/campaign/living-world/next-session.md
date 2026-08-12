@@ -99,19 +99,17 @@ Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 
 ## Next up — Committed rescue mission handoff
 
-Define the narrow bridge from an accepted campaign event to the later
+Implement the locked narrow bridge from an accepted campaign event to the later
 swarm-defense battle before building that battle's content:
 
-1. Lock event lineage on the mission/outcome path: a committed rescue must
-   produce at most one local playable mission, and only that event id may receive
-   its rescued-count outcome.
-2. Decide which existing mission/battle fields can carry evacuation stakes and
-   which need a dedicated rescue payload. Do not overload `contractId` or award
-   contract cash/salvage semantics.
-3. Specify exactly how the battle computes `civiliansRescued`—including partial
-   evacuation and zero—before wiring `CivilianRescueEvent.resolve`.
-4. Then scope the swarm faction/unit/AI/art slice against that bridge. Keep held
-   art integration separate from campaign persistence and choice code.
+1. Add explicit event id/market/stakes fields to Mission and MissionOutcome
+   with safe defaults for every existing constructor.
+2. Build a committed-row factory and stable mission key without exposing the
+   mission through the UI yet.
+3. Add the strict resolution validator; `-1` means no evacuation report, while
+   explicit `0..atRisk` may resolve exactly once.
+4. Then scope the battle-side representative evacuation cohort and only expose
+   missions once it can report `initial/evacuated/complete` honestly.
 
 ## Open forks still unresolved (design)
 

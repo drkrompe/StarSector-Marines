@@ -1,7 +1,7 @@
 # Black-swan events — the third content stream
 
 **Status:** CIVILIAN-RESCUE TRIGGER + CHOICE VERTICAL CODE COMPLETE
-(2026-08-12); committed-event mission handoff next.
+(2026-08-12); G4 mission-lineage contract locked.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`
@@ -152,6 +152,48 @@ the shared atomic policy, and debug reachability reuses production terms in a
 reserved trigger namespace. A committed call intentionally remains visible as
 awaiting mission deployment; no placeholder victory or rescued count is
 manufactured.
+
+### Committed-event mission lineage — locked v1
+
+The current generic `EXTRACTION` battle is an elimination placeholder. Its
+winner and marine casualty count do **not** establish how many civilians
+evacuated. G4 therefore lands the lineage and explicit-resolution contract
+without making the mission player-facing until a battle payload can report a
+real evacuation cohort.
+
+The bridge uses dedicated fields, never contract semantics:
+
+- `MissionSource.CAMPAIGN_EVENT` identifies black-swan battle work.
+- `Mission.campaignEventId` carries the stable event id; `contractId` remains
+  `-1`, payout/salvage remain zero, and no industry target is supplied.
+- `Mission.campaignEventMarketId` carries the registry slot of the frozen event
+  market; it is validated independently from player-facing planet text.
+- `Mission.civiliansAtRisk` snapshots the row's stakes for briefing/battle
+  setup. It must match the live committed row when the factory builds.
+- `MissionOutcome` copies these fields and adds `civiliansRescued`. The sentinel
+  `-1` means the battle supplied no valid evacuation report; it is not zero.
+- Mission identity is `civilian-rescue:<eventId>`, parsed through a dedicated
+  key type rather than inferred from display text or target planet.
+
+`CivilianRescueMissionFactory` may build at most one immutable mission from a
+local `COMMITTED` rescue row. The initial mission shape is `EXTRACTION`, zero
+material reward, no employer support, and stable placement/content derived from
+event id. Factory creation alone does not change event state.
+
+Resolution is postcondition-first and replay-safe. It accepts only a
+`CAMPAIGN_EVENT` outcome whose parsed mission key, explicit event field, target
+market, and at-risk snapshot all match a still-`COMMITTED` civilian-rescue row.
+`civiliansRescued` must be in `0..civiliansAtRisk`; a valid zero is an explicit
+battle report. The bridge then calls `CivilianRescueEvent.resolve` once. Missing
+reports (`-1`), stale/mismatched outcomes, generic victory, and marine losses do
+not resolve or morally classify the event.
+
+The future battle payload must report a representative evacuation cohort:
+`initial`, `evacuated`, and terminal completion. Campaign rescued count is
+`floor(atRisk * evacuated / initial)`, with exact full rescue when all cohort
+members evacuate. Death, survival, and evacuation remain distinct; civilians
+merely alive on the map at battle end are not automatically rescued. Until that
+metric exists, committed calls remain mission-pending in Distress Net.
 
 ## Design rules
 
