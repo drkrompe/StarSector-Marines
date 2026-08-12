@@ -78,7 +78,7 @@ public final class SpaceportFiller implements BlockFiller {
         boolean approachLow = ctx.rng.nextBoolean();
         LandingPad.Approach approach = approachFor(longX, approachLow);
         int[] padCenter = choosePadCenter(leaf, longX, approachLow);
-        LandingPad pad = LandingPad.civilian(padCenter[0], padCenter[1], approach);
+        LandingPad pad = LandingPad.spaceport(padCenter[0], padCenter[1], approach);
 
         // Tiny legacy leaves still read as marked aprons, but only publish a
         // berth when the full 5x5 exclusion footprint fits.
