@@ -111,7 +111,9 @@ universe over time, not retrofitted into intel slots.
    triggers (`d07fd3c3`). Pending incidents now persist their archetype, bind
    the on-site captain/marines/market, and surface in assignment management
    (`77ce5ead`). Next: add response choices and a stationing-aware battle
-   handoff without borrowing fleet-available personnel. See
+   handoff without borrowing fleet-available personnel. The exactly-once
+   resolver for that handoff is shipped: casualties debit the stationed pool,
+   viable Cadres continue, and stale/duplicate results no-op (`68c6b7c7`). See
    `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,

@@ -275,7 +275,9 @@ method together act as a copyable template — see
   and survives save/load (`d07fd3c3`). Its player-facing payload persists one
   of three incident archetypes, binds the stationed detachment, and appears in
   assignment management (`77ce5ead`); response/deployment remains deliberately
-  separate. EXTRACTION remains system-generated.
+  separate. Its exactly-once resolution contract already debits stationed—not
+  fleet—marines, preserves viable assignments, fails wiped/leaderless ones, and
+  rejects stale results (`68c6b7c7`). EXTRACTION remains system-generated.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

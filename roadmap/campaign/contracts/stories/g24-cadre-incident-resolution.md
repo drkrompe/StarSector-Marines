@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `68c6b7c7`
+
 ## Goal
 
 Define the exactly-once campaign writeback that a later response choice or
