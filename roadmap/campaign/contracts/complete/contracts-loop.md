@@ -231,8 +231,10 @@ method together act as a copyable template — see
 - ~~**Contract generator for non-STRIKE types**~~ — **partially shipped**:
   rank-gated one-shot Escort offers and Extraction mission mapping landed in
   `df0a5d19`. Planetary Assault remains blocked on its multi-phase flow;
-  Garrison/Cadre remain blocked on stationing acceptance + retainers; EXTRACTION
-  remains system-generated rather than patron-offered.
+  Garrison/Cadre now have persisted term/retainer and personnel assignment/
+  successful-release foundations (`2487cfaf`, `644b0a1f`) but remain ungenerated
+  until their dedicated acceptance UI lands. EXTRACTION remains system-generated
+  rather than patron-offered.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

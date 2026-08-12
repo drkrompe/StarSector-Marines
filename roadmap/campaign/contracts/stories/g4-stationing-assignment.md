@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `644b0a1f`
+
 ## Goal
 
 Make stationing acceptance and successful term release one exactly-once domain

@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `2487cfaf`
+
 ## Goal
 
 Build the persisted term/payment layer Garrison and Cadre acceptance will use,

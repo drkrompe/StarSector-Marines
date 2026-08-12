@@ -91,9 +91,11 @@ universe over time, not retrofitted into intel slots.
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 2. **Stationing contracts + Escort smoke** — rank-gated Escort offers now map
    to one-shot Extraction missions (`fb268bbe`, `df0a5d19`). Verify one Tier-2
-   offer in game. Then build GARRISON + CADRE acceptance, assignment, and
-   retainer payment—the missing half of the contract design's "two-mode
-   dichotomy" from `campaign/contracts/overview.md`.
+   offer in game. Stationing term/retainer and personnel assignment/release are
+   code-complete (`2487cfaf`, `644b0a1f`); next, expose rank-gated GARRISON +
+   CADRE offers through their dedicated acceptance UI—the missing player-facing
+   half of the contract design's "two-mode dichotomy" from
+   `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
