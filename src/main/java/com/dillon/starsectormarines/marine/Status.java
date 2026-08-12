@@ -6,5 +6,7 @@ public enum Status {
     /** Benched — recovering. {@code injuredUntilTimestamp} on the captain says when they return. */
     INJURED,
     /** Killed in action. Stays in the roster as history; cannot return. */
-    KIA
+    KIA,
+    /** Assigned to a stationing contract and unavailable for battle missions. */
+    GARRISONED
 }

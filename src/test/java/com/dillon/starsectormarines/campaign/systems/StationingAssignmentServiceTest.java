@@ -1,0 +1,104 @@
+package com.dillon.starsectormarines.campaign.systems;
+
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.HouseFlavor;
+import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.Status;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class StationingAssignmentServiceTest {
+
+    @Test
+    void acceptsAndFreezesPersonnelAndTerms() {
+        Fixture fixture = fixture(ContractType.GARRISON, HouseRank.TIER_2, 150);
+
+        boolean accepted = StationingAssignmentService.accept(fixture.state, fixture.contractId,
+                fixture.captain, 100, 5, 40, fixture.store);
+
+        int row = fixture.state.contractIndex(fixture.contractId);
+        assertTrue(accepted);
+        assertEquals(50, fixture.store.available);
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+        assertEquals(ContractState.ACTIVE,
+                ContractState.fromByte(fixture.state.contractState[row]));
+        assertEquals(40, fixture.state.contractAcceptedTick[row]);
+        assertEquals(130, fixture.state.contractExpiresTick[row]);
+        assertEquals(-1, fixture.state.contractOfferExpiresTick[row]);
+        assertEquals(3_300, fixture.state.contractRetainerPerMonth[row]);
+        assertEquals(100, fixture.state.contractMarinesCommitted[row]);
+        assertEquals(40, fixture.state.contractLastRetainerTick[row]);
+        assertEquals(25, fixture.state.contractSalvageBaseline[row] & 0xFF);
+        assertEquals(fixture.captain.id(), fixture.state.captainRegistry.get(
+                fixture.state.contractCaptainId[row]));
+    }
+
+    @Test
+    void duplicateAndInvalidAcceptanceDoNotRemoveMarines() {
+        Fixture fixture = fixture(ContractType.CADRE, HouseRank.TIER_2, 50);
+        assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+                fixture.captain, 60, 1, 10, fixture.store));
+        assertEquals(50, fixture.store.available);
+
+        assertTrue(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+                fixture.captain, 40, 1, 10, fixture.store));
+        assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+                fixture.captain, 10, 1, 10, fixture.store));
+        assertEquals(10, fixture.store.available);
+    }
+
+    private static Fixture fixture(ContractType type, HouseRank rank, int marines) {
+        CampaignState state = new CampaignState();
+        long patronId = state.addHouse(0, 0, HouseFlavor.CORPORATE, rank,
+                HouseStatus.ACTIVE, PatronArchetype.ESTABLISHED, "Patron");
+        long contractId = state.addContract(patronId, -1L, -1L, type,
+                ContractState.OFFERED, 0, -1, 20, (byte) 0, -1, 0, -1,
+                0, 0, (byte) 0, (byte) 0, (byte) 100);
+        MarineCaptain captain = new MarineCaptain("Captain", null, Rank.SERGEANT, 0f);
+        return new Fixture(state, contractId, captain, new TestMarineStore(marines));
+    }
+
+    private static final class Fixture {
+        final CampaignState state;
+        final long contractId;
+        final MarineCaptain captain;
+        final TestMarineStore store;
+
+        Fixture(CampaignState state, long contractId, MarineCaptain captain,
+                TestMarineStore store) {
+            this.state = state;
+            this.contractId = contractId;
+            this.captain = captain;
+            this.store = store;
+        }
+    }
+
+    private static final class TestMarineStore implements StationingAssignmentService.MarineStore {
+        int available;
+
+        TestMarineStore(int available) {
+            this.available = available;
+        }
+
+        @Override
+        public int available() {
+            return available;
+        }
+
+        @Override
+        public boolean remove(int count) {
+            if (count > available) return false;
+            available -= count;
+            return true;
+        }
+    }
+}
