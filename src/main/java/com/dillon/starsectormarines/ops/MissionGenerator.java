@@ -168,7 +168,7 @@ public final class MissionGenerator {
 
         int emitted = 0;
         for (int i = 0; i < state.contractCount && emitted < MAX_MISSIONS; i++) {
-            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
+            if (!contractMissionAvailable(state, i)) continue;
             if (state.contractPatronHouseId[i] != client.patronHouseId) continue;
             if (state.contractMarketId[i] != pickupSlot) continue;
 
@@ -184,8 +184,17 @@ public final class MissionGenerator {
                                                 PlanetAPI pickupPlanet, Client client,
                                                 Random r, int index) {
         ContractType contractType = ContractType.fromByte(state.contractType[row]);
-        ContractMissionProfile profile = ContractMissionProfile.from(contractType);
-        if (profile == null) return null;
+        PlanetaryAssaultPhase assaultPhase = contractType == ContractType.PLANETARY_ASSAULT
+                ? PlanetaryAssaultPhase.create(
+                        state.contractPhasesDone[row] & 0xFF,
+                        state.contractPhasesTotal[row] & 0xFF,
+                        state.contractBasePayout[row],
+                        state.contractSalvageBaseline[row] & 0xFF,
+                        state.contractSalvageNegotiated[row] & 0xFF)
+                : null;
+        ContractMissionProfile profile = assaultPhase == null
+                ? ContractMissionProfile.from(contractType) : null;
+        if (assaultPhase == null && profile == null) return null;
 
         long contractId = state.contractId[row];
         int targetMarketSlot = targetMarketSlot(state, row);
@@ -199,18 +208,29 @@ public final class MissionGenerator {
 
         String targetPlanetName = targetMarket.getPrimaryEntity().getName();
         String targetIndustryId = pickFirstNonDisruptedIndustry(targetMarket);
+        MissionType missionType = assaultPhase != null
+                ? assaultPhase.missionType : profile.missionType;
+        String missionTitle = assaultPhase != null
+                ? "Planetary Assault — " + assaultPhase.title : profile.title;
+        if (assaultPhase != null) {
+            long phaseSeed = contractId * 0x9E3779B97F4A7C15L
+                    ^ (long) assaultPhase.index * 0xC2B2AE3D27D4EB4FL
+                    ^ state.contractPhaseAttempts[row];
+            r = new Random(phaseSeed);
+        }
         DefenseLevel defense = readDefense(targetMarket);
-        RiskLevel risk = deriveRisk(defense, profile.missionType);
+        RiskLevel risk = deriveRisk(defense, missionType);
 
         int cashMult = state.contractCashMultiplier[row] & 0xFF;
         if (cashMult <= 0) cashMult = 100;
-        int basePayout = state.contractBasePayout[row];
+        int basePayout = assaultPhase != null
+                ? assaultPhase.payout : state.contractBasePayout[row];
         int effectivePayout = (int) ((long) basePayout * cashMult / 100L);
 
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        int requiredDrops = requiredDropsFor(profile.missionType, risk);
+        int requiredDrops = requiredDropsFor(missionType, risk);
         if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
             requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
         }
@@ -220,7 +240,7 @@ public final class MissionGenerator {
         float x = 0.08f + r.nextFloat() * 0.84f;
         float y = 0.08f + r.nextFloat() * 0.84f;
 
-        String name = profile.title + " — " + targetPlanetName;
+        String name = missionTitle + " — " + targetPlanetName;
         // Briefing reads as a comms-officer dispatch: an officer-mood prefix
         // wraps the archetype-driven body, with an optional closing aside.
         // The patron-archetype byte is looked up via the patron's row index,
@@ -232,20 +252,36 @@ public final class MissionGenerator {
                 ? PatronArchetype.fromByte(state.houseArchetype[patronRow])
                 : PatronArchetype.TIME_RUSHED;
         String payoutFormatted = "$" + NumberFormat.getIntegerInstance().format(effectivePayout);
-        int negotiatedPct = state.contractSalvageNegotiated[row] & 0xFF;
+        byte missionSalvageBaseline = assaultPhase != null
+                ? assaultPhase.salvageBaseline : state.contractSalvageBaseline[row];
+        byte missionSalvageNegotiated = assaultPhase != null
+                ? assaultPhase.salvageNegotiated : state.contractSalvageNegotiated[row];
+        int negotiatedPct = missionSalvageNegotiated & 0xFF;
         String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
                 contractId, client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
-        String id = "contract:" + contractId;
+        String id = assaultPhase != null
+                ? "contract:" + contractId + ":phase:" + assaultPhase.index
+                    + ":attempt:" + state.contractPhaseAttempts[row]
+                : "contract:" + contractId;
 
-        return new Mission(id, name, profile.missionType, MissionSource.GENERATED,
+        return new Mission(id, name, missionType, MissionSource.GENERATED,
                 basePayout, risk, requirementsFor(risk), flavor, x, y,
                 clientSupport, enemySupport, requiredDrops, employerShuttles,
                 targetPlanetName, targetIndustryId, targetMarket.getFactionId(),
                 contractId,
-                state.contractSalvageBaseline[row],
-                state.contractSalvageNegotiated[row],
+                missionSalvageBaseline,
+                missionSalvageNegotiated,
                 state.contractCashMultiplier[row],
                 employerPowers);
+    }
+
+    static boolean contractMissionAvailable(CampaignState state, int row) {
+        if (state == null || row < 0 || row >= state.contractCount) return false;
+        ContractState contractState = ContractState.fromByte(state.contractState[row]);
+        if (contractState == ContractState.OFFERED) return true;
+        return contractState == ContractState.IN_PROGRESS
+                && ContractType.fromByte(state.contractType[row])
+                == ContractType.PLANETARY_ASSAULT;
     }
 
     static int targetMarketSlot(CampaignState state, int row) {

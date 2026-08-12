@@ -208,6 +208,7 @@ public class MarineOpsContext {
         detachment = null;
         lastOutcome = null;
         lootManifest = LootManifest.EMPTY;
+        missionsByClient.clear();
     }
 
     /**
@@ -320,9 +321,12 @@ public class MarineOpsContext {
             boolean offered = contractState == ContractState.OFFERED;
             boolean activeStationing = contractState == ContractState.ACTIVE
                     && contractType.isStationing();
-            if (!offered && !activeStationing) continue;
+            boolean assaultInProgress = contractState == ContractState.IN_PROGRESS
+                    && contractType == ContractType.PLANETARY_ASSAULT;
+            if (!offered && !activeStationing && !assaultInProgress) continue;
             long patronId = state.contractPatronHouseId[i];
-            if (contractType == ContractType.EXTRACTION || activeStationing) {
+            if (contractType == ContractType.EXTRACTION
+                    || activeStationing || assaultInProgress) {
                 mandatoryPatrons.add(patronId);
             }
             if (!seenPatrons.add(patronId)) continue;

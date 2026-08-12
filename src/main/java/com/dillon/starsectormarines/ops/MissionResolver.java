@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
 import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HousePromotion;
+import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
 import com.dillon.starsectormarines.campaign.StakeLedger;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -394,6 +395,11 @@ public final class MissionResolver {
             state.contractOfferExpiresTick[row] = -1;
         }
 
+        if (contractType == ContractType.PLANETARY_ASSAULT) {
+            applyPlanetaryAssaultBridge(state, row, outcome, patronId, day);
+            return;
+        }
+
         if (outcome.victory) {
             int phasesDone  = (state.contractPhasesDone[row] & 0xFF) + 1;
             int phasesTotal = state.contractPhasesTotal[row] & 0xFF;
@@ -422,6 +428,41 @@ public final class MissionResolver {
                 ContractReputation.failed(state, patronId, -2, day);
             }
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
+        }
+    }
+
+    private static void applyPlanetaryAssaultBridge(CampaignState state, int row,
+                                                     MissionOutcome outcome,
+                                                     long patronId, int day) {
+        PlanetaryAssaultResolution.Result result = PlanetaryAssaultResolution.apply(
+                state, row, outcome.victory);
+        if (result == null) {
+            LOG.info("MarineOps: invalid Planetary Assault state for contract "
+                    + outcome.contractId + " — no writeback");
+            return;
+        }
+        switch (result) {
+            case CONTRACT_COMPLETED:
+                ContractReputation.completed(state, patronId, +1, day);
+                applyPoliticalShift(state, row, outcome, day);
+                LOG.info("MarineOps: Planetary Assault " + outcome.contractId + " COMPLETED");
+                break;
+            case PHASE_ADVANCED:
+                applyPoliticalShift(state, row, outcome, day);
+                LOG.info("MarineOps: Planetary Assault " + outcome.contractId
+                        + " advanced to phase " + ((state.contractPhasesDone[row] & 0xFF) + 1));
+                break;
+            case PHASE_REROLLED:
+                LOG.info("MarineOps: Planetary Assault " + outcome.contractId
+                        + " rerolling phase " + ((state.contractPhasesDone[row] & 0xFF) + 1)
+                        + " attempt " + state.contractPhaseAttempts[row]);
+                break;
+            case CONTRACT_FAILED:
+                ContractReputation.failed(state, patronId, -2, day);
+                LOG.info("MarineOps: Planetary Assault " + outcome.contractId + " FAILED");
+                break;
+            default:
+                break;
         }
     }
 
