@@ -93,6 +93,27 @@ class AutonomousChainCreationSystemTest {
         assertEquals(0, state.chainCount);
     }
 
+    @Test
+    void verticalAmbitionsWaitForDedicatedChainPayloads() {
+        CampaignState state = new CampaignState();
+        long promoting = house(state, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        long claimant = house(state, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        long rival = house(state, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        state.addStake(promoting, 1, 7, (short) 40);
+        state.addStake(claimant, 1, 7, (short) 40);
+        state.addStake(rival, 1, 7, (short) 80);
+        int promotingRow = state.houseIndex(promoting);
+        int claimantRow = state.houseIndex(claimant);
+        state.houseAmbition[promotingRow] = HouseAmbition.PROMOTE.toByte();
+        state.houseAmbitionTarget[promotingRow] = HouseRank.TIER_3.ordinal();
+        state.houseAmbition[claimantRow] = HouseAmbition.CLAIM_THRONE.toByte();
+        state.houseAmbitionTarget[claimantRow] = state.houseFactionId[claimantRow];
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(0, state.chainCount);
+    }
+
     private static void consolidate(CampaignState state, long houseId, int industryId) {
         int row = state.houseIndex(houseId);
         state.houseAmbition[row] = HouseAmbition.CONSOLIDATE_STAKE.toByte();

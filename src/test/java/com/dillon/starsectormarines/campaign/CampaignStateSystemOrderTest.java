@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSyst
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
+import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -29,6 +30,7 @@ class CampaignStateSystemOrderTest {
         List<CampaignSystem> systems = CampaignStateScript.defaultSystems();
 
         int defaults = indexOf(systems, StationingDefaultSystem.class);
+        int power = indexOf(systems, HousePowerSystem.class);
         int ambitions = indexOf(systems, HouseAmbitionSystem.class);
         int drift = indexOf(systems, StakeDriftSystem.class);
         int promotions = indexOf(systems, AutonomousPromotionSystem.class);
@@ -48,6 +50,7 @@ class CampaignStateSystemOrderTest {
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
+        assertTrue(power < ambitions);
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
         assertTrue(chainCreation < chainAdvancement);
