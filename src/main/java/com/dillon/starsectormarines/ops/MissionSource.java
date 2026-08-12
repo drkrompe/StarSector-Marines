@@ -7,13 +7,17 @@ package com.dillon.starsectormarines.ops;
  *       Stateless, rerolled per visit.</li>
  *   <li>{@link #STORY} — hand-authored, eligibility-gated, single-completion. Persisted
  *       via {@code MarineRosterScript}'s completed-id set.</li>
- *   <li>{@link #STATIONING} — event mission fought by a detachment already
+ *   <li>{@link #STATIONING} — incident mission fought by a detachment already
  *       committed to a stationing contract.</li>
+ *   <li>{@link #CAMPAIGN_EVENT} — non-contract black-swan work carrying its own
+ *       stable event lineage.</li>
  * </ul>
  */
 public enum MissionSource {
     GENERATED,
     STORY,
     /** Battle fought by personnel already committed to a stationing assignment. */
-    STATIONING
+    STATIONING,
+    /** Cost-shaped black-swan mission; never inherits contract economics. */
+    CAMPAIGN_EVENT
 }

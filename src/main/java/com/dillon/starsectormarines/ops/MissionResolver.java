@@ -201,7 +201,9 @@ public final class MissionResolver {
                 captain != null ? captain.name() : null,
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
                 mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
-                mission.contractId, salvageEntitlement,
+                mission.contractId, mission.campaignEventId,
+                mission.campaignEventMarketId, mission.civiliansAtRisk, -1,
+                salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct);
     }
 

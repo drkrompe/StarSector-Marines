@@ -73,6 +73,13 @@ public final class Mission {
      */
     public final long contractId;
 
+    /** Stable black-swan event lineage; {@code -1} for non-event missions. */
+    public final long campaignEventId;
+    /** Frozen event market registry slot; {@code -1} for non-event missions. */
+    public final int campaignEventMarketId;
+    /** Frozen civilian stakes for rescue missions; zero otherwise. */
+    public final int civiliansAtRisk;
+
     /** Salvage % cap baked into the contract (0..255). 0 for non-contract missions. */
     public final byte salvageBaseline;
     /** Salvage % the player locked in at acceptance (0..salvageBaseline). */
@@ -188,6 +195,42 @@ public final class Mission {
                    byte contractSalvageBaseline,
                    byte contractSalvageNegotiated,
                    List<String> employerPowerIds) {
+        this(id, name, type, source, payout, risk, requirements, flavor,
+                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
+                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
+                targetFactionId, contractId, -1L, -1, 0,
+                salvageBaseline, salvageNegotiated, cashMultiplier,
+                contractSalvageBaseline, contractSalvageNegotiated,
+                employerPowerIds);
+    }
+
+    public Mission(String id,
+                   String name,
+                   MissionType type,
+                   MissionSource source,
+                   int payout,
+                   RiskLevel risk,
+                   String requirements,
+                   String flavor,
+                   float normalizedX,
+                   float normalizedY,
+                   FlybyRoster clientFighterSupport,
+                   FlybyRoster enemyFighterSupport,
+                   int requiredDrops,
+                   int employerShuttles,
+                   String targetPlanetName,
+                   String targetIndustryId,
+                   String targetFactionId,
+                   long contractId,
+                   long campaignEventId,
+                   int campaignEventMarketId,
+                   int civiliansAtRisk,
+                   byte salvageBaseline,
+                   byte salvageNegotiated,
+                   byte cashMultiplier,
+                   byte contractSalvageBaseline,
+                   byte contractSalvageNegotiated,
+                   List<String> employerPowerIds) {
         this.id           = id;
         this.name         = name;
         this.type         = type;
@@ -209,6 +252,11 @@ public final class Mission {
         this.targetIndustryId = targetIndustryId;
         this.targetFactionId  = targetFactionId;
         this.contractId        = contractId;
+        this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
+        this.campaignEventMarketId = this.campaignEventId > 0L
+                ? Math.max(-1, campaignEventMarketId) : -1;
+        this.civiliansAtRisk = this.campaignEventId > 0L
+                ? Math.max(0, civiliansAtRisk) : 0;
         this.salvageBaseline   = salvageBaseline;
         this.salvageNegotiated = salvageNegotiated;
         this.cashMultiplier    = cashMultiplier;

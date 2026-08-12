@@ -42,6 +42,14 @@ public final class MissionOutcome {
 
     /** Campaign-tier contract id this resolved a phase of; {@code -1} for ad-hoc missions. */
     public final long    contractId;
+    /** Stable black-swan event lineage; {@code -1} for non-event outcomes. */
+    public final long    campaignEventId;
+    /** Frozen event market registry slot; {@code -1} for non-event outcomes. */
+    public final int     campaignEventMarketId;
+    /** Frozen civilian stakes from mission creation; zero otherwise. */
+    public final int     civiliansAtRisk;
+    /** Explicit battle evacuation report; {@code -1} means no valid report. */
+    public final int     civiliansRescued;
     /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
     /** Frozen captain + fleet recovery-pool bonus, in percentage points. */
@@ -57,7 +65,9 @@ public final class MissionOutcome {
                           Status priorCaptainStatus, Status newCaptainStatus,
                           int xpGained, float injuredUntilDay, Rank promotedTo,
                           String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, int salvageEntitlement,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, int civiliansAtRisk,
+                          int civiliansRescued, int salvageEntitlement,
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct) {
         this.victory            = victory;
         this.missionId          = missionId;
@@ -80,6 +90,13 @@ public final class MissionOutcome {
         this.targetIndustryId   = targetIndustryId;
         this.targetFactionId    = targetFactionId;
         this.contractId         = contractId;
+        this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
+        this.campaignEventMarketId = this.campaignEventId > 0L
+                ? Math.max(-1, campaignEventMarketId) : -1;
+        this.civiliansAtRisk = this.campaignEventId > 0L
+                ? Math.max(0, civiliansAtRisk) : 0;
+        this.civiliansRescued = this.campaignEventId > 0L
+                ? civiliansRescued : -1;
         this.salvageEntitlement = salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));
