@@ -97,6 +97,69 @@ class ChainAdvancementSystemTest {
         assertEquals(-1, fixture.state.chainResolvedTick[row]);
     }
 
+    @Test
+    void promotionResolutionMovesProgressSuppressionAndSmallerStakeExactlyOnce() {
+        Fixture fixture = new Fixture();
+        long chain = fixture.autonomousChain(ChainArchetype.PROMOTE, (short) 1);
+        int chainRow = fixture.state.chainIndex(chain);
+        int actorRow = fixture.state.houseIndex(fixture.actor);
+        int targetRow = fixture.state.houseIndex(fixture.target);
+        fixture.state.housePromotionProgress[actorRow] = 75;
+        fixture.state.housePromotionProgress[targetRow] = 20;
+        ChainAdvancementSystem system = new ChainAdvancementSystem();
+
+        system.tick(fixture.state, 20);
+
+        assertEquals(ChainState.RESOLVED,
+                ChainState.fromByte(fixture.state.chainState[chainRow]));
+        assertEquals(70, StakeLedger.shareOf(fixture.state, fixture.actor, 1, 7));
+        assertEquals(80, StakeLedger.shareOf(fixture.state, fixture.target, 1, 7));
+        assertEquals(HouseRank.TIER_2,
+                HouseRank.fromByte(fixture.state.houseRank[actorRow]));
+        assertEquals(65, fixture.state.housePromotionProgress[actorRow]);
+        assertEquals(0, fixture.state.housePromotionProgress[targetRow]);
+
+        system.tick(fixture.state, 21);
+        assertEquals(70, StakeLedger.shareOf(fixture.state, fixture.actor, 1, 7));
+        assertEquals(65, fixture.state.housePromotionProgress[actorRow]);
+        assertEquals(20, fixture.state.chainResolvedTick[chainRow]);
+    }
+
+    @Test
+    void promotionReachedElsewhereResolvesWithoutReplayingPayload() {
+        Fixture fixture = new Fixture();
+        long chain = fixture.autonomousChain(ChainArchetype.PROMOTE, (short) 10);
+        int chainRow = fixture.state.chainIndex(chain);
+        int actorRow = fixture.state.houseIndex(fixture.actor);
+        fixture.state.houseRank[actorRow] = HouseRank.TIER_2.toByte();
+        fixture.state.housePromotionProgress[actorRow] = 5;
+
+        new ChainAdvancementSystem().tick(fixture.state, 20);
+
+        assertEquals(ChainState.RESOLVED,
+                ChainState.fromByte(fixture.state.chainState[chainRow]));
+        assertEquals(50, StakeLedger.shareOf(fixture.state, fixture.actor, 1, 7));
+        assertEquals(100, StakeLedger.shareOf(fixture.state, fixture.target, 1, 7));
+        assertEquals(5, fixture.state.housePromotionProgress[actorRow]);
+        assertEquals(0, fixture.state.chainProgress[chainRow]);
+    }
+
+    @Test
+    void crossFactionPromotionChainFailsWithoutPoliticalEffects() {
+        Fixture fixture = new Fixture();
+        long chain = fixture.autonomousChain(ChainArchetype.PROMOTE, (short) 1);
+        int chainRow = fixture.state.chainIndex(chain);
+        fixture.state.houseFactionId[fixture.state.houseIndex(fixture.target)] = 2;
+
+        new ChainAdvancementSystem().tick(fixture.state, 20);
+
+        assertEquals(ChainState.FAILED,
+                ChainState.fromByte(fixture.state.chainState[chainRow]));
+        assertEquals(50, StakeLedger.shareOf(fixture.state, fixture.actor, 1, 7));
+        assertEquals(0, fixture.state.housePromotionProgress[
+                fixture.state.houseIndex(fixture.actor)]);
+    }
+
     private static final class Fixture {
         final CampaignState state = new CampaignState();
         final long actor = house(state, "Actor");
@@ -108,8 +171,12 @@ class ChainAdvancementSystemTest {
         }
 
         long autonomousChain(short threshold) {
+            return autonomousChain(ChainArchetype.CONSOLIDATE_STAKE, threshold);
+        }
+
+        long autonomousChain(ChainArchetype archetype, short threshold) {
             return state.addAutonomousChain(actor, target, 1, 7, (byte) 0,
-                    ChainArchetype.CONSOLIDATE_STAKE, threshold, (byte) 1, 1);
+                    archetype, threshold, (byte) 1, 1);
         }
 
         private static long house(CampaignState state, String name) {

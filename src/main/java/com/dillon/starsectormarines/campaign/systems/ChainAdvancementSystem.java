@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.HousePromotion;
+import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.StakeLedger;
 
@@ -25,6 +26,9 @@ public final class ChainAdvancementSystem implements CampaignSystem {
     static final int DAILY_PROGRESS = 1;
     static final int RESOLUTION_STAKE_SEIZE = 40;
     static final int RESOLUTION_PROMOTION_PROGRESS = 30;
+    static final int PROMOTION_STAKE_SEIZE = 20;
+    static final int PROMOTION_PROGRESS_GAIN = 90;
+    static final int PROMOTION_RIVAL_SUPPRESSION = 30;
 
     @Override
     public String name() {
@@ -59,9 +63,18 @@ public final class ChainAdvancementSystem implements CampaignSystem {
             int targetRow = state.houseIndex(state.chainTarget[chainRow]);
             if (!activeHouse(state, actorRow) || !activeHouse(state, targetRow)
                     || state.chainMarketId[chainRow] < 0
-                    || state.chainIndustryId[chainRow] < 0
-                    || ChainArchetype.fromByte(state.chainArchetype[chainRow])
-                        != ChainArchetype.CONSOLIDATE_STAKE) {
+                    || state.chainIndustryId[chainRow] < 0) {
+                terminate(state, chainRow, ChainState.FAILED, day);
+                continue;
+            }
+            ChainArchetype archetype = ChainArchetype.fromByte(
+                    state.chainArchetype[chainRow]);
+            if (archetype == ChainArchetype.PROMOTE
+                    && promotionAlreadyAchieved(state, chainRow, actorRow)) {
+                terminate(state, chainRow, ChainState.RESOLVED, day);
+                continue;
+            }
+            if (!validPayload(state, chainRow, actorRow, targetRow, archetype)) {
                 terminate(state, chainRow, ChainState.FAILED, day);
                 continue;
             }
@@ -72,12 +85,47 @@ public final class ChainAdvancementSystem implements CampaignSystem {
             state.chainProgress[chainRow] = (short) progress;
             if (progress < state.chainThreshold[chainRow]) continue;
 
-            StakeLedger.seizeShare(state, state.chainTarget[chainRow], actorHouseId,
-                    state.chainMarketId[chainRow], state.chainIndustryId[chainRow],
-                    RESOLUTION_STAKE_SEIZE);
+            resolvePayload(state, chainRow, actorRow, targetRow, archetype, day);
+            terminate(state, chainRow, ChainState.RESOLVED, day);
+        }
+    }
+
+    private static boolean promotionAlreadyAchieved(CampaignState state, int chainRow,
+                                                      int actorRow) {
+        int startingTier = state.chainTier[chainRow] & 0xFF;
+        return HouseRank.fromByte(state.houseRank[actorRow]).ordinal() > startingTier;
+    }
+
+    private static boolean validPayload(CampaignState state, int chainRow, int actorRow,
+                                        int targetRow, ChainArchetype archetype) {
+        if (archetype == ChainArchetype.CONSOLIDATE_STAKE) return true;
+        if (archetype != ChainArchetype.PROMOTE) return false;
+        int startingTier = state.chainTier[chainRow] & 0xFF;
+        HouseRank actorRank = HouseRank.fromByte(state.houseRank[actorRow]);
+        return (startingTier == HouseRank.TIER_1.ordinal()
+                || startingTier == HouseRank.TIER_2.ordinal())
+                && actorRank.ordinal() == startingTier
+                && state.houseFactionId[actorRow] == state.houseFactionId[targetRow]
+                && StakeLedger.shareOf(state, state.houseId[actorRow],
+                    state.chainMarketId[chainRow], state.chainIndustryId[chainRow]) > 0
+                && StakeLedger.shareOf(state, state.houseId[targetRow],
+                    state.chainMarketId[chainRow], state.chainIndustryId[chainRow]) > 0;
+    }
+
+    private static void resolvePayload(CampaignState state, int chainRow, int actorRow,
+                                       int targetRow, ChainArchetype archetype, int day) {
+        int stakeSeize = archetype == ChainArchetype.PROMOTE
+                ? PROMOTION_STAKE_SEIZE : RESOLUTION_STAKE_SEIZE;
+        StakeLedger.seizeShare(state, state.chainTarget[chainRow],
+                state.chainActorHouseId[chainRow], state.chainMarketId[chainRow],
+                state.chainIndustryId[chainRow], stakeSeize);
+        if (archetype == ChainArchetype.PROMOTE) {
+            HousePromotion.addProgress(state, targetRow, -PROMOTION_RIVAL_SUPPRESSION);
+            HousePromotion.addProgressAndPromote(state, actorRow,
+                    PROMOTION_PROGRESS_GAIN, day);
+        } else {
             HousePromotion.addProgressAndPromote(state, actorRow,
                     RESOLUTION_PROMOTION_PROGRESS, day);
-            terminate(state, chainRow, ChainState.RESOLVED, day);
         }
     }
 
