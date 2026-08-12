@@ -167,7 +167,8 @@ public enum UnitType {
      */
     public boolean drawnAsLayers() {
         return this == MARINE || this == MARINE_BLUE || this == MARINE_RED
-                || this == MILITIA || this == CIVILIAN || this == ENGINEER;
+                || this == MILITIA || this == CIVILIAN || this == ENGINEER
+                || this == SCIENTIST;
     }
 
     /** Whether this chassis has a modular true-overhead live composition. */

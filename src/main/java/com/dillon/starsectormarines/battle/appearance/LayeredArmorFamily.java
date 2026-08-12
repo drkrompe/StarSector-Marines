@@ -15,7 +15,9 @@ public enum LayeredArmorFamily {
     /** Grimy frontier workwear and an uncovered colonist head. */
     CIVILIAN_COLONIST,
     /** Reinforced industrial workwear and a sealed hazard helmet. */
-    ENGINEER;
+    ENGINEER,
+    /** Worn field-lab clothing and a compact research headset. */
+    SCIENTIST;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {
@@ -24,6 +26,7 @@ public enum LayeredArmorFamily {
             case MILITIA: return MILITIA;
             case CIVILIAN: return CIVILIAN_COLONIST;
             case ENGINEER: return ENGINEER;
+            case SCIENTIST: return SCIENTIST;
             case MARINE:
             default: return CHARCOAL;
         }

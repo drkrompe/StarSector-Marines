@@ -471,6 +471,9 @@ public class BattleSprites {
         loadLayeredFamilyAt(LayeredArmorFamily.ENGINEER,
                 "graphics/battle/colonist-modular-topdown/engineer/",
                 foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
+                "graphics/battle/colonist-modular-topdown/scientist/",
+                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
