@@ -414,7 +414,7 @@ public final class BspCityGenerator implements MapGenerator {
         return new MapResult(ctx.grid, ctx.topology,
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
-                ctx.defensePosts, this.lastRoadGraph);
+                ctx.defensePosts, this.lastRoadGraph, ctx.landingPads);
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */

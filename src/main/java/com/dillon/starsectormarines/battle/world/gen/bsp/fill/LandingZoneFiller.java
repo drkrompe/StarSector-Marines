@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;
@@ -76,6 +77,9 @@ public final class LandingZoneFiller implements BlockFiller {
         int cy = leaf.centerY();
         if (grid.inBounds(cx, cy)) {
             topology.setGroundKind(cx, cy, GroundKind.LZ_MARKER);
+            if (leaf.width() >= 5 && leaf.height() >= 5) {
+                ctx.landingPads.add(LandingPad.civilian(cx, cy, LandingPad.Approach.NORTH));
+            }
         }
 
         // Corner arrows pointing inward. Skip when the leaf is too small to
