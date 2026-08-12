@@ -15,8 +15,8 @@ import java.util.Random;
 /**
  * Tick phase 3a: produces fresh contract offers for the player to pick up.
  *
- * <p>Walks {@link HouseRank#TIER_1 T1} active patron houses; each rolls a small
- * daily chance to put a {@link ContractType#STRIKE STRIKE} offer on the table.
+ * <p>Walks active Tier 1-3 patron houses; each rolls a small daily chance to put
+ * a rank-gated mission-mode offer on the table.
  * Offers land in {@link CampaignState#contractId contracts[]} with state
  * {@link ContractState#OFFERED OFFERED} — the briefing UI flips OFFERED → ACTIVE
  * on acceptance.
@@ -33,8 +33,8 @@ import java.util.Random;
  * <p>RNG is seeded from {@code (day, houseId)} so the same tick reproduces the
  * same rolls — important for save reproducibility.
  *
- * <p>Strike-only at v1. PLANETARY_ASSAULT / ESCORT / GARRISON / CADRE follow
- * once Strike's resolution loop is proven through playtest.
+ * <p>STRIKE and ESCORT are supported. Multi-phase and stationing contracts stay
+ * out until their distinct acceptance/lifecycle paths exist.
  */
 public final class ContractGenerator implements CampaignSystem {
 
@@ -46,12 +46,6 @@ public final class ContractGenerator implements CampaignSystem {
 
     /** Sector-wide cap on OFFERED contracts. */
     private static final int GLOBAL_OFFER_CAP = 20;
-
-    /** Default T1 Strike baseline payout in credits. Per economy.md, T1 = 1× baseline. */
-    private static final int T1_STRIKE_PAYOUT = 25_000;
-
-    /** Default Strike-Raid salvage cap (per contracts/overview.md §"Salvage Layer 1"). */
-    private static final byte STRIKE_RAID_SALVAGE_BASELINE = 60;
 
     @Override
     public String name() {
@@ -74,7 +68,8 @@ public final class ContractGenerator implements CampaignSystem {
         if (globalOffers >= GLOBAL_OFFER_CAP) return;
 
         for (int i = 0; i < state.houseCount; i++) {
-            if (HouseRank.fromByte(state.houseRank[i]) != HouseRank.TIER_1) continue;
+            HouseRank rank = HouseRank.fromByte(state.houseRank[i]);
+            if (rank == HouseRank.TIER_4) continue;
             if (HouseStatus.fromByte(state.houseStatus[i]) != HouseStatus.ACTIVE) continue;
 
             long patronId = state.houseId[i];
@@ -84,7 +79,10 @@ public final class ContractGenerator implements CampaignSystem {
             Random r = new Random(seed);
             if (r.nextFloat() >= OFFER_CHANCE_PER_DAY) continue;
 
-            long targetHouseId = pickStrikeTarget(state, i, r);
+            ContractOfferTemplate template = ContractOfferTemplate.roll(rank, r);
+            if (template == null) continue;
+
+            long targetHouseId = pickTarget(state, i, r);
             if (targetHouseId == -1L) continue;
 
             // Offer-lapse window driven by patron archetype — TIME_RUSHED gives
@@ -97,19 +95,19 @@ public final class ContractGenerator implements CampaignSystem {
                     patronId,
                     targetHouseId,
                     -1L,                                  // no parent chain for first-cut
-                    ContractType.STRIKE,
+                    template.type,
                     ContractState.OFFERED,
                     day,
                     -1,                                   // no acceptance-side expiry for mission-mode
                     offerExpiresTick,                     // offer lapses on this day if unaccepted
-                    (byte) 1,                             // phasesTotal = 1 for STRIKE
+                    (byte) 1,                             // STRIKE and ESCORT are one-shot
                     -1,                                   // captain assigned at acceptance
                     state.houseMarketId[i],               // patron's market is the meeting/origin
                     -1,                                   // industryId resolved at acceptance
-                    T1_STRIKE_PAYOUT,
+                    template.payout,
                     0,                                    // retainer per month = 0 for mission-mode
-                    STRIKE_RAID_SALVAGE_BASELINE,
-                    STRIKE_RAID_SALVAGE_BASELINE,         // negotiated defaults to baseline at offer
+                    template.salvageBaseline,
+                    template.salvageBaseline,             // negotiated defaults to baseline at offer
                     (byte) 100                            // cashMultiplier baseline
             );
 
@@ -119,16 +117,16 @@ public final class ContractGenerator implements CampaignSystem {
     }
 
     /**
-     * Picks a random T1 active house other than the patron itself. Returns
+     * Picks a random active Tier 1-3 house other than the patron itself. Returns
      * {@code -1L} when no valid target exists (early-sector seed where there's
-     * only one T1 patron).
+     * only one standard-contract patron).
      */
-    private static long pickStrikeTarget(CampaignState state, int patronRow, Random r) {
+    private static long pickTarget(CampaignState state, int patronRow, Random r) {
         long patronId = state.houseId[patronRow];
         int candidates = 0;
         for (int j = 0; j < state.houseCount; j++) {
             if (j == patronRow) continue;
-            if (HouseRank.fromByte(state.houseRank[j]) != HouseRank.TIER_1) continue;
+            if (HouseRank.fromByte(state.houseRank[j]) == HouseRank.TIER_4) continue;
             if (HouseStatus.fromByte(state.houseStatus[j]) != HouseStatus.ACTIVE) continue;
             candidates++;
         }
@@ -138,7 +136,7 @@ public final class ContractGenerator implements CampaignSystem {
         int seen = 0;
         for (int j = 0; j < state.houseCount; j++) {
             if (j == patronRow) continue;
-            if (HouseRank.fromByte(state.houseRank[j]) != HouseRank.TIER_1) continue;
+            if (HouseRank.fromByte(state.houseRank[j]) == HouseRank.TIER_4) continue;
             if (HouseStatus.fromByte(state.houseStatus[j]) != HouseStatus.ACTIVE) continue;
             if (seen++ == pick) return state.houseId[j];
         }

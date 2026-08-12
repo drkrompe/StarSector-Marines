@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.BriefingComposer;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -182,6 +183,10 @@ public final class MissionGenerator {
     private static Mission buildContractMission(CampaignState state, int row,
                                                 PlanetAPI pickupPlanet, Client client,
                                                 Random r, int index) {
+        ContractType contractType = ContractType.fromByte(state.contractType[row]);
+        ContractMissionProfile profile = ContractMissionProfile.from(contractType);
+        if (profile == null) return null;
+
         long contractId = state.contractId[row];
         long targetHouseId = state.contractTargetHouseId[row];
         if (targetHouseId == -1L) return null;
@@ -198,7 +203,7 @@ public final class MissionGenerator {
         String targetPlanetName = targetMarket.getPrimaryEntity().getName();
         String targetIndustryId = pickFirstNonDisruptedIndustry(targetMarket);
         DefenseLevel defense = readDefense(targetMarket);
-        RiskLevel risk = deriveRisk(defense, MissionType.RAID);
+        RiskLevel risk = deriveRisk(defense, profile.missionType);
 
         int cashMult = state.contractCashMultiplier[row] & 0xFF;
         if (cashMult <= 0) cashMult = 100;
@@ -208,7 +213,7 @@ public final class MissionGenerator {
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        int requiredDrops = requiredDropsFor(MissionType.RAID, risk);
+        int requiredDrops = requiredDropsFor(profile.missionType, risk);
         if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
             requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
         }
@@ -218,7 +223,7 @@ public final class MissionGenerator {
         float x = 0.08f + r.nextFloat() * 0.84f;
         float y = 0.08f + r.nextFloat() * 0.84f;
 
-        String name = "Strike — " + targetPlanetName;
+        String name = profile.title + " — " + targetPlanetName;
         // Briefing reads as a comms-officer dispatch: an officer-mood prefix
         // wraps the archetype-driven body, with an optional closing aside.
         // The patron-archetype byte is looked up via the patron's row index,
@@ -235,7 +240,7 @@ public final class MissionGenerator {
                 contractId, client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
         String id = "contract:" + contractId;
 
-        return new Mission(id, name, MissionType.RAID, MissionSource.GENERATED,
+        return new Mission(id, name, profile.missionType, MissionSource.GENERATED,
                 basePayout, risk, requirementsFor(risk), flavor, x, y,
                 clientSupport, enemySupport, requiredDrops, employerShuttles,
                 targetPlanetName, targetIndustryId, targetMarket.getFactionId(),

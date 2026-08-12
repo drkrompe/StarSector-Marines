@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.StakeLedger;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -88,7 +90,7 @@ public final class MissionResolver {
      * ~110/255, so a backed patron flips one over a handful of strikes, while
      * autonomous drift would take many months (the decisive-accelerant principle,
      * {@code living-world/overview.md}). Tier-scaling (T2/T3 move more) is a later
-     * refinement; STRIKE/RAID is the only generated contract today.
+     * refinement.
      */
     private static final int CONTRACT_STAKE_SEIZE = 20;
 
@@ -417,8 +419,8 @@ public final class MissionResolver {
 
     /**
      * Writes a victorious mission's result into the political simulation: the
-     * patron seizes a slice of the struck industry from the contract's target and
-     * accrues promotion progress. This is the Slice-B impact-ladder rung
+     * patron accrues promotion progress; territorial contract types also seize a
+     * slice of the struck industry from the target. This is the Slice-B impact-ladder rung
      * ({@code living-world/overview.md}) — the first time player ops leave a
      * *permanent* mark on the houses graph rather than just on contract state.
      *
@@ -432,33 +434,37 @@ public final class MissionResolver {
      * <p>Mechanism lives in {@link StakeLedger#seizeShare} and
      * {@link HousePromotion#addProgressAndPromote}; the magnitudes are policy here
      * ({@link #CONTRACT_STAKE_SEIZE}, {@link #CONTRACT_PROMOTION_PROGRESS}). No-ops
-     * cleanly when the contract has no target / industry (e.g. a debug-spawned or
-     * non-strike contract).
+     * cleanly when the contract has no target / industry.
      */
     private static void applyPoliticalShift(CampaignState state, int row, MissionOutcome outcome, int day) {
         long patronId = state.contractPatronHouseId[row];
         long targetId = state.contractTargetHouseId[row];
-        if (patronId == -1L || targetId == -1L) return;
-        if (outcome.targetIndustryId == null) return;
+        if (patronId == -1L) return;
 
-        int targetRow = state.houseIndex(targetId);
-        if (targetRow < 0) return;
-        int marketIdx   = state.houseMarketId[targetRow];
-        // intern (not get): a strike can be the first time an industry enters the
-        // registry — seeding only interns industries that existed at game start.
-        // The patron then takes its foothold purely from the unclaimed remainder.
-        int industryIdx = state.industryRegistry.intern(outcome.targetIndustryId);
-
-        int gained = StakeLedger.seizeShare(state, targetId, patronId, marketIdx, industryIdx,
-                CONTRACT_STAKE_SEIZE);
+        ContractType contractType = ContractType.fromByte(state.contractType[row]);
+        int gained = 0;
+        if (ContractImpactPolicy.transfersIndustryStake(contractType)
+                && targetId != -1L && outcome.targetIndustryId != null) {
+            int targetRow = state.houseIndex(targetId);
+            if (targetRow >= 0) {
+                int marketIdx = state.houseMarketId[targetRow];
+                // Intern (not get): a strike can be the first time an industry
+                // enters the registry. The patron takes its foothold from the
+                // target's share or the unclaimed remainder.
+                int industryIdx = state.industryRegistry.intern(outcome.targetIndustryId);
+                gained = StakeLedger.seizeShare(state, targetId, patronId, marketIdx, industryIdx,
+                        CONTRACT_STAKE_SEIZE);
+            }
+        }
 
         int patronRow = state.houseIndex(patronId);
         int promotions = patronRow >= 0
                 ? HousePromotion.addProgressAndPromote(state, patronRow, CONTRACT_PROMOTION_PROGRESS, day)
                 : 0;
 
-        LOG.info("MarineOps: political shift — patron " + patronId + " seized " + gained
-                + "/255 of " + outcome.targetIndustryId + " from target " + targetId
+        LOG.info("MarineOps: political shift — patron " + patronId
+                + (gained > 0 ? " seized " + gained + "/255 of "
+                    + outcome.targetIndustryId + " from target " + targetId : " completed " + contractType)
                 + (promotions > 0 ? " and promoted " + promotions + " rank(s)" : ""));
     }
 
