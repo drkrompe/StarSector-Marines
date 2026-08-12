@@ -41,6 +41,39 @@ public final class MovementService {
     public float moveProgress(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
     public void setMoveProgress(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
 
+    // ---- movement-semantic gates (continuous-positions phase 2b) ----
+    //
+    // The cell-hop mover overloaded `moveProgress == 0f` ("standing on a cell
+    // center") as three distinct signals; these helpers name the intent so the
+    // continuous-mover swap (phase 2a) can retune each meaning in one place.
+    // Today all three replicate the old expressions exactly.
+
+    /**
+     * The unit has arrived at cell {@code (cx, cy)} for post/destination tests.
+     * Today: exact cell equality (floor of the continuous position). After the
+     * continuous-mover swap: within an arrival radius of the cell center.
+     */
+    public boolean atCell(long id, int cx, int cy) {
+        return (int) Math.floor(entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X)) == cx
+            && (int) Math.floor(entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y)) == cy;
+    }
+
+    /**
+     * The unit is not in motion — the act/stance gate ("dwell, fire stanced,
+     * play the idle pose"). Today: not mid-lerp between cells. After the swap:
+     * no un-exhausted path.
+     */
+    public boolean settled(long id) { return moveProgress(id) == 0f; }
+
+    /**
+     * A new path may be assigned right now. Today: only on a cell center (a
+     * mid-lerp path swap would teleport the render lerp). After the swap:
+     * always {@code true} — the carrot follower accepts a mid-motion re-route,
+     * and this gate inlines away. Sites gated on this must NOT be collapsed
+     * into {@link #settled}: "only repath when idle" would stall long paths.
+     */
+    public boolean mayRepath(long id) { return moveProgress(id) == 0f; }
+
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #has}. */
     public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
 

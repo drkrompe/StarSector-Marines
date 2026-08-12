@@ -99,8 +99,7 @@ public class InfantryWeapons {
             // Burst follow-up: use the unit's current motion state. If they
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
-            // moving-fire callsite gets. moveProgress lives in the world's
-            // MOVEMENT component, read by id.
+            // moving-fire callsite gets.
             //
             // Invariant: this read is unguarded but safe under MOVEMENT
             // membership-narrowing because only a mover reaches this pass. A
@@ -111,7 +110,7 @@ public class InfantryWeapons {
             // burstRemaining stays 0 and it never enters burstScratch above. If
             // turrets are ever rewired to burst via the COMBAT columns, gate
             // this on world.hasMovement(id) (a non-mover is always STANCED).
-            fireShot(id, burstTargetId, FireStance.stanceFor(world.moveProgress(id)));
+            fireShot(id, burstTargetId, FireStance.stanceFor(!roster.movement().settled(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
             // invalidate these post-fire writes — no slot re-resolve needed.

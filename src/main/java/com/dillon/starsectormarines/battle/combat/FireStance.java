@@ -7,12 +7,12 @@ package com.dillon.starsectormarines.battle.combat;
  * Replaces the implicit "everything fires at base accuracy" baseline that
  * worked while the only firing path was a stationary engagement loop.
  *
- * <p>{@link #stanceFor(float)} is the convenience for callers that don't
- * already know — they pass the unit's {@code moveProgress} and let this enum
- * decide. Action implementations that <em>do</em> know (e.g. a cordon
- * holder explicitly at-post, an EngagePosture member dwelling between
- * bursts) should pass the stance directly so the strict-vs-lerping
- * heuristic doesn't second-guess them.
+ * <p>{@link #stanceFor(boolean)} is the convenience for callers that don't
+ * already know — they pass the unit's motion state (typically
+ * {@code !movement.settled(id)}) and let this enum decide. Action
+ * implementations that <em>do</em> know (e.g. a cordon holder explicitly
+ * at-post, an EngagePosture member dwelling between bursts) should pass the
+ * stance directly so the heuristic doesn't second-guess them.
  */
 public enum FireStance {
 
@@ -43,14 +43,13 @@ public enum FireStance {
 
     /**
      * Heuristic stance for callers that don't track it explicitly — strict
-     * rule: any non-zero {@code moveProgress} reads as {@link #MOVING}. The
-     * unit is currently lerping in the renderer, so a stationary-fire
-     * accuracy multiplier would look visually wrong. Burst-tick follow-ups
-     * use this so a unit that walked off after the burst started gets
-     * downgraded mid-burst. The caller passes the unit's {@code moveProgress}
-     * (read by-id/by-index from the registry) rather than a {@link Unit} ref.
+     * rule: a unit in motion reads as {@link #MOVING} (the sprite is visibly
+     * displacing, so a stationary-fire accuracy multiplier would look
+     * visually wrong). Burst-tick follow-ups use this so a unit that walked
+     * off after the burst started gets downgraded mid-burst. The caller
+     * resolves the motion state ({@code !movement.settled(id)}).
      */
-    public static FireStance stanceFor(float moveProgress) {
-        return moveProgress > 0f ? MOVING : STANCED;
+    public static FireStance stanceFor(boolean moving) {
+        return moving ? MOVING : STANCED;
     }
 }

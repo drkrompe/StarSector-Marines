@@ -26,14 +26,12 @@ public class FireStanceTest {
     }
 
     @Test
-    public void stanceForReadsMoveProgress() {
-        // stanceFor takes the caller-resolved moveProgress directly now — the
-        // by-id/by-index read lives at the callsite, this enum just thresholds.
-        assertEquals(FireStance.STANCED, FireStance.stanceFor(0f),
-                "moveProgress == 0 → STANCED");
-        assertEquals(FireStance.MOVING, FireStance.stanceFor(0.5f),
-                "moveProgress > 0 → MOVING (strict rule: any lerp = moving)");
-        assertEquals(FireStance.MOVING, FireStance.stanceFor(0.95f),
-                "even a near-arrived unit is still MOVING — visually still lerping");
+    public void stanceForReadsMotionState() {
+        // stanceFor takes the caller-resolved motion state (!movement.settled(id))
+        // — the by-id read lives at the callsite, this enum just maps it.
+        assertEquals(FireStance.STANCED, FireStance.stanceFor(false),
+                "not moving → STANCED");
+        assertEquals(FireStance.MOVING, FireStance.stanceFor(true),
+                "moving → MOVING (strict rule: any motion = moving)");
     }
 }

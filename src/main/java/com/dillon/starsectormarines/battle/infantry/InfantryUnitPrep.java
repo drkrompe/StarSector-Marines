@@ -88,7 +88,7 @@ public final class InfantryUnitPrep {
      *
      * <p>The helper deliberately does not replace the unit's pursuit target.
      * A passing shot should not pull a patrol, room-clear, or fallback path
-     * away from its objective. {@link FireStance#stanceFor(float)} is sampled
+     * away from its objective. {@link FireStance#stanceFor(boolean)} is sampled
      * after the action ran, so a unit that advanced this tick receives the
      * moving-fire penalty and a planted unit receives the stanced roll.
      * Cooldown/range/LOS are revalidated by the consume-once firing system.
@@ -98,7 +98,7 @@ public final class InfantryUnitPrep {
         long target = sim.getTacticalScoring().closestEnemyInAttackRange(unit);
         if (target == 0L) return false;
         sim.combat().setFireIntent(unit, target,
-                FireStance.stanceFor(sim.world().moveProgress(unit)), false);
+                FireStance.stanceFor(!sim.movement().settled(unit)), false);
         return true;
     }
 
