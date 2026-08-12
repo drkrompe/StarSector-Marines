@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ChainDiscovery;
+import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -40,6 +41,8 @@ public final class ThreatInterventionOfferSystem implements CampaignSystem {
         withdrawMootOffers(state);
         for (int chainRow = 0; chainRow < state.chainCount; chainRow++) {
             if (!ChainDiscovery.isDiscoveredActive(state, chainRow)
+                    || ChainArchetype.fromByte(state.chainArchetype[chainRow])
+                        == ChainArchetype.CIVIL_WAR
                     || hasIntervention(state, state.chainId[chainRow])) {
                 continue;
             }

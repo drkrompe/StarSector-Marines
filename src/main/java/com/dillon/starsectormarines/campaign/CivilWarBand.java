@@ -5,7 +5,7 @@ public enum CivilWarBand {
     NONE(0),
     COALITION_BUILDING(15),
     MOBILIZATION(30),
-    OPEN_CONFLICT(0);
+    OPEN_CONFLICT(60);
 
     private static final CivilWarBand[] VALUES = values();
 

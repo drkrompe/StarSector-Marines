@@ -85,7 +85,7 @@ class ThreatInterventionOfferSystemTest {
     }
 
     @Test
-    void discoveredCivilWarOffersMarketWideInterventionBeforeHandoff() {
+    void civilWarIsReservedForDedicatedParticipationOffers() {
         CampaignState state = new CampaignState();
         long claimant = state.addHouse(1, 1, HouseFlavor.FEUDAL, HouseRank.TIER_3,
                 HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, "Claimant");
@@ -100,17 +100,8 @@ class ThreatInterventionOfferSystemTest {
 
         new ThreatInterventionOfferSystem().tick(state, 20);
 
-        assertEquals(1, state.contractCount);
-        assertEquals(coalition, state.contractPatronHouseId[0]);
-        assertEquals(claimant, state.contractTargetHouseId[0]);
-        assertEquals(1, state.contractMarketId[0]);
-        assertEquals(-1, state.contractIndustryId[0]);
-        assertEquals(chainId, state.contractOpposedChainId[0]);
-
-        state.contractState[0] = ContractState.COMPLETED.toByte();
-        assertTrue(ChainIntervention.stopOpposedChain(state, 0, 21));
-        new ChainAdvancementSystem().tick(state, 22);
-        assertEquals(ChainState.FAILED,
+        assertEquals(0, state.contractCount);
+        assertEquals(ChainState.ACTIVE,
                 ChainState.fromByte(state.chainState[chainRow]));
         assertEquals(0, state.throneClaimCount);
     }

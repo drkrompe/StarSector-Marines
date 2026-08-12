@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
+import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
@@ -44,6 +45,7 @@ class CampaignStateSystemOrderTest {
                 com.dillon.starsectormarines.campaign.systems.ContractGenerator.class);
         int discovery = indexOf(systems, DiscoveryPropagationSystem.class);
         int interventionOffers = indexOf(systems, ThreatInterventionOfferSystem.class);
+        int civilWarOffers = indexOf(systems, CivilWarParticipationOfferSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
@@ -63,6 +65,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(chainAdvancement < consolidation);
         assertTrue(consolidation < contractGeneration);
         assertTrue(discovery < interventionOffers);
+        assertTrue(discovery < civilWarOffers);
+        assertTrue(civilWarOffers < interventionOffers);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);

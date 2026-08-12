@@ -69,6 +69,7 @@ class CivilWarParticipationTest {
                 CivilWarParticipation.applyCompleted(
                         claimant.state, claimantContract, 50));
         assertEquals(180, claimant.state.chainProgress[claimant.chainRow]);
+        assertEquals(60, claimant.state.chainPlayerContribution[claimant.chainRow]);
         assertEquals(ChainState.ACTIVE,
                 ChainState.fromByte(claimant.state.chainState[claimant.chainRow]));
 
@@ -77,6 +78,7 @@ class CivilWarParticipationTest {
                         incumbent.state, incumbentContract, 50));
         assertEquals(ChainState.FAILED,
                 ChainState.fromByte(incumbent.state.chainState[incumbent.chainRow]));
+        assertEquals(60, incumbent.state.chainPlayerContribution[incumbent.chainRow]);
         assertEquals(50, incumbent.state.chainResolvedTick[incumbent.chainRow]);
     }
 

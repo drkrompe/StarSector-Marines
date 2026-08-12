@@ -210,7 +210,7 @@ public final class MissionGenerator {
         if (targetMarket == null || targetMarket.getPrimaryEntity() == null) return null;
 
         String targetPlanetName = targetMarket.getPrimaryEntity().getName();
-        String targetIndustryId = pickFirstNonDisruptedIndustry(targetMarket);
+        String targetIndustryId = contractIndustry(state, row, targetMarket);
         MissionType missionType = assaultPhase != null
                 ? assaultPhase.missionType : profile.missionType;
         String missionTitle = assaultPhase != null
@@ -310,6 +310,18 @@ public final class MissionGenerator {
             return ind.getId();
         }
         return null;
+    }
+
+    private static String contractIndustry(CampaignState state, int row,
+                                           MarketAPI targetMarket) {
+        int industrySlot = state.contractIndustryId[row];
+        if (industrySlot >= 0) {
+            String industryId = state.industryRegistry.get(industrySlot);
+            com.fs.starfarer.api.campaign.econ.Industry industry = industryId != null
+                    ? targetMarket.getIndustry(industryId) : null;
+            if (industry != null && !industry.isDisrupted()) return industryId;
+        }
+        return pickFirstNonDisruptedIndustry(targetMarket);
     }
 
     /** Mirrors IntelReader's defense classification just enough for contract risk. */
