@@ -153,8 +153,6 @@ public final class BreachAndAdvance implements Action {
 
         if (sim.movement().atCell(member, destX, destY)) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             // Squad-wide success: all members are at their forward cells.
             // Per-member success would advance the plan after the first
             // arrives, which would let the rest scramble independently.

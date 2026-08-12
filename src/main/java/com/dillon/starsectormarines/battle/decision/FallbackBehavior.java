@@ -22,8 +22,6 @@ public final class FallbackBehavior implements UnitBehavior {
         int fy = sim.world().fallbackCellY(u);
         if (sim.movement().atCell(u, fx, fy)) {
             sim.clearPath(u);
-            sim.world().setMoveProgress(u, 0f);
-            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
             return;
         }
         if (sim.movement().mayRepath(u)) {

@@ -95,7 +95,7 @@ public class OverwatchPostureTest {
         assertTrue(Paths.isEmpty(sim.world().path(defender)), "Overwatch must not queue a path");
         assertEquals(5, sim.world().cellX(defender));
         assertEquals(5, sim.world().cellY(defender));
-        assertEquals(0f, sim.world().moveProgress(defender), 1e-6f);
+        assertTrue(sim.movement().settled(defender), "Overwatch must not accumulate motion");
         assertEquals(sim.world().cellX(defender), sim.world().renderX(defender), 1e-6f);
         assertEquals(sim.world().cellY(defender), sim.world().renderY(defender), 1e-6f);
     }

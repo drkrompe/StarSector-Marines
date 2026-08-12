@@ -62,8 +62,6 @@ public final class MechBreakContact implements Action {
             sim.advanceMovement(member);
         } else {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             opportunisticMechFire(member, sim);
         }
         return ActionStatus.RUNNING;

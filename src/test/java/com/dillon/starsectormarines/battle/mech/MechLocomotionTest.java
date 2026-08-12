@@ -31,7 +31,9 @@ public class MechLocomotionTest {
                 sim.getEntityWorld(), c, sim.getRoster());
 
         sim.advanceMovement(mech);
-        assertEquals(0f, sim.world().moveProgress(mech), 0.0001f);
+        // Misaligned chassis: the mover's pivot gate holds translation, so the
+        // carrot-picker hasn't crossed the first waypoint yet.
+        assertEquals(1, sim.world().pathIdx(mech), "pivot gate blocks translation while misaligned");
         assertEquals(5f, sim.world().renderX(mech), 0.0001f);
 
         steering.tick(BattleSimulation.TICK_DT);
@@ -42,7 +44,7 @@ public class MechLocomotionTest {
             sim.advanceMovement(mech);
             steering.tick(BattleSimulation.TICK_DT);
         }
-        assertTrue(sim.world().moveProgress(mech) > 0f);
+        assertTrue(sim.world().x(mech) > 5.5f, "chassis has translated forward off its spawn-cell center once aligned");
         assertTrue(sim.world().renderX(mech) > 5f);
     }
 

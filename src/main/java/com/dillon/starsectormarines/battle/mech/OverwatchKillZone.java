@@ -113,9 +113,6 @@ public final class OverwatchKillZone implements Action {
         }
         if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
-        } else {
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
 
         // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)

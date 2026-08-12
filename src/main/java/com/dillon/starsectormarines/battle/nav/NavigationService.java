@@ -302,6 +302,7 @@ public final class NavigationService {
         int oldDestY = Paths.destY(oldPath);
         world.setPathRef(id, newPath);
         world.setPathIdx(id, newPath.length == 0 ? 0 : 1);
+        if (newPath.length > 0) roster.movement().markRepath(id);
         int newDestX;
         int newDestY;
         if (newPath.length > 0) {

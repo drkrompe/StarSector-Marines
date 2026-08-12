@@ -123,9 +123,6 @@ public final class BackstopAssignedSquad implements Action {
         }
         if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
-        } else {
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw

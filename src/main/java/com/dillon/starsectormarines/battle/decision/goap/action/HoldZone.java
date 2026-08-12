@@ -241,8 +241,6 @@ public final class HoldZone extends AbstractZoneAction {
 
     private static void hold(long member, BattleControl sim) {
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 
     /**

@@ -165,14 +165,16 @@ public final class BattleComponents {
     /** {@link #COMBAT} field 14: the combatant's immutable {@link com.dillon.starsectormarines.battle.infantry.SoldierProfile} (OBJECT). */
     public static final int COMBAT_SOLDIER_PROFILE = 14;
 
-    /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
-    public static final int MOVEMENT_MOVE_PROGRESS = 0;
+    /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
+    public static final int MOVEMENT_GAIT_PHASE = 0;
     /** {@link #MOVEMENT} field 1: the flat {@code int[]} path reference (OBJECT); {@link com.dillon.starsectormarines.battle.nav.GridPathfinder#EMPTY_PATH} = nothing scheduled. */
     public static final int MOVEMENT_PATH = 1;
-    /** {@link #MOVEMENT} field 2: index of the next cell along the path to step into (INT). */
+    /** {@link #MOVEMENT} field 2: index of the next un-crossed path waypoint — the carrot picker's resume cursor (INT); {@code >= cellCount(path)} = path exhausted = not moving. */
     public static final int MOVEMENT_PATH_IDX = 2;
     /** {@link #MOVEMENT} field 3: per-unit movement speed in cells/sec — the mover stat {@code advanceAlongPath} steps by (FLOAT). Seed-only like the COMBAT stats. */
     public static final int MOVEMENT_MOVE_SPEED = 3;
+    /** {@link #MOVEMENT} field 4: sim-clock stamp of the last {@code NavigationService.setPath} assignment (FLOAT) — drives {@code MovementService.mayRepath}'s mid-motion throttle. */
+    public static final int MOVEMENT_LAST_REPATH_TIME = 4;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -835,7 +837,8 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement",
-                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
+                FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);

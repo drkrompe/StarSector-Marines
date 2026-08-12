@@ -101,8 +101,6 @@ public final class FleeBehavior implements UnitBehavior {
 
         if (sim.world().wanderDwellTimer(u) > 0f) {
             sim.world().setWanderDwellTimer(u, sim.world().wanderDwellTimer(u) - BattleSimulation.TICK_DT);
-            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
-            sim.world().setMoveProgress(u, 0f);
             return;
         }
 

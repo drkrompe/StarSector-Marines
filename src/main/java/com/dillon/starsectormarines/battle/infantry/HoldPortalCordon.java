@@ -151,8 +151,6 @@ public final class HoldPortalCordon implements Action {
         boolean onSite = sim.movement().atCell(member, chargeCellX, chargeCellY);
         if (onSite) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             return ActionStatus.RUNNING;
         }
         if (sim.movement().mayRepath(member)) {
@@ -167,10 +165,10 @@ public final class HoldPortalCordon implements Action {
     /**
      * Portal-holder slot: walk to the assigned guard cell while firing
      * opportunistically, then hold position firing at anything in LOS +
-     * range. The {@code setMoveProgress / setRenderPos} reset is what
-     * pins the holder in place between shots — no micro-movement, the
-     * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
-     * is the layer that would change that).
+     * range. Clearing any leftover path pins the holder in place between
+     * shots — no micro-movement, the Stage 2 cordon doesn't reposition
+     * (Slice 3's cover-aware reposition is the layer that would change
+     * that).
      */
     private ActionStatus executeHolder(long member, GuardPost post, BattleControl sim) {
         boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
@@ -186,8 +184,6 @@ public final class HoldPortalCordon implements Action {
             return ActionStatus.RUNNING;
         }
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
         opportunisticFire(member, sim, FireStance.STANCED);

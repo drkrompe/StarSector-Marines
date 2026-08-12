@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * <p>Both kernels run the same arithmetic over the same fields — the Phase-1
  * conversion candidates: the {@code AI_STATE} cadence countdowns
  * ({@code repositionCooldown}/{@code fallbackTimer}/{@code wanderDwellTimer}), the
- * {@code MOVEMENT} {@code moveProgress} advance, and the {@code COMBAT}
+ * {@code MOVEMENT} {@code gaitPhase} advance, and the {@code COMBAT}
  * {@code cooldownTimer}/{@code burstTimer} decrements — over the real live
  * combatant archetype {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT,
  * AI_STATE}} using the real {@link BattleComponents} field layout. The decision the
@@ -74,7 +74,7 @@ public class EcsAccessBenchTest {
         w.setFloat(id, c.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN, 0.1f + (i % 7) * 0.13f);
         w.setFloat(id, c.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER,      0.2f + (i % 5) * 0.17f);
         w.setFloat(id, c.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER,  0.3f + (i % 3) * 0.21f);
-        w.setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS,       (i % 10) * 0.1f);
+        w.setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE,          (i % 10) * 0.1f);
         w.setFloat(id, c.COMBAT,   BattleComponents.COMBAT_COOLDOWN_TIMER,        0.05f + (i % 9) * 0.11f);
         w.setFloat(id, c.COMBAT,   BattleComponents.COMBAT_BURST_TIMER,           0.07f + (i % 4) * 0.09f);
     }
@@ -133,9 +133,9 @@ public class EcsAccessBenchTest {
             wd -= DT; if (wd < 0f) wd += PERIOD;
             w.setFloat(id, c.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER, wd);
 
-            float mp = w.getFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS);
+            float mp = w.getFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE);
             mp += DT; if (mp >= 1f) mp -= 1f;
-            w.setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, mp);
+            w.setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE, mp);
 
             float cd = w.getFloat(id, c.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER);
             cd -= DT; if (cd < 0f) cd += PERIOD;
@@ -157,7 +157,7 @@ public class EcsAccessBenchTest {
             float[] rcA = t.floats(c.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN).array();
             float[] ftA = t.floats(c.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER).array();
             float[] wdA = t.floats(c.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER).array();
-            float[] mpA = t.floats(c.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS).array();
+            float[] mpA = t.floats(c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE).array();
             float[] cdA = t.floats(c.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER).array();
             float[] btA = t.floats(c.COMBAT, BattleComponents.COMBAT_BURST_TIMER).array();
             float[] hpA = t.floats(c.HEALTH, BattleComponents.HEALTH_HP).array();
@@ -209,9 +209,9 @@ public class EcsAccessBenchTest {
             assertEquals(wa.getFloat(id, ca.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER),
                          wb.getFloat(id, cb.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER),
                          "wanderDwellTimer @id=" + id);
-            assertEquals(wa.getFloat(id, ca.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS),
-                         wb.getFloat(id, cb.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS),
-                         "moveProgress @id=" + id);
+            assertEquals(wa.getFloat(id, ca.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE),
+                         wb.getFloat(id, cb.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE),
+                         "gaitPhase @id=" + id);
             assertEquals(wa.getFloat(id, ca.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER),
                          wb.getFloat(id, cb.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER),
                          "cooldownTimer @id=" + id);

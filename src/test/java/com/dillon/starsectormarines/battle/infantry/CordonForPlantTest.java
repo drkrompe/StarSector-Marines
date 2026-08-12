@@ -189,7 +189,8 @@ public class CordonForPlantTest {
                 .squad(1)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(charge));
-        sim.world().setMoveProgress(planter, 0f);
+        // No path assigned, so the planter is settled and at-cell by default —
+        // ChargeSiteObjective.tick() gates dwell progress on sim.movement().atCell/settled.
         // Tick the objective enough to flip isComplete().
         for (int i = 0; i < 200; i++) charge.tick(sim);
         assertTrue(charge.isComplete(), "test prerequisite: charge completes after dwell");

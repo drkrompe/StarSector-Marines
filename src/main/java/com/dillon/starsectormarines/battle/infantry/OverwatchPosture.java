@@ -22,8 +22,8 @@ import com.dillon.starsectormarines.battle.nav.Paths;
  * whenever its precondition set is satisfied — Overwatch is the fallback when
  * Engage's {@link Predicate#ENEMY_IN_KILL_ZONE} precondition is false.
  *
- * <p>Per-member: holds the current cell (clears any leftover path, pins
- * {@code moveProgress/renderX/renderY}), does not fire. Same on-post discipline
+ * <p>Per-member: holds the current cell (clears any leftover path),
+ * does not fire. Same on-post discipline
  * as {@link HoldPortalCordon}'s holder branch without the opportunistic-fire
  * call. The "no fire" is the ambush's whole point — the first shot lands when
  * the planner switches to Engage.
@@ -55,8 +55,6 @@ public final class OverwatchPosture implements Action {
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         // Drop any in-flight path — the squad is on overwatch, not moving.
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         // Deliberately do NOT fire and do NOT touch cooldownTimer — the
         // ambush's first shot is owned by EngagePosture on the next replan
         // after the kill-zone gate flips.

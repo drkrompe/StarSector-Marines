@@ -153,10 +153,11 @@ public class SabotageCommandTest {
         ChargeSiteObjective cs = new ChargeSiteObjective(x, y, 0.0001f, name);
         // Plant a planter on top + tick once so isComplete() flips true
         // without needing the rest of the sim to be set up properly.
+        // No path assigned, so the planter is settled and at-cell by default —
+        // ChargeSiteObjective.isComplete() gates on sim.movement().atCell/settled.
         long p = sim.spawn(new EntitySpec("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y)
                 .role(UnitRole.PLANTER)
                 .assignedObjective(cs));
-        sim.world().setMoveProgress(p, 0f);
         cs.tick(sim);
         return cs;
     }

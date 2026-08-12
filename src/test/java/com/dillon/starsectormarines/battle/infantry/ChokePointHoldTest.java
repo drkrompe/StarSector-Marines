@@ -219,7 +219,7 @@ public class ChokePointHoldTest {
         hold.execute(d1, squad, sim);
 
         assertTrue(Paths.isEmpty(sim.world().path(d1)), "on-post member should have its path cleared");
-        assertEquals(0f, sim.world().moveProgress(d1), 1e-6f);
+        assertTrue(sim.movement().settled(d1), "on-post member has no un-exhausted path remaining");
     }
 
     @Test

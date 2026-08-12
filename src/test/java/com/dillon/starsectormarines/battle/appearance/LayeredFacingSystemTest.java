@@ -67,10 +67,14 @@ public class LayeredFacingSystemTest {
     @Test
     public void movingTorsoFollowsPathWhileHelmetLooksAtTarget() {
         BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.setPath(marine, new int[]{5, 5, 5, 6});
-        sim.world().setMoveProgress(marine, 0.25f);
+        // Gait phase drives the locomotion pose while the path is un-exhausted;
+        // poke the raw column directly (no public mid-motion setter — the mover
+        // owns advancing it) to pin a deterministic value for this assertion.
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE, 0.25f);
         sim.world().setTargetId(marine, enemy);
 
         new FacingSystem(sim.getEntityWorld(), sim.getBattleComponents(), sim.getRoster()).tick();

@@ -41,8 +41,8 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. */
-    private static final int SCHEMA_VERSION = 4;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. */
+    private static final int SCHEMA_VERSION = 5;
 
     private SquadStateDumper() {}
 
@@ -155,7 +155,7 @@ public final class SquadStateDumper {
             o.put("currentZone", sim.getZoneGraph().zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)));
             o.put("hp", sim.world().hp(u));
             o.put("maxHp", sim.world().maxHp(u));
-            o.put("moveProgress", sim.world().moveProgress(u));
+            o.put("settled", sim.movement().settled(u));
             long dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != 0L ? sim.identity().name(dumpTarget) : null);
             // Pathfinder reachability of the unit's current target. False

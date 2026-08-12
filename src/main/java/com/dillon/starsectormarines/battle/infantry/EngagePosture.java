@@ -134,9 +134,6 @@ public final class EngagePosture implements Action {
             int[] memberPath = sim.world().path(member);
             if (sim.world().pathIdx(member) < Paths.cellCount(memberPath)) {
                 sim.advanceMovement(member);
-            } else {
-                sim.world().setMoveProgress(member, 0f);
-                sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range

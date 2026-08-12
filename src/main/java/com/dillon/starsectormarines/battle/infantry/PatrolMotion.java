@@ -164,16 +164,12 @@ public final class PatrolMotion {
             sim.advanceMovement(member);
             return true;
         }
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         return false;
     }
 
     /** Stop and clear any path — park the member on its current cell. */
     public static void hold(long member, BattleControl sim) {
         sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 
     /**

@@ -93,9 +93,9 @@ import java.util.Random;
  *   <li>Each alive unit refreshes its target to the nearest alive enemy.</li>
  *   <li>If a target is in {@code world.attackRange(id)}, the unit stops moving and
  *       fires on {@code world.attackCooldown(id)}, dealing {@code world.attackDamage(id)}.</li>
- *   <li>Otherwise the unit re-pathfinds (only when between cells, to avoid a
- *       visual jump mid-step) and advances {@code moveProgress} along the path
- *       at {@code world.moveSpeed(id)} cells/sec.</li>
+ *   <li>Otherwise the unit re-pathfinds (throttled by
+ *       {@code MovementService.mayRepath}) and carrot-follows the path
+ *       continuously at {@code world.moveSpeed(id)} cells/sec.</li>
  *   <li>When one faction runs out of alive units, the sim flags
  *       {@link #isComplete()} and records the winner.</li>
  * </ul>
@@ -884,6 +884,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
+        movement().tickClock(TICK_DT);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker

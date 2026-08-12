@@ -151,8 +151,6 @@ public final class World {
     // hasMovement is the presence check; the field accessors are fail-loud on a
     // unit that lacks it (and once the death drain has transmuted to a corpse).
     public boolean hasMovement(long id) { return movement.has(id); }
-    public float moveProgress(long id) { return movement.moveProgress(id); }
-    public void setMoveProgress(long id, float v) { movement.setMoveProgress(id, v); }
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #hasMovement}. */
     public float moveSpeed(long id) { return movement.moveSpeed(id); }
 

@@ -92,6 +92,56 @@ public final class PurePursuit {
     }
 
     /**
+     * {@link #pick(float, float, float[], float[], int, float)} over a flat
+     * {@code int[]} cell path ({@code (path[2i], path[2i+1])} = cell {@code i},
+     * the {@code GridPathfinder} output shape), with each waypoint at the cell
+     * center ({@code +0.5}). Same algorithm, no per-tick {@code float[]}
+     * conversion — this is the infantry mover's carrot source.
+     */
+    public static Carrot pick(float bodyX, float bodyY,
+                              int[] flatCells,
+                              int startIdx,
+                              float lookAhead) {
+        int n = flatCells.length / 2;
+        if (n == 0) return new Carrot(bodyX, bodyY, 0, true);
+        if (n == 1) return new Carrot(flatCells[0] + 0.5f, flatCells[1] + 0.5f, 0, true);
+
+        int idx = Math.max(0, Math.min(startIdx, n - 1));
+        while (idx < n - 1) {
+            float ax = (idx == 0) ? bodyX : flatCells[(idx - 1) * 2] + 0.5f;
+            float ay = (idx == 0) ? bodyY : flatCells[(idx - 1) * 2 + 1] + 0.5f;
+            float bx = flatCells[idx * 2] + 0.5f;
+            float by = flatCells[idx * 2 + 1] + 0.5f;
+            float segDx = bx - ax;
+            float segDy = by - ay;
+            float toBodyDx = bodyX - bx;
+            float toBodyDy = bodyY - by;
+            if (segDx * toBodyDx + segDy * toBodyDy >= 0f) {
+                idx++;
+            } else {
+                break;
+            }
+        }
+
+        float remaining = lookAhead;
+        float cx = bodyX, cy = bodyY;
+        int cursor = idx;
+        while (cursor < n) {
+            float tx = flatCells[cursor * 2] + 0.5f, ty = flatCells[cursor * 2 + 1] + 0.5f;
+            float dx = tx - cx, dy = ty - cy;
+            float d = (float) Math.sqrt(dx * dx + dy * dy);
+            if (d >= remaining) {
+                float t = (d > 1e-6f) ? (remaining / d) : 0f;
+                return new Carrot(cx + t * dx, cy + t * dy, idx, false);
+            }
+            remaining -= d;
+            cx = tx; cy = ty;
+            cursor++;
+        }
+        return new Carrot(flatCells[(n - 1) * 2] + 0.5f, flatCells[(n - 1) * 2 + 1] + 0.5f, idx, true);
+    }
+
+    /**
      * Sum of remaining segment lengths from the body's position to the final
      * waypoint, walking through {@code xs[startIdx]} first. Used by callers
      * to size the brake taper into the last waypoint — target speed gets

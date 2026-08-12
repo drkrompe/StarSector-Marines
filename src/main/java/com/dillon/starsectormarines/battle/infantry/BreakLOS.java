@@ -64,8 +64,6 @@ public final class BreakLOS implements Action {
         boolean atDest = sim.movement().atCell(member, sim.world().fallbackCellX(member), sim.world().fallbackCellY(member));
         if (atDest) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
             // of the threat") is implicit: findFallbackPosition only picks
             // cells hidden from every enemy, so by definition no enemy still

@@ -70,9 +70,6 @@ public final class MechCombatantBehavior implements UnitBehavior {
         }
         if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {
             sim.advanceMovement(u);
-        } else {
-            sim.world().setMoveProgress(u, 0f);
-            sim.world().setRenderPos(u, sim.world().cellX(u), sim.world().cellY(u));
         }
     }
 

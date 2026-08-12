@@ -42,8 +42,6 @@ public final class InfantryUnitPrep {
         if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
         MarineSecondary sec = w.secondaryWeapon(id);
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
-        w.setMoveProgress(id, 0f);
-        w.setRenderPos(id, w.cellX(id), w.cellY(id));
         float fireAt = sec.aimDuration * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
             long aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
@@ -159,12 +157,6 @@ public final class InfantryUnitPrep {
         sim.world().setSecondaryActionTimer(id, sec.aimDuration);
         sim.world().setSecondaryFired(id, false);
         sim.world().setSecondaryAimTargetId(id, bestHardened);
-        // Freeze movement state for this tick — the next tick's
-        // tickAimAndShortCircuit will keep doing it. Mirrors what that method
-        // does on its own entry path so the visible behavior is consistent
-        // from the first frame of the aim window.
-        sim.world().setMoveProgress(unit, 0f);
-        sim.world().setRenderPos(unit, sim.world().cellX(unit), sim.world().cellY(unit));
         return true;
     }
 }

@@ -199,8 +199,9 @@ public class SecureObjectiveZoneTest {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (sim.role().role(u) == UnitRole.PLANTER) {
+                // setCellPos writes POSITION directly, no path involved — the
+                // unit is already settled (no un-exhausted path).
                 sim.world().setCellPos(u, 8, 3);
-                sim.world().setMoveProgress(u, 0f);
             }
         }
         // Tick the objective enough times to complete.

@@ -110,7 +110,7 @@ public class BreakLOSTest {
         assertEquals(ActionStatus.SUCCESS, status,
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
         assertTrue(Paths.isEmpty(sim.world().path(marine)), "arrived → no path");
-        assertEquals(0f, sim.world().moveProgress(marine), 1e-6f);
+        assertTrue(sim.movement().settled(marine), "arrived → path cleared, no un-exhausted path remains");
         assertEquals(sim.world().cellX(marine), sim.world().renderX(marine), 1e-6f);
         assertEquals(sim.world().cellY(marine), sim.world().renderY(marine), 1e-6f);
     }

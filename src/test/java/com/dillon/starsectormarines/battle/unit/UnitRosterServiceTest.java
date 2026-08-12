@@ -332,33 +332,35 @@ public class UnitRosterServiceTest {
     }
 
     @Test
-    public void allocateMoveProgressDefaultsAndAccessorsRouteThroughWorld() {
+    public void allocatePathIdxDefaultsAndAccessorsRouteThroughWorld() {
+        // moveProgress is retired; pathIdx is the surviving MOVEMENT field with
+        // public round-trip accessors, so it carries this coverage now.
         UnitRosterService r = roster();
         World w = r.world();
         long u = r.spawn(unit("u"));
 
-        assertEquals(0f, w.moveProgress(u), 1e-6f);
+        assertEquals(0, w.pathIdx(u));
 
-        w.setMoveProgress(u, 0.2f);
-        assertEquals(0.2f, w.moveProgress(u), 1e-6f);
+        w.setPathIdx(u, 2);
+        assertEquals(2, w.pathIdx(u));
     }
 
     @Test
-    public void moveProgressIsUndisturbedByDenseTailSwap() {
+    public void pathIdxIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
         long a = r.spawn(unit("a"));
         long b = r.spawn(unit("b"));
         long c = r.spawn(unit("c"));
         long idA = a;
-        w.setMoveProgress(c, 0.9f);
+        w.setPathIdx(c, 3);
 
         // Releasing a swap-pops c into a's old dense slot — MOVEMENT is keyed by
         // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c));
-        assertEquals(0.9f, w.moveProgress(c), 1e-6f);
+        assertEquals(3, w.pathIdx(c));
     }
 
     @Test
@@ -865,7 +867,7 @@ public class UnitRosterServiceTest {
         assertEquals(-1, w.fallbackCellX(marine));
 
         // The field accessors are fail-loud on a unit that lacks the component.
-        assertThrows(RuntimeException.class, () -> w.moveProgress(turret));
+        assertThrows(RuntimeException.class, () -> w.pathIdx(turret));
         assertThrows(RuntimeException.class, () -> w.repositionCooldown(hub));
     }
 

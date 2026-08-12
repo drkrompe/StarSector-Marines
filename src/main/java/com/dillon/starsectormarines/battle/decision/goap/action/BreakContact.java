@@ -66,8 +66,6 @@ public final class BreakContact implements Action {
         } else {
             // In position — hold and fire stanced at anything that drifts in.
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
             opportunisticFire(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;

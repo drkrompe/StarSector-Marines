@@ -157,15 +157,10 @@ public final class HoldPost implements Action {
         }
         if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
-        } else {
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
     }
 
     private static void hold(long member, BattleControl sim) {
         sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
     }
 }

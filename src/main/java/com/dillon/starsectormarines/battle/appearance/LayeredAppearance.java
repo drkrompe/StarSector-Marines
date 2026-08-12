@@ -47,9 +47,9 @@ public final class LayeredAppearance {
         return Math.max(-MAX_HEAD_LOOK_DEGREES, Math.min(MAX_HEAD_LOOK_DEGREES, delta));
     }
 
-    /** Movement progress is already a repeating per-cell [0,1] walk cycle. */
-    public static float locomotionPhase(float moveProgress) {
-        float phase = moveProgress % 1f;
+    /** Gait phase accumulates one repeating [0,1) walk cycle per cell traveled. */
+    public static float locomotionPhase(float gaitPhase) {
+        float phase = gaitPhase % 1f;
         return phase < 0f ? phase + 1f : phase;
     }
 

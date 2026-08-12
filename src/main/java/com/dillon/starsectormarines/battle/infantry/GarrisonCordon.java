@@ -99,9 +99,8 @@ public final class GarrisonCordon implements Action {
      * Identical to {@link HoldPortalCordon}'s portal-holder branch (no
      * planter wiring) — walk to the assigned guard cell while firing
      * opportunistically (MOVING stance), then hold position firing at
-     * anything in LOS + range (STANCED). The reset on
-     * {@code moveProgress / renderX / renderY} pins the holder in place
-     * between bursts so they don't drift off-post.
+     * anything in LOS + range (STANCED). Clearing any leftover path pins
+     * the holder in place between bursts so they don't drift off-post.
      */
     private ActionStatus executeHolder(long member, HoldPortalCordon.GuardPost post, BattleControl sim) {
         boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
@@ -116,8 +115,6 @@ public final class GarrisonCordon implements Action {
             return ActionStatus.RUNNING;
         }
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        sim.world().setMoveProgress(member, 0f);
-        sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         opportunisticFire(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
     }

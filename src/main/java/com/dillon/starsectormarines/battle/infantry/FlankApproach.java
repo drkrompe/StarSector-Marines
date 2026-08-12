@@ -70,9 +70,6 @@ public final class FlankApproach implements Action {
         }
         if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
-        } else {
-            sim.world().setMoveProgress(member, 0f);
-            sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
         }
         return ActionStatus.RUNNING;
     }

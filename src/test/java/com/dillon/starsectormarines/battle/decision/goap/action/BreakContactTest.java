@@ -85,8 +85,8 @@ public class BreakContactTest {
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
         assertTrue(Paths.isEmpty(sim.world().path(marine)), "arrived → no path should be queued");
-        assertEquals(0f, sim.world().moveProgress(marine), 1e-6f,
-                "arrived → moveProgress reset, render position pinned");
+        assertTrue(sim.movement().settled(marine),
+                "arrived → path cleared, no un-exhausted path remains");
     }
 
     @Test

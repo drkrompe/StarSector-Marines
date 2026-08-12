@@ -79,8 +79,8 @@ public final class FacingSystem {
                     ? t.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array() : null;
             int[] pathIdx = hasMovement
                     ? t.ints(components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX).array() : null;
-            float[] moveProgress = hasMovement
-                    ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS).array() : null;
+            float[] gaitPhase = hasMovement
+                    ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE).array() : null;
 
             float[] actionTimer = hasSecondary
                     ? t.floats(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER).array() : null;
@@ -220,13 +220,13 @@ public final class FacingSystem {
                 if (hasLayeredAnimation) {
                     authorLayeredRow(r, type, hasCombat, hasMovement, inAim,
                             cooldownTimer, attackCooldown, actionTimer, secondarySpec,
-                            secondaryFired, paths, pathIdx, moveProgress, haveTargetDelta, targetDx,
+                            secondaryFired, paths, pathIdx, gaitPhase, haveTargetDelta, targetDx,
                             targetDy, havePathDelta, pathDx, pathDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
                             layeredFlags);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
-                    authorLayeredMechRow(r, hasMovement, paths, pathIdx, moveProgress,
+                    authorLayeredMechRow(r, hasMovement, paths, pathIdx, gaitPhase,
                             haveTargetDelta, targetDx, targetDy,
                             (MechLoadoutComponent) mechLoadout[r], mechFacing,
                             mechLocomotion, mechChaingunPhase, mechSrmPhase,
@@ -238,12 +238,12 @@ public final class FacingSystem {
     }
 
     private static void authorLayeredMechRow(
-            int row, boolean hasMovement, Object[] paths, int[] pathIdx, float[] moveProgress,
+            int row, boolean hasMovement, Object[] paths, int[] pathIdx, float[] gaitPhase,
             boolean haveTargetDelta, int targetDx, int targetDy,
             MechLoadoutComponent loadout, float[] facing, float[] locomotion,
             float[] chaingunPhase, float[] srmPhase, float[] lrmPhase, int[] flags,
             float[] steeringFacing, float[] angularVelocity, float[] hipFacing) {
-        boolean moving = hasMovement && moveProgress[row] > 0.0001f
+        boolean moving = hasMovement
                 && pathIdx[row] < Paths.cellCount((int[]) paths[row]);
         boolean turning = Math.abs(angularVelocity[row]) > 0.0001f;
         float hips = steeringFacing[row];
@@ -251,9 +251,12 @@ public final class FacingSystem {
         float desiredTorso = haveTargetDelta
                 ? LayeredAppearance.facingDegrees(targetDx, targetDy) : hips;
         facing[row] = LayeredMechAppearance.torsoFacing(hips, desiredTorso);
+        // Gait is gated on an un-exhausted path (not on the raw phase): a
+        // stopped unit keeps its stale phase value, and the gate is what
+        // returns it to the idle pose.
         locomotion[row] = turning && !moving
                 ? LayeredMechAppearance.turnStepPhase(steeringFacing[row])
-                : LayeredAppearance.locomotionPhase(hasMovement ? moveProgress[row] : 0f);
+                : LayeredAppearance.locomotionPhase(moving ? gaitPhase[row] : 0f);
 
         boolean chaingunActive = loadout.chaingunBurstRemaining > 0;
         boolean srmActive = loadout.srmSalvoRemaining > 0;
@@ -292,7 +295,7 @@ public final class FacingSystem {
             int row, UnitType type, boolean hasCombat, boolean hasMovement, boolean inAim,
             float[] cooldownTimer, float[] attackCooldown, float[] actionTimer,
             Object[] secondarySpec, int[] secondaryFired, Object[] paths, int[] pathIdx,
-            float[] moveProgress,
+            float[] gaitPhase,
             boolean haveTargetDelta, int targetDx, int targetDy,
             boolean havePathDelta, int pathDx, int pathDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
@@ -320,7 +323,7 @@ public final class FacingSystem {
         float torsoFacing = LayeredAppearance.facingDegrees(torsoDx, torsoDy);
         facing[row] = torsoFacing;
         locomotion[row] = LayeredAppearance.locomotionPhase(
-                hasMovement ? moveProgress[row] : 0f);
+                moving ? gaitPhase[row] : 0f);
         headLook[row] = haveTargetDelta
                 ? LayeredAppearance.headLookDegrees(torsoFacing,
                     LayeredAppearance.facingDegrees(targetDx, targetDy))
