@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ChainState;
+import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChronicleBand;
 import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.ThroneClaimState;
 
 import java.util.EnumSet;
 
@@ -28,7 +30,8 @@ public final class DiscoveryPropagationSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> reads() {
-        return EnumSet.of(CampaignTable.CHAINS, CampaignTable.PLAYER_REP);
+        return EnumSet.of(CampaignTable.CHAINS, CampaignTable.PLAYER_REP,
+                CampaignTable.THRONE_CLAIMS);
     }
 
     @Override
@@ -46,6 +49,7 @@ public final class DiscoveryPropagationSystem implements CampaignSystem {
                 continue;
             }
             if (state.chainDiscoveryProcessedTick[chainRow] >= 0) continue;
+            if (hasPreparedHandoff(state, chainRow)) continue;
 
             state.chainDiscoveryProcessedTick[chainRow] = day;
             ChronicleBand band = newsBand(state, chainRow);
@@ -56,6 +60,22 @@ public final class DiscoveryPropagationSystem implements CampaignSystem {
                     state.chainMarketId[chainRow], state.chainIndustryId[chainRow],
                     state.chainResolvedTick[chainRow], day);
         }
+    }
+
+    private static boolean hasPreparedHandoff(CampaignState state, int chainRow) {
+        if (ChainArchetype.fromByte(state.chainArchetype[chainRow])
+                != ChainArchetype.CIVIL_WAR) {
+            return false;
+        }
+        long chainId = state.chainId[chainRow];
+        for (int claimRow = 0; claimRow < state.throneClaimCount; claimRow++) {
+            if (state.throneClaimSourceChainId[claimRow] == chainId
+                    && ThroneClaimState.fromByte(state.throneClaimState[claimRow])
+                        == ThroneClaimState.PREPARED) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void processActiveRumor(CampaignState state, int chainRow, int day) {

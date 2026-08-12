@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.dillon.starsectormarines.campaign.ThroneClaimState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,6 +63,33 @@ class DiscoveryPropagationSystemTest {
 
         assertEquals(0, fixture.state.chronicleCount);
         assertEquals(25, fixture.state.chainDiscoveryProcessedTick[chainRow]);
+    }
+
+    @Test
+    void civilWarOutcomeWaitsForPreparedHandoffToFinish() {
+        Fixture fixture = new Fixture(HouseRank.TIER_3);
+        long chainId = fixture.state.addAutonomousChain(fixture.actor, fixture.target,
+                1, -1, HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 180, (byte) 128, 1);
+        int chainRow = fixture.state.chainIndex(chainId);
+        fixture.state.chainState[chainRow] = ChainState.RESOLVED.toByte();
+        fixture.state.chainResolvedTick[chainRow] = 20;
+        int resultFaction = fixture.state.factionRegistry.intern("claimants");
+        fixture.state.prepareThroneClaim(chainId, fixture.actor,
+                fixture.state.houseFactionId[fixture.state.houseIndex(fixture.actor)],
+                resultFaction, 1, 20);
+        DiscoveryPropagationSystem system = new DiscoveryPropagationSystem();
+
+        system.tick(fixture.state, 25);
+        assertEquals(0, fixture.state.chronicleCount);
+        assertEquals(-1, fixture.state.chainDiscoveryProcessedTick[chainRow]);
+
+        fixture.state.throneClaimState[0] = ThroneClaimState.APPLIED.toByte();
+        system.tick(fixture.state, 26);
+        assertEquals(1, fixture.state.chronicleCount);
+        assertEquals(ChronicleBand.EPIC,
+                ChronicleBand.fromByte(fixture.state.chronicleBand[0]));
+        assertEquals(26, fixture.state.chainDiscoveryProcessedTick[chainRow]);
     }
 
     @Test

@@ -86,6 +86,8 @@ class ThroneClaimResolutionSystemTest {
 
         assertEquals(ThroneClaimState.FAILED,
                 ThroneClaimState.fromByte(rejected.state.throneClaimState[0]));
+        assertEquals(ChainState.FAILED,
+                ChainState.fromByte(rejected.state.chainState[rejected.chainRow]));
         assertEquals(HouseRank.TIER_3,
                 HouseRank.fromByte(rejected.state.houseRank[rejected.actorRow]));
         assertEquals(ThroneClaimState.FAILED,

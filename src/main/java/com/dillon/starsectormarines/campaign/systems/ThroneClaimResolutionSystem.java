@@ -41,7 +41,8 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> writes() {
-        return EnumSet.of(CampaignTable.THRONE_CLAIMS, CampaignTable.HOUSES);
+        return EnumSet.of(CampaignTable.THRONE_CLAIMS, CampaignTable.HOUSES,
+                CampaignTable.CHAINS);
     }
 
     @Override
@@ -55,7 +56,7 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
             int houseRow = state.houseIndex(state.throneClaimHouseId[claimRow]);
             int chainRow = state.chainIndex(state.throneClaimSourceChainId[claimRow]);
             if (!validPreparedClaim(state, claimRow, houseRow, chainRow)) {
-                fail(state, claimRow, day);
+                fail(state, claimRow, chainRow, day);
                 continue;
             }
             String sourceFactionId = state.factionRegistry.get(
@@ -65,7 +66,7 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
             String marketId = state.marketRegistry.get(state.throneClaimMarketId[claimRow]);
             if (sourceFactionId == null || resultFactionId == null || marketId == null
                     || sourceFactionId.equals(resultFactionId)) {
-                fail(state, claimRow, day);
+                fail(state, claimRow, chainRow, day);
                 continue;
             }
 
@@ -77,7 +78,7 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
             }
             if (result == ThroneClaimWriteback.Result.RETRY || result == null) continue;
             if (result == ThroneClaimWriteback.Result.REJECTED) {
-                fail(state, claimRow, day);
+                fail(state, claimRow, chainRow, day);
                 continue;
             }
             applyLocalResult(state, claimRow, houseRow, day);
@@ -120,8 +121,15 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
         state.throneClaimAppliedTick[claimRow] = day;
     }
 
-    private static void fail(CampaignState state, int claimRow, int day) {
+    private static void fail(CampaignState state, int claimRow, int chainRow, int day) {
         state.throneClaimState[claimRow] = ThroneClaimState.FAILED.toByte();
         state.throneClaimAppliedTick[claimRow] = day;
+        if (chainRow >= 0 && chainRow < state.chainCount
+                && state.chainId[chainRow] == state.throneClaimSourceChainId[claimRow]
+                && ChainArchetype.fromByte(state.chainArchetype[chainRow])
+                    == ChainArchetype.CIVIL_WAR) {
+            state.chainState[chainRow] = ChainState.FAILED.toByte();
+            state.chainResolvedTick[chainRow] = day;
+        }
     }
 }
