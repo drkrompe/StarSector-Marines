@@ -19,9 +19,9 @@ commit stays green — 2a changes each helper's semantics in one place.
       (RENDER_POSITION deleted) + 2c67bc12 (critique fixes: one-cell-path
       blocker, velocity-authored presentation); combined critique pass on
       the latter two pending
-- [ ] phase-2c — IN FLIGHT: primitives widened 24651e4c; 4 parallel agents
-      (services / scoring+squad / infantry+goap / mech+air+render) per
-      stories/phase-2c-worklist.md
+- [x] phase-2c — landed a36955e (services + ~90-site sweep, one commit);
+      follow-up candidates logged in stories/phase-2c-worklist.md;
+      critique pass pending
 - [ ] phase-2c-spatial-boundaries
 - [ ] in-game verification + merge back to main
 

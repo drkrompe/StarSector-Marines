@@ -83,3 +83,27 @@ AirSystem:274 gather args: `Math.round(body.x)` → pass floats directly.
 
 Confirmed zero read sites pre-2c. Consumers land in 2c-1: Detonations,
 WorldPicker. Arrival/separation uses deferred (not in scope).
+
+## Shipped (a36955e) + follow-ups
+
+Both slices landed as one commit (a36955e) — 49 files, build + tests
+green. Integration fixes on top of the agent sweeps: InfantryCohesion's
+leaderless fallback floors (not rounds) the true-position centroid into
+a destination cell.
+
+Deliberately NOT converted (agent judgment calls, confirmed):
+- UnitRenderService footprint pad — GroundFootprint.emit wants the
+  integer cell origin, and footprint drawers are static cell-anchored.
+- BattleRenderer objective/equipment anchors — stored map cells.
+- spawnSmokingWreck stays int cells (EffectsService API snaps to cells).
+
+Candidate follow-up slices (precision debt found in-sweep, out of scope):
+- TacticalScoring firing-position ring searches: distFromSelf/-Target
+  compare int self cells vs int ring cells — tightly-coupled algorithm,
+  convert whole or not at all.
+- TacticalScoring.averageEnemyCell: int-rounded threat centroid feeding
+  fallback scoring + getCoverAt facing.
+- MechLoadoutComponent.overwatchAxisX/Y: int Math.round(centroid)
+  snapshots for backstop drift tracking.
+- Squad.lastSeenEnemyX/Y: int cells consumed with +0.5 centers at
+  gathers; a float pair would drop the reconstruction.
