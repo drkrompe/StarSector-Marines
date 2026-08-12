@@ -34,7 +34,7 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
-    public void onlyConvertedInfantryCarryInfantryLayeredAnimation() {
+    public void onlyConvertedActorsCarryInfantryLayeredAnimation() {
         BattleSimulation sim = arena();
         BattleComponents c = sim.getBattleComponents();
         for (UnitType type : UnitType.values()) {
@@ -50,6 +50,10 @@ public class LayeredFacingSystemTest {
         BattleComponents c = sim.getBattleComponents();
         long blue = sim.spawn(new EntitySpec("blue", Faction.MARINE, UnitType.MARINE_BLUE, 5, 5));
         long red = sim.spawn(new EntitySpec("red", Faction.DEFENDER, UnitType.MARINE_RED, 7, 5));
+        long civilian = sim.spawn(new EntitySpec("civilian", Faction.CIVILIAN,
+                UnitType.CIVILIAN, 9, 5));
+        long engineer = sim.spawn(new EntitySpec("engineer", Faction.CIVILIAN,
+                UnitType.ENGINEER, 11, 5));
 
         assertEquals(LayeredArmorFamily.BLUE_SCOUT.ordinal(),
                 i(sim, blue, BattleComponents.LAYERED_BODY_FAMILY));
@@ -57,11 +61,22 @@ public class LayeredFacingSystemTest {
                 i(sim, blue, BattleComponents.LAYERED_HEAD_FAMILY));
         assertEquals(LayeredArmorFamily.OUTLAW.ordinal(),
                 i(sim, red, BattleComponents.LAYERED_BODY_FAMILY));
+        assertEquals(LayeredArmorFamily.CIVILIAN_COLONIST.ordinal(),
+                i(sim, civilian, BattleComponents.LAYERED_BODY_FAMILY));
+        assertEquals(LayeredArmorFamily.ENGINEER.ordinal(),
+                i(sim, engineer, BattleComponents.LAYERED_BODY_FAMILY));
 
         sim.world().setLayeredHeadFamily(blue, LayeredArmorFamily.RED_ELITE);
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, sim.world().layeredBodyFamily(blue));
         assertEquals(LayeredArmorFamily.RED_ELITE, sim.world().layeredHeadFamily(blue),
                 "head can change without changing body selection");
+    }
+
+    @Test
+    public void colonistFamiliesAppendAfterLegacyPersistedOrdinals() {
+        assertEquals(6, LayeredArmorFamily.ARMORLESS.ordinal());
+        assertEquals(7, LayeredArmorFamily.CIVILIAN_COLONIST.ordinal());
+        assertEquals(8, LayeredArmorFamily.ENGINEER.ordinal());
     }
 
     @Test

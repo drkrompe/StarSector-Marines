@@ -423,6 +423,7 @@ public final class UnitRenderService implements RenderSystem {
                     float cy = cam.cellToScreenY(ry[r] + 0.5f);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
+                            type.combatant,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
                                     : EquipmentGrade.SERVICE,
                             cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,

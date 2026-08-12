@@ -11,7 +11,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 SOURCES = ROOT / "sources"
-PREVIEWS = ROOT / "previews"
+PREVIEWS = ROOT.parents[3] / "build" / "sprite-previews" / "mech"
 
 
 def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:
@@ -31,15 +31,6 @@ def normalize(source: str, output: str, size: tuple[int, int]) -> Image.Image:
                                    (size[1] - image.height) // 2))
     canvas.save(ROOT / output)
     return canvas
-
-
-def scale_x_variant(source: str, output: str, factor: float) -> Image.Image:
-    """Copy a normalized runtime layer while changing only its X scale."""
-    image = Image.open(ROOT / source).convert("RGBA")
-    width = max(1, round(image.width * factor))
-    variant = image.resize((width, image.height), Image.Resampling.LANCZOS)
-    variant.save(ROOT / output)
-    return variant
 
 
 def derive_foot_from_hull(size: tuple[int, int]) -> Image.Image:
@@ -90,21 +81,18 @@ def preview(name: str, moving: bool, firing: bool,
 
 
 def main() -> None:
-    PREVIEWS.mkdir(exist_ok=True)
+    PREVIEWS.mkdir(parents=True, exist_ok=True)
     normalize("hull-clean-v2.png", "chassis.png", (208, 208))
     normalize("hull.png", "chassis-socketed-variant.png", (208, 208))
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.
     normalize("chaingun-arm-v2.png", "chaingun-arm.png", (62, 112))
-    scale_x_variant("chaingun-arm.png", "chaingun-arm-narrow-70.png", 0.70)
     normalize("linear-cannon-concept.png", "linear-cannon-variant.png", (58, 138))
     normalize("srm-pod.png", "srm-pod.png", (62, 88))
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)
-    preview("idle-chaingun-narrow-70.png", moving=False, firing=False,
-            arm_name="chaingun-arm-narrow-70.png")
 
 
 if __name__ == "__main__":

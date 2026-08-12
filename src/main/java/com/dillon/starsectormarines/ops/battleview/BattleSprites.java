@@ -429,8 +429,8 @@ public class BattleSprites {
     }
 
     /**
-     * Loads independent body/head/feet/weapon textures for the four converted
-     * infantry archetypes. A family is published only when every required layer
+     * Loads independent body/head/feet/weapon textures for converted infantry
+     * archetypes. A family is published only when every required layer
      * loaded; otherwise {@code UnitRenderService} keeps using its legacy sheet.
      */
     public void ensureLayeredUnitSprites() {
@@ -465,6 +465,12 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.CIVILIAN_COLONIST,
+                "graphics/battle/colonist-modular-topdown/civilian/",
+                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.ENGINEER,
+                "graphics/battle/colonist-modular-topdown/engineer/",
+                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
@@ -500,11 +506,24 @@ public class BattleSprites {
                                    LayeredSpriteCache flash,
                                    LayeredSpriteCache surplusRifle,
                                    LayeredSpriteCache masterworkDmr) {
-        String familyRoot = MODULAR_ROOT + "armor/" + family + "/";
+        loadLayeredFamilyAt(familyId, MODULAR_ROOT + "armor/" + family + "/",
+                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+    }
+
+    private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
+                                     LayeredSpriteCache foot,
+                                     LayeredSpriteCache rifle,
+                                     LayeredSpriteCache laser,
+                                     LayeredSpriteCache smg,
+                                     LayeredSpriteCache dmr,
+                                     LayeredSpriteCache rocket,
+                                     LayeredSpriteCache flash,
+                                     LayeredSpriteCache surplusRifle,
+                                     LayeredSpriteCache masterworkDmr) {
         LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
         LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
         if (body == null || head == null) {
-            LOG.warn("BattleSprites: modular family " + family
+            LOG.warn("BattleSprites: modular family " + familyId
                     + " incomplete; actors using it keep their legacy sheet");
             return;
         }
