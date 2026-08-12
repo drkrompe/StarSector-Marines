@@ -85,6 +85,11 @@
 		"stationingIncidentUnknown": "Unclassified Cadre incident",
 		"stationingIncidentDetachment": "On site: {0} with {1} marines",
 		"stationingIncidentRespond": "Respond",
+		"garrisonDefensePending": "Garrison Defense — Response Required",
+		"garrisonDefenseRivalStrike": "A rival house is striking the protected market",
+		"garrisonDefenseVanillaRaid": "A faction raid is attacking the protected market",
+		"garrisonDefenseInternalFlip": "An internal political flip threatens the garrison",
+		"garrisonDefenseUnknown": "Unclassified threat to the protected market",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",

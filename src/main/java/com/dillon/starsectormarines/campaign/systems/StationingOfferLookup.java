@@ -14,7 +14,20 @@ public final class StationingOfferLookup {
     }
 
     public static long findActive(CampaignState state, long patronId, int marketId) {
-        return findInState(state, patronId, marketId, ContractState.ACTIVE);
+        if (state == null || patronId < 0L || marketId < 0) return -1L;
+        for (int i = 0; i < state.contractCount; i++) {
+            ContractState contractState = ContractState.fromByte(state.contractState[i]);
+            if (state.contractPatronHouseId[i] != patronId
+                    || state.contractMarketId[i] != marketId
+                    || (contractState != ContractState.ACTIVE
+                        && contractState != ContractState.IN_PROGRESS)) {
+                continue;
+            }
+            if (ContractType.fromByte(state.contractType[i]).isStationing()) {
+                return state.contractId[i];
+            }
+        }
+        return -1L;
     }
 
     private static long findInState(CampaignState state, long patronId, int marketId,

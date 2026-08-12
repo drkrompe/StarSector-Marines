@@ -320,7 +320,8 @@ public class MarineOpsContext {
             ContractState contractState = ContractState.fromByte(state.contractState[i]);
             ContractType contractType = ContractType.fromByte(state.contractType[i]);
             boolean offered = contractState == ContractState.OFFERED;
-            boolean activeStationing = contractState == ContractState.ACTIVE
+            boolean activeStationing = (contractState == ContractState.ACTIVE
+                    || contractState == ContractState.IN_PROGRESS)
                     && contractType.isStationing();
             boolean assaultInProgress = contractState == ContractState.IN_PROGRESS
                     && contractType == ContractType.PLANETARY_ASSAULT;

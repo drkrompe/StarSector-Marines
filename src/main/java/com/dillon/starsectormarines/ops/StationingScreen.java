@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
@@ -73,7 +75,8 @@ public final class StationingScreen implements Screen {
 
         ContractType type = ContractType.fromByte(state.contractType[row]);
         ContractState contractState = ContractState.fromByte(state.contractState[row]);
-        if (contractState == ContractState.ACTIVE) {
+        if (contractState == ContractState.ACTIVE
+                || contractState == ContractState.IN_PROGRESS) {
             rebuildManagement(state, row, type);
             return;
         }
@@ -179,6 +182,8 @@ public final class StationingScreen implements Screen {
                                 state.contractRetainerPerMonth[row])), x, y, VALUE));
         StationingIncidentPayload incident = StationingIncidentPayload.from(
                 state, state.contractId[row]);
+        GarrisonDefensePayload defense = GarrisonDefensePayload.from(
+                state, state.contractId[row]);
         if (incident != null) {
             y -= ROW + 4f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
@@ -190,6 +195,17 @@ public final class StationingScreen implements Screen {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     MessageFormat.format(Strings.get("stationingIncidentDetachment"),
                             captainName, incident.committedMarines), x, y, VALUE));
+        } else if (defense != null) {
+            y -= ROW + 4f;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    Strings.get("garrisonDefensePending"), x, y, INCIDENT));
+            y -= ROW;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    defenseLabel(defense.triggerType), x, y, VALUE));
+            y -= ROW;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MessageFormat.format(Strings.get("stationingIncidentDetachment"),
+                            captainName, defense.committedMarines), x, y, VALUE));
         }
         y -= ROW + 8f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
@@ -312,6 +328,16 @@ public final class StationingScreen implements Screen {
             case DEFECTOR_LEAD: return Strings.get("stationingIncidentDefectorLead");
             case NONE:
             default: return Strings.get("stationingIncidentUnknown");
+        }
+    }
+
+    private static String defenseLabel(GarrisonDefenseTriggerType type) {
+        switch (type) {
+            case RIVAL_STRIKE: return Strings.get("garrisonDefenseRivalStrike");
+            case VANILLA_RAID: return Strings.get("garrisonDefenseVanillaRaid");
+            case INTERNAL_FLIP: return Strings.get("garrisonDefenseInternalFlip");
+            case NONE:
+            default: return Strings.get("garrisonDefenseUnknown");
         }
     }
 
