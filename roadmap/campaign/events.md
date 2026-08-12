@@ -283,19 +283,26 @@ reinforcement, or ranged projectile semantics.
 
 A dedicated `SWARM_PRESSURE` role owns its behavior:
 
-- choose the nearest registered `ACTIVE` mission evacuee first;
+- choose the nearest registered `ACTIVE` mission evacuee only after it enters
+  the runner's bounded vision and line of sight;
+- remember a discovered evacuee after line of sight breaks, but never receive
+  the cohort's position before first contact;
 - never choose an ambient civilian merely because it shares `Faction.CIVILIAN`;
-- if no active evacuee remains, pressure the nearest live marine;
+- before civilian discovery—or after no active evacuee remains—pressure the
+  nearest live marine;
 - path directly toward the chosen target and apply contact damage only from an
   adjacent cell; and
 - idle if neither a registered evacuee nor marine exists.
 
 The first roster is mission-local and risk-scaled, with no militia, regulars,
 mechs, turrets, conventional reinforcements, or fighter support. It spawns only
-on complete reachable cells outside the shelter/lift zones. The dedicated
-rescue factory replaces its temporary Extraction defender roster with this
-payload; evacuation accounting, zero-economy terms, and moral mapping do not
-change.
+on complete reachable cells at least 16 Manhattan cells from the shelter and
+outside the lift zone. All eight evacuees now spawn strictly inside the chosen
+residential building's wall ring and remain sheltered until the first marine
+lands, with a 12-second fallback release so a lost or absent first drop cannot
+deadlock the mission (`e9fee785`). The dedicated rescue factory replaces its
+temporary Extraction defender roster with this payload; evacuation accounting,
+zero-economy terms, and moral mapping do not change.
 
 The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
 12/24/40-runner rosters; incomplete placement discards the map attempt before
