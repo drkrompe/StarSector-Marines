@@ -25,9 +25,16 @@ Slice 1 is shipped (`9c4c4ee8`): the persisted domain binding, whole-fireteam
 rank cap, validated reassignment, captain-removal cleanup, and ordered legacy
 repair are covered.
 
-Next: Slice 2, formation management on the armory surface. Stationing keeps its
-existing captain plus anonymous-marine contract until named detachment semantics
-are designed as one complete lifecycle.
+Slice 2 is shipped (`aa26d3ec`): formation management on the armory surface,
+including home-command identity, rank use/capacity, unavailable feedback, and
+bounded roster-order assignment.
+
+Before Slice 3, close the deployment-reachability regression surfaced by the
+persistent gate: ordinary missions need exact shortfall plus bulk recruitment
+routing, while debug missions need explicit Recruit/Mixed/Veteran fixtures that
+do not consume or mutate campaign personnel. Stationing keeps its existing
+captain plus anonymous-marine contract until named detachment semantics are
+designed as one complete lifecycle.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.
@@ -45,3 +52,4 @@ session.
 - `822572b7` — lock deterministic casualty disposition under replay.
 - `23db413a` — lock the captain-to-fireteam command contract.
 - `9c4c4ee8` — persist and validate captain home formations.
+- `aa26d3ec` — manage home command on the armory formation surface.

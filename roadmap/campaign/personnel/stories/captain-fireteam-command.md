@@ -73,8 +73,8 @@ player-facing explanation.
 1. ~~**Domain binding** — persist home captain on `MarineSquad`; expose rank
    fireteam capacity; add validated assign/unassign/query operations and legacy
    repair in `MarineRoster`.~~ ✅ `9c4c4ee8`
-2. **Formation management** — add a captain-assignment control to the armory
-   formation surface, including full/unavailable feedback.
+2. ~~**Formation management** — add a captain-assignment control to the armory
+   formation surface, including full/unavailable feedback.~~ ✅ `aa26d3ec`
 3. **Briefing authority** — default to the selected captain's home formation,
    enforce active-captain and rank limits, and display selected/max fireteams.
 4. **Outcome context** — retain the selected force command and deployed
@@ -94,6 +94,14 @@ Named stationing is deliberately outside these slices.
 - Automated tests cover the full rank sequence, reserve rejection, atomic
   reassignment, casualty-independent capacity, unavailable-captain retention,
   dismissal cleanup, and corrupted-save repair.
+
+## Slice 2 implementation
+
+- The armory fireteam detail shows home captain, rank, formation use/capacity,
+  and unavailable status.
+- Assign/change cycles only through active captains with an open whole-team
+  command slot; unassign is explicit.
+- The roster-order picker skips unavailable and full captains under test.
 
 ## Acceptance
 
