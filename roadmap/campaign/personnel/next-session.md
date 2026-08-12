@@ -36,6 +36,11 @@ do not consume or mutate campaign personnel. Stationing keeps its existing
 captain plus anonymous-marine contract until named detachment semantics are
 designed as one complete lifecycle.
 
+The corrective contract is locked in
+[`stories/deployment-readiness.md`](stories/deployment-readiness.md). Build its
+debug-fixture slice first so the mission picker is immediately usable, then land
+production shortfall/bulk enlistment before resuming captain-command Slice 3.
+
 Keep manual UI/balance validation deferred for the current automated-only
 session.
 
