@@ -246,6 +246,11 @@ public final class MissionResolver {
 
     public static void apply(MissionOutcome outcome) {
         if (outcome == null) return;
+        if (outcome.missionSource.isDebug()) {
+            LOG.info("MarineOps: debug mission " + outcome.missionId
+                    + " — no campaign writeback");
+            return;
+        }
         if (outcome.missionSource == MissionSource.STATIONING
                 && !isCurrentStationingMission(outcome)) {
             LOG.info("MarineOps: stale stationing mission result " + outcome.missionId

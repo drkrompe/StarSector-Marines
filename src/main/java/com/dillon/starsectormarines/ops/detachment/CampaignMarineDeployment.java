@@ -70,6 +70,19 @@ public final class CampaignMarineDeployment {
         return new CampaignMarineDeployment(frozen);
     }
 
+    /** Builds a complete picker-only allocation with no campaign identities. */
+    public static CampaignMarineDeployment debugFixture(DebugPersonnelPreset preset,
+                                                         int requiredSeats) {
+        if (requiredSeats <= 0) return EMPTY;
+        DebugPersonnelPreset resolved = preset != null
+                ? preset : DebugPersonnelPreset.MIXED;
+        List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
+        for (int seat = 0; seat < requiredSeats; seat++) {
+            frozen.add(resolved.loadout(seat));
+        }
+        return new CampaignMarineDeployment(frozen);
+    }
+
     public MarineLoadout seat(int index) {
         return index >= 0 && index < seats.size() ? seats.get(index) : null;
     }

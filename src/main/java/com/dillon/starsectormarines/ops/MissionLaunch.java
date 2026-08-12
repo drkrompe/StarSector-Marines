@@ -84,7 +84,11 @@ public final class MissionLaunch {
                 det.shuttleManifest, firstPlayerShuttle);
         ctx.setMarineDeploymentCapacity(playerSeats);
         MarineRosterScript personnel = MarineRosterScript.getInstance();
-        if (personnel != null) {
+        if (m.source.isDebug()) {
+            CampaignMarineDeployment.debugFixture(
+                    ctx.getDebugPersonnelPreset(), playerSeats)
+                    .applyTo(sim, firstPlayerShuttle);
+        } else if (personnel != null) {
             CampaignMarineDeployment.freeze(personnel.roster(),
                     ctx.getSelectedMarineSquadIds(), playerSeats)
                     .applyTo(sim, firstPlayerShuttle);

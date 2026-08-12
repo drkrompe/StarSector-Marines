@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
+import com.dillon.starsectormarines.ops.detachment.DebugPersonnelPreset;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
 import com.fs.starfarer.api.Global;
@@ -58,6 +59,8 @@ public class MarineOpsContext {
     private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
     private String squadSelectionMissionId;
     private int marineDeploymentCapacity;
+    /** Picker-only fixture; debug missions never consume or mutate the campaign roster. */
+    private DebugPersonnelPreset debugPersonnelPreset = DebugPersonnelPreset.MIXED;
     /** Stationing offer selected for the dedicated assignment screen. */
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
@@ -123,6 +126,14 @@ public class MarineOpsContext {
     }
 
     public int getMarineDeploymentCapacity() { return marineDeploymentCapacity; }
+
+    public DebugPersonnelPreset getDebugPersonnelPreset() {
+        return debugPersonnelPreset;
+    }
+
+    public void cycleDebugPersonnelPreset() {
+        debugPersonnelPreset = debugPersonnelPreset.next();
+    }
 
     public boolean isMarineSquadSelected(String squadId) {
         return selectedMarineSquadIds.contains(squadId);

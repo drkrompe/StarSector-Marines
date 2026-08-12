@@ -465,15 +465,22 @@ public class BriefingScreen implements Screen {
         // Deploy gating — when transport is short, the button is non-functional
         // and the label flips to a red "Insufficient Transport".
         Mission m = ctx.getSelectedMission();
+        boolean debugPersonnel = m != null && m.source.isDebug();
         boolean transportOk = m == null || m.source == MissionSource.STATIONING
                 || isTransportSufficient(m, effectivePlayerShuttles());
-        boolean personnelOk = m == null || hasEnoughAssignedMarines(m);
+        boolean personnelOk = debugPersonnel || m == null || hasEnoughAssignedMarines(m);
         boolean canAccept = transportOk && personnelOk;
 
         ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
-                this::openSquadDeployment);
+                debugPersonnel ? () -> {
+                    ctx.cycleDebugPersonnelPreset();
+                    rebuild();
+                } : this::openSquadDeployment);
         widgets.add(squads);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Assign Squads",
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                debugPersonnel
+                        ? "Fixture: " + ctx.getDebugPersonnelPreset().displayName
+                        : "Assign Squads",
                 squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H,
