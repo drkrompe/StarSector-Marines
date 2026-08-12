@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `c26ca415`
+
 ## Goal
 
 Give the weekly drift loop a deterministic persisted target without prematurely

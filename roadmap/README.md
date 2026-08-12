@@ -117,9 +117,12 @@ universe over time, not retrofitted into intel slots.
    now arm that shared defense path at the target house's market (`8c899ca5`).
    Live market-faction changes complete the source matrix by arming dispossessed
    Garrison patrons through the internal-flip path (`90580a8a`). Living-world
-   Slice C has also begun: active houses with a strict home-market stake
-   majority now accrue glacial autonomous promotion progress (`11987f9a`).
-   Next: minimal ambition assignment plus weekly stake drift. See
+   Slice C is now complete: active houses adopt deterministic local
+   consolidation ambitions, drift 3–5 share every seventh day, and accrue
+   glacial promotion progress while holding a strict home-market majority
+   (`c26ca415`, `daf3ef1b`, `11987f9a`). Next: Slice D's autonomous chain
+   lifecycle and exactly-once political resolutions, followed by Chronicle
+   discovery. See
    `campaign/contracts/overview.md` and `campaign/living-world/next-session.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,

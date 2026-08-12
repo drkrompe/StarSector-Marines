@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `daf3ef1b`
+
 ## Goal
 
 Make local industry shares breathe on their own at a slow, deterministic tempo.

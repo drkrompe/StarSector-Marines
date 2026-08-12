@@ -3,11 +3,12 @@
 ## State of play
 
 The autonomous political sim ([`overview.md`](overview.md)) is being built
-along the A–E slice spine. **A (genesis seeding), B (player transfer), and C1
-(autonomous promotion) are shipped.** The board is seeded with contested
-stakes, player ops permanently move them, and ACTIVE houses with a strict
-majority of claimed stake on their home market now gain one promotion point per
-day through the shared `HousePromotion` policy (`11987f9a`).
+along the A–E slice spine. **A (genesis), B (player transfer), and C (drift +
+autonomous promotion) are shipped.** The board is seeded with contested stakes;
+player ops move them decisively while the background world moves them slowly.
+ACTIVE houses adopt a deterministic local consolidation target (`c26ca415`),
+drift 3–5 share every seventh day (`daf3ef1b`), and gain one daily promotion
+point while holding a strict home-market majority (`11987f9a`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -20,32 +21,17 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice C2 (Drift)
+## Next up — Slice D1 (Autonomous chain foundation)
 
-The breathing loop now needs its weekly share-drift half. Per
-[`overview.md`](overview.md) §"The hybrid engine":
+Build the discrete-event half without jumping directly to Chronicle UI:
 
-1. **Drift loop (weekly cadence).** Each `ACTIVE` house with an ambition
-   siphons ~3–5 byte-share from a weaker *visible* rival (or the unclaimed
-   remainder) on a contested industry. Glacial by design — the
-   decisive-accelerant principle: an unattended plurality flip takes many
-   months, so the player's intervention stays the decisive force. Use
-   `StakeLedger.seizeShare` with a small amount; a zero-sum `transferShare`
-   variant can be added to `StakeLedger` if drift should never expand into
-   open share.
-2. ~~**Autonomous promotion.**~~ **Shipped (`11987f9a`).** ACTIVE non-T4 houses
-   gain one point per day while they own a strict majority of all claimed share
-   on their home market. Ties, minorities, empty markets, and off-market
-   expansion holdings grant none.
-
-**Prerequisite to confirm:** drift needs houses to *have ambitions* (currently
-always `NONE`) and a notion of "visible rival." Ambition assignment is the
-[`ambition.md`](ambition.md) layer — decide whether C ships a minimal
-deterministic ambition seed (e.g. `CONSOLIDATE_STAKE` toward the industry a
-house is contender in) or whether a thin ambition pass lands first. Visibility
-is the rank-ladder rule in [`../mechanics.md`](../mechanics.md) §"Visibility
-computation" — but no relationship edges are seeded yet, so v1 drift can use
-same-market locality directly rather than the `relationships[]` table.
+1. Define autonomous chain lifecycle/status identity; current `chains[]` has no
+   status or resolved marker and `ChainAdvancementSystem` is still a stub.
+2. Deterministically create at most one autonomous chain for an eligible
+   ambitious house and bind it to a local rival/industry.
+3. Advance slowly, resolve exactly once through `StakeLedger` and
+   `HousePromotion`, then leave a persisted event seam for Chronicle discovery.
+4. Keep player-backed chains out of the autonomous daily advancement path.
 
 ## Open forks still unresolved (design)
 
@@ -59,10 +45,9 @@ same-market locality directly rather than the `relationships[]` table.
 
 ## Follow-ups surfaced by the Slice B review
 
-- **`StakeLedger` composite index.** `seizeShare` does up to 3 linear
-  `findStake` scans — fine at once-per-mission, but Slice C's weekly drift over
-  all ACTIVE houses turns that into O(houses × stakes). Add a
-  `(house,market,industry) → row` index *when C lands*, not before.
+- **`StakeLedger` composite index.** Weekly drift is still small enough for the
+  current linear scans. Add `(house,market,industry) → row` only if profiling
+  or Slice D chain volume makes it worthwhile.
 - **Debug `forceComplete` political shift.** `CampaignDebugIntel.forceComplete`
   flips contract state + rep but intentionally skips the stake seizure /
   promotion (it has no struck industry). For playtesting the political layer
@@ -79,3 +64,5 @@ same-market locality directly rather than the `relationships[]` table.
 - Slice B — `StakeLedger` + `HousePromotion` + `MissionResolver` wiring +
   tests + this doc set.
 - Slice C1 — home-market-majority autonomous promotion (`11987f9a`).
+- Slice C2a — minimal persisted consolidation ambitions (`c26ca415`).
+- Slice C2b — exactly-once weekly 3–5 share drift (`daf3ef1b`).
