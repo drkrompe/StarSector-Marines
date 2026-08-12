@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
+import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtraction
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
+import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +33,8 @@ class CampaignStateSystemOrderTest {
         int promotions = indexOf(systems, AutonomousPromotionSystem.class);
         int chainCreation = indexOf(systems, AutonomousChainCreationSystem.class);
         int chainAdvancement = indexOf(systems, ChainAdvancementSystem.class);
+        int discovery = indexOf(systems, DiscoveryPropagationSystem.class);
+        int interventionOffers = indexOf(systems, ThreatInterventionOfferSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
@@ -43,6 +47,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
         assertTrue(chainCreation < chainAdvancement);
+        assertTrue(discovery < interventionOffers);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);
