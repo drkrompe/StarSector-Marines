@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,12 @@ public class MarineRoster implements Serializable {
     }
 
     public boolean removeById(String id) {
-        return captains.removeIf(c -> c.id().equals(id));
+        MarineCaptain captain = byId(id);
+        if (captain == null) return false;
+        for (MarineSquad squad : squads) {
+            if (id.equals(squad.homeCaptainId())) squad.setHomeCaptainId(null);
+        }
+        return captains.remove(captain);
     }
 
     public MarineCaptain byId(String id) {
@@ -129,6 +135,43 @@ public class MarineRoster implements Serializable {
             if (squad.memberIds().contains(soldierId)) return squad;
         }
         return null;
+    }
+
+    public MarineCaptain captainForSquad(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        return squad != null ? byId(squad.homeCaptainId()) : null;
+    }
+
+    public List<MarineSquad> squadsCommandedBy(String captainId) {
+        if (captainId == null) return Collections.emptyList();
+        List<MarineSquad> result = new ArrayList<>();
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && captainId.equals(squad.homeCaptainId())) {
+                result.add(squad);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /** Assigns or atomically reassigns one line fireteam to an active captain. */
+    public boolean assignCaptainToSquad(String captainId, String squadId) {
+        MarineCaptain captain = byId(captainId);
+        MarineSquad squad = squadById(squadId);
+        if (captain == null || captain.status() != Status.ACTIVE
+                || squad == null || squad.reserve()) return false;
+        if (captainId.equals(squad.homeCaptainId())) return true;
+        if (squadsCommandedBy(captainId).size() >= captain.rank().fireteamCap()) {
+            return false;
+        }
+        squad.setHomeCaptainId(captainId);
+        return true;
+    }
+
+    public boolean clearSquadCaptain(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || squad.homeCaptainId() == null) return false;
+        squad.setHomeCaptainId(null);
+        return true;
     }
 
     public List<MarineSoldier> squadMembers(MarineSquad squad) {
@@ -543,6 +586,22 @@ public class MarineRoster implements Serializable {
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToFireteam(soldier);
         }
+        repairSquadCommands();
         return this;
+    }
+
+    private void repairSquadCommands() {
+        Map<String, Integer> assignedByCaptain = new HashMap<>();
+        for (MarineSquad squad : squads) {
+            String captainId = squad.homeCaptainId();
+            if (captainId == null) continue;
+            MarineCaptain captain = byId(captainId);
+            int assigned = assignedByCaptain.getOrDefault(captainId, 0);
+            if (squad.reserve() || captain == null || assigned >= captain.rank().fireteamCap()) {
+                squad.setHomeCaptainId(null);
+                continue;
+            }
+            assignedByCaptain.put(captainId, assigned + 1);
+        }
     }
 }

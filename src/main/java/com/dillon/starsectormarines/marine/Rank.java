@@ -36,6 +36,11 @@ public enum Rank {
         return squadCap;
     }
 
+    /** Whole persistent fireteams this rank can organize without rounding down its marine cap. */
+    public int fireteamCap() {
+        return (squadCap + MarineSquad.CAPACITY - 1) / MarineSquad.CAPACITY;
+    }
+
     public int xpToNext() {
         return xpToNext;
     }

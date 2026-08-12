@@ -15,6 +15,8 @@ public final class MarineSquad implements Serializable {
     private String name;
     private List<String> memberIds = new ArrayList<>();
     private boolean reserve;
+    /** Durable organizational default; mission borrowing does not rewrite it. */
+    private String homeCaptainId;
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -33,6 +35,7 @@ public final class MarineSquad implements Serializable {
     public String id() { return id; }
     public String name() { return name; }
     public boolean reserve() { return reserve; }
+    public String homeCaptainId() { return homeCaptainId; }
     public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
 
     boolean add(String soldierId) {
@@ -46,6 +49,8 @@ public final class MarineSquad implements Serializable {
     void setName(String value) {
         if (value != null && !value.trim().isEmpty()) name = value.trim();
     }
+
+    void setHomeCaptainId(String value) { homeCaptainId = value; }
 
     private Object readResolve() {
         if (id == null) id = UUID.randomUUID().toString();
