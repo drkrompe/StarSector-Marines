@@ -81,14 +81,15 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-1. **Loot recovery modifiers + shipping check** — the core loot loop is
-   code-complete (`254de744`, `037586cf`, `90f01acc`): deterministic
+1. **Rare loot + shipping check** — the core loot loop and Layer-3 recovery
+   modifiers are code-complete (`254de744`, `037586cf`, `90f01acc`,
+   `f27294c8`): deterministic
    faction/industry-weighted weapons + commodities, budget-aware picker,
    separate cargo/fuel/personnel capacity preview, exactly-once transfer, and
    75% fence-on-spot overflow. Before moving its three stories to `complete/`,
-   run the documented in-game visual/cargo smoke test. Then finish Layer 3:
-   `SALVAGE_EXPERT`, fleet Salvage Rig/Gantry modifiers, and context-gated AI
-   cores. See [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
+   run the documented in-game visual/cargo smoke test. The next code slice is
+   context-gated AI cores. See
+   [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 2. **Contract generation for non-STRIKE types** — `ContractType` has
    six values; only STRIKE is generated. GARRISON + CADRE introduce
    retainer payment over time (closer to the contract design's

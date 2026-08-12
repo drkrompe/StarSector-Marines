@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE — in-game smoke pending (2026-08-12)
 
+**Implemented in:** `f27294c8`
+
 ## Goal
 
 Finish salvage-rights Layer 3: captain expertise and the player's recovery ships

@@ -27,6 +27,7 @@ since the entitlement is already plumbed end-to-end through
    [`stories/s3-cargo-settlement.md`](stories/s3-cargo-settlement.md).
 4. **Rare recovery** — AI-core mission gates, `SALVAGE_EXPERT` high-value roll,
    Salvage Rig/Gantry multipliers, then blueprint/tech-recovery support.
+   Captain/fleet modifiers are code-complete in `f27294c8`.
 
 ## Recoverable categories
 
@@ -57,17 +58,17 @@ when the player has any salvage entitlement:
   spot" pattern).
 - Cancel = forfeit remaining items (they don't make it home).
 
-The captain `SALVAGE_EXPERT` trait and deployed-fleet Salvage Rig
-modifiers (contract §"Layer 3") scale the recovered tonnage *before*
+The captain `SALVAGE_EXPERT` trait and player-fleet Salvage Rig/Gantry
+modifiers (contract §"Layer 3") scale the recovered pool *before*
 the player sees the grid — by loot time the entitlement is final.
 
 ## Current hook in code
 
-`MissionResolver.compute()` already populates `salvageEntitlement` on
-the `MissionOutcome` on victory, and `ResultsScreen` shows the final
-percentage. There is no item pool / item roll / picker grid yet — that
-is this feature's work. See the "What this loop does NOT do yet" note
-in [`../contracts/complete/contracts-loop.md`](../contracts/complete/contracts-loop.md).
+`MissionResolver.compute()` freezes entitlement plus recovery modifiers on the
+victorious `MissionOutcome`. A deterministic manifest, budget-aware picker,
+capacity preview, and exactly-once settlement now run end to end. In-game
+visual/cargo verification remains the shipping gate; context-gated AI cores are
+the next code slice.
 
 ## Open questions
 

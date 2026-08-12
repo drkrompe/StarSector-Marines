@@ -18,6 +18,11 @@ The shared implementation commit is `254de744`.
 confirmation UI `90f01acc`. The picker previews independent cargo/fuel/personnel
 capacity, transfers what fits, and fences overflow at 75% exactly once.
 
+**S4 recovery modifiers are code-complete** in `f27294c8`. Salvage Expert and
+player-fleet Salvage Rig/Gantry bonuses are frozen at mission completion, grow
+the deterministic recovery pool, and are visible on Results. The expert's 10%
+high-value-quartile roll is part of the manifest seed and replay-stable.
+
 Before marking S1 shipped, smoke-test one patron contract in game:
 
 1. Move the salvage slider away from baseline and confirm displayed payout is
@@ -38,13 +43,10 @@ modded long names, sprite thumbnails, state colors).
 - Also complete the S1/S2 visual checks above. If clean, move all three stories
   to `complete/` together with the smoke-test record.
 
-## Immediate next slice — recovery modifiers
+## Immediate next slice — rare AI cores
 
-- Add `SALVAGE_EXPERT` to the captain trait set: +25% recovered tonnage and one
-  +10%-chance high-value bias, with the latter expressed in roll inputs rather
-  than hidden campaign RNG.
-- Detect player-fleet Salvage Rigs (+10% each, cap +40%) and Salvage Gantry at
-  half effect; freeze the resulting modifier on `MissionOutcome` so debrief and
-  roll agree.
-- Then gate AI-core candidates by mission/target context. Blueprints remain
-  deferred until the tech-recovery trait exists.
+- Add AI-core candidates only for mission types and target factions/industries
+  that plausibly expose them; keep the catalog rule pure and testable.
+- Ensure cores use the existing cargo/selection/fence pipeline without a new
+  capacity bucket.
+- Blueprints remain deferred until the tech-recovery trait exists.
