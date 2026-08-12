@@ -3,9 +3,17 @@
 ## State of play (2026-08-12)
 
 **Code migration COMPLETE.** All phases landed in worktree branch
-`worktree-continuous-positions` and merged back to main. Every commit
-built green with the full test suite; each phase got an adversarial
-critique pass whose real findings were fixed in follow-up commits.
+`worktree-continuous-positions`. Every commit built green with the full
+test suite; each phase got an adversarial critique pass whose real
+findings were fixed in follow-up commits. Main's rescue/shelter work
+(c167e2f8) is already merged INTO the branch (conflict in
+SwarmPressureBehavior resolved: shelter-gating structure + float
+distances), so the merge back to main is a clean fast-forward:
+
+    git merge worktree-continuous-positions   # from the main checkout
+
+It was blocked at handoff time only by a sibling session's uncommitted
+edits to six infantry files — run it once the main tree is clean there.
 
 The locked convention (see `overview.md`): POSITION is continuous floats
 in cell space, cell `(cx, cy)` spans `[cx, cx+1)`, center at
