@@ -47,6 +47,11 @@ transfers, and verifies vanilla market/entity ownership; successful handoffs
 become `APPLIED` and promote their claimant to Tier 4; and Chronicle dispatch
 waits until that writeback finishes (`42f00725`, `ae35056d`, `870d5b96`,
 `5174f44c`).
+The first diplomacy consequence is shipped as a separate persisted lifecycle:
+after ownership applies, the Claimant League and former ruler become mutually
+hostile through a postcondition-first, partial-repair-safe adapter. Autonomous
+success remains player-reputation-neutral until an explicit kingmaker choice can
+be attributed (`ad6ff5fd`, `527535fb`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -59,18 +64,16 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Faction-flip consequences and capstone surface
+## Next up — Faction-flip Chronicle and capstone surface
 
-Build outward from the completed ownership/rank atomic boundary:
+Build outward from the completed ownership/rank/diplomacy boundary:
 
-1. Specify the sector-wide reputation changes caused by an `APPLIED` throne
-   claim, including source faction, Claimant League, and player relationships.
-2. Persist an exactly-once consequence marker separate from ownership writeback
-   so retries or load recovery cannot replay reputation changes.
-3. Give the Chronicle a faction-flip-specific dispatch composed from the applied
+1. Give the Chronicle a faction-flip-specific dispatch composed from the applied
    claim rather than only the generic terminal-chain headline.
-4. Define the three-band player choices and kingmaker capstone that feed this
+2. Define the three-band player choices and kingmaker capstone that feed this
    political result.
+3. Persist player attribution for those choices, then apply claimant/incumbent
+   reputation deltas exactly once from that evidence.
 
 ## Open forks still unresolved (design)
 
@@ -135,3 +138,5 @@ Build outward from the completed ownership/rank atomic boundary:
 - Slice F3b — predeclared Claimant League (`ae35056d`).
 - Slice F3c — vanilla ownership adapter (`870d5b96`).
 - Slice F3d — post-writeback Chronicle ordering (`5174f44c`).
+- Slice F4a — persisted consequence lifecycle (`ad6ff5fd`).
+- Slice F4b — replay-safe diplomatic rupture (`527535fb`).

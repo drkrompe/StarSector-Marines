@@ -5,12 +5,12 @@ schemes before those ambitions are admitted to autonomous chain creation.
 `CONSOLIDATE_STAKE` remains the horizontal baseline; vertical chains must earn
 their own identity and payload rather than borrowing it.
 
-**Status:** ordinary `PROMOTE` chain and `CLAIM_THRONE` ownership/rank path CODE
-COMPLETE (2026-08-12); reputation consequences remain.
+**Status:** ordinary `PROMOTE` chain and `CLAIM_THRONE` core writeback path CODE
+COMPLETE (2026-08-12); player-facing capstone consequences remain.
 
 **Implemented:** `0a00ceb0`, `156ac5b1`, `a4cd42c8`, `76c7579a`,
 `9bf2356b`, `bdb45f7b`, `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`,
-`ae35056d`, `870d5b96`, `5174f44c`
+`ae35056d`, `870d5b96`, `5174f44c`, `ad6ff5fd`, `527535fb`
 
 ## Ordinary promotion — locked v1 contract
 
@@ -60,6 +60,8 @@ ladder's remainder-carry semantics. Suppression floors at zero.
   its primary/connected entities, verifies the postcondition, and supports
   repair/retry without replaying a completed claim;
 - a prepared handoff suppresses the terminal Chronicle dispatch until ownership
-  writeback is `APPLIED`; a rejected handoff fails its source chain.
+  writeback is `APPLIED`; a rejected handoff fails its source chain;
+- after ownership applies, an independent persisted consequence makes claimant
+  and former ruler mutually hostile, with retry and partial-repair semantics.
 
 No living-world system may infer or perform the vanilla faction flip.

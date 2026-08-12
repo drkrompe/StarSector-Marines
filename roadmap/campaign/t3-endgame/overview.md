@@ -1,11 +1,11 @@
 # Campaign T3 endgame — the faction flip
 
-**Status:** ownership/rank writeback path CODE COMPLETE (2026-08-12);
-sector-wide reputation consequences remain.
+**Status:** ownership/rank/diplomacy writeback path CODE COMPLETE (2026-08-12);
+player-facing capstone consequences remain.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
 `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
-`5174f44c`
+`5174f44c`, `ad6ff5fd`, `527535fb`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -59,6 +59,8 @@ prepares one append-only `throneClaims[]` row keyed uniquely by source chain:
 | `throneClaimState` | `PREPARED`, `APPLIED`, or `FAILED` |
 | `throneClaimPreparedTick` | Campaign day the political chain completed |
 | `throneClaimAppliedTick` | Vanilla-write day; `-1` until terminal |
+| `throneClaimConsequenceState` | Independent diplomacy lifecycle: `PENDING`, `APPLIED`, or `FAILED` |
+| `throneClaimConsequenceAppliedTick` | Diplomacy completion day; `-1` until applied |
 
 Preparation is idempotent: a source chain can own exactly one row. The living
 world may append and read this table but cannot move a row out of `PREPARED`.
@@ -97,10 +99,25 @@ interns that identity so the consumer never invents identity during writeback.
 Multiple successful houses join the same Claimant League rather than creating
 unsupported runtime faction objects.
 
-## Still to specify after ownership writeback
+## Diplomatic rupture — locked v1
 
-- Rep consequences across the rest of the sector when a flip lands.
+Once ownership is `APPLIED`, the same isolated consumer applies the factional
+consequence through a second narrow port. The Claimant League and former ruler
+become mutually hostile at a `-0.5` relationship ceiling. Existing standings
+worse than hostile are preserved. The two directions are probed independently,
+so a partial mutation is repaired and an already-satisfied postcondition is not
+replayed. Only verified success marks the separate consequence state `APPLIED`;
+transient failures retry without touching ownership or rank.
+
+An autonomous civil war does **not** change player reputation. Mere failure to
+stop an off-screen rebellion is not a player choice. Player/claimant/incumbent
+deltas belong to explicit kingmaker contracts and decisions, where attribution
+can be persisted rather than inferred from a successful autonomous chain.
+
+## Still to specify after core writeback
+
 - Contract composition and player choices across the three progress bands.
+- Player reputation consequences for those explicit choices.
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.
 
