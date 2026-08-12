@@ -80,8 +80,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     // --- Compact mode ---
     private static final float COMPACT_ROW_H = 26f;
-    /** Hard cap on visible rows so a tactical-map mission with dozens of garrison squads doesn't paint over the battlefield. Older squads (lower id) win. */
-    private static final int MAX_COMPACT_ROWS = 12;
+    private static final float COMPACT_SCROLL_PX_PER_NOTCH = COMPACT_ROW_H * 3f;
 
     // --- Detail mode ---
     private static final float DETAIL_LINE_H        = 18f;
@@ -126,6 +125,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private final BattleUiContext ctx;
     /** Per-frame cache filled by update(); consumed by render(). Empty in detail mode. */
     private final List<Squad> compactSquads = new ArrayList<>();
+    private final ScrollState compactScroll = new ScrollState();
+    private SquadListViewport compactViewport;
     /** Detail-mode squad pinned each frame from Selection; null in compact mode (or if the squad disappeared). */
     private Squad detailSquad;
     /** Snapshot of the detail squad's WorldState. Recomputed every frame so diagnostic readout stays fresh. */
@@ -235,10 +236,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
         for (Squad s : sim.getSquads()) {
             if (s.aliveMembers <= 0) continue;
             compactSquads.add(s);
-            if (compactSquads.size() >= MAX_COMPACT_ROWS) break;
         }
         compactSquads.sort(Comparator.<Squad, Integer>comparing(s -> s.faction == Faction.MARINE ? 0 : 1)
                 .thenComparingInt(s -> s.id));
+        compactViewport = SquadListViewport.fit(compactSquads.size(), maxPanelHeight(),
+                HEADER_H, PAD_INNER, COMPACT_ROW_H);
+        compactScroll.setMetrics(compactViewport.contentHeight, compactViewport.viewportHeight);
     }
 
     private float panelX() {
@@ -252,12 +255,11 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /**
-     * Largest height the detail panel may grow to. Sits below the top control
+     * Largest height either panel mode may grow to. Sits below the top control
      * strip with a small gap — past that the panel would overpaint the speed
-     * buttons. Compact mode is small enough to never hit this, so the cap is
-     * detail-only.
+     * buttons. Detail content and compact squad rows scroll inside this cap.
      */
-    private float maxDetailPanelHeight() {
+    private float maxPanelHeight() {
         BattleLayout l = ctx.getLayout();
         return l.controlsY - panelY() - BattleLayout.CONTROLS_GAP;
     }
@@ -294,16 +296,16 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     /**
      * Detail-mode panel height: enough to fit the content if it's short, capped
-     * by {@link #maxDetailPanelHeight} when content overflows. The overflow case
+     * by {@link #maxPanelHeight} when content overflows. The overflow case
      * is what triggers scrolling.
      */
     private float detailPanelHeight() {
         float wanted = HEADER_H + detailContentH + PAD_INNER;
-        return Math.min(wanted, maxDetailPanelHeight());
+        return Math.min(wanted, maxPanelHeight());
     }
 
     private float compactPanelHeight() {
-        return HEADER_H + compactSquads.size() * COMPACT_ROW_H + PAD_INNER;
+        return compactViewport != null ? compactViewport.panelHeight : 0f;
     }
 
     @Override
@@ -334,7 +336,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
         for (int i = 0; i < compactSquads.size(); i++) {
             Squad s = compactSquads.get(i);
-            float rowY = headerY - (i + 1) * COMPACT_ROW_H;
+            float rowY = compactViewport.rowBottom(headerY, i, compactScroll.offset());
+            if (!compactViewport.rowVisible(rowY, y0 + PAD_INNER, headerY)) continue;
             float baseline = rowY + COMPACT_ROW_H - 6f;
 
             String idLabel = "SQ-" + s.id;
@@ -352,6 +355,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
             Color stepColor = (s.currentPlan == null) ? IDLE_FG : STEP_FG;
             Fonts.ORBITRON_20.drawString(stepLabel, x0 + 220f, baseline, stepColor, alphaMult);
         }
+
+        compactScroll.renderScrollbar(x0 + w - SCROLLBAR_W - SCROLLBAR_GAP,
+                y0 + PAD_INNER, SCROLLBAR_W, compactViewport.viewportHeight,
+                SCROLL_TRACK, SCROLL_THUMB, alphaMult);
     }
 
     private static String formatStep(SquadPlan plan) {
@@ -597,8 +604,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public void handleInput(List<InputEventAPI> events) {
-        if (detailSquad == null) return;
         if (events == null) return;
+        if (detailSquad == null) {
+            compactScroll.handleWheel(events,
+                    panelX(), panelY(), PANEL_W, compactPanelHeight(),
+                    COMPACT_SCROLL_PX_PER_NOTCH);
+            return;
+        }
         // LMB on a step's [H] button toggles that step's highlight. Walk
         // events before the scroll handler so an unconsumed click on a button
         // doesn't get eaten by anything else. Buttons live inside the panel
