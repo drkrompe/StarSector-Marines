@@ -8,8 +8,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — point overlays (rocks, plants,
  * debris) painted above ground/decals/vehicles and below units. Each doodad is a
- * full {@code TILE_SIZE} sub-rect of either the urban tile sheet or the road
- * sheet, drawn at its cell center; the drain batches them per sheet.
+ * full {@code TILE_SIZE} sub-rect of its authored fixed-grid sheet, drawn at
+ * its cell center; the drain batches them per sheet.
  *
  * <p>Emitted in two passes — road-sheet doodads first, then urban — so each sheet
  * forms one contiguous run for the strict-painter drain (one batch flush per
@@ -35,18 +35,25 @@ public final class DoodadRenderSystem implements RenderSystem {
         SpriteAPI urban = sprites.tileSheet();
         if (urban == null) return;
         SpriteAPI road = sprites.roadSheet();
+        SpriteAPI generated = sprites.doodadSheet();
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
 
-        if (road != null) {
-            for (Doodad d : ctx.sim.getDoodads()) {
-                if (d.fromRoadSheet) emit(out, cam, road, d, cellPx, alphaMult);
-            }
-        }
+        emitSheet(ctx, out, cam, road, TileManifest.ROAD_SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, generated, TileManifest.DOODAD_SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, urban, TileManifest.SHEET, cellPx, alphaMult);
+    }
+
+    private static void emitSheet(RenderContext ctx, DrawList out, BattleCamera cam,
+                                  SpriteAPI sheet, String sheetPath,
+                                  float cellPx, float alphaMult) {
+        if (sheet == null) return;
         for (Doodad d : ctx.sim.getDoodads()) {
-            if (!d.fromRoadSheet) emit(out, cam, urban, d, cellPx, alphaMult);
+            if (sheetPath.equals(d.sheetPath)) {
+                emit(out, cam, sheet, d, cellPx, alphaMult);
+            }
         }
     }
 

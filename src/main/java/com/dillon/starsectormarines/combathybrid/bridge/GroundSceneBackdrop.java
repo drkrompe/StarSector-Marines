@@ -111,6 +111,7 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureNatureSheet();
         sprites.ensureWaterSheet();
         sprites.ensureUrbanTile3Sheet();
+        sprites.ensureDoodadSheet();
 
         // UNITS layer (S3f): turret/hub bodies, footprints, dead poses, live infantry, HP bars.
         sprites.ensureUnitSheets();

@@ -1,5 +1,5 @@
 {
-  "sheet": "graphics/tilesets/urban-tileset.png",
+  "sheet": "graphics/tilesets/urban-tileset-imagegen.png",
   "cellPx": 32,
   "blocks": [
     { "id": "urban.wall",      "origin": [3, 0], "layout": "wall-3x3", "fillRgb": "0x060A10" },

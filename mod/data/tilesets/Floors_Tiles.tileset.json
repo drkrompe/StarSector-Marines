@@ -1,5 +1,5 @@
 {
-  "sheet": "graphics/tilesets/Floors_Tiles.png",
+  "sheet": "graphics/tilesets/Floors_Tiles-imagegen.png",
   "cellPx": 16,
   "blocks": [
     { "id": "floors.grass", "cells": [[1, 10], [2, 10], [3, 10]] },

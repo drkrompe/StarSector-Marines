@@ -1,5 +1,5 @@
 {
-  "sheet": "graphics/tilesets/urban-tileset-3.png",
+  "sheet": "graphics/tilesets/urban-tileset-3-imagegen.png",
   "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
   "tiles": [
     { "id": "urban3.street-square", "frame": 0, "layer": "ground", "name": "street-square", "description": "uniform square paver — primary road surface" },

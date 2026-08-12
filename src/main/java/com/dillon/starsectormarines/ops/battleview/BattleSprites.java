@@ -112,6 +112,7 @@ public class BattleSprites {
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
+    private final SheetTexture doodadTex     = SheetTexture.grid(TileManifest.DOODAD_SHEET);
 
     // ---- shuttle sprites ----------------------------------------------------
 
@@ -176,6 +177,9 @@ public class BattleSprites {
     public int natureSheetPxW()                    { return natureTex.pxW(); }
     public int natureSheetPxH()                    { return natureTex.pxH(); }
     public SpriteSheetFrames natureFrames()        { return natureTex.frames(); }
+    public SpriteAPI doodadSheet()                  { return doodadTex.sprite(); }
+    public int doodadSheetPxW()                     { return doodadTex.pxW(); }
+    public int doodadSheetPxH()                     { return doodadTex.pxH(); }
     public java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() { return shuttleSprites; }
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
@@ -220,6 +224,9 @@ public class BattleSprites {
      * {@link #urbanTile3Frames()} is null in that case.
      */
     public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(); }
+
+    /** Lazy-loads the dedicated 32px generated-doodad atlas. */
+    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); }
 
     /**
      * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
