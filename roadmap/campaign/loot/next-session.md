@@ -23,6 +23,11 @@ player-fleet Salvage Rig/Gantry bonuses are frozen at mission completion, grow
 the deterministic recovery pool, and are visible on Results. The expert's 10%
 high-value-quartile roll is part of the manifest seed and replay-stable.
 
+**S5 rare AI-core recovery is code-complete** in `d5f0b779`. Assault/Raid/
+Sabotage missions against AI-linked factions or facilities can now add
+risk-tiered gamma/beta/alpha cores to the same deterministic catalog and
+settlement pipeline.
+
 Before marking S1 shipped, smoke-test one patron contract in game:
 
 1. Move the salvage slider away from baseline and confirm displayed payout is
@@ -43,10 +48,12 @@ modded long names, sprite thumbnails, state colors).
 - Also complete the S1/S2 visual checks above. If clean, move all three stories
   to `complete/` together with the smoke-test record.
 
-## Immediate next slice — rare AI cores
+## Immediate next — shipping checkpoint
 
-- Add AI-core candidates only for mission types and target factions/industries
-  that plausibly expose them; keep the catalog rule pure and testable.
-- Ensure cores use the existing cargo/selection/fence pipeline without a new
-  capacity bucket.
-- Blueprints remain deferred until the tech-recovery trait exists.
+- Repeat the S1–S3 checks above with a captain carrying `SALVAGE_EXPERT`, then
+  with Salvage Rig/Gantry hardware; confirm Results and pool size reflect the
+  frozen modifier.
+- Use an eligible AI-linked strike to verify core icon, value, selection, cargo
+  transfer, and overflow fencing. Confirm ordinary targets do not expose cores.
+- If clean, move S1–S5 to `complete/` with the smoke-test record. Blueprint and
+  tech-recovery support remains deliberately deferred.

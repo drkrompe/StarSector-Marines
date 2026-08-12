@@ -81,14 +81,13 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-1. **Rare loot + shipping check** — the core loot loop and Layer-3 recovery
-   modifiers are code-complete (`254de744`, `037586cf`, `90f01acc`,
-   `f27294c8`): deterministic
+1. **Loot shipping check** — the core loot loop, Layer-3 recovery modifiers,
+   and context-gated AI cores are code-complete (`254de744`, `037586cf`, `90f01acc`,
+   `f27294c8`, `d5f0b779`): deterministic
    faction/industry-weighted weapons + commodities, budget-aware picker,
    separate cargo/fuel/personnel capacity preview, exactly-once transfer, and
-   75% fence-on-spot overflow. Before moving its three stories to `complete/`,
-   run the documented in-game visual/cargo smoke test. The next code slice is
-   context-gated AI cores. See
+   75% fence-on-spot overflow. Before moving its five stories to `complete/`,
+   run the documented in-game visual/cargo/core smoke test. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 2. **Contract generation for non-STRIKE types** — `ContractType` has
    six values; only STRIKE is generated. GARRISON + CADRE introduce

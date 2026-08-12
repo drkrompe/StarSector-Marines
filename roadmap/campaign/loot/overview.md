@@ -27,7 +27,8 @@ since the entitlement is already plumbed end-to-end through
    [`stories/s3-cargo-settlement.md`](stories/s3-cargo-settlement.md).
 4. **Rare recovery** — AI-core mission gates, `SALVAGE_EXPERT` high-value roll,
    Salvage Rig/Gantry multipliers, then blueprint/tech-recovery support.
-   Captain/fleet modifiers are code-complete in `f27294c8`.
+   Captain/fleet modifiers are code-complete in `f27294c8`; context-gated cores
+   are code-complete in `d5f0b779`. Blueprints remain deferred.
 
 ## Recoverable categories
 
@@ -67,8 +68,7 @@ the player sees the grid — by loot time the entitlement is final.
 `MissionResolver.compute()` freezes entitlement plus recovery modifiers on the
 victorious `MissionOutcome`. A deterministic manifest, budget-aware picker,
 capacity preview, and exactly-once settlement now run end to end. In-game
-visual/cargo verification remains the shipping gate; context-gated AI cores are
-the next code slice.
+visual/cargo/core verification remains the shipping gate.
 
 ## Open questions
 
@@ -90,8 +90,9 @@ the next code slice.
 - The recovery pool's target value is deliberately expressed as a small set of
   tunable multipliers by mission type and risk. This is balance scaffolding, not
   a permanent economy promise.
-- The first slice recovers commodities and weapons. Rare cores and blueprints
-  stay out until their mission/trait gates are representable without UI guesses.
+- Commodities, weapons, and risk-tiered AI cores now share one manifest and
+  settlement pipeline. Blueprints stay out until their tech-recovery trait gate
+  is representable without UI guesses.
 
 ## Related
 

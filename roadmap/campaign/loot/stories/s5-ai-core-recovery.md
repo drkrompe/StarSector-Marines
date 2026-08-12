@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE — in-game smoke pending (2026-08-12)
 
+**Implemented in:** `d5f0b779`
+
 ## Goal
 
 Add rare AI cores to the deterministic recovery catalog without making every
