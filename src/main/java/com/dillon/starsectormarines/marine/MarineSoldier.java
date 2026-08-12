@@ -17,6 +17,7 @@ public final class MarineSoldier implements Serializable {
     private SoldierAptitude aptitude;
     private int experienceXp;
     private MarineSoldierStatus status;
+    private float unavailableUntilDay;
     private MarineWeapon primary;
     private EquipmentGrade primaryGrade;
     private MarineSecondary secondary;
@@ -43,6 +44,7 @@ public final class MarineSoldier implements Serializable {
     public int experienceXp() { return experienceXp; }
     public SoldierProfile profile() { return new SoldierProfile(aptitude, experienceXp); }
     public MarineSoldierStatus status() { return status; }
+    public float unavailableUntilDay() { return unavailableUntilDay; }
     public MarineWeapon primary() { return primary; }
     public EquipmentGrade primaryGrade() { return primaryGrade; }
     public MarineSecondary secondary() { return secondary; }
@@ -65,6 +67,10 @@ public final class MarineSoldier implements Serializable {
         status = value != null ? value : MarineSoldierStatus.ACTIVE;
     }
 
+    void setUnavailableUntilDay(float value) {
+        unavailableUntilDay = Math.max(0f, value);
+    }
+
     private Object readResolve() {
         if (id == null) id = UUID.randomUUID().toString();
         if (name == null) name = "Marine";
@@ -74,6 +80,7 @@ public final class MarineSoldier implements Serializable {
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;
         if (armor == null) armor = MarineArmorPattern.ARMORLESS;
         experienceXp = Math.max(0, experienceXp);
+        unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;
     }
 }

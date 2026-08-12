@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,5 +32,18 @@ class CampaignMarineDeploymentTest {
         assertEquals(MarineWeapon.DMR, seat.primary);
         assertEquals(123, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
+    }
+
+    @Test
+    void selectedFireteamIsLoadedBeforeOtherRosterPersonnel() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(12);
+        MarineSquad second = roster.squads().get(1);
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(
+                roster, java.util.Collections.singleton(second.id()), 2);
+
+        assertEquals(second.memberIds().get(0), deployment.seat(0).campaignSoldierId);
+        assertEquals(second.memberIds().get(1), deployment.seat(1).campaignSoldierId);
     }
 }

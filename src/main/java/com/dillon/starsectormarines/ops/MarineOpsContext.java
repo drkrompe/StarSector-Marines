@@ -54,6 +54,10 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
+    /** Persistent fireteams selected for the current mission's player-controlled seats. */
+    private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
+    private String squadSelectionMissionId;
+    private int marineDeploymentCapacity;
     /** Stationing offer selected for the dedicated assignment screen. */
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
@@ -100,7 +104,42 @@ public class MarineOpsContext {
     }
 
     public void setSelectedMission(Mission mission) {
+        if (selectedMission == null || mission == null || !selectedMission.id.equals(mission.id)) {
+            selectedMarineSquadIds.clear();
+            squadSelectionMissionId = mission != null ? mission.id : null;
+            marineDeploymentCapacity = 0;
+        }
         this.selectedMission = mission;
+    }
+
+    public Set<String> getSelectedMarineSquadIds() {
+        return Collections.unmodifiableSet(selectedMarineSquadIds);
+    }
+
+    public void setMarineDeploymentCapacity(int capacity) {
+        marineDeploymentCapacity = Math.max(0, capacity);
+        Mission mission = selectedMission;
+        squadSelectionMissionId = mission != null ? mission.id : null;
+    }
+
+    public int getMarineDeploymentCapacity() { return marineDeploymentCapacity; }
+
+    public boolean isMarineSquadSelected(String squadId) {
+        return selectedMarineSquadIds.contains(squadId);
+    }
+
+    public void toggleMarineSquad(String squadId) {
+        if (squadId == null) return;
+        if (!selectedMarineSquadIds.remove(squadId)) selectedMarineSquadIds.add(squadId);
+    }
+
+    public void selectMarineSquad(String squadId) {
+        if (squadId != null) selectedMarineSquadIds.add(squadId);
+    }
+
+    public boolean hasSquadSelectionFor(Mission mission) {
+        return mission != null && mission.id.equals(squadSelectionMissionId)
+                && !selectedMarineSquadIds.isEmpty();
     }
 
     public ScreenId getCurrentScreen() {
@@ -209,6 +248,9 @@ public class MarineOpsContext {
         detachment = null;
         lastOutcome = null;
         lootManifest = LootManifest.EMPTY;
+        selectedMarineSquadIds.clear();
+        squadSelectionMissionId = null;
+        marineDeploymentCapacity = 0;
         missionsByClient.clear();
     }
 

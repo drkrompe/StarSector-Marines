@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 
 import java.util.List;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 
 /**
  * The single accept-path both pre-battle entry points ({@link BriefingScreen},
@@ -77,7 +78,17 @@ public final class MissionLaunch {
 
         // Scenario factories author seat roles/objectives first; the persistent
         // roster then overlays each seat's identity, progression, armor and gear.
-        CampaignMarineDeployment.freeze(det.shuttleManifest).applyTo(sim);
+        int firstPlayerShuttle = m.source == MissionSource.STATIONING
+                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+        int playerSeats = CampaignMarineDeployment.requiredSeats(
+                det.shuttleManifest, firstPlayerShuttle);
+        ctx.setMarineDeploymentCapacity(playerSeats);
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        if (personnel != null) {
+            CampaignMarineDeployment.freeze(personnel.roster(),
+                    ctx.getSelectedMarineSquadIds(), playerSeats)
+                    .applyTo(sim, firstPlayerShuttle);
+        }
 
         // Marine-side fighter cover (committed bays + employer) combined with the
         // mission's enemy support, then any force-spawned debug wings (both sides

@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /** Campaign-side allocation snapshot consumed sequentially by battle shuttle seats. */
 public final class CampaignMarineDeployment {
@@ -37,10 +38,26 @@ public final class CampaignMarineDeployment {
     }
 
     public static CampaignMarineDeployment freeze(MarineRoster roster, int requiredSeats) {
+        return freeze(roster, Collections.emptySet(), requiredSeats);
+    }
+
+    public static CampaignMarineDeployment freeze(MarineRoster roster,
+                                                   Set<String> selectedSquadIds,
+                                                   int requiredSeats) {
         if (roster == null || requiredSeats <= 0) return EMPTY;
         roster.ensureActiveSoldiers(requiredSeats);
         List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
-        List<MarineSoldier> active = roster.activeSoldiers();
+        List<MarineSoldier> active = new ArrayList<>();
+        if (selectedSquadIds != null && !selectedSquadIds.isEmpty()) {
+            for (String squadId : selectedSquadIds) {
+                for (MarineSoldier soldier : roster.squadMembers(roster.squadById(squadId))) {
+                    if (soldier.status() == com.dillon.starsectormarines.marine.MarineSoldierStatus.ACTIVE) {
+                        active.add(soldier);
+                    }
+                }
+            }
+        }
+        if (active.isEmpty()) active.addAll(roster.activeSoldiers());
         for (int i = 0; i < Math.min(requiredSeats, active.size()); i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();
@@ -60,15 +77,22 @@ public final class CampaignMarineDeployment {
 
     /** Replace generated seat stats with this frozen campaign allocation. */
     public void applyTo(BattleSimulation sim) {
+        applyTo(sim, 0);
+    }
+
+    /** Applies only after skipping employer-owned physical shuttle missions. */
+    public void applyTo(BattleSimulation sim, int shuttleMissionsToSkip) {
         if (sim == null || seats.isEmpty()) return;
         BattleComponents components = sim.getBattleComponents();
         int seatIndex = 0;
+        int missionIndex = 0;
         for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {
             Object[] missions = table.objects(components.SHUTTLE_MISSION,
                     BattleComponents.SHUTTLE_MISSION_STATE).array();
             for (int row = 0; row < table.rowCount(); row++) {
                 ShuttleMission mission = (ShuttleMission) missions[row];
                 if (mission == null) continue;
+                if (missionIndex++ < Math.max(0, shuttleMissionsToSkip)) continue;
                 MarineLoadout[][] cycles = mission.cycleLoadouts;
                 if (cycles == null || cycles.length == 0) {
                     cycles = new MarineLoadout[][]{mission.marineLoadout};
@@ -98,13 +122,18 @@ public final class CampaignMarineDeployment {
                 allocation.campaignSoldierId, allocation.armorFamily);
     }
 
-    private static int requiredSeats(List<ShuttleAssignment> manifest) {
+    public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {
         if (manifest == null) return 0;
         int total = 0;
-        for (ShuttleAssignment assignment : manifest) {
+        for (int i = Math.max(0, firstAssignment); i < manifest.size(); i++) {
+            ShuttleAssignment assignment = manifest.get(i);
             if (assignment != null) total += assignment.type.capacity * assignment.cycles;
         }
         return total;
+    }
+
+    private static int requiredSeats(List<ShuttleAssignment> manifest) {
+        return requiredSeats(manifest, 0);
     }
 
     private static LayeredArmorFamily armorFamily(MarineArmorPattern armor) {

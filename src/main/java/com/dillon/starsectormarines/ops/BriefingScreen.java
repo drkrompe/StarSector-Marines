@@ -20,6 +20,9 @@ import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -449,24 +452,34 @@ public class BriefingScreen implements Screen {
     }
 
     private void buildButtons() {
-        // Deploy / Back at the bottom of the detachment (right) column.
+        // Squad assignment / Deploy / Back at the bottom of the detachment column.
         float availableW = layout.rightCol.w - 2 * INNER_PAD;
-        float btnW = (availableW - BTN_GAP) / 2f;
+        float btnW = (availableW - 2f * BTN_GAP) / 3f;
         float btnY = layout.rightCol.y + INNER_PAD;
-        float deployX = layout.rightCol.x + INNER_PAD;
+        float squadsX = layout.rightCol.x + INNER_PAD;
+        float deployX = squadsX + btnW + BTN_GAP;
         float backX   = deployX + btnW + BTN_GAP;
 
         // Deploy gating — when transport is short, the button is non-functional
         // and the label flips to a red "Insufficient Transport".
         Mission m = ctx.getSelectedMission();
-        boolean canAccept = m == null || m.source == MissionSource.STATIONING
+        boolean transportOk = m == null || m.source == MissionSource.STATIONING
                 || isTransportSufficient(m, effectivePlayerShuttles());
+        boolean personnelOk = m == null || hasEnoughAssignedMarines(m);
+        boolean canAccept = transportOk && personnelOk;
+
+        ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
+                this::openSquadDeployment);
+        widgets.add(squads);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Assign Squads",
+                squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H,
                 canAccept ? this::onAccept : null);
         widgets.add(deploy);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                Strings.get(canAccept ? "briefingAccept" : "briefingAcceptBlocked"),
+                canAccept ? Strings.get("briefingAccept")
+                        : transportOk ? "Assign More" : Strings.get("briefingAcceptBlocked"),
                 deployX + INNER_PAD, btnY + BTN_H - 6f,
                 canAccept ? ACCEPT_COLOR : BLOCKED_COLOR));
 
@@ -474,6 +487,53 @@ public class BriefingScreen implements Screen {
         widgets.add(back);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
                 backX + INNER_PAD, btnY + BTN_H - 6f, HEADER_COLOR));
+    }
+
+    private boolean hasEnoughAssignedMarines(Mission m) {
+        if (ctx.getSelectedMarineSquadIds().isEmpty()) return true;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        if (script == null) return true;
+        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
+                m, m.source == MissionSource.STATIONING
+                        ? java.util.Collections.emptyList() : effectivePlayerShuttles());
+        int firstPlayer = m.source == MissionSource.STATIONING
+                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+        int needed = CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
+        int ready = 0;
+        MarineRoster roster = script.roster();
+        for (String squadId : ctx.getSelectedMarineSquadIds()) {
+            ready += roster.readyCount(roster.squadById(squadId));
+        }
+        return ready >= needed;
+    }
+
+    private void openSquadDeployment() {
+        Mission m = ctx.getSelectedMission();
+        if (m == null) return;
+        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
+                m, m.source == MissionSource.STATIONING
+                        ? java.util.Collections.emptyList() : effectivePlayerShuttles());
+        int firstPlayer = m.source == MissionSource.STATIONING
+                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+        int seats = CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
+        ctx.setMarineDeploymentCapacity(seats);
+
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        if (script != null && seats > 0) {
+            MarineRoster roster = script.roster();
+            roster.ensureActiveSoldiers(seats);
+            if (!ctx.hasSquadSelectionFor(m)) {
+                int assigned = 0;
+                for (MarineSquad squad : roster.squads()) {
+                    int ready = roster.readyCount(squad);
+                    if (ready <= 0) continue;
+                    ctx.selectMarineSquad(squad.id());
+                    assigned += ready;
+                    if (assigned >= seats) break;
+                }
+            }
+        }
+        ctx.goTo(ScreenId.SQUAD_DEPLOYMENT);
     }
 
     /** Currently-committed carriers — {@link #cachedCarriers} minus the deselected. */
