@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -214,26 +217,32 @@ public class BriefingScreen implements Screen {
 
         // Salvage negotiation — contract-bound missions only. −/+ trade salvage
         // for cash per contracts/overview.md §"Salvage Layer 2".
-        int salvageBaseline = m.salvageBaseline & 0xFF;
+        int salvageBaseline = m.contractSalvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvage"),
                     labelX, y, LABEL_COLOR));
-            int negotiated = m.salvageNegotiated & 0xFF;
+            int negotiated = m.contractSalvageNegotiated & 0xFF;
             int cashBonus = cashMult - 100;
-            String salvageStr = MessageFormat.format(
-                    Strings.get("briefingSalvageFmt"), negotiated, cashBonus);
+            int phaseEntitlement = m.salvageNegotiated & 0xFF;
+            String salvageStr = m.salvageBaseline != m.contractSalvageBaseline
+                    ? MessageFormat.format(Strings.get("briefingPhaseSalvageFmt"),
+                            negotiated, phaseEntitlement, cashBonus)
+                    : MessageFormat.format(
+                            Strings.get("briefingSalvageFmt"), negotiated, cashBonus);
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, salvageStr, valueX, y, VALUE_COLOR));
 
-            float btnSize = 22f;
-            float btnY = y - btnSize + 6f;
-            float plusX = layout.leftCol.x + layout.leftCol.w - INNER_PAD - btnSize;
-            float minusX = plusX - btnSize - 4f;
-            widgets.add(new ButtonWidget(minusX, btnY, btnSize, btnSize, () -> adjustSalvage(-10)));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvageMinus"),
-                    minusX + 6f, y, HEADER_COLOR));
-            widgets.add(new ButtonWidget(plusX, btnY, btnSize, btnSize, () -> adjustSalvage(+10)));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvagePlus"),
-                    plusX + 6f, y, HEADER_COLOR));
+            if (negotiationOpen(m)) {
+                float btnSize = 22f;
+                float btnY = y - btnSize + 6f;
+                float plusX = layout.leftCol.x + layout.leftCol.w - INNER_PAD - btnSize;
+                float minusX = plusX - btnSize - 4f;
+                widgets.add(new ButtonWidget(minusX, btnY, btnSize, btnSize, () -> adjustSalvage(-10)));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvageMinus"),
+                        minusX + 6f, y, HEADER_COLOR));
+                widgets.add(new ButtonWidget(plusX, btnY, btnSize, btnSize, () -> adjustSalvage(+10)));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvagePlus"),
+                        plusX + 6f, y, HEADER_COLOR));
+            }
             y -= ROW_GAP;
         }
 
@@ -604,6 +613,16 @@ public class BriefingScreen implements Screen {
     private void onAccept() {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
+        CampaignStateScript campaignScript = CampaignStateScript.getInstance();
+        if (m.contractId >= 0L && campaignScript != null) {
+            int row = campaignScript.state().contractIndex(m.contractId);
+            if (row >= 0 && ContractType.fromByte(campaignScript.state().contractType[row])
+                    == ContractType.PLANETARY_ASSAULT
+                    && !PlanetaryAssaultTerms.lockForDeployment(campaignScript.state(), m)) {
+                rebuild();
+                return;
+            }
+        }
         MarineCaptain c = ctx.getSelectedCaptain();
         String captainStr = c != null ? c.id() + " (" + c.name() + ")" : "none";
         LOG.info("MarineOps: deploy mission id=" + m.id + " name='" + m.name
@@ -634,21 +653,30 @@ public class BriefingScreen implements Screen {
     private void adjustSalvage(int delta) {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
-        int baseline = m.salvageBaseline & 0xFF;
+        int baseline = m.contractSalvageBaseline & 0xFF;
         if (baseline <= 0) return;
-        int current = m.salvageNegotiated & 0xFF;
+        int current = m.contractSalvageNegotiated & 0xFF;
         int next = Math.max(0, Math.min(baseline, current + delta));
         if (next == current) return;
         int cashMult = 100 + (baseline - next) / 2;
+        int phaseNegotiated = Math.min(m.salvageBaseline & 0xFF, next);
 
         Mission replaced = new Mission(
                 m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
                 m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
                 m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.targetFactionId, m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
+                m.targetFactionId, m.contractId, m.salvageBaseline,
+                (byte) phaseNegotiated, (byte) cashMult,
+                m.contractSalvageBaseline, (byte) next,
                 m.employerPowerIds);
         ctx.setSelectedMission(replaced);
         rebuild();
+    }
+
+    private static boolean negotiationOpen(Mission mission) {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        return script == null || PlanetaryAssaultTerms.negotiationOpen(
+                script.state(), mission.contractId);
     }
 
     @Override

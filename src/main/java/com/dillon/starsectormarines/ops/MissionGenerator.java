@@ -272,6 +272,8 @@ public final class MissionGenerator {
                 missionSalvageBaseline,
                 missionSalvageNegotiated,
                 state.contractCashMultiplier[row],
+                state.contractSalvageBaseline[row],
+                state.contractSalvageNegotiated[row],
                 employerPowers);
     }
 

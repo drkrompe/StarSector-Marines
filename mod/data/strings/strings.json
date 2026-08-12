@@ -56,6 +56,7 @@
 		"briefingAcceptBlocked":  "Insufficient Transport",
 		"briefingSalvage":        "Salvage:",
 		"briefingSalvageFmt":     "{0}% — +{1}% cash",
+		"briefingPhaseSalvageFmt": "{0}% contract / {1}% this phase — +{2}% cash",
 		"briefingSalvageMinus":   "−",
 		"briefingSalvagePlus":    "+",
 

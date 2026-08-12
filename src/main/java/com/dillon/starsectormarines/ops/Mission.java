@@ -79,6 +79,10 @@ public final class Mission {
     public final byte salvageNegotiated;
     /** Cash multiplier from salvage negotiation (0..255; 100 = baseline). */
     public final byte cashMultiplier;
+    /** Contract-wide salvage cap; differs from phase cap on Planetary Assault. */
+    public final byte contractSalvageBaseline;
+    /** Contract-wide negotiated salvage frozen at first deployment. */
+    public final byte contractSalvageNegotiated;
 
     /** Backwards-compatible constructor — ad-hoc mission, no contract, no salvage entitlement. */
     public Mission(String id,
@@ -153,6 +157,37 @@ public final class Mission {
                    byte salvageNegotiated,
                    byte cashMultiplier,
                    List<String> employerPowerIds) {
+        this(id, name, type, source, payout, risk, requirements, flavor,
+                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
+                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
+                targetFactionId, contractId, salvageBaseline, salvageNegotiated,
+                cashMultiplier, salvageBaseline, salvageNegotiated, employerPowerIds);
+    }
+
+    public Mission(String id,
+                   String name,
+                   MissionType type,
+                   MissionSource source,
+                   int payout,
+                   RiskLevel risk,
+                   String requirements,
+                   String flavor,
+                   float normalizedX,
+                   float normalizedY,
+                   FlybyRoster clientFighterSupport,
+                   FlybyRoster enemyFighterSupport,
+                   int requiredDrops,
+                   int employerShuttles,
+                   String targetPlanetName,
+                   String targetIndustryId,
+                   String targetFactionId,
+                   long contractId,
+                   byte salvageBaseline,
+                   byte salvageNegotiated,
+                   byte cashMultiplier,
+                   byte contractSalvageBaseline,
+                   byte contractSalvageNegotiated,
+                   List<String> employerPowerIds) {
         this.id           = id;
         this.name         = name;
         this.type         = type;
@@ -177,5 +212,7 @@ public final class Mission {
         this.salvageBaseline   = salvageBaseline;
         this.salvageNegotiated = salvageNegotiated;
         this.cashMultiplier    = cashMultiplier;
+        this.contractSalvageBaseline = contractSalvageBaseline;
+        this.contractSalvageNegotiated = contractSalvageNegotiated;
     }
 }
