@@ -89,8 +89,8 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus executeWithTarget(long member, long target, BattleControl sim, int homeX, int homeY) {
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target), sim.world().cellY(target));

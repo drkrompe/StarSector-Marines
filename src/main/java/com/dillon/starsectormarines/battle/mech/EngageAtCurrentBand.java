@@ -56,7 +56,7 @@ public final class EngageAtCurrentBand implements Action {
         // Loadout component reached by id (zero-alloc direct lookup).
         MechLoadoutComponent m = sim.world().mechLoadout(u);
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(u), sim.world().y(u), sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(u);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
 

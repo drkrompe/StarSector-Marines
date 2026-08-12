@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -29,7 +30,15 @@ import java.util.List;
  */
 public final class WorldPicker implements HudPanel {
 
-    /** Pick radius in cells. Units may be mid-cell during movement (World.renderX/Y, the tolerant center-based reads) so we want forgiveness around the visual centre. */
+    /**
+     * Baseline pick radius in cells, used as a floor for small units. Units
+     * may be mid-cell during movement (World.renderX/Y, the tolerant
+     * center-based reads) so we want forgiveness around the visual centre.
+     * {@link #nearestUnit} widens this per-unit to at least the unit's
+     * {@link UnitType#radius} physical footprint (plus a small margin) so
+     * bigger units (mechs, hubs) are easier to click without shrinking the
+     * forgiveness infantry already had.
+     */
     private static final float PICK_RADIUS_CELLS = 0.6f;
 
     private final BattleUiContext ctx;
@@ -97,14 +106,25 @@ public final class WorldPicker implements HudPanel {
         return bestId;
     }
 
+    /**
+     * Nearest live unit within its own pick radius, or {@code 0L} if none
+     * qualify. Each unit's radius scales with its physical footprint
+     * ({@link UnitType#radius}) so bigger units (mechs, hubs) are easier to
+     * click; {@code bestDistSq} tracks absolute nearest-distance among
+     * qualifying candidates, not distance relative to each unit's own radius,
+     * so a small unit slightly closer than a big one still wins.
+     */
     private static long nearestUnit(BattleSimulation sim, float worldX, float worldY) {
         long best = 0L;
-        float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;
+        float bestDistSq = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             float dx = sim.world().renderX(u) - worldX;
             float dy = sim.world().renderY(u) - worldY;
             float d2 = dx * dx + dy * dy;
+            UnitType type = sim.identity().type(u);
+            float pickRadius = Math.max(PICK_RADIUS_CELLS, type.radius + 0.3f);
+            if (d2 > pickRadius * pickRadius) continue;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
                 best = u;

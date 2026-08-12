@@ -136,14 +136,14 @@ public final class InfantryUnitPrep {
         long bestHardened = 0L;
         float bestDistSq = Float.MAX_VALUE;
         LongBucket scratch = new LongBucket();
-        sim.getUnitIndex().gather(sim.world().cellX(unit), sim.world().cellY(unit), range, scratch);
+        sim.getUnitIndex().gather(sim.world().x(unit), sim.world().y(unit), range, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
             if (!TacticalScoring.isHardened(sim.identity().type(other))) continue;
             if (!sim.world().isAlive(other)) continue;
             if (sim.identity().faction(other) == sim.identity().faction(unit)) continue;
-            float dx = sim.world().cellX(other) - sim.world().cellX(unit);
-            float dy = sim.world().cellY(other) - sim.world().cellY(unit);
+            float dx = sim.world().x(other) - sim.world().x(unit);
+            float dy = sim.world().y(other) - sim.world().y(unit);
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;

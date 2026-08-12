@@ -80,6 +80,10 @@ public final class UnitDestinationSpatialIndex {
             if (cells <= 0) continue;
             int destX = Paths.cellX(path, cells - 1);
             int destY = Paths.cellY(path, cells - 1);
+            // Cell compare, not an arrival test: this is an occupancy-style
+            // claim ("the unit's path already terminates on the cell it
+            // currently occupies," so there's nothing left to index) — not a
+            // check of whether the unit has arrived at a continuous position.
             if (destX == world.cellX(id) && destY == world.cellY(id)) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
@@ -134,27 +138,34 @@ public final class UnitDestinationSpatialIndex {
 
     /**
      * Appends the id of every <em>alive</em> unit whose <em>destination</em>
-     * cell sits within {@code radius} cells (Euclidean) of ({@code cx},
-     * {@code cy}) into {@code out}. Clears {@code out} first.
+     * cell sits within {@code radius} cells (Euclidean) of the continuous
+     * point ({@code cx}, {@code cy}) into {@code out}. Clears {@code out} first.
      *
      * <p>Same gather contract and bucket-sweep math as
-     * {@link UnitSpatialIndex#gather}; the only difference is that the
-     * radius check is against each unit's path destination rather than
-     * its current cell. Ids released since the last {@link #rebuild} are
-     * skipped — a released id's by-id reads are unsafe under dense slot
-     * reuse, and a dead unit is not a live destination occupant. Further
-     * filtering (faction, combatant, ally exclusion) is the caller's job,
-     * matching the primary index's "primitive over all alive units" semantics.
+     * {@link UnitSpatialIndex#gather}; the difference is twofold: the radius
+     * check is against each unit's path destination rather than its current
+     * position, and the destination itself is a genuine grid cell (paths are
+     * still cell-quantized) — so the distance test compares the destination
+     * <em>cell's center</em> ({@code dest + 0.5}) against the float query
+     * point, keeping the comparison apples-to-apples with a continuous-space
+     * radius. Ids released since the last {@link #rebuild} are skipped — a
+     * released id's by-id reads are unsafe under dense slot reuse, and a dead
+     * unit is not a live destination occupant. Further filtering (faction,
+     * combatant, ally exclusion) is the caller's job, matching the primary
+     * index's "primitive over all alive units" semantics.
      */
-    public void gather(UnitRosterService roster, int cx, int cy, float radius, LongBucket out) {
+    public void gather(UnitRosterService roster, float cx, float cy, float radius, LongBucket out) {
         out.clear();
         if (radius <= 0f) return;
         World world = roster.world();
-        int r = (int) Math.ceil(radius);
-        int x0 = Math.max(0, (cx - r) / UnitSpatialIndex.BUCKET);
-        int x1 = Math.min(bucketsX - 1, (cx + r) / UnitSpatialIndex.BUCKET);
-        int y0 = Math.max(0, (cy - r) / UnitSpatialIndex.BUCKET);
-        int y1 = Math.min(bucketsY - 1, (cy + r) / UnitSpatialIndex.BUCKET);
+        int loX = (int) Math.floor(cx - radius);
+        int hiX = (int) Math.floor(cx + radius);
+        int loY = (int) Math.floor(cy - radius);
+        int hiY = (int) Math.floor(cy + radius);
+        int x0 = Math.max(0, Math.floorDiv(loX, UnitSpatialIndex.BUCKET));
+        int x1 = Math.min(bucketsX - 1, Math.floorDiv(hiX, UnitSpatialIndex.BUCKET));
+        int y0 = Math.max(0, Math.floorDiv(loY, UnitSpatialIndex.BUCKET));
+        int y1 = Math.min(bucketsY - 1, Math.floorDiv(hiY, UnitSpatialIndex.BUCKET));
         float r2 = radius * radius;
         for (int by = y0; by <= y1; by++) {
             for (int bx = x0; bx <= x1; bx++) {
@@ -170,8 +181,8 @@ public final class UnitDestinationSpatialIndex {
                     int[] p = world.path(id);
                     int cells = Paths.cellCount(p);
                     if (cells <= 0) continue;
-                    int dx = Paths.cellX(p, cells - 1) - cx;
-                    int dy = Paths.cellY(p, cells - 1) - cy;
+                    float dx = (Paths.cellX(p, cells - 1) + 0.5f) - cx;
+                    float dy = (Paths.cellY(p, cells - 1) + 0.5f) - cy;
                     if (dx * dx + dy * dy <= r2) out.add(id);
                 }
             }

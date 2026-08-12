@@ -61,7 +61,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             sim.world().setTargetId(u, target);
         }
         if (target == 0L) return;
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(u), sim.world().y(u), sim.world().x(target), sim.world().y(target));
         boolean canFire = dist <= sim.world().attackRange(u)
                 && sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
         if (canFire) {

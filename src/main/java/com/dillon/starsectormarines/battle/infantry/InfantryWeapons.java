@@ -148,8 +148,8 @@ public class InfantryWeapons {
         // through to their baked Entity stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        float dist = RangeFalloff.dist(world.cellX(shooter), world.cellY(shooter),
-                world.cellX(target), world.cellY(target));
+        float dist = RangeFalloff.dist(world.x(shooter), world.y(shooter),
+                world.x(target), world.y(target));
         float effectiveSpread = 0f;
         if (weapon != null) {
             float effectiveRange = world.attackRange(shooter);

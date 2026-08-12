@@ -141,7 +141,7 @@ public final class WorldStateBuilder {
         // spatial index — eliminates the previous O(total-units) outer scan
         // when the squad's lastSeenEnemy point sits far from most of the map.
         LongBucket threats = new LongBucket();
-        sim.getUnitIndex().gather(squad.lastSeenEnemyX, squad.lastSeenEnemyY,
+        sim.getUnitIndex().gather(squad.lastSeenEnemyX + 0.5f, squad.lastSeenEnemyY + 0.5f,
                 HAS_LOS_THREAT_SET_RADIUS, threats);
         for (int i = 0, n = threats.size; i < n; i++) {
             long enemy = threats.ids[i];
@@ -162,7 +162,7 @@ public final class WorldStateBuilder {
                 long enemy = sim.liveUnitAt(ei);
                 if (!sim.identity().type(enemy).combatant) continue;
                 if (sim.identity().faction(enemy) == squad.faction) continue;
-                float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy));
+                float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), sim.world().x(enemy), sim.world().y(enemy));
                 if (d <= sim.world().attackRange(member)) return true;
             }
         }
@@ -208,8 +208,8 @@ public final class WorldStateBuilder {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
-            float dx = sim.world().cellX(u) - squad.centroidX;
-            float dy = sim.world().cellY(u) - squad.centroidY;
+            float dx = sim.world().x(u) - squad.centroidX;
+            float dy = sim.world().y(u) - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;
         }
         return true;
@@ -290,8 +290,8 @@ public final class WorldStateBuilder {
                 long enemy = sim.liveUnitAt(ei);
                 if (!sim.identity().type(enemy).combatant) continue;
                 if (sim.identity().faction(enemy) == squad.faction) continue;
-                int dx = sim.world().cellX(enemy) - sim.world().cellX(member);
-                int dy = sim.world().cellY(enemy) - sim.world().cellY(member);
+                float dx = sim.world().x(enemy) - sim.world().x(member);
+                float dy = sim.world().y(enemy) - sim.world().y(member);
                 if (dx * dx + dy * dy > range2) continue;
                 if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) {
                     return true;
@@ -327,8 +327,8 @@ public final class WorldStateBuilder {
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long member = sim.liveUnitAt(i);
                 if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
-                float dx = shot.toX - (sim.world().cellX(member) + 0.5f);
-                float dy = shot.toY - (sim.world().cellY(member) + 0.5f);
+                float dx = shot.toX - sim.world().x(member);
+                float dy = shot.toY - sim.world().y(member);
                 if (dx * dx + dy * dy > 4f) continue; // 2 cells squared
                 // Shot fromX/fromY are cell-centers (the shooter's cell + 0.5);
                 // floor recovers the integer cell.

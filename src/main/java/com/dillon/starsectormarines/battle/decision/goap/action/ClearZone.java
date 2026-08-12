@@ -90,8 +90,8 @@ public final class ClearZone extends AbstractZoneAction {
         }
         if (target == 0L) return ActionStatus.RUNNING;
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target), sim.world().cellY(target));
@@ -160,7 +160,7 @@ public final class ClearZone extends AbstractZoneAction {
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
+            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
@@ -194,7 +194,7 @@ public final class ClearZone extends AbstractZoneAction {
             if (sim.identity().faction(other) != enemy) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
+            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
@@ -102,10 +103,16 @@ public class Detonations {
 
     /**
      * Applies a detonation: AoE damage to every alive unit within
-     * {@code aoeRadius} with line of sight to the endpoint, plus wall HP
+     * {@code aoeRadius} (expanded per-unit by its {@link UnitType#radius}
+     * physical footprint) with line of sight to the endpoint, plus wall HP
      * damage at the endpoint cell. Cover reduction + vsTurret multiplier
      * flow through {@link DamageService#applyDamage}; LOS-blocked units
      * are spared (the wall absorbed the splash for them).
+     *
+     * <p>Walks the live roster O(N) rather than querying a spatial index —
+     * detonations are rare (one per rocket/missile impact, not per tick), so
+     * this hasn't needed the optimization; a future pass could gather via
+     * {@code UnitSpatialIndex} if detonation frequency ever rises.
      */
     private void detonate(PendingDetonation det) {
         int targetCx = (int) Math.floor(det.endpointX);
@@ -123,11 +130,19 @@ public class Detonations {
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
                 if (det.friendlyFireImmune && roster.identity().faction(u) == det.shooterFaction) continue;
-                int ucx = world.cellX(u);
-                int ucy = world.cellY(u);
-                float dx = (ucx + 0.5f) - det.endpointX;
-                float dy = (ucy + 0.5f) - det.endpointY;
-                if (dx * dx + dy * dy > r2) continue;
+                // TRUE position, not cell center — a unit's physical footprint
+                // (UnitType.radius) is added to the blast radius so bigger units
+                // (mechs, hubs) are caught slightly outside the raw aoeRadius,
+                // matching their on-screen extent.
+                float ux = world.x(u);
+                float uy = world.y(u);
+                float dx = ux - det.endpointX;
+                float dy = uy - det.endpointY;
+                UnitType type = roster.identity().type(u);
+                float hitR = det.aoeRadius + type.radius;
+                if (dx * dx + dy * dy > hitR * hitR) continue;
+                int ucx = (int) Math.floor(ux);
+                int ucy = (int) Math.floor(uy);
                 if (!grid.hasLineOfSight(targetCx, targetCy, ucx, ucy)) continue;
                 if (det.aerialDelivery
                         && topology.getBuildingId(ucx, ucy) != 0

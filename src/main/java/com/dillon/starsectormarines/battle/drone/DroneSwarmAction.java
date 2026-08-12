@@ -130,8 +130,8 @@ public final class DroneSwarmAction implements Action {
             lockedOn = tryAgroScan(member, sim);
         }
         if (lockedOn != 0L) {
-            droneState.setPursuitGoalX(id, sim.world().cellX(lockedOn) + 0.5f);
-            droneState.setPursuitGoalY(id, sim.world().cellY(lockedOn) + 0.5f);
+            droneState.setPursuitGoalX(id, sim.world().x(lockedOn));
+            droneState.setPursuitGoalY(id, sim.world().y(lockedOn));
             droneState.setPursuitTimer(id, Drone.PURSUIT_LATCH_SECONDS);
         }
 
@@ -180,8 +180,8 @@ public final class DroneSwarmAction implements Action {
     private static void tickEngage(long member, AirBody body, TurretAim.State s,
                                    int slotIdx, int slotCount,
                                    BattleView sim, DroneStateService droneState, float dt) {
-        float tx = sim.world().cellX(s.target) + 0.5f;
-        float ty = sim.world().cellY(s.target) + 0.5f;
+        float tx = sim.world().x(s.target);
+        float ty = sim.world().y(s.target);
         float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
 
         float baseBearingDeg = (360f * slotIdx) / slotCount;
@@ -267,7 +267,7 @@ public final class DroneSwarmAction implements Action {
                 sim.squad().hasSquad(member) ? sim.squad().squadId(member) : Squad.NO_SQUAD, member, dAir);
         if (candidate == 0L) return 0L;
         float dist = TacticalScoring.cellDistance(
-                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate));
+                sim.world().x(member), sim.world().y(member), sim.world().x(candidate), sim.world().y(candidate));
         if (dist > Drone.AGGRO_RANGE_CELLS) return 0L;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate),
@@ -283,8 +283,8 @@ public final class DroneSwarmAction implements Action {
     private static float[] clampGoalToLeash(long member, DroneStateService droneState, BattleView sim, float gx, float gy) {
         long hubId = droneState.homeHubId(member);
         if (hubId == 0L) return new float[]{gx, gy};
-        float hubX = sim.world().cellX(hubId) + 0.5f;
-        float hubY = sim.world().cellY(hubId) + 0.5f;
+        float hubX = sim.world().x(hubId);
+        float hubY = sim.world().y(hubId);
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -318,8 +318,8 @@ public final class DroneSwarmAction implements Action {
         }
         Random rng = ThreadLocalRandom.current();
         NavigationGrid grid = sim.getGrid();
-        float anchorX = sim.world().cellX(hubId) + 0.5f;
-        float anchorY = sim.world().cellY(hubId) + 0.5f;
+        float anchorX = sim.world().x(hubId);
+        float anchorY = sim.world().y(hubId);
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {

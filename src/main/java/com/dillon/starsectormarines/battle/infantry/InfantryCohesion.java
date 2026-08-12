@@ -59,8 +59,8 @@ public final class InfantryCohesion {
         long target = sim.targetOf(self);
         if (target != 0L) {
             float td = (float) Math.sqrt(
-                    (float) (sim.world().cellX(target) - sim.world().cellX(self)) * (sim.world().cellX(target) - sim.world().cellX(self))
-                  + (float) (sim.world().cellY(target) - sim.world().cellY(self)) * (sim.world().cellY(target) - sim.world().cellY(self)));
+                    (float) (sim.world().x(target) - sim.world().x(self)) * (sim.world().x(target) - sim.world().x(self))
+                  + (float) (sim.world().y(target) - sim.world().y(self)) * (sim.world().y(target) - sim.world().y(self)));
             if (td <= sim.world().attackRange(self)
                     && sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self),
                             sim.world().cellX(target), sim.world().cellY(target))) {
@@ -70,8 +70,8 @@ public final class InfantryCohesion {
 
         long leader = sim.resolveUnit(squad.leaderId);
         if (leader != 0L && leader != self) {
-            float dx = sim.world().cellX(leader) - sim.world().cellX(self);
-            float dy = sim.world().cellY(leader) - sim.world().cellY(self);
+            float dx = sim.world().x(leader) - sim.world().x(self);
+            float dy = sim.world().y(leader) - sim.world().y(self);
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist <= COHESION_RADIUS) return null;
             return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
@@ -80,15 +80,18 @@ public final class InfantryCohesion {
         // Leaderless fallback — others-centroid (legacy behavior).
         // squad.centroid is sum/count over all alive members including self.
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
+        // squad.centroidX/Y are true-position (center-based), matching x()/y().
         int othersCount = squad.aliveMembers - 1;
-        float sumX = squad.centroidX * squad.aliveMembers - sim.world().cellX(self);
-        float sumY = squad.centroidY * squad.aliveMembers - sim.world().cellY(self);
+        float sumX = squad.centroidX * squad.aliveMembers - sim.world().x(self);
+        float sumY = squad.centroidY * squad.aliveMembers - sim.world().y(self);
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
-        float dx = cx - sim.world().cellX(self);
-        float dy = cy - sim.world().cellY(self);
+        float dx = cx - sim.world().x(self);
+        float dy = cy - sim.world().y(self);
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist <= COHESION_RADIUS) return null;
-        return new int[]{Math.round(cx), Math.round(cy)};
+        // The containing cell of a continuous position is its floor (round
+        // would bias toward the next cell for center-based coordinates).
+        return new int[]{(int) Math.floor(cx), (int) Math.floor(cy)};
     }
 }

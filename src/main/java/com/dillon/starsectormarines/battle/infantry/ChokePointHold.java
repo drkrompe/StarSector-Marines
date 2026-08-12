@@ -184,7 +184,7 @@ public final class ChokePointHold implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     slotName(idx),
                     1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), cellX, cellY)));
+                    c -> -TacticalScoring.cellDistance(sim.world().x(c), sim.world().y(c), cellX + 0.5f, cellY + 0.5f)));
         }
         return slots;
     }
@@ -252,7 +252,7 @@ public final class ChokePointHold implements Action {
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
-        float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member), portalX, portalY);
+        float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), portalX + 0.5f, portalY + 0.5f);
         if (d > sim.world().attackRange(member)) return ActionStatus.RUNNING;
 
         // STANCED fire — on-post, deliberate. Author intent; FiringSystem

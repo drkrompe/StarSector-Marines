@@ -211,6 +211,11 @@ public final class NavigationService {
      * {@code updateUnit}, the old destination is decremented and the new one
      * incremented — so units picking positions later in the same tick see
      * the freshest information.
+     *
+     * <p>Units carry a continuous (float) position; this method floors each
+     * unit's position into its occupied grid cell before counting, so the
+     * result is still a per-cell density field — semantics unchanged by the
+     * continuous-position migration, only the source column did.
      */
     public void rebuildOccupancyMap(UnitRosterService roster) {
         EntityWorld world = roster.entityWorld();

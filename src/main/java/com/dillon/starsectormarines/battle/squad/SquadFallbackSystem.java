@@ -87,8 +87,8 @@ public final class SquadFallbackSystem {
             long u = roster.get(i);
             if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
             if (!roster.home().hasHome(u)) continue;
-            float dx = roster.home().homeCellX(u) - world.cellX(u);
-            float dy = roster.home().homeCellY(u) - world.cellY(u);
+            float dx = (roster.home().homeCellX(u) + 0.5f) - world.x(u);
+            float dy = (roster.home().homeCellY(u) + 0.5f) - world.y(u);
             if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS_SQ) return false;
         }
         return true;

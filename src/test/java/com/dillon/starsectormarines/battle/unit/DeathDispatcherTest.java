@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class DeathDispatcherTest {
 
-    /** Death event for entity id {@code id} — cell + pose are irrelevant to dispatcher mechanics. */
+    /** Death event for entity id {@code id} — position + pose are irrelevant to dispatcher mechanics. */
     private static DeathEvent death(long id) {
-        return new DeathEvent(id, 0, 0, -1);
+        return new DeathEvent(id, 0f, 0f, -1);
     }
 
     @Test

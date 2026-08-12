@@ -86,8 +86,8 @@ public final class BreakContact implements Action {
             sim.world().setTargetId(member, target);
         }
         if (target == 0L) return;
-        float d = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
         if (d > sim.world().attackRange(member)) return;
         if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target), sim.world().cellY(target))) return;

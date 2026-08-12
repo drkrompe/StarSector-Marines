@@ -131,7 +131,7 @@ public final class FleeBehavior implements UnitBehavior {
             long u = sim.liveUnitAt(i);
             if (u == self) continue;
             if (!sim.identity().type(u).combatant) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(u), sim.world().cellY(u));
+            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(u), sim.world().y(u));
             if (d <= bestDist) {
                 bestDist = d;
                 best = u;
@@ -149,8 +149,8 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static int[] pickFleeDestination(long self, long threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        float dx = sim.world().cellX(self) - sim.world().cellX(threat);
-        float dy = sim.world().cellY(self) - sim.world().cellY(threat);
+        float dx = sim.world().x(self) - sim.world().x(threat);
+        float dy = sim.world().y(self) - sim.world().y(threat);
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
@@ -168,7 +168,7 @@ public final class FleeBehavior implements UnitBehavior {
             int cy = sim.world().cellY(self) + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
-            float distFromThreat = TacticalScoring.cellDistance(cx, cy, sim.world().cellX(threat), sim.world().cellY(threat));
+            float distFromThreat = TacticalScoring.cellDistance(cx + 0.5f, cy + 0.5f, sim.world().x(threat), sim.world().y(threat));
             if (distFromThreat >= MIN_DISTANCE_FROM_THREAT) {
                 best = new int[]{cx, cy};
             }

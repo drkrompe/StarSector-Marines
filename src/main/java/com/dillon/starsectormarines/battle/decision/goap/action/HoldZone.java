@@ -98,7 +98,7 @@ public final class HoldZone extends AbstractZoneAction {
             final int hx = holdX[i];
             final int hy = holdY[i];
             slots.add(new RoleAssigner.Slot<>("hold:" + i, 1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), hx, hy)));
+                    c -> -TacticalScoring.cellDistance(sim.world().x(c), sim.world().y(c), hx + 0.5f, hy + 0.5f)));
         }
         slots.add(new RoleAssigner.Slot<>("hold:overflow",
                 Math.max(1, squad.aliveMembers), c -> -1_000_000f));
@@ -186,8 +186,8 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                 sim.world().cellX(target), sim.world().cellY(target));
@@ -230,7 +230,7 @@ public final class HoldZone extends AbstractZoneAction {
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other));
+            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

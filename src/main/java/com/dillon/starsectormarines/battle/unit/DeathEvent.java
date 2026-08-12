@@ -21,8 +21,11 @@ package com.dillon.starsectormarines.battle.unit;
  * kept corpse columns survive the release (they ride the corpse transmute) and
  * stay readable by id.
  *
- * <p>{@link #cellX} / {@link #cellY} are the logical death cell — where the
- * demolition systems flip rubble and the wreck systems drop a smoking wreck.
+ * <p>{@link #x} / {@link #y} are the TRUE (continuous) position the unit died
+ * at. {@link #cellX()} / {@link #cellY()} are derived floors of that position
+ * — the logical death cell where the demolition systems flip rubble and the
+ * wreck systems drop a smoking wreck (grid mutations are still cell-addressed,
+ * so those consumers keep reading the int cell rather than the float position).
  * {@link #deathPoseIdx} is the random prone-pose frame the dead-body handler
  * ({@code DeadBodySystem}) authors into the corpse's {@code SPRITE.index} for
  * battlefield variety; {@code -1} = no ground corpse (a cascade-killed drone that
@@ -30,4 +33,10 @@ package com.dillon.starsectormarines.battle.unit;
  * record grows with it (hp, render pos) only when a handler actually needs the
  * field. Keep it minimal.
  */
-public record DeathEvent(long unitId, int cellX, int cellY, int deathPoseIdx) {}
+public record DeathEvent(long unitId, float x, float y, int deathPoseIdx) {
+    /** Floor of {@link #x} — the logical death cell for grid mutations (rubble flips, wreck placement). */
+    public int cellX() { return (int) Math.floor(x); }
+
+    /** Floor of {@link #y} — the logical death cell for grid mutations (rubble flips, wreck placement). */
+    public int cellY() { return (int) Math.floor(y); }
+}

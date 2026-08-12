@@ -16,14 +16,16 @@ import java.util.Arrays;
  * touches roughly {@code (R/BUCKET)²} buckets. With R=20 and BUCKET=16 that
  * is 4–9 buckets — bounded regardless of total unit count.
  *
- * <p><b>Snapshot positions.</b> Each entry denormalizes the unit's cell at
- * insert time into a {@link Bucket}'s parallel {@code cellX}/{@code cellY}
- * arrays, so {@link #gather}'s distance filter reads a stored int rather than
- * the unit's live cell. This (a) avoids a per-candidate by-id probe during gather
- * — no registry lookup per distance candidate — and (b) makes
- * the index self-consistent: bucketing <em>and</em> the distance test both use
- * the same rebuild-time position. Queries therefore see positions as of the
- * last {@link #rebuild}, which is exactly the per-tick-snapshot contract.
+ * <p><b>Snapshot positions.</b> Each entry denormalizes the unit's TRUE
+ * (continuous) position at insert time into a {@link Bucket}'s parallel
+ * {@code posX}/{@code posY} arrays, so {@link #gather}'s distance filter reads
+ * a stored float rather than the unit's live position. This (a) avoids a
+ * per-candidate by-id probe during gather — no registry lookup per distance
+ * candidate — and (b) makes the index self-consistent: bucketing <em>and</em>
+ * the distance test both use the same rebuild-time position (bucketing bins
+ * on the floored cell of that position; the distance test compares the
+ * unfloored float). Queries therefore see positions as of the last
+ * {@link #rebuild}, which is exactly the per-tick-snapshot contract.
  *
  * <p><b>Allocation.</b> {@link Bucket}s are recycled into {@link #pool} between
  * rebuilds and their backing arrays grow-and-stay, so steady-state allocation
@@ -47,27 +49,27 @@ public final class UnitSpatialIndex {
 
     /**
      * One spatial bucket: parallel arrays of unit ids and their rebuild-time
-     * snapshot cell, grown on demand and recycled across rebuilds so
-     * steady-state allocation stays zero. The snapshot cell is what lets
+     * snapshot TRUE position, grown on demand and recycled across rebuilds so
+     * steady-state allocation stays zero. The snapshot position is what lets
      * {@link #gather} filter by distance without reading the position back off
      * the unit (no SoA indirection, no registry probe per candidate).
      */
     private static final class Bucket {
         long[] ids = new long[8];
-        int[] cellX = new int[8];
-        int[] cellY = new int[8];
+        float[] posX = new float[8];
+        float[] posY = new float[8];
         int size;
 
-        void add(long id, int x, int y) {
+        void add(long id, float x, float y) {
             if (size == ids.length) {
                 int cap = size << 1;
                 ids = Arrays.copyOf(ids, cap);
-                cellX = Arrays.copyOf(cellX, cap);
-                cellY = Arrays.copyOf(cellY, cap);
+                posX = Arrays.copyOf(posX, cap);
+                posY = Arrays.copyOf(posY, cap);
             }
             ids[size] = id;
-            cellX[size] = x;
-            cellY[size] = y;
+            posX[size] = x;
+            posY[size] = y;
             size++;
         }
 
@@ -103,11 +105,11 @@ public final class UnitSpatialIndex {
      *
      * <p>Iterates the {@link UnitRosterService}'s dense {@code [0, liveCount())}
      * range directly — released slots are excluded by the roster, so no
-     * per-call {@code isAlive()} branch in the inner loop. Cell positions
+     * per-call {@code isAlive()} branch in the inner loop. TRUE positions
      * are read via the world POSITION columns by-id adapters
-     * ({@code cellXById} / {@code cellYById}), then stored alongside the
-     * id in the bucket so {@link #gather} never has to read
-     * them back.
+     * ({@link World#x(long)} / {@link World#y(long)}), binned into a bucket
+     * by their floored cell, then stored (unfloored) alongside the id so
+     * {@link #gather} never has to read them back.
      */
     public void rebuild(UnitRosterService roster) {
         this.roster = roster;
@@ -124,9 +126,9 @@ public final class UnitSpatialIndex {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             long id = dense[i];
-            int x = world.cellX(id);
-            int y = world.cellY(id);
-            Bucket bucket = bucketAt(x, y);
+            float x = world.x(id);
+            float y = world.y(id);
+            Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
             if (bucket != null) bucket.add(id, x, y);
         }
     }
@@ -141,17 +143,17 @@ public final class UnitSpatialIndex {
      * {@link UnitRosterService} is the only caller and is the sole add-path
      * for live units, so the contract holds in practice.
      *
-     * <p>Takes the registry to resolve the unit's cell once (by entity id via
-     * the world POSITION column adapters) — the cell is denormalized into the
-     * bucket, mirroring {@link #rebuild}.
+     * <p>Takes the registry to resolve the unit's position once (by entity id
+     * via the world POSITION column adapters) — the position is denormalized
+     * into the bucket, mirroring {@link #rebuild}.
      */
     public void add(UnitRosterService roster, long id) {
         this.roster = roster;
         if (!roster.isAliveById(id)) return;
         World world = roster.world();
-        int x = world.cellX(id);
-        int y = world.cellY(id);
-        Bucket bucket = bucketAt(x, y);
+        float x = world.x(id);
+        float y = world.y(id);
+        Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
         if (bucket != null) bucket.add(id, x, y);
     }
 
@@ -174,45 +176,48 @@ public final class UnitSpatialIndex {
 
     /**
      * Appends every alive unit within {@code radius} cells (Euclidean) of
-     * ({@code cx}, {@code cy}) into {@code out}. Clears {@code out} first.
-     * The radius check uses squared-distance for cost; the bucket bounds use
-     * Manhattan ceiling so the bucket sweep stays a fixed-size grid.
+     * the continuous point ({@code cx}, {@code cy}) into {@code out}. Clears
+     * {@code out} first. The radius check uses squared-distance for cost; the
+     * bucket bounds are the floored cells of the query circle's bounding box,
+     * converted to bucket indices with a floor division (not truncating
+     * integer division — the query point or radius can put the box's low
+     * edge below 0).
      *
      * <p>Returns nothing — callers iterate {@code out}. Filtering by faction,
      * combatant flag, or per-unit attack range is left to the caller: the
      * index is a primitive over <em>all</em> alive units, not a slice.
      */
-    public void gather(int cx, int cy, float radius, LongBucket out) {
+    public void gather(float cx, float cy, float radius, LongBucket out) {
         out.clear();
         if (radius <= 0f) return;
-        int r = (int) Math.ceil(radius);
-        int x0 = Math.max(0, (cx - r) / BUCKET);
-        int x1 = Math.min(bucketsX - 1, (cx + r) / BUCKET);
-        int y0 = Math.max(0, (cy - r) / BUCKET);
-        int y1 = Math.min(bucketsY - 1, (cy + r) / BUCKET);
-        // Avoid Math.ceil rounding when (cx - r) goes negative — integer
-        // division rounds toward zero, so we'd shift the lower bound into
-        // a too-low bucket index. Clamp at 0 above.
+        int loX = (int) Math.floor(cx - radius);
+        int hiX = (int) Math.floor(cx + radius);
+        int loY = (int) Math.floor(cy - radius);
+        int hiY = (int) Math.floor(cy + radius);
+        int x0 = Math.max(0, Math.floorDiv(loX, BUCKET));
+        int x1 = Math.min(bucketsX - 1, Math.floorDiv(hiX, BUCKET));
+        int y0 = Math.max(0, Math.floorDiv(loY, BUCKET));
+        int y1 = Math.min(bucketsY - 1, Math.floorDiv(hiY, BUCKET));
         float r2 = radius * radius;
         for (int by = y0; by <= y1; by++) {
             for (int bx = x0; bx <= x1; bx++) {
                 Bucket bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
                 long[] ids = bucket.ids;
-                int[] bcx = bucket.cellX;
-                int[] bcy = bucket.cellY;
+                float[] bpx = bucket.posX;
+                float[] bpy = bucket.posY;
                 for (int i = 0, n = bucket.size; i < n; i++) {
                     long id = ids[i];
                     // Skip units released since the last rebuild — the index is a
                     // per-tick snapshot, so a unit killed (and registry-released)
                     // mid-tick lingers in its old bucket until then. The snapshot
-                    // cell below is a stored int (no fail-loud read), but the
+                    // position below is a stored float (no fail-loud read), but the
                     // "alive units only" contract still requires the skip so dead
                     // units aren't handed back. (Callers also filter, but gather
                     // owns the contract.)
                     if (!roster.isAliveById(id)) continue;
-                    int dx = bcx[i] - cx;
-                    int dy = bcy[i] - cy;
+                    float dx = bpx[i] - cx;
+                    float dy = bpy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(id);
                 }
             }

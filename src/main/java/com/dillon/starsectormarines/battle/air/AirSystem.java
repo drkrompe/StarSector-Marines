@@ -271,7 +271,7 @@ public class AirSystem {
             AirBody body = world.kinematics(id);
             Faction faction = world.airFaction(id);
             scratch.clear();
-            navigation.getUnitIndex().gather(Math.round(body.x), Math.round(body.y),
+            navigation.getUnitIndex().gather(body.x, body.y,
                     AA_THREAT_RADIUS_CELLS, scratch);
             int posts = 0;
             for (int i = 0, n = scratch.size; i < n; i++) {
@@ -671,8 +671,8 @@ public class AirSystem {
         for (int i = 0, live = roster.liveCount(); i < live; i++) {
             long u = roster.get(i);
             if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != mission.squadId) continue;
-            sumX += world.cellX(u) + 0.5f;
-            sumY += world.cellY(u) + 0.5f;
+            sumX += world.x(u);
+            sumY += world.y(u);
             n++;
         }
         if (n == 0) return;  // squad wiped — hold current hover point

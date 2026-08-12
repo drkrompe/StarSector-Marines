@@ -133,8 +133,8 @@ public final class SabotageCommand implements MissionCommand {
         ChargeSiteObjective best = null;
         float bestDistSq = Float.MAX_VALUE;
         for (ChargeSiteObjective cs : sites) {
-            float dx = cs.cellX() - squad.centroidX;
-            float dy = cs.cellY() - squad.centroidY;
+            float dx = (cs.cellX() + 0.5f) - squad.centroidX;
+            float dy = (cs.cellY() + 0.5f) - squad.centroidY;
             float d = dx * dx + dy * dy;
             if (d < bestDistSq) {
                 bestDistSq = d;

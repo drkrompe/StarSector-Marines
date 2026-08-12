@@ -94,7 +94,7 @@ public final class BackstopAssignedSquad implements Action {
         if (!needsRepick) {
             float drift = TacticalScoring.cellDistance(
                     m.overwatchAxisX, m.overwatchAxisY,
-                    Math.round(backed.centroidX), Math.round(backed.centroidY));
+                    backed.centroidX, backed.centroidY);
             needsRepick = drift > REPICK_DRIFT_CELLS;
         }
         if (needsRepick) {
@@ -133,8 +133,8 @@ public final class BackstopAssignedSquad implements Action {
             sim.world().setTargetId(member, target);
         }
         if (target != 0L) {
-            float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target), sim.world().cellY(target));
+            float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
             boolean inRange = dist <= sim.world().attackRange(member);
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target), sim.world().cellY(target));
@@ -159,8 +159,8 @@ public final class BackstopAssignedSquad implements Action {
             if (other.aliveMembers == 0) continue;
             if (other.isMechSquad()) continue;
             float dist = TacticalScoring.cellDistance(
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    Math.round(other.centroidX), Math.round(other.centroidY));
+                    sim.world().x(member), sim.world().y(member),
+                    other.centroidX, other.centroidY);
             if (dist < bestDist) {
                 bestDist = dist;
                 best = other;
@@ -192,9 +192,9 @@ public final class BackstopAssignedSquad implements Action {
         // the mech's current cell to the centroid (so it just trails the
         // squad) when no contact is known.
         float threatDx = selfSquad.lastSeenEnemyX >= 0 ? selfSquad.lastSeenEnemyX - cx
-                : cx - sim.world().cellX(member);
+                : cx - sim.world().x(member);
         float threatDy = selfSquad.lastSeenEnemyY >= 0 ? selfSquad.lastSeenEnemyY - cy
-                : cy - sim.world().cellY(member);
+                : cy - sim.world().y(member);
         float len = (float) Math.sqrt(threatDx * threatDx + threatDy * threatDy);
         if (len < 1e-3f) {
             // Degenerate — mech is on top of the centroid with no threat

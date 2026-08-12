@@ -58,8 +58,8 @@ public final class TurretBehavior implements UnitBehavior {
         TurretAim.State s = new TurretAim.State();
         s.originCellX = sim.world().cellX(id);
         s.originCellY = sim.world().cellY(id);
-        s.originX = sim.world().cellX(id) + 0.5f;
-        s.originY = sim.world().cellY(id) + 0.5f;
+        s.originX = sim.world().x(id);
+        s.originY = sim.world().y(id);
         s.faction = sim.identity().faction(u);
         s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Squad.NO_SQUAD;
         s.excludeFromCrowding = u;
@@ -91,7 +91,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
                         sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget), sim.world().cellY(currentBurstTarget));
-                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, currentBurstTarget,
+                sim.fireShotFrom(sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
@@ -109,7 +109,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f, sim.identity().faction(u), kind, s.target,
+                sim.fireShotFrom(sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
                 if (s.target != 0L) {

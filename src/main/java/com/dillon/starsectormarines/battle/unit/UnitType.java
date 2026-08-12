@@ -71,9 +71,10 @@ public enum UnitType {
     /**
      * Collision/AoE footprint radius, in cells — the continuous-positions
      * migration's per-type extent (infantry/civilian-family 0.3, drone 0.35,
-     * turret 0.45, hub 0.5, mech 0.6). Unconsumed this phase; consumers
-     * (hit resolution, {@code Detonations}, {@code WorldPicker}) arrive in
-     * phase 2c ({@code roadmap/continuous-positions/overview.md}).
+     * turret 0.45, hub 0.5, mech 0.6). Consumed by {@code Detonations}
+     * (widens a unit's AoE hit test beyond the raw blast radius to cover its
+     * physical extent) and {@code WorldPicker} (widens a unit's click pick
+     * radius so bigger units are easier to select).
      */
     public final float radius;
 

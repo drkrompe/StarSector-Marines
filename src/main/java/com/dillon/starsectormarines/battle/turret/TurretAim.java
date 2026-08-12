@@ -115,7 +115,7 @@ public final class TurretAim {
         int tcx = world.cellX(s.target);
         int tcy = world.cellY(s.target);
         float dist = TacticalScoring.cellDistance(
-                s.originCellX, s.originCellY, tcx, tcy);
+                s.originX, s.originY, world.x(s.target), world.y(s.target));
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canSeePair(grid,
                 s.originCellX, s.originCellY, tcx, tcy,
@@ -132,7 +132,7 @@ public final class TurretAim {
             return;
         }
 
-        float bearing = bearingTo(s.originX, s.originY, tcx + 0.5f, tcy + 0.5f);
+        float bearing = bearingTo(s.originX, s.originY, world.x(s.target), world.y(s.target));
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 

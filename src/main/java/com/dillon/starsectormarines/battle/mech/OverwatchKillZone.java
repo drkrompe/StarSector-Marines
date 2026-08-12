@@ -124,8 +124,8 @@ public final class OverwatchKillZone implements Action {
         long target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
         sim.world().setTargetId(member, target);
         if (target != 0L) {
-            float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target), sim.world().cellY(target));
+            float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
             boolean inRange = dist <= sim.world().attackRange(member);
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target), sim.world().cellY(target));
@@ -169,7 +169,7 @@ public final class OverwatchKillZone implements Action {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float walk = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member), cx, cy);
+                float walk = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), cx + 0.5f, cy + 0.5f);
                 float score = walk
                         - OVERWATCH_COVER_WEIGHT * cover
                         - OVERWATCH_COVER_WEIGHT * doodadCover;

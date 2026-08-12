@@ -127,7 +127,7 @@ public final class FiringSystem {
                 int sy = w.cellY(shooterId);
                 int tx = w.cellX(ft);
                 int ty = w.cellY(ft);
-                if (TacticalScoring.cellDistance(sx, sy, tx, ty) > attackRange[r]) continue;
+                if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft)) > attackRange[r]) continue;
                 if (!grid.hasLineOfSight(sx, sy, tx, ty)) continue;
 
                 FireStance stance = FireStance.VALUES[fireStance[r]];

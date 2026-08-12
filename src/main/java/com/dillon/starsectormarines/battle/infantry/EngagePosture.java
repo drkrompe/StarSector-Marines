@@ -79,8 +79,8 @@ public final class EngagePosture implements Action {
         }
         if (target == 0L) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
         // engages from where they stand instead of running into rifle range.

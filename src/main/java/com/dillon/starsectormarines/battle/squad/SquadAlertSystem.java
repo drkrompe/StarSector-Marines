@@ -135,8 +135,8 @@ public final class SquadAlertSystem {
             if (squad == null) continue;
             float uAir = vision.airLosRadius(u);
             squad.aliveMembers++;
-            squad.centroidX += world.cellX(u);
-            squad.centroidY += world.cellY(u);
+            squad.centroidX += world.x(u);
+            squad.centroidY += world.y(u);
             if (world.fallbackTimer(u) > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
@@ -153,8 +153,8 @@ public final class SquadAlertSystem {
                     if (!identity.type(other).combatant) continue;
                     int otherCellX = world.cellX(other);
                     int otherCellY = world.cellY(other);
-                    int dx = otherCellX - uCellX;
-                    int dy = otherCellY - uCellY;
+                    float dx = world.x(other) - world.x(u);
+                    float dy = world.y(other) - world.y(u);
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
                     if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                             uAir, vision.airLosRadius(other))) continue;
@@ -194,12 +194,10 @@ public final class SquadAlertSystem {
                 if (!roster.squad().hasSquad(u)) continue;
                 Squad squad = roster.getSquad(roster.squad().squadId(u));
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
-                int uCellX = world.cellX(u);
-                int uCellY = world.cellY(u);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.fromX - (uCellX + 0.5f);
-                    float dy = shot.fromY - (uCellY + 0.5f);
+                    float dx = shot.fromX - world.x(u);
+                    float dy = shot.fromY - world.y(u);
                     if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
                         squad._suspiciousThisTick = true;
                         squad.lastSeenEnemyX = Math.round(shot.fromX);
@@ -227,8 +225,8 @@ public final class SquadAlertSystem {
                 int uCellY = world.cellY(u);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.toX - (uCellX + 0.5f);
-                    float dy = shot.toY - (uCellY + 0.5f);
+                    float dx = shot.toX - world.x(u);
+                    float dy = shot.toY - world.y(u);
                     // Same 2-cell-squared "shot landed near me" gate the
                     // predicate evaluator uses — keeps the two paths in sync.
                     if (dx * dx + dy * dy > 4f) continue;

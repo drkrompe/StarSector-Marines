@@ -112,7 +112,7 @@ public final class BreachAndAdvance implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     "breacher:" + i,
                     1,
-                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c), sim.world().cellY(c), sx, sy)));
+                    c -> -TacticalScoring.cellDistance(sim.world().x(c), sim.world().y(c), sx + 0.5f, sy + 0.5f)));
         }
         return slots;
     }
@@ -192,8 +192,8 @@ public final class BreachAndAdvance implements Action {
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
-                float dx = sim.world().cellX(u) - stackUpX[i2];
-                float dy = sim.world().cellY(u) - stackUpY[i2];
+                float dx = sim.world().x(u) - (stackUpX[i2] + 0.5f);
+                float dy = sim.world().y(u) - (stackUpY[i2] + 0.5f);
                 if (dx * dx + dy * dy <= r2) { near++; break; }
             }
         }

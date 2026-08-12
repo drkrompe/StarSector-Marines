@@ -401,7 +401,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (mission == null || !mission.isVisible()) continue;
             if (!sim.getVisionState().isContributor(airWorld.airFaction(id))) continue;
             AirBody body = airWorld.kinematics(id);
-            vis.addEphemeralSource((int) body.x, (int) body.y, 50, 3.5f);
+            vis.addEphemeralSource((int) Math.floor(body.x), (int) Math.floor(body.y), 50, 3.5f);
         }
         // Player recon-ping reveals — same ephemeral-source seam as shuttles.
         // The sim owns the ping list + time-to-live; we just project the live

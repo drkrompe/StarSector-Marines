@@ -134,7 +134,7 @@ public final class EquipmentDropSystem {
             if (role.role(u) == UnitRole.KIT_RETRIEVER
                     && edt != null
                     && !edt.consumed) continue;
-            float d = TacticalScoring.cellDistance(world.cellX(u), world.cellY(u), cx, cy);
+            float d = TacticalScoring.cellDistance(world.x(u), world.y(u), cx + 0.5f, cy + 0.5f);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;

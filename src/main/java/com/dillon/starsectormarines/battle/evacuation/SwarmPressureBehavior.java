@@ -28,8 +28,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         int runnerY = sim.world().cellY(runner);
         int targetX = sim.world().cellX(target);
         int targetY = sim.world().cellY(target);
-        float dx = targetX - runnerX;
-        float dy = targetY - runnerY;
+        float dx = sim.world().x(target) - sim.world().x(runner);
+        float dy = sim.world().y(target) - sim.world().y(runner);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
         if (distance <= sim.combat().attackRange(runner)) {
             sim.clearPath(runner);
@@ -57,7 +57,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
         long best = 0L;
-        int bestDistance = Integer.MAX_VALUE;
+        float bestDistance = Float.MAX_VALUE;
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long candidate = tracker.entityIdAt(i);
             if (tracker.state(candidate)
@@ -65,7 +65,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                     || sim.resolveUnit(candidate) == 0L) {
                 continue;
             }
-            int distance = distanceSquared(runner, candidate, sim);
+            float distance = distanceSquared(runner, candidate, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && candidate < best)) {
                 best = candidate;
@@ -74,11 +74,11 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
         if (best != 0L) return best;
 
-        bestDistance = Integer.MAX_VALUE;
+        bestDistance = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
             if (sim.identity().faction(candidate) != Faction.MARINE) continue;
-            int distance = distanceSquared(runner, candidate, sim);
+            float distance = distanceSquared(runner, candidate, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && candidate < best)) {
                 best = candidate;
@@ -104,10 +104,10 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
     }
 
-    private static int distanceSquared(long a, long b,
-                                       BattleSimulation sim) {
-        int dx = sim.world().cellX(a) - sim.world().cellX(b);
-        int dy = sim.world().cellY(a) - sim.world().cellY(b);
+    private static float distanceSquared(long a, long b,
+                                         BattleSimulation sim) {
+        float dx = sim.world().x(a) - sim.world().x(b);
+        float dy = sim.world().y(a) - sim.world().y(b);
         return dx * dx + dy * dy;
     }
 }

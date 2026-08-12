@@ -125,9 +125,9 @@ public final class HubDemolitionSystem {
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
-            // Snapshot the cell while the drone is still registered.
+            // Snapshot the true position while the drone is still registered.
             // -1 pose: a cascade-killed drone crashes-and-fades (Crashing), no ground corpse.
-            deathDispatcher.publish(new DeathEvent(d, world.cellX(d), world.cellY(d), -1));
+            deathDispatcher.publish(new DeathEvent(d, world.x(d), world.y(d), -1));
             roster.releaseFromRegistry(d);
         }
     }

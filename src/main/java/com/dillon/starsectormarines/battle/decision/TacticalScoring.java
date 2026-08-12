@@ -288,7 +288,7 @@ public final class TacticalScoring {
         if (roster.isLive(cur)) {
             int cx = world.cellX(cur);
             int cy = world.cellY(cur);
-            if (cellDistance(sx, sy, cx, cy) <= world.attackRange(self)
+            if (cellDistance(world.x(self), world.y(self), world.x(cur), world.y(cur)) <= world.attackRange(self)
                     && grid.hasLineOfSight(sx, sy, cx, cy)) {
                 return cur;
             }
@@ -400,7 +400,7 @@ public final class TacticalScoring {
 
             int ox = world.cellX(other);
             int oy = world.cellY(other);
-            float d = cellDistance(selfCellX, selfCellY, ox, oy);
+            float d = cellDistance(selfCellX, selfCellY, world.x(other), world.y(other));
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
@@ -409,7 +409,7 @@ public final class TacticalScoring {
                     shooterAirRadius, vision.airLosRadius(other));
             if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding);
-            float density = scoreThreatDensity(other, ox, oy, selfFaction);
+            float density = scoreThreatDensity(other, world.x(other), world.y(other), selfFaction);
             float affinity = scoreWeaponAffinity(excludeFromCrowding, other);
             float zoneMismatch = scoreZoneMismatch(selfCellX, selfCellY, ox, oy);
             float score = d + crowding + density + affinity + zoneMismatch;
@@ -588,8 +588,8 @@ public final class TacticalScoring {
         // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
         // live projectile list while another worker may queueProjectile.
         // Mirrors the legacy snapshotInflightDetonations path.
-        float targetCx = world.cellX(target) + 0.5f;
-        float targetCy = world.cellY(target) + 0.5f;
+        float targetCx = world.x(target);
+        float targetCy = world.y(target);
         Faction shooterFaction = roster.identity().faction(shooter);
         for (Projectile p : shots.snapshotActiveProjectiles()) {
             if (p.shooterFaction != shooterFaction) continue;
@@ -617,9 +617,9 @@ public final class TacticalScoring {
      * per visible target inside {@link #findBestTarget}, so the savings
      * compound when squads pick targets each tick.
      */
-    private float scoreThreatDensity(long candidate, int candCellX, int candCellY, Faction selfFaction) {
+    private float scoreThreatDensity(long candidate, float candX, float candY, Faction selfFaction) {
         LongBucket scratch = new LongBucket();
-        unitIndex.gather(candCellX, candCellY, THREAT_DENSITY_RADIUS, scratch);
+        unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
@@ -675,10 +675,10 @@ public final class TacticalScoring {
         long closerVisible = closestVisibleOtherEnemy(self, currentTarget);
         if (closerVisible != 0L) {
             if (!visible) return false;
-            float currentDist = cellDistance(sx, sy, tx, ty);
-            float candidateDist = cellDistance(sx, sy,
-                    world.cellX(closerVisible),
-                    world.cellY(closerVisible));
+            float currentDist = cellDistance(world.x(self), world.y(self), world.x(currentTarget), world.y(currentTarget));
+            float candidateDist = cellDistance(world.x(self), world.y(self),
+                    world.x(closerVisible),
+                    world.y(closerVisible));
             if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) return false;
         }
 
@@ -697,8 +697,8 @@ public final class TacticalScoring {
             if (other == currentTarget) continue;
             if (roster.identity().faction(other) == selfFaction) continue;
             if (!roster.identity().type(other).combatant) continue;
-            int dx = world.cellX(other) - tx;
-            int dy = world.cellY(other) - ty;
+            float dx = world.x(other) - world.x(currentTarget);
+            float dy = world.y(other) - world.y(currentTarget);
             if (dx * dx + dy * dy <= r2) {
                 density++;
                 if (density > 1) return false;
@@ -733,7 +733,7 @@ public final class TacticalScoring {
             int uy = world.cellY(u);
             if (!canSeePair(grid, sx, sy, ux, uy,
                     selfAir, vision.airLosRadius(u))) continue;
-            float d = cellDistance(sx, sy, ux, uy);
+            float d = cellDistance(world.x(self), world.y(self), world.x(u), world.y(u));
             if (d < bestDist) {
                 bestDist = d;
                 best = u;
@@ -777,7 +777,7 @@ public final class TacticalScoring {
             if (!roster.identity().type(other).combatant) continue;
             int ox = world.cellX(other);
             int oy = world.cellY(other);
-            float d = cellDistance(sx, sy, ox, oy);
+            float d = cellDistance(world.x(self), world.y(self), world.x(other), world.y(other));
             if (d > range || d >= bestDist) continue;
             if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
             bestDist = d;
@@ -907,15 +907,13 @@ public final class TacticalScoring {
                                           float maxDistFromAnchor) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
-        int sx = world.cellX(self);
-        int sy = world.cellY(self);
         float maxWeaponReach = world.attackRange(self);
         if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
             maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range);
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         LongBucket scratch = new LongBucket();
-        unitIndex.gather(anchorX, anchorY, gatherRadius, scratch);
+        unitIndex.gather(anchorX + 0.5f, anchorY + 0.5f, gatherRadius, scratch);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -924,7 +922,7 @@ public final class TacticalScoring {
             if (roster.identity().faction(enemy) == selfFaction) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
-            float d = cellDistance(sx, sy, world.cellX(enemy), world.cellY(enemy));
+            float d = cellDistance(world.x(self), world.y(self), world.x(enemy), world.y(enemy));
             if (d < bestDist) {
                 bestDist = d;
                 best = enemy;
@@ -942,7 +940,7 @@ public final class TacticalScoring {
      */
     public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
         LongBucket scratch = new LongBucket();
-        unitIndex.gather(cx, cy, radius, scratch);
+        unitIndex.gather(cx + 0.5f, cy + 0.5f, radius, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
             long u = scratch.ids[i];
@@ -1404,7 +1402,7 @@ public final class TacticalScoring {
         // the O(scanRange² × totalUnits) inner loop with O(K) per candidate
         // where K is the nearby-enemy count.
         LongBucket threats = new LongBucket();
-        unitIndex.gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
+        unitIndex.gather(world.x(self), world.y(self), scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
         filterEnemyCombatants(threats, selfFaction);
         // Project the threat set into parallel SoA columns once, so the
         // per-candidate exposure check reads plain arrays — no registry probe
@@ -1575,7 +1573,7 @@ public final class TacticalScoring {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
         LongBucket scratch = new LongBucket();
-        unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
+        unitIndex.gather(cx + 0.5f, cy + 0.5f, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
             if (roster.identity().faction(other) == selfFaction) continue;
@@ -1631,7 +1629,7 @@ public final class TacticalScoring {
      */
     public int countEnemiesWithLos(long self, int cx, int cy) {
         LongBucket scratch = new LongBucket();
-        unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
+        unitIndex.gather(cx + 0.5f, cy + 0.5f, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         filterEnemyCombatants(scratch, roster.identity().faction(self));
         int n = scratch.size;
         int[] tcx = new int[n];
@@ -1727,7 +1725,7 @@ public final class TacticalScoring {
         int count = 0;
         LongBucket scratch = new LongBucket();
         // Pass 1 — units whose CURRENT cell is in the spread radius.
-        unitIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
+        unitIndex.gather(cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long u = scratch.ids[i];
             if (u == self || roster.identity().faction(u) != selfFaction) continue;
@@ -1740,15 +1738,15 @@ public final class TacticalScoring {
         // be near (cx, cy). The dest index is id-native — it gathers live
         // ids, and identity/position are read by id rather than off a handle.
         LongBucket destScratch = new LongBucket();
-        destIndex.gather(roster, cx, cy, FIRING_AOE_SPREAD_RADIUS, destScratch);
+        destIndex.gather(roster, cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, destScratch);
         for (int i = 0, n = destScratch.size; i < n; i++) {
             long id = destScratch.ids[i];
             if (id == self || roster.identity().faction(id) != selfFaction) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
             // index resolve is decision-cadence, not a hot bulk loop.
-            int dx = world.cellX(id) - cx;
-            int dy = world.cellY(id) - cy;
+            float dx = world.x(id) - (cx + 0.5f);
+            float dy = world.y(id) - (cy + 0.5f);
             if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
             count++;
         }

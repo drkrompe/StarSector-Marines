@@ -130,8 +130,8 @@ public final class UnitRenderService implements RenderSystem {
             long id = u;
             TurretKind kind = turretState.kind(id);
             float facingDegrees = turretState.facingDegrees(id);
-            float cx = cam.cellToScreenX(world.cellX(id) + 0.5f);
-            float cy = cam.cellToScreenY(world.cellY(id) + 0.5f);
+            float cx = cam.cellToScreenX(world.renderX(id));
+            float cy = cam.cellToScreenY(world.renderY(id));
 
             ShuttleSpriteCache base = sprites.turretSprites().get(kind);
             if (base == null) {
@@ -174,8 +174,8 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             long u = ctx.sim.liveUnitAt(i);
             if (!ctx.sim.identity().type(u).isDroneHub()) continue;
-            float cx = cam.cellToScreenX(world.cellX(u) + 0.5f);
-            float cy = cam.cellToScreenY(world.cellY(u) + 0.5f);
+            float cx = cam.cellToScreenX(world.renderX(u));
+            float cy = cam.cellToScreenY(world.renderY(u));
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }

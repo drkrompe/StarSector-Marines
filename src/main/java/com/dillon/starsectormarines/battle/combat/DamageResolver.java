@@ -99,6 +99,8 @@ public final class DamageResolver {
         if (!wasAlive) return;
         int tcx = world.cellX(targetId);
         int tcy = world.cellY(targetId);
+        float tx = world.x(targetId);
+        float ty = world.y(targetId);
         int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
@@ -132,15 +134,15 @@ public final class DamageResolver {
             // at the demolition phase. Every post-death reaction (turret + hub
             // demolition, drone crash, mech wreck, dead-body/render) now reacts
             // off this event, not a list scan. See DeathDispatcher +
-            // retire-legacy-units-list. Snapshot the death cell into the event
-            // here, while the target is still registered — handlers run at the
-            // drain (post-release) where the Group-C cell accessors fail loud.
+            // retire-legacy-units-list. Snapshot the true death position into the
+            // event here, while the target is still registered — handlers run at
+            // the drain (post-release) where the Group-C accessors fail loud.
             // Roll the corpse prone-pose here (the normal-death path is the one that
             // leaves a ground body); the drone-cascade path publishes -1 (no corpse).
             // Publish the id directly — the target is still registered here (release
             // is below), and handlers read the id-keyed corpse columns + the event
             // snapshot, never a live handle.
-            deathDispatcher.publish(new DeathEvent(targetId, tcx, tcy, rng.nextInt(4)));
+            deathDispatcher.publish(new DeathEvent(targetId, tx, ty, rng.nextInt(4)));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is

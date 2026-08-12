@@ -109,8 +109,8 @@ public class HeavyWeapons {
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
         // hitSpread numbers.
-        float distToTarget = RangeFalloff.dist(world.cellX(shooter), world.cellY(shooter),
-                world.cellX(target), world.cellY(target));
+        float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
+                world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
         // Endpoint resolves through ShotEndpoint — same hit-jitter +
