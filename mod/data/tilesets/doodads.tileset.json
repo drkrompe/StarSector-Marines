@@ -1,0 +1,192 @@
+{
+  "sheet": "graphics/doodads/doodads.png",
+  "cellPx": 32,
+  "doodads": [
+    {
+      "id": "doodad.sandbag-corner-nw",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-straight-n",
+      "col": 1,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-corner-ne",
+      "col": 2,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-straight-w",
+      "col": 3,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-straight-e",
+      "col": 4,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-corner-sw",
+      "col": 5,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-straight-s",
+      "col": 6,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.sandbag-corner-se",
+      "col": 7,
+      "row": 0,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.industrial-crate-stack",
+      "col": 0,
+      "row": 1,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.industrial-drum-cluster",
+      "col": 1,
+      "row": 1,
+      "cover": "med"
+    },
+    {
+      "id": "doodad.industrial-cable-reel",
+      "col": 2,
+      "row": 1,
+      "cover": "med"
+    },
+    {
+      "id": "doodad.industrial-generator",
+      "col": 3,
+      "row": 1,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.industrial-dumpster",
+      "col": 4,
+      "row": 1,
+      "cover": "heavy"
+    },
+    {
+      "id": "doodad.industrial-pipe-bundle",
+      "col": 5,
+      "row": 1,
+      "cover": "med"
+    },
+    {
+      "id": "doodad.industrial-pallet-stack",
+      "col": 6,
+      "row": 1,
+      "cover": "med"
+    },
+    {
+      "id": "doodad.industrial-scrap-pile",
+      "col": 7,
+      "row": 1,
+      "cover": "heavy"
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Sandbag corner NW",
+      "description": "Ring corner connecting east and south."
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "Sandbag straight north",
+      "description": "Horizontal north edge of a defensive ring."
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "Sandbag corner NE",
+      "description": "Ring corner connecting west and south."
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "Sandbag straight west",
+      "description": "Vertical west edge of a defensive ring."
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "Sandbag straight east",
+      "description": "Vertical east edge of a defensive ring."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "Sandbag corner SW",
+      "description": "Ring corner connecting east and north."
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "Sandbag straight south",
+      "description": "Horizontal south edge of a defensive ring."
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "Sandbag corner SE",
+      "description": "Ring corner connecting west and north."
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "Industrial crate stack"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "Chemical drum cluster"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "Industrial cable reel"
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "name": "Portable field generator"
+    },
+    {
+      "col": 4,
+      "row": 1,
+      "name": "Industrial dumpster"
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "name": "Bundled metal pipes"
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "name": "Stacked cargo pallets"
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "name": "Industrial scrap pile"
+    }
+  ]
+}

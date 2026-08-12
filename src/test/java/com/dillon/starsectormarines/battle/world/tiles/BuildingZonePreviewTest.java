@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,9 +59,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class BuildingZonePreviewTest {
 
-    private static final Path URBAN_SHEET  = Paths.get("mod/graphics/tilesets/urban-tileset.png");
-    private static final Path ROAD_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-2.png");
-    private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles.png");
+    private static final Path URBAN_SHEET  = Paths.get("mod/graphics/tilesets/urban-tileset-imagegen.png");
+    private static final Path ROAD_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-2-imagegen.png");
+    private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles-imagegen.png");
+    private static final Path DOODAD_SHEET = Paths.get("mod/graphics/doodads/doodads.png");
     private static final Path OUT_DIR      = Paths.get("build/zone-previews");
 
     /** 1.5x upscale of the 32px source — large enough to read interior partitions and doodad scatter at a glance. */
@@ -455,18 +457,26 @@ public class BuildingZonePreviewTest {
         renderBuildingBatch(new BuildingIndustrialFiller(), "industrial");
     }
 
+    @Test
+    void renderIndustrialYardVariants() throws Exception {
+        renderBuildingBatch(new IndustrialYardFiller(), "industrial-yard");
+    }
+
     private void renderBuildingBatch(BlockFiller filler, String kindLabel) throws Exception {
         Files.createDirectories(OUT_DIR);
         BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
         BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
         BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        BufferedImage generatedDoodads = ImageIO.read(Files.newInputStream(DOODAD_SHEET));
         assertNotNull(urban,  "failed to load " + URBAN_SHEET);
         assertNotNull(road,   "failed to load " + ROAD_SHEET);
         assertNotNull(floors, "failed to load " + FLOORS_SHEET);
+        assertNotNull(generatedDoodads, "failed to load " + DOODAD_SHEET);
 
         BufferedImage[] panels = new BufferedImage[VARIANTS.length];
         for (int i = 0; i < VARIANTS.length; i++) {
-            panels[i] = renderVariant(filler, VARIANTS[i], urban, road, floors, kindLabel);
+            panels[i] = renderVariant(filler, VARIANTS[i], urban, road, floors,
+                    generatedDoodads, kindLabel);
         }
 
         BufferedImage sheet = composeContactSheet(panels, 2);
@@ -477,7 +487,8 @@ public class BuildingZonePreviewTest {
 
     private static BufferedImage renderVariant(BlockFiller filler, BuildingVariant variant,
                                                BufferedImage urban, BufferedImage road,
-                                               BufferedImage floors, String kindLabel) {
+                                               BufferedImage floors, BufferedImage generatedDoodads,
+                                               String kindLabel) {
         int gridW = variant.leafW + MARGIN_CELLS * 2;
         int gridH = variant.leafH + MARGIN_CELLS * 2;
         int leafLeft   = MARGIN_CELLS;
@@ -511,13 +522,14 @@ public class BuildingZonePreviewTest {
 
         String label = String.format("%s · %s · seed=%d · POIs=%d · doodads=%d",
                 kindLabel, variant.label, variant.seed, pois.size(), doodads.size());
-        return renderScene(grid, topology, doodads, urban, road, floors, label);
+        return renderScene(grid, topology, doodads, urban, road, floors,
+                generatedDoodads, label);
     }
 
     private static BufferedImage renderScene(NavigationGrid grid, CellTopology topology,
                                              List<Doodad> doodads,
                                              BufferedImage urban, BufferedImage road,
-                                             BufferedImage floors,
+                                             BufferedImage floors, BufferedImage generatedDoodads,
                                              String label) {
         int gridW = grid.getWidth();
         int gridH = grid.getHeight();
@@ -532,6 +544,7 @@ public class BuildingZonePreviewTest {
         TileSink urbanSink  = new Graphics2DTileSink(g, urban);
         TileSink roadSink   = new Graphics2DTileSink(g, road);
         TileSink floorsSink = new Graphics2DTileSink(g, floors);
+        TileSink doodadSink = new Graphics2DTileSink(g, generatedDoodads);
         TileRegistry reg = TileRegistry.installed();
 
         // Pass 1: STREET cells get a flat gray underneath (the preview
@@ -600,6 +613,13 @@ public class BuildingZonePreviewTest {
                         stampCell(drawer, urbanSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
+                    case DIRT: {
+                        TileManifest.TileFrame f = frame(reg.block("floors.dirt")
+                                .resolve(false, false, false, false, x, y));
+                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH,
+                                floorsDrawer.defaultGroundInsetPx());
+                        break;
+                    }
                     case STREET:
                         // Already painted as a flat fill in pass 1.
                         break;
@@ -654,7 +674,8 @@ public class BuildingZonePreviewTest {
         // edge pixels are content. Source sheet is per-doodad (road sheet for
         // LZ-style props, urban sheet for everything the building fillers emit).
         for (Doodad d : doodads) {
-            TileSink sink = d.fromRoadSheet ? roadSink : urbanSink;
+            TileSink sink = TileManifest.DOODAD_SHEET.equals(d.sheetPath)
+                    ? doodadSink : d.fromRoadSheet ? roadSink : urbanSink;
             stampCell(drawer, sink, d.tile, d.cellX, d.cellY, gridH,
                     FixedGridTileDrawer.OVERLAY_INSET_PX);
         }

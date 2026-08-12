@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TileRegistryParityTest {
 
     private static final Path DIR = Paths.get("mod/data/tilesets");
-    private static final String NATURE_SHEET = "graphics/tilesets/nature-tiles.png";
-    private static final String URBAN3_SHEET = "graphics/tilesets/urban-tileset-3.png";
+    private static final String NATURE_SHEET = "graphics/tilesets/nature-tiles-imagegen.png";
+    private static final String URBAN3_SHEET = "graphics/tilesets/urban-tileset-3-imagegen.png";
 
     /** One golden tile row — the authored semantics frozen as the spec. */
     private record G(String id, String sheet, int frame, TileLayer layer, TileCover cover, boolean passable) {}

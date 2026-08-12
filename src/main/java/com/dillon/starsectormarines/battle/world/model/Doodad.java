@@ -42,7 +42,9 @@ public final class Doodad {
     public final int cellX;
     public final int cellY;
     public final TileManifest.TileFrame tile;
-    /** When true, {@link #tile} indexes into {@link TileManifest#ROAD_SHEET} instead of the main {@link TileManifest#SHEET}. Lets LZ pads and other road-sheet props live in the same list as interior doodads. */
+    /** Texture containing {@link #tile}. Registry doodads retain their authored sheet path. */
+    public final String sheetPath;
+    /** Back-compat view used by older previews/tests; new rendering dispatches by {@link #sheetPath}. */
     public final boolean fromRoadSheet;
     /** Cover quality 0..3. Stored so {@code TacticalScoring}-style queries don't need to re-derive from {@link #tile} per call. */
     public final int cover;
@@ -55,14 +57,21 @@ public final class Doodad {
      */
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
-                TileManifest.ROAD_SHEET.equals(def.sheetPath), def.cover.level());
+                def.sheetPath, def.cover.level());
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
+        this(cellX, cellY, tile,
+                fromRoadSheet ? TileManifest.ROAD_SHEET : TileManifest.SHEET,
+                cover);
+    }
+
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, String sheetPath, int cover) {
         this.cellX = cellX;
         this.cellY = cellY;
         this.tile = tile;
-        this.fromRoadSheet = fromRoadSheet;
+        this.sheetPath = sheetPath == null ? TileManifest.SHEET : sheetPath;
+        this.fromRoadSheet = TileManifest.ROAD_SHEET.equals(this.sheetPath);
         this.cover = clamp(cover);
     }
 

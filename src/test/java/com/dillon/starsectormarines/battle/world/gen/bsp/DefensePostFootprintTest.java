@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Pins {@link DefensePostStamper#blockedFootprint} to the actual per-tier stamp
@@ -78,5 +80,17 @@ public class DefensePostFootprintTest {
         for (DefensePostShape shape : DefensePostShape.values()) {
             assertMatch(DefensePostKind.LARGE, shape);
         }
+    }
+
+    @Test
+    public void mediumUsesGeneratedSandbagSheet() {
+        NavigationGrid grid = openGrid();
+        CellTopology topo = new CellTopology(W, H);
+        List<Doodad> doodads = new ArrayList<>();
+        DefensePostStamper.stampPost(grid, topo, doodads, DefensePostKind.MEDIUM,
+                null, CX, CY, new Random(1));
+        assertEquals(8, doodads.size());
+        assertTrue(doodads.stream().allMatch(d -> TileManifest.DOODAD_SHEET.equals(d.sheetPath)));
+        assertEquals(8, doodads.stream().map(d -> d.tile.col + "," + d.tile.row).distinct().count());
     }
 }

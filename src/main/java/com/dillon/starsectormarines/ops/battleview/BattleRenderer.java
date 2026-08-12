@@ -143,6 +143,7 @@ public class BattleRenderer {
     private QuadBatch waterBatch;
     private QuadBatch urbanTile3Batch;
     private QuadBatch natureBatch;
+    private QuadBatch doodadBatch;
 
     /**
      * Solid-color batch for in-loop fills that need to share painter
@@ -272,6 +273,8 @@ public class BattleRenderer {
             urbanTile3Batch = new QuadBatch(sprites.urbanTile3Sheet(), sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH(), 4096);
         if (natureBatch == null && sprites.natureSheet() != null)
             natureBatch = new QuadBatch(sprites.natureSheet(), sprites.natureSheetPxW(), sprites.natureSheetPxH(), 4096);
+        if (doodadBatch == null && sprites.doodadSheet() != null)
+            doodadBatch = new QuadBatch(sprites.doodadSheet(), sprites.doodadSheetPxW(), sprites.doodadSheetPxH(), 4096);
 
         // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
         // sheet to its batch. Same instances the inline tile passes use.
@@ -281,6 +284,7 @@ public class BattleRenderer {
         registerBatch(sprites.waterSheet(), waterBatch);
         registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
         registerBatch(sprites.natureSheet(), natureBatch);
+        registerBatch(sprites.doodadSheet(), doodadBatch);
 
         // Sprite-sheet batches for the VEHICLES + CONVOY layers (Vehicle/Convoy
         // RenderSystems). Their sheets are loaded by ensureVehicleSheets() /
