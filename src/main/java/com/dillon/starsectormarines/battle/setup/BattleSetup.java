@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
@@ -538,6 +540,14 @@ public final class BattleSetup {
     public static BattleSimulation createCivilianRescue(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk) {
+        return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk,
+                SwarmDefenseRoster.countFor(risk));
+    }
+
+    /** Civilian rescue with an explicit initial swarm size. */
+    public static BattleSimulation createCivilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount) {
         for (int attempt = 0; attempt < 8; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = MapScale.forRisk(risk);
@@ -550,9 +560,8 @@ public final class BattleSetup {
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList()).sim();
 
-            com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload payload =
-                    com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload
-                            .install(sim, map, battleSeed);
+            CivilianEvacuationPayload payload =
+                    CivilianEvacuationPayload.install(sim, map, battleSeed);
             if (payload == null) continue;
 
             // The payload installs the marine evacuation objective. Defenders
@@ -591,9 +600,8 @@ public final class BattleSetup {
             }
 
             spawnAmbientCivilians(sim, map, rng);
-            com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster swarm =
-                    com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster
-                            .install(sim, payload.placement, risk, battleSeed);
+            SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
+                    sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
             return sim;
         }

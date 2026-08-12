@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.ui.ScrollState;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -39,12 +40,17 @@ public final class SquadOverviewPanel implements HudPanel {
     private static final float DOT_RADIUS    = 5f;
     private static final float MORALE_BAR_H  = 4f;
     private static final float MORALE_BAR_PAD_Y = 2f;
+    private static final float SCROLLBAR_W   = 4f;
+    private static final float SCROLLBAR_GAP = 3f;
+    private static final float SCROLL_PX_PER_NOTCH = ROW_H * 3f;
 
     private static final Color BG            = new Color(0x10, 0x18, 0x22, 0xD8);
     private static final Color BG_HOVER      = new Color(0x20, 0x30, 0x44, 0xE0);
     private static final Color BORDER        = new Color(0x60, 0x80, 0xA0);
     private static final Color HEADER_FG     = new Color(0xC8, 0xE0, 0xFF);
     private static final Color COUNT_FG      = new Color(0xE0, 0xE0, 0xE0);
+    private static final Color SCROLL_TRACK  = new Color(0x20, 0x2C, 0x3A, 0xC0);
+    private static final Color SCROLL_THUMB  = new Color(0x80, 0xA0, 0xC8, 0xE0);
 
     private static final Color ALERT_UNAWARE    = new Color(0x60, 0xC0, 0x60);
     private static final Color ALERT_SUSPICIOUS = new Color(0xE0, 0xC0, 0x40);
@@ -55,6 +61,8 @@ public final class SquadOverviewPanel implements HudPanel {
     private final List<Squad> playerSquads = new ArrayList<>();
     /** Equipment-summary string per cached squad, in the same order. */
     private final List<String> equipSummaries = new ArrayList<>();
+    private final ScrollState listScroll = new ScrollState();
+    private SquadListViewport listViewport;
     private int hoveredRow = -1;
 
     public SquadOverviewPanel(BattleUiContext ctx) {
@@ -69,6 +77,9 @@ public final class SquadOverviewPanel implements HudPanel {
     @Override
     public void update(float dt) {
         refreshSnapshot();
+        listViewport = SquadListViewport.fit(playerSquads.size(), maxPanelHeight(),
+                HEADER_H, PAD_INNER, ROW_H);
+        listScroll.setMetrics(listViewport.contentHeight, listViewport.viewportHeight);
     }
 
     private void refreshSnapshot() {
@@ -124,7 +135,7 @@ public final class SquadOverviewPanel implements HudPanel {
     }
 
     private float panelHeight() {
-        return HEADER_H + playerSquads.size() * ROW_H + PAD_INNER;
+        return listViewport != null ? listViewport.panelHeight : 0f;
     }
 
     private float panelX() {
@@ -136,6 +147,11 @@ public final class SquadOverviewPanel implements HudPanel {
         return l.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
     }
 
+    private float maxPanelHeight() {
+        BattleLayout l = ctx.getLayout();
+        return l.controlsY - panelY() - BattleLayout.CONTROLS_GAP;
+    }
+
     private int rowAt(float px, float py) {
         if (playerSquads.isEmpty()) return -1;
         float x0 = panelX();
@@ -143,12 +159,9 @@ public final class SquadOverviewPanel implements HudPanel {
         float w = PANEL_W;
         float h = panelHeight();
         if (px < x0 || px >= x0 + w || py < y0 || py >= y0 + h) return -1;
-        // Rows stack downward from below the header. y0 is the panel's bottom edge.
         float headerBottom = y0 + h - HEADER_H;
-        if (py >= headerBottom) return -1; // hit the header
-        int row = (int) Math.floor((headerBottom - py) / ROW_H);
-        if (row < 0 || row >= playerSquads.size()) return -1;
-        return row;
+        float bodyBottom = y0 + PAD_INNER;
+        return listViewport.rowAt(py, bodyBottom, headerBottom, listScroll.offset());
     }
 
     @Override
@@ -169,7 +182,8 @@ public final class SquadOverviewPanel implements HudPanel {
         // Rows.
         for (int i = 0; i < playerSquads.size(); i++) {
             Squad s = playerSquads.get(i);
-            float rowY = headerY - (i + 1) * ROW_H;
+            float rowY = listViewport.rowBottom(headerY, i, listScroll.offset());
+            if (!listViewport.rowVisible(rowY, y0 + PAD_INNER, headerY)) continue;
             boolean hovered = (i == hoveredRow);
             if (hovered) {
                 HudDraw.filledRect(x0 + 1, rowY, w - 2, ROW_H, BG_HOVER, alphaMult);
@@ -209,6 +223,10 @@ public final class SquadOverviewPanel implements HudPanel {
                     s.morale, cap, s.moraleBroken,
                     SquadMoraleSystem.MORALE_BROKEN_THRESHOLD, alphaMult);
         }
+
+        listScroll.renderScrollbar(x0 + w - SCROLLBAR_W - SCROLLBAR_GAP,
+                y0 + PAD_INNER, SCROLLBAR_W, listViewport.viewportHeight,
+                SCROLL_TRACK, SCROLL_THUMB, alphaMult);
     }
 
     private static Color alertColor(SquadAlertLevel level) {
@@ -223,6 +241,8 @@ public final class SquadOverviewPanel implements HudPanel {
     @Override
     public void handleInput(List<InputEventAPI> events) {
         hoveredRow = -1;
+        listScroll.handleWheel(events, panelX(), panelY(), PANEL_W, panelHeight(),
+                SCROLL_PX_PER_NOTCH);
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
             int px = e.getX();

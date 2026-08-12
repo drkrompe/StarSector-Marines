@@ -1,0 +1,125 @@
+{
+  "defaults": {
+    "cover": "none",
+    "padding": 2,
+    "scale": 1.0,
+    "offset": [0, 0]
+  },
+  "assets": {
+    "sandbag-corner-nw.png": {
+      "id": "doodad.sandbag-corner-nw",
+      "name": "Sandbag corner NW",
+      "description": "Ring corner connecting east and south.",
+      "cover": "heavy",
+      "order": 10
+    },
+    "sandbag-straight-n.png": {
+      "id": "doodad.sandbag-straight-n",
+      "name": "Sandbag straight north",
+      "description": "Horizontal north edge of a defensive ring.",
+      "cover": "heavy",
+      "order": 11
+    },
+    "sandbag-corner-ne.png": {
+      "id": "doodad.sandbag-corner-ne",
+      "name": "Sandbag corner NE",
+      "description": "Ring corner connecting west and south.",
+      "cover": "heavy",
+      "order": 12
+    },
+    "sandbag-straight-w.png": {
+      "id": "doodad.sandbag-straight-w",
+      "name": "Sandbag straight west",
+      "description": "Vertical west edge of a defensive ring.",
+      "cover": "heavy",
+      "order": 13
+    },
+    "sandbag-straight-e.png": {
+      "id": "doodad.sandbag-straight-e",
+      "name": "Sandbag straight east",
+      "description": "Vertical east edge of a defensive ring.",
+      "cover": "heavy",
+      "order": 14
+    },
+    "sandbag-corner-sw.png": {
+      "id": "doodad.sandbag-corner-sw",
+      "name": "Sandbag corner SW",
+      "description": "Ring corner connecting east and north.",
+      "cover": "heavy",
+      "order": 15
+    },
+    "sandbag-straight-s.png": {
+      "id": "doodad.sandbag-straight-s",
+      "name": "Sandbag straight south",
+      "description": "Horizontal south edge of a defensive ring.",
+      "cover": "heavy",
+      "order": 16
+    },
+    "sandbag-corner-se.png": {
+      "id": "doodad.sandbag-corner-se",
+      "name": "Sandbag corner SE",
+      "description": "Ring corner connecting west and north.",
+      "cover": "heavy",
+      "order": 17
+    },
+    "industrial-crate-stack.png": {
+      "id": "doodad.industrial-crate-stack",
+      "name": "Industrial crate stack",
+      "cover": "heavy",
+      "order": 30
+    },
+    "industrial-drum-cluster.png": {
+      "id": "doodad.industrial-drum-cluster",
+      "name": "Chemical drum cluster",
+      "cover": "med",
+      "scale": 0.92,
+      "order": 31
+    },
+    "industrial-cable-reel.png": {
+      "id": "doodad.industrial-cable-reel",
+      "name": "Industrial cable reel",
+      "cover": "med",
+      "order": 32
+    },
+    "industrial-generator.png": {
+      "id": "doodad.industrial-generator",
+      "name": "Portable field generator",
+      "cover": "heavy",
+      "order": 33
+    },
+    "industrial-dumpster.png": {
+      "id": "doodad.industrial-dumpster",
+      "name": "Industrial dumpster",
+      "cover": "heavy",
+      "order": 34
+    },
+    "industrial-pipe-bundle.png": {
+      "id": "doodad.industrial-pipe-bundle",
+      "name": "Bundled metal pipes",
+      "cover": "med",
+      "order": 35
+    },
+    "industrial-pallet-stack.png": {
+      "id": "doodad.industrial-pallet-stack",
+      "name": "Stacked cargo pallets",
+      "cover": "med",
+      "scale": 0.9,
+      "order": 36
+    },
+    "industrial-scrap-pile.png": {
+      "id": "doodad.industrial-scrap-pile",
+      "name": "Industrial scrap pile",
+      "cover": "heavy",
+      "scale": 0.92,
+      "order": 37
+    },
+    "example-disabled.png": {
+      "enabled": false,
+      "id": "doodad.example",
+      "name": "Example prop",
+      "description": "Per-asset values override the defaults.",
+      "cover": "med",
+      "order": 10
+    }
+  }
+}

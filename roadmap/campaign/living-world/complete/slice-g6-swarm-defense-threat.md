@@ -3,7 +3,7 @@
 **Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`
+`710d2981`; playtest corrections `fb50b964`, `8b2af722`, `e0d29078`
 
 ## Goal
 
@@ -41,6 +41,28 @@ campaign-writeback contract.
   and its reinforcement service is empty.
 - `gradlew.bat build --no-daemon --max-workers=1` passes.
 - Manual playtesting was intentionally skipped for this session.
+
+## Playtest correction
+
+The first manual observation found runners stopping under sustained fire before
+they reached contact. `SWARM_PRESSURE` had accidentally inherited the generic
+25% on-hit fallback roll, replacing its pursuit behavior for 3.5 seconds even
+though the payload contract made the swarm morale-free and implacable.
+`fb50b964` exempts the role from legacy fallback. Regression coverage now proves
+100 hit reactions cannot make a runner flinch and repeated pressure ticks close
+the full distance into contact damage. The full Gradle build passes.
+
+The debug personnel fixtures then exposed a second scale mismatch: the current
+40-drop manifest can land roughly 300 marine-side personnel against the fixed
+production roster of 12/24/40 runners. `8b2af722` introduced force scaling, but
+its first version counted every later sortie cycle and spawned the entire enemy
+budget at time zero. That produced an effectively instant civilian defeat.
+`e0d29078` corrects the phase mismatch: debug rescue scales the initial roster
+against simultaneous first-wave seats at 2:1 LOW, 3:1 MEDIUM, and 4:1 HIGH, and
+stages runners at least 24 cells from the shelter. Later marine cycles remain
+reinforcements rather than prepaid enemy strength. An eight-Valkyrie fixture
+proves the battle and civilians survive the opening three seconds; explicit
+large-roster tests and the full build pass. Production remains unchanged.
 
 ## Next
 

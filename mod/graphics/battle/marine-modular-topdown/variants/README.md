@@ -24,8 +24,8 @@ Weapons:
 - `weapons/grades/masterwork/dmr.png` — fleet-printed grade-IV exemplar.
 
 The head is separate from the shoulder/body mass and can rotate independently around its
-center. Each body has an empty helmet socket. `previews/` demonstrates family pairings,
-head-look rotation, and one intentionally mixed armor/head combination.
+center. Each body has an empty helmet socket. Running `build_variants.py` writes disposable
+family, head-look, and mixed-armor previews to `build/sprite-previews/infantry/`.
 
 ## Shoulder-width anatomy shorthand
 
@@ -62,4 +62,5 @@ north orientation, an explicit empty socket or operator-free constraint, a flat 
 background, and an existing accepted layer used only as geometry/style reference.
 
 `build_variants.py` normalizes the retained alpha originals in `sources/` and rebuilds
-these runtime sprites and previews. Chroma-key intermediates are deliberately discarded.
+these runtime sprites plus ignored build-tree previews. Chroma-key intermediates are
+deliberately discarded.

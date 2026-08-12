@@ -81,57 +81,32 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-1. **Loot shipping check** — the core loot loop, Layer-3 recovery modifiers,
-   and context-gated AI cores are code-complete (`254de744`, `037586cf`, `90f01acc`,
-   `f27294c8`, `d5f0b779`): deterministic
-   faction/industry-weighted weapons + commodities, budget-aware picker,
-   separate cargo/fuel/personnel capacity preview, exactly-once transfer, and
-   75% fence-on-spot overflow. Before moving its five stories to `complete/`,
-   run the documented in-game visual/cargo/core smoke test. See
+1. **Campaign personnel spine** — persistent six-person fireteams, cargo-backed
+   enlistment, reserve management, armory allocation/presets, explicit
+   deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery, and debrief are
+   shipped (`aee9b9cf`, `b7bb10db`, `b3da11ad`, `4737404d`, `c35e88d4`,
+   `822572b7`). Captain home-command persistence and armory management are also
+   shipped (`9c4c4ee8`, `aa26d3ec`), as are debug personnel fixtures and the
+   production shortfall/recruitment route (`605cda22`, `59c4864b`, `75413bfc`).
+   Next: make briefing selection honor the active captain's home formation and
+   rank-scaled whole-fireteam limit. See
+   [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
+2. **Living-world follow-through** — the first black-swan event now runs from
+   deterministic trigger through player choice, swarm-rescue battle, explicit
+   outcome writeback, debrief, hidden moral consequence, and durable Distress
+   Net dispatch. Next: choose and contract a second event archetype, or return
+   to another living-world spine; generalize only against a concrete second
+   consumer. Keep swarm tuning deferred until manual playtesting resumes. See
+   [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
+3. **Command Powers S8 B-2** — add member-level commitment for power-source
+   ships so the canonical briefing narrows `PowerCatalog` to the actual
+   detachment. Then S8 C can add the command-deck slot budget. See
+   [`command-powers/next-session.md`](command-powers/next-session.md).
+4. **Manual verification queue (deferred this session)** — the loot loop's
+   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster/stat
+   tuning remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-2. **Campaign contracts breadth** — rank-gated Escort offers map to one-shot
-   Extraction missions (`fb268bbe`, `df0a5d19`). Rank-gated GARRISON + CADRE
-   offers have dedicated
-   assignment UI, persisted terms, monthly retainers, and personnel return
-   (`2487cfaf`, `644b0a1f`, `0b2829ec`). Cadre monthly training XP and safe
-   contract-table cleanup are shipped (`68a3673d`, `795b4d9e`), and explicit
-   local Escort/Garrison/Cadre debug spawners make each vertical reachable on
-   demand (`c641cff0`). House-power-priced monthly defaults now create linked,
-   playable Recovery missions with success/failure personnel consequences
-   (`1051c22a`, `13e1f22e`, `40cc9454`, `0516486c`). Local active-assignment
-   management and atomic early withdrawal now apply house/MRB consequences,
-   while ordinary outcomes feed tier-scaled MRB credibility (`6c205512`,
-   `92c4910e`, `7fe8971f`). Tier-3 Planetary Assault is now a deterministic
-   3–5 phase sequence with staged payout/salvage, non-final retries,
-   contract-wide negotiation, exactly-once result keys, and three-day refit
-   windows (`d567c838`, `58a3715f`, `b297a8c5`, `e404b8a9`, `80f12862`,
-   `28734a6f`). New work is now gated by MRB tier and per-house standing while
-   Recovery and accepted obligations remain reachable (`9de789d4`). Next:
-   Cadre incidents are now a complete persisted-to-playable vertical: trigger,
-   payload, exactly-once resolution, and local-detachment battle handoff
-   (`d07fd3c3`, `77ce5ead`, `68c6b7c7`, `fd7933df`). Garrison defenses now have
-   the same vertical from a shared campaign-event boundary: explicit vanilla
-   raid targets arm persisted responses, pending assignments stay reachable,
-   and local fixed-captain battles resolve exactly once back to ACTIVE or FAILED
-   (`6497e062`, `025ff507`, `f9ba10ea`). Player-launched rival Strike contracts
-   now arm that shared defense path at the target house's market (`8c899ca5`).
-   Live market-faction changes complete the source matrix by arming dispossessed
-   Garrison patrons through the internal-flip path (`90580a8a`). The living-
-   world spine now runs through autonomous promotion/civil-war simulation,
-   Chronicle discovery, paired player participation, faction-flip writeback,
-   attributed terminal reputation, and two hidden moral-compass source families.
-   Civilian rescue now has trigger-unique persistence, an atomic cost-shaped
-   choice lifecycle, neutral passive expiry, explicit outcome facts, and exact-
-   once mercy/stewardship recording (`cf8b717b`, `5fd8969d`, `1b2afcb4`). Its
-   deterministic 45-day producer, always-registered Distress Net choice surface,
-   and production-shaped debug spawner are now shipped too (`34cf0654`,
-   `5572c538`, `24ba5bdc`). The gated committed-event mission/outcome bridge now
-   carries explicit event identity/stakes and rejects anything but a matching
-   evacuation report (`0d49d30e`, `fdfb0aef`). Next: build the battle-side
-   representative evacuation cohort before emitting missions or adding swarm
-   content. See
-   `campaign/contracts/overview.md` and `campaign/living-world/next-session.md`.
-3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+5. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See

@@ -171,12 +171,15 @@ public enum UnitType {
     public boolean drawnAsSheet() { return !isStatic() && this != DRONE; }
 
     /**
-     * Whether this infantry archetype has the modular body/head/weapon asset set.
+     * Whether this infantry archetype has the modular body/head asset set (and,
+     * for combatants, modular weapon layers).
      * These units retain their legacy sheet and SPRITE component as a load-failure
      * fallback and for corpse rendering.
      */
     public boolean drawnAsLayers() {
-        return this == MARINE || this == MARINE_BLUE || this == MARINE_RED || this == MILITIA;
+        return this == MARINE || this == MARINE_BLUE || this == MARINE_RED
+                || this == MILITIA || this == CIVILIAN || this == ENGINEER
+                || this == SCIENTIST;
     }
 
     /** Whether this chassis has a modular true-overhead live composition. */

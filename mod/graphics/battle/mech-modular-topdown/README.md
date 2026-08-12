@@ -24,8 +24,6 @@ shoulders; `srm-pod.png` remains an installable compact variant. The rejected
 long six-rail roll is retained as `linear-cannon-variant.png` because it reads
 well as a future energy or linear weapon.
 
-`chaingun-arm-narrow-70.png` is an experimental copy of the stock chaingun
-compressed to 70% on the X axis only. The stock asset remains unchanged.
-
 Run `python build_assets.py` after replacing a retained source. The generated
-previews use the same hull-relative placement model as the runtime composer.
+previews use the same hull-relative placement model as the runtime composer and
+are written beneath `build/sprite-previews/mech/` rather than packaged with the mod.

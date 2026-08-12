@@ -141,7 +141,7 @@ public final class MissionGenerator {
                 String name = type.name() + " — " + risk.name();
                 String flavor = "DEBUG: " + type.name() + " at " + risk.name() + " risk.";
 
-                out.add(new Mission(id, name, type, MissionSource.GENERATED,
+                out.add(new Mission(id, name, type, MissionSource.DEBUG,
                         payout, risk, requirementsFor(risk), flavor, x, y,
                         clientSupport, enemySupport, requiredDrops, employerShuttles,
                         planet.getName(), industryId));

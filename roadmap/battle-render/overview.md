@@ -127,6 +127,9 @@ escape, not geometry hiding from the drain. Design + slices:
 
 Today's `BattleCamera` is a 2D fit-to-viewport projection: `MIN_ZOOM = 1.0`
 means the whole map already fits at rest, and you only zoom *in* from there.
+The current tactical close-up ceiling is `MAX_ZOOM = 8.0` (extended in
+`168c9a51`); this changes only how closely the player can inspect the existing
+2D battlefield, not its initial framing or the future projection work below.
 Two pressures want more:
 
 - **Larger maps.** A planned **512+** cell dimension makes "whole map fits at

@@ -36,13 +36,15 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 
 /**
  * Turns a finished {@link BattleSimulation} + the briefing's selected
@@ -175,10 +177,14 @@ public final class MissionResolver {
                 : LootRecoveryModifier.NONE;
 
         int civiliansRescued = -1;
+        int evacuationRepresentatives = -1;
+        int representativesEvacuated = -1;
         if (mission.source.isCivilianRescue()) {
             CivilianEvacuationReport report =
                     sim.getCivilianEvacuationTracker().report();
             if (report != null) {
+                evacuationRepresentatives = report.initial;
+                representativesEvacuated = report.evacuated;
                 civiliansRescued = report.campaignRescued(
                         mission.civiliansAtRisk);
             }
@@ -232,6 +238,7 @@ public final class MissionResolver {
                 mission.contractId, mission.campaignEventId,
                 mission.campaignEventMarketId, mission.civiliansAtRisk,
                 civiliansRescued,
+                evacuationRepresentatives, representativesEvacuated,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
                 survivingSoldierIds, fallenSoldierIds);
@@ -239,6 +246,11 @@ public final class MissionResolver {
 
     public static void apply(MissionOutcome outcome) {
         if (outcome == null) return;
+        if (outcome.missionSource.isDebug()) {
+            LOG.info("MarineOps: debug mission " + outcome.missionId
+                    + " — no campaign writeback");
+            return;
+        }
         if (outcome.missionSource == MissionSource.STATIONING
                 && !isCurrentStationingMission(outcome)) {
             LOG.info("MarineOps: stale stationing mission result " + outcome.missionId
@@ -265,10 +277,9 @@ public final class MissionResolver {
             if (outcome.payoutEarned > 0) {
                 cargo.getCredits().add(outcome.payoutEarned);
             }
-            if (outcome.marinesLost > 0
-                    && outcome.missionSource != MissionSource.STATIONING) {
-                cargo.removeCommodity(Commodities.MARINES, outcome.marinesLost);
-            }
+            // Named persistent marines left the generic cargo pool when enlisted;
+            // their battlefield fate is written to the roster below, not charged
+            // a second time against unassigned cargo personnel.
         }
 
         if (outcome.victory && outcome.targetIndustryId != null && outcome.targetPlanetName != null) {
@@ -286,8 +297,13 @@ public final class MissionResolver {
                 case MEDIUM -> 50;
                 case HIGH -> 80;
             } : 10;
+            float wiaDays = switch (outcome.risk) {
+                case LOW -> 7f;
+                case MEDIUM -> 12f;
+                case HIGH -> 18f;
+            };
             personnelScript.roster().applySoldierOutcome(
-                    outcome.survivingSoldierIds, outcome.fallenSoldierIds, survivorXp);
+                    resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays);
             if (outcome.victory) {
                 int materials = switch (outcome.risk) {
                     case LOW -> 2;
@@ -342,6 +358,32 @@ public final class MissionResolver {
                 + " xp=" + outcome.xpGained
                 + " captainStatus=" + outcome.newCaptainStatus
                 + " promotedTo=" + outcome.promotedTo);
+    }
+
+    /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
+    static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome) {
+        Map<String, MarineSoldierStatus> result = new HashMap<>();
+        if (outcome == null) return result;
+        for (String id : outcome.survivingSoldierIds) {
+            result.put(id, MarineSoldierStatus.ACTIVE);
+        }
+        for (String id : outcome.fallenSoldierIds) {
+            long seed = ((long) (outcome.missionId != null ? outcome.missionId.hashCode() : 0) << 32)
+                    ^ id.hashCode();
+            float roll = new Random(seed).nextFloat();
+            MarineSoldierStatus status;
+            if (outcome.victory) {
+                status = roll < 0.35f ? MarineSoldierStatus.KIA
+                        : roll < 0.95f ? MarineSoldierStatus.WIA
+                        : MarineSoldierStatus.MIA;
+            } else {
+                status = roll < 0.50f ? MarineSoldierStatus.KIA
+                        : roll < 0.80f ? MarineSoldierStatus.WIA
+                        : MarineSoldierStatus.MIA;
+            }
+            result.put(id, status);
+        }
+        return result;
     }
 
     /**

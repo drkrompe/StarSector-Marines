@@ -13,6 +13,8 @@ package com.dillon.starsectormarines.ops;
  *       stable event lineage.</li>
  *   <li>{@link #DEBUG_CIVILIAN_RESCUE} — picker-only swarm rescue with no
  *       campaign-event lineage or writeback.</li>
+ *   <li>{@link #DEBUG} — ordinary picker-only mission with fixture personnel
+ *       and no campaign writeback.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -23,9 +25,15 @@ public enum MissionSource {
     /** Cost-shaped black-swan mission; never inherits contract economics. */
     CAMPAIGN_EVENT,
     /** Direct debug-picker swarm rescue; never resolves a campaign event. */
-    DEBUG_CIVILIAN_RESCUE;
+    DEBUG_CIVILIAN_RESCUE,
+    /** Ordinary debug-picker mission; never mutates campaign state. */
+    DEBUG;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT || this == DEBUG_CIVILIAN_RESCUE;
+    }
+
+    public boolean isDebug() {
+        return this == DEBUG || this == DEBUG_CIVILIAN_RESCUE;
     }
 }

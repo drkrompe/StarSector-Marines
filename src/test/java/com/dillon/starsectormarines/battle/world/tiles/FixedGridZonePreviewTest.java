@@ -38,8 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class FixedGridZonePreviewTest {
 
-    private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles.png");
-    private static final Path NATURE_SHEET = Paths.get("mod/graphics/tilesets/nature-tiles.png");
+    private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles-imagegen.png");
+    private static final Path NATURE_SHEET = Paths.get("mod/graphics/tilesets/nature-tiles-imagegen.png");
     private static final Path OUT_DIR = Paths.get("build/zone-previews");
 
     /** Display cell size in output-image pixels. 3x upscale of the 16px source — large enough to read art clearly, small enough to keep PNGs lightweight. */

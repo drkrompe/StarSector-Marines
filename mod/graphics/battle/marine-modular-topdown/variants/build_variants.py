@@ -149,7 +149,8 @@ def main() -> None:
     surplus_rifle.save(grade_root / "surplus" / "rifle.png", optimize=True)
     masterwork_dmr.save(grade_root / "masterwork" / "dmr.png", optimize=True)
 
-    previews = directory / "previews"
+    project_root = directory.parents[4]
+    previews = project_root / "build" / "sprite-previews" / "infantry"
     previews.mkdir(parents=True, exist_ok=True)
     rocket_pivot = (rocket.width // 2, ROCKET_WEAPON_PIVOT_Y)
     combinations = (

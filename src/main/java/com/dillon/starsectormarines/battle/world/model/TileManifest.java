@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * Hand-curated mapping from semantic battle-tile categories to source
- * {@code (col, row)} positions in {@code graphics/tilesets/urban-tileset.png}.
+ * {@code (col, row)} positions in {@code graphics/tilesets/urban-tileset-imagegen.png}.
  *
  * <p>This sheet is a top-down 32px set with no 2-tall walls (the previous sheet
  * had wall pieces drawn in 3/4 perspective, which had to be squashed vertically
@@ -31,7 +31,7 @@ package com.dillon.starsectormarines.battle.world.model;
  */
 public final class TileManifest {
 
-    public static final String SHEET = "graphics/tilesets/urban-tileset.png";
+    public static final String SHEET = "graphics/tilesets/urban-tileset-imagegen.png";
     public static final int TILE_SIZE = 32;
 
     /**
@@ -39,18 +39,18 @@ public final class TileManifest {
      * separately from {@link #SHEET} so the road art (dashed perimeter +
      * red safety stripe) can iterate independently of the indoor floor set.
      */
-    public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2.png";
+    public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2-imagegen.png";
 
     /**
      * Third sheet — outdoor surface autotiles (grass, dirt, stone, sand,
      * snow) plus the polished interior {@code fl-tile} cluster. Drawn at
      * 16px source-cell size and upscaled 2x to fit the 32px nav grid.
      */
-    public static final String FLOORS_SHEET = "graphics/tilesets/Floors_Tiles.png";
+    public static final String FLOORS_SHEET = "graphics/tilesets/Floors_Tiles-imagegen.png";
     public static final int FLOORS_TILE_SIZE = 16;
 
     /** Fourth sheet — water autotile. 16px cells, upscaled 2x like {@link #FLOORS_SHEET}. */
-    public static final String WATER_SHEET = "graphics/tilesets/Water_tiles.png";
+    public static final String WATER_SHEET = "graphics/tilesets/Water_tiles-imagegen.png";
 
     /**
      * Fifth sheet — sliced strip carrying the modern road + sidewalk look
@@ -62,7 +62,7 @@ public final class TileManifest {
      * the renderer dispatches STREET cells through this sheet when it's
      * loaded and falls back to the {@link #ROAD_SHEET} autotile otherwise.
      */
-    public static final String STREET3_SHEET = "graphics/tilesets/urban-tileset-3.png";
+    public static final String STREET3_SHEET = "graphics/tilesets/urban-tileset-3-imagegen.png";
 
     /**
      * Sixth sheet — the nature strip (grass / dirt / sand / water ground
@@ -72,13 +72,16 @@ public final class TileManifest {
      * loaded as a sliced sheet via
      * {@link com.dillon.starsectormarines.battle.world.tiles.SheetTexture}.
      */
-    public static final String NATURE_SHEET = "graphics/tilesets/nature-tiles.png";
+    public static final String NATURE_SHEET = "graphics/tilesets/nature-tiles-imagegen.png";
+
+    /** Dedicated fixed-grid sheet for generated 32px doodad cutouts. */
+    public static final String DOODAD_SHEET = "graphics/doodads/doodads.png";
 
     /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). Verified by {@code TileManifestFillColorTest}. */
-    public static final int ROAD_FILL_RGB = 0x7983A1; // 121, 131, 161
+    public static final int ROAD_FILL_RGB = 0x2F3D4A; // 47, 61, 74
 
     /** Open-courtyard surface color, sampled inside the open-area quadrant of the courtyard NW edge tile. Verified by {@code TileManifestFillColorTest}. */
-    public static final int COURTYARD_FILL_RGB = 0x555A74; // 85, 90, 116
+    public static final int COURTYARD_FILL_RGB = 0x3B4753; // 59, 71, 83
 
     /**
      * Sidewalk tile stamped on any street cell adjacent to a building wall —

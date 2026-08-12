@@ -20,6 +20,10 @@ public final class SwarmDefenseRoster {
     public static final int LOW_COUNT = 12;
     public static final int MEDIUM_COUNT = 24;
     public static final int HIGH_COUNT = 40;
+    /** Production missions also need an approach window; six cells was effectively immediate contact. */
+    public static final int PRODUCTION_SHELTER_APPROACH_DISTANCE = 16;
+    /** Gives debug transports time to establish the opening defensive line. */
+    public static final int DEBUG_SHELTER_APPROACH_DISTANCE = 24;
 
     private final long[] entityIds;
 
@@ -34,8 +38,23 @@ public final class SwarmDefenseRoster {
     public static SwarmDefenseRoster install(
             BattleSimulation sim, CivilianEvacuationPlacement placement,
             RiskLevel risk, long seed) {
+        return install(sim, placement, countFor(risk), seed,
+                PRODUCTION_SHELTER_APPROACH_DISTANCE);
+    }
+
+    /** Installs a force-scaled debug roster outside the opening approach band. */
+    public static SwarmDefenseRoster install(
+            BattleSimulation sim, CivilianEvacuationPlacement placement,
+            int requestedCount, long seed) {
+        return install(sim, placement, requestedCount, seed,
+                DEBUG_SHELTER_APPROACH_DISTANCE);
+    }
+
+    private static SwarmDefenseRoster install(
+            BattleSimulation sim, CivilianEvacuationPlacement placement,
+            int requestedCount, long seed, int minimumShelterDistance) {
         if (sim == null || placement == null) return null;
-        int count = countFor(risk);
+        int count = Math.max(0, requestedCount);
         NavigationGrid grid = sim.getGrid();
         boolean[] reachable = reachableFromShelter(grid, placement);
         boolean[] occupied = occupiedCells(sim, grid);
@@ -45,6 +64,8 @@ public final class SwarmDefenseRoster {
                 int cell = grid.index(x, y);
                 if (!reachable[cell] || occupied[cell]
                         || insideShelterZone(x, y, placement)
+                        || shelterDistance(x, y, placement)
+                                < minimumShelterDistance
                         || insideLiftZone(x, y, placement)) {
                     continue;
                 }
@@ -77,6 +98,20 @@ public final class SwarmDefenseRoster {
             case LOW:
             default: return LOW_COUNT;
         }
+    }
+
+    /**
+     * Debug pressure scales against the simultaneous first-wave seats, not all
+     * later sortie cycles: 2:1 at LOW, 3:1 at MEDIUM, and 4:1 at HIGH.
+     * Production counts remain authored by {@link #countFor(RiskLevel)}.
+     */
+    public static int debugCountFor(RiskLevel risk, int firstWaveMarineSeats) {
+        int seats = Math.max(0, firstWaveMarineSeats);
+        int scaled;
+        if (risk == RiskLevel.HIGH) scaled = seats * 4;
+        else if (risk == RiskLevel.MEDIUM) scaled = seats * 3;
+        else scaled = seats * 2;
+        return Math.max(countFor(risk), scaled);
     }
 
     public int size() {
@@ -132,9 +167,14 @@ public final class SwarmDefenseRoster {
 
     private static boolean insideShelterZone(
             int x, int y, CivilianEvacuationPlacement placement) {
-        return Math.abs(x - placement.shelterX)
-                + Math.abs(y - placement.shelterY)
+        return shelterDistance(x, y, placement)
                 <= CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
+    }
+
+    private static int shelterDistance(
+            int x, int y, CivilianEvacuationPlacement placement) {
+        return Math.abs(x - placement.shelterX)
+                + Math.abs(y - placement.shelterY);
     }
 
     private static boolean insideLiftZone(

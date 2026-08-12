@@ -1,9 +1,9 @@
 {
-  "sheet": "graphics/tilesets/urban-tileset-2.png",
+  "sheet": "graphics/tilesets/urban-tileset-2-imagegen.png",
   "cellPx": 32,
   "blocks": [
-    { "id": "road.road",      "origin": [12, 0], "layout": "perimeter-3x3", "fillRgb": "0x7983A1" },
-    { "id": "road.courtyard", "origin": [0, 0],  "layout": "perimeter-3x3", "fillRgb": "0x555A74" },
+    { "id": "road.road",      "origin": [12, 0], "layout": "perimeter-3x3", "fillRgb": "0x2F3D4A" },
+    { "id": "road.courtyard", "origin": [0, 0],  "layout": "perimeter-3x3", "fillRgb": "0x3B4753" },
     { "id": "road.striped",   "origin": [6, 0],  "layout": "striped-3x3" },
     { "id": "road.tile",      "origin": [11, 0], "layout": "single" },
     { "id": "road.sidewalk",  "origin": [11, 1], "layout": "single" },

@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.marine;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -31,8 +33,12 @@ public class MarineRoster implements Serializable {
     // so the inline initializer doesn't run for old save streams).
     private Set<String> completedStoryIds = new HashSet<>();
     private List<MarineSoldier> soldiers = new ArrayList<>();
+    private List<MarineSquad> squads = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
     private int nextSoldierNumber = 1;
+    private int nextSquadNumber = 1;
+    private String reserveSquadId;
+    private boolean initialComplementIssued;
     private int capacity = DEFAULT_CAPACITY;
 
     public void add(MarineCaptain captain) {
@@ -40,7 +46,12 @@ public class MarineRoster implements Serializable {
     }
 
     public boolean removeById(String id) {
-        return captains.removeIf(c -> c.id().equals(id));
+        MarineCaptain captain = byId(id);
+        if (captain == null) return false;
+        for (MarineSquad squad : squads) {
+            if (id.equals(squad.homeCaptainId())) squad.setHomeCaptainId(null);
+        }
+        return captains.remove(captain);
     }
 
     public MarineCaptain byId(String id) {
@@ -110,10 +121,246 @@ public class MarineRoster implements Serializable {
         return Collections.unmodifiableList(soldiers);
     }
 
+    public List<MarineSquad> squads() { return Collections.unmodifiableList(squads); }
+
+    public MarineSquad squadById(String id) {
+        if (id == null) return null;
+        for (MarineSquad squad : squads) if (id.equals(squad.id())) return squad;
+        return null;
+    }
+
+    public MarineSquad squadForSoldier(String soldierId) {
+        if (soldierId == null) return null;
+        for (MarineSquad squad : squads) {
+            if (squad.memberIds().contains(soldierId)) return squad;
+        }
+        return null;
+    }
+
+    public MarineCaptain captainForSquad(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        return squad != null ? byId(squad.homeCaptainId()) : null;
+    }
+
+    public List<MarineSquad> squadsCommandedBy(String captainId) {
+        if (captainId == null) return Collections.emptyList();
+        List<MarineSquad> result = new ArrayList<>();
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && captainId.equals(squad.homeCaptainId())) {
+                result.add(squad);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /** Assigns or atomically reassigns one line fireteam to an active captain. */
+    public boolean assignCaptainToSquad(String captainId, String squadId) {
+        MarineCaptain captain = byId(captainId);
+        MarineSquad squad = squadById(squadId);
+        if (captain == null || captain.status() != Status.ACTIVE
+                || squad == null || squad.reserve()) return false;
+        if (captainId.equals(squad.homeCaptainId())) return true;
+        if (squadsCommandedBy(captainId).size() >= captain.rank().fireteamCap()) {
+            return false;
+        }
+        squad.setHomeCaptainId(captainId);
+        return true;
+    }
+
+    public boolean clearSquadCaptain(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || squad.homeCaptainId() == null) return false;
+        squad.setHomeCaptainId(null);
+        return true;
+    }
+
+    /** Next roster-order captain who can receive this team; excludes its current captain. */
+    public MarineCaptain nextAssignableCaptain(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || captains.isEmpty()) return null;
+        String currentId = squad.homeCaptainId();
+        int start = -1;
+        for (int i = 0; i < captains.size(); i++) {
+            if (captains.get(i).id().equals(currentId)) {
+                start = i;
+                break;
+            }
+        }
+        for (int offset = 1; offset <= captains.size(); offset++) {
+            MarineCaptain candidate = captains.get((start + offset) % captains.size());
+            if (candidate.id().equals(currentId) || candidate.status() != Status.ACTIVE) continue;
+            if (squadsCommandedBy(candidate.id()).size() < candidate.rank().fireteamCap()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    public List<MarineSoldier> squadMembers(MarineSquad squad) {
+        if (squad == null) return Collections.emptyList();
+        List<MarineSoldier> result = new ArrayList<>();
+        for (String id : squad.memberIds()) {
+            MarineSoldier soldier = soldierById(id);
+            if (soldier != null) result.add(soldier);
+        }
+        return result;
+    }
+
+    public int readyCount(MarineSquad squad) {
+        int count = 0;
+        for (MarineSoldier soldier : squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
+        }
+        return count;
+    }
+
+    /** Filled billets include deployable and temporarily wounded personnel. */
+    public int manningCount(MarineSquad squad) {
+        int count = 0;
+        for (MarineSoldier soldier : squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE
+                    || soldier.status() == MarineSoldierStatus.WIA) count++;
+        }
+        return count;
+    }
+
+    public int vacancies(MarineSquad squad) {
+        if (squad == null || squad.reserve()) return 0;
+        return Math.max(0, MarineSquad.CAPACITY - manningCount(squad));
+    }
+
+    public MarineSquad reserveSquad() {
+        MarineSquad existing = squadById(reserveSquadId);
+        if (existing != null) return existing;
+        for (MarineSquad squad : squads) {
+            if (squad.reserve()) {
+                reserveSquadId = squad.id();
+                return squad;
+            }
+        }
+        MarineSquad reserve = new MarineSquad(
+                java.util.UUID.randomUUID().toString(), "Reserve Pool", true);
+        squads.add(reserve);
+        reserveSquadId = reserve.id();
+        return reserve;
+    }
+
+    public MarineSquad createFireteam() {
+        MarineSquad squad = new MarineSquad(String.format("Fireteam %02d", nextSquadNumber++));
+        int reserveIndex = squads.indexOf(squadById(reserveSquadId));
+        if (reserveIndex >= 0) squads.add(reserveIndex, squad);
+        else squads.add(squad);
+        return squad;
+    }
+
+    public boolean renameSquad(String squadId, String name) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || name == null || name.trim().isEmpty()) return false;
+        squad.setName(name);
+        return true;
+    }
+
+    /** Hires one replacement into an open line-fireteam billet. */
+    public MarineSoldier recruitToSquad(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || (!squad.reserve() && vacancies(squad) <= 0)) return null;
+        MarineSoldier recruit = createRecruit();
+        squad.add(recruit.id());
+        armory.ensureBasicIssue(activeSoldierCount());
+        return recruit;
+    }
+
+    /** Enlists into the first vacant line billet, creating a fireteam when needed. */
+    MarineSoldier enlistLineRecruit() {
+        MarineSquad target = null;
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && vacancies(squad) > 0) {
+                target = squad;
+                break;
+            }
+        }
+        if (target == null) target = createFireteam();
+        MarineSoldier recruit = createRecruit();
+        target.add(recruit.id());
+        armory.ensureBasicIssue(activeSoldierCount());
+        return recruit;
+    }
+
+    /** One-time free campaign starting complement; later enlistment uses cargo marines. */
+    public void bootstrapInitialComplement(int count) {
+        if (initialComplementIssued) return;
+        initialComplementIssued = true;
+        ensureActiveSoldiers(Math.max(0, count));
+    }
+
+    /** Demobilizes only a ready reserve marine; callers award the cargo commodity. */
+    public boolean releaseReserveSoldier(String soldierId) {
+        MarineSoldier soldier = soldierById(soldierId);
+        MarineSquad squad = squadForSoldier(soldierId);
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || squad == null || !squad.reserve()) return false;
+        if (!squad.remove(soldierId)) return false;
+        if (soldiers.remove(soldier)) return true;
+        squad.add(soldierId);
+        return false;
+    }
+
+    /** Moves a ready marine; casualty history and WIA personnel cannot be reassigned. */
+    public boolean transferSoldier(String soldierId, String targetSquadId) {
+        MarineSoldier soldier = soldierById(soldierId);
+        MarineSquad source = squadForSoldier(soldierId);
+        MarineSquad target = squadById(targetSquadId);
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || source == null || target == null || source == target) return false;
+        if (!target.reserve() && manningCount(target) >= MarineSquad.CAPACITY) return false;
+        if (!source.remove(soldierId)) return false;
+        if (target.add(soldierId)) return true;
+        source.add(soldierId);
+        return false;
+    }
+
+    /** UI helper: next eligible squad in roster order, with reserves as the final stop. */
+    public MarineSquad nextTransferTarget(String soldierId) {
+        MarineSquad source = squadForSoldier(soldierId);
+        if (source == null || squads.size() < 2) return null;
+        int start = squads.indexOf(source);
+        for (int offset = 1; offset < squads.size(); offset++) {
+            MarineSquad candidate = squads.get((start + offset) % squads.size());
+            if (candidate.reserve() || manningCount(candidate) < MarineSquad.CAPACITY) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    public MarineSoldier firstReadyReserve() {
+        for (MarineSoldier soldier : squadMembers(reserveSquad())) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) return soldier;
+        }
+        return null;
+    }
+
+    public boolean fillVacancyFromReserve(String targetSquadId) {
+        MarineSoldier reserve = firstReadyReserve();
+        return reserve != null && transferSoldier(reserve.id(), targetSquadId);
+    }
+
     public List<MarineSoldier> activeSoldiers() {
         List<MarineSoldier> result = new ArrayList<>();
         for (MarineSoldier soldier : soldiers) {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) result.add(soldier);
+        }
+        return result;
+    }
+
+    /** Ready personnel already assigned to line fireteams; reserves require transfer first. */
+    public List<MarineSoldier> lineReadySoldiers() {
+        List<MarineSoldier> result = new ArrayList<>();
+        for (MarineSquad squad : squads) {
+            if (squad.reserve()) continue;
+            for (MarineSoldier soldier : squadMembers(squad)) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE) result.add(soldier);
+            }
         }
         return result;
     }
@@ -127,11 +374,8 @@ public class MarineRoster implements Serializable {
     /** Recruit enough persistent soldiers to fill the next frozen deployment. */
     public void ensureActiveSoldiers(int count) {
         while (activeSoldierCount() < count) {
-            int number = nextSoldierNumber++;
-            MarineSoldier recruit = new MarineSoldier(
-                    String.format("Marine %03d", number), aptitudeFor(number));
-            soldiers.add(recruit);
-            autoIssueRecruit(recruit, number);
+            MarineSoldier recruit = createRecruit();
+            assignToFireteam(recruit);
         }
         armory.ensureBasicIssue(activeSoldierCount());
     }
@@ -142,7 +386,7 @@ public class MarineRoster implements Serializable {
                 || !armory.isPrimaryUnlocked(weapon, grade)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.primary() == weapon && other.primaryGrade() == grade) allocated++;
         }
         if (allocated >= armory.ownedPrimary(weapon, grade)) return false;
@@ -160,7 +404,7 @@ public class MarineRoster implements Serializable {
         if (!armory.isSecondaryUnlocked(secondary)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.secondary() == secondary) allocated++;
         }
         if (allocated >= armory.ownedSecondary(secondary)) return false;
@@ -174,7 +418,7 @@ public class MarineRoster implements Serializable {
                 || !armory.isArmorUnlocked(armor)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.armor() == armor) allocated++;
         }
         if (allocated >= armory.ownedArmor(armor)) return false;
@@ -211,6 +455,45 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
+    /** Applies a whole-fireteam issue pattern only when every ready member can receive it. */
+    public SquadPresetResult applySquadPreset(String squadId, SquadEquipmentPreset preset) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || preset == null) {
+            return SquadPresetResult.NO_READY_PERSONNEL;
+        }
+        List<MarineSoldier> ready = new ArrayList<>();
+        for (MarineSoldier soldier : squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) ready.add(soldier);
+        }
+        if (ready.isEmpty()) return SquadPresetResult.NO_READY_PERSONNEL;
+        if (!armory.isPrimaryUnlocked(preset.primary, preset.grade)
+                || !armory.isArmorUnlocked(preset.armor)) {
+            return SquadPresetResult.LOCKED_RECIPE;
+        }
+
+        Set<String> targetIds = new HashSet<>();
+        for (MarineSoldier soldier : ready) targetIds.add(soldier.id());
+        int weaponsUsedElsewhere = 0;
+        int armorUsedElsewhere = 0;
+        for (MarineSoldier soldier : soldiers) {
+            if (targetIds.contains(soldier.id()) || !holdsAllocatedGear(soldier)) continue;
+            if (soldier.primary() == preset.primary && soldier.primaryGrade() == preset.grade) {
+                weaponsUsedElsewhere++;
+            }
+            if (soldier.armor() == preset.armor) armorUsedElsewhere++;
+        }
+        if (armory.ownedPrimary(preset.primary, preset.grade) - weaponsUsedElsewhere
+                < ready.size()) return SquadPresetResult.INSUFFICIENT_WEAPONS;
+        if (armory.ownedArmor(preset.armor) - armorUsedElsewhere
+                < ready.size()) return SquadPresetResult.INSUFFICIENT_ARMOR;
+
+        for (MarineSoldier soldier : ready) {
+            soldier.setPrimary(preset.primary, preset.grade);
+            soldier.setArmor(preset.armor);
+        }
+        return SquadPresetResult.APPLIED;
+    }
+
     public void applySoldierOutcome(Set<String> survivors, Set<String> fallen,
                                     int survivorXp) {
         if (survivors != null) {
@@ -229,6 +512,37 @@ public class MarineRoster implements Serializable {
         }
     }
 
+    /** Applies the richer personnel report used by the squad debrief. */
+    public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
+                                    int survivorXp, float currentDay, float wiaDays) {
+        if (outcomes == null) return;
+        for (Map.Entry<String, MarineSoldierStatus> entry : outcomes.entrySet()) {
+            MarineSoldier soldier = soldierById(entry.getKey());
+            if (soldier == null || entry.getValue() == null) continue;
+            MarineSoldierStatus status = entry.getValue();
+            if (status == MarineSoldierStatus.ACTIVE) {
+                soldier.addExperience(survivorXp);
+                soldier.setUnavailableUntilDay(0f);
+            } else if (status == MarineSoldierStatus.WIA) {
+                soldier.setUnavailableUntilDay(currentDay + Math.max(1f, wiaDays));
+            } else {
+                soldier.setUnavailableUntilDay(0f);
+            }
+            soldier.setStatus(status);
+        }
+    }
+
+    /** Returns WIA personnel to duty once their campaign recovery timer expires. */
+    public void recoverWounded(float currentDay) {
+        for (MarineSoldier soldier : soldiers) {
+            if (soldier.status() == MarineSoldierStatus.WIA
+                    && currentDay >= soldier.unavailableUntilDay()) {
+                soldier.setStatus(MarineSoldierStatus.ACTIVE);
+                soldier.setUnavailableUntilDay(0f);
+            }
+        }
+    }
+
     private int activeSoldierCount() {
         int count = 0;
         for (MarineSoldier soldier : soldiers) {
@@ -237,12 +551,42 @@ public class MarineRoster implements Serializable {
         return count;
     }
 
+    private static boolean holdsAllocatedGear(MarineSoldier soldier) {
+        return soldier.status() == MarineSoldierStatus.ACTIVE
+                || soldier.status() == MarineSoldierStatus.WIA;
+    }
+
     private static SoldierAptitude aptitudeFor(int number) {
         int roll = Math.floorMod(number * 37, 100);
         if (roll < 5) return SoldierAptitude.EXCEPTIONAL;
         if (roll < 25) return SoldierAptitude.GIFTED;
         if (roll < 90) return SoldierAptitude.STEADY;
         return SoldierAptitude.LIMITED;
+    }
+
+    private void assignToFireteam(MarineSoldier recruit) {
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && manningCount(squad) < MarineSquad.CAPACITY) {
+                squad.add(recruit.id());
+                return;
+            }
+        }
+        MarineSquad reserve = squadById(reserveSquadId);
+        if (reserve != null && reserve.reserve()) {
+            reserve.add(recruit.id());
+            return;
+        }
+        MarineSquad squad = createFireteam();
+        squad.add(recruit.id());
+    }
+
+    private MarineSoldier createRecruit() {
+        int number = nextSoldierNumber++;
+        MarineSoldier recruit = new MarineSoldier(
+                String.format("Marine %03d", number), aptitudeFor(number));
+        soldiers.add(recruit);
+        autoIssueRecruit(recruit, number);
+        return recruit;
     }
 
     /** Gives a new campaign a readable mixed roster before the armory UI lands. */
@@ -272,8 +616,30 @@ public class MarineRoster implements Serializable {
     private Object readResolve() {
         if (completedStoryIds == null) completedStoryIds = new HashSet<>();
         if (soldiers == null) soldiers = new ArrayList<>();
+        if (squads == null) squads = new ArrayList<>();
         if (armory == null) armory = new MarineArmory();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
+        if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
+        if (!soldiers.isEmpty()) initialComplementIssued = true;
+        for (MarineSoldier soldier : soldiers) {
+            if (squadForSoldier(soldier.id()) == null) assignToFireteam(soldier);
+        }
+        repairSquadCommands();
         return this;
+    }
+
+    private void repairSquadCommands() {
+        Map<String, Integer> assignedByCaptain = new HashMap<>();
+        for (MarineSquad squad : squads) {
+            String captainId = squad.homeCaptainId();
+            if (captainId == null) continue;
+            MarineCaptain captain = byId(captainId);
+            int assigned = assignedByCaptain.getOrDefault(captainId, 0);
+            if (squad.reserve() || captain == null || assigned >= captain.rank().fireteamCap()) {
+                squad.setHomeCaptainId(null);
+                continue;
+            }
+            assignedByCaptain.put(captainId, assigned + 1);
+        }
     }
 }

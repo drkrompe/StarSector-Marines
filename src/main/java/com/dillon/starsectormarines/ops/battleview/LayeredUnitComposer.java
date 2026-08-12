@@ -21,7 +21,7 @@ final class LayeredUnitComposer {
     private LayeredUnitComposer() {}
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary,
+                     MarineWeapon primary, boolean drawWeaponLayers,
                      EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
@@ -32,9 +32,11 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_ROCKET_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
-        LayeredWeaponFamily weaponFamily = LayeredWeaponFamily.fromPrimary(primary);
-        LayeredSpriteCache weapon = rocket ? assets.rocketLauncher
-                : assets.weapon(weaponFamily, equipmentGrade);
+        LayeredWeaponFamily weaponFamily = drawWeaponLayers
+                ? LayeredWeaponFamily.fromPrimary(primary) : null;
+        LayeredSpriteCache weapon = drawWeaponLayers
+                ? (rocket ? assets.rocketLauncher : assets.weapon(weaponFamily, equipmentGrade))
+                : null;
 
         // Feet always exist underneath the actor. At rest both offsets keep them
         // occluded; locomotion alternately exposes only a toe-shaped tip.
@@ -45,23 +47,29 @@ final class LayeredUnitComposer {
         emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
                 0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
 
-        WeaponTransform wt = weaponTransform(weapon, weaponFamily, rocket, pose, weaponPhase,
-                actorX, actorY, pxPerSw, facingDeg);
+        WeaponTransform wt = drawWeaponLayers
+                ? weaponTransform(weapon, weaponFamily, rocket, pose, weaponPhase,
+                    actorX, actorY, pxPerSw, facingDeg)
+                : null;
 
-        if (!overShoulder) emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+        if (drawWeaponLayers && !overShoulder) {
+            emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+        }
 
         // Body and helmet have independent rotations but share the actor pivot.
         float[] bodyCenter = worldPoint(actorX, actorY, 0f, -0.12f, pxPerSw, facingDeg);
         emitSprite(out, assets.body, bodyCenter[0], bodyCenter[1], pxPerSw, facingDeg, alpha);
 
         // Rocket firing deliberately changes occlusion: body -> weapon -> head.
-        if (overShoulder) emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+        if (drawWeaponLayers && overShoulder) {
+            emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+        }
 
         float[] headCenter = worldPoint(actorX, actorY, 0f, 0.08f, pxPerSw, facingDeg);
         emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
                 facingDeg + headLookDeg, alpha);
 
-        if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
+        if (drawWeaponLayers && (flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
             emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
         }
     }

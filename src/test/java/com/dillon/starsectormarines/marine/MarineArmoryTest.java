@@ -55,4 +55,56 @@ class MarineArmoryTest {
         roster.applySoldierOutcome(Collections.emptySet(), Set.of(fallen.id()), 0);
         assertEquals(MarineSoldierStatus.KIA, fallen.status());
     }
+
+    @Test
+    void squadPresetAppliesToEveryReadyMemberAtomically() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+
+        assertEquals(SquadPresetResult.APPLIED,
+                roster.applySquadPreset(squad.id(), SquadEquipmentPreset.LINE));
+
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            assertEquals(MarineWeapon.PULSE_RIFLE, soldier.primary());
+            assertEquals(EquipmentGrade.SERVICE, soldier.primaryGrade());
+            assertEquals(MarineArmorPattern.CHARCOAL, soldier.armor());
+        }
+    }
+
+    @Test
+    void insufficientPresetInventoryLeavesEntireSquadUntouched() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+        MarineSoldier first = roster.squadMembers(squad).get(0);
+        MarineWeapon priorWeapon = first.primary();
+        EquipmentGrade priorGrade = first.primaryGrade();
+        MarineArmorPattern priorArmor = first.armor();
+
+        assertEquals(SquadPresetResult.INSUFFICIENT_WEAPONS,
+                roster.applySquadPreset(squad.id(), SquadEquipmentPreset.RECON));
+
+        assertEquals(priorWeapon, first.primary());
+        assertEquals(priorGrade, first.primaryGrade());
+        assertEquals(priorArmor, first.armor());
+    }
+
+    @Test
+    void woundedPersonnelContinueHoldingTheirAllocatedGear() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(4);
+        assertTrue(roster.allocatePrimary(roster.soldiers().get(3).id(),
+                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE));
+        for (int i = 0; i < 3; i++) {
+            assertTrue(roster.allocatePrimary(roster.soldiers().get(i).id(),
+                    MarineWeapon.DMR, EquipmentGrade.SERVICE));
+        }
+        MarineSoldier wounded = roster.soldiers().get(0);
+        roster.applySoldierOutcome(Collections.singletonMap(
+                wounded.id(), MarineSoldierStatus.WIA), 0, 1f, 7f);
+
+        assertFalse(roster.allocatePrimary(roster.soldiers().get(3).id(),
+                MarineWeapon.DMR, EquipmentGrade.SERVICE));
+    }
 }

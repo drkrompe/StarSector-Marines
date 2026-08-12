@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -88,6 +89,9 @@ public final class HitResponseSystem {
         // a fall-back they had no behavior to execute. It must precede the
         // fallbackTimer read below, which is fail-loud without AI_STATE.
         if (!world.hasAiState(target)) return;
+        // Swarm pressure is intentionally implacable: incoming fire must not
+        // replace its contact pursuit with the generic fear/fallback state.
+        if (roster.role().role(target) == UnitRole.SWARM_PRESSURE) return;
         if (world.fallbackTimer(target) > 0f) return;
         if (roster.squad().hasSquad(target)) return;
         if (ThreadLocalRandom.current().nextFloat() >= FALLBACK_CHANCE) return;

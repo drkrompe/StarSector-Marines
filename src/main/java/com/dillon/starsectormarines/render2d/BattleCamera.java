@@ -23,7 +23,8 @@ package com.dillon.starsectormarines.render2d;
 public final class BattleCamera {
 
     public static final float MIN_ZOOM = 1.0f;
-    public static final float MAX_ZOOM = 5.0f;
+    /** Tactical close-up while retaining enough cells to read local movement. */
+    public static final float MAX_ZOOM = 8.0f;
     /** Multiplier applied per wheel notch. One notch ≈ 20% zoom step. */
     private static final float ZOOM_STEP = 1.20f;
 

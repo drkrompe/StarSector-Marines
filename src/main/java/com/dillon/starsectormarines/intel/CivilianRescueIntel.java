@@ -65,6 +65,7 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
     public SectorEntityToken getMapLocation(SectorMapAPI map) {
         CampaignState state = state();
         int row = activeEventRow(state);
+        if (row < 0) row = latestResolvedRow(state);
         MarketAPI market = row >= 0 ? market(state, row) : null;
         return market != null ? market.getPrimaryEntity() : null;
     }
@@ -97,7 +98,12 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
         if (row >= 0 && feedbackEventId != state.eventId[row]) feedback = null;
         if (feedback != null) ui.addPara(feedback, 8f);
         if (row < 0) {
-            ui.addPara("No active civilian distress calls.", 10f);
+            int resolvedRow = latestResolvedRow(state);
+            if (resolvedRow >= 0) {
+                addResolvedDispatch(ui, state, resolvedRow);
+            } else {
+                ui.addPara("No active civilian distress calls.", 10f);
+            }
             panel.addUIElement(ui).inTL(0f, 0f);
             return;
         }
@@ -176,6 +182,46 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
             }
         }
         return -1;
+    }
+
+    static int latestResolvedRow(CampaignState state) {
+        if (state == null) return -1;
+        for (int row = state.eventCount - 1; row >= 0; row--) {
+            if (CampaignEventType.fromByte(state.eventType[row])
+                    == CampaignEventType.CIVILIAN_RESCUE
+                    && CampaignEventState.fromByte(state.eventState[row])
+                    == CampaignEventState.RESOLVED) {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    static String resolvedSummary(CampaignState state, int row) {
+        if (state == null || row < 0 || row >= state.eventCount
+                || CampaignEventType.fromByte(state.eventType[row])
+                != CampaignEventType.CIVILIAN_RESCUE
+                || CampaignEventState.fromByte(state.eventState[row])
+                != CampaignEventState.RESOLVED) {
+            return null;
+        }
+        int rescued = state.eventCiviliansRescued[row];
+        int atRisk = state.eventCiviliansAtRisk[row];
+        return "Evacuation concluded: " + rescued + " of " + atRisk
+                + " civilians rescued.";
+    }
+
+    private static void addResolvedDispatch(TooltipMakerAPI ui,
+                                            CampaignState state, int row) {
+        MarketAPI market = market(state, row);
+        String marketName = market != null && market.getName() != null
+                ? market.getName() : marketId(state, row);
+        ui.addPara("Latest resolved call — %s", 10f,
+                Color.LIGHT_GRAY, Color.WHITE, marketName);
+        ui.addPara(resolvedSummary(state, row), 6f);
+        ui.addPara("Resolution received on day %s.", 6f,
+                Color.LIGHT_GRAY, Color.WHITE,
+                String.valueOf(state.eventResolvedTick[row]));
     }
 
     static int daysRemaining(CampaignState state, int row, int day) {
