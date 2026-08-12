@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
+import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -260,8 +261,8 @@ public final class MissionGenerator {
         String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
                 contractId, client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
         String id = assaultPhase != null
-                ? "contract:" + contractId + ":phase:" + assaultPhase.index
-                    + ":attempt:" + state.contractPhaseAttempts[row]
+                ? PlanetaryAssaultMissionKey.encode(contractId, assaultPhase.index,
+                        state.contractPhaseAttempts[row])
                 : "contract:" + contractId;
 
         return new Mission(id, name, missionType, MissionSource.GENERATED,

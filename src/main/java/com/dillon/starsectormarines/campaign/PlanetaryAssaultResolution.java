@@ -12,7 +12,8 @@ public final class PlanetaryAssaultResolution {
 
     private PlanetaryAssaultResolution() {}
 
-    public static Result apply(CampaignState state, int row, boolean victory) {
+    public static Result apply(CampaignState state, int row, boolean victory,
+                               int resolvedPhase, int resolvedAttempt) {
         if (state == null || row < 0 || row >= state.contractCount
                 || ContractType.fromByte(state.contractType[row])
                 != ContractType.PLANETARY_ASSAULT) {
@@ -26,7 +27,11 @@ public final class PlanetaryAssaultResolution {
         }
         int done = state.contractPhasesDone[row] & 0xFF;
         int total = state.contractPhasesTotal[row] & 0xFF;
-        if (total < 3 || total > 5 || done >= total) return null;
+        if (total < 3 || total > 5 || done >= total
+                || resolvedPhase != done
+                || resolvedAttempt != state.contractPhaseAttempts[row]) {
+            return null;
+        }
 
         if (victory) {
             done++;

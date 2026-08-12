@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
+import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.StakeLedger;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -435,7 +436,8 @@ public final class MissionResolver {
                                                      MissionOutcome outcome,
                                                      long patronId, int day) {
         PlanetaryAssaultResolution.Result result = PlanetaryAssaultResolution.apply(
-                state, row, outcome.victory);
+                state, row, outcome.victory,
+                phaseIndex(outcome), phaseAttempt(outcome));
         if (result == null) {
             LOG.info("MarineOps: invalid Planetary Assault state for contract "
                     + outcome.contractId + " — no writeback");
@@ -464,6 +466,16 @@ public final class MissionResolver {
             default:
                 break;
         }
+    }
+
+    private static int phaseIndex(MissionOutcome outcome) {
+        PlanetaryAssaultMissionKey key = PlanetaryAssaultMissionKey.parse(outcome.missionId);
+        return key != null && key.contractId == outcome.contractId ? key.phaseIndex : -1;
+    }
+
+    private static int phaseAttempt(MissionOutcome outcome) {
+        PlanetaryAssaultMissionKey key = PlanetaryAssaultMissionKey.parse(outcome.missionId);
+        return key != null && key.contractId == outcome.contractId ? key.attempt : -1;
     }
 
     /**
