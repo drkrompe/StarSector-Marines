@@ -34,8 +34,15 @@ public final class SwarmDefenseRoster {
     public static SwarmDefenseRoster install(
             BattleSimulation sim, CivilianEvacuationPlacement placement,
             RiskLevel risk, long seed) {
+        return install(sim, placement, countFor(risk), seed);
+    }
+
+    /** Installs an explicitly sized roster, used by force-scaled debug rescue. */
+    public static SwarmDefenseRoster install(
+            BattleSimulation sim, CivilianEvacuationPlacement placement,
+            int requestedCount, long seed) {
         if (sim == null || placement == null) return null;
-        int count = countFor(risk);
+        int count = Math.max(0, requestedCount);
         NavigationGrid grid = sim.getGrid();
         boolean[] reachable = reachableFromShelter(grid, placement);
         boolean[] occupied = occupiedCells(sim, grid);
@@ -77,6 +84,20 @@ public final class SwarmDefenseRoster {
             case LOW:
             default: return LOW_COUNT;
         }
+    }
+
+    /**
+     * Debug pressure scales against the full marine-side landing manifest:
+     * parity at LOW, 3:2 at MEDIUM, and 2:1 at HIGH. Production counts remain
+     * authored by {@link #countFor(RiskLevel)}.
+     */
+    public static int debugCountFor(RiskLevel risk, int marineSeats) {
+        int seats = Math.max(0, marineSeats);
+        int scaled;
+        if (risk == RiskLevel.HIGH) scaled = seats * 2;
+        else if (risk == RiskLevel.MEDIUM) scaled = (seats * 3 + 1) / 2;
+        else scaled = seats;
+        return Math.max(countFor(risk), scaled);
     }
 
     public int size() {

@@ -41,4 +41,17 @@ class CivilianRescueBattleFactoryTest {
         assertEquals(SwarmDefenseRoster.LOW_COUNT, defenders);
         assertTrue(sim.getReinforcementService().isEmpty());
     }
+
+    @Test
+    void dedicatedFactoryAcceptsForceScaledDebugSwarm() {
+        BattleSimulation sim = BattleSetup.createCivilianRescue(
+                5_006L, Collections.emptyList(), false, RiskLevel.LOW, 180);
+
+        int defenders = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long entity = sim.liveUnitAt(i);
+            if (sim.identity().faction(entity) == Faction.DEFENDER) defenders++;
+        }
+        assertEquals(180, defenders);
+    }
 }

@@ -69,6 +69,29 @@ class SwarmDefenseRosterTest {
     }
 
     @Test
+    void debugCountsScaleAgainstLandingStrengthWithoutReducingProductionFloor() {
+        assertEquals(300, SwarmDefenseRoster.debugCountFor(
+                RiskLevel.LOW, 300));
+        assertEquals(450, SwarmDefenseRoster.debugCountFor(
+                RiskLevel.MEDIUM, 300));
+        assertEquals(600, SwarmDefenseRoster.debugCountFor(
+                RiskLevel.HIGH, 300));
+        assertEquals(SwarmDefenseRoster.HIGH_COUNT,
+                SwarmDefenseRoster.debugCountFor(RiskLevel.HIGH, 1));
+    }
+
+    @Test
+    void explicitDebugRosterSizeIsInstalledCompletely() {
+        Fixture fixture = openFixture();
+
+        SwarmDefenseRoster roster = SwarmDefenseRoster.install(
+                fixture.sim, fixture.payload.placement, 180, 713L);
+
+        assertNotNull(roster);
+        assertEquals(180, roster.size());
+    }
+
+    @Test
     void incompletePlacementLeavesSimulationUntouched() {
         NavigationGrid grid = new NavigationGrid(20, 20);
         for (int y = 5; y <= 15; y++) {

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -60,8 +61,13 @@ public final class MissionLaunch {
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
         if (isCivilianRescueBattle(m)) {
+            int marineSeats = CampaignMarineDeployment.requiredSeats(
+                    det.shuttleManifest, 0);
+            int swarmCount = m.source.isDebug()
+                    ? SwarmDefenseRoster.debugCountFor(m.risk, marineSeats)
+                    : SwarmDefenseRoster.countFor(m.risk);
             sim = BattleSetup.createCivilianRescue(seed,
-                    det.shuttleManifest, enemyHasHeavyArmor, m.risk);
+                    det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount);
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
