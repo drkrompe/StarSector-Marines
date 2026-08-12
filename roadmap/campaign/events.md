@@ -1,10 +1,11 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE TRIGGER + CHOICE VERTICAL CODE COMPLETE
-(2026-08-12); G4 mission-lineage contract locked.
+**Status:** CIVILIAN-RESCUE MISSION-LINEAGE FOUNDATION CODE COMPLETE
+(2026-08-12); battle-side evacuation cohort next.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
-`34cf0654`, `5572c538`, `24ba5bdc`
+`34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
+`fdfb0aef`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -194,6 +195,13 @@ The future battle payload must report a representative evacuation cohort:
 members evacuate. Death, survival, and evacuation remain distinct; civilians
 merely alive on the map at battle end are not automatically rescued. Until that
 metric exists, committed calls remain mission-pending in Distress Net.
+
+The G4 foundation is shipped. Existing mission constructors default safely to
+no event lineage; committed rows build stable zero-economy mission snapshots;
+and `MissionResolver` rejects event results before ordinary side effects unless
+the strict bridge resolves an explicit report. The factory is not yet emitted
+by `MarineOpsContext`, so the current placeholder battle remains unreachable
+from Distress Net and cannot strand or misclassify an accepted rescue.
 
 ## Design rules
 

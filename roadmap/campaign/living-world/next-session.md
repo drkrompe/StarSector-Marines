@@ -85,6 +85,12 @@ iteration-order dependence, Distress Net presents exact costs/stakes/deadline
 and routes commit/refuse through the shared policy, and debug intel can force a
 production-shaped local call (`0da1b89e`, `34cf0654`, `5572c538`, `24ba5bdc`).
 Committed calls remain honestly unresolved until battle content exists.
+The committed-event mission-lineage foundation is shipped: missions/outcomes
+carry explicit event id, market, and stakes without overloading contracts; a
+pure factory creates a deterministic zero-economy Extraction-shaped snapshot;
+and strict writeback accepts only an explicit in-range evacuation report for the
+matching committed row (`2a5461a6`, `0d49d30e`, `fdfb0aef`). The factory remains
+unemitted while generic Extraction is still an elimination placeholder.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -97,19 +103,22 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Committed rescue mission handoff
+## Next up — Battle-side evacuation cohort
 
-Implement the locked narrow bridge from an accepted campaign event to the later
-swarm-defense battle before building that battle's content:
+Give the rescue mission a real measurable objective before exposing its factory:
 
-1. Add explicit event id/market/stakes fields to Mission and MissionOutcome
-   with safe defaults for every existing constructor.
-2. Build a committed-row factory and stable mission key without exposing the
-   mission through the UI yet.
-3. Add the strict resolution validator; `-1` means no evacuation report, while
-   explicit `0..atRisk` may resolve exactly once.
-4. Then scope the battle-side representative evacuation cohort and only expose
-   missions once it can report `initial/evacuated/complete` honestly.
+1. Lock a representative rescue cohort distinct from ambient civilians. Persist
+   no battle entities; the sim owns `initial`, `evacuated`, and terminal state.
+2. Spawn the cohort at a civilian shelter and an evacuation zone/lift point.
+   Civilians count as rescued only after boarding/escaping, never merely for
+   surviving when combat ends.
+3. Define terminal rules for full/partial/zero evacuation and an impossible-
+   rescue state. Scale `floor(atRisk * evacuated / initial)` with exact full
+   rescue when all representatives escape.
+4. Feed that explicit count into `MissionOutcome`, then add the dedicated local
+   Distress Net client and emit the committed-row factory mission exactly once.
+5. Keep swarm faction/roster/AI/art as the following payload slice; the cohort
+   objective should be testable first against controlled battle fixtures.
 
 ## Open forks still unresolved (design)
 
@@ -198,3 +207,6 @@ swarm-defense battle before building that battle's content:
 - Slice G3a — automatic civilian-rescue producer (`34cf0654`).
 - Slice G3b — registered Distress Net choice surface (`5572c538`).
 - Slice G3c — debug local reachability (`24ba5bdc`).
+- Slice G4 contract — mission lineage and explicit rescue reports (`2a5461a6`).
+- Slice G4a — event mission/outcome fields, key, and factory (`0d49d30e`).
+- Slice G4b — strict replay-safe rescue outcome bridge (`fdfb0aef`).

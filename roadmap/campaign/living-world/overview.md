@@ -235,7 +235,12 @@ still withheld. Trigger/presentation is now shipped as its own vertical: a
 deterministic sparse producer selects eligible markets, Distress Net
 offers the exact cost-shaped choice without reward previews, and debug intel can
 force the same production-shaped call (`34cf0654`, `5572c538`, `24ba5bdc`). The
-committed-event mission bridge and swarm-defense battle remain next.
+committed-event mission bridge is now shipped as an intentionally gated
+foundation: `CAMPAIGN_EVENT` mission/outcome lineage carries event id, market,
+and stakes; a pure factory creates no-economy rescue snapshots; and strict
+writeback requires an explicit evacuation count before resolution
+(`0d49d30e`, `fdfb0aef`). The battle-side cohort metric and mission emission
+remain next, followed by the swarm payload.
 
 ## Two payoffs that fall out for free
 
