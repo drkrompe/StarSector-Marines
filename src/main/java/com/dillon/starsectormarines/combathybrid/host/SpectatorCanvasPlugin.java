@@ -45,8 +45,8 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
     /** Per scroll-notch zoom factor. */
     private static final float ZOOM_STEP = 0.12f;
     /** World units across the screen at max zoom-in / max zoom-out. */
-    private static final float MIN_VISIBLE_WIDTH = 600f;
-    private static final float MAX_VISIBLE_WIDTH = 40000f;
+    static final float MIN_VISIBLE_WIDTH = 120f;
+    static final float MAX_VISIBLE_WIDTH = 40000f;
     /** Fallback initial view if no map-derived width is supplied (no-arg constructor). */
     private static final float DEFAULT_VISIBLE_WIDTH = 2200f;
 
@@ -105,9 +105,8 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
 
             if (e.isMouseScrollEvent()) {
                 // Scroll up (+) = zoom in = fewer world units across the screen.
-                float dir = Math.signum(e.getEventValue());
-                visibleWidth = clamp(visibleWidth * (1f - dir * ZOOM_STEP),
-                        MIN_VISIBLE_WIDTH, MAX_VISIBLE_WIDTH);
+                visibleWidth = zoomedVisibleWidth(
+                        visibleWidth, e.getEventValue());
                 e.consume();
             } else if (e.isRMBDownEvent() || (e.isMouseEvent() && isRmbHeld())) {
                 // RMB-drag pan: grab the world and pull it with the cursor.
@@ -188,5 +187,11 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
 
     private static float clamp(float v, float lo, float hi) {
         return v < lo ? lo : (v > hi ? hi : v);
+    }
+
+    static float zoomedVisibleWidth(float currentWidth, float wheelDelta) {
+        float dir = Math.signum(wheelDelta);
+        return clamp(currentWidth * (1f - dir * ZOOM_STEP),
+                MIN_VISIBLE_WIDTH, MAX_VISIBLE_WIDTH);
     }
 }
