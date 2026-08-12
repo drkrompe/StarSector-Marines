@@ -4,7 +4,9 @@ package com.dillon.starsectormarines.campaign;
 public enum MoralChoiceSource {
     NONE,
     CIVIL_WAR_CLAIMANT,
-    CIVIL_WAR_INCUMBENT;
+    CIVIL_WAR_INCUMBENT,
+    CIVILIAN_RESCUE_REFUSED,
+    CIVILIAN_RESCUE_SAVED;
 
     private static final MoralChoiceSource[] VALUES = values();
 

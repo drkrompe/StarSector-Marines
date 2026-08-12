@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
+import com.dillon.starsectormarines.campaign.systems.CampaignEventLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
@@ -57,6 +58,7 @@ class CampaignStateSystemOrderTest {
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
         int moralCompass = indexOf(systems, MoralCompassSystem.class);
+        int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
@@ -81,6 +83,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(throneResolution < civilWarConsequences);
         assertTrue(civilWarParticipation < civilWarConsequences);
         assertTrue(civilWarConsequences < moralCompass);
+        assertTrue(eventLifecycle < moralCompass);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);
     }

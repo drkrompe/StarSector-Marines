@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
+import com.dillon.starsectormarines.campaign.systems.CampaignEventLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
@@ -89,6 +90,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ContractLifecycleSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
+                new CampaignEventLifecycleSystem(),
                 new MoralCompassSystem(),
                 new StationingDefaultExtractionSystem(),
                 new ExtractionResolutionSystem(),
