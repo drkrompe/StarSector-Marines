@@ -29,6 +29,10 @@ class CampaignStateChainColumnsTest {
                 CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[row]));
         assertEquals(0, state.chainPlayerContribution[row]);
         assertEquals(-1, state.chainPlayerLastContributionTick[row]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.chainPlayerConsequenceState[row]));
+        assertEquals(-1, state.chainPlayerConsequenceAppliedTick[row]);
     }
 
     @Test
@@ -69,6 +73,10 @@ class CampaignStateChainColumnsTest {
                 CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[20]));
         assertEquals(0, state.chainPlayerContribution[20]);
         assertEquals(-1, state.chainPlayerLastContributionTick[20]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.chainPlayerConsequenceState[20]));
+        assertEquals(-1, state.chainPlayerConsequenceAppliedTick[20]);
     }
 
     @Test
@@ -85,6 +93,8 @@ class CampaignStateChainColumnsTest {
         state.chainPlayerAllegiance = null;
         state.chainPlayerContribution = null;
         state.chainPlayerLastContributionTick = null;
+        state.chainPlayerConsequenceState = null;
+        state.chainPlayerConsequenceAppliedTick = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -99,6 +109,8 @@ class CampaignStateChainColumnsTest {
         assertNotNull(state.chainPlayerAllegiance);
         assertNotNull(state.chainPlayerContribution);
         assertNotNull(state.chainPlayerLastContributionTick);
+        assertNotNull(state.chainPlayerConsequenceState);
+        assertNotNull(state.chainPlayerConsequenceAppliedTick);
         assertEquals(4L, state.chainActorHouseId[0]);
         assertEquals(-1, state.chainMarketId[0]);
         assertEquals(-1, state.chainIndustryId[0]);
@@ -109,5 +121,9 @@ class CampaignStateChainColumnsTest {
                 CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[0]));
         assertEquals(0, state.chainPlayerContribution[0]);
         assertEquals(-1, state.chainPlayerLastContributionTick[0]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.chainPlayerConsequenceState[0]));
+        assertEquals(-1, state.chainPlayerConsequenceAppliedTick[0]);
     }
 }

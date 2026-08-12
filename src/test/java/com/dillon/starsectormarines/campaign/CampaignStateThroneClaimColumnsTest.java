@@ -30,6 +30,10 @@ class CampaignStateThroneClaimColumnsTest {
                         state.throneClaimPlayerAllegiance[row]));
         assertEquals(0, state.throneClaimPlayerContribution[row]);
         assertEquals(-1, state.throneClaimPlayerLastContributionTick[row]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.throneClaimPlayerConsequenceState[row]));
+        assertEquals(-1, state.throneClaimPlayerConsequenceAppliedTick[row]);
         assertEquals(ThroneClaimState.PREPARED,
                 ThroneClaimState.fromByte(state.throneClaimState[row]));
         assertEquals(90, state.throneClaimPreparedTick[row]);
@@ -57,6 +61,10 @@ class CampaignStateThroneClaimColumnsTest {
                         state.throneClaimPlayerAllegiance[20]));
         assertEquals(0, state.throneClaimPlayerContribution[20]);
         assertEquals(-1, state.throneClaimPlayerLastContributionTick[20]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.throneClaimPlayerConsequenceState[20]));
+        assertEquals(-1, state.throneClaimPlayerConsequenceAppliedTick[20]);
         assertEquals(-1, state.throneClaimPreparedTick[20]);
         assertEquals(-1, state.throneClaimAppliedTick[20]);
         assertEquals(ThroneClaimConsequenceState.PENDING,
@@ -123,6 +131,8 @@ class CampaignStateThroneClaimColumnsTest {
         state.throneClaimPlayerAllegiance = null;
         state.throneClaimPlayerContribution = null;
         state.throneClaimPlayerLastContributionTick = null;
+        state.throneClaimPlayerConsequenceState = null;
+        state.throneClaimPlayerConsequenceAppliedTick = null;
         state.throneClaimState = null;
         state.throneClaimPreparedTick = null;
         state.throneClaimAppliedTick = null;
@@ -143,11 +153,17 @@ class CampaignStateThroneClaimColumnsTest {
         assertNotNull(state.throneClaimPlayerAllegiance);
         assertNotNull(state.throneClaimPlayerContribution);
         assertNotNull(state.throneClaimPlayerLastContributionTick);
+        assertNotNull(state.throneClaimPlayerConsequenceState);
+        assertNotNull(state.throneClaimPlayerConsequenceAppliedTick);
         assertEquals(CivilWarAllegiance.NONE,
                 CivilWarAllegiance.fromByte(
                         state.throneClaimPlayerAllegiance[0]));
         assertEquals(0, state.throneClaimPlayerContribution[0]);
         assertEquals(-1, state.throneClaimPlayerLastContributionTick[0]);
+        assertEquals(CivilWarPlayerConsequenceState.PENDING,
+                CivilWarPlayerConsequenceState.fromByte(
+                        state.throneClaimPlayerConsequenceState[0]));
+        assertEquals(-1, state.throneClaimPlayerConsequenceAppliedTick[0]);
         assertEquals(-1, state.throneClaimPreparedTick[0]);
         assertEquals(-1, state.throneClaimAppliedTick[0]);
         assertNotNull(state.throneClaimConsequenceState);

@@ -109,6 +109,10 @@ public final class CampaignState implements Serializable {
     public short[] chainPlayerContribution = new short[INITIAL_CAPACITY];
     /** Last day a player civil-war contribution applied; -1 until untouched. */
     public int[]   chainPlayerLastContributionTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Terminal incumbent-victory player-reputation lifecycle. */
+    public byte[]  chainPlayerConsequenceState = new byte[INITIAL_CAPACITY];
+    /** Day terminal incumbent-victory reputation applied; -1 otherwise. */
+    public int[]   chainPlayerConsequenceAppliedTick = filledInts(INITIAL_CAPACITY, -1);
     public int     chainCount        = 0;
 
     // ---------- playerReputation[] ----------
@@ -155,6 +159,11 @@ public final class CampaignState implements Serializable {
     public short[] throneClaimPlayerContribution = new short[INITIAL_CAPACITY];
     /** Last player contribution day captured from the source civil war. */
     public int[] throneClaimPlayerLastContributionTick =
+            filledInts(INITIAL_CAPACITY, -1);
+    /** Terminal claimant-victory player-reputation lifecycle. */
+    public byte[] throneClaimPlayerConsequenceState = new byte[INITIAL_CAPACITY];
+    /** Day terminal claimant-victory reputation applied; -1 otherwise. */
+    public int[] throneClaimPlayerConsequenceAppliedTick =
             filledInts(INITIAL_CAPACITY, -1);
     public byte[] throneClaimState = new byte[INITIAL_CAPACITY];
     public int[] throneClaimPreparedTick = filledInts(INITIAL_CAPACITY, -1);
@@ -379,6 +388,9 @@ public final class CampaignState implements Serializable {
         chainPlayerAllegiance[i] = CivilWarAllegiance.NONE.toByte();
         chainPlayerContribution[i] = 0;
         chainPlayerLastContributionTick[i] = -1;
+        chainPlayerConsequenceState[i] =
+                CivilWarPlayerConsequenceState.PENDING.toByte();
+        chainPlayerConsequenceAppliedTick[i] = -1;
         chainIndexById.put(id, i);
         return id;
     }
@@ -522,6 +534,9 @@ public final class CampaignState implements Serializable {
             throneClaimPlayerContribution[i] = 0;
             throneClaimPlayerLastContributionTick[i] = -1;
         }
+        throneClaimPlayerConsequenceState[i] =
+                CivilWarPlayerConsequenceState.PENDING.toByte();
+        throneClaimPlayerConsequenceAppliedTick[i] = -1;
         throneClaimState[i] = ThroneClaimState.PREPARED.toByte();
         throneClaimPreparedTick[i] = preparedTick;
         throneClaimAppliedTick[i] = -1;
@@ -716,6 +731,11 @@ public final class CampaignState implements Serializable {
         chainPlayerLastContributionTick = Arrays.copyOf(
                 chainPlayerLastContributionTick, n);
         Arrays.fill(chainPlayerLastContributionTick, oldLength, n, -1);
+        chainPlayerConsequenceState = Arrays.copyOf(
+                chainPlayerConsequenceState, n);
+        chainPlayerConsequenceAppliedTick = Arrays.copyOf(
+                chainPlayerConsequenceAppliedTick, n);
+        Arrays.fill(chainPlayerConsequenceAppliedTick, oldLength, n, -1);
     }
 
     private void ensureChronicleCapacity(int needed) {
@@ -767,6 +787,11 @@ public final class CampaignState implements Serializable {
         throneClaimPlayerLastContributionTick = Arrays.copyOf(
                 throneClaimPlayerLastContributionTick, n);
         Arrays.fill(throneClaimPlayerLastContributionTick, oldLength, n, -1);
+        throneClaimPlayerConsequenceState = Arrays.copyOf(
+                throneClaimPlayerConsequenceState, n);
+        throneClaimPlayerConsequenceAppliedTick = Arrays.copyOf(
+                throneClaimPlayerConsequenceAppliedTick, n);
+        Arrays.fill(throneClaimPlayerConsequenceAppliedTick, oldLength, n, -1);
         throneClaimState = Arrays.copyOf(throneClaimState, n);
         throneClaimPreparedTick = Arrays.copyOf(throneClaimPreparedTick, n);
         Arrays.fill(throneClaimPreparedTick, oldLength, n, -1);
@@ -868,6 +893,14 @@ public final class CampaignState implements Serializable {
             int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
             chainPlayerLastContributionTick = filledInts(n, -1);
         }
+        if (chainPlayerConsequenceState == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPlayerConsequenceState = new byte[n];
+        }
+        if (chainPlayerConsequenceAppliedTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPlayerConsequenceAppliedTick = filledInts(n, -1);
+        }
         int chronicleCapacity = chronicleId != null ? chronicleId.length : INITIAL_CAPACITY;
         if (chronicleId == null) chronicleId = new long[chronicleCapacity];
         if (chronicleEventType == null) chronicleEventType = new byte[chronicleCapacity];
@@ -929,6 +962,13 @@ public final class CampaignState implements Serializable {
         }
         if (throneClaimPlayerLastContributionTick == null) {
             throneClaimPlayerLastContributionTick =
+                    filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimPlayerConsequenceState == null) {
+            throneClaimPlayerConsequenceState = new byte[throneClaimCapacity];
+        }
+        if (throneClaimPlayerConsequenceAppliedTick == null) {
+            throneClaimPlayerConsequenceAppliedTick =
                     filledInts(throneClaimCapacity, -1);
         }
         if (throneClaimState == null) throneClaimState = new byte[throneClaimCapacity];
