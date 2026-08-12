@@ -12,6 +12,7 @@ the entitlement, stack count, and selection-value budget. **S2 is also
 code-complete:** Results routes to a dedicated budget-aware picker with live
 icons, persistent selection, and over-budget gating. Cargo remains untouched,
 intentionally. See [`stories/s2-picker-screen.md`](stories/s2-picker-screen.md).
+The shared implementation commit is `254de744`.
 
 Before marking S1 shipped, smoke-test one patron contract in game:
 

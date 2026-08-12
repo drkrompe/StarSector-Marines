@@ -3,6 +3,8 @@
 **Status:** CODE COMPLETE (2026-08-12) — focused tests + full build green;
 in-game visual smoke test remains.
 
+**Implemented in:** `254de744` (shared S1 + S2 foundation commit).
+
 ## Goal
 
 Give the frozen S1 recovery manifest a dedicated, interactive review surface:

@@ -3,6 +3,8 @@
 **Status:** CODE COMPLETE (2026-08-12) — compile + full Gradle suite green;
 in-game debrief smoke test remains before calling the slice shipped.
 
+**Implemented in:** `254de744` (shared S1 + S2 foundation commit).
+
 ## Goal
 
 Turn a victorious mission's already-final `salvageEntitlement` into a frozen,
