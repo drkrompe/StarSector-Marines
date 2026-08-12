@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
+import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
+import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -21,6 +23,8 @@ class CampaignStateSystemOrderTest {
         List<CampaignSystem> systems = CampaignStateScript.defaultSystems();
 
         int defaults = indexOf(systems, StationingDefaultSystem.class);
+        int ambitions = indexOf(systems, HouseAmbitionSystem.class);
+        int promotions = indexOf(systems, AutonomousPromotionSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
@@ -30,6 +34,7 @@ class CampaignStateSystemOrderTest {
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
+        assertTrue(ambitions < promotions);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);
