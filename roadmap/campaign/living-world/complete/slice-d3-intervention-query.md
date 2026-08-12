@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `3a16315e`
+
 ## Goal
 
 Give future counter-contract generation a stable way to find a threatened

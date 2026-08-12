@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `b006dc3`
+
 ## Goal
 
 Let relevant autonomous plots surface as uncertain Chronicle rumors before

@@ -157,7 +157,7 @@ Each slice is independently observable.
 | ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
-| **D — Chains + Chronicle** (D1 chains + D2 learned outcomes ✅) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
+| **D — Chains + Chronicle** (D1–D3 sim, outcomes, rumors ✅; counter-offer pending) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
@@ -170,14 +170,16 @@ autonomous chain identity, monthly deterministic creation, daily advancement,
 and exactly-once stake/promotion resolution: `3137f238`, `2f7b4a86`,
 `1d6ca71c`), and D2 (append-only learned Chronicle events, two-band terminal
 outcome classification, and debug-intel dispatches: `dc3da47d`, `068943ed`,
-`55eefe4f`) — see
+`55eefe4f`), and D3 (persisted uncertain rumors, deterministic risk-gated
+active discovery, and the threatened-house intervention query: `435b704e`,
+`b006dc3`, `3a16315e`) — see
 [`complete/`](complete/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic. D3 now owns active-chain rumors and the intervention hook.
+mutation logic. D4 now owns the actual threatened-house counter-offer lifecycle.
 
 ## Two payoffs that fall out for free
 
@@ -220,10 +222,10 @@ Designed in a follow-up once Genesis + drift exist to react against.
    do our shares react? v1: ignore; fixed pie per industry at seed.
 4. ~~**Chronicle storage**~~ — resolved in D2: a small append-only
    `chronicle[]` stores learned event snapshots; silent events never enter it.
-5. **Discovery surface** — how does an in-flight autonomous chain reach
-   the player: intel ping gated by `discoveryRisk`, or only via a `SCOUT`
-   captain / intel infrastructure (ties to
-   [`../infrastructure/`](../infrastructure/overview.md))?
+5. ~~**Discovery surface**~~ — D3 ships deterministic weekly
+   `discoveryRisk` rumors for player-touched or Tier-3+ chains. Captain SCOUT
+   and infrastructure can later widen eligibility rather than replacing this
+   baseline (ties to [`../infrastructure/`](../infrastructure/overview.md)).
 6. **House birth** — once consolidation thins markets, do new houses ever
    spawn, or is monotonic consolidation the intended long-game texture?
    (Leaning: let it consolidate.)

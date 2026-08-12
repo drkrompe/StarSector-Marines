@@ -15,6 +15,9 @@ plus 30 promotion progress (`3137f238`, `2f7b4a86`, `1d6ca71c`).
 D2 is shipped too: learned events persist as append-only snapshots, terminal
 chains pass through the intimate/epic/silent editor exactly once, and debug
 intel renders the resulting dispatches (`dc3da47d`, `068943ed`, `55eefe4f`).
+D3 is shipped: relevant active plots roll deterministic weekly discovery,
+persist uncertain rumor snapshots, and expose a stable threatened-house query
+for intervention generation (`435b704e`, `b006dc3`, `3a16315e`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -27,19 +30,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice D3 (Active-chain rumors and intervention seam)
+## Next up — Slice D4 (Threatened-house counter-offers)
 
-Let some plots become actionable before they resolve, without turning the
-Chronicle into an omniscient quest log:
+Turn a discovered active threat into an actionable offer without conflating
+the hostile plot with the player's intervention:
 
-1. Add persisted active-discovery cadence/state separate from terminal outcome
-   processing, so rumor rolls are deterministic and exactly-once per window.
-2. Extend Chronicle vocabulary with an active-chain rumor snapshot and a clear
-   confidence level; never rewrite a rumor row when the chain later resolves.
-3. Gate rumors with `discoveryRisk`, player contact, and/or high tier so ordinary
-   low-level background plots remain silent.
-4. Leave a stable discovered-chain query for a threatened-house counter-contract
-   generator; ship the actual offer only after its lifecycle rules are locked.
+1. Audit `contractChainId` semantics first. A counter-offer must reference its
+   hostile source chain without feeding completion progress into that chain.
+2. Generate at most one expiring intervention offer per discovered ACTIVE
+   threat: threatened house as patron, actor as target, bound market/industry.
+3. Expire or withdraw the offer when its source chain becomes terminal; persist
+   deduplication so reloads and repeated ticks cannot respawn it.
+4. Define completion impact through a shared chain operation (suppression,
+   failure, or progress reversal) before wiring mission resolution.
 
 ## Open forks still unresolved (design)
 
@@ -80,3 +83,6 @@ Chronicle into an omniscient quest log:
 - Slice D2a — append-only learned Chronicle storage (`dc3da47d`).
 - Slice D2b — intimate/epic/silent terminal editor (`068943ed`).
 - Slice D2c — Chronicle debug-intel dispatches (`55eefe4f`).
+- Slice D3a — active-rumor persistence (`435b704e`).
+- Slice D3b — deterministic active discovery (`b006dc3`).
+- Slice D3c — discovered-threat intervention query (`3a16315e`).

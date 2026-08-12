@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `435b704e`
+
 ## Goal
 
 Persist active-chain discovery independently from terminal outcome processing,
