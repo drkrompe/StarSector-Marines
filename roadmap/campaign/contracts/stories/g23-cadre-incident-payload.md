@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `77ce5ead`
+
 ## Goal
 
 Turn the generic pending bit into a stable, player-visible incident whose

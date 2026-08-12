@@ -272,8 +272,10 @@ method together act as a copyable template — see
   gates now constrain generation and first acceptance without hiding Recovery
   or accepted obligations (`9de789d4`). Active Cadre assignments also carry a
   persisted, deterministic 24–36 day incident clock whose due state arms once
-  and survives save/load (`d07fd3c3`); the player-facing incident payload is
-  still deliberately separate. EXTRACTION remains system-generated.
+  and survives save/load (`d07fd3c3`). Its player-facing payload persists one
+  of three incident archetypes, binds the stationed detachment, and appears in
+  assignment management (`77ce5ead`); response/deployment remains deliberately
+  separate. EXTRACTION remains system-generated.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 
