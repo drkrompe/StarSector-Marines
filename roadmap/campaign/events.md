@@ -1,7 +1,9 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE FOUNDATION CONTRACT LOCKED (2026-08-12);
-persistence next.
+**Status:** CIVILIAN-RESCUE FOUNDATION CODE COMPLETE (2026-08-12);
+trigger and player-facing choice surface next.
+
+**Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -94,6 +96,13 @@ is terminal; it never exposes compass numbers or previews a moral reward.
 source namespaces and use `eventId` as their source id. A committed zero-rescue
 outcome records neither. Expired events record neither. This keeps failure,
 inability, refusal, and successful protection as different persisted facts.
+
+The foundation is shipped. Event identity, costs, stakes, choice windows, and
+outcomes persist in the dedicated table; preparation is trigger-idempotent;
+commitment consumes cargo atomically; passive expiry remains neutral; and the
+daily moral consumer records only explicit refusal or a positive rescued count.
+There is still no automatic event producer, intel/interaction surface, or swarm
+battle payload. Those are deliberately separate follow-up slices.
 
 ## Design rules
 

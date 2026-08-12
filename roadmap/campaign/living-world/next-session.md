@@ -74,6 +74,12 @@ The silent moral-compass foundation is shipped: four bounded hidden axes feed an
 append-only source-unique choice ledger, and attributed civil-war outcomes move
 institutionalism without making unsupported claims about mercy, integrity, or
 stewardship (`facfa007`, `6765eac6`, `2a1924e7`). No numeric surface exists.
+The civilian-rescue foundation is shipped as the second honest source family:
+dedicated event rows persist trigger-unique identity, cost, stakes, choice, and
+outcome; explicit refusal and positive rescue feed mercy/stewardship exactly
+once; passive expiry and zero rescue remain morally neutral (`cf8b717b`,
+`5fd8969d`, `1b2afcb4`). It does not yet spawn or present events, and it does
+not depend on swarm art, AI, or battle content.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -86,20 +92,21 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Second moral source: civilian rescue
+## Next up — Civilian-rescue trigger and choice intel
 
-The hidden foundation is real but has only one honest input axis. Flesh out the
-[`../events.md`](../events.md) civilian-rescue black-swan proof of concept as the
-second source family before any reactive/capstone surface reads the compass:
+Make the shipped [`../events.md`](../events.md) lifecycle reachable without
+coupling it to the eventual swarm-defense battle:
 
-1. Lock the event identity/lifecycle, trigger boundary, always-available refusal,
-   and cost-shaped commitment before choosing battle content.
-2. Persist explicit accept/refuse and rescue outcome facts; do not infer moral
-   meaning from mission failure alone.
-3. Map only established facts into mercy/stewardship through new ledger source
-   types, with no previewed reward or numeric compass feedback.
-4. Keep the first storage/choice slice independent from held swarm art and the
-   larger swarm-defense AI/battle vertical so each hunk remains shippable.
+1. Lock a deterministic, sparse world-condition producer and stable trigger-key
+   derivation. Keep cadence policy separate from `CivilianRescueEvent.prepare`.
+2. Surface pending local events through a diegetic intel/interaction boundary
+   that shows the endangered market, exact cargo cost, stakes, and deadline—but
+   no material or moral reward preview.
+3. Route accept/refuse through the shared event API, keep insufficient-cargo
+   attempts non-mutating, and make committed events visibly await mission
+   content rather than pretending the rescue has resolved.
+4. Add explicit debug reachability for automated/manual smoke testing, while
+   continuing to defer held swarm art, faction/AI work, and battle resolution.
 
 ## Open forks still unresolved (design)
 
@@ -181,3 +188,6 @@ second source family before any reactive/capstone surface reads the compass:
 - Slice G1a — silent compass/ledger contract (`facfa007`).
 - Slice G1b — persisted axes and source ledger (`6765eac6`).
 - Slice G1c — civil-war moral source consumer (`2a1924e7`).
+- Slice G2a — civilian-rescue lifecycle contract (`cf8b717b`).
+- Slice G2b — campaign-event persistence (`5fd8969d`).
+- Slice G2c — rescue choices, expiry, and moral recording (`1b2afcb4`).

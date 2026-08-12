@@ -119,9 +119,12 @@ universe over time, not retrofitted into intel slots.
    Garrison patrons through the internal-flip path (`90580a8a`). The living-
    world spine now runs through autonomous promotion/civil-war simulation,
    Chronicle discovery, paired player participation, faction-flip writeback,
-   attributed terminal reputation, and the first hidden moral-compass ledger
-   source. Next is the civilian-rescue event contract as a second honest moral
-   input family. See
+   attributed terminal reputation, and two hidden moral-compass source families.
+   Civilian rescue now has trigger-unique persistence, an atomic cost-shaped
+   choice lifecycle, neutral passive expiry, explicit outcome facts, and exact-
+   once mercy/stewardship recording (`cf8b717b`, `5fd8969d`, `1b2afcb4`). Next:
+   add its deterministic trigger and diegetic choice surface while keeping swarm
+   battle content separate. See
    `campaign/contracts/overview.md` and `campaign/living-world/next-session.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,

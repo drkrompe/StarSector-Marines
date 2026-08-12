@@ -1,8 +1,10 @@
 # Moral compass — the silent track
 
-**Status:** FOUNDATION CODE COMPLETE (2026-08-12); second source family next.
+**Status:** TWO SOURCE FAMILIES CODE COMPLETE (2026-08-12); first diegetic
+reaction remains withheld.
 
-**Implemented:** `facfa007`, `6765eac6`, `2a1924e7`
+**Implemented:** `facfa007`, `6765eac6`, `2a1924e7`, `cf8b717b`,
+`5fd8969d`, `1b2afcb4`
 
 > The hidden foundation is a locked spec; later reaction surfaces remain design
 > discussion. The discipline here (never surface the numbers) is load-bearing —
@@ -91,6 +93,20 @@ clamped actual-delta snapshots, and the daily consumer runs only after validated
 civil-war player consequences. There is intentionally no debug-intel readout or
 other numeric surface.
 
+## Second source — civilian rescue
+
+The civilian-rescue black-swan foundation establishes mercy and stewardship
+from explicit persisted facts rather than from mission-state inference. An
+explicit refusal records -5 mercy / -10 stewardship. A positive rescued count
+records +5/+5 below half, +10/+10 from half through partial rescue, or +15/+20
+for everyone saved. Integrity and institutionalism remain unchanged.
+
+Passive expiry and committed zero-rescue outcomes are neutral. Refusal and
+rescue use separate source namespaces keyed by stable event id, so daily retries
+cannot double-count either fact. The player sees neither the axis names nor the
+ledger consequence; future event prose may describe people and costs, never the
+hidden score.
+
 ## How it surfaces — diegetic only
 
 Never as a UI number. No "Honor: 47/100" display, ever. The track exists;
@@ -143,8 +159,8 @@ the player learns to read).
   `moralChoices[]` ledger.
 - `MoralChoiceRecorder`: the only aggregate mutation seam; source-unique and
   exactly once.
-- New `MoralCompassSystem` (a `CampaignSystem` impl) — initially consumes only
-  attributed terminal civil-war outcomes after their player consequences.
+- `MoralCompassSystem` consumes attributed terminal civil-war outcomes and
+  explicit terminal civilian-rescue facts after their prerequisite lifecycles.
 - A `CaptainTraitDriftSystem` — reads compass + captain time-in-service,
   occasionally promotes a captain to a new trait (CYNICAL, IDEALIST, …).
 - NPC dialog gates — content-side, read the compass via a getter.

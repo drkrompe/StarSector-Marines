@@ -225,8 +225,13 @@ earned kingmaker capstone remains. Its hidden foundation is now shipped: four
 bounded axes sit behind an append-
 only source-unique choice ledger, and attributed claimant/incumbent outcomes
 move institutionalism exactly once without exposing numbers or inventing meaning
-on the other axes (`facfa007`, `6765eac6`, `2a1924e7`). A second real source
-family is required before reactive surfaces or capstone testimony.
+on the other axes (`facfa007`, `6765eac6`, `2a1924e7`). The second real source
+family is now shipped too: trigger-unique civilian-rescue events persist exact
+costs, stakes, choices, and outcomes; explicit refusal and positive rescue move
+mercy/stewardship exactly once while expiry and zero rescue remain neutral
+(`cf8b717b`, `5fd8969d`, `1b2afcb4`). Trigger/presentation and the later swarm
+battle remain separate follow-up slices; reactive surfaces and capstone
+testimony are still withheld.
 
 ## Two payoffs that fall out for free
 
