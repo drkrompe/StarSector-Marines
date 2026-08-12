@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 
 import java.util.Collection;
 import java.util.List;
@@ -166,4 +167,10 @@ public interface BattleView {
 
     /** Mission objectives carried by both sides. */
     List<Objective> getObjectives();
+
+    /** Mission-local rescue cohort lifecycle; empty in ordinary battles. */
+    CivilianEvacuationTracker getCivilianEvacuationTracker();
+
+    /** Whether a marine has physically reached the civilian shelter entrance. */
+    boolean isCivilianEvacuationTriggered();
 }

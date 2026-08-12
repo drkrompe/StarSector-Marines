@@ -50,6 +50,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             SecureObjectiveZone.INSTANCE,
             SecureCompoundGoal.INSTANCE,
             ClearAssignedZoneGoal.INSTANCE,
+            EscortAssignedCiviliansGoal.INSTANCE,
             GarrisonAmbush.INSTANCE,
             GuardPost.INSTANCE,
             GarrisonCompound.INSTANCE,
