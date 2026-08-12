@@ -127,6 +127,10 @@ public final class CampaignState implements Serializable {
     public long[] chronicleTargetHouseId = filledLongs(INITIAL_CAPACITY, -1L);
     public int[] chronicleMarketId = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleIndustryId = filledInts(INITIAL_CAPACITY, -1);
+    /** Source faction snapshot for faction-flip dispatches; -1 otherwise. */
+    public int[] chronicleSourceFactionId = filledInts(INITIAL_CAPACITY, -1);
+    /** Result faction snapshot for faction-flip dispatches; -1 otherwise. */
+    public int[] chronicleResultFactionId = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleHappenedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
     public int chronicleCount = 0;
@@ -382,6 +386,8 @@ public final class CampaignState implements Serializable {
         chronicleTargetHouseId[i] = targetHouseId;
         chronicleMarketId[i] = marketId;
         chronicleIndustryId[i] = industryId;
+        chronicleSourceFactionId[i] = -1;
+        chronicleResultFactionId[i] = -1;
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -405,6 +411,8 @@ public final class CampaignState implements Serializable {
         chronicleTargetHouseId[i] = targetHouseId;
         chronicleMarketId[i] = marketId;
         chronicleIndustryId[i] = industryId;
+        chronicleSourceFactionId[i] = -1;
+        chronicleResultFactionId[i] = -1;
         chronicleHappenedTick[i] = initiatedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -427,6 +435,38 @@ public final class CampaignState implements Serializable {
         chronicleTargetHouseId[i] = -1L;
         chronicleMarketId[i] = marketId;
         chronicleIndustryId[i] = -1;
+        chronicleSourceFactionId[i] = -1;
+        chronicleResultFactionId[i] = -1;
+        chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
+    /** Appends a confirmed faction-flip dispatch from an applied throne claim. */
+    public long addChronicleThroneClaimApplied(long sourceChainId,
+                                                ChronicleBand band,
+                                                long actorHouseId,
+                                                long targetHouseId,
+                                                int sourceFactionId,
+                                                int resultFactionId,
+                                                int marketId,
+                                                int happenedTick,
+                                                int learnedTick) {
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.THRONE_CLAIM_APPLIED.toByte();
+        chronicleSourceChainId[i] = sourceChainId;
+        chronicleChainOutcome[i] = ChainState.RESOLVED.toByte();
+        chronicleBand[i] = band.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
+        chronicleActorHouseId[i] = actorHouseId;
+        chronicleTargetHouseId[i] = targetHouseId;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = -1;
+        chronicleSourceFactionId[i] = sourceFactionId;
+        chronicleResultFactionId[i] = resultFactionId;
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -658,6 +698,10 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleMarketId, oldLength, n, -1);
         chronicleIndustryId = Arrays.copyOf(chronicleIndustryId, n);
         Arrays.fill(chronicleIndustryId, oldLength, n, -1);
+        chronicleSourceFactionId = Arrays.copyOf(chronicleSourceFactionId, n);
+        Arrays.fill(chronicleSourceFactionId, oldLength, n, -1);
+        chronicleResultFactionId = Arrays.copyOf(chronicleResultFactionId, n);
+        Arrays.fill(chronicleResultFactionId, oldLength, n, -1);
         chronicleHappenedTick = Arrays.copyOf(chronicleHappenedTick, n);
         Arrays.fill(chronicleHappenedTick, oldLength, n, -1);
         chronicleLearnedTick = Arrays.copyOf(chronicleLearnedTick, n);
@@ -785,6 +829,12 @@ public final class CampaignState implements Serializable {
         }
         if (chronicleMarketId == null) chronicleMarketId = filledInts(chronicleCapacity, -1);
         if (chronicleIndustryId == null) chronicleIndustryId = filledInts(chronicleCapacity, -1);
+        if (chronicleSourceFactionId == null) {
+            chronicleSourceFactionId = filledInts(chronicleCapacity, -1);
+        }
+        if (chronicleResultFactionId == null) {
+            chronicleResultFactionId = filledInts(chronicleCapacity, -1);
+        }
         if (chronicleHappenedTick == null) {
             chronicleHappenedTick = filledInts(chronicleCapacity, -1);
         }

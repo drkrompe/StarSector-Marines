@@ -49,33 +49,45 @@ public final class DiscoveryPropagationSystem implements CampaignSystem {
                 continue;
             }
             if (state.chainDiscoveryProcessedTick[chainRow] >= 0) continue;
-            if (hasPreparedHandoff(state, chainRow)) continue;
+            int claimRow = throneClaimRow(state, chainRow);
+            if (claimRow >= 0 && ThroneClaimState.fromByte(
+                    state.throneClaimState[claimRow]) == ThroneClaimState.PREPARED) {
+                continue;
+            }
 
             state.chainDiscoveryProcessedTick[chainRow] = day;
             ChronicleBand band = newsBand(state, chainRow);
             if (band == null) continue;
 
-            state.addChronicleChainOutcome(state.chainId[chainRow], outcome, band,
-                    state.chainActorHouseId[chainRow], state.chainTarget[chainRow],
-                    state.chainMarketId[chainRow], state.chainIndustryId[chainRow],
-                    state.chainResolvedTick[chainRow], day);
+            if (claimRow >= 0 && ThroneClaimState.fromByte(
+                    state.throneClaimState[claimRow]) == ThroneClaimState.APPLIED) {
+                int happenedTick = state.throneClaimAppliedTick[claimRow] >= 0
+                        ? state.throneClaimAppliedTick[claimRow]
+                        : state.chainResolvedTick[chainRow];
+                state.addChronicleThroneClaimApplied(state.chainId[chainRow], band,
+                        state.chainActorHouseId[chainRow], state.chainTarget[chainRow],
+                        state.throneClaimSourceFactionId[claimRow],
+                        state.throneClaimResultFactionId[claimRow],
+                        state.throneClaimMarketId[claimRow], happenedTick, day);
+            } else {
+                state.addChronicleChainOutcome(state.chainId[chainRow], outcome, band,
+                        state.chainActorHouseId[chainRow], state.chainTarget[chainRow],
+                        state.chainMarketId[chainRow], state.chainIndustryId[chainRow],
+                        state.chainResolvedTick[chainRow], day);
+            }
         }
     }
 
-    private static boolean hasPreparedHandoff(CampaignState state, int chainRow) {
+    private static int throneClaimRow(CampaignState state, int chainRow) {
         if (ChainArchetype.fromByte(state.chainArchetype[chainRow])
                 != ChainArchetype.CIVIL_WAR) {
-            return false;
+            return -1;
         }
         long chainId = state.chainId[chainRow];
         for (int claimRow = 0; claimRow < state.throneClaimCount; claimRow++) {
-            if (state.throneClaimSourceChainId[claimRow] == chainId
-                    && ThroneClaimState.fromByte(state.throneClaimState[claimRow])
-                        == ThroneClaimState.PREPARED) {
-                return true;
-            }
+            if (state.throneClaimSourceChainId[claimRow] == chainId) return claimRow;
         }
-        return false;
+        return -1;
     }
 
     private static void processActiveRumor(CampaignState state, int chainRow, int day) {

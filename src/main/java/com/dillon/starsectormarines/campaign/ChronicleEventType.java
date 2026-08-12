@@ -4,7 +4,8 @@ package com.dillon.starsectormarines.campaign;
 public enum ChronicleEventType {
     CHAIN_OUTCOME,
     ACTIVE_CHAIN_RUMOR,
-    HOUSE_DORMANT;
+    HOUSE_DORMANT,
+    THRONE_CLAIM_APPLIED;
 
     private static final ChronicleEventType[] VALUES = values();
 

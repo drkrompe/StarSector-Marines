@@ -30,6 +30,8 @@ class CampaignStateChronicleColumnsTest {
         assertEquals(3L, state.chronicleTargetHouseId[0]);
         assertEquals(4, state.chronicleMarketId[0]);
         assertEquals(5, state.chronicleIndustryId[0]);
+        assertEquals(-1, state.chronicleSourceFactionId[0]);
+        assertEquals(-1, state.chronicleResultFactionId[0]);
         assertEquals(20, state.chronicleHappenedTick[0]);
         assertEquals(22, state.chronicleLearnedTick[0]);
     }
@@ -74,6 +76,26 @@ class CampaignStateChronicleColumnsTest {
     }
 
     @Test
+    void appliedThroneClaimRetainsFactionIdentitySnapshot() {
+        CampaignState state = new CampaignState();
+
+        long id = state.addChronicleThroneClaimApplied(8L, ChronicleBand.EPIC,
+                2L, 3L, 4, 5, 6, 20, 22);
+
+        assertEquals(1L, id);
+        assertEquals(ChronicleEventType.THRONE_CLAIM_APPLIED,
+                ChronicleEventType.fromByte(state.chronicleEventType[0]));
+        assertEquals(ChainState.RESOLVED,
+                ChainState.fromByte(state.chronicleChainOutcome[0]));
+        assertEquals(4, state.chronicleSourceFactionId[0]);
+        assertEquals(5, state.chronicleResultFactionId[0]);
+        assertEquals(6, state.chronicleMarketId[0]);
+        assertEquals(-1, state.chronicleIndustryId[0]);
+        assertEquals(20, state.chronicleHappenedTick[0]);
+        assertEquals(22, state.chronicleLearnedTick[0]);
+    }
+
+    @Test
     void growthInitializesUnusedChronicleAndChainSentinels() {
         CampaignState state = new CampaignState();
         for (int i = 0; i < 20; i++) {
@@ -89,6 +111,8 @@ class CampaignStateChronicleColumnsTest {
         assertEquals(-1L, state.chronicleTargetHouseId[20]);
         assertEquals(-1, state.chronicleMarketId[20]);
         assertEquals(-1, state.chronicleIndustryId[20]);
+        assertEquals(-1, state.chronicleSourceFactionId[20]);
+        assertEquals(-1, state.chronicleResultFactionId[20]);
         assertEquals(-1, state.chronicleHappenedTick[20]);
         assertEquals(-1, state.chronicleLearnedTick[20]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[20]);
@@ -109,6 +133,8 @@ class CampaignStateChronicleColumnsTest {
         state.chronicleTargetHouseId = null;
         state.chronicleMarketId = null;
         state.chronicleIndustryId = null;
+        state.chronicleSourceFactionId = null;
+        state.chronicleResultFactionId = null;
         state.chronicleHappenedTick = null;
         state.chronicleLearnedTick = null;
         state.chainDiscoveryProcessedTick = null;
@@ -129,12 +155,16 @@ class CampaignStateChronicleColumnsTest {
         assertNotNull(state.chronicleTargetHouseId);
         assertNotNull(state.chronicleMarketId);
         assertNotNull(state.chronicleIndustryId);
+        assertNotNull(state.chronicleSourceFactionId);
+        assertNotNull(state.chronicleResultFactionId);
         assertNotNull(state.chronicleHappenedTick);
         assertNotNull(state.chronicleLearnedTick);
         assertNotNull(state.chainDiscoveryProcessedTick);
         assertNotNull(state.chainLastDiscoveryCheckTick);
         assertNotNull(state.chainDiscoveredTick);
         assertEquals(-1L, state.chronicleSourceChainId[0]);
+        assertEquals(-1, state.chronicleSourceFactionId[0]);
+        assertEquals(-1, state.chronicleResultFactionId[0]);
         assertEquals(-1, state.chronicleLearnedTick[0]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[0]);
         assertEquals(-1, state.chainLastDiscoveryCheckTick[0]);

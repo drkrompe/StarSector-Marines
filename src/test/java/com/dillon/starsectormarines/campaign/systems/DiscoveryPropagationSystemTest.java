@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ChronicleBand;
+import com.dillon.starsectormarines.campaign.ChronicleEventType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -85,10 +86,17 @@ class DiscoveryPropagationSystemTest {
         assertEquals(-1, fixture.state.chainDiscoveryProcessedTick[chainRow]);
 
         fixture.state.throneClaimState[0] = ThroneClaimState.APPLIED.toByte();
+        fixture.state.throneClaimAppliedTick[0] = 24;
         system.tick(fixture.state, 26);
         assertEquals(1, fixture.state.chronicleCount);
         assertEquals(ChronicleBand.EPIC,
                 ChronicleBand.fromByte(fixture.state.chronicleBand[0]));
+        assertEquals(ChronicleEventType.THRONE_CLAIM_APPLIED,
+                ChronicleEventType.fromByte(fixture.state.chronicleEventType[0]));
+        assertEquals(fixture.state.throneClaimSourceFactionId[0],
+                fixture.state.chronicleSourceFactionId[0]);
+        assertEquals(resultFaction, fixture.state.chronicleResultFactionId[0]);
+        assertEquals(24, fixture.state.chronicleHappenedTick[0]);
         assertEquals(26, fixture.state.chainDiscoveryProcessedTick[chainRow]);
     }
 
