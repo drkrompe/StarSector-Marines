@@ -524,6 +524,81 @@ public final class BattleSetup {
     }
 
     /**
+     * Dedicated civilian-rescue battle. Unlike generic EXTRACTION, this installs
+     * the registered shelter-to-lift payload and uses its evacuation objective
+     * as the marine win condition. Map retries are deterministic and discard an
+     * unsuitable attempt before any simulation becomes player-visible.
+     */
+    public static BattleSimulation createCivilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk) {
+        for (int attempt = 0; attempt < 8; attempt++) {
+            long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
+            MapScale scale = MapScale.forRisk(risk);
+            MapResult map = MAP_GEN.generate(
+                    scale.width, scale.height, battleSeed);
+            Random rng = new Random(battleSeed);
+            List<MapVehicle> vehiclePlacements =
+                    stampVehicles(map.grid, map.topology, rng);
+            List<DefensePost> defensePosts = new ArrayList<>();
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph,
+                            map.grid.getWidth(), map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, defensePosts, rng);
+            BattleSimulation sim =
+                    buildMap(map, vehiclePlacements, defensePosts).sim();
+
+            com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload payload =
+                    com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload
+                            .install(sim, map, battleSeed);
+            if (payload == null) continue;
+
+            // The payload installs the marine evacuation objective. Defenders
+            // win by eliminating the responding marine force.
+            sim.addObjective(new EliminateFactionObjective(
+                    Faction.DEFENDER, Faction.MARINE));
+
+            List<ShuttleAssignment> assignments = resolveManifest(manifest);
+            List<int[]> lzCells = pickLandingZones(map.grid,
+                    map.marineSpawnX, map.marineSpawnY, assignments.size());
+            stampLzPads(sim, lzCells);
+            for (int i = 0; i < lzCells.size(); i++) {
+                ShuttleAssignment assignment =
+                        assignments.get(i % assignments.size());
+                int[] lz = lzCells.get(i);
+                float lzCenterX = lz[0] + 0.5f;
+                float lzCenterY = lz[1] + 0.5f;
+                float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
+                        scale.width, scale.height, null);
+                long shuttleId = sim.spawnShuttle(
+                        assignment.type, Faction.MARINE,
+                        lzCenterX, lzCenterY,
+                        entry[0], entry[1], entry[2], entry[3],
+                        i * SHUTTLE_DROP_STAGGER_SEC);
+                ShuttleMission shuttleMission = sim.world().mission(shuttleId);
+                shuttleMission.totalCycles = assignment.cycles;
+                MarineLoadout[][] cycleLoadouts =
+                        new MarineLoadout[assignment.cycles][];
+                for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                    cycleLoadouts[cycle] = buildBaseLoadouts(
+                            assignment.type.capacity, rng);
+                }
+                shuttleMission.cycleLoadouts = cycleLoadouts;
+                shuttleMission.marineLoadout = cycleLoadouts[0];
+                equipDefaultTurrets(sim, shuttleId);
+            }
+
+            allocateDefenders(sim, map, DefenderRoster.forMission(
+                    MissionType.EXTRACTION, risk, enemyHasHeavyArmor), rng);
+            spawnAmbientCivilians(sim, map, rng);
+            installReinforcementLayer(sim, map, null);
+            return sim;
+        }
+        throw new IllegalStateException(
+                "unable to place civilian rescue payload after 8 map attempts");
+    }
+
+    /**
      * CONQUEST variant: full beach→port→city→fortress biome push with the
      * super-wall stamper active. Map size scales with risk (same tiers as
      * Assault/Sabotage) and the traversal axis is rolled per-seed —

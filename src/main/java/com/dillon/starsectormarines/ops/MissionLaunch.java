@@ -57,7 +57,10 @@ public final class MissionLaunch {
 
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
-        switch (m.type) {
+        if (m.source == MissionSource.CAMPAIGN_EVENT) {
+            sim = BattleSetup.createCivilianRescue(seed,
+                    det.shuttleManifest, enemyHasHeavyArmor, m.risk);
+        } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
                 break;
