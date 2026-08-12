@@ -59,6 +59,8 @@ public final class GenContext {
     public final List<PointOfInterest> pois = new ArrayList<>();
     /** Decorative tiles placed by fillers / stampers. */
     public final List<Doodad> doodads = new ArrayList<>();
+    /** Authored shuttle berths emitted by landing-zone / spaceport fillers. */
+    public final List<LandingPad> landingPads = new ArrayList<>();
     /** AI garrison anchors emitted by compound fillers + stampers; linked once at the end. */
     public final List<TacticalNode> tactical = new ArrayList<>();
     /**

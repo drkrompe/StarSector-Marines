@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
@@ -26,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -117,6 +120,44 @@ public class BspMapSpritePreviewTest {
             ImageIO.write(img, "PNG", out.toFile());
             System.out.println("  wrote " + out.toAbsolutePath());
         }
+    }
+
+    /** Full-map look at the campaign-backed civilian port district and its authored berths. */
+    @Test
+    void renderCivilianSpaceportDistrict() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BufferedImage urban = ImageIO.read(Files.newInputStream(URBAN_SHEET));
+        BufferedImage road = ImageIO.read(Files.newInputStream(ROAD_SHEET));
+        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        BufferedImage water = ImageIO.read(Files.newInputStream(WATER_SHEET));
+        BufferedImage street3 = ImageIO.read(Files.newInputStream(STREET3_SHEET));
+        BufferedImage nature = ImageIO.read(Files.newInputStream(NATURE_SHEET));
+        SpriteSheetFrames street3Frames = SpriteSheetSlicer.slice(street3);
+        SpriteSheetFrames natureFrames = SpriteSheetSlicer.slice(nature);
+
+        TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
+                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT));
+        MapResult map = new BspCityGenerator().generate(GRID_W, GRID_H, 42L, null, profile);
+        BufferedImage img = renderMapSprites(map, 42L, urban, road, floors, water,
+                street3, street3Frames, nature, natureFrames);
+
+        gMarkLandingPads(img, map);
+        Path out = OUT_DIR.resolve("civilian-spaceport-district.png");
+        ImageIO.write(img, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    private static void gMarkLandingPads(BufferedImage img, MapResult map) {
+        Graphics2D g = img.createGraphics();
+        g.setColor(new Color(80, 220, 255, 210));
+        for (com.dillon.starsectormarines.battle.world.gen.LandingPad pad : map.landingPads) {
+            int x = pad.left() * CELL_PX;
+            int y = (map.grid.getHeight() - 1 - pad.top()) * CELL_PX;
+            int w = (pad.right() - pad.left() + 1) * CELL_PX;
+            int h = (pad.top() - pad.bottom() + 1) * CELL_PX;
+            g.drawRect(x, y, w - 1, h - 1);
+        }
+        g.dispose();
     }
 
     /**
