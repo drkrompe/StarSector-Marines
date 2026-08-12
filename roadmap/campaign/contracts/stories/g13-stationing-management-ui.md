@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `92c4910e`
+
 ## Goal
 
 Keep an accepted stationing assignment visible at its market and expose the

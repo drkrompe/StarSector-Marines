@@ -92,7 +92,17 @@ src/main/java/com/dillon/starsectormarines/campaign/systems/
   ExtractionResolutionSystem.java
     Settles successful/failed Recovery personnel and the one-time employer
     breach reputation penalty (`1051c22a`, `13e1f22e`, `0516486c`).
+
+  StationingWithdrawalService.java
+    Atomically returns idle stationing personnel, marks ABANDONED, and applies
+    the forfeiture/reputation consequences. Active local assignments remain
+    visible through the Ops management surface (`6c205512`, `92c4910e`).
 ```
+
+`ContractReputation` now centralizes completion, failure, abandonment, and
+employer-breach mutations. Ordinary completions award tier-scaled MRB
+credibility (T1/T2/T3/T4 = 1/3/10/20), failures cost 1, abandonment costs 10,
+and employer default remains MRB-neutral (`7fe8971f`).
 
 ## ContractGenerator — patrons put offers on the table
 
@@ -253,7 +263,9 @@ method together act as a copyable template — see
   `0b2829ec`), plus monthly Cadre training XP (`68a3673d`). Power-priced monthly
   defaults create system-generated Recovery missions, whose outcome settles
   stranded personnel and employer breach reputation (`1051c22a`, `13e1f22e`,
-  `40cc9454`, `0516486c`). Player withdrawal and Planetary Assault remain.
+  `40cc9454`, `0516486c`). Local early withdrawal and tier-scaled MRB outcome
+  scoring are also shipped (`6c205512`, `92c4910e`, `7fe8971f`). Planetary
+  Assault remains.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `6c205512`
+
 ## Goal
 
 Make voluntary early withdrawal an atomic domain operation with explicit

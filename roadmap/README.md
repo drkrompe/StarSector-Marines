@@ -98,8 +98,10 @@ universe over time, not retrofitted into intel slots.
    local Escort/Garrison/Cadre debug spawners make each vertical reachable on
    demand (`c641cff0`). House-power-priced monthly defaults now create linked,
    playable Recovery missions with success/failure personnel consequences
-   (`1051c22a`, `13e1f22e`, `40cc9454`, `0516486c`). Next: player-initiated
-   withdrawal/ABANDONED consequences, then multi-phase Planetary Assault. See
+   (`1051c22a`, `13e1f22e`, `40cc9454`, `0516486c`). Local active-assignment
+   management and atomic early withdrawal now apply house/MRB consequences,
+   while ordinary outcomes feed tier-scaled MRB credibility (`6c205512`,
+   `92c4910e`, `7fe8971f`). Next: multi-phase Planetary Assault. See
    `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,

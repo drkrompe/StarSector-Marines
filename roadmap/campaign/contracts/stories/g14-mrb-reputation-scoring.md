@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `7fe8971f`
+
 ## Goal
 
 Activate the player-wide MRB credibility track for ordinary contract outcomes
