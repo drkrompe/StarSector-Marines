@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `fd7933df`
+
 ## Goal
 
 Make pending Cadre incidents playable without routing their personnel through

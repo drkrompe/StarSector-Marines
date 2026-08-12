@@ -277,7 +277,10 @@ method together act as a copyable template — see
   assignment management (`77ce5ead`); response/deployment remains deliberately
   separate. Its exactly-once resolution contract already debits stationed—not
   fleet—marines, preserves viable assignments, fails wiped/leaderless ones, and
-  rejects stale results (`68c6b7c7`). EXTRACTION remains system-generated.
+  rejects stale results (`68c6b7c7`). Cadre incidents are now playable using the
+  assigned captain and local Cadre transports, with results routed around fleet
+  cargo and ordinary parent-contract completion (`fd7933df`). EXTRACTION remains
+  system-generated.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 
