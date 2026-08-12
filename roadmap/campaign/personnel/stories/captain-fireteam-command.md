@@ -1,6 +1,6 @@
 # Captain-to-fireteam command
 
-**Status:** CONTRACT LOCKED (2026-08-12)
+**Status:** IN PROGRESS — Slice 1 shipped (2026-08-12)
 
 ## Problem
 
@@ -70,9 +70,9 @@ player-facing explanation.
 
 ## Slices
 
-1. **Domain binding** — persist home captain on `MarineSquad`; expose rank
+1. ~~**Domain binding** — persist home captain on `MarineSquad`; expose rank
    fireteam capacity; add validated assign/unassign/query operations and legacy
-   repair in `MarineRoster`.
+   repair in `MarineRoster`.~~ ✅ `9c4c4ee8`
 2. **Formation management** — add a captain-assignment control to the armory
    formation surface, including full/unavailable feedback.
 3. **Briefing authority** — default to the selected captain's home formation,
@@ -82,6 +82,18 @@ player-facing explanation.
    reassignment.
 
 Named stationing is deliberately outside these slices.
+
+## Slice 1 implementation
+
+- `MarineSquad.homeCaptainId` persists the organizational relationship without
+  changing soldier ownership or battle identity.
+- `Rank.fireteamCap()` performs the contract's ceiling conversion.
+- `MarineRoster` owns assignment, clearing, lookup, captain-removal cleanup,
+  and ordered save repair. Repair retains the first valid formations up to the
+  captain's rank limit and clears reserve, dangling, or excess bindings.
+- Automated tests cover the full rank sequence, reserve rejection, atomic
+  reassignment, casualty-independent capacity, unavailable-captain retention,
+  dismissal cleanup, and corrupted-save repair.
 
 ## Acceptance
 
@@ -94,4 +106,3 @@ Named stationing is deliberately outside these slices.
   deploys more selected fireteams than the force commander's rank allows.
 - Existing stationing persistence and mission-result captain authority remain
   unchanged until their explicit slices land.
-

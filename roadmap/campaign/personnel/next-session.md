@@ -21,9 +21,13 @@ rank-scaled formation of whole fireteams; home command supplies mission defaults
 without preventing another active captain from borrowing the team. The
 briefing-selected captain remains the outcome authority.
 
-Next: Slice 1, the persisted domain binding and legacy repair. Stationing keeps
-its existing captain plus anonymous-marine contract until named detachment
-semantics are designed as one complete lifecycle.
+Slice 1 is shipped (`9c4c4ee8`): the persisted domain binding, whole-fireteam
+rank cap, validated reassignment, captain-removal cleanup, and ordered legacy
+repair are covered.
+
+Next: Slice 2, formation management on the armory surface. Stationing keeps its
+existing captain plus anonymous-marine contract until named detachment semantics
+are designed as one complete lifecycle.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.
@@ -39,3 +43,5 @@ session.
 - `c35e88d4` — preserve generated employer seats when overlaying player
   personnel.
 - `822572b7` — lock deterministic casualty disposition under replay.
+- `23db413a` — lock the captain-to-fireteam command contract.
+- `9c4c4ee8` — persist and validate captain home formations.
