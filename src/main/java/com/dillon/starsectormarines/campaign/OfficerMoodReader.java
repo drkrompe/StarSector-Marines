@@ -92,10 +92,7 @@ public final class OfficerMoodReader {
             activeCaptains = rosterScript.roster().activeCount();
         }
 
-        // TODO: playerMrbRep is currently a fixed 0 until contract-completion
-        // code starts writing to it; the mrbRep >= 0 SEASONED gate is therefore
-        // a no-op for now. Kept here so it activates the moment the MRB track
-        // is wired without touching this file.
+        // Cross-faction industry credibility, updated by contract outcomes.
         int mrbRep = 0;
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         if (campaignScript != null && campaignScript.state() != null) {

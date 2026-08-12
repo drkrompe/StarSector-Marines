@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -11,9 +12,6 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 
 /** Atomically withdraws an idle stationing assignment and returns its personnel. */
 public final class StationingWithdrawalService {
-
-    static final int HOUSE_REP_PENALTY = -15;
-    static final int MRB_REP_PENALTY = -10;
 
     interface PersonnelStore {
         MarineCaptain captain(String id);
@@ -53,19 +51,8 @@ public final class StationingWithdrawalService {
         state.contractMarinesCommitted[row] = 0;
         state.contractCaptainId[row] = -1;
         state.contractState[row] = ContractState.ABANDONED.toByte();
-        applyPenalties(state, state.contractPatronHouseId[row], day);
+        ContractReputation.abandoned(state, state.contractPatronHouseId[row], day);
         return true;
-    }
-
-    private static void applyPenalties(CampaignState state, long patronId, int day) {
-        int repRow = state.ensureRepRow(patronId);
-        state.repValue[repRow] = Math.max(-100,
-                state.repValue[repRow] + HOUSE_REP_PENALTY);
-        state.repLastContractTick[repRow] = day;
-        int failed = (state.repContractsFailed[repRow] & 0xFFFF) + 1;
-        state.repContractsFailed[repRow] = (short) Math.min(65535, failed);
-        long mrb = (long) state.playerMrbRep + MRB_REP_PENALTY;
-        state.playerMrbRep = mrb < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) mrb;
     }
 
     private static final class LivePersonnelStore implements PersonnelStore {

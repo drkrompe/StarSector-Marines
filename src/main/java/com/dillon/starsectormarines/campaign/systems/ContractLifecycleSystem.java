@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractReputation;
 
 import java.util.EnumSet;
 
@@ -69,27 +70,13 @@ public final class ContractLifecycleSystem implements CampaignSystem {
                 int phasesTotal = state.contractPhasesTotal[i] & 0xFF;
                 if (phasesDone >= phasesTotal) {
                     state.contractState[i] = ContractState.COMPLETED.toByte();
-                    bumpRep(state, patronId, +1, day, true);
+                    ContractReputation.completed(state, patronId, +1, day);
                 } else {
                     state.contractState[i] = ContractState.FAILED.toByte();
-                    bumpRep(state, patronId, -1, day, false);
+                    ContractReputation.failed(state, patronId, -1, day);
                 }
             }
         }
     }
 
-    private static void bumpRep(CampaignState state, long patronId, int repDelta, int day, boolean completed) {
-        int repRow = state.ensureRepRow(patronId);
-        state.repValue[repRow] = Math.max(-100, Math.min(100, state.repValue[repRow] + repDelta));
-        state.repLastContractTick[repRow] = day;
-        if (completed) {
-            int n = (state.repContractsCompleted[repRow] & 0xFFFF) + 1;
-            if (n > 65535) n = 65535;
-            state.repContractsCompleted[repRow] = (short) n;
-        } else {
-            int n = (state.repContractsFailed[repRow] & 0xFFFF) + 1;
-            if (n > 65535) n = 65535;
-            state.repContractsFailed[repRow] = (short) n;
-        }
-    }
 }

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractImpactPolicy;
+import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.StakeLedger;
@@ -401,7 +402,7 @@ public final class MissionResolver {
             if (phasesDone >= phasesTotal) {
                 state.contractState[row] = ContractState.COMPLETED.toByte();
                 if (contractType != ContractType.EXTRACTION) {
-                    tickPatronRep(state, patronId, +1, day, true);
+                    ContractReputation.completed(state, patronId, +1, day);
                 }
                 LOG.info("MarineOps: contract " + outcome.contractId + " COMPLETED ("
                         + phasesDone + "/" + phasesTotal + ")");
@@ -418,7 +419,7 @@ public final class MissionResolver {
         } else {
             state.contractState[row] = ContractState.FAILED.toByte();
             if (contractType != ContractType.EXTRACTION) {
-                tickPatronRep(state, patronId, -2, day, false);
+                ContractReputation.failed(state, patronId, -2, day);
             }
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
         }
@@ -473,23 +474,6 @@ public final class MissionResolver {
                 + (gained > 0 ? " seized " + gained + "/255 of "
                     + outcome.targetIndustryId + " from target " + targetId : " completed " + contractType)
                 + (promotions > 0 ? " and promoted " + promotions + " rank(s)" : ""));
-    }
-
-    /** Find-or-create the patron's rep row and apply a small delta. */
-    private static void tickPatronRep(CampaignState state, long patronHouseId,
-                                      int repDelta, int day, boolean completed) {
-        int repRow = state.ensureRepRow(patronHouseId);
-        state.repValue[repRow] = Math.max(-100, Math.min(100, state.repValue[repRow] + repDelta));
-        state.repLastContractTick[repRow] = day;
-        if (completed) {
-            int n = (state.repContractsCompleted[repRow] & 0xFFFF) + 1;
-            if (n > 65535) n = 65535;
-            state.repContractsCompleted[repRow] = (short) n;
-        } else {
-            int n = (state.repContractsFailed[repRow] & 0xFFFF) + 1;
-            if (n > 65535) n = 65535;
-            state.repContractsFailed[repRow] = (short) n;
-        }
     }
 
     private static int damagePointsFor(MissionType type) {

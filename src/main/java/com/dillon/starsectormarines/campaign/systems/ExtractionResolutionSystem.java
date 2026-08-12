@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -16,7 +17,6 @@ import java.util.EnumSet;
 /** Applies the personnel and employer-reputation consequences of extraction. */
 public final class ExtractionResolutionSystem implements CampaignSystem {
 
-    static final int EMPLOYER_BREACH_REP = -10;
     static final int FAILED_EXTRACTION_INJURY_DAYS = 45;
 
     interface PersonnelStore {
@@ -91,14 +91,8 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
 
         state.contractMarinesCommitted[parentRow] = 0;
         state.contractCaptainId[parentRow] = -1;
-        applyEmployerBreachRep(state, state.contractPatronHouseId[parentRow], day);
-    }
-
-    private static void applyEmployerBreachRep(CampaignState state, long patronId, int day) {
-        int repRow = state.ensureRepRow(patronId);
-        state.repValue[repRow] = Math.max(-100,
-                state.repValue[repRow] + EMPLOYER_BREACH_REP);
-        state.repLastContractTick[repRow] = day;
+        ContractReputation.employerBreached(
+                state, state.contractPatronHouseId[parentRow], day);
     }
 
     private static final class LivePersonnelStore implements PersonnelStore {
