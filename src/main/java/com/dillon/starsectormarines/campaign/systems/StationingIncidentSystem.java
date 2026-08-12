@@ -65,7 +65,7 @@ public final class StationingIncidentSystem implements CampaignSystem {
     }
 
     /** Stable 24–36 day cadence derived from persisted contract identity and anchor day. */
-    static int nextIncidentDay(long contractId, int afterDay) {
+    public static int nextIncidentDay(long contractId, int afterDay) {
         long mixed = contractId * 0x9E3779B97F4A7C15L
                 ^ (long) afterDay * 0xC2B2AE3D27D4EB4FL;
         mixed ^= mixed >>> 33;
