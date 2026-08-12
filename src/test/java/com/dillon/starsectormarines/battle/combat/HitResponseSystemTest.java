@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -85,5 +86,20 @@ public class HitResponseSystemTest {
         }
         assertTrue(rolledAtLeastOnce,
                 "non-squad units must still roll the legacy fall-back (FleeBehavior depends on it)");
+    }
+
+    @Test
+    public void swarmPressureNeverFallsBackWhenShot() {
+        BattleSimulation sim = openSim();
+        HitResponseSystem hitResponse = sim.getHitResponseSystem();
+        long runner = sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 3, 5).role(UnitRole.SWARM_PRESSURE));
+        sim.spawn(new EntitySpec("opp", Faction.MARINE,
+                UnitType.MARINE, 5, 5));
+
+        for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(runner);
+
+        assertEquals(0f, sim.world().fallbackTimer(runner), 1e-6f,
+                "swarm pressure must keep closing instead of flinching under fire");
     }
 }

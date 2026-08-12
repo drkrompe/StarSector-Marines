@@ -70,6 +70,28 @@ class SwarmPressureBehaviorTest {
         assertTrue(sim.combat().cooldownTimer(runner) > 0f);
     }
 
+    @Test
+    void repeatedBehaviorTicksCloseAllTheWayToMeleeContact() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long evacuee = civilian(sim, "evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        float initialHp = sim.world().hp(evacuee);
+        boolean damaged = false;
+
+        for (int tick = 0; tick < 160; tick++) {
+            SwarmPressureBehavior.INSTANCE.update(runner, sim);
+            if (sim.resolveUnit(evacuee) == 0L
+                    || sim.world().hp(evacuee) < initialHp) {
+                damaged = true;
+                break;
+            }
+        }
+
+        assertTrue(damaged,
+                "an unobstructed runner must close the full distance and land contact damage");
+    }
+
     private static BattleSimulation simulation() {
         NavigationGrid grid = new NavigationGrid(16, 12);
         for (int y = 0; y < 12; y++) {
