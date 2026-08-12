@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
+import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
+import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -27,6 +29,8 @@ class CampaignStateSystemOrderTest {
         int ambitions = indexOf(systems, HouseAmbitionSystem.class);
         int drift = indexOf(systems, StakeDriftSystem.class);
         int promotions = indexOf(systems, AutonomousPromotionSystem.class);
+        int chainCreation = indexOf(systems, AutonomousChainCreationSystem.class);
+        int chainAdvancement = indexOf(systems, ChainAdvancementSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
@@ -38,6 +42,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(defaults < retainers);
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
+        assertTrue(chainCreation < chainAdvancement);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);

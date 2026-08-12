@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
+import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
@@ -67,6 +68,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StakeDriftSystem(),
                 new AutonomousPromotionSystem(),
                 new RelationshipInteractionSystem(),
+                new AutonomousChainCreationSystem(),
                 new ChainAdvancementSystem(),
                 new ContractGenerator(),
                 new VanillaRaidGarrisonSystem(),
