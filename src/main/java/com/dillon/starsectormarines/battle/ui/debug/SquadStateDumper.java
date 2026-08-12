@@ -123,6 +123,8 @@ public final class SquadStateDumper {
         o.put("targetZoneId", a.targetZoneId());
         o.put("targetNode", a.targetNode() != null ? a.targetNode().kind.name() : null);
         o.put("objectiveId", a.objectiveId());
+        o.put("targetCellX", a.targetCellX());
+        o.put("targetCellY", a.targetCellY());
         return o;
     }
 
