@@ -149,6 +149,13 @@ public final class CampaignState implements Serializable {
     public int[] throneClaimSourceFactionId = filledInts(INITIAL_CAPACITY, -1);
     public int[] throneClaimResultFactionId = filledInts(INITIAL_CAPACITY, -1);
     public int[] throneClaimMarketId = filledInts(INITIAL_CAPACITY, -1);
+    /** Player allegiance captured from the source civil war at preparation. */
+    public byte[] throneClaimPlayerAllegiance = new byte[INITIAL_CAPACITY];
+    /** Player contribution total captured from the source civil war. */
+    public short[] throneClaimPlayerContribution = new short[INITIAL_CAPACITY];
+    /** Last player contribution day captured from the source civil war. */
+    public int[] throneClaimPlayerLastContributionTick =
+            filledInts(INITIAL_CAPACITY, -1);
     public byte[] throneClaimState = new byte[INITIAL_CAPACITY];
     public int[] throneClaimPreparedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] throneClaimAppliedTick = filledInts(INITIAL_CAPACITY, -1);
@@ -504,6 +511,17 @@ public final class CampaignState implements Serializable {
         throneClaimSourceFactionId[i] = sourceFactionId;
         throneClaimResultFactionId[i] = resultFactionId;
         throneClaimMarketId[i] = marketId;
+        int sourceChainRow = chainIndex(sourceChainId);
+        if (sourceChainRow >= 0) {
+            throneClaimPlayerAllegiance[i] = chainPlayerAllegiance[sourceChainRow];
+            throneClaimPlayerContribution[i] = chainPlayerContribution[sourceChainRow];
+            throneClaimPlayerLastContributionTick[i] =
+                    chainPlayerLastContributionTick[sourceChainRow];
+        } else {
+            throneClaimPlayerAllegiance[i] = CivilWarAllegiance.NONE.toByte();
+            throneClaimPlayerContribution[i] = 0;
+            throneClaimPlayerLastContributionTick[i] = -1;
+        }
         throneClaimState[i] = ThroneClaimState.PREPARED.toByte();
         throneClaimPreparedTick[i] = preparedTick;
         throneClaimAppliedTick[i] = -1;
@@ -744,6 +762,11 @@ public final class CampaignState implements Serializable {
         Arrays.fill(throneClaimResultFactionId, oldLength, n, -1);
         throneClaimMarketId = Arrays.copyOf(throneClaimMarketId, n);
         Arrays.fill(throneClaimMarketId, oldLength, n, -1);
+        throneClaimPlayerAllegiance = Arrays.copyOf(throneClaimPlayerAllegiance, n);
+        throneClaimPlayerContribution = Arrays.copyOf(throneClaimPlayerContribution, n);
+        throneClaimPlayerLastContributionTick = Arrays.copyOf(
+                throneClaimPlayerLastContributionTick, n);
+        Arrays.fill(throneClaimPlayerLastContributionTick, oldLength, n, -1);
         throneClaimState = Arrays.copyOf(throneClaimState, n);
         throneClaimPreparedTick = Arrays.copyOf(throneClaimPreparedTick, n);
         Arrays.fill(throneClaimPreparedTick, oldLength, n, -1);
@@ -897,6 +920,16 @@ public final class CampaignState implements Serializable {
         }
         if (throneClaimMarketId == null) {
             throneClaimMarketId = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimPlayerAllegiance == null) {
+            throneClaimPlayerAllegiance = new byte[throneClaimCapacity];
+        }
+        if (throneClaimPlayerContribution == null) {
+            throneClaimPlayerContribution = new short[throneClaimCapacity];
+        }
+        if (throneClaimPlayerLastContributionTick == null) {
+            throneClaimPlayerLastContributionTick =
+                    filledInts(throneClaimCapacity, -1);
         }
         if (throneClaimState == null) throneClaimState = new byte[throneClaimCapacity];
         if (throneClaimPreparedTick == null) {
