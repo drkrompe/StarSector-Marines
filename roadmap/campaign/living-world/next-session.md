@@ -117,6 +117,10 @@ turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
 The first playtest correction is shipped too: `SWARM_PRESSURE` no longer rolls
 the generic on-hit fallback that made runners stop under sustained fire, and
 full-distance contact pursuit is locked by regression tests (`fb50b964`).
+Debug rescue now also scales swarm size from the resolved marine-side landing
+manifest instead of fighting the fixed production 12/24/40 roster. LOW/MEDIUM/
+HIGH use 1:1, 1.5:1, and 2:1 pressure respectively; production remains unchanged
+(`8b2af722`).
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
@@ -248,6 +252,7 @@ deferred until manual playtesting resumes.
 - Slice G6d — dedicated rescue-factory integration (`710d2981`).
 - Slice G7a — direct debug swarm-rescue missions (`38bc6323`).
 - G6 playtest correction — implacable pursuit under fire (`fb50b964`).
+- G6 debug scaling — swarm pressure follows landing strength (`8b2af722`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

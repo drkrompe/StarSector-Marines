@@ -3,7 +3,7 @@
 **Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`; hit-response correction `fb50b964`
+`710d2981`; playtest corrections `fb50b964`, `8b2af722`
 
 ## Goal
 
@@ -51,6 +51,14 @@ though the payload contract made the swarm morale-free and implacable.
 `fb50b964` exempts the role from legacy fallback. Regression coverage now proves
 100 hit reactions cannot make a runner flinch and repeated pressure ticks close
 the full distance into contact damage. The full Gradle build passes.
+
+The debug personnel fixtures then exposed a second scale mismatch: the current
+40-drop manifest can land roughly 300 marine-side personnel against the fixed
+production roster of 12/24/40 runners. `8b2af722` keeps those authored production
+counts unchanged, but scales debug rescue against all resolved marine-side
+shuttle seats at 1:1 LOW, 1.5:1 MEDIUM, and 2:1 HIGH. The current setup therefore
+produces hundreds of runners, and future debug transport/drop changes rescale
+automatically. Explicit large-roster factory tests and the full build pass.
 
 ## Next
 
