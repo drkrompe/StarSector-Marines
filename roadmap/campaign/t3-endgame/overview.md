@@ -1,10 +1,11 @@
 # Campaign T3 endgame — the faction flip
 
-**Status:** persisted handoff producer CODE COMPLETE (2026-08-12); isolated
-vanilla consumer not yet implemented.
+**Status:** ownership/rank writeback path CODE COMPLETE (2026-08-12);
+sector-wide reputation consequences remain.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
-`35ec0ccf`, `77657bb8`, `51fad0ca`
+`35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
+`5174f44c`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -63,13 +64,15 @@ Preparation is idempotent: a source chain can own exactly one row. The living
 world may append and read this table but cannot move a row out of `PREPARED`.
 Only the isolated T3 endgame system consumes it.
 
-The consumer must verify the vanilla postcondition before mutation. If the
-target market already belongs to the recorded result faction, it finalizes the
-row without replaying writeback; otherwise it performs the faction creation /
-market transfer once, verifies the result, then marks `APPLIED` and promotes the
-house to Tier 4. A rejected precondition marks `FAILED` without partial rank or
-reputation effects. This check-before-write rule makes a repeated tick or load
-recovery idempotent even if persistence follows the vanilla mutation.
+The consumer verifies the vanilla postcondition before mutation. If the target
+market and its primary/connected entities already belong to the recorded result
+faction, it finalizes the row without replaying writeback. Otherwise it transfers
+the market and entities once, verifies the result, then marks `APPLIED`, promotes
+the house to Tier 4, clears its ambition, and records its new local faction. A
+partial prior transfer is repaired; transient API failure stays `PREPARED` for
+retry; a rejected precondition marks the claim and source chain `FAILED` without
+partial rank or reputation effects. This check-before-write rule makes a repeated
+tick or load recovery idempotent even if persistence follows the vanilla mutation.
 
 ## CIVIL_WAR chain contract
 
@@ -94,10 +97,8 @@ interns that identity so the consumer never invents identity during writeback.
 Multiple successful houses join the same Claimant League rather than creating
 unsupported runtime faction objects.
 
-## Still to specify before vanilla writeback
+## Still to specify after ownership writeback
 
-- The exact vanilla API surface for faction creation and market transfer, and
-  the postcondition probes used for retry recovery.
 - Rep consequences across the rest of the sector when a flip lands.
 - Contract composition and player choices across the three progress bands.
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the

@@ -197,6 +197,12 @@ That boundary now has a complete producer: Tier-3 progress caps at 1000,
 discoverable/intervenable `CIVIL_WAR` chains resolve into a persisted handoff,
 and no living-world code changes vanilla state or Tier 4 (`76c7579a`,
 `9bf2356b`, `bdb45f7b`, `35ec0ccf`, `77657bb8`, `51fad0ca`).
+Its isolated consumer is also shipped: a predeclared Claimant League avoids
+unsupported runtime faction registration, the vanilla adapter performs and
+verifies market/entity ownership transfer, successful claims promote their
+house to Tier 4, and Chronicle publication waits for applied writeback
+(`42f00725`, `ae35056d`, `870d5b96`, `5174f44c`). Reputation consequences
+and the player-facing kingmaker capstone remain follow-up slices.
 
 ## Two payoffs that fall out for free
 

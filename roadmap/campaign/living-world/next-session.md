@@ -41,6 +41,12 @@ capped claimants run 180-day discoverable/intervenable civil wars, and
 resolution prepares one persisted source-chain-unique handoff without changing
 vanilla state or Tier 4 (`76c7579a`, `9bf2356b`, `bdb45f7b`, `35ec0ccf`,
 `77657bb8`, `51fad0ca`).
+The isolated throne-claim consumer is now shipped: one predeclared Claimant
+League provides supported faction identity; a narrow adapter probes, repairs,
+transfers, and verifies vanilla market/entity ownership; successful handoffs
+become `APPLIED` and promote their claimant to Tier 4; and Chronicle dispatch
+waits until that writeback finishes (`42f00725`, `ae35056d`, `870d5b96`,
+`5174f44c`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -53,18 +59,18 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Isolated throne-claim consumer
+## Next up — Faction-flip consequences and capstone surface
 
-Consume prepared handoffs behind the sole vanilla-write boundary:
+Build outward from the completed ownership/rank atomic boundary:
 
-1. Put vanilla faction/market probes and mutation behind a narrow adapter so
-   consumer idempotency can be unit-tested without `Global`.
-2. Validate claimant, source/result faction ids, and target market before any
-   irreversible mutation; invalid prepared rows become terminal `FAILED`.
-3. If the recorded postcondition already holds, finalize without replay.
-   Otherwise apply once, verify, then mark `APPLIED` and set the claimant Tier 4.
-4. Specify and add the sector-wide reputation consequences separately from the
-   ownership/rank atomic boundary.
+1. Specify the sector-wide reputation changes caused by an `APPLIED` throne
+   claim, including source faction, Claimant League, and player relationships.
+2. Persist an exactly-once consequence marker separate from ownership writeback
+   so retries or load recovery cannot replay reputation changes.
+3. Give the Chronicle a faction-flip-specific dispatch composed from the applied
+   claim rather than only the generic terminal-chain headline.
+4. Define the three-band player choices and kingmaker capstone that feed this
+   political result.
 
 ## Open forks still unresolved (design)
 
@@ -125,3 +131,7 @@ Consume prepared handoffs behind the sole vanilla-write boundary:
 - Slice F2b — throne-handoff contract + persistence (`49f057ad`, `9bf2356b`).
 - Slice F2c — civil-war creation + handoff preparation (`bdb45f7b`, `35ec0ccf`).
 - Slice F2d — discovery/intervention + replay guards (`77657bb8`, `51fad0ca`).
+- Slice F3a — isolated handoff consumer (`42f00725`).
+- Slice F3b — predeclared Claimant League (`ae35056d`).
+- Slice F3c — vanilla ownership adapter (`870d5b96`).
+- Slice F3d — post-writeback Chronicle ordering (`5174f44c`).
