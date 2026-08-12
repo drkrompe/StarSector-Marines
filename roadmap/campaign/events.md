@@ -298,11 +298,13 @@ The first roster is mission-local and risk-scaled, with no militia, regulars,
 mechs, turrets, conventional reinforcements, or fighter support. It spawns only
 on complete reachable cells at least 16 Manhattan cells from the shelter and
 outside the lift zone. All eight evacuees now spawn strictly inside the chosen
-residential building's wall ring and remain sheltered until the first marine
-lands, with a 12-second fallback release so a lost or absent first drop cannot
-deadlock the mission (`e9fee785`). The dedicated rescue factory replaces its
-temporary Extraction defender roster with this payload; evacuation accounting,
-zero-economy terms, and moral mapping do not change.
+residential building's wall ring. The barricade stays sealed through the first
+marine landing and for a further 12-second perimeter-establishment window;
+during that phase the cohort does not move and runners pressure marines rather
+than civilians (`66692aa4`). A 30-second absolute fallback release prevents a
+lost or absent response from deadlocking the mission. The dedicated rescue
+factory replaces its temporary Extraction defender roster with this payload;
+evacuation accounting, zero-economy terms, and moral mapping do not change.
 
 The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
 12/24/40-runner rosters; incomplete placement discards the map attempt before
