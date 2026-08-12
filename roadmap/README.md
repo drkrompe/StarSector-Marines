@@ -89,7 +89,7 @@ universe over time, not retrofitted into intel slots.
    75% fence-on-spot overflow. Before moving its five stories to `complete/`,
    run the documented in-game visual/cargo/core smoke test. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-2. **Stationing contracts + Escort** — rank-gated Escort offers map to one-shot
+2. **Campaign contracts breadth** — rank-gated Escort offers map to one-shot
    Extraction missions (`fb268bbe`, `df0a5d19`). Rank-gated GARRISON + CADRE
    offers have dedicated
    assignment UI, persisted terms, monthly retainers, and personnel return
@@ -101,8 +101,12 @@ universe over time, not retrofitted into intel slots.
    (`1051c22a`, `13e1f22e`, `40cc9454`, `0516486c`). Local active-assignment
    management and atomic early withdrawal now apply house/MRB consequences,
    while ordinary outcomes feed tier-scaled MRB credibility (`6c205512`,
-   `92c4910e`, `7fe8971f`). Next: multi-phase Planetary Assault. See
-   `campaign/contracts/overview.md`.
+   `92c4910e`, `7fe8971f`). Tier-3 Planetary Assault is now a deterministic
+   3–5 phase sequence with staged payout/salvage, non-final retries,
+   contract-wide negotiation, exactly-once result keys, and three-day refit
+   windows (`d567c838`, `58a3715f`, `b297a8c5`, `e404b8a9`, `80f12862`,
+   `28734a6f`). Next: contract gates from MRB/house reputation, then campaign
+   incident triggers for stationing. See `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

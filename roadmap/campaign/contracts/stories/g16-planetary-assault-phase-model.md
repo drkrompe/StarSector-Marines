@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `58a3715f`
+
 ## Goal
 
 Define the deterministic mission sequence and staged economy for a 3–5 phase

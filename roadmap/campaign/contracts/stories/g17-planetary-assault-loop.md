@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `b297a8c5`
+
 ## Goal
 
 Turn a Planetary Assault offer into a recurring 3–5 mission sequence with

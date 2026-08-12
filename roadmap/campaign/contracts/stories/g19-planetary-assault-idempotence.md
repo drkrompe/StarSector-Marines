@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `80f12862`
+
 ## Goal
 
 Prevent duplicate or stale battle-result callbacks from advancing a

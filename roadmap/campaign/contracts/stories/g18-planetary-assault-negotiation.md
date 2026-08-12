@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `e404b8a9`
+
 ## Goal
 
 Freeze salvage-for-cash terms at the first Planetary Assault deployment and

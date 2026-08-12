@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `d567c838`
+
 ## Goal
 
 Put the Tier-3 anchor contract into the production and debug offer pipelines

@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `28734a6f`
+
 ## Goal
 
 Enforce the designed between-phase refit window instead of allowing an entire

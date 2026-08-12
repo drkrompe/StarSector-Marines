@@ -242,11 +242,10 @@ method together act as a copyable template — see
   the results screen shows the %, but there's no item pool / item roll
   / picker grid yet. That's `loot/overview.md` territory and a session of its
   own.
-- **OFFERED → ACTIVE flip on briefing accept** — currently single-
-  phase STRIKE contracts skip ACTIVE entirely (OFFERED → COMPLETED
-  directly on battle victory, since phasesDone goes 0→1 and
-  phasesTotal=1). Functionally fine for the current scope; will need
-  attention when multi-phase Planetary Assault lands.
+- **OFFERED → ACTIVE flip on briefing accept** — single-phase STRIKE/Escort
+  contracts still resolve OFFERED → terminal directly. Planetary Assault now
+  freezes contract-wide terms on first deployment and resolves the first phase
+  into IN_PROGRESS, which is the only mode that needs persistent recurrence.
 - ~~**Offer expiry** — offers don't lapse.~~ **Shipped** (`7136bc09`):
   `ContractGenerator` stamps `offerExpiresTick` per the patron's
   archetype-driven window; `ContractLifecycleSystem` lapses `OFFERED → EXPIRED`.
@@ -255,17 +254,21 @@ method together act as a copyable template — see
   deterministically and the briefing path reads it through
   `BriefingComposer.compose(archetype, mood, …)` (archetype × comms-officer
   mood). See the `narrative/` track.
-- ~~**Contract generator for non-STRIKE types**~~ — **partially shipped**:
+- ~~**Contract generator for non-STRIKE types**~~ — **shipped**:
   rank-gated one-shot Escort offers and Extraction mission mapping landed in
-  `df0a5d19`. Planetary Assault remains blocked on its multi-phase flow;
+  `df0a5d19`.
   Garrison/Cadre now have persisted term/retainer, personnel assignment/release,
   rank-gated generation, and dedicated acceptance UI (`2487cfaf`, `644b0a1f`,
   `0b2829ec`), plus monthly Cadre training XP (`68a3673d`). Power-priced monthly
   defaults create system-generated Recovery missions, whose outcome settles
   stranded personnel and employer breach reputation (`1051c22a`, `13e1f22e`,
   `40cc9454`, `0516486c`). Local early withdrawal and tier-scaled MRB outcome
-  scoring are also shipped (`6c205512`, `92c4910e`, `7fe8971f`). Planetary
-  Assault remains.
+  scoring are also shipped (`6c205512`, `92c4910e`, `7fe8971f`). Tier-3
+  Planetary Assault adds production/debug offers plus a 3–5 phase
+  Recon→Softening→Main Assault→optional Mop-up/Consolidation sequence with
+  staged economy, non-final retry, contract-wide negotiation, idempotent phase
+  result keys, and three-day refit cadence (`d567c838`, `58a3715f`, `b297a8c5`,
+  `e404b8a9`, `80f12862`, `28734a6f`). EXTRACTION remains system-generated.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 
