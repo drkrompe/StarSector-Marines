@@ -1,9 +1,10 @@
 # Slice G5 — civilian evacuation cohort
 
-**Status:** OBJECTIVE FOUNDATION CODE COMPLETE (2026-08-12)
+**Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
-`5d6257f5`
+`5d6257f5`, `c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`,
+`84e9e175`
 
 ## Goal
 
@@ -34,12 +35,12 @@ that measures evacuation rather than combat victory or civilian survival.
 4. Emit committed rescue missions only after the objective can report honestly;
    keep swarm faction/roster/AI/art in the following payload slice.
 
-## Excluded from this foundation
+## Excluded from this slice
 
 - Persisting battle entity ids in campaign state.
 - Treating generic Extraction victory as rescue success.
 - Counting ambient civilians or merely surviving evacuees.
-- Distress Net mission emission, swarm content, or manual playtesting.
+- Swarm faction/roster/AI/art and manual playtesting.
 
 ## Foundation checkpoint
 
@@ -54,13 +55,17 @@ that measures evacuation rather than combat victory or civilian survival.
 - Focused tracker/outcome tests and the full Gradle build pass. Manual playtest
   was intentionally skipped for this session.
 
-## Next hunk
+## Production payload checkpoint
 
-Add production shelter and evacuation-zone placement, spawn and register exactly
-eight mission civilians, and give those civilians dedicated routing into the
-zone plus visual removal after boarding. The controlled fixture already proves
-that the objective counts only registered boundary crossings, consumes the
-shared death mailbox, and seals on all battle-terminal paths.
+- Placement selects a residential shelter, eight unique reachable cells, and a
+  distant reachable outer-band lift deterministically; invalid attempts are
+  discarded before player visibility.
+- The installer spawns and registers exactly eight mission-only civilians and
+  attaches the objective. Ambient civilians remain outside the identity set.
+- A serial system authors their lift paths and removes boarded evacuees from
+  live rendering without death/corpse semantics.
+- Campaign-event launch uses the dedicated rescue factory. Only the matching
+  market exposes one committed mission under an always-open Distress Net client.
 
 ## Objective checkpoint
 
@@ -74,3 +79,9 @@ shared death mailbox, and seals on all battle-terminal paths.
   lost before mission outcome computation.
 - Focused lifecycle/objective/outcome tests and the full Gradle build pass.
   Manual playtesting remains intentionally skipped for this session.
+
+## Next
+
+Add the swarm faction, roster, approach/attack behavior, and held art as the
+threat payload. The evacuation objective and writeback no longer need to change
+to support that content.

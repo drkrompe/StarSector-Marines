@@ -84,13 +84,13 @@ deterministic 45-day epochs select one eligible market without
 iteration-order dependence, Distress Net presents exact costs/stakes/deadline
 and routes commit/refuse through the shared policy, and debug intel can force a
 production-shaped local call (`0da1b89e`, `34cf0654`, `5572c538`, `24ba5bdc`).
-Committed calls remain honestly unresolved until battle content exists.
+Committed calls now remain open until the dedicated local battle reports them.
 The committed-event mission-lineage foundation is shipped: missions/outcomes
 carry explicit event id, market, and stakes without overloading contracts; a
 pure factory creates a deterministic zero-economy Extraction-shaped snapshot;
 and strict writeback accepts only an explicit in-range evacuation report for the
-matching committed row (`2a5461a6`, `0d49d30e`, `fdfb0aef`). The factory remains
-unemitted while generic Extraction is still an elimination placeholder.
+matching committed row (`2a5461a6`, `0d49d30e`, `fdfb0aef`). Generic Extraction
+remains unchanged; the emitted event mission uses a dedicated battle factory.
 The battle-side evacuation foundation is now shipped as well: an eight-member
 identity tracker distinguishes active, evacuated, and lost representatives;
 only a complete sealed cohort reports; and `MissionResolver` scales that report
@@ -101,7 +101,11 @@ The controlled objective foundation now sits on that tracker: registered live
 entities count only when they enter the lift zone, registered deaths/missing
 entities become lost, ambient civilians are excluded by identity, and all
 battle-terminal paths seal before Results (`a2fa2a70`, `5d6257f5`). Production
-placement, routing, and mission emission remain unwired.
+placement, routing, and mission emission are now shipped too: deterministic
+residential-to-outer-band placement installs eight mission-only VIPs, a serial
+system routes and boards them, campaign-event launch selects the dedicated
+battle factory, and the matching market exposes one Distress Net mission
+(`c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`, `84e9e175`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -114,24 +118,20 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## In progress — Battle-side evacuation cohort
+## Next up — Swarm-defense threat payload
 
-Give the rescue mission a real measurable objective before exposing its factory:
+The civilian rescue is now an end-to-end measurable event. Add its intended
+enemy content without changing the shipped evacuation/writeback contract:
 
-1. **Foundation shipped:** v1 uses eight identity-registered mission evacuees,
-   distinct from ambient civilians. The tracker owns active/evacuated/lost state
-   and only a fully registered sealed cohort can report.
-2. **Controlled objective shipped:** real registered fixture entities count only
-   after entering the lift zone; ambient civilians never count. Next, choose a
-   production shelter/zone pair, spawn all eight, and route them into safety.
-3. **Terminal accounting shipped:** deaths mark loss through the shared mailbox,
-   any battle end seals remaining active members, and scaling preserves exact
-   full rescue without overflow.
-4. **Outcome seam shipped:** sealed counts feed `MissionOutcome`. After production
-   placement/routing works, add the dedicated local Distress Net client and emit
-   the committed-row factory mission exactly once.
-5. Keep swarm faction/roster/AI/art as the following payload slice; the cohort
-   objective should be testable first against controlled battle fixtures.
+1. Inventory the held swarm art and lock its unit/faction naming.
+2. Add an append-only faction/unit archetype and a dedicated swarm roster for
+   civilian-rescue battles; do not reuse ordinary militia defenders.
+3. Give swarm units a simple pressure behavior that attacks the evacuation
+   corridor and responding marines without targeting ambient civilians by
+   accident.
+4. Replace the temporary EXTRACTION defender roster in the dedicated factory,
+   then verify zero/partial/full evacuation under controlled swarm fixtures.
+5. Keep hidden moral mapping and zero-economy mission terms unchanged.
 
 ## Open forks still unresolved (design)
 
@@ -223,3 +223,10 @@ Give the rescue mission a real measurable objective before exposing its factory:
 - Slice G4 contract — mission lineage and explicit rescue reports (`2a5461a6`).
 - Slice G4a — event mission/outcome fields, key, and factory (`0d49d30e`).
 - Slice G4b — strict replay-safe rescue outcome bridge (`fdfb0aef`).
+- Slice G5 contract — representative evacuation cohort (`cc34a2ab`).
+- Slice G5a — tracker, scaling, and outcome report (`1174cae9`, `03017229`).
+- Slice G5b — objective, death, and terminal accounting (`a2fa2a70`, `5d6257f5`).
+- Slice G5c — placement, installation, and routing (`c870193f`, `d1dae861`,
+  `2cd8416a`).
+- Slice G5d — dedicated battle launch and local emission (`bee0c6b4`,
+  `84e9e175`).

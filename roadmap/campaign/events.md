@@ -1,12 +1,13 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE EVACUATION-OBJECTIVE FOUNDATION CODE COMPLETE
-(2026-08-12); production shelter placement and evacuee routing next.
+**Status:** CIVILIAN-RESCUE EVACUATION PAYLOAD CODE COMPLETE
+(2026-08-12); swarm-defense content next.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
 `fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
-`5d6257f5`
+`5d6257f5`, `c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`,
+`84e9e175`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -151,9 +152,9 @@ key, but gets no alternate choice/outcome logic.
 This vertical is shipped. The deterministic producer runs after passive expiry,
 the Distress Net is registered on new and existing saves, choice buttons call
 the shared atomic policy, and debug reachability reuses production terms in a
-reserved trigger namespace. A committed call intentionally remains visible as
-awaiting mission deployment; no placeholder victory or rescued count is
-manufactured.
+reserved trigger namespace. A committed call directs the player to Marine
+Operations at the frozen market, where a local Distress Net client exposes the
+single lineage-bound rescue mission.
 
 ### Committed-event mission lineage — locked v1
 
@@ -200,9 +201,9 @@ metric exists, committed calls remain mission-pending in Distress Net.
 The G4 foundation is shipped. Existing mission constructors default safely to
 no event lineage; committed rows build stable zero-economy mission snapshots;
 and `MissionResolver` rejects event results before ordinary side effects unless
-the strict bridge resolves an explicit report. The factory is not yet emitted
-by `MarineOpsContext`, so the current placeholder battle remains unreachable
-from Distress Net and cannot strand or misclassify an accepted rescue.
+the strict bridge resolves an explicit report. G5 now emits that factory only
+through the matching market's synthetic Distress Net client and launches it
+through a dedicated evacuation battle instead of generic Extraction.
 
 ### Representative evacuation cohort — locked v1
 
@@ -251,9 +252,20 @@ measured zero. Ambient civilians at the same cell remain irrelevant. The shared
 death mailbox also records registered casualties, and every battle-terminal
 path seals a complete cohort before Results reads it.
 
-No production mission reaches this seam yet. Production cohort spawning,
-shelter/lift-point selection, evacuee routing and visual removal, local mission
-emission, and swarm content remain follow-up payloads.
+The production payload is shipped. Placement deterministically chooses a
+residential interior, eight unique reachable shelter cells, and a distant
+reachable outer-band lift; up to eight deterministic map attempts prevent a
+partial payload from becoming visible. The installer spawns a fixed civilian /
+engineer / scientist mix as mission-only squadless VIPs, registers the complete
+cohort, and attaches the evacuation objective.
+
+A serial evacuation system owns their paths. It routes each active member to
+the lift, boards and removes them from live rendering on boundary entry without
+creating a corpse, and leaves death/loss to the shared death mailbox. Mission
+launch recognizes `CAMPAIGN_EVENT` and builds this battle; generic Extraction
+is unchanged. The matching market alone exposes one committed mission through
+an always-open Distress Net client. Swarm faction, roster, AI, and held art are
+the next content slice.
 
 ## Design rules
 
