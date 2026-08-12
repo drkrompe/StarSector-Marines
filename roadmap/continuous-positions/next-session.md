@@ -15,8 +15,13 @@ commit stays green — 2a changes each helper's semantics in one place.
 
 - [x] phase-1-storage-flip — landed 0d346838; critique pass clean
 - [x] phase-2b-arrival-semantics — helpers aabf8b5f, 50-site sweep 7a095c06
-- [ ] phase-2a-continuous-mover — mover swap landed 2d4bad01 (critique pass
-      pending); RENDER_POSITION removal (2a-2) in flight
+- [x] phase-2a-continuous-mover — 2d4bad01 (mover) + 89f2e661
+      (RENDER_POSITION deleted) + 2c67bc12 (critique fixes: one-cell-path
+      blocker, velocity-authored presentation); combined critique pass on
+      the latter two pending
+- [ ] phase-2c — IN FLIGHT: primitives widened 24651e4c; 4 parallel agents
+      (services / scoring+squad / infantry+goap / mech+air+render) per
+      stories/phase-2c-worklist.md
 - [ ] phase-2c-spatial-boundaries
 - [ ] in-game verification + merge back to main
 
@@ -30,6 +35,15 @@ commit stays green — 2a changes each helper's semantics in one place.
   GAIT_PHASE + LAST_REPATH_TIME; ARRIVE_RADIUS 0.35, LOOKAHEAD 0.45,
   repath throttle 0.35s; 24 stop-snap pairs deleted, idle-pose reset
   centralized in FacingSystem)
+- 89f2e661 phase 2a-2: RENDER_POSITION deleted; renderX/renderY = tolerant
+  center-based POSITION reads; draw sites drop +0.5; ShotEndpoint takes
+  centers; drone syncs POSITION from AirBody; WorldPicker/audio gain the
+  correct center
+- 2c67bc12 phase 2a-3: one-cell paths start at cursor 0 (born-exhausted
+  blocker — mission softlock via stranded planters); MOVEMENT VEL_X/VEL_Y
+  per-tick applied velocity; FacingSystem moving/bearing from velocity;
+  MechLocomotionSystem holds heading on zero path-delta
+- 24651e4c 2c groundwork: cellDistance + RangeFalloff.dist widened to float
 
 ## Handoff notes
 
