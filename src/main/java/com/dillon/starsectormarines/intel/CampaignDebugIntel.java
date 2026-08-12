@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractTableCompactor;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
@@ -470,39 +471,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     /** Compact terminal contracts out of the table to keep the list browsable. */
     private static void clearTerminalContracts(CampaignState s) {
-        int write = 0;
-        s.contractIndexById.clear();
-        for (int read = 0; read < s.contractCount; read++) {
-            ContractState st = ContractState.fromByte(s.contractState[read]);
-            if (st.isTerminal()) continue;
-            if (write != read) copyContractRow(s, read, write);
-            s.contractIndexById.put(s.contractId[write], write);
-            write++;
-        }
-        s.contractCount = write;
-    }
-
-    /** Moves contract row {@code from} to {@code to} across every parallel array. */
-    private static void copyContractRow(CampaignState s, int from, int to) {
-        s.contractId[to]                = s.contractId[from];
-        s.contractPatronHouseId[to]     = s.contractPatronHouseId[from];
-        s.contractTargetHouseId[to]     = s.contractTargetHouseId[from];
-        s.contractChainId[to]           = s.contractChainId[from];
-        s.contractType[to]              = s.contractType[from];
-        s.contractState[to]             = s.contractState[from];
-        s.contractAcceptedTick[to]      = s.contractAcceptedTick[from];
-        s.contractExpiresTick[to]       = s.contractExpiresTick[from];
-        s.contractOfferExpiresTick[to]  = s.contractOfferExpiresTick[from];
-        s.contractPhasesTotal[to]       = s.contractPhasesTotal[from];
-        s.contractPhasesDone[to]        = s.contractPhasesDone[from];
-        s.contractCaptainId[to]         = s.contractCaptainId[from];
-        s.contractMarketId[to]          = s.contractMarketId[from];
-        s.contractIndustryId[to]        = s.contractIndustryId[from];
-        s.contractBasePayout[to]        = s.contractBasePayout[from];
-        s.contractRetainerPerMonth[to]  = s.contractRetainerPerMonth[from];
-        s.contractSalvageBaseline[to]   = s.contractSalvageBaseline[from];
-        s.contractSalvageNegotiated[to] = s.contractSalvageNegotiated[from];
-        s.contractCashMultiplier[to]    = s.contractCashMultiplier[from];
+        ContractTableCompactor.removeTerminal(s);
     }
 
     private static void acceptOffer(CampaignState s, long id) {
