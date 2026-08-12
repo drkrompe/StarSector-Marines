@@ -206,15 +206,17 @@ now include a separately persisted, replay-safe mutual-hostility rupture between
 claimant and former ruler (`ad6ff5fd`, `527535fb`). Player reputation stays
 neutral until explicit kingmaker participation can be attributed; the dedicated
 faction-flip snapshot and debug dispatch are now shipped (`d7be2649`,
-`31be86ed`). Civil-war player choices and the kingmaker capstone remain follow-up
-slices.
+`31be86ed`). The kingmaker capstone remains a follow-up slice.
 
 Those player choices now have a complete persistence and resolution foundation:
 civil-war contracts reuse parent/opposed lineage for side identity, snapshot one
 of three offer bands, lock allegiance on first successful work, apply weighted or
 decisive chain effects once, and carry claimant-side attribution into a successful
 throne handoff (`926047e8`, `4332927f`, `50591863`, `3610923d`, `487134ae`).
-Paired offer generation and terminal player consequences remain.
+The player-facing producer now creates a historical pair per side/band, freezes
+a concrete contested objective, expires stale choices, and routes battle and
+stationing acceptance through shared contradictory-work/withdrawal rules
+(`551081ab`, `4f6afb8b`). Terminal attributed player consequences remain.
 
 ## Two payoffs that fall out for free
 

@@ -61,6 +61,10 @@ successful operation locks chain allegiance, early work applies ±15/±30
 progress, open-conflict assaults are decisive, completed stationing work is
 recoverable, and successful claimant attribution snapshots into the throne
 handoff (`926047e8`, `4332927f`, `50591863`, `3610923d`, `487134ae`).
+The player-facing offer lifecycle is shipped too: a dedicated producer creates
+one paired offer per side/band with a frozen contested objective, retires stale
+offers, and shared battle/stationing acceptance immediately withdraws the
+opposing choice without blocking later assault phases (`551081ab`, `4f6afb8b`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -73,18 +77,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Paired civil-war offers
+## Next up — Attributed terminal consequences
 
-Build the player-facing producer for the contract fixed in
+Finish the last implementation slice in
 [`civil-war-participation.md`](civil-war-participation.md):
 
-1. For each discovered active civil war, create at most one historical offer per
-   side per band using the locked contract-type mapping.
-2. Choose and persist a concrete local industry/objective without changing the
-   market-wide chain sentinel.
-3. On acceptance, withdraw the opposite offered row and prevent contradictory
-   active work; on allegiance lock, expire every remaining opposite offer.
-4. Expire outstanding offers when the chain becomes terminal or leaves its band.
+1. Lock the claimant/incumbent player-reputation deltas and whether accumulated
+   contribution changes their magnitude.
+2. Persist a postcondition-first, exactly-once consequence lifecycle for the
+   successful handoff path and the incumbent-attributed failed-chain path.
+3. Consume only snapshotted/persisted attribution; autonomous `NONE` outcomes
+   and mere offer acceptance remain neutral.
+4. Cover retries, partial application, save/load, and terminal replay before the
+   player-facing kingmaker capstone is layered on top.
 
 ## Open forks still unresolved (design)
 
@@ -158,3 +163,5 @@ Build the player-facing producer for the contract fixed in
 - Slice F6c — validated weighted/decisive contributions (`50591863`).
 - Slice F6d — throne attribution snapshot (`3610923d`).
 - Slice F6e — recoverable contribution integration (`487134ae`).
+- Slice F7a — paired band offer generation (`551081ab`).
+- Slice F7b — shared acceptance and opposing withdrawal (`4f6afb8b`).

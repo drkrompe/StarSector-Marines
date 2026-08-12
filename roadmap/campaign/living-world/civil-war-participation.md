@@ -1,9 +1,10 @@
 # Civil-war participation contract
 
-**Status:** FOUNDATION CODE COMPLETE (2026-08-12); paired offer generation next.
+**Status:** OFFER LIFECYCLE CODE COMPLETE (2026-08-12); terminal player
+consequences next.
 
 **Implemented:** `926047e8`, `4332927f`, `50591863`, `3610923d`,
-`487134ae`
+`487134ae`, `551081ab`, `4f6afb8b`
 
 This document fixes how the player enters an autonomous `CIVIL_WAR` without
 turning every discovered plot intervention into a kingmaker decision. The
@@ -47,7 +48,7 @@ from later chain progress.
 | --- | --- | --- | --- | ---: |
 | 0–59 | Coalition building | `ESCORT` envoys, defectors, or materiel | `STRIKE` organizers and caches | 15 |
 | 60–119 | Mobilization | `CADRE` training for the claimant coalition | `GARRISON` the incumbent's threatened center | 30 |
-| 120–179 | Open conflict | `PLANETARY_ASSAULT` to seize the market | `PLANETARY_ASSAULT` to break the rebellion | decisive |
+| 120–179 | Open conflict | `PLANETARY_ASSAULT` to seize the market | `PLANETARY_ASSAULT` to break the rebellion | decisive (60 attribution) |
 
 The first two bands move chain progress by their weight: claimant success adds,
 incumbent success subtracts, clamped to `0..threshold`. Daily autonomous progress
@@ -94,7 +95,7 @@ its terminal consequences must consume the failed chain's persisted attribution.
    including growth, compaction, and legacy-save backfill.~~
 2. ~~Add a pure validator/recorder for completed civil-war contributions.~~
 3. ~~Snapshot successful claimant attribution into `throneClaims[]`.~~
-4. Generate paired band offers and wire acceptance/withdrawal behavior.
+4. ~~Generate paired band offers and wire acceptance/withdrawal behavior.~~
 5. Apply exactly-once player consequences from terminal attributed outcomes.
 
 Weighted and decisive chain outcomes landed with the validator: early bands
@@ -102,6 +103,14 @@ apply ±15/±30 progress; open-conflict claimant work arms threshold resolution;
 open-conflict incumbent work fails the rebellion. A daily system after contract
 lifecycle recovers completed mission-mode or stationing contributions exactly
 once. Banded contracts are excluded from the older generic intervention shortcut.
+
+The dedicated daily offer producer now owns discovered active civil wars. It
+creates one historical offer per side/band, freezes the strongest concrete
+contested local objective, withdraws stale band/terminal offers, and leaves the
+chain's market-wide industry sentinel untouched. Mission and stationing
+acceptance share one domain validator: choosing a side activates that work and
+immediately expires the opposing offer, while later Planetary Assault phases
+remain deployable without being treated as a new choice.
 
 ## Non-goals for the foundation
 

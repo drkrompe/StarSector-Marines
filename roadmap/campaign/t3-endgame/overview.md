@@ -129,7 +129,8 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
 
 - ~~Contract composition and player choices across the three progress bands.~~
   Locked in [civil-war participation](../living-world/civil-war-participation.md);
-  persistence and contribution resolution are shipped; offers remain.
+  persistence, contribution resolution, paired offers, and shared acceptance are
+  shipped (`551081ab`, `4f6afb8b`).
 - Player reputation consequences for those explicit choices.
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.
