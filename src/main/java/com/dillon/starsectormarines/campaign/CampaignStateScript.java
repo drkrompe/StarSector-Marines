@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.systems.CampaignEventLifecycleSyste
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
+import com.dillon.starsectormarines.campaign.systems.CivilianRescueSpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
@@ -91,6 +92,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
                 new CampaignEventLifecycleSystem(),
+                new CivilianRescueSpawnSystem(),
                 new MoralCompassSystem(),
                 new StationingDefaultExtractionSystem(),
                 new ExtractionResolutionSystem(),

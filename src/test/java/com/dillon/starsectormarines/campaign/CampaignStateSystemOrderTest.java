@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
+import com.dillon.starsectormarines.campaign.systems.CivilianRescueSpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
@@ -59,6 +60,7 @@ class CampaignStateSystemOrderTest {
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
         int moralCompass = indexOf(systems, MoralCompassSystem.class);
         int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
+        int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
@@ -84,6 +86,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(civilWarParticipation < civilWarConsequences);
         assertTrue(civilWarConsequences < moralCompass);
         assertTrue(eventLifecycle < moralCompass);
+        assertTrue(eventLifecycle < rescueSpawn);
+        assertTrue(rescueSpawn < moralCompass);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);
     }
