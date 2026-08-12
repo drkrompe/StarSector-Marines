@@ -4,31 +4,27 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
-import com.dillon.starsectormarines.campaign.ContractType;
-import com.dillon.starsectormarines.campaign.HouseStatus;
 
 import java.util.EnumSet;
 
 /**
- * Tick phase 4: drive contract state transitions that aren't triggered by
+ * Drive offer expiry and successful term completion that aren't triggered by
  * mission resolution. The mission resolver bridge (see
  * {@code MissionResolver#applyContractBridge}) handles per-phase advancement
- * and victory/defeat flips; this system handles the time-driven and
- * patron-driven transitions:
+ * and victory/defeat flips; stationing defaults are evaluated earlier by
+ * {@link StationingDefaultSystem} so a missed payment cannot be delivered
+ * before the contract defaults.
  *
  * <ul>
  *   <li>{@link ContractState#OFFERED OFFERED} past its
  *       {@code contractOfferExpiresTick} → {@link ContractState#EXPIRED EXPIRED}
  *       (tombstoned per the SoA soft-delete invariant; filters out of the
  *       offer list).</li>
- *   <li>Patron DEPOSED → contract DEFAULTED (spawns extraction mission downstream).</li>
  *   <li>Stationing contract past its {@code expiresTick} → COMPLETED if all phases
  *       cleared, FAILED otherwise.</li>
- *   <li>Random monthly default roll scaled by patron {@code housePower} — TODO when
- *       housePower is actually populated by other systems.</li>
  * </ul>
  *
- * <p>See <code>roadmap/campaign/contracts/overview.md</code> §"Default mechanics".
+ * <p>See <code>roadmap/campaign/contracts/overview.md</code> §"Lifecycle".
  */
 public final class ContractLifecycleSystem implements CampaignSystem {
 
@@ -39,7 +35,7 @@ public final class ContractLifecycleSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> reads() {
-        return EnumSet.of(CampaignTable.HOUSES, CampaignTable.CONTRACTS);
+        return EnumSet.of(CampaignTable.CONTRACTS);
     }
 
     @Override
@@ -67,14 +63,6 @@ public final class ContractLifecycleSystem implements CampaignSystem {
             }
 
             long patronId = state.contractPatronHouseId[i];
-            ContractType type = ContractType.fromByte(state.contractType[i]);
-            int patronRow = state.houseIndex(patronId);
-            if (type.isStationing() && patronRow >= 0
-                    && HouseStatus.fromByte(state.houseStatus[patronRow]) == HouseStatus.DEPOSED) {
-                state.contractState[i] = ContractState.DEFAULTED.toByte();
-                continue;
-            }
-
             int expires = state.contractExpiresTick[i];
             if (expires != -1 && day >= expires) {
                 int phasesDone  = state.contractPhasesDone[i] & 0xFF;
@@ -87,9 +75,6 @@ public final class ContractLifecycleSystem implements CampaignSystem {
                     bumpRep(state, patronId, -1, day, false);
                 }
             }
-
-            // Monthly random default roll lives here too once housePower is
-            // populated — until then it's a no-op.
         }
     }
 

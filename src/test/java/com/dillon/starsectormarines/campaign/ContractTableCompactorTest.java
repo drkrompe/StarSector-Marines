@@ -20,6 +20,7 @@ class ContractTableCompactorTest {
         state.contractLastRetainerTick[1] = 50;
         state.contractLastTrainingTick[1] = 51;
         state.contractSourceContractId[1] = 99L;
+        state.contractLastDefaultCheckTick[1] = 52;
 
         assertEquals(1, ContractTableCompactor.removeTerminal(state));
 
@@ -39,6 +40,7 @@ class ContractTableCompactorTest {
         assertEquals(50, state.contractLastRetainerTick[0]);
         assertEquals(51, state.contractLastTrainingTick[0]);
         assertEquals(99L, state.contractSourceContractId[0]);
+        assertEquals(52, state.contractLastDefaultCheckTick[0]);
         assertEquals(5, state.contractSalvageBaseline[0] & 0xFF);
         assertEquals(4, state.contractSalvageNegotiated[0] & 0xFF);
         assertEquals(101, state.contractCashMultiplier[0] & 0xFF);

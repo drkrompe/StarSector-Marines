@@ -60,6 +60,7 @@ public final class ContractTableCompactor {
         state.contractMarinesCommitted[to] = state.contractMarinesCommitted[from];
         state.contractLastRetainerTick[to] = state.contractLastRetainerTick[from];
         state.contractLastTrainingTick[to] = state.contractLastTrainingTick[from];
+        state.contractLastDefaultCheckTick[to] = state.contractLastDefaultCheckTick[from];
         state.contractSalvageBaseline[to] = state.contractSalvageBaseline[from];
         state.contractSalvageNegotiated[to] = state.contractSalvageNegotiated[from];
         state.contractCashMultiplier[to] = state.contractCashMultiplier[from];
