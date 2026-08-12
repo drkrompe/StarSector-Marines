@@ -252,7 +252,7 @@ public final class BattleSetup {
         Random rng = new Random(seed);
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         // Defense posts stamp before sim construction for the same reason —
         // the embankment ring cells flip walkability, and the zone graph the
         // sim builds on construction needs to reflect that.
@@ -498,7 +498,7 @@ public final class BattleSetup {
         MapScale scale = MapScale.forRisk(risk);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         List<DefensePost> defensePosts = new ArrayList<>();
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
@@ -586,8 +586,7 @@ public final class BattleSetup {
             MapResult map = MAP_GEN.generate(
                     scale.width, scale.height, battleSeed, null, profile);
             Random rng = new Random(battleSeed);
-            List<MapVehicle> vehiclePlacements =
-                    stampVehicles(map.grid, map.topology, rng);
+            List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
             BattleSimulation sim =
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList()).sim();
@@ -685,7 +684,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is.
         MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
         // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
@@ -1649,10 +1648,36 @@ public final class BattleSetup {
      * {@link PlacementGuards#wouldPartitionWalkable connectivity} is checked
      * so the truck can't sever a thin walkable strip from the main graph.
      */
-    private static List<MapVehicle> stampVehicles(NavigationGrid grid, CellTopology topology, Random rng) {
+    static List<MapVehicle> stampVehicles(MapResult map, Random rng) {
+        NavigationGrid grid = map.grid;
+        CellTopology topology = map.topology;
         int target = VEHICLE_COUNT_MIN + rng.nextInt(VEHICLE_COUNT_MAX - VEHICLE_COUNT_MIN + 1);
         VehicleKind[] kinds = VehicleKind.values();
         List<MapVehicle> placed = new ArrayList<>(target);
+
+        // An operating civilian port parks purpose-appropriate ground traffic
+        // on the service side of some berths. Keep other berths empty so the
+        // apron doesn't become a solid vehicle lot.
+        List<LandingPad> portPads = new ArrayList<>();
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.CIVILIAN_SPACEPORT) portPads.add(pad);
+        }
+        int serviceTarget = Math.min(target, Math.min(3, (portPads.size() + 1) / 2));
+        VehicleKind[] serviceKinds = {
+                VehicleKind.FLATBED_TRUCK,
+                VehicleKind.TANKER_TRUCK,
+                VehicleKind.CARGO_TRUCK,
+                VehicleKind.UTILITY_TRUCK
+        };
+        for (int i = 0; i < serviceTarget; i++) {
+            LandingPad pad = portPads.get(i * 2);
+            VehicleKind kind = serviceKinds[rng.nextInt(serviceKinds.length)];
+            int[] anchor = findServiceVehicleAnchor(map, pad, kind);
+            if (anchor == null) continue;
+            stampOneVehicle(grid, topology, anchor[0], anchor[1], kind);
+            placed.add(new MapVehicle(kind, anchor[0], anchor[1]));
+        }
+
         int attempts = 0;
         int maxAttempts = target * 50;
         while (placed.size() < target && attempts < maxAttempts) {
@@ -1660,7 +1685,7 @@ public final class BattleSetup {
             VehicleKind kind = kinds[rng.nextInt(kinds.length)];
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
-            if (!canPlaceVehicle(grid, topology, x, y, kind)) continue;
+            if (!canPlaceVehicle(map, x, y, kind, false)) continue;
             if (PlacementGuards.wouldPartitionWalkable(
                     grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
             stampOneVehicle(grid, topology, x, y, kind);
@@ -1669,7 +1694,39 @@ public final class BattleSetup {
         return placed;
     }
 
-    private static boolean canPlaceVehicle(NavigationGrid grid, CellTopology topology, int x, int y, VehicleKind kind) {
+    private static int[] findServiceVehicleAnchor(MapResult map, LandingPad pad,
+                                                   VehicleKind kind) {
+        int x;
+        int y;
+        if (pad.approach.dx != 0) {
+            x = pad.approach == LandingPad.Approach.EAST
+                    ? pad.left() - kind.footprintCellsX - 1
+                    : pad.right() + 2;
+            y = pad.centerY - kind.footprintCellsY / 2;
+        } else {
+            x = pad.centerX - kind.footprintCellsX / 2;
+            y = pad.approach == LandingPad.Approach.NORTH
+                    ? pad.bottom() - kind.footprintCellsY - 1
+                    : pad.top() + 2;
+        }
+
+        int step = pad.approach.dx != 0 ? kind.footprintCellsY : kind.footprintCellsX;
+        int[] offsets = {0, step, -step, step * 2, -step * 2};
+        for (int offset : offsets) {
+            int candidateX = pad.approach.dx != 0 ? x : x + offset;
+            int candidateY = pad.approach.dx != 0 ? y + offset : y;
+            if (!canPlaceVehicle(map, candidateX, candidateY, kind, true)) continue;
+            if (PlacementGuards.wouldPartitionWalkable(map.grid, candidateX, candidateY,
+                    kind.footprintCellsX, kind.footprintCellsY)) continue;
+            return new int[]{candidateX, candidateY};
+        }
+        return null;
+    }
+
+    private static boolean canPlaceVehicle(MapResult map, int x, int y,
+                                           VehicleKind kind, boolean allowApron) {
+        NavigationGrid grid = map.grid;
+        CellTopology topology = map.topology;
         for (int dy = 0; dy < kind.footprintCellsY; dy++) {
             for (int dx = 0; dx < kind.footprintCellsX; dx++) {
                 int cx = x + dx;
@@ -1677,7 +1734,18 @@ public final class BattleSetup {
                 if (!grid.inBounds(cx, cy)) return false;
                 if (!grid.isWalkable(cx, cy)) return false;
                 if (PlacementGuards.touchesDoorway(grid, cx, cy)) return false;
-                if (!topology.isStreet(cx, cy) && !topology.isCourtyard(cx, cy)) return false;
+                boolean ordinaryPavement = topology.isStreet(cx, cy) || topology.isCourtyard(cx, cy);
+                boolean portApron = allowApron
+                        && topology.getGroundKind(cx, cy) == CellTopology.GroundKind.STRIPED;
+                if (!ordinaryPavement && !portApron) return false;
+                for (LandingPad pad : map.landingPads) {
+                    if (pad.contains(cx, cy)) return false;
+                }
+                if (allowApron) {
+                    for (Doodad doodad : map.doodads) {
+                        if (doodad.cellX == cx && doodad.cellY == cy) return false;
+                    }
+                }
             }
         }
         return true;
