@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `dc3da47d`
+
 ## Goal
 
 Persist only the political events the player has learned, while giving the

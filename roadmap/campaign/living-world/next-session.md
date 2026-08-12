@@ -12,6 +12,9 @@ point while holding a strict home-market majority (`11987f9a`). D1 is also
 shipped: monthly autonomous plots bind an actor, rival, market, and industry;
 advance one point per day; and resolve exactly once into a 40-share transfer
 plus 30 promotion progress (`3137f238`, `2f7b4a86`, `1d6ca71c`).
+D2 is shipped too: learned events persist as append-only snapshots, terminal
+chains pass through the intimate/epic/silent editor exactly once, and debug
+intel renders the resulting dispatches (`dc3da47d`, `068943ed`, `55eefe4f`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -24,18 +27,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice D2 (Chronicle discovery foundation)
+## Next up — Slice D3 (Active-chain rumors and intervention seam)
 
-Turn D1's persisted terminal-chain seam into learned, player-visible history:
+Let some plots become actionable before they resolve, without turning the
+Chronicle into an omniscient quest log:
 
-1. Define a small append-only `chronicle[]` table for learned events, including
-   source chain, outcome, actor/target/location, happened day, and learned day.
-2. Give `DiscoveryPropagationSystem` an exactly-once consumption marker for
-   terminal chains; reloads and repeated ticks must not duplicate dispatches.
-3. Ship the two-band editor rule: houses the player has touched are intimate,
-   Tier-3+ chains are epic, and the silent middle remains unrecorded.
-4. Expose learned dispatches on the debug campaign intel first; richer prose and
-   active-chain rumor/intervention hooks can layer on after storage is stable.
+1. Add persisted active-discovery cadence/state separate from terminal outcome
+   processing, so rumor rolls are deterministic and exactly-once per window.
+2. Extend Chronicle vocabulary with an active-chain rumor snapshot and a clear
+   confidence level; never rewrite a rumor row when the chain later resolves.
+3. Gate rumors with `discoveryRisk`, player contact, and/or high tier so ordinary
+   low-level background plots remain silent.
+4. Leave a stable discovered-chain query for a threatened-house counter-contract
+   generator; ship the actual offer only after its lifecycle rules are locked.
 
 ## Open forks still unresolved (design)
 
@@ -73,3 +77,6 @@ Turn D1's persisted terminal-chain seam into learned, player-visible history:
 - Slice D1a — autonomous chain identity + lifecycle (`3137f238`).
 - Slice D1b — monthly deterministic chain creation (`2f7b4a86`).
 - Slice D1c — daily advancement + exactly-once resolution (`1d6ca71c`).
+- Slice D2a — append-only learned Chronicle storage (`dc3da47d`).
+- Slice D2b — intimate/epic/silent terminal editor (`068943ed`).
+- Slice D2c — Chronicle debug-intel dispatches (`55eefe4f`).

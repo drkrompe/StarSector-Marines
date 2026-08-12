@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `068943ed`
+
 ## Goal
 
 Convert terminal political chains into selective learned history instead of an

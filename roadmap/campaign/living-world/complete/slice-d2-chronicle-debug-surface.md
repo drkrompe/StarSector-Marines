@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `55eefe4f`
+
 ## Goal
 
 Make learned political history inspectable without committing yet to the final

@@ -157,7 +157,7 @@ Each slice is independently observable.
 | ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
-| **D — Chains + Chronicle** (D1 chains ✅) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
+| **D — Chains + Chronicle** (D1 chains + D2 learned outcomes ✅) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
@@ -168,14 +168,16 @@ D adds headlines and decisive events. E is the long tail.
 majority promotion: `c26ca415`, `daf3ef1b`, `11987f9a`), and D1 (persisted
 autonomous chain identity, monthly deterministic creation, daily advancement,
 and exactly-once stake/promotion resolution: `3137f238`, `2f7b4a86`,
-`1d6ca71c`) — see
+`1d6ca71c`), and D2 (append-only learned Chronicle events, two-band terminal
+outcome classification, and debug-intel dispatches: `dc3da47d`, `068943ed`,
+`55eefe4f`) — see
 [`complete/`](complete/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic. D2 now owns the Chronicle storage and discovery surface.
+mutation logic. D3 now owns active-chain rumors and the intervention hook.
 
 ## Two payoffs that fall out for free
 
@@ -216,9 +218,8 @@ Designed in a follow-up once Genesis + drift exist to react against.
    claim from the unclaimed remainder (expansion vs. theft). Confirm.
 3. **Vanilla industry coupling** — if vanilla disrupts/grows an industry,
    do our shares react? v1: ignore; fixed pie per industry at seed.
-4. **Chronicle storage** — dedicated `chronicle[]` of learned events, or
-   reuse the intel feed with a discriminator? Affects save size + the
-   "actions echo back" lookback.
+4. ~~**Chronicle storage**~~ — resolved in D2: a small append-only
+   `chronicle[]` stores learned event snapshots; silent events never enter it.
 5. **Discovery surface** — how does an in-flight autonomous chain reach
    the player: intel ping gated by `discoveryRisk`, or only via a `SCOUT`
    captain / intel infrastructure (ties to
