@@ -57,8 +57,16 @@ public final class MechLocomotionSystem {
                     if (dx != 0 || dy != 0) {
                         MechLocomotion.turnToward(world, components, id,
                                 MechLocomotion.desiredFacing(dx, dy), dt);
-                        continue;
+                    } else {
+                        // Inside the next waypoint's cell (the carrot hasn't
+                        // crossed its center yet): hold heading and walk it
+                        // out. Falling through to target-turning here would
+                        // swivel the chassis off the path bearing mid-segment
+                        // and trip the mover's pivot gate at the next waypoint
+                        // — a per-cell stutter-step.
+                        MechLocomotion.stopTurning(world, components, id);
                     }
+                    continue;
                 }
                 long target = hasCombat ? targets[row] : 0L;
                 if (target == 0L || !roster.isLive(target)) {

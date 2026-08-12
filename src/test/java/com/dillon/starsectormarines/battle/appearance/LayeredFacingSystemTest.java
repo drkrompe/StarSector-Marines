@@ -71,10 +71,12 @@ public class LayeredFacingSystemTest {
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.setPath(marine, new int[]{5, 5, 5, 6});
-        // Gait phase drives the locomotion pose while the path is un-exhausted;
-        // poke the raw column directly (no public mid-motion setter — the mover
-        // owns advancing it) to pin a deterministic value for this assertion.
+        // The moving flag + travel bearing come from the velocity the mover
+        // applied this tick, and the gait phase drives the locomotion pose;
+        // poke the raw columns directly (no public mid-motion setters — the
+        // mover owns them) to pin a deterministic northbound mid-stride state.
         sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE, 0.25f);
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, UnitType.MARINE.moveSpeed);
         sim.world().setTargetId(marine, enemy);
 
         new FacingSystem(sim.getEntityWorld(), sim.getBattleComponents(), sim.getRoster()).tick();

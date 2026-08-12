@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -75,12 +74,12 @@ public final class FacingSystem {
             long[] targetId = hasCombat
                     ? t.longs(components.COMBAT, BattleComponents.COMBAT_TARGET_ID).array() : null;
 
-            Object[] paths = hasMovement
-                    ? t.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array() : null;
-            int[] pathIdx = hasMovement
-                    ? t.ints(components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX).array() : null;
             float[] gaitPhase = hasMovement
                     ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE).array() : null;
+            float[] velX = hasMovement
+                    ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array() : null;
+            float[] velY = hasMovement
+                    ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array() : null;
 
             float[] actionTimer = hasSecondary
                     ? t.floats(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER).array() : null;
@@ -171,34 +170,25 @@ public final class FacingSystem {
                         }
                     }
                 }
-                int pathDx = 0;
-                int pathDy = 0;
-                boolean havePathDelta = false;
-                if (!haveDelta && hasMovement) {
-                    int[] path = (int[]) paths[r];
-                    int idx = pathIdx[r];
-                    if (idx < Paths.cellCount(path)) {
-                        int pdx = Paths.cellX(path, idx) - rowCellX;
-                        int pdy = Paths.cellY(path, idx) - rowCellY;
-                        if (pdx != 0 || pdy != 0) {
-                            pathDx = pdx;
-                            pathDy = pdy;
-                            havePathDelta = true;
-                            dx = pdx;
-                            dy = pdy;
-                            haveDelta = true;
-                        }
-                    }
-                } else if (hasMovement) {
-                    // Layered actors can walk along the path while looking/aiming
-                    // independently at a target, so retain both deltas even though
-                    // the legacy sheet's target-first fallback already resolved.
-                    int[] path = (int[]) paths[r];
-                    int idx = pathIdx[r];
-                    if (idx < Paths.cellCount(path)) {
-                        pathDx = Paths.cellX(path, idx) - rowCellX;
-                        pathDy = Paths.cellY(path, idx) - rowCellY;
-                        havePathDelta = pathDx != 0 || pathDy != 0;
+                // Travel bearing from the velocity the mover actually applied
+                // this tick, quantized to the same octants the old next-cell
+                // delta produced. Cell deltas are unusable under the carrot
+                // mover: nextPathCell − flooredCell is (0,0) for the second
+                // half of every segment, which strobed the walk pose/facing.
+                // Layered actors can walk while looking/aiming independently at
+                // a target, so the travel delta is kept even when the legacy
+                // sheet's target-first fallback already resolved.
+                int travelDx = 0;
+                int travelDy = 0;
+                boolean haveTravelDelta = false;
+                if (hasMovement) {
+                    travelDx = octantComponent(velX[r], velY[r]);
+                    travelDy = octantComponent(velY[r], velX[r]);
+                    haveTravelDelta = travelDx != 0 || travelDy != 0;
+                    if (!haveDelta && haveTravelDelta) {
+                        dx = travelDx;
+                        dy = travelDy;
+                        haveDelta = true;
                     }
                 }
 
@@ -220,13 +210,13 @@ public final class FacingSystem {
                 if (hasLayeredAnimation) {
                     authorLayeredRow(r, type, hasCombat, hasMovement, inAim,
                             cooldownTimer, attackCooldown, actionTimer, secondarySpec,
-                            secondaryFired, paths, pathIdx, gaitPhase, haveTargetDelta, targetDx,
-                            targetDy, havePathDelta, pathDx, pathDy, layeredFacing,
+                            secondaryFired, gaitPhase, haveTargetDelta, targetDx,
+                            targetDy, haveTravelDelta, travelDx, travelDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
                             layeredFlags);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
-                    authorLayeredMechRow(r, hasMovement, paths, pathIdx, gaitPhase,
+                    authorLayeredMechRow(r, hasMovement && haveTravelDelta, gaitPhase,
                             haveTargetDelta, targetDx, targetDy,
                             (MechLoadoutComponent) mechLoadout[r], mechFacing,
                             mechLocomotion, mechChaingunPhase, mechSrmPhase,
@@ -238,22 +228,23 @@ public final class FacingSystem {
     }
 
     private static void authorLayeredMechRow(
-            int row, boolean hasMovement, Object[] paths, int[] pathIdx, float[] gaitPhase,
+            int row, boolean moving, float[] gaitPhase,
             boolean haveTargetDelta, int targetDx, int targetDy,
             MechLoadoutComponent loadout, float[] facing, float[] locomotion,
             float[] chaingunPhase, float[] srmPhase, float[] lrmPhase, int[] flags,
             float[] steeringFacing, float[] angularVelocity, float[] hipFacing) {
-        boolean moving = hasMovement
-                && pathIdx[row] < Paths.cellCount((int[]) paths[row]);
+        // moving = translation actually applied this tick, so a pivot-gated
+        // mech (path un-exhausted, translation held) correctly plays the
+        // turn-step below instead of freezing mid-walk-stride.
         boolean turning = Math.abs(angularVelocity[row]) > 0.0001f;
         float hips = steeringFacing[row];
         hipFacing[row] = hips;
         float desiredTorso = haveTargetDelta
                 ? LayeredAppearance.facingDegrees(targetDx, targetDy) : hips;
         facing[row] = LayeredMechAppearance.torsoFacing(hips, desiredTorso);
-        // Gait is gated on an un-exhausted path (not on the raw phase): a
-        // stopped unit keeps its stale phase value, and the gate is what
-        // returns it to the idle pose.
+        // Gait is gated on applied velocity (not on the raw phase): a stopped
+        // unit keeps its stale phase value, and the gate is what returns it
+        // to the idle pose.
         locomotion[row] = turning && !moving
                 ? LayeredMechAppearance.turnStepPhase(steeringFacing[row])
                 : LayeredAppearance.locomotionPhase(moving ? gaitPhase[row] : 0f);
@@ -294,15 +285,16 @@ public final class FacingSystem {
     private static void authorLayeredRow(
             int row, UnitType type, boolean hasCombat, boolean hasMovement, boolean inAim,
             float[] cooldownTimer, float[] attackCooldown, float[] actionTimer,
-            Object[] secondarySpec, int[] secondaryFired, Object[] paths, int[] pathIdx,
+            Object[] secondarySpec, int[] secondaryFired,
             float[] gaitPhase,
             boolean haveTargetDelta, int targetDx, int targetDy,
-            boolean havePathDelta, int pathDx, int pathDy,
+            boolean haveTravelDelta, int travelDx, int travelDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
             int[] pose, int[] flags) {
 
-        boolean moving = hasMovement && havePathDelta
-                && pathIdx[row] < Paths.cellCount((int[]) paths[row]);
+        // Nonzero applied velocity — true iff the mover translated this tick,
+        // so held units (aim freeze, dwell with a retained path) idle cleanly.
+        boolean moving = hasMovement && haveTravelDelta;
         boolean primaryUp = hasCombat && LiveAppearance.weaponUp(false, type.combatant,
                 cooldownTimer[row], attackCooldown[row]);
 
@@ -313,9 +305,9 @@ public final class FacingSystem {
         if ((inAim || primaryUp) && haveTargetDelta) {
             torsoDx = targetDx;
             torsoDy = targetDy;
-        } else if (havePathDelta) {
-            torsoDx = pathDx;
-            torsoDy = pathDy;
+        } else if (haveTravelDelta) {
+            torsoDx = travelDx;
+            torsoDy = travelDy;
         } else if (haveTargetDelta) {
             torsoDx = targetDx;
             torsoDy = targetDy;
@@ -368,5 +360,16 @@ public final class FacingSystem {
 
     private static float clamp01(float value) {
         return Math.max(0f, Math.min(1f, value));
+    }
+
+    /**
+     * One axis of quantizing a velocity vector to the 8-way facing grid:
+     * nonzero iff {@code a}'s magnitude puts the vector inside one of the
+     * octant sectors that includes this axis (sector boundaries at 22.5°,
+     * {@code tan(22.5°) ≈ 0.4142}). Call as {@code (octantComponent(vx, vy),
+     * octantComponent(vy, vx))}; a zero vector yields (0, 0).
+     */
+    private static int octantComponent(float a, float b) {
+        return Math.abs(a) > 0.41421357f * Math.abs(b) ? (a > 0f ? 1 : -1) : 0;
     }
 }

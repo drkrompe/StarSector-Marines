@@ -148,8 +148,10 @@ public class FacingSystemTest {
         long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
         // The next path cell sits at y+1. In this sim's cell space dy>0 is NORTH
         // (facingFromDelta's convention, matching the renderer) — trust the
-        // delta math over screen-direction intuition.
+        // delta math over screen-direction intuition. Facing follows the
+        // velocity the mover applied this tick, so advance it once.
         sim.setPath(marine, new int[]{5, 5, 5, 6});
+        sim.advanceMovement(marine);
 
         systemFor(sim).tick();
 

@@ -301,7 +301,12 @@ public final class NavigationService {
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);
         world.setPathRef(id, newPath);
-        world.setPathIdx(id, newPath.length == 0 ? 0 : 1);
+        // Multi-cell paths start the carrot cursor at waypoint 1 (waypoint 0 is
+        // the cell the unit already stands in). A one-cell path (findPath with
+        // start == goal) must start at 0, or it is born exhausted and the mover
+        // never pulls the unit onto the cell center — stranding it inside the
+        // arrival band whenever a repath clobbers the in-flight path.
+        world.setPathIdx(id, newPath.length <= 2 ? 0 : 1);
         if (newPath.length > 0) roster.movement().markRepath(id);
         int newDestX;
         int newDestY;

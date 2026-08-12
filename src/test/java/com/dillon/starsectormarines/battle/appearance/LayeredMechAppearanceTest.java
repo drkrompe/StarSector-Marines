@@ -60,10 +60,12 @@ public class LayeredMechAppearanceTest {
         loadout.srmSalvoTimer = loadout.srmPod.burstSpacing * 0.25f;
         sim.world().attachMechLoadout(mech, loadout);
         sim.setPath(mech, new int[]{5, 5, 5, 6});
-        // Gait phase drives the locomotion pose while the path is un-exhausted;
-        // poke the raw column directly (no public mid-motion setter — the mover
-        // owns advancing it) to pin a deterministic value for this assertion.
+        // The moving flag comes from the velocity the mover applied this tick,
+        // and the gait phase drives the locomotion pose; poke the raw columns
+        // directly (no public mid-motion setters — the mover owns them) to pin
+        // a deterministic northbound mid-stride state.
         sim.getEntityWorld().setFloat(mech, c.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE, 0.25f);
+        sim.getEntityWorld().setFloat(mech, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, UnitType.HEAVY_MECH.moveSpeed);
         sim.world().setTargetId(mech, target);
 
         new FacingSystem(sim.getEntityWorld(), c, sim.getRoster()).tick();

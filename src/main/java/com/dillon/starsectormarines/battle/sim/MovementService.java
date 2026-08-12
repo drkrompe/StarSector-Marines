@@ -4,7 +4,12 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.engine.ecs.Query;
+
+import java.util.Arrays;
 
 /**
  * Data owner for the {@code MOVEMENT} component — typed by-id access (read +
@@ -49,17 +54,32 @@ public final class MovementService {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    private final Query movers;
 
-    /** Sim clock for the repath throttle — advanced once per tick by {@link #tickClock}. */
+    /** Sim clock for the repath throttle — advanced once per tick by {@link #beginTick}. */
     private float now;
 
     public MovementService(EntityWorld entityWorld, BattleComponents components) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.movers = entityWorld.query(new ComponentType[]{components.MOVEMENT}, null);
     }
 
-    /** Advance the repath clock; called exactly once per sim tick by {@code BattleSimulation}. */
-    public void tickClock(float dt) { now += dt; }
+    /**
+     * Per-tick prologue, called exactly once per sim tick by
+     * {@code BattleSimulation}: advances the repath clock and zeroes every
+     * mover's applied-velocity fields, so a unit whose behavior does not call
+     * {@link #advanceAlongPath} this tick reads as not moving (velocity is
+     * "movement actually applied this tick", never a stale carry-over).
+     */
+    public void beginTick(float dt) {
+        now += dt;
+        for (ArchetypeTable t : entityWorld.matched(movers)) {
+            int n = t.rowCount();
+            Arrays.fill(t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array(), 0, n, 0f);
+            Arrays.fill(t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array(), 0, n, 0f);
+        }
+    }
 
     /** Presence check — true iff {@code id} carries MOVEMENT (is a mover). Gate field reads on this. */
     public boolean has(long id) { return entityWorld.has(id, components.MOVEMENT); }
@@ -119,6 +139,11 @@ public final class MovementService {
     private float gaitPhase(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE); }
     private void setGaitPhase(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE, v); }
 
+    private void setVelocity(long id, float vx, float vy) {
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy);
+    }
+
     /**
      * Advances a mover one tick of continuous carrot-following: picks a carrot
      * {@link #LOOKAHEAD} cells ahead on the cell polyline
@@ -166,12 +191,17 @@ public final class MovementService {
             world.setPos(id, carrot.x, carrot.y);
             setPathIdx(id, count);
             setGaitPhase(id, 0f);
+            setVelocity(id, dx / dt, dy / dt);
         } else if (dist > 1e-6f) {
-            float nx = px + dx / dist * step;
-            float ny = py + dy / dist * step;
+            // Clamped so a mover faster than the carrot distance per tick
+            // can't overshoot and oscillate around the pursuit line.
+            float move = Math.min(step, dist);
+            float nx = px + dx / dist * move;
+            float ny = py + dy / dist * move;
             world.setPos(id, nx, ny);
-            float gait = gaitPhase(id) + step;
+            float gait = gaitPhase(id) + move;
             setGaitPhase(id, gait >= 1f ? gait % 1f : gait);
+            setVelocity(id, dx / dist * move / dt, dy / dist * move / dt);
         }
     }
 }

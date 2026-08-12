@@ -884,7 +884,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
-        movement().tickClock(TICK_DT);
+        movement().beginTick(TICK_DT);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker

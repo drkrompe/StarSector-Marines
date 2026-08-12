@@ -144,8 +144,8 @@ public final class HoldPortalCordon implements Action {
      * planter is channelling. Matches the legacy {@code PlanterBehavior}
      * shape (path → arrive → dwell) without the standalone dispatch.
      * {@link com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective#tick}
-     * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
-     * of which this branch maintains.
+     * keys off PLANTER role + {@code atCell} + {@code settled}, all of which
+     * this branch maintains.
      */
     private ActionStatus executePlanter(long member, BattleControl sim) {
         boolean onSite = sim.movement().atCell(member, chargeCellX, chargeCellY);

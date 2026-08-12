@@ -170,6 +170,10 @@ public final class BattleComponents {
     public static final int MOVEMENT_MOVE_SPEED = 3;
     /** {@link #MOVEMENT} field 4: sim-clock stamp of the last {@code NavigationService.setPath} assignment (FLOAT) — drives {@code MovementService.mayRepath}'s mid-motion throttle. */
     public static final int MOVEMENT_LAST_REPATH_TIME = 4;
+    /** {@link #MOVEMENT} field 5: velocity x actually applied this tick, cells/sec (FLOAT). Zeroed for every mover at tick start, written by {@code advanceAlongPath} when it translates — so nonzero means "moved this tick". Presentation reads it for the moving flag + travel bearing. */
+    public static final int MOVEMENT_VEL_X = 5;
+    /** {@link #MOVEMENT} field 6: velocity y actually applied this tick, cells/sec (FLOAT). See {@link #MOVEMENT_VEL_X}. */
+    public static final int MOVEMENT_VEL_Y = 6;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -826,7 +830,7 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
-                FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
