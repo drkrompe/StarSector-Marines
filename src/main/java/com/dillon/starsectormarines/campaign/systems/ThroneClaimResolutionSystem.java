@@ -8,7 +8,10 @@ import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.HouseAmbition;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.StarsectorThroneClaimDiplomacy;
 import com.dillon.starsectormarines.campaign.StarsectorThroneClaimWriteback;
+import com.dillon.starsectormarines.campaign.ThroneClaimConsequenceState;
+import com.dillon.starsectormarines.campaign.ThroneClaimDiplomacy;
 import com.dillon.starsectormarines.campaign.ThroneClaimState;
 import com.dillon.starsectormarines.campaign.ThroneClaimWriteback;
 
@@ -18,14 +21,22 @@ import java.util.EnumSet;
 public final class ThroneClaimResolutionSystem implements CampaignSystem {
 
     private final ThroneClaimWriteback writeback;
+    private final ThroneClaimDiplomacy diplomacy;
 
     public ThroneClaimResolutionSystem() {
-        this(new StarsectorThroneClaimWriteback());
+        this(new StarsectorThroneClaimWriteback(), new StarsectorThroneClaimDiplomacy());
     }
 
     public ThroneClaimResolutionSystem(ThroneClaimWriteback writeback) {
+        this(writeback, new StarsectorThroneClaimDiplomacy());
+    }
+
+    public ThroneClaimResolutionSystem(ThroneClaimWriteback writeback,
+                                       ThroneClaimDiplomacy diplomacy) {
         if (writeback == null) throw new IllegalArgumentException("writeback");
+        if (diplomacy == null) throw new IllegalArgumentException("diplomacy");
         this.writeback = writeback;
+        this.diplomacy = diplomacy;
     }
 
     @Override
@@ -82,6 +93,45 @@ public final class ThroneClaimResolutionSystem implements CampaignSystem {
                 continue;
             }
             applyLocalResult(state, claimRow, houseRow, day);
+        }
+        applyDiplomaticConsequences(state, day);
+    }
+
+    private void applyDiplomaticConsequences(CampaignState state, int day) {
+        for (int claimRow = 0; claimRow < state.throneClaimCount; claimRow++) {
+            if (ThroneClaimState.fromByte(state.throneClaimState[claimRow])
+                    != ThroneClaimState.APPLIED
+                    || ThroneClaimConsequenceState.fromByte(
+                            state.throneClaimConsequenceState[claimRow])
+                        != ThroneClaimConsequenceState.PENDING) {
+                continue;
+            }
+            String sourceFactionId = state.factionRegistry.get(
+                    state.throneClaimSourceFactionId[claimRow]);
+            String resultFactionId = state.factionRegistry.get(
+                    state.throneClaimResultFactionId[claimRow]);
+            if (sourceFactionId == null || resultFactionId == null
+                    || sourceFactionId.equals(resultFactionId)) {
+                state.throneClaimConsequenceState[claimRow] =
+                        ThroneClaimConsequenceState.FAILED.toByte();
+                continue;
+            }
+
+            ThroneClaimDiplomacy.Result result;
+            try {
+                result = diplomacy.apply(sourceFactionId, resultFactionId);
+            } catch (RuntimeException ignored) {
+                continue;
+            }
+            if (result == null || result == ThroneClaimDiplomacy.Result.RETRY) continue;
+            if (result == ThroneClaimDiplomacy.Result.REJECTED) {
+                state.throneClaimConsequenceState[claimRow] =
+                        ThroneClaimConsequenceState.FAILED.toByte();
+                continue;
+            }
+            state.throneClaimConsequenceState[claimRow] =
+                    ThroneClaimConsequenceState.APPLIED.toByte();
+            state.throneClaimConsequenceAppliedTick[claimRow] = day;
         }
     }
 

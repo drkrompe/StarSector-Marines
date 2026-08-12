@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.ThroneClaimState;
+import com.dillon.starsectormarines.campaign.ThroneClaimConsequenceState;
+import com.dillon.starsectormarines.campaign.ThroneClaimDiplomacy;
 import com.dillon.starsectormarines.campaign.ThroneClaimWriteback;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +22,10 @@ class ThroneClaimResolutionSystemTest {
     void appliedWritebackFinalizesLocalRankAndIdentityExactlyOnce() {
         Fixture fixture = new Fixture();
         FakeWriteback writeback = new FakeWriteback(ThroneClaimWriteback.Result.APPLIED);
-        ThroneClaimResolutionSystem system = new ThroneClaimResolutionSystem(writeback);
+        FakeDiplomacy diplomacy = new FakeDiplomacy(
+                ThroneClaimDiplomacy.Result.APPLIED);
+        ThroneClaimResolutionSystem system = new ThroneClaimResolutionSystem(
+                writeback, diplomacy);
 
         system.tick(fixture.state, 20);
         system.tick(fixture.state, 21);
@@ -40,6 +45,11 @@ class ThroneClaimResolutionSystemTest {
         assertEquals(HouseAmbition.NONE,
                 HouseAmbition.fromByte(fixture.state.houseAmbition[fixture.actorRow]));
         assertEquals(-1L, fixture.state.houseAmbitionTarget[fixture.actorRow]);
+        assertEquals(1, diplomacy.calls);
+        assertEquals(ThroneClaimConsequenceState.APPLIED,
+                ThroneClaimConsequenceState.fromByte(
+                        fixture.state.throneClaimConsequenceState[0]));
+        assertEquals(20, fixture.state.throneClaimConsequenceAppliedTick[0]);
     }
 
     @Test
@@ -110,6 +120,55 @@ class ThroneClaimResolutionSystemTest {
                 HouseRank.fromByte(fixture.state.houseRank[fixture.actorRow]));
     }
 
+    @Test
+    void diplomacyWaitsForOwnershipThenRetriesIndependently() {
+        Fixture fixture = new Fixture();
+        FakeWriteback writeback = new FakeWriteback(ThroneClaimWriteback.Result.RETRY);
+        FakeDiplomacy diplomacy = new FakeDiplomacy(ThroneClaimDiplomacy.Result.RETRY);
+        ThroneClaimResolutionSystem system = new ThroneClaimResolutionSystem(
+                writeback, diplomacy);
+
+        system.tick(fixture.state, 20);
+        assertEquals(0, diplomacy.calls);
+
+        writeback.result = ThroneClaimWriteback.Result.APPLIED;
+        system.tick(fixture.state, 21);
+        assertEquals(1, diplomacy.calls);
+        assertEquals(ThroneClaimConsequenceState.PENDING,
+                ThroneClaimConsequenceState.fromByte(
+                        fixture.state.throneClaimConsequenceState[0]));
+
+        diplomacy.result = ThroneClaimDiplomacy.Result.ALREADY_APPLIED;
+        system.tick(fixture.state, 22);
+        system.tick(fixture.state, 23);
+
+        assertEquals(2, diplomacy.calls);
+        assertEquals(ThroneClaimConsequenceState.APPLIED,
+                ThroneClaimConsequenceState.fromByte(
+                        fixture.state.throneClaimConsequenceState[0]));
+        assertEquals(22, fixture.state.throneClaimConsequenceAppliedTick[0]);
+    }
+
+    @Test
+    void rejectedDiplomacyFailsOnlyConsequences() {
+        Fixture fixture = new Fixture();
+        FakeDiplomacy diplomacy = new FakeDiplomacy(
+                ThroneClaimDiplomacy.Result.REJECTED);
+
+        new ThroneClaimResolutionSystem(
+                new FakeWriteback(ThroneClaimWriteback.Result.APPLIED), diplomacy)
+                .tick(fixture.state, 20);
+
+        assertEquals(ThroneClaimState.APPLIED,
+                ThroneClaimState.fromByte(fixture.state.throneClaimState[0]));
+        assertEquals(HouseRank.TIER_4,
+                HouseRank.fromByte(fixture.state.houseRank[fixture.actorRow]));
+        assertEquals(ThroneClaimConsequenceState.FAILED,
+                ThroneClaimConsequenceState.fromByte(
+                        fixture.state.throneClaimConsequenceState[0]));
+        assertEquals(-1, fixture.state.throneClaimConsequenceAppliedTick[0]);
+    }
+
     private static final class Fixture {
         final CampaignState state = new CampaignState();
         final int sourceFaction = state.factionRegistry.intern("source");
@@ -157,6 +216,21 @@ class ThroneClaimResolutionSystemTest {
             this.sourceFactionId = sourceFactionId;
             this.resultFactionId = resultFactionId;
             this.marketId = marketId;
+            return result;
+        }
+    }
+
+    private static final class FakeDiplomacy implements ThroneClaimDiplomacy {
+        Result result;
+        int calls;
+
+        FakeDiplomacy(Result result) {
+            this.result = result;
+        }
+
+        @Override
+        public Result apply(String sourceFactionId, String resultFactionId) {
+            calls++;
             return result;
         }
     }
