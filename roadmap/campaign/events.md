@@ -309,10 +309,12 @@ fire could repeatedly stop runners before contact. `fb50b964` makes
 `SWARM_PRESSURE` implacable as designed and adds full-distance melee-closure and
 no-flinch regression coverage.
 
-Debug rescue separately scales the initial swarm against every marine-side seat
-in its resolved shuttle manifest: 1:1 at LOW, 1.5:1 at MEDIUM, and 2:1 at HIGH
-(`8b2af722`). This turns the current hundreds-of-marines debug deployment into a
-correspondingly large swarm without changing production event balance.
+Debug rescue separately scales the initial swarm against simultaneous first-wave
+marine seats: 2:1 at LOW, 3:1 at MEDIUM, and 4:1 at HIGH (`8b2af722`,
+`e0d29078`). Counting later sortie cycles at time zero proved instantly lethal,
+so they remain reinforcement depth; debug runners also begin at least 24 cells
+from the shelter. This preserves a large opening swarm without changing
+production event balance.
 
 ### Outcome closure — first checkpoint
 

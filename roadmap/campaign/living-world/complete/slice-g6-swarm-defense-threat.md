@@ -3,7 +3,7 @@
 **Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`; playtest corrections `fb50b964`, `8b2af722`
+`710d2981`; playtest corrections `fb50b964`, `8b2af722`, `e0d29078`
 
 ## Goal
 
@@ -54,11 +54,15 @@ the full distance into contact damage. The full Gradle build passes.
 
 The debug personnel fixtures then exposed a second scale mismatch: the current
 40-drop manifest can land roughly 300 marine-side personnel against the fixed
-production roster of 12/24/40 runners. `8b2af722` keeps those authored production
-counts unchanged, but scales debug rescue against all resolved marine-side
-shuttle seats at 1:1 LOW, 1.5:1 MEDIUM, and 2:1 HIGH. The current setup therefore
-produces hundreds of runners, and future debug transport/drop changes rescale
-automatically. Explicit large-roster factory tests and the full build pass.
+production roster of 12/24/40 runners. `8b2af722` introduced force scaling, but
+its first version counted every later sortie cycle and spawned the entire enemy
+budget at time zero. That produced an effectively instant civilian defeat.
+`e0d29078` corrects the phase mismatch: debug rescue scales the initial roster
+against simultaneous first-wave seats at 2:1 LOW, 3:1 MEDIUM, and 4:1 HIGH, and
+stages runners at least 24 cells from the shelter. Later marine cycles remain
+reinforcements rather than prepaid enemy strength. An eight-Valkyrie fixture
+proves the battle and civilians survive the opening three seconds; explicit
+large-roster tests and the full build pass. Production remains unchanged.
 
 ## Next
 
