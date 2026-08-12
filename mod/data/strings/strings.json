@@ -67,6 +67,12 @@
 		"stationingRetainer":     "Monthly retainer: Cr. {0}",
 		"stationingAccept":       "Accept Assignment",
 		"stationingBlocked":      "Select an active captain and at least one available marine.",
+		"stationingManageHeader": "Active Stationing Assignment",
+		"stationingAssignedCaptain": "Commanding Captain: {0}",
+		"stationingUnknownCaptain": "Unknown",
+		"stationingRemaining":    "Time remaining: {0} days",
+		"stationingWithdrawWarning": "Early withdrawal forfeits future retainers: employer rep -15, MRB rep -10.",
+		"stationingWithdraw":     "Withdraw Early",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",

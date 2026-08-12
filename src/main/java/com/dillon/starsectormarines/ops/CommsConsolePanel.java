@@ -159,7 +159,9 @@ public class CommsConsolePanel extends OpsPanel {
         }
 
         List<Mission> missions = ctx.getMissionsFor(selected);
-        long stationingId = findStationingOffer(selected);
+        long activeStationingId = findActiveStationing(selected);
+        long stationingId = activeStationingId >= 0L
+                ? activeStationingId : findStationingOffer(selected);
         if (stationingId >= 0L) {
             CampaignState state = CampaignStateScript.getInstance().state();
             int row = state.contractIndex(stationingId);
@@ -167,10 +169,11 @@ public class CommsConsolePanel extends OpsPanel {
             float offerY = stackTop - STATIONING_H;
             widgets.add(new ButtonWidget(stackX, offerY, stackW, STATIONING_H,
                     () -> onConfigureStationing(stationingId)));
+            boolean active = activeStationingId >= 0L;
+            String action = active ? "Manage ▸" : "Configure ▸";
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                    type == ContractType.GARRISON
-                            ? "Garrison Contract — Configure ▸"
-                            : "Cadre Contract — Configure ▸",
+                    (type == ContractType.GARRISON ? "Garrison Contract — "
+                            : "Cadre Contract — ") + action,
                     stackX + 12f, offerY + STATIONING_H - 8f, ACCEPT_COLOR));
             float consumed = STATIONING_H + CARD_GAP;
             stackTop -= consumed;
@@ -256,6 +259,15 @@ public class CommsConsolePanel extends OpsPanel {
         CampaignState state = script.state();
         int marketId = state.marketRegistry.intern(ctx.market.getId());
         return StationingOfferLookup.find(state, selected.patronHouseId, marketId);
+    }
+
+    private long findActiveStationing(Client selected) {
+        if (selected == null || selected.patronHouseId < 0L || ctx.market == null) return -1L;
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return -1L;
+        CampaignState state = script.state();
+        int marketId = state.marketRegistry.intern(ctx.market.getId());
+        return StationingOfferLookup.findActive(state, selected.patronHouseId, marketId);
     }
 
     private void onConfigureStationing(long contractId) {

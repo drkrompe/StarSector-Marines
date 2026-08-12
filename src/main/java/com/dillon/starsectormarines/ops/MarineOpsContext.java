@@ -289,7 +289,8 @@ public class MarineOpsContext {
             }
         }
 
-        // 5. Campaign-tier patron houses with OFFERED contracts at this market.
+        // 5. Campaign-tier patron houses with offers, recoveries, or active
+        //    stationing assignments at this market.
         //    One Client per patron — missions come from contracts[], not the
         //    industry catalog (MissionGenerator branches on patronHouseId).
         if (market != null) {
@@ -301,8 +302,8 @@ public class MarineOpsContext {
 
     /**
      * Walks {@link CampaignState}'s contracts list, finds patrons with at least
-     * one {@code OFFERED} row at {@code market}, and appends them as patron
-     * clients. Each patron appears once even if they have multiple offers.
+     * one player-facing row at {@code market}, and appends them as patron
+     * clients. Each patron appears once even if they have multiple rows.
      */
     private static void appendPatronClients(List<Client> out, MarketAPI market, FactionAPI player) {
         CampaignStateScript script = CampaignStateScript.getInstance();
@@ -311,13 +312,18 @@ public class MarineOpsContext {
         int marketSlot = state.marketRegistry.intern(market.getId());
 
         Set<Long> seenPatrons = new LinkedHashSet<>();
-        Set<Long> recoveryPatrons = new LinkedHashSet<>();
+        Set<Long> mandatoryPatrons = new LinkedHashSet<>();
         for (int i = 0; i < state.contractCount; i++) {
-            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
             if (state.contractMarketId[i] != marketSlot) continue;
+            ContractState contractState = ContractState.fromByte(state.contractState[i]);
+            ContractType contractType = ContractType.fromByte(state.contractType[i]);
+            boolean offered = contractState == ContractState.OFFERED;
+            boolean activeStationing = contractState == ContractState.ACTIVE
+                    && contractType.isStationing();
+            if (!offered && !activeStationing) continue;
             long patronId = state.contractPatronHouseId[i];
-            if (ContractType.fromByte(state.contractType[i]) == ContractType.EXTRACTION) {
-                recoveryPatrons.add(patronId);
+            if (contractType == ContractType.EXTRACTION || activeStationing) {
+                mandatoryPatrons.add(patronId);
             }
             if (!seenPatrons.add(patronId)) continue;
         }
@@ -339,7 +345,7 @@ public class MarineOpsContext {
             RepLevel rep = (faction != null && player != null)
                     ? player.getRelationshipLevel(faction.getId())
                     : RepLevel.NEUTRAL;
-            boolean locked = !recoveryPatrons.contains(patronId)
+            boolean locked = !mandatoryPatrons.contains(patronId)
                     && rep.ordinal() <= RepLevel.HOSTILE.ordinal();
             String lockReason = locked ? "clientLockedHostile" : null;
 

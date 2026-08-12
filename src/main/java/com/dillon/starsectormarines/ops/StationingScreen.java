@@ -2,10 +2,12 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
 import com.dillon.starsectormarines.campaign.systems.StationingContractTerms;
+import com.dillon.starsectormarines.campaign.systems.StationingWithdrawalService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -67,6 +69,15 @@ public final class StationingScreen implements Screen {
         }
 
         ContractType type = ContractType.fromByte(state.contractType[row]);
+        ContractState contractState = ContractState.fromByte(state.contractState[row]);
+        if (contractState == ContractState.ACTIVE) {
+            rebuildManagement(state, row, type);
+            return;
+        }
+        if (contractState != ContractState.OFFERED) {
+            onBack();
+            return;
+        }
         int patronRow = state.houseIndex(state.contractPatronHouseId[row]);
         HouseRank rank = patronRow >= 0 ? HouseRank.fromByte(state.houseRank[patronRow]) : null;
         int available = availableMarines();
@@ -131,6 +142,54 @@ public final class StationingScreen implements Screen {
         }
     }
 
+    private void rebuildManagement(CampaignState state, int row, ContractType type) {
+        float x = position.getX() + PAD;
+        float top = position.getY() + position.getHeight() - PAD;
+        float width = position.getWidth() - 2f * PAD;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                Strings.get("stationingManageHeader") + " — " + displayType(type),
+                x, top, HEADER));
+
+        int captainSlot = state.contractCaptainId[row];
+        String captainId = captainSlot >= 0 ? state.captainRegistry.get(captainSlot) : null;
+        MarineCaptain captain = captainById(captainId);
+        String captainName = captain != null ? captain.name() : Strings.get("stationingUnknownCaptain");
+        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int daysRemaining = Math.max(0, state.contractExpiresTick[row] - day);
+
+        float y = top - 52f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("stationingAssignedCaptain"), captainName),
+                x, y, VALUE));
+        y -= ROW;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("stationingMarines"),
+                        state.contractMarinesCommitted[row]), x, y, VALUE));
+        y -= ROW;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("stationingRemaining"), daysRemaining),
+                x, y, VALUE));
+        y -= ROW;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("stationingRetainer"),
+                        NumberFormat.getIntegerInstance().format(
+                                state.contractRetainerPerMonth[row])), x, y, VALUE));
+        y -= ROW + 8f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                Strings.get("stationingWithdrawWarning"), x, y, BLOCKED));
+
+        float buttonY = position.getY() + PAD;
+        float buttonW = (width - 12f) / 2f;
+        widgets.add(new ButtonWidget(x, buttonY, buttonW, BTN_H, this::onBack));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
+                x + 12f, buttonY + BTN_H - 6f, HEADER));
+        float withdrawX = x + buttonW + 12f;
+        widgets.add(new ButtonWidget(withdrawX, buttonY, buttonW, BTN_H, this::onWithdraw));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                Strings.get("stationingWithdraw"),
+                withdrawX + 12f, buttonY + BTN_H - 6f, BLOCKED));
+    }
+
     private void addAdjustButtons(float x, float y, Runnable minus, Runnable plus) {
         widgets.add(new ButtonWidget(x, y, SMALL_BTN_W, BTN_H, minus));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "−",
@@ -173,6 +232,20 @@ public final class StationingScreen implements Screen {
         ctx.goTo(ScreenId.MISSION_SELECT);
     }
 
+    private void onWithdraw() {
+        CampaignState state = state();
+        if (state == null) return;
+        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        if (StationingWithdrawalService.withdraw(
+                state, ctx.getSelectedStationingContractId(), day)) {
+            ctx.setSelectedStationingContractId(-1L);
+            ctx.setSelectedCaptainId(null);
+            ctx.goTo(ScreenId.MISSION_SELECT);
+        } else {
+            rebuild();
+        }
+    }
+
     private void selectFirstActiveCaptain() {
         List<MarineCaptain> active = activeCaptains();
         MarineCaptain selected = ctx.getSelectedCaptain();
@@ -195,6 +268,12 @@ public final class StationingScreen implements Screen {
     private static List<MarineCaptain> activeCaptains() {
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? script.roster().active() : Collections.emptyList();
+    }
+
+    private static MarineCaptain captainById(String id) {
+        if (id == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return script != null ? script.roster().byId(id) : null;
     }
 
     private static int availableMarines() {
