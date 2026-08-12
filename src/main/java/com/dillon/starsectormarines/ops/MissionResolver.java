@@ -175,10 +175,14 @@ public final class MissionResolver {
                 : LootRecoveryModifier.NONE;
 
         int civiliansRescued = -1;
+        int evacuationRepresentatives = -1;
+        int representativesEvacuated = -1;
         if (mission.source.isCivilianRescue()) {
             CivilianEvacuationReport report =
                     sim.getCivilianEvacuationTracker().report();
             if (report != null) {
+                evacuationRepresentatives = report.initial;
+                representativesEvacuated = report.evacuated;
                 civiliansRescued = report.campaignRescued(
                         mission.civiliansAtRisk);
             }
@@ -232,6 +236,7 @@ public final class MissionResolver {
                 mission.contractId, mission.campaignEventId,
                 mission.campaignEventMarketId, mission.civiliansAtRisk,
                 civiliansRescued,
+                evacuationRepresentatives, representativesEvacuated,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
                 survivingSoldierIds, fallenSoldierIds);

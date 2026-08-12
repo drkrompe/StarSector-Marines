@@ -57,7 +57,7 @@ public class ResultsScreen implements Screen {
     private static final Color PROMOTION_COLOR = new Color(0xFF, 0xD0, 0x60);
 
     private static final float CARD_W      = 520f;
-    private static final float CARD_H      = 380f;
+    private static final float CARD_H      = 412f;
     private static final float INNER_PAD   = 20f;
     private static final float ROW_GAP     = 32f;
     private static final float LABEL_COL_W = 200f;
@@ -112,6 +112,16 @@ public class ResultsScreen implements Screen {
         // Stat rows
         float rowY = outcomeY - 72f;
         if (outcome != null) {
+            if (outcome.evacuationRepresentatives > 0) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        Strings.get("resultsEvacuationLabel"),
+                        cardX + INNER_PAD, rowY, LABEL_COLOR));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        formatEvacuation(outcome),
+                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
+                rowY -= ROW_GAP;
+            }
+
             // Payout
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("resultsPayoutLabel"),
@@ -215,6 +225,25 @@ public class ResultsScreen implements Screen {
             float btnX = cardX + (CARD_W - BTN_W) / 2f;
             addButton(btnX, btnY, "resultsReturn", this::returnToMissions);
         }
+    }
+
+    static String formatEvacuation(MissionOutcome outcome) {
+        if (outcome == null || outcome.evacuationRepresentatives <= 0
+                || outcome.representativesEvacuated < 0) {
+            return "—";
+        }
+        if (outcome.civiliansAtRisk > outcome.evacuationRepresentatives) {
+            return MessageFormat.format(Strings.get("resultsEvacuationScaledFmt"),
+                    outcome.representativesEvacuated,
+                    outcome.evacuationRepresentatives,
+                    NumberFormat.getIntegerInstance().format(
+                            outcome.civiliansRescued),
+                    NumberFormat.getIntegerInstance().format(
+                            outcome.civiliansAtRisk));
+        }
+        return MessageFormat.format(Strings.get("resultsEvacuationFmt"),
+                outcome.representativesEvacuated,
+                outcome.evacuationRepresentatives);
     }
 
     private void returnToMissions() {

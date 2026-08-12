@@ -54,6 +54,10 @@ public final class MissionOutcome {
     public final int     civiliansAtRisk;
     /** Explicit battle evacuation report; {@code -1} means no valid report. */
     public final int     civiliansRescued;
+    /** Representative cohort size in the sealed battle report; {@code -1} when absent. */
+    public final int     evacuationRepresentatives;
+    /** Representatives evacuated from that cohort; {@code -1} when absent. */
+    public final int     representativesEvacuated;
     /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
     /** Frozen captain + fleet recovery-pool bonus, in percentage points. */
@@ -98,6 +102,31 @@ public final class MissionOutcome {
                           int civiliansRescued, int salvageEntitlement,
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct,
                           Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
+        this(victory, missionId, missionName, missionType, risk, missionSource,
+                payoutBase, payoutEarned, marinesEngaged, marinesLost,
+                captainId, captainName, priorCaptainStatus, newCaptainStatus,
+                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
+                targetIndustryId, targetFactionId, contractId, campaignEventId,
+                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
+                -1, -1, salvageEntitlement, salvageRecoveryBonusPct,
+                salvageHighValueChancePct, survivingSoldierIds,
+                fallenSoldierIds);
+    }
+
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
+                          String captainId, String captainName,
+                          Status priorCaptainStatus, Status newCaptainStatus,
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, int civiliansAtRisk,
+                          int civiliansRescued, int evacuationRepresentatives,
+                          int representativesEvacuated, int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -126,6 +155,14 @@ public final class MissionOutcome {
                 ? Math.max(0, civiliansAtRisk) : 0;
         this.civiliansRescued = this.missionSource.isCivilianRescue()
                 ? civiliansRescued : -1;
+        boolean validEvacuation = this.missionSource.isCivilianRescue()
+                && evacuationRepresentatives > 0
+                && representativesEvacuated >= 0
+                && representativesEvacuated <= evacuationRepresentatives;
+        this.evacuationRepresentatives = validEvacuation
+                ? evacuationRepresentatives : -1;
+        this.representativesEvacuated = validEvacuation
+                ? representativesEvacuated : -1;
         this.salvageEntitlement = salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));

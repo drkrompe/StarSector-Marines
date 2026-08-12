@@ -41,6 +41,8 @@ class SwarmEvacuationOutcomeBridgeTest {
         assertEquals(-1L, outcome.campaignEventId);
         assertEquals(8, outcome.civiliansAtRisk);
         assertEquals(5, outcome.civiliansRescued);
+        assertEquals(8, outcome.evacuationRepresentatives);
+        assertEquals(5, outcome.representativesEvacuated);
     }
 
     private static void assertOutcome(int evacuated, int expectedCampaign) {
@@ -56,6 +58,8 @@ class SwarmEvacuationOutcomeBridgeTest {
 
         assertEquals(false, outcome.victory);
         assertEquals(expectedCampaign, outcome.civiliansRescued);
+        assertEquals(8, outcome.evacuationRepresentatives);
+        assertEquals(evacuated, outcome.representativesEvacuated);
     }
 
     private static Fixture fixture() {
