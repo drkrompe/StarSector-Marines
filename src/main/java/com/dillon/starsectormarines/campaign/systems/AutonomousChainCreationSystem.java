@@ -20,6 +20,8 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
     static final byte DISCOVERY_RISK = 32;
     static final short PROMOTION_CHAIN_THRESHOLD = 60;
     static final byte PROMOTION_DISCOVERY_RISK = 64;
+    static final short CIVIL_WAR_CHAIN_THRESHOLD = 180;
+    static final byte CIVIL_WAR_DISCOVERY_RISK = (byte) 128;
 
     @Override
     public String name() {
@@ -48,6 +50,10 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
             if (hasActiveChain(state, actorHouseId)) continue;
 
             HouseAmbition ambition = HouseAmbition.fromByte(state.houseAmbition[houseRow]);
+            if (ambition == HouseAmbition.CLAIM_THRONE) {
+                createCivilWarChain(state, houseRow, day);
+                continue;
+            }
             if (ambition == HouseAmbition.PROMOTE) {
                 createPromotionChain(state, houseRow, day);
                 continue;
@@ -66,6 +72,44 @@ public final class AutonomousChainCreationSystem implements CampaignSystem {
                     state.houseRank[houseRow], ChainArchetype.CONSOLIDATE_STAKE,
                     CHAIN_THRESHOLD, DISCOVERY_RISK, day);
         }
+    }
+
+    private static void createCivilWarChain(CampaignState state, int actorRow, int day) {
+        if (HouseRank.fromByte(state.houseRank[actorRow]) != HouseRank.TIER_3
+                || state.housePromotionProgress[actorRow]
+                    < HouseRank.TIER_3.promotionThreshold
+                || state.houseAmbitionTarget[actorRow] != state.houseFactionId[actorRow]) {
+            return;
+        }
+        long targetHouseId = strongestFactionRival(state, actorRow);
+        if (targetHouseId < 0L) return;
+        state.addAutonomousChain(state.houseId[actorRow], targetHouseId,
+                state.houseMarketId[actorRow], -1, state.houseRank[actorRow],
+                ChainArchetype.CIVIL_WAR, CIVIL_WAR_CHAIN_THRESHOLD,
+                CIVIL_WAR_DISCOVERY_RISK, day);
+    }
+
+    static long strongestFactionRival(CampaignState state, int actorRow) {
+        long actorHouseId = state.houseId[actorRow];
+        int factionId = state.houseFactionId[actorRow];
+        long bestHouseId = -1L;
+        int bestPower = -1;
+        for (int candidateRow = 0; candidateRow < state.houseCount; candidateRow++) {
+            long candidateId = state.houseId[candidateRow];
+            if (candidateId == actorHouseId
+                    || state.houseFactionId[candidateRow] != factionId
+                    || HouseStatus.fromByte(state.houseStatus[candidateRow])
+                        != HouseStatus.ACTIVE) {
+                continue;
+            }
+            int power = Math.max(0, state.housePower[candidateRow]);
+            if (power > bestPower || (power == bestPower
+                    && (bestHouseId < 0L || candidateId < bestHouseId))) {
+                bestPower = power;
+                bestHouseId = candidateId;
+            }
+        }
+        return bestHouseId;
     }
 
     private static void createPromotionChain(CampaignState state, int actorRow, int day) {

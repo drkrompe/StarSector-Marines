@@ -94,7 +94,7 @@ class AutonomousChainCreationSystemTest {
     }
 
     @Test
-    void throneClaimWaitsForDedicatedChainPayload() {
+    void throneClaimBelowHandoffCapCreatesNoChain() {
         CampaignState state = new CampaignState();
         long claimant = house(state, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
         long rival = house(state, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
@@ -103,6 +103,54 @@ class AutonomousChainCreationSystemTest {
         int claimantRow = state.houseIndex(claimant);
         state.houseAmbition[claimantRow] = HouseAmbition.CLAIM_THRONE.toByte();
         state.houseAmbitionTarget[claimantRow] = state.houseFactionId[claimantRow];
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(0, state.chainCount);
+    }
+
+    @Test
+    void cappedThroneClaimCreatesCivilWarAgainstStrongestFactionRival() {
+        CampaignState state = new CampaignState();
+        long claimant = house(state, 1, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        long tiedLowerId = house(state, 2, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        long tiedHigherId = house(state, 3, 1, HouseRank.TIER_2, HouseStatus.ACTIVE);
+        long foreign = house(state, 1, 2, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        int claimantRow = state.houseIndex(claimant);
+        state.housePower[state.houseIndex(tiedLowerId)] = 500;
+        state.housePower[state.houseIndex(tiedHigherId)] = 500;
+        state.housePower[state.houseIndex(foreign)] = 2_000;
+        state.housePromotionProgress[claimantRow] = 1000;
+        state.houseAmbition[claimantRow] = HouseAmbition.CLAIM_THRONE.toByte();
+        state.houseAmbitionTarget[claimantRow] = state.houseFactionId[claimantRow];
+
+        new AutonomousChainCreationSystem().tick(state, 30);
+
+        assertEquals(1, state.chainCount);
+        assertEquals(claimant, state.chainActorHouseId[0]);
+        assertEquals(tiedLowerId, state.chainTarget[0]);
+        assertEquals(1, state.chainMarketId[0]);
+        assertEquals(-1, state.chainIndustryId[0]);
+        assertEquals(ChainArchetype.CIVIL_WAR,
+                ChainArchetype.fromByte(state.chainArchetype[0]));
+        assertEquals(AutonomousChainCreationSystem.CIVIL_WAR_CHAIN_THRESHOLD,
+                state.chainThreshold[0]);
+        assertEquals(128, state.chainDiscoveryRisk[0] & 0xFF);
+    }
+
+    @Test
+    void invalidFactionTargetOrMissingRivalBlocksCivilWar() {
+        CampaignState state = new CampaignState();
+        long invalidTarget = house(state, 1, 1, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        long alone = house(state, 2, 2, HouseRank.TIER_3, HouseStatus.ACTIVE);
+        int invalidRow = state.houseIndex(invalidTarget);
+        int aloneRow = state.houseIndex(alone);
+        state.housePromotionProgress[invalidRow] = 1000;
+        state.houseAmbition[invalidRow] = HouseAmbition.CLAIM_THRONE.toByte();
+        state.houseAmbitionTarget[invalidRow] = 99L;
+        state.housePromotionProgress[aloneRow] = 1000;
+        state.houseAmbition[aloneRow] = HouseAmbition.CLAIM_THRONE.toByte();
+        state.houseAmbitionTarget[aloneRow] = state.houseFactionId[aloneRow];
 
         new AutonomousChainCreationSystem().tick(state, 30);
 
