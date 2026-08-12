@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `d07fd3c3`
+
 ## Goal
 
 Give active Cadre assignments a durable, exactly-once incident trigger before

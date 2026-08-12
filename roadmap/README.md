@@ -107,7 +107,9 @@ universe over time, not retrofitted into intel slots.
    windows (`d567c838`, `58a3715f`, `b297a8c5`, `e404b8a9`, `80f12862`,
    `28734a6f`). New work is now gated by MRB tier and per-house standing while
    Recovery and accepted obligations remain reachable (`9de789d4`). Next:
-   campaign incident triggers for stationing. See
+   Cadre assignments now persist deterministic, exactly-once pending incident
+   triggers (`d07fd3c3`). Next: define and consume the player-facing incident
+   payload without borrowing troops outside the stationed detachment. See
    `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
