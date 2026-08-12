@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Story A: {@link OverwatchPosture} — the silent-hold action garrison squads
+ * Story A: {@link OverwatchPosture} — the hold-ground action garrison squads
  * pick when they have LOS+range but the kill-zone gate is still closed.
- * Verifies the no-fire / no-move discipline.
+ * Verifies that holders stay planted without surrendering their ability to fire.
  */
 public class OverwatchPostureTest {
 
@@ -42,7 +42,7 @@ public class OverwatchPostureTest {
     }
 
     @Test
-    public void preconditionsRequireLosRangeAndClosedKillZone() {
+    public void preconditionsSelectStationaryHoldOutsideKillZone() {
         WorldState pre = OverwatchPosture.INSTANCE.preconditions();
         assertTrue(pre.isSpecified(Predicate.HAS_LOS_TO_TARGET));
         assertTrue(pre.get(Predicate.HAS_LOS_TO_TARGET));
@@ -50,7 +50,7 @@ public class OverwatchPostureTest {
         assertTrue(pre.get(Predicate.IN_RANGE_OF_TARGET));
         assertTrue(pre.isSpecified(Predicate.ENEMY_IN_KILL_ZONE));
         assertFalse(pre.get(Predicate.ENEMY_IN_KILL_ZONE),
-                "Overwatch only applies while the kill-zone gate is closed");
+                "the gate selects hold-ground posture; it does not authorize firing");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class OverwatchPostureTest {
     }
 
     @Test
-    public void executeHoldsPositionAndDoesNotFire() {
+    public void executeHoldsPositionWhileDispatcherAuthorsFire() {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
@@ -78,20 +78,17 @@ public class OverwatchPostureTest {
         squad.aliveMembers = 1;
 
         long defender = defenderAt(sim, 5, 5, squadId);
-        // Seed a known non-default cooldown (after registration, so it routes
-        // through the registry): if any action accidentally fires, cooldownTimer
-        // would jump to attackCooldown. We assert it doesn't change.
-        sim.world().setCooldownTimer(defender, 0.1f);
-        float startCooldown = sim.world().cooldownTimer(defender);
-
-        // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
-        // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
+        sim.world().setAttackRange(defender, 10f);
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 8, 5));
+        com.dillon.starsectormarines.battle.squad.SquadPlan.Step step =
+                new com.dillon.starsectormarines.battle.squad.SquadPlan.Step(OverwatchPosture.INSTANCE);
+        step.assignments.put("any", java.util.List.of(defender));
+        squad.currentPlan = new com.dillon.starsectormarines.battle.squad.SquadPlan(java.util.List.of(step));
 
-        ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
-        assertEquals(ActionStatus.RUNNING, status);
-        assertEquals(startCooldown, sim.world().cooldownTimer(defender), 1e-6f,
-                "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "closed kill-zone gate must not prevent a holder returning fire");
         assertTrue(Paths.isEmpty(sim.world().path(defender)), "Overwatch must not queue a path");
         assertEquals(5, sim.world().cellX(defender));
         assertEquals(5, sim.world().cellY(defender));

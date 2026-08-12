@@ -10,23 +10,26 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
- * <b>Squad posture: silent overwatch.</b> Story A — a garrison squad with LOS
- * and range on an enemy but with its kill-zone gate still closed (the enemy
- * hasn't been in close LOS long enough). The squad holds position, holds fire,
- * and waits for {@link Predicate#ENEMY_IN_KILL_ZONE} to flip true so the
- * planner re-picks {@link EngagePosture} on the next replan.
+ * <b>Squad posture: hold ground under overwatch.</b> Story A — a garrison
+ * squad with LOS and range on an enemy while its kill-zone gate is still
+ * closed. The squad holds its exact position and takes legal shots of
+ * opportunity; it never waits passively while an enemy fires at it. When
+ * {@link Predicate#ENEMY_IN_KILL_ZONE} flips true the planner may re-pick
+ * {@link EngagePosture}, which is free to maneuver rather than remaining
+ * pinned to the defensive post.
  *
  * <p>Same {@code ENEMY_DAMAGED=true} effect as {@link EngagePosture} so the
  * planner sees both as candidates for {@link com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal}.
  * Higher cost ({@link #COST} vs Engage's 1.0) makes Engage the preferred pick
  * whenever its precondition set is satisfied — Overwatch is the fallback when
- * Engage's {@link Predicate#ENEMY_IN_KILL_ZONE} precondition is false.
+ * Engage's {@link Predicate#ENEMY_IN_KILL_ZONE} precondition is false. The
+ * distinction is positional discipline, not fire discipline: both postures
+ * shoot, but Overwatch does not leave its ground.
  *
  * <p>Per-member: holds the current cell (clears any leftover path, pins
- * {@code moveProgress/renderX/renderY}), does not fire. Same on-post discipline
- * as {@link HoldPortalCordon}'s holder branch without the opportunistic-fire
- * call. The "no fire" is the ambush's whole point — the first shot lands when
- * the planner switches to Engage.
+ * {@code moveProgress/renderX/renderY}). The shared infantry dispatcher then
+ * fills an otherwise-empty fire intent against the closest legal target; with
+ * movement pinned, that shot uses the stanced-fire profile.
  */
 public final class OverwatchPosture implements Action {
 
@@ -49,7 +52,6 @@ public final class OverwatchPosture implements Action {
     @Override public WorldState effects() { return EFF; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return COST; }
     @Override public int requiredMembers() { return 1; }
-    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
@@ -57,9 +59,8 @@ public final class OverwatchPosture implements Action {
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
         sim.world().setMoveProgress(member, 0f);
         sim.world().setRenderPos(member, sim.world().cellX(member), sim.world().cellY(member));
-        // Deliberately do NOT fire and do NOT touch cooldownTimer — the
-        // ambush's first shot is owned by EngagePosture on the next replan
-        // after the kill-zone gate flips.
+        // Target selection remains centralized in the dispatcher's opportunity
+        // fire pass. This action owns the positional intent: stay planted.
         return ActionStatus.RUNNING;
     }
 }
