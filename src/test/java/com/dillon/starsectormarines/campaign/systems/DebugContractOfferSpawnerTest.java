@@ -57,6 +57,22 @@ class DebugContractOfferSpawnerTest {
                 tierTwo, 0, ContractType.CADRE, 1));
     }
 
+    @Test
+    void spawnsProductionShapedPlanetaryAssaultForTierThree() {
+        CampaignState state = state(HouseRank.TIER_3);
+        state.addHouse(2, 1, HouseFlavor.FEUDAL, HouseRank.TIER_2,
+                HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, "Target");
+
+        long id = DebugContractOfferSpawner.spawn(
+                state, 0, ContractType.PLANETARY_ASSAULT, 42);
+
+        int row = state.contractIndex(id);
+        assertTrue(row >= 0);
+        assertEquals(180_000, state.contractBasePayout[row]);
+        assertEquals(80, state.contractSalvageBaseline[row] & 0xFF);
+        assertEquals(4, state.contractPhasesTotal[row] & 0xFF);
+    }
+
     private static CampaignState state(HouseRank rank) {
         CampaignState state = new CampaignState();
         state.addHouse(1, 1, HouseFlavor.CORPORATE, rank,

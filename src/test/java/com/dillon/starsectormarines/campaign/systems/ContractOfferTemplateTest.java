@@ -19,6 +19,7 @@ class ContractOfferTemplateTest {
         assertEquals(ContractType.STRIKE, template.type);
         assertEquals(25_000, template.payout);
         assertEquals(60, template.salvageBaseline & 0xFF);
+        assertEquals(1, template.phasesTotal & 0xFF);
     }
 
     @Test
@@ -54,11 +55,24 @@ class ContractOfferTemplateTest {
     @Test
     void tierThreeUsesThreeTimesBaselineAndTierFourHasNoStandardOffer() {
         ContractOfferTemplate escort = ContractOfferTemplate.roll(
-                HouseRank.TIER_3, sequenceRandom(new float[]{0.50f, 0f}, false));
+                HouseRank.TIER_3, sequenceRandom(new float[]{0.50f, 0.50f, 0f}, false));
 
         assertEquals(90_000, escort.payout);
         assertNull(ContractOfferTemplate.roll(HouseRank.TIER_4, floatRandom(0f)));
         assertNull(ContractOfferTemplate.roll(null, floatRandom(0f)));
+    }
+
+    @Test
+    void tierThreeCanRollThreeToFivePhasePlanetaryAssault() {
+        ContractOfferTemplate assault = ContractOfferTemplate.roll(
+                HouseRank.TIER_3, sequenceRandom(new float[]{0.10f}, false, 2));
+
+        assertEquals(ContractType.PLANETARY_ASSAULT, assault.type);
+        assertEquals(180_000, assault.payout);
+        assertEquals(80, assault.salvageBaseline & 0xFF);
+        assertEquals(5, assault.phasesTotal & 0xFF);
+        assertNull(ContractOfferTemplate.forType(
+                HouseRank.TIER_2, ContractType.PLANETARY_ASSAULT));
     }
 
     private static Random floatRandom(float value) {
@@ -71,6 +85,10 @@ class ContractOfferTemplateTest {
     }
 
     private static Random sequenceRandom(float[] values, boolean booleanValue) {
+        return sequenceRandom(values, booleanValue, 0);
+    }
+
+    private static Random sequenceRandom(float[] values, boolean booleanValue, int intValue) {
         return new Random() {
             private int index;
 
@@ -82,6 +100,11 @@ class ContractOfferTemplateTest {
             @Override
             public boolean nextBoolean() {
                 return booleanValue;
+            }
+
+            @Override
+            public int nextInt(int bound) {
+                return Math.floorMod(intValue, bound);
             }
         };
     }

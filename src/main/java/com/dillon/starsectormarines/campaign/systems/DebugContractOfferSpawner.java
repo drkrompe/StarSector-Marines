@@ -30,7 +30,7 @@ public final class DebugContractOfferSpawner {
 
         return state.addContract(patronId, targetId, -1L,
                 type, ContractState.OFFERED, day, -1, -1,
-                (byte) (type.isStationing() ? 0 : 1), -1,
+                template.phasesTotal, -1,
                 state.houseMarketId[patronRow], -1,
                 template.payout, 0,
                 template.salvageBaseline, template.salvageBaseline, (byte) 100);

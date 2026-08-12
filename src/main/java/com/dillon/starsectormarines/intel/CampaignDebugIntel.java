@@ -59,6 +59,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_ESCORT   = "spawn-local-escort";
     private static final String BTN_SPAWN_GARRISON = "spawn-local-garrison";
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
+    private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
@@ -173,6 +174,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Escort offers", BTN_SPAWN_ESCORT, 320f, 24f, 8f);
         ui.addButton("Spawn local Garrison offers", BTN_SPAWN_GARRISON, 320f, 24f, 8f);
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
+        ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
@@ -362,6 +364,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnOffersForLocalPatrons(s, ContractType.GARRISON);
         } else if (BTN_SPAWN_CADRE.equals(buttonId)) {
             spawnOffersForLocalPatrons(s, ContractType.CADRE);
+        } else if (BTN_SPAWN_ASSAULT.equals(buttonId)) {
+            spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
             clearTerminalContracts(s);
         } else if (buttonId instanceof String) {

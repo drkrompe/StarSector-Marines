@@ -33,8 +33,7 @@ import java.util.Random;
  * <p>RNG is seeded from {@code (day, houseId)} so the same tick reproduces the
  * same rolls — important for save reproducibility.
  *
- * <p>STRIKE, ESCORT, GARRISON, and CADRE are supported. Multi-phase contracts
- * stay out until their distinct acceptance/lifecycle path exists.
+ * <p>STRIKE, ESCORT, GARRISON, CADRE, and Tier-3 PLANETARY_ASSAULT are supported.
  */
 public final class ContractGenerator implements CampaignSystem {
 
@@ -100,7 +99,7 @@ public final class ContractGenerator implements CampaignSystem {
                     day,
                     -1,                                   // no acceptance-side expiry for mission-mode
                     offerExpiresTick,                     // offer lapses on this day if unaccepted
-                    (byte) (template.type.isStationing() ? 0 : 1),
+                    template.phasesTotal,
                     -1,                                   // captain assigned at acceptance
                     state.houseMarketId[i],               // patron's market is the meeting/origin
                     -1,                                   // industryId resolved at acceptance
