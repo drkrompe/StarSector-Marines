@@ -24,10 +24,30 @@ class CampaignStateChronicleColumnsTest {
                 ChainState.fromByte(state.chronicleChainOutcome[0]));
         assertEquals(ChronicleBand.INTIMATE,
                 ChronicleBand.fromByte(state.chronicleBand[0]));
+        assertEquals(ChronicleConfidence.CONFIRMED,
+                ChronicleConfidence.fromByte(state.chronicleConfidence[0]));
         assertEquals(2L, state.chronicleActorHouseId[0]);
         assertEquals(3L, state.chronicleTargetHouseId[0]);
         assertEquals(4, state.chronicleMarketId[0]);
         assertEquals(5, state.chronicleIndustryId[0]);
+        assertEquals(20, state.chronicleHappenedTick[0]);
+        assertEquals(22, state.chronicleLearnedTick[0]);
+    }
+
+    @Test
+    void activeRumorRetainsRumorTypeAndConfidence() {
+        CampaignState state = new CampaignState();
+
+        long id = state.addChronicleChainRumor(8L, ChronicleBand.INTIMATE,
+                2L, 3L, 4, 5, 20, 22);
+
+        assertEquals(1L, id);
+        assertEquals(ChronicleEventType.ACTIVE_CHAIN_RUMOR,
+                ChronicleEventType.fromByte(state.chronicleEventType[0]));
+        assertEquals(ChainState.ACTIVE,
+                ChainState.fromByte(state.chronicleChainOutcome[0]));
+        assertEquals(ChronicleConfidence.RUMOR,
+                ChronicleConfidence.fromByte(state.chronicleConfidence[0]));
         assertEquals(20, state.chronicleHappenedTick[0]);
         assertEquals(22, state.chronicleLearnedTick[0]);
     }
@@ -51,6 +71,8 @@ class CampaignStateChronicleColumnsTest {
         assertEquals(-1, state.chronicleHappenedTick[20]);
         assertEquals(-1, state.chronicleLearnedTick[20]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[20]);
+        assertEquals(-1, state.chainLastDiscoveryCheckTick[20]);
+        assertEquals(-1, state.chainDiscoveredTick[20]);
     }
 
     @Test
@@ -61,6 +83,7 @@ class CampaignStateChronicleColumnsTest {
         state.chronicleSourceChainId = null;
         state.chronicleChainOutcome = null;
         state.chronicleBand = null;
+        state.chronicleConfidence = null;
         state.chronicleActorHouseId = null;
         state.chronicleTargetHouseId = null;
         state.chronicleMarketId = null;
@@ -68,6 +91,8 @@ class CampaignStateChronicleColumnsTest {
         state.chronicleHappenedTick = null;
         state.chronicleLearnedTick = null;
         state.chainDiscoveryProcessedTick = null;
+        state.chainLastDiscoveryCheckTick = null;
+        state.chainDiscoveredTick = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -78,6 +103,7 @@ class CampaignStateChronicleColumnsTest {
         assertNotNull(state.chronicleSourceChainId);
         assertNotNull(state.chronicleChainOutcome);
         assertNotNull(state.chronicleBand);
+        assertNotNull(state.chronicleConfidence);
         assertNotNull(state.chronicleActorHouseId);
         assertNotNull(state.chronicleTargetHouseId);
         assertNotNull(state.chronicleMarketId);
@@ -85,9 +111,15 @@ class CampaignStateChronicleColumnsTest {
         assertNotNull(state.chronicleHappenedTick);
         assertNotNull(state.chronicleLearnedTick);
         assertNotNull(state.chainDiscoveryProcessedTick);
+        assertNotNull(state.chainLastDiscoveryCheckTick);
+        assertNotNull(state.chainDiscoveredTick);
         assertEquals(-1L, state.chronicleSourceChainId[0]);
         assertEquals(-1, state.chronicleLearnedTick[0]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[0]);
+        assertEquals(-1, state.chainLastDiscoveryCheckTick[0]);
+        assertEquals(-1, state.chainDiscoveredTick[0]);
+        assertEquals(ChronicleConfidence.CONFIRMED,
+                ChronicleConfidence.fromByte(state.chronicleConfidence[0]));
         assertEquals(1L, state.addChronicleChainOutcome(1L, ChainState.FAILED,
                 ChronicleBand.INTIMATE, 2L, 3L, 4, 5, 6, 7));
     }

@@ -97,6 +97,10 @@ public final class CampaignState implements Serializable {
     public int[]   chainResolvedTick = filledInts(INITIAL_CAPACITY, -1);
     /** Day Chronicle discovery classified this terminal row; -1 until processed. */
     public int[]   chainDiscoveryProcessedTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Last day an active-rumor discovery window evaluated this row; -1 until checked. */
+    public int[]   chainLastDiscoveryCheckTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Day an active-chain rumor was learned; -1 while undiscovered. */
+    public int[]   chainDiscoveredTick = filledInts(INITIAL_CAPACITY, -1);
     public int     chainCount        = 0;
 
     // ---------- playerReputation[] ----------
@@ -113,9 +117,10 @@ public final class CampaignState implements Serializable {
     public long[] chronicleId = new long[INITIAL_CAPACITY];
     public byte[] chronicleEventType = new byte[INITIAL_CAPACITY];
     public long[] chronicleSourceChainId = filledLongs(INITIAL_CAPACITY, -1L);
-    /** Terminal {@link ChainState} captured when this dispatch was learned. */
+    /** {@link ChainState} captured when this dispatch was learned. */
     public byte[] chronicleChainOutcome = new byte[INITIAL_CAPACITY];
     public byte[] chronicleBand = new byte[INITIAL_CAPACITY];
+    public byte[] chronicleConfidence = new byte[INITIAL_CAPACITY];
     public long[] chronicleActorHouseId = filledLongs(INITIAL_CAPACITY, -1L);
     public long[] chronicleTargetHouseId = filledLongs(INITIAL_CAPACITY, -1L);
     public int[] chronicleMarketId = filledInts(INITIAL_CAPACITY, -1);
@@ -322,6 +327,9 @@ public final class CampaignState implements Serializable {
         chainInitiatedTick[i] = initiatedTick;
         chainLastAdvanceTick[i] = -1;
         chainResolvedTick[i] = -1;
+        chainDiscoveryProcessedTick[i] = -1;
+        chainLastDiscoveryCheckTick[i] = -1;
+        chainDiscoveredTick[i] = -1;
         chainIndexById.put(id, i);
         return id;
     }
@@ -345,11 +353,35 @@ public final class CampaignState implements Serializable {
         chronicleSourceChainId[i] = sourceChainId;
         chronicleChainOutcome[i] = outcome.toByte();
         chronicleBand[i] = band.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
         chronicleActorHouseId[i] = actorHouseId;
         chronicleTargetHouseId[i] = targetHouseId;
         chronicleMarketId[i] = marketId;
         chronicleIndustryId[i] = industryId;
         chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
+    /** Appends an active-chain rumor snapshot. Returns the Chronicle event id. */
+    public long addChronicleChainRumor(long sourceChainId, ChronicleBand band,
+                                       long actorHouseId, long targetHouseId,
+                                       int marketId, int industryId,
+                                       int initiatedTick, int learnedTick) {
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.ACTIVE_CHAIN_RUMOR.toByte();
+        chronicleSourceChainId[i] = sourceChainId;
+        chronicleChainOutcome[i] = ChainState.ACTIVE.toByte();
+        chronicleBand[i] = band.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.RUMOR.toByte();
+        chronicleActorHouseId[i] = actorHouseId;
+        chronicleTargetHouseId[i] = targetHouseId;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = industryId;
+        chronicleHappenedTick[i] = initiatedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
     }
@@ -520,6 +552,10 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chainResolvedTick, oldLength, n, -1);
         chainDiscoveryProcessedTick = Arrays.copyOf(chainDiscoveryProcessedTick, n);
         Arrays.fill(chainDiscoveryProcessedTick, oldLength, n, -1);
+        chainLastDiscoveryCheckTick = Arrays.copyOf(chainLastDiscoveryCheckTick, n);
+        Arrays.fill(chainLastDiscoveryCheckTick, oldLength, n, -1);
+        chainDiscoveredTick = Arrays.copyOf(chainDiscoveredTick, n);
+        Arrays.fill(chainDiscoveredTick, oldLength, n, -1);
     }
 
     private void ensureChronicleCapacity(int needed) {
@@ -532,6 +568,7 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleSourceChainId, oldLength, n, -1L);
         chronicleChainOutcome = Arrays.copyOf(chronicleChainOutcome, n);
         chronicleBand = Arrays.copyOf(chronicleBand, n);
+        chronicleConfidence = Arrays.copyOf(chronicleConfidence, n);
         chronicleActorHouseId = Arrays.copyOf(chronicleActorHouseId, n);
         Arrays.fill(chronicleActorHouseId, oldLength, n, -1L);
         chronicleTargetHouseId = Arrays.copyOf(chronicleTargetHouseId, n);
@@ -612,6 +649,14 @@ public final class CampaignState implements Serializable {
             int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
             chainDiscoveryProcessedTick = filledInts(n, -1);
         }
+        if (chainLastDiscoveryCheckTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainLastDiscoveryCheckTick = filledInts(n, -1);
+        }
+        if (chainDiscoveredTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainDiscoveredTick = filledInts(n, -1);
+        }
         int chronicleCapacity = chronicleId != null ? chronicleId.length : INITIAL_CAPACITY;
         if (chronicleId == null) chronicleId = new long[chronicleCapacity];
         if (chronicleEventType == null) chronicleEventType = new byte[chronicleCapacity];
@@ -620,6 +665,7 @@ public final class CampaignState implements Serializable {
         }
         if (chronicleChainOutcome == null) chronicleChainOutcome = new byte[chronicleCapacity];
         if (chronicleBand == null) chronicleBand = new byte[chronicleCapacity];
+        if (chronicleConfidence == null) chronicleConfidence = new byte[chronicleCapacity];
         if (chronicleActorHouseId == null) {
             chronicleActorHouseId = filledLongs(chronicleCapacity, -1L);
         }
