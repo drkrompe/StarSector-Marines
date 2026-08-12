@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
+import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -20,6 +21,7 @@ class CampaignStateSystemOrderTest {
         int defaults = indexOf(systems, StationingDefaultSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
         int training = indexOf(systems, CadreTrainingSystem.class);
+        int incidents = indexOf(systems, StationingIncidentSystem.class);
         int lifecycle = indexOf(systems, ContractLifecycleSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
@@ -27,6 +29,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(defaults < training);
         assertTrue(retainers < lifecycle);
         assertTrue(training < lifecycle);
+        assertTrue(incidents < lifecycle);
         assertTrue(lifecycle < extraction);
     }
 

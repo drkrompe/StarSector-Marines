@@ -38,6 +38,8 @@ class StationingAssignmentServiceTest {
         assertEquals(3_300, fixture.state.contractRetainerPerMonth[row]);
         assertEquals(100, fixture.state.contractMarinesCommitted[row]);
         assertEquals(40, fixture.state.contractLastRetainerTick[row]);
+        assertEquals(-1, fixture.state.contractNextIncidentTick[row]);
+        assertEquals(0, fixture.state.contractIncidentPending[row]);
         assertEquals(25, fixture.state.contractSalvageBaseline[row] & 0xFF);
         assertEquals(fixture.captain.id(), fixture.state.captainRegistry.get(
                 fixture.state.contractCaptainId[row]));
@@ -52,6 +54,8 @@ class StationingAssignmentServiceTest {
 
         assertTrue(StationingAssignmentService.accept(fixture.state, fixture.contractId,
                 fixture.captain, 40, 1, 10, fixture.store));
+        int row = fixture.state.contractIndex(fixture.contractId);
+        assertTrue(fixture.state.contractNextIncidentTick[row] > 10);
         assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
                 fixture.captain, 10, 1, 10, fixture.store));
         assertEquals(10, fixture.store.available);

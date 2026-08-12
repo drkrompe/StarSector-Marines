@@ -78,6 +78,9 @@ public final class StationingAssignmentService {
         state.contractLastRetainerTick[row] = day;
         state.contractLastTrainingTick[row] = type == ContractType.CADRE ? day : -1;
         state.contractLastDefaultCheckTick[row] = day;
+        state.contractNextIncidentTick[row] = type == ContractType.CADRE
+                ? StationingIncidentSystem.nextIncidentDay(contractId, day) : -1;
+        state.contractIncidentPending[row] = 0;
         state.contractSalvageBaseline[row] = terms.salvageBaseline;
         state.contractSalvageNegotiated[row] = terms.salvageBaseline;
         state.contractCashMultiplier[row] = 100;

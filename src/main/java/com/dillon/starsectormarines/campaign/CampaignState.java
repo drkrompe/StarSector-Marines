@@ -136,6 +136,10 @@ public final class CampaignState implements Serializable {
     public int[]   contractLastTrainingTick = filledInts(INITIAL_CAPACITY, -1);
     /** Last monthly stationing-default checkpoint evaluated; -1 for legacy/unassigned rows. */
     public int[]   contractLastDefaultCheckTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Next day a Cadre incident becomes due; -1 when unscheduled or already pending. */
+    public int[]   contractNextIncidentTick = filledInts(INITIAL_CAPACITY, -1);
+    /** 1 while a Cadre incident awaits a player-facing payload; otherwise 0. */
+    public byte[]  contractIncidentPending = new byte[INITIAL_CAPACITY];
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -315,6 +319,8 @@ public final class CampaignState implements Serializable {
                 && state != ContractState.OFFERED ? acceptedTick : -1;
         contractLastDefaultCheckTick[i] = type.isStationing()
                 && state != ContractState.OFFERED ? acceptedTick : -1;
+        contractNextIncidentTick[i] = -1;
+        contractIncidentPending[i] = 0;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -459,6 +465,14 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractNextPhaseReadyTick = filledInts(n, -1);
         }
+        if (contractNextIncidentTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractNextIncidentTick = filledInts(n, -1);
+        }
+        if (contractIncidentPending == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractIncidentPending = new byte[n];
+        }
         return this;
     }
 
@@ -494,6 +508,9 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractLastTrainingTick, oldLength, n, -1);
         contractLastDefaultCheckTick = Arrays.copyOf(contractLastDefaultCheckTick, n);
         Arrays.fill(contractLastDefaultCheckTick, oldLength, n, -1);
+        contractNextIncidentTick = Arrays.copyOf(contractNextIncidentTick, n);
+        Arrays.fill(contractNextIncidentTick, oldLength, n, -1);
+        contractIncidentPending = Arrays.copyOf(contractIncidentPending, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
