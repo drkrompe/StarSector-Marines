@@ -21,5 +21,13 @@ wall corner, so keep it < 1 and rely on the 8-dir path's wall clearance).
 - `FacingSystem` / mech locomotion phase derive from the mover's velocity
   (direction to carrot), not cell deltas; mech pivot-in-place keeps its
   feel by gating translation on facing alignment as today.
-- `moveProgress` accessors deleted → compile errors are the worklist for
-  phase 2b (intentional: forces every gate through review).
+- `mayRepath` does NOT become plain `true` at the swap: the old cell-boundary
+  gate doubled as a pathfinding rate limit (~once per cell traversed, i.e.
+  every ~0.3-0.5s at typical move speeds). It becomes a per-unit repath
+  throttle: allow when no active path, else when a repath cooldown has
+  elapsed — the retired `MOVE_PROGRESS` field slot holds the cooldown timer.
+  Without this, every `mayRepath` site re-runs findPath every tick.
+- `settled` becomes "no un-exhausted path"; `atCell` becomes the
+  ARRIVE_RADIUS test; `moveProgress` accessors deleted (2b already swept the
+  gates, so the remaining references are the mover itself + FacingSystem's
+  locomotion phase).

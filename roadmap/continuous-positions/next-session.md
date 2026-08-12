@@ -10,15 +10,22 @@ center at `cx + 0.5`, `cellX = floor(x)`.
 
 ## Story status
 
-- [ ] phase-1-storage-flip — IN PROGRESS
-- [ ] phase-2a-continuous-mover
-- [ ] phase-2b-arrival-semantics
+REORDERED: 2b (gate helpers + sweep) runs BEFORE 2a (mover swap) so every
+commit stays green — 2a changes each helper's semantics in one place.
+
+- [x] phase-1-storage-flip — landed 0d346838; critique pass clean
+- [x] phase-2b-arrival-semantics — helpers aabf8b5f, 50-site sweep 7a095c06
+- [ ] phase-2a-continuous-mover — IN PROGRESS (two commits: mover swap, then
+      RENDER_POSITION removal)
 - [ ] phase-2c-spatial-boundaries
 - [ ] in-game verification + merge back to main
 
 ## Commit chain
 
-(none yet — docs commit first)
+- ec60c13a roadmap docs
+- 0d346838 phase 1: POSITION int,int -> float,float (behavior-identical)
+- aabf8b5f phase 2b groundwork: atCell/settled/mayRepath + FireStance(boolean)
+- 7a095c06 phase 2b sweep: 50 gates intent-classified (behavior-identical)
 
 ## Handoff notes
 
