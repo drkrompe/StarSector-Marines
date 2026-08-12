@@ -59,9 +59,11 @@ mirroring the existing `SquadOverviewPanel`. Visible whenever
 - Current goal name (or `—` when idle)
 - Current posture + step index (`Engage [1/1]`, `Approach [1/2]`, etc.)
 
-Capped at 12 rows so a tactical-map mission with dozens of garrison squads
-doesn't paint over the battlefield. The cap can be lifted in Stage 2 or
-replaced with a scroll/filter mechanism if we need full visibility.
+The compact GOAP list and its sibling squad-status list now retain every live
+squad and fit only whole rows beneath the top controls (`8382a5e8`). When the
+roster exceeds that bounded viewport, wheel input over the panel scrolls by
+three rows and a track/thumb shows the current position; the old 12-row GOAP
+truncation is gone.
 
 ## Status
 
