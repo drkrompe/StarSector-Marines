@@ -1,0 +1,49 @@
+# Slice G6 — swarm-defense threat payload
+
+**Status:** CODE COMPLETE (2026-08-12)
+
+**Implemented:** `94cb765b`, `80020b48`, `6b386199`, `88421954`,
+`710d2981`
+
+## Goal
+
+Replace the civilian-rescue battle's temporary conventional defenders with the
+held biological swarm content while preserving the completed evacuation and
+campaign-writeback contract.
+
+## Shipped v1
+
+- `Faction.DEFENDER` remains the opposed battle side. Append-only
+  `UnitType.SWARM_RUNNER` and `UnitRole.SWARM_PRESSURE` provide threat identity
+  without changing faction-wide win, targeting, rendering, or command rules.
+- The runner reuses held `alien.png` and `alien-dead.png`; legacy `ALIEN`
+  remains intact.
+- Runners are fast close-contact attackers with no weapons, equipment, squad
+  GOAP, ranged shots, conventional reinforcements, or fighter support.
+- Target selection chooses the nearest registered active evacuee first, never
+  scans ambient civilians, and falls back to the nearest live marine.
+- LOW/MEDIUM/HIGH rescue missions install 12/24/40 deterministic runners on a
+  complete set of reachable cells outside the shelter and lift zones.
+- An incomplete placement aborts that map attempt before any partial roster can
+  become player-visible.
+- The dedicated factory no longer stamps defense-post turrets, allocates an
+  Extraction defender roster, or installs reinforcement providers.
+- Evacuation scaling, zero-economy mission terms, and hidden moral effects are
+  unchanged.
+
+## Verification checkpoint
+
+- Focused tests cover append-only enum compatibility, sprite/stat identity,
+  evacuee-first targeting, ambient exclusion, marine fallback, direct pathing,
+  contact-only damage, all risk tiers, deterministic cells, protected zones,
+  and all-or-nothing roster installation.
+- The dedicated factory fixture confirms every opposed live unit is a runner
+  and its reinforcement service is empty.
+- `gradlew.bat build --no-daemon --max-workers=1` passes.
+- Manual playtesting was intentionally skipped for this session.
+
+## Next
+
+Close the player-facing outcome loop with a controlled zero/partial/full
+battle-to-campaign fixture and explicit result presentation. Balance tuning
+remains deferred until manual playtesting resumes.

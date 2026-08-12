@@ -106,6 +106,14 @@ residential-to-outer-band placement installs eight mission-only VIPs, a serial
 system routes and boards them, campaign-event launch selects the dedicated
 battle factory, and the matching market exposes one Distress Net mission
 (`c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`, `84e9e175`).
+The intended biological threat payload is now shipped. Append-only
+`SWARM_RUNNER` / `SWARM_PRESSURE` identity reuses the held alien sheets without
+changing the battle-side faction model; runners prioritize registered active
+evacuees, fall back to marines, and deal contact damage. Deterministic
+LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
+zones, while the rescue factory now omits conventional defenders, defense-post
+turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
+`6b386199`, `88421954`, `710d2981`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -118,22 +126,21 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Swarm-defense threat payload
+## Next up — civilian-rescue outcome closure
 
-The civilian rescue is now an end-to-end measurable event. Add its intended
-enemy content without changing the shipped evacuation/writeback contract:
+The event now runs from campaign trigger through its intended battle threat.
+Close the player-facing outcome loop without widening the shipped accounting
+contract:
 
-1. **Contract locked:** held `alien.png` / `alien-dead.png` back append-only
-   `SWARM_RUNNER` and `SWARM_PRESSURE` identities. The opposed side remains
-   `Faction.DEFENDER`; legacy `ALIEN` stays intact.
-2. Add an append-only faction/unit archetype and a dedicated swarm roster for
-   civilian-rescue battles; do not reuse ordinary militia defenders.
-3. Give swarm units a simple pressure behavior that attacks the evacuation
-   corridor and responding marines without targeting ambient civilians by
-   accident.
-4. Replace the temporary EXTRACTION defender roster in the dedicated factory,
-   then verify zero/partial/full evacuation under controlled swarm fixtures.
-5. Keep hidden moral mapping and zero-economy mission terms unchanged.
+1. Add a controlled battle-to-campaign fixture for zero, partial, and full
+   evacuation with a swarm roster present.
+2. Surface representative and campaign-scaled rescue totals in battle results;
+   do not infer them from the winning faction.
+3. Give the terminal event a durable player-facing resolution dispatch while
+   keeping moral-axis numbers hidden.
+4. Keep the event zero-economy and replay-safe; no credits or salvage should be
+   manufactured by the presentation layer.
+5. Defer roster/stat tuning to a later manual playtest session.
 
 ## Open forks still unresolved (design)
 
@@ -232,3 +239,8 @@ enemy content without changing the shipped evacuation/writeback contract:
   `2cd8416a`).
 - Slice G5d — dedicated battle launch and local emission (`bee0c6b4`,
   `84e9e175`).
+- Slice G6 contract — swarm-defense threat identity (`94cb765b`).
+- Slice G6a — append-only runner archetype (`80020b48`).
+- Slice G6b — evacuee-first pressure behavior (`6b386199`).
+- Slice G6c — deterministic risk-scaled roster (`88421954`).
+- Slice G6d — dedicated rescue-factory integration (`710d2981`).

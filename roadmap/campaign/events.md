@@ -1,13 +1,13 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE EVACUATION PAYLOAD CODE COMPLETE
-(2026-08-12); swarm-defense threat contract locked.
+**Status:** CIVILIAN-RESCUE SWARM PAYLOAD CODE COMPLETE (2026-08-12).
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
 `fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
 `5d6257f5`, `c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`,
-`84e9e175`
+`84e9e175`, `94cb765b`, `80020b48`, `6b386199`, `88421954`,
+`710d2981`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -267,7 +267,7 @@ is unchanged. The matching market alone exposes one committed mission through
 an always-open Distress Net client. Swarm faction, roster, AI, and held art are
 the next content slice.
 
-### Swarm-defense threat — locked v1
+### Swarm-defense threat — shipped v1
 
 `Faction` remains the battle-side abstraction (`MARINE`, `DEFENDER`,
 `CIVILIAN`). V1 therefore represents the swarm as append-only unit and role
@@ -296,6 +296,12 @@ on complete reachable cells outside the shelter/lift zones. The dedicated
 rescue factory replaces its temporary Extraction defender roster with this
 payload; evacuation accounting, zero-economy terms, and moral mapping do not
 change.
+
+The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
+12/24/40-runner rosters; incomplete placement discards the map attempt before
+it becomes player-visible. Focused runner, pressure, roster, and factory tests
+plus the full Gradle build pass. Manual playtesting remains intentionally
+deferred for this session.
 
 ## Design rules
 
@@ -328,10 +334,10 @@ change.
   against world conditions to spawn event intel.
 - Storage: dedicated `campaignEvents[]`; these choices are not commercial
   contracts and do not inherit contract payment/reputation semantics.
-- Battle-tier: the swarm race needs its own `Faction` enum entry + unit
-  types + AI behaviors. Significant infantry/AI work, and it needs the
-  full-screen battle takeover style the mod is building toward (see
-  [`../README.md`](../README.md) § Vision).
+- Battle-tier: shipped as `SWARM_RUNNER` + `SWARM_PRESSURE` on the existing
+  opposed `Faction.DEFENDER` battle side. This preserves two-sided battle
+  assumptions while keeping the biological threat out of infantry GOAP,
+  equipment, reinforcement, and ranged-fire systems.
 
 ## Related
 
