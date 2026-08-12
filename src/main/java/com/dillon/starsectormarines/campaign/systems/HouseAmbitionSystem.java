@@ -4,12 +4,16 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.HouseAmbition;
+import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 
 import java.util.EnumSet;
 
 /** Assigns the minimal persisted ambition needed by the horizontal drift loop. */
 public final class HouseAmbitionSystem implements CampaignSystem {
+
+    static final int REVIEW_CADENCE_DAYS = 30;
+    static final int PROMOTE_PROGRESS_PERCENT = 75;
 
     @Override
     public String name() {
@@ -42,14 +46,36 @@ public final class HouseAmbitionSystem implements CampaignSystem {
                 clearAmbition(state, houseRow);
                 ambition = HouseAmbition.NONE;
             }
-            if (ambition != HouseAmbition.NONE) {
-                continue;
+            if (ambition == HouseAmbition.NONE) {
+                int industryId = strongestHomeIndustry(state, houseRow);
+                if (industryId >= 0) {
+                    state.houseAmbition[houseRow] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
+                    state.houseAmbitionTarget[houseRow] = industryId;
+                    ambition = HouseAmbition.CONSOLIDATE_STAKE;
+                }
             }
-            int industryId = strongestHomeIndustry(state, houseRow);
-            if (industryId < 0) continue;
-            state.houseAmbition[houseRow] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
-            state.houseAmbitionTarget[houseRow] = industryId;
+            if (!reviewDue(state.houseLastAmbitionReviewTick[houseRow], day)) continue;
+            state.houseLastAmbitionReviewTick[houseRow] = day;
+            if (ambition == HouseAmbition.CONSOLIDATE_STAKE
+                    && readyToPromote(state, houseRow)) {
+                HouseRank rank = HouseRank.fromByte(state.houseRank[houseRow]);
+                state.houseAmbition[houseRow] = HouseAmbition.PROMOTE.toByte();
+                state.houseAmbitionTarget[houseRow] = rank.next().ordinal();
+            }
         }
+    }
+
+    private static boolean reviewDue(int lastReviewTick, int day) {
+        return lastReviewTick < 0 || day < lastReviewTick
+                || day - lastReviewTick >= REVIEW_CADENCE_DAYS;
+    }
+
+    static boolean readyToPromote(CampaignState state, int houseRow) {
+        HouseRank rank = HouseRank.fromByte(state.houseRank[houseRow]);
+        if (rank != HouseRank.TIER_1 && rank != HouseRank.TIER_2) return false;
+        int progressFloor = (rank.promotionThreshold * PROMOTE_PROGRESS_PERCENT + 99) / 100;
+        return state.housePromotionProgress[houseRow] >= progressFloor
+                && state.housePower[houseRow] >= rank.promotionThreshold;
     }
 
     private static boolean hasTargetedHomeStake(CampaignState state, int houseRow) {

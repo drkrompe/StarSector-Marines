@@ -130,6 +130,68 @@ class HouseAmbitionSystemTest {
         assertEquals(9L, state.houseAmbitionTarget[deposedRow]);
     }
 
+    @Test
+    void monthlyReviewTurnsEstablishedNearThresholdHouseTowardPromotion() {
+        CampaignState state = new CampaignState();
+        long house = house(state, 1, HouseStatus.ACTIVE);
+        state.addStake(house, 1, 7, (short) 100);
+        int row = state.houseIndex(house);
+        state.housePromotionProgress[row] = 75;
+        state.housePower[row] = 100;
+
+        new HouseAmbitionSystem().tick(state, 20);
+
+        assertEquals(HouseAmbition.PROMOTE,
+                HouseAmbition.fromByte(state.houseAmbition[row]));
+        assertEquals(HouseRank.TIER_2.ordinal(), state.houseAmbitionTarget[row]);
+        assertEquals(20, state.houseLastAmbitionReviewTick[row]);
+    }
+
+    @Test
+    void promotionIntentRequiresBothProgressAndPower() {
+        CampaignState state = new CampaignState();
+        long weak = house(state, 1, HouseStatus.ACTIVE);
+        long unready = house(state, 1, HouseStatus.ACTIVE);
+        state.addStake(weak, 1, 7, (short) 100);
+        state.addStake(unready, 1, 9, (short) 100);
+        int weakRow = state.houseIndex(weak);
+        int unreadyRow = state.houseIndex(unready);
+        state.housePromotionProgress[weakRow] = 75;
+        state.housePower[weakRow] = 99;
+        state.housePromotionProgress[unreadyRow] = 74;
+        state.housePower[unreadyRow] = 100;
+
+        new HouseAmbitionSystem().tick(state, 20);
+
+        assertEquals(HouseAmbition.CONSOLIDATE_STAKE,
+                HouseAmbition.fromByte(state.houseAmbition[weakRow]));
+        assertEquals(HouseAmbition.CONSOLIDATE_STAKE,
+                HouseAmbition.fromByte(state.houseAmbition[unreadyRow]));
+    }
+
+    @Test
+    void ineligibleHouseWaitsForNextPersistedReview() {
+        CampaignState state = new CampaignState();
+        long house = house(state, 1, HouseStatus.ACTIVE);
+        state.addStake(house, 1, 7, (short) 100);
+        int row = state.houseIndex(house);
+        state.housePromotionProgress[row] = 74;
+        state.housePower[row] = 100;
+        HouseAmbitionSystem system = new HouseAmbitionSystem();
+        system.tick(state, 20);
+
+        state.housePromotionProgress[row] = 75;
+        system.tick(state, 49);
+        assertEquals(HouseAmbition.CONSOLIDATE_STAKE,
+                HouseAmbition.fromByte(state.houseAmbition[row]));
+        assertEquals(20, state.houseLastAmbitionReviewTick[row]);
+
+        system.tick(state, 50);
+        assertEquals(HouseAmbition.PROMOTE,
+                HouseAmbition.fromByte(state.houseAmbition[row]));
+        assertEquals(50, state.houseLastAmbitionReviewTick[row]);
+    }
+
     private static long house(CampaignState state, int market, HouseStatus status) {
         return state.addHouse(market, 1, HouseFlavor.FEUDAL, HouseRank.TIER_1,
                 status, PatronArchetype.NEWCOMER, "House");
