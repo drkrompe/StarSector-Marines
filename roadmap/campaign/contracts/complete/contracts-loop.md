@@ -287,7 +287,10 @@ method together act as a copyable template — see
   Garrison to ACTIVE or fails the assignment (`f9ba10ea`). EXTRACTION remains
   system-generated. Player-launched rival Strike contracts now arm that same
   defense path at the target house's market with stable attacker/event identity
-  (`8c899ca5`); internal political flips remain the next world integration.
+  (`8c899ca5`). Daily live-market ownership checks now arm dispossessed patrons
+  on internal faction flips while leaving same-faction Garrison patrons idle
+  (`90580a8a`). All three designed Garrison sources—rival Strike, vanilla raid,
+  and internal flip—now converge on the same persisted playable response.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

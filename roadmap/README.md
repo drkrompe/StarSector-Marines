@@ -115,9 +115,11 @@ universe over time, not retrofitted into intel slots.
    and local fixed-captain battles resolve exactly once back to ACTIVE or FAILED
    (`6497e062`, `025ff507`, `f9ba10ea`). Player-launched rival Strike contracts
    now arm that shared defense path at the target house's market (`8c899ca5`).
-   Next: connect internal political/market flips as the remaining Garrison
-   trigger producer. See `campaign/contracts/overview.md` and
-   `campaign/living-world/`.
+   Live market-faction changes complete the source matrix by arming dispossessed
+   Garrison patrons through the internal-flip path (`90580a8a`). Next campaign
+   work returns to the living-world Slice C breathing loop: weekly stake drift
+   plus autonomous promotion. See `campaign/contracts/overview.md` and
+   `campaign/living-world/next-session.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

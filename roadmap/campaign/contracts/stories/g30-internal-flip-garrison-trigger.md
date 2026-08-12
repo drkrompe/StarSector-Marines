@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `90580a8a`
+
 ## Goal
 
 Make a live faction-ownership change at a protected market trigger the final
