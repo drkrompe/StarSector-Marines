@@ -32,6 +32,10 @@ their progress threshold; and Tier-3 houses at 750 progress / 1000 power persist
 a throne claim against their faction identity (`f022d4ad`, `31bb6875`,
 `3c58964b`, `57be6214`). Vertical ambitions deliberately do not create generic
 consolidation chains.
+The first vertical payload is also shipped: non-majority Tier-1/2 promotion
+schemes bind a same-faction local rival for 60 days, resolve into +90 actor / -30
+rival promotion progress plus a 20-share material shift, and safely short-circuit
+if another route already promoted the actor (`0a00ceb0`, `156ac5b1`, `a4cd42c8`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -44,21 +48,20 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Vertical chain contracts
+## Next up — Throne-claim handoff contract
 
-Specify the payloads that make the new ambitions actionable without weakening
-the T3 vanilla-write isolation boundary:
+Specify the one remaining vertical payload without weakening the T3
+vanilla-write isolation boundary:
 
-1. Define the `PROMOTE` chain resolution payload: progress movement, rival
-   suppression, location identity, and how much horizontal stake must accompany
-   a vertical win.
-2. Define the `CLAIM_THRONE` chain stages and the exact persisted handoff record
+1. Define the `CLAIM_THRONE` chain stages and the exact persisted handoff record
    consumed by the isolated T3 endgame system.
-3. Decide how ordinary autonomous progress behaves at the T3 threshold while a
+2. Decide how ordinary autonomous progress behaves at the T3 threshold while a
    throne chain is absent or active, so no internal Tier-4 state outruns the
    vanilla faction result.
-4. Only then append vertical `ChainArchetype` values, creation/advancement
-   payloads, discovery/Chronicle classification, and intervention hooks.
+3. Specify exactly-once market/faction writeback, reversibility, and failure
+   behavior before allowing `CIVIL_WAR` creation or advancement.
+4. Add discovery/Chronicle classification and intervention/player-choice
+   outcomes around that persisted handoff.
 
 ## Open forks still unresolved (design)
 
@@ -112,3 +115,6 @@ the T3 vanilla-write isolation boundary:
 - Slice E2b — power/progress-gated promotion intent (`31bb6875`).
 - Slice E2c — faction-targeted Tier-3 throne claims (`3c58964b`).
 - Slice E2d — vertical-chain integration guards (`57be6214`).
+- Slice F1a — ordinary promotion-chain contract (`0a00ceb0`).
+- Slice F1b — deterministic promotion-chain creation (`156ac5b1`).
+- Slice F1c — exactly-once promotion-chain resolution (`a4cd42c8`).

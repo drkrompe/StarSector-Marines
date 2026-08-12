@@ -5,6 +5,11 @@ schemes before those ambitions are admitted to autonomous chain creation.
 `CONSOLIDATE_STAKE` remains the horizontal baseline; vertical chains must earn
 their own identity and payload rather than borrowing it.
 
+**Status:** ordinary `PROMOTE` chain CODE COMPLETE (2026-08-12);
+`CLAIM_THRONE` still gated.
+
+**Implemented:** `0a00ceb0`, `156ac5b1`, `a4cd42c8`
+
 ## Ordinary promotion — locked v1 contract
 
 `PROMOTE` represents a Tier-1/2 house manufacturing the political legitimacy

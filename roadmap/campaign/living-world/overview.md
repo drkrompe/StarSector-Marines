@@ -185,9 +185,13 @@ Tier-3 throne claims: `f022d4ad`, `31bb6875`, `3c58964b`, `57be6214`) — see
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic. Vertical chain payloads now own the next boundary: promotion
-and throne-claim ambitions remain inert until their resolution and isolated
-T3-endgame writeback contracts are explicit.
+mutation logic. Vertical chain payloads own the post-spine boundary and land
+only after their resolution contracts are explicit.
+
+The ordinary Tier-1/2 vertical payload is now shipped: non-majority `PROMOTE`
+houses create deterministic same-faction local schemes and resolve through the
+shared stake/rank primitives (`0a00ceb0`, `156ac5b1`, `a4cd42c8`).
+`CLAIM_THRONE` remains the isolated T3-endgame boundary.
 
 ## Two payoffs that fall out for free
 
