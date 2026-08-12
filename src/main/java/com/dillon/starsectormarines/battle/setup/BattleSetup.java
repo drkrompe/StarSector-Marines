@@ -540,13 +540,9 @@ public final class BattleSetup {
             Random rng = new Random(battleSeed);
             List<MapVehicle> vehiclePlacements =
                     stampVehicles(map.grid, map.topology, rng);
-            List<DefensePost> defensePosts = new ArrayList<>();
-            DefensePostStamper.stampNonConquest(map.grid, map.topology,
-                    RoadReservation.mask(map.roadGraph,
-                            map.grid.getWidth(), map.grid.getHeight()),
-                    map.pointsOfInterest, map.doodads, defensePosts, rng);
             BattleSimulation sim =
-                    buildMap(map, vehiclePlacements, defensePosts).sim();
+                    buildMap(map, vehiclePlacements,
+                            Collections.emptyList()).sim();
 
             com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload payload =
                     com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload
@@ -588,10 +584,11 @@ public final class BattleSetup {
                 equipDefaultTurrets(sim, shuttleId);
             }
 
-            allocateDefenders(sim, map, DefenderRoster.forMission(
-                    MissionType.EXTRACTION, risk, enemyHasHeavyArmor), rng);
             spawnAmbientCivilians(sim, map, rng);
-            installReinforcementLayer(sim, map, null);
+            com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster swarm =
+                    com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster
+                            .install(sim, payload.placement, risk, battleSeed);
+            if (swarm == null) continue;
             return sim;
         }
         throw new IllegalStateException(
