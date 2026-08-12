@@ -20,6 +20,8 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #RUSH_OBJECTIVE} — close on a specific mission objective and
  *       execute it (planter cordon, extract, etc.). Composes with Story J's
  *       {@code CordonForPlant}.</li>
+ *   <li>{@link #ESCORT} — advance to a mission-authored rally cell, then
+ *       maintain a protective ring as that cell follows a moving payload.</li>
  *   <li>{@link #SUPPORT} — fallback when no objective-specific kind fits:
  *       patrol toward a contested zone, hold a flank, back a friendly squad.
  *       The commander uses this for surplus squads.</li>
@@ -34,5 +36,7 @@ public enum AssignmentKind {
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,
-    SUPPORT
+    SUPPORT,
+    /** Advance to a rally cell, then remain within a protective leash of a moving mission payload. */
+    ESCORT
 }

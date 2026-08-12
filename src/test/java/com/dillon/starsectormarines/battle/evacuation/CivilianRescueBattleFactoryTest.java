@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
-import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -44,6 +45,8 @@ class CivilianRescueBattleFactoryTest {
         }
         assertEquals(SwarmDefenseRoster.LOW_COUNT, defenders);
         assertTrue(sim.getReinforcementService().isEmpty());
+        assertTrue(sim.getCommander(Faction.MARINE)
+                instanceof RescueEscortCommand);
     }
 
     @Test
