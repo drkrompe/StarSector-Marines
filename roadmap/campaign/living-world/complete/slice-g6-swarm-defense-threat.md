@@ -3,7 +3,7 @@
 **Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`
+`710d2981`; hit-response correction `fb50b964`
 
 ## Goal
 
@@ -41,6 +41,16 @@ campaign-writeback contract.
   and its reinforcement service is empty.
 - `gradlew.bat build --no-daemon --max-workers=1` passes.
 - Manual playtesting was intentionally skipped for this session.
+
+## Playtest correction
+
+The first manual observation found runners stopping under sustained fire before
+they reached contact. `SWARM_PRESSURE` had accidentally inherited the generic
+25% on-hit fallback roll, replacing its pursuit behavior for 3.5 seconds even
+though the payload contract made the swarm morale-free and implacable.
+`fb50b964` exempts the role from legacy fallback. Regression coverage now proves
+100 hit reactions cannot make a runner flinch and repeated pressure ticks close
+the full distance into contact damage. The full Gradle build passes.
 
 ## Next
 

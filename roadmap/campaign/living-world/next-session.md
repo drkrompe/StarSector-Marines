@@ -114,6 +114,9 @@ LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
 zones, while the rescue factory now omits conventional defenders, defense-post
 turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
 `6b386199`, `88421954`, `710d2981`).
+The first playtest correction is shipped too: `SWARM_PRESSURE` no longer rolls
+the generic on-hit fallback that made runners stop under sustained fire, and
+full-distance contact pursuit is locked by regression tests (`fb50b964`).
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
@@ -244,6 +247,7 @@ deferred until manual playtesting resumes.
 - Slice G6c — deterministic risk-scaled roster (`88421954`).
 - Slice G6d — dedicated rescue-factory integration (`710d2981`).
 - Slice G7a — direct debug swarm-rescue missions (`38bc6323`).
+- G6 playtest correction — implacable pursuit under fire (`fb50b964`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

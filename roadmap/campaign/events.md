@@ -303,6 +303,12 @@ it becomes player-visible. Focused runner, pressure, roster, and factory tests
 plus the full Gradle build pass. Manual playtesting remains intentionally
 deferred for this session.
 
+The first later playtest exposed one inherited behavior leak: ordinary
+non-squad units roll a generic fallback response when hit, so sustained marine
+fire could repeatedly stop runners before contact. `fb50b964` makes
+`SWARM_PRESSURE` implacable as designed and adds full-distance melee-closure and
+no-flinch regression coverage.
+
 ### Outcome closure — first checkpoint
 
 The debug mission client now exposes direct LOW/MEDIUM/HIGH **SWARM RESCUE**
