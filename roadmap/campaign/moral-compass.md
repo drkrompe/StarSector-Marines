@@ -1,10 +1,12 @@
 # Moral compass — the silent track
 
-**Status:** FOUNDATION CONTRACT LOCKED (2026-08-12); persistence next.
+**Status:** FOUNDATION CODE COMPLETE (2026-08-12); second source family next.
 
-> Design discussion, not a spec. Continues from [`themes.md`](themes.md).
-> The discipline here (never surface it) is load-bearing — read the
-> "Design discipline" section before proposing any UI for this.
+**Implemented:** `facfa007`, `6765eac6`, `2a1924e7`
+
+> The hidden foundation is a locked spec; later reaction surfaces remain design
+> discussion. The discipline here (never surface the numbers) is load-bearing —
+> read "Design discipline" before proposing any UI for this.
 
 A silent moral-compass track records the *character* of the player's
 choices over time. The track is **never visible to the player as a
@@ -82,6 +84,12 @@ source chain id as `moralChoiceSourceId`; claimant `happenedTick` is the handoff
 application day, while incumbent `happenedTick` is the failed-chain resolution
 day. The other three axes receive zero because side selection alone establishes
 nothing about mercy, integrity, or stewardship.
+
+The foundation implementation is shipped: aggregate axes and ledger columns
+grow/backfill safely, `MoralChoiceRecorder` owns source-pair uniqueness and
+clamped actual-delta snapshots, and the daily consumer runs only after validated
+civil-war player consequences. There is intentionally no debug-intel readout or
+other numeric surface.
 
 ## How it surfaces — diegetic only
 

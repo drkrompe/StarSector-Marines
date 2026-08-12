@@ -221,7 +221,12 @@ stationing acceptance through shared contradictory-work/withdrawal rules
 supported/opposed house-reputation changes exactly once after an applied
 claimant handoff or a same-day decisive incumbent failure; autonomous and stale
 terminal outcomes remain neutral (`753f3969`, `0ef347d3`, `03422b15`). The
-silent moral-compass foundation and earned kingmaker capstone remain.
+earned kingmaker capstone remains. Its hidden foundation is now shipped: four
+bounded axes sit behind an append-
+only source-unique choice ledger, and attributed claimant/incumbent outcomes
+move institutionalism exactly once without exposing numbers or inventing meaning
+on the other axes (`facfa007`, `6765eac6`, `2a1924e7`). A second real source
+family is required before reactive surfaces or capstone testimony.
 
 ## Two payoffs that fall out for free
 

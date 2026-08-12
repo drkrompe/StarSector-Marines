@@ -142,7 +142,9 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
 - ~~Player reputation consequences for those explicit choices.~~ Shipped with
   contribution scaling and autonomous/stale neutrality (`03422b15`).
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
-  multi-axis reveal that pays off at this tier.
+  multi-axis reveal that pays off at this tier. Its hidden ledger foundation is
+  shipped (`facfa007`, `6765eac6`, `2a1924e7`), but the reveal waits for more
+  than one meaningful source family.
 
 ## Related
 

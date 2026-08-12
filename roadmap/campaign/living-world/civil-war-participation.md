@@ -147,7 +147,8 @@ cannot replay an applied outcome.
 
 ## Non-goals for the foundation
 
-- No moral-compass values or capstone dialogue yet.
+- No moral-compass effect beyond the hidden institutionalism ledger row; no
+  capstone dialogue yet.
 - No player reputation change from merely discovering or accepting an offer.
 - No generic change to how non-civil-war intervention success fails a plot.
 - No manual playtest requirement during this implementation session.

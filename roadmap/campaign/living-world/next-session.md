@@ -70,6 +70,10 @@ support scales fixed house-reputation deltas, applied claimant handoffs reward
 the claimant side, same-day decisive incumbent failures reward the incumbent,
 and autonomous or stale outcomes remain neutral through replay-safe persisted
 lifecycles (`753f3969`, `0ef347d3`, `03422b15`).
+The silent moral-compass foundation is shipped: four bounded hidden axes feed an
+append-only source-unique choice ledger, and attributed civil-war outcomes move
+institutionalism without making unsupported claims about mercy, integrity, or
+stewardship (`facfa007`, `6765eac6`, `2a1924e7`). No numeric surface exists.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -82,20 +86,20 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Silent moral-compass foundation
+## Next up — Second moral source: civilian rescue
 
-The civil-war participation arc is mechanically complete. Before building its
-explicit kingmaker testament, turn [`../moral-compass.md`](../moral-compass.md)
-from design discussion into the smallest implementable hidden foundation:
+The hidden foundation is real but has only one honest input axis. Flesh out the
+[`../events.md`](../events.md) civilian-rescue black-swan proof of concept as the
+second source family before any reactive/capstone surface reads the compass:
 
-1. Lock the initial 3–5 hidden axes and their bounded ranges; do not expose a
-   numeric UI or optimization feedback.
-2. Choose only already-persisted, replay-safe inputs for the first slice—civil-
-   war allegiance/outcome is the strongest existing candidate.
-3. Persist enough source identity or applied markers that save/load and table
-   compaction cannot double-count a moral choice.
-4. Defer captain drift, dialog gates, and the deposed-ruler testament until the
-   hidden record has multiple meaningful input families.
+1. Lock the event identity/lifecycle, trigger boundary, always-available refusal,
+   and cost-shaped commitment before choosing battle content.
+2. Persist explicit accept/refuse and rescue outcome facts; do not infer moral
+   meaning from mission failure alone.
+3. Map only established facts into mercy/stewardship through new ledger source
+   types, with no previewed reward or numeric compass feedback.
+4. Keep the first storage/choice slice independent from held swarm art and the
+   larger swarm-defense AI/battle vertical so each hunk remains shippable.
 
 ## Open forks still unresolved (design)
 
@@ -174,3 +178,6 @@ from design discussion into the smallest implementable hidden foundation:
 - Slice F8a — terminal player-consequence contract (`753f3969`).
 - Slice F8b — persisted consequence lifecycles (`0ef347d3`).
 - Slice F8c — attributed claimant/incumbent reputation (`03422b15`).
+- Slice G1a — silent compass/ledger contract (`facfa007`).
+- Slice G1b — persisted axes and source ledger (`6765eac6`).
+- Slice G1c — civil-war moral source consumer (`2a1924e7`).
