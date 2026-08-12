@@ -81,6 +81,10 @@ public final class CivilianEvacuationPayload {
                 new CivilianEvacuationObjective(tracker,
                         placement.liftX, placement.liftY,
                         CivilianEvacuationPlacement.LIFT_ZONE_RADIUS);
+        if (!sim.configureCivilianEvacuation(placement)) {
+            throw new IllegalStateException(
+                    "planned evacuation routing configuration failed");
+        }
         sim.addObjective(objective);
         return new CivilianEvacuationPayload(placement, objective, ids);
     }

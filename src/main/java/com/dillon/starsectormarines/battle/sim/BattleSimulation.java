@@ -51,6 +51,8 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -146,6 +148,9 @@ public class BattleSimulation implements BattleControl {
      */
     private final CivilianEvacuationTracker civilianEvacuation =
             new CivilianEvacuationTracker();
+    /** Serial route/boarding driver, inert until a rescue payload configures it. */
+    private final CivilianEvacuationSystem civilianEvacuationSystem =
+            new CivilianEvacuationSystem(civilianEvacuation);
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
@@ -480,6 +485,10 @@ public class BattleSimulation implements BattleControl {
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
     public CivilianEvacuationTracker getCivilianEvacuationTracker() {
         return civilianEvacuation;
+    }
+    public boolean configureCivilianEvacuation(
+            CivilianEvacuationPlacement placement) {
+        return civilianEvacuationSystem.configure(placement);
     }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
@@ -1075,6 +1084,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
+        civilianEvacuationSystem.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single zone-graph rebuild for the whole tick — drains any wall
