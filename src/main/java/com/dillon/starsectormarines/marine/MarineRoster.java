@@ -174,6 +174,28 @@ public class MarineRoster implements Serializable {
         return true;
     }
 
+    /** Next roster-order captain who can receive this team; excludes its current captain. */
+    public MarineCaptain nextAssignableCaptain(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || captains.isEmpty()) return null;
+        String currentId = squad.homeCaptainId();
+        int start = -1;
+        for (int i = 0; i < captains.size(); i++) {
+            if (captains.get(i).id().equals(currentId)) {
+                start = i;
+                break;
+            }
+        }
+        for (int offset = 1; offset <= captains.size(); offset++) {
+            MarineCaptain candidate = captains.get((start + offset) % captains.size());
+            if (candidate.id().equals(currentId) || candidate.status() != Status.ACTIVE) continue;
+            if (squadsCommandedBy(candidate.id()).size() < candidate.rank().fireteamCap()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     public List<MarineSoldier> squadMembers(MarineSquad squad) {
         if (squad == null) return Collections.emptyList();
         List<MarineSoldier> result = new ArrayList<>();

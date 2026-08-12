@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.marine.MarineArmory;
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreset;
 import com.dillon.starsectormarines.marine.SquadPresetResult;
+import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -206,7 +208,10 @@ public final class ArmoryScreen implements Screen {
         }, HEADER);
 
         if (!squad.reserve()) {
-            float presetY = top - 52f;
+            float commandY = top - 52f;
+            buildHomeCommand(squad, x, commandY, width);
+
+            float presetY = top - 90f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     "Issue preset:", x, presetY + 25f, MUTED));
             float presetX = x + 104f;
@@ -227,7 +232,7 @@ public final class ArmoryScreen implements Screen {
             }
         }
 
-        float rowTop = top - (squad.reserve() ? 58f : 96f);
+        float rowTop = top - (squad.reserve() ? 58f : 134f);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Marine / status          Development          Field kit",
                 x, rowTop + 18f, HEADER));
@@ -260,6 +265,39 @@ public final class ArmoryScreen implements Screen {
                         rebuild();
                     } : null, memberPage + 1 < pages ? HEADER : MUTED);
         }
+    }
+
+    private void buildHomeCommand(MarineSquad squad, float x, float y, float width) {
+        MarineCaptain current = roster.captainForSquad(squad.id());
+        MarineCaptain next = roster.nextAssignableCaptain(squad.id());
+        String command = current != null
+                ? current.name() + " · " + current.rank().displayName()
+                        + " · " + roster.squadsCommandedBy(current.id()).size()
+                        + "/" + current.rank().fireteamCap() + " teams"
+                        + (current.status() == Status.ACTIVE
+                                ? "" : " · " + current.status().name())
+                : "Unassigned";
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Home command: " + command, x, y + 25f,
+                current == null ? MUTED
+                        : current.status() == Status.ACTIVE
+                                ? GOOD : BAD));
+
+        float clearW = 96f;
+        float assignW = 178f;
+        float clearX = x + width - clearW;
+        float assignX = clearX - GAP - assignW;
+        String assignLabel = next != null
+                ? (current == null ? "Assign → " : "Change → ") + shortCaptainName(next)
+                : current == null ? "No Eligible Captain" : "No Alternate";
+        addButton(assignX, y, assignW, assignLabel, next != null ? () -> {
+            roster.assignCaptainToSquad(next.id(), squad.id());
+            rebuild();
+        } : null, next != null ? HEADER : MUTED);
+        addButton(clearX, y, clearW, "Unassign", current != null ? () -> {
+            roster.clearSquadCaptain(squad.id());
+            rebuild();
+        } : null, current != null ? HEADER : MUTED);
     }
 
     private void addSoldierRow(MarineSoldier soldier, float x, float y, float w) {
@@ -321,6 +359,12 @@ public final class ArmoryScreen implements Screen {
         if (squad.reserve()) return "Reserve";
         String name = squad.name();
         return name.length() <= 10 ? name : name.substring(0, 10);
+    }
+
+    private static String shortCaptainName(MarineCaptain captain) {
+        String name = captain.name();
+        if (name == null || name.isEmpty()) return "Captain";
+        return name.length() <= 12 ? name : name.substring(0, 12);
     }
 
     private static String presetMessage(SquadPresetResult result) {

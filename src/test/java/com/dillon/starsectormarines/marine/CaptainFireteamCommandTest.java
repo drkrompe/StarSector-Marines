@@ -78,6 +78,25 @@ class CaptainFireteamCommandTest {
     }
 
     @Test
+    void formationPickerSkipsUnavailableAndFullCaptains() {
+        MarineRoster roster = rosterWithFireteams(13);
+        MarineCaptain full = captain("Full", Rank.PRIVATE);
+        MarineCaptain injured = captain("Injured", Rank.GENERAL);
+        MarineCaptain available = captain("Available", Rank.CORPORAL);
+        roster.add(full);
+        roster.add(injured);
+        roster.add(available);
+        injured.setStatus(Status.INJURED);
+        assertTrue(roster.assignCaptainToSquad(full.id(), roster.squads().get(0).id()));
+
+        MarineSquad target = roster.squads().get(2);
+
+        assertSame(available, roster.nextAssignableCaptain(target.id()));
+        assertTrue(roster.assignCaptainToSquad(available.id(), target.id()));
+        assertNull(roster.nextAssignableCaptain(target.id()));
+    }
+
+    @Test
     void removingCaptainClearsTheirHomeFormation() {
         MarineRoster roster = rosterWithFireteams(1);
         MarineCaptain captain = captain("Departing", Rank.PRIVATE);
