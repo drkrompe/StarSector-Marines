@@ -227,8 +227,8 @@ public final class UnitRenderService implements RenderSystem {
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             int[] poseIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
-            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
-            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
+            float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 UnitType type = (UnitType) types[r];
@@ -252,8 +252,8 @@ public final class UnitRenderService implements RenderSystem {
                     targetH = scaledSize;
                     targetW = scaledSize * f.w / (float) f.h;
                 }
-                float cx = cam.cellToScreenX(rx[r] + 0.5f);
-                float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                float cx = cam.cellToScreenX(rx[r]);
+                float cy = cam.cellToScreenY(ry[r]);
                 out.addSheetQuad(RenderLayer.UNITS, cache.sheet,
                         f.x, f.y, f.w, f.h,
                         cx, cy, targetW, targetH,
@@ -330,8 +330,8 @@ public final class UnitRenderService implements RenderSystem {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
             float[] hp = t.floats(c.HEALTH, BattleComponents.HEALTH_HP).array();
-            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
-            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
+            float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             int[] sheetSel = t.ints(c.SPRITE, BattleComponents.SPRITE_SHEET).array();
             int[] frameIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
             int[] flipV = t.ints(c.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
@@ -400,8 +400,8 @@ public final class UnitRenderService implements RenderSystem {
                 LayeredMechAssets mechAssets = hasMechLayered
                         ? sprites.layeredMechSprites() : null;
                 if (mechAssets != null) {
-                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
-                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    float cx = cam.cellToScreenX(rx[r]);
+                    float cy = cam.cellToScreenY(ry[r]);
                     // Chassis width is the single sizing unit. Total appendage
                     // overhang remains close to the legacy 1.6-cell silhouette.
                     float hullWidth = unitSize * type.renderScale * 0.82f
@@ -419,8 +419,8 @@ public final class UnitRenderService implements RenderSystem {
                         ? sprites.layeredUnitSprites().get(
                             LayeredArmorFamily.fromOrdinal(layeredHeadFamily[r])) : null;
                 if (layeredAssets != null && layeredHeadAssets != null) {
-                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
-                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    float cx = cam.cellToScreenX(rx[r]);
+                    float cy = cam.cellToScreenY(ry[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
@@ -443,8 +443,8 @@ public final class UnitRenderService implements RenderSystem {
                     Faction faction = (Faction) factions[r];
                     Color col = faction == Faction.MARINE ? MARINE_COLOR
                             : faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
-                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
-                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    float cx = cam.cellToScreenX(rx[r]);
+                    float cy = cam.cellToScreenY(ry[r]);
                     emitSolidQuad(out, cx, cy, half, col, unitAlpha);
                     continue;
                 }
@@ -473,8 +473,8 @@ public final class UnitRenderService implements RenderSystem {
 
         float targetH = unitSize * type.renderScale;
         float targetW = targetH * f.w / (float) f.h;
-        float cx = cam.cellToScreenX(rx + 0.5f);
-        float cy = cam.cellToScreenY(ry + 0.5f);
+        float cx = cam.cellToScreenX(rx);
+        float cy = cam.cellToScreenY(ry);
         if (flipV) {
             out.addSheetQuadFlippedV(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
                     cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
@@ -517,8 +517,8 @@ public final class UnitRenderService implements RenderSystem {
             float barAlpha = alphaMult;
             if (uv == FogOfWarService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
-            float cx = cam.cellToScreenX(world.renderX(u) + 0.5f);
-            float cy = cam.cellToScreenY(world.renderY(u) + 0.5f);
+            float cx = cam.cellToScreenX(world.renderX(u));
+            float cy = cam.cellToScreenY(world.renderY(u));
             float barY;
             if (ctx.sim.identity().type(u).isTurret()) {
                 barY = cy + turretState.kind(u).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;

@@ -166,7 +166,7 @@ public class BreachAndAdvanceTest {
         action.execute(m0, sq, sim);
         assertTrue(Paths.isEmpty(sim.world().path(m0)), "arrived members clear their path");
         assertTrue(sim.movement().settled(m0), "arrived → path cleared, no un-exhausted path remains");
-        assertEquals(14f, sim.world().renderX(m0), 1e-6f, "render pinned at the destination cell");
+        assertEquals(14.5f, sim.world().renderX(m0), 1e-6f, "render pinned at the destination cell center");
     }
 
     @Test

@@ -129,9 +129,7 @@ public final class MovementService {
      * path cursor, so {@link #settled}/{@link #atCell} flip atomically with
      * arrival. A mech pivots in place (translation gated on
      * {@code MECH_LOCOMOTION} alignment, which {@code MechLocomotionSystem}
-     * drives toward the next path cell) before walking a new bearing.
-     * {@code RENDER_POSITION} is mirrored from the moved point (old cell-index
-     * convention, {@code -0.5}) until the render migration removes it. The
+     * drives toward the next path cell) before walking a new bearing. The
      * sole caller is {@code BattleSimulation.advanceMovement}.
      */
     public void advanceAlongPath(World world, long id, float dt) {
@@ -175,6 +173,5 @@ public final class MovementService {
             float gait = gaitPhase(id) + step;
             setGaitPhase(id, gait >= 1f ? gait % 1f : gait);
         }
-        world.setRenderPos(id, world.x(id) - 0.5f, world.y(id) - 0.5f);
     }
 }

@@ -177,8 +177,8 @@ public class InfantryWeapons {
         // miss-scatter both resolve through ShotEndpoint so all three
         // weapon paths (infantry primary / secondary / mech) live by the
         // same hit-jitter + miss-ring rules.
-        float fromX = world.renderX(shooter) + 0.5f;
-        float fromY = world.renderY(shooter) + 0.5f;
+        float fromX = world.renderX(shooter);
+        float fromY = world.renderY(shooter);
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, ThreadLocalRandom.current());
@@ -238,8 +238,8 @@ public class InfantryWeapons {
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
         // don't carry their own hitSpread today, so the universal hit-jitter
         // + miss-ring still apply but no weapon-specific scatter.
-        float fromX = world.renderX(shooter) + 0.5f;
-        float fromY = world.renderY(shooter) + 0.5f;
+        float fromX = world.renderX(shooter);
+        float fromY = world.renderY(shooter);
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, 0f, ThreadLocalRandom.current());

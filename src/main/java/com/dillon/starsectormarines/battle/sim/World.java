@@ -35,9 +35,10 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * <p>Strict vs. tolerant reads mirror the columns' lifecycle: mandatory live
  * columns (hp/cell/combat) are <b>fail-loud</b> once the death drain has
  * transmuted the entity to a corpse; {@link #renderX}/{@link #renderY} are
- * <b>tolerant</b> (0 when the entity is gone / lacks the component) because
- * render code must not fail on a maybe-released ref, and {@code RENDER_POSITION}
- * survives the transmute so a corpse still draws where it fell.
+ * <b>tolerant</b> center-based position reads for render/audio paths — equal
+ * to {@link #x}/{@link #y} for live units, the last position for corpses
+ * ({@code POSITION} survives the death transmute so a corpse still draws
+ * where it fell), and 0 for a fully released id.
  *
  * <p>Serial-only — built for the single-threaded tick + render read.
  */
@@ -99,18 +100,13 @@ public final class World {
         setPos(id, x + 0.5f, y + 0.5f);
     }
 
-    // Smooth render position — the world's universal RENDER_POSITION component
-    // (survives the death transmute, so a corpse draws where it fell). Reads are
-    // TOLERANT (0 when the entity is gone / lacks it) — render code must not
-    // fail-loud on a maybe-released ref, unlike the strict hp/cell accessors.
-    public float renderX(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, 0f); }
-    public float renderY(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, 0f); }
-    public void setRenderPos(long id, float x, float y) {
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, x);
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, y);
-    }
-    public void setRenderX(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, v); }
-    public void setRenderY(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, v); }
+    // Smooth render position — tolerant reads of the world's universal POSITION
+    // component (survives the death transmute, so a corpse draws where it
+    // fell). Reads are TOLERANT (0 when the entity is gone / lacks it) —
+    // render code must not fail-loud on a maybe-released ref, unlike the
+    // strict hp/cell accessors. Center-based, same as x()/y().
+    public float renderX(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f); }
+    public float renderY(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f); }
 
     // Modular appearance is an OPTIONAL, live-only presentation capability.
     // Body and helmet selectors are intentionally independent equipment writes.

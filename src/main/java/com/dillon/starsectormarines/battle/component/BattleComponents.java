@@ -61,11 +61,6 @@ public final class BattleComponents {
     /** {@link #POSITION} field 1: continuous position y (FLOAT) — cell (cx,cy) spans [cy,cy+1), center at cy+0.5; floor for the grid cell. */
     public static final int POSITION_Y = 1;
 
-    /** {@link #RENDER_POSITION} field 0: smooth sub-cell draw x (FLOAT). */
-    public static final int RENDER_POSITION_X = 0;
-    /** {@link #RENDER_POSITION} field 1: smooth sub-cell draw y (FLOAT). */
-    public static final int RENDER_POSITION_Y = 1;
-
     /**
      * {@link #SPRITE} field 0: sheet selector (INT) — {@code 0} = the type's
      * base sheet, {@code 1} = the secondary-aim sheet (the renderer maps the
@@ -312,8 +307,6 @@ public final class BattleComponents {
      * cell via {@code floor}. Every spatially-present entity, corpse included.
      */
     public final ComponentType POSITION;
-    /** Smooth draw position — {@code float x, y}. Sub-cell, distinct cadence from the int cell. */
-    public final ComponentType RENDER_POSITION;
     /**
      * Authored appearance — {@code int sheet, index, flipV}. The authoritative
      * "draw this"; one {@code Sprite} = one drawn quad, written by presentation
@@ -745,7 +738,7 @@ public final class BattleComponents {
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
     /**
-     * The corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE,
+     * The corpse archetype {@code {IDENTITY, POSITION, SPRITE,
      * CORPSE}} — every body on the field, exactly as {@code DeadBodySystem}
      * spawns them. Walked by the dead-sprite render and the mission resolver's
      * casualty tally. Split into narrower queries only when a corpse variant
@@ -754,17 +747,13 @@ public final class BattleComponents {
     public final Query corpses;
 
     /**
-     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION, RENDER_POSITION,
+     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION,
      * SPRITE, HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
      * type, authored per-tick by {@code battle.appearance.FacingSystem}.
      * Requiring {@code HEALTH} excludes corpses (the death transmute removes
-     * it) without an explicit {@code CORPSE} exclusion. {@code RENDER_POSITION}
-     * is declared because the live-sprite render sweep pulls its columns from
-     * every matched table — the query states every column its consumers read
-     * (the {@link #corpses} convention), rather than leaning on the {@code adopt}
-     * invariant that happens to put RENDER_POSITION on every roster archetype.
-     * Walked by {@code FacingSystem.tick()} and the live-sprite render sweep.
+     * it) without an explicit {@code CORPSE} exclusion. Walked by
+     * {@code FacingSystem.tick()} and the live-sprite render sweep.
      */
     public final Query liveSprites;
     /** Live modular actors carrying authored layered-animation state. */
@@ -823,7 +812,6 @@ public final class BattleComponents {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
-        RENDER_POSITION = world.register(2, "RenderPosition", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT);
@@ -872,11 +860,11 @@ public final class BattleComponents {
         MECH_LOCOMOTION = world.register(33, "MechLocomotion",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
-                new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
+                new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
-                new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, HEALTH}, null);
+                new ComponentType[]{IDENTITY, POSITION, SPRITE, HEALTH}, null);
         layeredSprites = world.query(
-                new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE,
+                new ComponentType[]{IDENTITY, POSITION, SPRITE,
                         LAYERED_ANIMATION, HEALTH}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});

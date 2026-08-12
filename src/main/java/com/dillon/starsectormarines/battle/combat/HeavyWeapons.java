@@ -103,8 +103,8 @@ public class HeavyWeapons {
         // chaingun burst follows the walking mech instead of pinning the
         // muzzle flash to the cell where the burst started. Mirrors the
         // infantry-side fix in InfantryWeapons.fireShot.
-        float fromX = world.renderX(shooter) + 0.5f;
-        float fromY = world.renderY(shooter) + 0.5f;
+        float fromX = world.renderX(shooter);
+        float fromY = world.renderY(shooter);
         // Distance-scaled spread — see RangeFalloff for the physical model.
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon

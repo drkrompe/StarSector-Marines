@@ -403,46 +403,51 @@ public class UnitRosterServiceTest {
     }
 
     @Test
-    public void allocateSeedsRenderPosIntoTheWorldComponent() {
+    public void allocateSeedsPositionIntoTheWorldComponent() {
         UnitRosterService r = roster();
         World w = r.world();
         long u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8));
         long id = u;
 
-        // Seeded from the unit's pre-spawn cell into the universal
-        // RENDER_POSITION world component, read by id.
-        assertEquals(5f, w.renderX(id), 1e-6f);
-        assertEquals(8f, w.renderY(id), 1e-6f);
+        // Seeded from the unit's spec cell into the universal POSITION world
+        // component as the cell CENTER (cell (5,8) -> (5.5, 8.5)); renderX/Y
+        // are the tolerant by-id reads of that same component.
+        assertEquals(5.5f, w.renderX(id), 1e-6f);
+        assertEquals(8.5f, w.renderY(id), 1e-6f);
 
-        w.setRenderPos(id, 5.3f, 8.7f);
+        w.setPos(id, 5.3f, 8.7f);
         assertEquals(5.3f, w.renderX(id), 1e-6f);
         assertEquals(8.7f, w.renderY(id), 1e-6f);
     }
 
     @Test
-    public void renderPosSurvivesReleaseForTheCorpse() {
+    public void positionSurvivesReleaseForTheCorpse() {
         UnitRosterService r = roster();
         World w = r.world();
         long u = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
         long id = u;
 
-        w.setRenderPos(id, 3.5f, 7.2f);
+        w.setPos(id, 3.5f, 7.2f);
         r.release(u);
 
         // Dropped from the live dense table...
         assertFalse(r.isLive(u));
         assertEquals(-1, r.indexOf(u));
-        // ...but RENDER_POSITION is a universal world component kept off the
+        // ...but POSITION is a universal world component kept off the
         // corpse-remove mask, so the dense-table release alone leaves it intact
         // (it rides the death transmute when the corpse forms — see
         // DeadBodySystemTest) and the entity still resolves where it fell.
-        assertTrue(r.entityWorld().has(id, r.components().RENDER_POSITION));
+        // renderX/Y is the tolerant by-id read; x()/y() stay fail-loud but are
+        // just as readable here since POSITION itself never went away.
+        assertTrue(r.entityWorld().has(id, r.components().POSITION));
         assertEquals(3.5f, w.renderX(id), 1e-6f);
         assertEquals(7.2f, w.renderY(id), 1e-6f);
+        assertEquals(3.5f, w.x(id), 1e-6f);
+        assertEquals(7.2f, w.y(id), 1e-6f);
     }
 
     @Test
-    public void renderPosIsUndisturbedByDenseTailSwap() {
+    public void positionIsUndisturbedByDenseTailSwap() {
         UnitRosterService r = roster();
         World w = r.world();
         long a = r.spawn(new EntitySpec("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
@@ -450,10 +455,10 @@ public class UnitRosterServiceTest {
         long c = r.spawn(new EntitySpec("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0));
         long idA = a;
         long idC = c;
-        w.setRenderPos(idC, 11.5f, 22.3f);
+        w.setPos(idC, 11.5f, 22.3f);
 
-        // Releasing a swap-pops c into a's old dense slot — render position is
-        // id-keyed in the world, not dense index, so c's render pos is untouched.
+        // Releasing a swap-pops c into a's old dense slot — position is
+        // id-keyed in the world, not dense index, so c's position is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c));

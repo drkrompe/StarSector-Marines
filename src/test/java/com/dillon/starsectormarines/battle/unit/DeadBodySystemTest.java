@@ -105,13 +105,13 @@ public class DeadBodySystemTest {
         // The unit is gone from the live registry...
         assertFalse(sim.getRoster().isLive(id), "dead unit released from the dense roster");
         // ...but the corpse entity persists with the draw position snapshotted at
-        // death — composed into its own RENDER_POSITION columns, no released
-        // Entity handle and no shared-store read after the spawn.
+        // death — the live unit's POSITION rides the row-move unchanged, no
+        // released Entity handle and no shared-store read after the spawn.
         assertEquals(1, corpseCount(sim));
         BattleComponents c = sim.getBattleComponents();
         for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
-            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
-            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
+            float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 assertEquals(deathX, rx[r], 1e-6f, "the corpse's draw position is the spot it fell");
                 assertEquals(deathY, ry[r], 1e-6f);

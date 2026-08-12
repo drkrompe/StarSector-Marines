@@ -9,10 +9,11 @@ import java.util.Random;
  * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
  *
  * <ul>
- *   <li><b>Targeting</b> uses the target's smooth render position (the world
- *       {@code RENDER_POSITION} component, passed in by the caller), not the
- *       logical {@code cellX}/{@code cellY}. Tracers terminate on the
- *       sprite, not on the cell the sprite is lerping toward.</li>
+ *   <li><b>Targeting</b> uses the target's smooth center position ({@code
+ *       World.renderX}/{@code renderY}, the tolerant center-based reads,
+ *       passed in by the caller), not the logical {@code cellX}/{@code
+ *       cellY}. Tracers terminate on the sprite, not on the cell the sprite
+ *       is lerping toward.</li>
  *   <li><b>Hits</b> land near the target with a universal
  *       {@link #HIT_JITTER_BASELINE} plus the weapon's distance-scaled
  *       {@code effectiveSpread}. Damage was already applied against the
@@ -46,15 +47,14 @@ public final class ShotEndpoint {
 
     /**
      * Resolve the visual endpoint for a shot around a target whose sprite center
-     * is ({@code targetRenderX} + 0.5, {@code targetRenderY} + 0.5) — the caller
-     * passes the target's smooth render position (its world {@code RENDER_POSITION}
-     * read by id), so tracers terminate on the sprite, not the logical cell.
-     * {@code effectiveSpread} is the weapon's distance-scaled scatter radius
-     * (see {@link RangeFalloff#spread}); 0 for weapons without a hitSpread profile.
+     * is ({@code targetX}, {@code targetY}) — the caller passes the target's
+     * smooth center position ({@code World.renderX}/{@code renderY}, the
+     * tolerant center-based reads, sampled by id), so tracers terminate on the
+     * sprite, not the logical cell. {@code effectiveSpread} is the weapon's
+     * distance-scaled scatter radius (see {@link RangeFalloff#spread}); 0 for
+     * weapons without a hitSpread profile.
      */
-    public static Endpoint resolve(float targetRenderX, float targetRenderY, boolean hit, float effectiveSpread, Random rng) {
-        float cx = targetRenderX + 0.5f;
-        float cy = targetRenderY + 0.5f;
+    public static Endpoint resolve(float targetX, float targetY, boolean hit, float effectiveSpread, Random rng) {
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float radius;
         if (hit) {
@@ -65,7 +65,7 @@ public final class ShotEndpoint {
                     + effectiveSpread;
         }
         return new Endpoint(
-                cx + (float) Math.cos(angle) * radius,
-                cy + (float) Math.sin(angle) * radius);
+                targetX + (float) Math.cos(angle) * radius,
+                targetY + (float) Math.sin(angle) * radius);
     }
 }

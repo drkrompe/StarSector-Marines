@@ -29,7 +29,7 @@ import java.util.List;
  */
 public final class WorldPicker implements HudPanel {
 
-    /** Pick radius in cells. Units may be mid-cell during movement (renderX/Y) so we want forgiveness around the visual centre. */
+    /** Pick radius in cells. Units may be mid-cell during movement (World.renderX/Y, the tolerant center-based reads) so we want forgiveness around the visual centre. */
     private static final float PICK_RADIUS_CELLS = 0.6f;
 
     private final BattleUiContext ctx;

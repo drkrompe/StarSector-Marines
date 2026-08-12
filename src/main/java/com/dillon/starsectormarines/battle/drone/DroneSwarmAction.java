@@ -143,13 +143,9 @@ public final class DroneSwarmAction implements Action {
             tickPatrol(member, body, droneState, sim, slotIdx, slotCount, dt);
         }
 
-        sim.world().setCellPos(id, (int) Math.floor(body.x), (int) Math.floor(body.y));
-        // Sync render position so the shot pipeline picks up the drone's actual
-        // position. InfantryWeapons.fireShot computes the tracer origin as
-        // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
-        // the tracers fire from the drone's spawn cell while the sprite
-        // visually orbits the target.
-        sim.world().setRenderPos(id, body.x - 0.5f, body.y - 0.5f);
+        // POSITION syncs from the air body every tick (AirBody.x/y are already
+        // continuous center-based) so shots/queries see the drone's real position.
+        sim.world().setPos(id, body.x, body.y);
 
         if (s.fireThisTick && s.target != 0L) {
             sim.fireShot(member, s.target, FireStance.STANCED);

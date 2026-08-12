@@ -311,7 +311,7 @@ public final class UnitRosterService {
         long id = nextId++;
         dense[liveCount] = id;
         // Create the minted id's world entity. Every live unit is at least
-        // {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
+        // {IDENTITY, POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
         // universal — sight stats + the behavior-dispatch role; both removed on
         // death); on top of that:
         //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
@@ -391,14 +391,13 @@ public final class UnitRosterService {
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
-                6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
-        archetype[c++] = components.RENDER_POSITION;
         archetype[c++] = components.HEALTH;
         archetype[c++] = components.VISION;
         archetype[c++] = components.ROLE;
@@ -564,12 +563,6 @@ public final class UnitRosterService {
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
             entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, spec.moveSpeed);
         }
-        // Seed the smooth render position from the unit's pre-allocation seed.
-        // RENDER_POSITION is universal and kept OFF the corpse-remove mask, so it
-        // rides the death transmute — a released corpse still resolves its
-        // death-pose location with no post-release snapshot.
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, spec.cellX);
-        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, spec.cellY);
         indexById.put(id, liveCount);
         liveCount++;
         return id;
@@ -633,8 +626,8 @@ public final class UnitRosterService {
      * <p>No per-unit state is moved by the swap — every column lives in the entity
      * world keyed by id, immune to the dense reshuffle: the cell + Group-S stats
      * persist (post-release readers read the death cell off the DeathEvent
-     * snapshot; render position is the universal RENDER_POSITION component kept off
-     * the corpse-remove mask), and hp / combat / movement / ai-state / secondary
+     * snapshot; render position is the universal POSITION component, which
+     * survives the corpse transmute), and hp / combat / movement / ai-state / secondary
      * stay under the entity's id until the death drain transmutes it to the corpse
      * archetype. So the swap only moves the dense {@code long[]} slot + fixes the
      * tail's id↔slot mapping.

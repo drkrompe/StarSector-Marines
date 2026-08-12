@@ -96,7 +96,7 @@ public class OverwatchPostureTest {
         assertEquals(5, sim.world().cellX(defender));
         assertEquals(5, sim.world().cellY(defender));
         assertTrue(sim.movement().settled(defender), "Overwatch must not accumulate motion");
-        assertEquals(sim.world().cellX(defender), sim.world().renderX(defender), 1e-6f);
-        assertEquals(sim.world().cellY(defender), sim.world().renderY(defender), 1e-6f);
+        assertEquals(sim.world().cellX(defender) + 0.5f, sim.world().renderX(defender), 1e-6f);
+        assertEquals(sim.world().cellY(defender) + 0.5f, sim.world().renderY(defender), 1e-6f);
     }
 }

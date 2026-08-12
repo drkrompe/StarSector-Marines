@@ -494,8 +494,8 @@ public final class FlybyOverlay {
         for (long a : enemies) {
             List<Long> neighbors = new ArrayList<>();
             for (long b : enemies) {
-                float dx = (sim.world().renderX(b) + 0.5f) - (sim.world().renderX(a) + 0.5f);
-                float dy = (sim.world().renderY(b) + 0.5f) - (sim.world().renderY(a) + 0.5f);
+                float dx = sim.world().renderX(b) - sim.world().renderX(a);
+                float dy = sim.world().renderY(b) - sim.world().renderY(a);
                 if (dx * dx + dy * dy <= clusterR2) neighbors.add(b);
             }
             if (neighbors.size() > bestCount) {
@@ -508,7 +508,7 @@ public final class FlybyOverlay {
 
         // Centroid of the cluster.
         float cx = 0f, cy = 0f;
-        for (long u : bestNeighbors) { cx += sim.world().renderX(u) + 0.5f; cy += sim.world().renderY(u) + 0.5f; }
+        for (long u : bestNeighbors) { cx += sim.world().renderX(u); cy += sim.world().renderY(u); }
         cx /= bestNeighbors.size();
         cy /= bestNeighbors.size();
 
@@ -538,8 +538,8 @@ public final class FlybyOverlay {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (sim.identity().faction(u) != enemy) continue;
-            float ux = (sim.world().renderX(u) + 0.5f) - f.worldX;
-            float uy = (sim.world().renderY(u) + 0.5f) - f.worldY;
+            float ux = sim.world().renderX(u) - f.worldX;
+            float uy = sim.world().renderY(u) - f.worldY;
             float dist = (float) Math.sqrt(ux * ux + uy * uy);
             if (dist < 0.001f || dist > bestDist) continue;
             float dot = (ux * dx + uy * dy) / dist;
@@ -575,8 +575,8 @@ public final class FlybyOverlay {
     private void fireOneTracerAt(Fighter f, long target, BattleSimulation sim) {
         if (target == 0L) return;
         float spreadRad = (float) Math.toRadians((rng.nextFloat() * 2f - 1f) * f.profile.burstSpreadDeg);
-        float tx = sim.world().renderX(target) + 0.5f;
-        float ty = sim.world().renderY(target) + 0.5f;
+        float tx = sim.world().renderX(target);
+        float ty = sim.world().renderY(target);
         float dx = tx - f.worldX, dy = ty - f.worldY;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) return;
@@ -600,8 +600,8 @@ public final class FlybyOverlay {
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long u = sim.liveUnitAt(i);
                 if (sim.identity().faction(u) != enemy) continue;
-                float ux = (sim.world().renderX(u) + 0.5f) - endX;
-                float uy = (sim.world().renderY(u) + 0.5f) - endY;
+                float ux = sim.world().renderX(u) - endX;
+                float uy = sim.world().renderY(u) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Aerial strafing: intact roofs intercept tracer rounds.
                     if (sim.isRoofShielded(u)) continue;
@@ -670,8 +670,8 @@ public final class FlybyOverlay {
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long u = sim.liveUnitAt(i);
                 if (sim.identity().faction(u) != enemy) continue;
-                float ux = (sim.world().renderX(u) + 0.5f) - endX;
-                float uy = (sim.world().renderY(u) + 0.5f) - endY;
+                float ux = sim.world().renderX(u) - endX;
+                float uy = sim.world().renderY(u) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Strafing run damage — intact roofs intercept.
                     if (sim.isRoofShielded(u)) continue;
@@ -851,8 +851,8 @@ public final class FlybyOverlay {
         // unit running perpendicular can outrun the lock and force a miss.
         long target = (p.target != 0L && sim != null && sim.world().isAlive(p.target)) ? p.target : 0L;
         if (target != 0L) {
-            float dx = (sim.world().renderX(target) + 0.5f) - p.worldX;
-            float dy = (sim.world().renderY(target) + 0.5f) - p.worldY;
+            float dx = sim.world().renderX(target) - p.worldX;
+            float dy = sim.world().renderY(target) - p.worldY;
             float desiredDeg = (float) Math.toDegrees(Math.atan2(dy, dx));
             float diff = wrap180(desiredDeg - p.headingDeg);
             float maxTurn = p.profile.projectileTurnRateDegPerSec * dt;
@@ -869,8 +869,8 @@ public final class FlybyOverlay {
         p.worldX += p.vx * dt;
         p.worldY += p.vy * dt;
         if (target != 0L) {
-            float dx = (sim.world().renderX(target) + 0.5f) - p.worldX;
-            float dy = (sim.world().renderY(target) + 0.5f) - p.worldY;
+            float dx = sim.world().renderX(target) - p.worldX;
+            float dy = sim.world().renderY(target) - p.worldY;
             float aoeRadius = p.profile.projectileAoeRadiusCells;
             if (dx * dx + dy * dy <= aoeRadius * aoeRadius * 0.25f) {
                 detonateProjectile(p, sim);

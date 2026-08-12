@@ -8,21 +8,21 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, VISION, ROLE}}
+ * the live {@code {IDENTITY, POSITION, HEALTH, VISION, ROLE}}
  * archetype (plus the optional {@code COMBAT} a combatant carries, the
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a
  * mobile/armed/squadded unit carries, and the {@code SPRITE} every sheet-drawn
  * unit — {@link UnitType#drawnAsSheet()} — already carries live, authored
  * per-tick by {@code battle.appearance.FacingSystem}) to the
- * corpse archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
+ * corpse archetype {@code {IDENTITY, POSITION, SPRITE, CORPSE}}:
  * {@code HEALTH}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, or {@code SQUAD} are
  * removed (a corpse neither lives, sees, acts, fights, moves, thinks, nor belongs to
  * a squad — and "lacks HEALTH" is half the liveness definition);
- * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
+ * {@code IDENTITY} and the cell/position are carried by the
  * row-move ("the corpse keeps its cell" is literal: nothing moves a unit after
- * the kill zeroes its hp, so the live POSITION + RENDER_POSITION already are the
- * death cell + frozen draw spot). The transmute adds {@code SPRITE} only for a
+ * the kill zeroes its hp, so the live POSITION already is the
+ * death spot). The transmute adds {@code SPRITE} only for a
  * non-sheet death (turret / drone-hub / drone, which never carried one live);
  * either way, the death write overwrites {@code SPRITE.index} with the death
  * pose and zeroes {@code SPRITE.sheet}/{@code SPRITE.flipV} (a sheet unit can
@@ -55,12 +55,12 @@ public final class DeadBodySystem {
     public DeadBodySystem(EntityWorld world, BattleComponents components) {
         this.world = world;
         this.components = components;
-        // RENDER_POSITION is universal on the live archetype now, so it rides the
-        // row-move (no add) — same for SPRITE, which every sheet-drawn unit
-        // (UnitType.drawnAsSheet) already carries live (authored per-tick by
-        // FacingSystem). Listing SPRITE in the add mask anyway is safe either
-        // way: transmute ORs the add mask in, so it's a no-op for a sheet unit
-        // that already has it, and still adds it fresh for a non-sheet death
+        // POSITION is universal on the live archetype and stays off the remove
+        // mask, so it rides the row-move (no add) — same for SPRITE, which every
+        // sheet-drawn unit (UnitType.drawnAsSheet) already carries live (authored
+        // per-tick by FacingSystem). Listing SPRITE in the add mask anyway is safe
+        // either way: transmute ORs the add mask in, so it's a no-op for a sheet
+        // unit that already has it, and still adds it fresh for a non-sheet death
         // (turret / drone-hub / drone) that never carried one live.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
         // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, HUB_STATE,
@@ -101,7 +101,7 @@ public final class DeadBodySystem {
         // cell (the event's snapshot is the same value; demolition handlers
         // still read it off the event, this transmute just doesn't re-write it).
         world.transmute(id, corpseAdd, corpseRemove);
-        // RENDER_POSITION rides the row-move (it's on the live archetype too, kept
+        // POSITION rides the row-move (it's on the live archetype too, kept
         // off the corpse-remove mask), so the corpse already draws where it fell —
         // no post-release snapshot needed.
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, event.deathPoseIdx());
