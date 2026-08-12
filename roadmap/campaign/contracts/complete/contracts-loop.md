@@ -228,12 +228,13 @@ method together act as a copyable template — see
   deterministically and the briefing path reads it through
   `BriefingComposer.compose(archetype, mood, …)` (archetype × comms-officer
   mood). See the `narrative/` track.
-- **Contract generator for non-STRIKE types** — ESCORT,
-  PLANETARY_ASSAULT, GARRISON, CADRE, EXTRACTION are byte-backed in
-  ContractType but never spawned. Strike is the only type the
-  generator emits today.
-- **ContractGenerator unit test** — caps + state machine + RNG
-  determinism should have a small JUnit alongside `LongIntMapTest`.
+- ~~**Contract generator for non-STRIKE types**~~ — **partially shipped**:
+  rank-gated one-shot Escort offers and Extraction mission mapping landed in
+  `df0a5d19`. Planetary Assault remains blocked on its multi-phase flow;
+  Garrison/Cadre remain blocked on stationing acceptance + retainers; EXTRACTION
+  remains system-generated rather than patron-offered.
+- ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
+  reproducibility, offer shape, per-patron cap, and global cap are covered.
 
 ## Sanity check
 

@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `fb268bbe`
+
 ## Goal
 
 Freeze the shipped STRIKE generator's deterministic offer shape and caps before

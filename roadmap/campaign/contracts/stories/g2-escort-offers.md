@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE — in-game smoke pending (2026-08-12)
 
+**Implemented in:** `df0a5d19`
+
 ## Goal
 
 Generate the first non-STRIKE contract end to end without sending unsupported
