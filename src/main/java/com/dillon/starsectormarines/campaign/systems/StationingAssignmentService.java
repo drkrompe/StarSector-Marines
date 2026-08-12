@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -53,6 +54,12 @@ public final class StationingAssignmentService {
             return false;
         }
         if (!ContractEligibility.contractAcceptable(state, contractId)) return false;
+        boolean civilWarParticipation = CivilWarOfferAcceptance.isParticipation(
+                state, contractId);
+        if (civilWarParticipation
+                && !CivilWarOfferAcceptance.canAccept(state, contractId)) {
+            return false;
+        }
         ContractType type = ContractType.fromByte(state.contractType[row]);
         if (!type.isStationing()) return false;
         int patronRow = state.houseIndex(state.contractPatronHouseId[row]);
@@ -95,6 +102,9 @@ public final class StationingAssignmentService {
         captain.setStatus(Status.GARRISONED);
         captain.commendations().add("Day " + day + ": Assigned to "
                 + type.name().toLowerCase() + " duty.");
+        if (civilWarParticipation) {
+            CivilWarOfferAcceptance.onStationingAccepted(state, contractId);
+        }
         return true;
     }
 

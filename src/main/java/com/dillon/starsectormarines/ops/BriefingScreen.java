@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
@@ -642,8 +643,14 @@ public class BriefingScreen implements Screen {
         if (m == null) return;
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         if (m.contractId >= 0L && campaignScript != null) {
+            boolean civilWarParticipation =
+                    CivilWarOfferAcceptance.isOfferedParticipation(
+                            campaignScript.state(), m.contractId);
             if (!ContractEligibility.contractAcceptable(
-                    campaignScript.state(), m.contractId)) {
+                    campaignScript.state(), m.contractId)
+                    || (civilWarParticipation
+                        && !CivilWarOfferAcceptance.canAccept(
+                            campaignScript.state(), m.contractId))) {
                 rebuild();
                 return;
             }
@@ -653,6 +660,15 @@ public class BriefingScreen implements Screen {
                     && !PlanetaryAssaultTerms.lockForDeployment(campaignScript.state(), m)) {
                 rebuild();
                 return;
+            }
+            if (civilWarParticipation) {
+                int day = Global.getSector() != null
+                        ? (int) Global.getSector().getClock().getDay() : 0;
+                if (!CivilWarOfferAcceptance.acceptMission(
+                        campaignScript.state(), m.contractId, day)) {
+                    rebuild();
+                    return;
+                }
             }
         }
         MarineCaptain c = ctx.getSelectedCaptain();

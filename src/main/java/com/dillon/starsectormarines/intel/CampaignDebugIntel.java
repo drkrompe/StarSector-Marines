@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.ChainState;
@@ -518,11 +519,16 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         if (ContractState.fromByte(s.contractState[row]) != ContractState.OFFERED) return;
         ContractType type = ContractType.fromByte(s.contractType[row]);
         if (type.isStationing() || type == ContractType.EXTRACTION) return;
-        s.contractState[row] = ContractState.ACTIVE.toByte();
-        s.contractOfferExpiresTick[row] = -1;
-        s.contractAcceptedTick[row] = Global.getSector() != null
+        int day = Global.getSector() != null
                 ? (int) Global.getSector().getClock().getDay()
                 : s.contractAcceptedTick[row];
+        if (CivilWarOfferAcceptance.isParticipation(s, id)) {
+            CivilWarOfferAcceptance.acceptMission(s, id, day);
+            return;
+        }
+        s.contractState[row] = ContractState.ACTIVE.toByte();
+        s.contractOfferExpiresTick[row] = -1;
+        s.contractAcceptedTick[row] = day;
     }
 
     /** Debug-only contract closure: flips the contract to COMPLETED and bumps patron

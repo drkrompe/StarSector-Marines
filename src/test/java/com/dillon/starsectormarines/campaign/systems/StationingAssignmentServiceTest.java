@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.ChainArchetype;
+import com.dillon.starsectormarines.campaign.CivilWarBand;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -68,6 +70,51 @@ class StationingAssignmentServiceTest {
         assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
                 fixture.captain, 10, 1, 10, fixture.store));
         assertEquals(10, fixture.store.available);
+    }
+
+    @Test
+    void civilWarStationingChoiceWithdrawsOpposingOffer() {
+        CampaignState state = new CampaignState();
+        state.playerMrbRep = ContractEligibility.TIER_3_MRB_REQUIRED;
+        int market = state.marketRegistry.intern("market");
+        long claimant = state.addHouse(market, 0, HouseFlavor.FEUDAL,
+                HouseRank.TIER_3, HouseStatus.ACTIVE,
+                PatronArchetype.NEWCOMER, "Claimant");
+        long incumbent = state.addHouse(market, 0, HouseFlavor.FEUDAL,
+                HouseRank.TIER_3, HouseStatus.ACTIVE,
+                PatronArchetype.NEWCOMER, "Incumbent");
+        long chainId = state.addAutonomousChain(claimant, incumbent, market,
+                -1, HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 180, (byte) 128, 1);
+        int chainRow = state.chainIndex(chainId);
+        state.chainProgress[chainRow] = 70;
+        long claimantOffer = civilWarOffer(state, claimant, incumbent,
+                chainId, -1L, ContractType.CADRE, market);
+        long incumbentOffer = civilWarOffer(state, incumbent, claimant,
+                -1L, chainId, ContractType.GARRISON, market);
+        MarineCaptain captain = new MarineCaptain(
+                "Captain", null, Rank.SERGEANT, 0f);
+        TestMarineStore store = new TestMarineStore(100);
+
+        assertTrue(StationingAssignmentService.accept(state, claimantOffer,
+                captain, 40, 1, 40, store));
+
+        assertEquals(ContractState.ACTIVE, ContractState.fromByte(
+                state.contractState[state.contractIndex(claimantOffer)]));
+        assertEquals(ContractState.EXPIRED, ContractState.fromByte(
+                state.contractState[state.contractIndex(incumbentOffer)]));
+    }
+
+    private static long civilWarOffer(CampaignState state, long patron,
+                                      long target, long parent, long opposed,
+                                      ContractType type, int market) {
+        long id = state.addContract(patron, target, parent, type,
+                ContractState.OFFERED, 20, -1, 27, (byte) 0, -1,
+                market, -1, 0, 0, (byte) 0, (byte) 0, (byte) 100);
+        int row = state.contractIndex(id);
+        state.contractOpposedChainId[row] = opposed;
+        state.contractCivilWarBand[row] = CivilWarBand.MOBILIZATION.toByte();
+        return id;
     }
 
     private static Fixture fixture(ContractType type, HouseRank rank, int marines) {
