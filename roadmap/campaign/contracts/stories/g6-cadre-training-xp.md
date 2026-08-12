@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `68a3673d`
+
 ## Goal
 
 Deliver Cadre's defining non-cash value: passive but meaningful captain growth

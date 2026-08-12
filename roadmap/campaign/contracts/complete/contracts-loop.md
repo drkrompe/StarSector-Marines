@@ -162,11 +162,12 @@ src/main/java/com/dillon/starsectormarines/intel/CampaignDebugIntel.java
   + Toggle: "Force daily tick" — runs every registered CampaignSystem
     once at the current day, bypassing the lastTickDay guard. The
     primary forcing function for watching ContractGenerator roll
-  + Toggle: "Spawn offers for local patrons" — direct-creates STRIKE
-    offers for every T1 patron in the player's current system that
-    doesn't already have an outstanding offer. Collapses ~20 force-tick
-    clicks per patron down to a single click that lights up every
-    local market
+  + Buttons: "Spawn local Escort/Garrison/Cadre offers" — direct-create
+    production-shaped offers for every eligible patron in the player's
+    current system that doesn't already have an outstanding offer. Rank
+    gates and target requirements match the generator. Stationing offers
+    must be accepted through the Ops assignment UI, never the old debug
+    Accept shortcut (`c641cff0`)
   + Toggle: "Clear terminal contracts" — compacts COMPLETED/FAILED/
     DEFAULTED/ABANDONED rows out of contracts[] across every parallel
     array, rebuilding contractIndexById
@@ -233,8 +234,9 @@ method together act as a copyable template — see
   `df0a5d19`. Planetary Assault remains blocked on its multi-phase flow;
   Garrison/Cadre now have persisted term/retainer, personnel assignment/release,
   rank-gated generation, and dedicated acceptance UI (`2487cfaf`, `644b0a1f`,
-  `0b2829ec`). Cadre training XP and default/extraction consequences remain.
-  EXTRACTION remains system-generated rather than patron-offered.
+  `0b2829ec`), plus monthly Cadre training XP (`68a3673d`). Default/extraction
+  consequences remain. EXTRACTION remains system-generated rather than
+  patron-offered.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

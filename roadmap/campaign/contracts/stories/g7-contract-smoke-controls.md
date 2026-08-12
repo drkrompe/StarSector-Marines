@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented in:** `c641cff0`
+
 ## Goal
 
 Make Escort/Garrison/Cadre verticals directly reachable in game without waiting

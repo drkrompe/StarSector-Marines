@@ -93,8 +93,12 @@ universe over time, not retrofitted into intel slots.
    to one-shot Extraction missions (`fb268bbe`, `df0a5d19`). Verify one Tier-2
    offer in game. Rank-gated GARRISON + CADRE offers now have dedicated
    assignment UI, persisted terms, monthly retainers, and personnel return
-   (`2487cfaf`, `644b0a1f`, `0b2829ec`). Next: Cadre training XP and an in-game
-   stationing layout/payment smoke test. See `campaign/contracts/overview.md`.
+   (`2487cfaf`, `644b0a1f`, `0b2829ec`). Cadre monthly training XP and safe
+   contract-table cleanup are shipped (`68a3673d`, `795b4d9e`), and explicit
+   local Escort/Garrison/Cadre debug spawners make each vertical reachable on
+   demand (`c641cff0`). Next: run the in-game layout/payment/training smoke,
+   then design default/extraction consequences. See
+   `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
