@@ -310,7 +310,9 @@ public final class NavigationService {
         // the cell the unit already stands in). A one-cell path (findPath with
         // start == goal) must start at 0, or it is born exhausted and the mover
         // never pulls the unit onto the cell center — stranding it inside the
-        // arrival band whenever a repath clobbers the in-flight path.
+        // arrival band whenever a repath clobbers the in-flight path. Note a
+        // hand-built one-cell path to a FOREIGN cell is walked straight-line
+        // with no wall check — only findPath-produced paths are wall-legal.
         world.setPathIdx(id, newPath.length <= 2 ? 0 : 1);
         if (newPath.length > 0) roster.movement().markRepath(id);
         int newDestX;

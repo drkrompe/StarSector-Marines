@@ -200,8 +200,10 @@ public final class SquadAlertSystem {
                     float dy = shot.fromY - world.y(u);
                     if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
                         squad._suspiciousThisTick = true;
-                        squad.lastSeenEnemyX = Math.round(shot.fromX);
-                        squad.lastSeenEnemyY = Math.round(shot.fromY);
+                        // fromX/Y are center-based, so the containing cell is
+                        // the floor — round biases +1 for an on-center shooter.
+                        squad.lastSeenEnemyX = (int) Math.floor(shot.fromX);
+                        squad.lastSeenEnemyY = (int) Math.floor(shot.fromY);
                         break;
                     }
                 }
