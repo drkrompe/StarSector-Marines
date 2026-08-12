@@ -1,6 +1,6 @@
 # Deployment readiness and debug personnel
 
-**Status:** CONTRACT LOCKED (2026-08-12)
+**Status:** IN PROGRESS — debug fixtures shipped (2026-08-12)
 
 ## Problem
 
@@ -52,10 +52,10 @@ without permanently recruiting an absurd company.
 
 ## Slices
 
-1. **Debug fixtures** — append the debug mission source, add preset loadout
+1. **Debug fixtures** — **SHIPPED** in `605cda22`. Append the debug mission source, add preset loadout
    generation and briefing cycling, launch through the preset, and suppress
    debug campaign writeback.
-2. **Production shortfall** — central readiness calculation, exact briefing
+2. **Production shortfall** — **NEXT**. Central readiness calculation, exact briefing
    feedback, armory return context, and atomic bulk cargo enlistment.
 
 ## Acceptance
@@ -69,4 +69,3 @@ without permanently recruiting an absurd company.
   return to the same briefing, and see the recomputed shortfall.
 - No production path creates a named marine without consuming cargo after the
   one-time starting complement.
-
