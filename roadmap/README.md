@@ -81,14 +81,14 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-1. **Loot picker UI** — the three-layer salvage model is already
-   plumbed end-to-end (`salvageEntitlement` on `MissionOutcome`;
-   briefing has the negotiation knob). What's missing is the item pool
-   generator (vanilla weapons / supplies / fuel / marines / AI cores),
-   the roll weighted by entitlement × enemy faction × planet industries,
-   and the post-battle picker grid with cargo-capacity check + 75%
-   fence-on-spot for overflow. MechWarrior Mercenaries vibe. Designed in
-   [`campaign/loot/overview.md`](campaign/loot/overview.md).
+1. **Loot recovery modifiers + shipping check** — the core loot loop is
+   code-complete (`254de744`, `037586cf`, `90f01acc`): deterministic
+   faction/industry-weighted weapons + commodities, budget-aware picker,
+   separate cargo/fuel/personnel capacity preview, exactly-once transfer, and
+   75% fence-on-spot overflow. Before moving its three stories to `complete/`,
+   run the documented in-game visual/cargo smoke test. Then finish Layer 3:
+   `SALVAGE_EXPERT`, fleet Salvage Rig/Gantry modifiers, and context-gated AI
+   cores. See [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 2. **Contract generation for non-STRIKE types** — `ContractType` has
    six values; only STRIKE is generated. GARRISON + CADRE introduce
    retainer payment over time (closer to the contract design's

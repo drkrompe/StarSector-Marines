@@ -42,7 +42,7 @@ Each thread is a sub-directory with its own `overview.md`, `stories/`
 | [`framework/`](framework/overview.md) | **shipped** | SoA tables + `CampaignSystem` tick framework + the architecture commitments. The substrate everything else sits on. |
 | [`contracts/`](contracts/overview.md) | **loop playable** | Five contract types, two modes, lifecycle state machine, three-layer salvage model, MRB rep, mission-resolver bridge. |
 | [`living-world/`](living-world/overview.md) | designing | The autonomous political sim: makes the four stub systems real. Two-tempo (drift + chains) engine, stake genesis, the Chronicle dispatch feed. Turns houses from labels into actors. |
-| [`loot/`](loot/overview.md) | **active** | Recovery manifest + budget-aware picker are code-complete; cargo settlement is next. Consumes the contract salvage entitlement. Highest user value. |
+| [`loot/`](loot/overview.md) | **active** | Manifest + picker + capacity-aware settlement are code-complete; in-game shipping check and recovery modifiers are next. Consumes the contract salvage entitlement. Highest user value. |
 | [`infrastructure/`](infrastructure/overview.md) | designed | Buildings that modulate garrison default rates and house power; the mitigation side of scale inefficiency. |
 | [`narrative/`](narrative/overview.md) | designed | The patron tapestry: comms-officer narrator, archetype content axis, procedural-fatigue discipline. |
 | [`t3-endgame/`](t3-endgame/overview.md) | future | Tier-4 chain-only contracts; the faction-flip endgame. The only System allowed to write back to vanilla state. |

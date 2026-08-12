@@ -1,6 +1,10 @@
 # Story: capacity-aware cargo settlement
 
-**Status:** ACTIVE (2026-08-12)
+**Status:** CODE COMPLETE (2026-08-12) — focused planner tests + full build
+green; in-game cargo-delta smoke test remains.
+
+**Implemented in:** S3a planner `037586cf`; S3b live apply + confirmation UI
+`90f01acc`.
 
 ## Goal
 
@@ -39,3 +43,17 @@ explicit confirmation.
 - Fenced credits use exactly 75% base value with deterministic integer rounding.
 - Applying the same settlement twice cannot duplicate items or credits.
 - Full build green; in-game cargo-delta smoke test remains the shipping gate.
+
+## Landed
+
+- Independent cargo/fuel/personnel capacity allocation with partial-stack
+  splits and deterministic 75% integer fencing.
+- Live confirmation preview continuously recomputes carry/fence totals against
+  the player's current free capacity.
+- Explicit confirmation transfers weapons/commodities/fuel/marines through the
+  matching `CargoAPI` methods and pays aggregate fenced credits.
+- The context claims an exactly-once gate before mutation; duplicate clicks
+  return the existing receipt. A mid-apply exception keeps the gate closed to
+  avoid duplicating already-added lines.
+- Results makes the alternative explicit as **Forfeit Salvage** and clears the
+  resolved mission flow on confirm/forfeit.

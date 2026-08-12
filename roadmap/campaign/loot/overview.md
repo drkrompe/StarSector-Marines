@@ -23,7 +23,8 @@ since the entitlement is already plumbed end-to-end through
    and debrief routing. Code-complete; see
    [`stories/s2-picker-screen.md`](stories/s2-picker-screen.md).
 3. **Cargo settlement** — capacity preview, transfer selected stacks, and fence
-   overflow at 75% base value.
+   overflow at 75% base value. Code-complete; see
+   [`stories/s3-cargo-settlement.md`](stories/s3-cargo-settlement.md).
 4. **Rare recovery** — AI-core mission gates, `SALVAGE_EXPERT` high-value roll,
    Salvage Rig/Gantry multipliers, then blueprint/tech-recovery support.
 
