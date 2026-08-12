@@ -53,7 +53,7 @@ prepares one append-only `throneClaims[]` row keyed uniquely by source chain:
 | `throneClaimSourceChainId` | Unique producing `CIVIL_WAR` chain |
 | `throneClaimHouseId` | Tier-3 claimant house |
 | `throneClaimSourceFactionId` | Persisted incumbent faction-registry slot |
-| `throneClaimResultFactionId` | Deterministic splinter-faction registry slot |
+| `throneClaimResultFactionId` | Predeclared Claimant League faction-registry slot |
 | `throneClaimMarketId` | Claimant home market; the first vanilla flip target |
 | `throneClaimState` | `PREPARED`, `APPLIED`, or `FAILED` |
 | `throneClaimPreparedTick` | Campaign day the political chain completed |
@@ -87,9 +87,12 @@ recovery idempotent even if persistence follows the vanilla mutation.
   a handoff is prepared, the political chain is closed and only the isolated
   consumer may apply or fail the irreversible result.
 
-The result faction id is deterministic from claimant house id, using the
-reserved form `starsector_marines_claimant_<houseId>`. Preparation interns that
-identity so the eventual consumer never invents identity during writeback.
+Public Starsector APIs do not support registering arbitrary per-house faction
+ids at runtime. The result therefore uses one predeclared faction identity,
+`starsector_marines_claimants`, loaded from the mod's faction data. Preparation
+interns that identity so the consumer never invents identity during writeback.
+Multiple successful houses join the same Claimant League rather than creating
+unsupported runtime faction objects.
 
 ## Still to specify before vanilla writeback
 

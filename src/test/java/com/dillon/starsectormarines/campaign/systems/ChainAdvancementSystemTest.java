@@ -183,7 +183,7 @@ class ChainAdvancementSystemTest {
         assertEquals(fixture.actor, fixture.state.throneClaimHouseId[0]);
         assertEquals(1, fixture.state.throneClaimSourceFactionId[0]);
         assertEquals(1, fixture.state.throneClaimMarketId[0]);
-        assertEquals("starsector_marines_claimant_" + fixture.actor,
+        assertEquals(ChainAdvancementSystem.CLAIMANT_FACTION_ID,
                 fixture.state.factionRegistry.get(
                     fixture.state.throneClaimResultFactionId[0]));
         assertEquals(HouseRank.TIER_3,

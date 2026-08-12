@@ -23,7 +23,7 @@ import java.util.EnumSet;
  */
 public final class ChainAdvancementSystem implements CampaignSystem {
 
-    static final String CLAIMANT_FACTION_PREFIX = "starsector_marines_claimant_";
+    public static final String CLAIMANT_FACTION_ID = "starsector_marines_claimants";
     static final int DAILY_PROGRESS = 1;
     static final int RESOLUTION_STAKE_SEIZE = 40;
     static final int RESOLUTION_PROMOTION_PROGRESS = 30;
@@ -124,8 +124,7 @@ public final class ChainAdvancementSystem implements CampaignSystem {
     private static void resolvePayload(CampaignState state, int chainRow, int actorRow,
                                        int targetRow, ChainArchetype archetype, int day) {
         if (archetype == ChainArchetype.CIVIL_WAR) {
-            int resultFactionId = state.factionRegistry.intern(
-                    CLAIMANT_FACTION_PREFIX + state.houseId[actorRow]);
+            int resultFactionId = state.factionRegistry.intern(CLAIMANT_FACTION_ID);
             state.prepareThroneClaim(state.chainId[chainRow], state.houseId[actorRow],
                     state.houseFactionId[actorRow], resultFactionId,
                     state.chainMarketId[chainRow], day);

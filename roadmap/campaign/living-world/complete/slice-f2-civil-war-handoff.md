@@ -22,7 +22,7 @@ living-world layer to mutate vanilla faction state or set Tier 4.
 - A capped ACTIVE Tier-3 `CLAIM_THRONE` house creates one 180-day `CIVIL_WAR`
   against the strongest ACTIVE same-faction rival by cached power. The claimant
   home market is the whole-market location and discovery risk is 128.
-- Resolution interns deterministic result faction identity, prepares one
+- Resolution interns the predeclared Claimant League faction identity, prepares one
   handoff, and closes the chain. It does not change rank, stake, market owner,
   faction reputation, or any vanilla object.
 - Tier-3 civil wars enter the epic rumor path. Qualified players receive the
