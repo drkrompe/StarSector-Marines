@@ -645,7 +645,7 @@ public class BriefingScreen implements Screen {
                 m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
                 m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
                 m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
+                m.targetFactionId, m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
                 m.employerPowerIds);
         ctx.setSelectedMission(replaced);
         rebuild();

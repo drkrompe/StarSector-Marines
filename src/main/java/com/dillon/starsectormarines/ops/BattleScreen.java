@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -865,6 +866,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             MissionOutcome outcome = MissionResolver.compute(sim, mission, ctx.getSelectedCaptain());
             MissionResolver.apply(outcome);
             ctx.setLastOutcome(outcome);
+            ctx.setLootManifest(LootGenerator.generate(outcome));
             ctx.goTo(ScreenId.RESULTS);
         } else {
             // Abandon mid-battle — no resolution, no penalty.

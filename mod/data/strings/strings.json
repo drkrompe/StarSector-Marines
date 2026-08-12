@@ -73,6 +73,7 @@
 		"resultsPayoutLabel":     "Payout:",
 		"resultsSalvageLabel":    "Salvage:",
 		"resultsSalvageFmt":      "{0}% entitlement",
+		"resultsSalvageManifestFmt": "{0}% · {1} stacks · Cr. {2}",
 		"resultsCasualtiesLabel": "Marines Lost:",
 		"resultsCasualtiesFmt":   "{0} of {1}",
 		"resultsCaptainLabel":    "Captain:",
@@ -83,6 +84,19 @@
 		"resultsStatusActive":    "returned safely",
 		"resultsStatusInjuredFmt":"injured ({0}d)",
 		"resultsStatusKia":       "killed in action",
-		"resultsReturn":          "Return"
+		"resultsReturn":          "Return",
+		"resultsReviewSalvage":   "Review Salvage",
+
+		# Post-battle salvage picker
+		"lootHeader":             "Recovered Materiel",
+		"lootBudgetFmt":          "Selected: Cr. {0} / Cr. {1}",
+		"lootPoolFmt":            "{0} recovered stacks · Cr. {1} total pool value",
+		"lootInstructions":       "Choose items up to the negotiated claim budget.",
+		"lootQuantityFmt":        "{0} recovered",
+		"lootValueFmt":           "Cr. {0}",
+		"lootSelected":           "Selected",
+		"lootOverBudget":         "Over budget",
+		"lootBack":               "Back to Debrief",
+		"lootPreviewNotice":      "Selection preview — cargo transfer arrives in the next slice."
 	}
 }

@@ -13,6 +13,20 @@ Highest user value of any campaign next-up; gated only by the loot UI,
 since the entitlement is already plumbed end-to-end through
 `MissionResolver` (`outcome.salvageEntitlement` lands on victory).
 
+## Delivery slices
+
+1. **Recovery manifest foundation** — deterministically roll a faction- and
+   industry-flavored pool, freeze it beside the mission outcome, and expose its
+   item count/value budget on the debrief. See
+   [`stories/s1-recovery-manifest.md`](stories/s1-recovery-manifest.md).
+2. **Picker screen** — item grid, selection budget, details/hover treatment,
+   and debrief routing. Code-complete; see
+   [`stories/s2-picker-screen.md`](stories/s2-picker-screen.md).
+3. **Cargo settlement** — capacity preview, transfer selected stacks, and fence
+   overflow at 75% base value.
+4. **Rare recovery** — AI-core mission gates, `SALVAGE_EXPERT` high-value roll,
+   Salvage Rig/Gantry multipliers, then blueprint/tech-recovery support.
+
 ## Recoverable categories
 
 What can actually drop:
@@ -63,6 +77,19 @@ in [`../contracts/complete/contracts-loop.md`](../contracts/complete/contracts-l
   take more and accept the discount (mirrors contract §"Open questions" 7).
 - Salvage Rig detection scope — deployed fleet only, or any fleet in
   system (contract §"Open questions" 8).
+
+## Decisions locked for the first vertical
+
+- The roll is seeded from the immutable mission/outcome facts, so reopening or
+  rebuilding the debrief cannot reroll it.
+- `salvageEntitlement` is a percentage of the rolled pool's base value. The
+  manifest freezes both the total pool value and the resulting selection-value
+  budget; widgets do not own economy math.
+- The recovery pool's target value is deliberately expressed as a small set of
+  tunable multipliers by mission type and risk. This is balance scaffolding, not
+  a permanent economy promise.
+- The first slice recovers commodities and weapons. Rare cores and blueprints
+  stay out until their mission/trait gates are representable without UI guesses.
 
 ## Related
 

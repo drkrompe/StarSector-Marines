@@ -24,6 +24,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -201,7 +202,8 @@ public final class MissionGenerator {
 
         int cashMult = state.contractCashMultiplier[row] & 0xFF;
         if (cashMult <= 0) cashMult = 100;
-        int payout = (int) ((long) state.contractBasePayout[row] * cashMult / 100L);
+        int basePayout = state.contractBasePayout[row];
+        int effectivePayout = (int) ((long) basePayout * cashMult / 100L);
 
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
@@ -227,16 +229,16 @@ public final class MissionGenerator {
         PatronArchetype archetype = patronRow >= 0
                 ? PatronArchetype.fromByte(state.houseArchetype[patronRow])
                 : PatronArchetype.TIME_RUSHED;
-        String payoutFormatted = "$" + java.text.NumberFormat.getIntegerInstance().format(payout);
+        String payoutFormatted = "$" + NumberFormat.getIntegerInstance().format(effectivePayout);
         int negotiatedPct = state.contractSalvageNegotiated[row] & 0xFF;
         String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
                 contractId, client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
         String id = "contract:" + contractId;
 
         return new Mission(id, name, MissionType.RAID, MissionSource.GENERATED,
-                payout, risk, requirementsFor(risk), flavor, x, y,
+                basePayout, risk, requirementsFor(risk), flavor, x, y,
                 clientSupport, enemySupport, requiredDrops, employerShuttles,
-                targetPlanetName, targetIndustryId,
+                targetPlanetName, targetIndustryId, targetMarket.getFactionId(),
                 contractId,
                 state.contractSalvageBaseline[row],
                 state.contractSalvageNegotiated[row],

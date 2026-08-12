@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
+import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -56,6 +57,8 @@ public class MarineOpsContext {
     private Detachment detachment;
     /** Frozen outcome from the most recent applied mission — read by ResultsScreen. */
     private MissionOutcome lastOutcome;
+    /** Frozen deterministic recovery roll; cargo settlement happens in the later picker. */
+    private LootManifest lootManifest = LootManifest.EMPTY;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
@@ -144,6 +147,14 @@ public class MarineOpsContext {
 
     public void setLastOutcome(MissionOutcome outcome) {
         this.lastOutcome = outcome;
+    }
+
+    public LootManifest getLootManifest() {
+        return lootManifest;
+    }
+
+    public void setLootManifest(LootManifest manifest) {
+        this.lootManifest = manifest != null ? manifest : LootManifest.EMPTY;
     }
 
     /**

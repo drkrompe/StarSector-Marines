@@ -178,12 +178,12 @@ public final class MissionResolver {
 
         return new MissionOutcome(
                 victory,
-                mission.id, mission.name, mission.type, mission.source,
-                payoutEarned, marinesEngaged, marinesLost,
+                mission.id, mission.name, mission.type, mission.risk, mission.source,
+                mission.payout, payoutEarned, marinesEngaged, marinesLost,
                 captain != null ? captain.id()   : null,
                 captain != null ? captain.name() : null,
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
-                mission.targetPlanetName, mission.targetIndustryId,
+                mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
                 mission.contractId, salvageEntitlement);
     }
 

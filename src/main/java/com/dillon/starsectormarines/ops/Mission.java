@@ -62,6 +62,8 @@ public final class Mission {
     public final String targetPlanetName;
     /** Industry id (e.g. {@code "refining"}) the mission targets; null for non-industry ops. */
     public final String targetIndustryId;
+    /** Faction whose equipment flavors post-battle recovery; null when unknown. */
+    public final String targetFactionId;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -98,7 +100,7 @@ public final class Mission {
         this(id, name, type, source, payout, risk, requirements, flavor,
                 normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
                 requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                -1L, (byte) 0, (byte) 0, (byte) 100, Collections.emptyList());
+                null, -1L, (byte) 0, (byte) 0, (byte) 100, Collections.emptyList());
     }
 
     public Mission(String id,
@@ -117,6 +119,35 @@ public final class Mission {
                    int employerShuttles,
                    String targetPlanetName,
                    String targetIndustryId,
+                   long contractId,
+                   byte salvageBaseline,
+                   byte salvageNegotiated,
+                   byte cashMultiplier,
+                   List<String> employerPowerIds) {
+        this(id, name, type, source, payout, risk, requirements, flavor,
+                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
+                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
+                null, contractId, salvageBaseline, salvageNegotiated, cashMultiplier,
+                employerPowerIds);
+    }
+
+    public Mission(String id,
+                   String name,
+                   MissionType type,
+                   MissionSource source,
+                   int payout,
+                   RiskLevel risk,
+                   String requirements,
+                   String flavor,
+                   float normalizedX,
+                   float normalizedY,
+                   FlybyRoster clientFighterSupport,
+                   FlybyRoster enemyFighterSupport,
+                   int requiredDrops,
+                   int employerShuttles,
+                   String targetPlanetName,
+                   String targetIndustryId,
+                   String targetFactionId,
                    long contractId,
                    byte salvageBaseline,
                    byte salvageNegotiated,
@@ -141,6 +172,7 @@ public final class Mission {
         this.employerShuttles = Math.max(0, Math.min(employerShuttles, this.requiredDrops));
         this.targetPlanetName = targetPlanetName;
         this.targetIndustryId = targetIndustryId;
+        this.targetFactionId  = targetFactionId;
         this.contractId        = contractId;
         this.salvageBaseline   = salvageBaseline;
         this.salvageNegotiated = salvageNegotiated;

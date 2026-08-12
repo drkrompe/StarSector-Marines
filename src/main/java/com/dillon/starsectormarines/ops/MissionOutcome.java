@@ -15,7 +15,10 @@ public final class MissionOutcome {
     public final String         missionId;
     public final String         missionName;
     public final MissionType    missionType;
+    public final RiskLevel      risk;
     public final MissionSource  missionSource;
+    /** Contract payout before the briefing's cash-for-salvage multiplier. */
+    public final int            payoutBase;
     public final int            payoutEarned;
     public final int            marinesEngaged;
     public final int            marinesLost;
@@ -23,6 +26,8 @@ public final class MissionOutcome {
     public final String         targetPlanetName;
     /** Industry id the mission targeted; null if no industry-specific target. */
     public final String         targetIndustryId;
+    /** Faction whose equipment flavors the recovery pool; null when unknown. */
+    public final String         targetFactionId;
 
     /** Captain id may be null if the player had no roster at briefing time. */
     public final String  captainId;
@@ -37,23 +42,25 @@ public final class MissionOutcome {
 
     /** Campaign-tier contract id this resolved a phase of; {@code -1} for ad-hoc missions. */
     public final long    contractId;
-    /** Final salvage % entitlement after captain trait + fleet rig modifiers (0..255). 0 = no salvage. */
+    /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
 
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
-                          MissionType missionType, MissionSource missionSource,
-                          int payoutEarned, int marinesEngaged, int marinesLost,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
                           String captainId, String captainName,
                           Status priorCaptainStatus, Status newCaptainStatus,
                           int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
                           long contractId, int salvageEntitlement) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
         this.missionType        = missionType;
+        this.risk               = risk;
         this.missionSource      = missionSource != null ? missionSource : MissionSource.GENERATED;
+        this.payoutBase         = payoutBase;
         this.payoutEarned       = payoutEarned;
         this.marinesEngaged     = marinesEngaged;
         this.marinesLost        = marinesLost;
@@ -66,6 +73,7 @@ public final class MissionOutcome {
         this.promotedTo         = promotedTo;
         this.targetPlanetName   = targetPlanetName;
         this.targetIndustryId   = targetIndustryId;
+        this.targetFactionId    = targetFactionId;
         this.contractId         = contractId;
         this.salvageEntitlement = salvageEntitlement;
     }

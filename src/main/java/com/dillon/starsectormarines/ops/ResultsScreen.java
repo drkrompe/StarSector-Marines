@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -60,8 +61,9 @@ public class ResultsScreen implements Screen {
     private static final float INNER_PAD   = 20f;
     private static final float ROW_GAP     = 32f;
     private static final float LABEL_COL_W = 200f;
-    private static final float BTN_W       = 160f;
+    private static final float BTN_W       = 180f;
     private static final float BTN_H       = 36f;
+    private static final float BTN_GAP     = 16f;
 
     private final WidgetRoot widgets = new WidgetRoot();
 
@@ -129,8 +131,13 @@ public class ResultsScreen implements Screen {
                 widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                         Strings.get("resultsSalvageLabel"),
                         cardX + INNER_PAD, rowY, LABEL_COLOR));
-                String salvageStr = MessageFormat.format(
-                        Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
+                LootManifest manifest = ctx.getLootManifest();
+                String salvageStr = manifest != null && !manifest.isEmpty()
+                        ? MessageFormat.format(Strings.get("resultsSalvageManifestFmt"),
+                            outcome.salvageEntitlement, manifest.stacks.size(),
+                            NumberFormat.getIntegerInstance().format(manifest.selectionBudget))
+                        : MessageFormat.format(
+                            Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
                 widgets.add(new LabelWidget(Fonts.ORBITRON_20, salvageStr,
                         cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
                 rowY -= ROW_GAP;
@@ -185,16 +192,28 @@ public class ResultsScreen implements Screen {
             }
         }
 
-        // Return button — centered bottom of card
-        float btnX = cardX + (CARD_W - BTN_W) / 2f;
+        // Return stays available while the review-only picker is being built;
+        // salvage outcomes gain a second route into the frozen manifest.
         float btnY = cardY + INNER_PAD;
-        ButtonWidget btn = new ButtonWidget(btnX, btnY, BTN_W, BTN_H,
-                () -> ctx.goTo(ScreenId.MISSION_SELECT));
-        widgets.add(btn);
-        String btnLabel = Strings.get("resultsReturn");
-        float btnLabelW = Fonts.ORBITRON_20.measureWidth(btnLabel);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, btnLabel,
-                btnX + (BTN_W - btnLabelW) / 2f, btnY + BTN_H - 6f, HEADER_COLOR));
+        LootManifest manifest = ctx.getLootManifest();
+        if (manifest != null && !manifest.isEmpty()) {
+            float groupW = 2f * BTN_W + BTN_GAP;
+            float leftX = cardX + (CARD_W - groupW) / 2f;
+            addButton(leftX, btnY, "resultsReturn", () -> ctx.goTo(ScreenId.MISSION_SELECT));
+            addButton(leftX + BTN_W + BTN_GAP, btnY, "resultsReviewSalvage",
+                    () -> ctx.goTo(ScreenId.LOOT));
+        } else {
+            float btnX = cardX + (CARD_W - BTN_W) / 2f;
+            addButton(btnX, btnY, "resultsReturn", () -> ctx.goTo(ScreenId.MISSION_SELECT));
+        }
+    }
+
+    private void addButton(float x, float y, String labelKey, Runnable onClick) {
+        widgets.add(new ButtonWidget(x, y, BTN_W, BTN_H, onClick));
+        String label = Strings.get(labelKey);
+        float labelW = Fonts.ORBITRON_20.measureWidth(label);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label,
+                x + (BTN_W - labelW) / 2f, y + BTN_H - 6f, HEADER_COLOR));
     }
 
     private String formatCaptainStatus(MissionOutcome outcome) {
