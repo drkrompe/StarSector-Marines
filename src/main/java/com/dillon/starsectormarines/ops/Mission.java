@@ -255,7 +255,7 @@ public final class Mission {
         this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
                 ? Math.max(-1, campaignEventMarketId) : -1;
-        this.civiliansAtRisk = this.campaignEventId > 0L
+        this.civiliansAtRisk = this.source.isCivilianRescue()
                 ? Math.max(0, civiliansAtRisk) : 0;
         this.salvageBaseline   = salvageBaseline;
         this.salvageNegotiated = salvageNegotiated;

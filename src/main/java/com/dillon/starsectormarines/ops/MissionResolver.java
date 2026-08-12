@@ -175,7 +175,7 @@ public final class MissionResolver {
                 : LootRecoveryModifier.NONE;
 
         int civiliansRescued = -1;
-        if (mission.source == MissionSource.CAMPAIGN_EVENT) {
+        if (mission.source.isCivilianRescue()) {
             CivilianEvacuationReport report =
                     sim.getCivilianEvacuationTracker().report();
             if (report != null) {

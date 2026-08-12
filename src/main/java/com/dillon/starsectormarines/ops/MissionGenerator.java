@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.campaign.BriefingComposer;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -176,7 +177,11 @@ public final class MissionGenerator {
                             + risk.name() + " swarm pressure.",
                     x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                     requiredDrops, employerShuttles,
-                    planetName, null));
+                    planetName, null, null,
+                    -1L, -1L, -1,
+                    CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT,
+                    (byte) 0, (byte) 0, (byte) 100,
+                    (byte) 0, (byte) 0, Collections.emptyList()));
         }
         return missions;
     }

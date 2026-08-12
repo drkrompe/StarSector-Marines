@@ -92,8 +92,6 @@ public final class MissionLaunch {
     }
 
     static boolean isCivilianRescueBattle(Mission mission) {
-        return mission != null
-                && (mission.source == MissionSource.CAMPAIGN_EVENT
-                || mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE);
+        return mission != null && mission.source.isCivilianRescue();
     }
 }

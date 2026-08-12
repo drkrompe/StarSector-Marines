@@ -122,9 +122,9 @@ public final class MissionOutcome {
         this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
                 ? Math.max(-1, campaignEventMarketId) : -1;
-        this.civiliansAtRisk = this.campaignEventId > 0L
+        this.civiliansAtRisk = this.missionSource.isCivilianRescue()
                 ? Math.max(0, civiliansAtRisk) : 0;
-        this.civiliansRescued = this.campaignEventId > 0L
+        this.civiliansRescued = this.missionSource.isCivilianRescue()
                 ? civiliansRescued : -1;
         this.salvageEntitlement = salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);

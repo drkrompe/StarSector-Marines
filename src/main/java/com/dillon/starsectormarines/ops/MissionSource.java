@@ -23,5 +23,9 @@ public enum MissionSource {
     /** Cost-shaped black-swan mission; never inherits contract economics. */
     CAMPAIGN_EVENT,
     /** Direct debug-picker swarm rescue; never resolves a campaign event. */
-    DEBUG_CIVILIAN_RESCUE
+    DEBUG_CIVILIAN_RESCUE;
+
+    public boolean isCivilianRescue() {
+        return this == CAMPAIGN_EVENT || this == DEBUG_CIVILIAN_RESCUE;
+    }
 }

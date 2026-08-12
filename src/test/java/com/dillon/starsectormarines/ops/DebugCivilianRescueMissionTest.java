@@ -25,6 +25,8 @@ class DebugCivilianRescueMissionTest {
             assertEquals(MissionSource.DEBUG_CIVILIAN_RESCUE,
                     mission.source);
             assertEquals(0, mission.payout);
+            assertEquals(8, mission.civiliansAtRisk);
+            assertEquals(-1L, mission.campaignEventId);
             assertTrue(mission.clientFighterSupport.isEmpty());
             assertTrue(mission.enemyFighterSupport.isEmpty());
             assertEquals("Test Colony", mission.targetPlanetName);
