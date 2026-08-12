@@ -46,4 +46,29 @@ class CampaignMarineDeploymentTest {
         assertEquals(second.memberIds().get(0), deployment.seat(0).campaignSoldierId);
         assertEquals(second.memberIds().get(1), deployment.seat(1).campaignSoldierId);
     }
+
+    @Test
+    void freezingDeploymentDoesNotGenerateFreeReplacements() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(1);
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 4);
+
+        assertEquals(1, deployment.size());
+        assertEquals(1, roster.soldiers().size());
+    }
+
+    @Test
+    void reservePersonnelAreNotAutoLoadedWithoutFireteamAssignment() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(2);
+        MarineSoldier reserveMarine = roster.soldiers().get(0);
+        assertTrue(roster.transferSoldier(
+                reserveMarine.id(), roster.reserveSquad().id()));
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 2);
+
+        assertEquals(1, deployment.size());
+        assertNotEquals(reserveMarine.id(), deployment.seat(0).campaignSoldierId);
+    }
 }

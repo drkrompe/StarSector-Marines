@@ -150,6 +150,8 @@ public class BriefingScreen implements Screen {
         widgets.clear();
         if (position == null || ctx == null) return;
         layout = new BriefingLayout(position);
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        if (personnel != null) personnel.roster().bootstrapInitialComplement(10);
 
         // Default to the first ACTIVE captain if nothing's selected yet — saves
         // a click for the common case. User's pick survives across re-attaches.
@@ -490,7 +492,6 @@ public class BriefingScreen implements Screen {
     }
 
     private boolean hasEnoughAssignedMarines(Mission m) {
-        if (ctx.getSelectedMarineSquadIds().isEmpty()) return true;
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null) return true;
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
@@ -501,8 +502,12 @@ public class BriefingScreen implements Screen {
         int needed = CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
         int ready = 0;
         MarineRoster roster = script.roster();
-        for (String squadId : ctx.getSelectedMarineSquadIds()) {
-            ready += roster.readyCount(roster.squadById(squadId));
+        if (ctx.getSelectedMarineSquadIds().isEmpty()) {
+            ready = roster.lineReadySoldiers().size();
+        } else {
+            for (String squadId : ctx.getSelectedMarineSquadIds()) {
+                ready += roster.readyCount(roster.squadById(squadId));
+            }
         }
         return ready >= needed;
     }
@@ -521,10 +526,10 @@ public class BriefingScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script != null && seats > 0) {
             MarineRoster roster = script.roster();
-            roster.ensureActiveSoldiers(seats);
             if (!ctx.hasSquadSelectionFor(m)) {
                 int assigned = 0;
                 for (MarineSquad squad : roster.squads()) {
+                    if (squad.reserve()) continue;
                     int ready = roster.readyCount(squad);
                     if (ready <= 0) continue;
                     ctx.selectMarineSquad(squad.id());

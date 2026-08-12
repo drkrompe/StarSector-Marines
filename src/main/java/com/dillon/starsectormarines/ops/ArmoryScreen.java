@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -50,7 +51,7 @@ public final class ArmoryScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         roster = script != null ? script.roster() : null;
         if (roster != null) {
-            if (roster.soldiers().isEmpty()) roster.ensureActiveSoldiers(10);
+            roster.bootstrapInitialComplement(10);
             roster.reserveSquad();
             if (roster.squadById(selectedSquadId) == null && !roster.squads().isEmpty()) {
                 selectedSquadId = roster.squads().get(0).id();
@@ -79,6 +80,7 @@ public final class ArmoryScreen implements Screen {
         MarineArmory armory = roster.armory();
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 "Masterwork parts & materials: " + armory.fabricationMaterials()
+                        + "    Unassigned marines: " + MarinePersonnelLogistics.availableRecruits()
                         + "    Victories: " + armory.victories()
                         + "    High-risk: " + armory.highRiskVictories(),
                 left, top - 34f, VALUE));
@@ -173,12 +175,21 @@ public final class ArmoryScreen implements Screen {
 
         float actionX = x + 222f;
         int vacancies = roster.vacancies(squad);
-        boolean canRecruit = squad.reserve() || vacancies > 0;
+        MarineSoldier readyReserve = roster.firstReadyReserve();
+        boolean cargoAvailable = MarinePersonnelLogistics.availableRecruits() > 0;
+        boolean canRecruit = (squad.reserve() || vacancies > 0)
+                && (cargoAvailable || (!squad.reserve() && readyReserve != null));
+        String recruitLabel = squad.reserve() ? "Enlist (1)"
+                : vacancies <= 0 ? "Fully Manned"
+                : readyReserve != null ? "Assign Reserve" : "Enlist (1)";
         addButton(actionX, top - 14f, 138f,
-                squad.reserve() ? "Hire Reserve"
-                        : vacancies > 0 ? "Reinforce (" + vacancies + ")" : "Fully Manned",
+                recruitLabel,
                 canRecruit ? () -> {
-                    roster.recruitToSquad(squad.id());
+                    if (!squad.reserve() && roster.firstReadyReserve() != null) {
+                        roster.fillVacancyFromReserve(squad.id());
+                    } else {
+                        MarinePersonnelLogistics.enlist(roster, squad.id());
+                    }
                     rebuild();
                 } : null, canRecruit ? GOOD : MUTED);
         addButton(actionX + 148f, top - 14f, 130f, "New Fireteam", () -> {
@@ -239,16 +250,22 @@ public final class ArmoryScreen implements Screen {
                 kit, x + w * 0.43f, y + 26f, ready ? GOOD : MUTED));
         if (!ready) return;
 
+        MarineSquad current = roster.squadForSoldier(soldier.id());
         MarineSquad target = roster.nextTransferTarget(soldier.id());
         float moveW = 138f;
         float armorW = 74f;
         float weaponW = 82f;
+        boolean reserve = current != null && current.reserve();
         addButton(x + w - moveW, y + 4f, moveW,
-                target != null ? "Move → " + shortSquadName(target) : "No Vacancy",
-                target != null ? () -> {
+                reserve ? "Demobilize +1"
+                        : target != null ? "Move → " + shortSquadName(target) : "No Vacancy",
+                reserve ? () -> {
+                    MarinePersonnelLogistics.release(roster, soldier.id());
+                    rebuild();
+                } : target != null ? () -> {
                     roster.transferSoldier(soldier.id(), target.id());
                     rebuild();
-                } : null, target != null ? HEADER : MUTED);
+                } : null, reserve || target != null ? HEADER : MUTED);
         addButton(x + w - moveW - armorW - 8f, y + 4f, armorW, "Armor", () -> {
             roster.cycleArmor(soldier.id());
             rebuild();

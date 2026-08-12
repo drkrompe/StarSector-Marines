@@ -45,7 +45,6 @@ public final class CampaignMarineDeployment {
                                                    Set<String> selectedSquadIds,
                                                    int requiredSeats) {
         if (roster == null || requiredSeats <= 0) return EMPTY;
-        roster.ensureActiveSoldiers(requiredSeats);
         List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
         List<MarineSoldier> active = new ArrayList<>();
         if (selectedSquadIds != null && !selectedSquadIds.isEmpty()) {
@@ -57,7 +56,7 @@ public final class CampaignMarineDeployment {
                 }
             }
         }
-        if (active.isEmpty()) active.addAll(roster.activeSoldiers());
+        if (active.isEmpty()) active.addAll(roster.lineReadySoldiers());
         for (int i = 0; i < Math.min(requiredSeats, active.size()); i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();

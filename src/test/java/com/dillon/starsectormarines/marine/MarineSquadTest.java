@@ -128,4 +128,40 @@ class MarineSquadTest {
         assertEquals(1, roster.squads().size());
         assertEquals(2, roster.squads().get(0).memberIds().size());
     }
+
+    @Test
+    void initialComplementCanOnlyBeIssuedOnce() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(10);
+        roster.bootstrapInitialComplement(20);
+
+        assertEquals(10, roster.soldiers().size());
+        assertEquals(10, roster.activeSoldiers().size());
+    }
+
+    @Test
+    void onlyReadyReservePersonnelCanBeDemobilized() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(1);
+        MarineSoldier line = roster.soldiers().get(0);
+        MarineSquad reserve = roster.reserveSquad();
+
+        assertFalse(roster.releaseReserveSoldier(line.id()));
+        assertTrue(roster.transferSoldier(line.id(), reserve.id()));
+        assertTrue(roster.releaseReserveSoldier(line.id()));
+        assertEquals(0, roster.soldiers().size());
+    }
+
+    @Test
+    void reservesDoNotCountAsLineDeploymentReadiness() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(2);
+        MarineSquad reserve = roster.reserveSquad();
+        MarineSoldier moved = roster.soldiers().get(0);
+
+        assertTrue(roster.transferSoldier(moved.id(), reserve.id()));
+
+        assertEquals(2, roster.activeSoldiers().size());
+        assertEquals(1, roster.lineReadySoldiers().size());
+    }
 }

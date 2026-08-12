@@ -37,6 +37,7 @@ public class MarineRoster implements Serializable {
     private int nextSoldierNumber = 1;
     private int nextSquadNumber = 1;
     private String reserveSquadId;
+    private boolean initialComplementIssued;
     private int capacity = DEFAULT_CAPACITY;
 
     public void add(MarineCaptain captain) {
@@ -204,6 +205,25 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
+    /** One-time free campaign starting complement; later enlistment uses cargo marines. */
+    public void bootstrapInitialComplement(int count) {
+        if (initialComplementIssued) return;
+        initialComplementIssued = true;
+        ensureActiveSoldiers(Math.max(0, count));
+    }
+
+    /** Demobilizes only a ready reserve marine; callers award the cargo commodity. */
+    public boolean releaseReserveSoldier(String soldierId) {
+        MarineSoldier soldier = soldierById(soldierId);
+        MarineSquad squad = squadForSoldier(soldierId);
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || squad == null || !squad.reserve()) return false;
+        if (!squad.remove(soldierId)) return false;
+        if (soldiers.remove(soldier)) return true;
+        squad.add(soldierId);
+        return false;
+    }
+
     /** Moves a ready marine; casualty history and WIA personnel cannot be reassigned. */
     public boolean transferSoldier(String soldierId, String targetSquadId) {
         MarineSoldier soldier = soldierById(soldierId);
@@ -232,10 +252,34 @@ public class MarineRoster implements Serializable {
         return null;
     }
 
+    public MarineSoldier firstReadyReserve() {
+        for (MarineSoldier soldier : squadMembers(reserveSquad())) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) return soldier;
+        }
+        return null;
+    }
+
+    public boolean fillVacancyFromReserve(String targetSquadId) {
+        MarineSoldier reserve = firstReadyReserve();
+        return reserve != null && transferSoldier(reserve.id(), targetSquadId);
+    }
+
     public List<MarineSoldier> activeSoldiers() {
         List<MarineSoldier> result = new ArrayList<>();
         for (MarineSoldier soldier : soldiers) {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) result.add(soldier);
+        }
+        return result;
+    }
+
+    /** Ready personnel already assigned to line fireteams; reserves require transfer first. */
+    public List<MarineSoldier> lineReadySoldiers() {
+        List<MarineSoldier> result = new ArrayList<>();
+        for (MarineSquad squad : squads) {
+            if (squad.reserve()) continue;
+            for (MarineSoldier soldier : squadMembers(squad)) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE) result.add(soldier);
+            }
         }
         return result;
     }
@@ -451,6 +495,7 @@ public class MarineRoster implements Serializable {
         if (armory == null) armory = new MarineArmory();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
+        if (!soldiers.isEmpty()) initialComplementIssued = true;
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToFireteam(soldier);
         }

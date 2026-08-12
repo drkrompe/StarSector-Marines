@@ -68,6 +68,7 @@ public final class SquadDeploymentScreen implements Screen {
             int rowsPerCol = Math.max(1, (int) ((position.getHeight() - 150f) / ROW_H));
             int index = 0;
             for (MarineSquad squad : roster.squads()) {
+                if (squad.reserve()) continue;
                 if (index >= rowsPerCol * 2) break;
                 int col = index / rowsPerCol;
                 int row = index % rowsPerCol;

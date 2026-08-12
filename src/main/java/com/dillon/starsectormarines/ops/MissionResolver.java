@@ -36,7 +36,6 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
@@ -273,10 +272,9 @@ public final class MissionResolver {
             if (outcome.payoutEarned > 0) {
                 cargo.getCredits().add(outcome.payoutEarned);
             }
-            if (outcome.marinesLost > 0
-                    && outcome.missionSource != MissionSource.STATIONING) {
-                cargo.removeCommodity(Commodities.MARINES, outcome.marinesLost);
-            }
+            // Named persistent marines left the generic cargo pool when enlisted;
+            // their battlefield fate is written to the roster below, not charged
+            // a second time against unassigned cargo personnel.
         }
 
         if (outcome.victory && outcome.targetIndustryId != null && outcome.targetPlanetName != null) {
