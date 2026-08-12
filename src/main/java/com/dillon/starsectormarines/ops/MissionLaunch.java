@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -61,10 +62,10 @@ public final class MissionLaunch {
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
         if (isCivilianRescueBattle(m)) {
-            int marineSeats = CampaignMarineDeployment.requiredSeats(
-                    det.shuttleManifest, 0);
+            int firstWaveMarineSeats = firstWaveSeats(det.shuttleManifest);
             int swarmCount = m.source.isDebug()
-                    ? SwarmDefenseRoster.debugCountFor(m.risk, marineSeats)
+                    ? SwarmDefenseRoster.debugCountFor(
+                            m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
             sim = BattleSetup.createCivilianRescue(seed,
                     det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount);
@@ -114,5 +115,14 @@ public final class MissionLaunch {
 
     static boolean isCivilianRescueBattle(Mission mission) {
         return mission != null && mission.source.isCivilianRescue();
+    }
+
+    private static int firstWaveSeats(List<ShuttleAssignment> manifest) {
+        if (manifest == null) return 0;
+        int seats = 0;
+        for (ShuttleAssignment assignment : manifest) {
+            if (assignment != null) seats += assignment.type.capacity;
+        }
+        return seats;
     }
 }

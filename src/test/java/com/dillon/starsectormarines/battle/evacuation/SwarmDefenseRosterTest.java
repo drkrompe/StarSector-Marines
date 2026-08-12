@@ -70,12 +70,12 @@ class SwarmDefenseRosterTest {
 
     @Test
     void debugCountsScaleAgainstLandingStrengthWithoutReducingProductionFloor() {
+        assertEquals(150, SwarmDefenseRoster.debugCountFor(
+                RiskLevel.LOW, 75));
+        assertEquals(225, SwarmDefenseRoster.debugCountFor(
+                RiskLevel.MEDIUM, 75));
         assertEquals(300, SwarmDefenseRoster.debugCountFor(
-                RiskLevel.LOW, 300));
-        assertEquals(450, SwarmDefenseRoster.debugCountFor(
-                RiskLevel.MEDIUM, 300));
-        assertEquals(600, SwarmDefenseRoster.debugCountFor(
-                RiskLevel.HIGH, 300));
+                RiskLevel.HIGH, 75));
         assertEquals(SwarmDefenseRoster.HIGH_COUNT,
                 SwarmDefenseRoster.debugCountFor(RiskLevel.HIGH, 1));
     }
@@ -89,6 +89,15 @@ class SwarmDefenseRosterTest {
 
         assertNotNull(roster);
         assertEquals(180, roster.size());
+        for (int i = 0; i < roster.size(); i++) {
+            long entity = roster.entityId(i);
+            int distance = Math.abs(fixture.sim.world().cellX(entity)
+                    - fixture.payload.placement.shelterX)
+                    + Math.abs(fixture.sim.world().cellY(entity)
+                    - fixture.payload.placement.shelterY);
+            assertTrue(distance
+                    >= SwarmDefenseRoster.DEBUG_SHELTER_APPROACH_DISTANCE);
+        }
     }
 
     @Test
@@ -115,16 +124,16 @@ class SwarmDefenseRosterTest {
     }
 
     private static Fixture openFixture() {
-        NavigationGrid grid = new NavigationGrid(32, 24);
+        NavigationGrid grid = new NavigationGrid(64, 48);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 grid.setWalkableFloor(x, y);
             }
         }
         BattleSimulation sim = new BattleSimulation(
-                grid, new CellTopology(32, 24));
+                grid, new CellTopology(64, 48));
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(homeAt(16, 12)), 77L);
+                sim, List.of(homeAt(32, 24)), 77L);
         assertNotNull(payload);
         return new Fixture(sim, payload);
     }
