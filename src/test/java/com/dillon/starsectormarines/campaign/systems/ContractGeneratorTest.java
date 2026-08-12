@@ -70,6 +70,24 @@ class ContractGeneratorTest {
         assertEquals(20, state.contractCount);
     }
 
+    @Test
+    void tierTwoCanGenerateTargetlessStationingOffer() {
+        CampaignState state = new CampaignState();
+        long patronId = state.addHouse(1, 1, HouseFlavor.CORPORATE, HouseRank.TIER_2,
+                HouseStatus.ACTIVE, PatronArchetype.ESTABLISHED, "Stationing Patron");
+        int day = firstStationingOfferDay(patronId);
+
+        new ContractGenerator().tick(state, day);
+
+        assertEquals(1, state.contractCount);
+        ContractType type = ContractType.fromByte(state.contractType[0]);
+        assertTrue(type.isStationing());
+        assertEquals(-1L, state.contractTargetHouseId[0]);
+        assertEquals(0, state.contractBasePayout[0]);
+        assertEquals(0, state.contractRetainerPerMonth[0]);
+        assertEquals(0, state.contractPhasesTotal[0] & 0xFF);
+    }
+
     private static CampaignState twoActivePatrons() {
         CampaignState state = new CampaignState();
         state.addHouse(1, 1, HouseFlavor.CORPORATE, HouseRank.TIER_1,
@@ -85,6 +103,15 @@ class ContractGeneratorTest {
             if (new Random(seed).nextFloat() < OFFER_CHANCE) return day;
         }
         throw new AssertionError("No deterministic offer day found");
+    }
+
+    private static int firstStationingOfferDay(long patronId) {
+        for (int day = 0; day < 100_000; day++) {
+            long seed = ((long) day << 32) ^ patronId;
+            Random random = new Random(seed);
+            if (random.nextFloat() < OFFER_CHANCE && random.nextFloat() < 0.20f) return day;
+        }
+        throw new AssertionError("No deterministic stationing offer day found");
     }
 
     private static void addOpenOffer(CampaignState state, long patronId, long targetId) {

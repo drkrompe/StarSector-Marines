@@ -33,8 +33,8 @@ import java.util.Random;
  * <p>RNG is seeded from {@code (day, houseId)} so the same tick reproduces the
  * same rolls — important for save reproducibility.
  *
- * <p>STRIKE and ESCORT are supported. Multi-phase and stationing contracts stay
- * out until their distinct acceptance/lifecycle paths exist.
+ * <p>STRIKE, ESCORT, GARRISON, and CADRE are supported. Multi-phase contracts
+ * stay out until their distinct acceptance/lifecycle path exists.
  */
 public final class ContractGenerator implements CampaignSystem {
 
@@ -82,8 +82,8 @@ public final class ContractGenerator implements CampaignSystem {
             ContractOfferTemplate template = ContractOfferTemplate.roll(rank, r);
             if (template == null) continue;
 
-            long targetHouseId = pickTarget(state, i, r);
-            if (targetHouseId == -1L) continue;
+            long targetHouseId = template.type.isStationing() ? -1L : pickTarget(state, i, r);
+            if (!template.type.isStationing() && targetHouseId == -1L) continue;
 
             // Offer-lapse window driven by patron archetype — TIME_RUSHED gives
             // the player days, ESTABLISHED takes its time. Shares the (day, patronId)
@@ -100,7 +100,7 @@ public final class ContractGenerator implements CampaignSystem {
                     day,
                     -1,                                   // no acceptance-side expiry for mission-mode
                     offerExpiresTick,                     // offer lapses on this day if unaccepted
-                    (byte) 1,                             // STRIKE and ESCORT are one-shot
+                    (byte) (template.type.isStationing() ? 0 : 1),
                     -1,                                   // captain assigned at acceptance
                     state.houseMarketId[i],               // patron's market is the meeting/origin
                     -1,                                   // industryId resolved at acceptance

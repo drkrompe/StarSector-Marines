@@ -59,6 +59,15 @@
 		"briefingSalvageMinus":   "−",
 		"briefingSalvagePlus":    "+",
 
+		# Stationing assignment screen
+		"stationingHeader":       "Stationing Contract",
+		"stationingCaptain":      "Commanding Captain",
+		"stationingMarines":      "Committed Marines: {0}",
+		"stationingTerm":         "Term: {0} days",
+		"stationingRetainer":     "Monthly retainer: Cr. {0}",
+		"stationingAccept":       "Accept Assignment",
+		"stationingBlocked":      "Select an active captain and at least one available marine.",
+
 		# Battle screen
 		"battleSpeedPause":       "Pause",
 		"battleSpeed1x":          "1x",

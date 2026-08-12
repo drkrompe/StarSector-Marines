@@ -9,6 +9,7 @@ import java.util.Random;
 public final class ContractOfferTemplate {
 
     private static final float ESCORT_CHANCE = 0.35f;
+    private static final float STATIONING_CHANCE = 0.20f;
     private static final int STRIKE_BASE_PAYOUT = 25_000;
     private static final int ESCORT_BASE_PAYOUT = 30_000;
 
@@ -24,9 +25,20 @@ public final class ContractOfferTemplate {
 
     public static ContractOfferTemplate roll(HouseRank rank, Random random) {
         if (rank == null || random == null || rank == HouseRank.TIER_4) return null;
-        ContractType type = rank == HouseRank.TIER_1 || random.nextFloat() >= ESCORT_CHANCE
-                ? ContractType.STRIKE
-                : ContractType.ESCORT;
+        ContractType type;
+        if (rank == HouseRank.TIER_1) {
+            type = ContractType.STRIKE;
+        } else if (random.nextFloat() < STATIONING_CHANCE) {
+            type = random.nextBoolean() ? ContractType.GARRISON : ContractType.CADRE;
+        } else {
+            type = random.nextFloat() < ESCORT_CHANCE
+                    ? ContractType.ESCORT
+                    : ContractType.STRIKE;
+        }
+        if (type.isStationing()) {
+            return new ContractOfferTemplate(type, 0,
+                    type == ContractType.GARRISON ? 25 : 5);
+        }
         int basePayout = type == ContractType.ESCORT
                 ? ESCORT_BASE_PAYOUT
                 : STRIKE_BASE_PAYOUT;

@@ -52,6 +52,8 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
+    /** Stationing offer selected for the dedicated assignment screen. */
+    private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
     private BattleSimulation battleSimulation;
     /** Detachment committed to the current battle — resolved by {@link MissionLaunch}, kept for the battle UI / debug. */
@@ -114,6 +116,14 @@ public class MarineOpsContext {
 
     public void setSelectedCaptainId(String captainId) {
         this.selectedCaptainId = captainId;
+    }
+
+    public long getSelectedStationingContractId() {
+        return selectedStationingContractId;
+    }
+
+    public void setSelectedStationingContractId(long contractId) {
+        this.selectedStationingContractId = contractId;
     }
 
     /**

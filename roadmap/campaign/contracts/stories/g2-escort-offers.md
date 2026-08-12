@@ -12,7 +12,8 @@ stationing or multi-phase types through the one-battle mission path.
 ## Locked vertical
 
 - Tier 1 patrons continue to offer STRIKE only.
-- Tier 2 and Tier 3 patrons roll a 35% Escort / 65% Strike mix.
+- Tier 2 and Tier 3 patrons roll a 35% Escort / 65% Strike mix within the
+  mission-mode branch. G5 later added a separate stationing branch ahead of it.
 - Escort uses the one-phase mission path as `MissionType.EXTRACTION`.
 - Escort baseline is Cr. 30,000 multiplied by patron tier (T2 1.5x, T3 3x),
   with 10% salvage and no retainer.

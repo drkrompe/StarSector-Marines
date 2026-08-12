@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.systems.StationingOfferLookup;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -61,6 +65,7 @@ public class CommsConsolePanel extends OpsPanel {
     private static final float CARD_GAP       = 8f;
     private static final float BTN_H          = 32f;
     private static final float BTN_GAP        = 12f;
+    private static final float STATIONING_H   = 40f;
 
     /** Track these so the panel can re-render the map sprite + node frame each tick. */
     private float mapDrawX;
@@ -154,7 +159,24 @@ public class CommsConsolePanel extends OpsPanel {
         }
 
         List<Mission> missions = ctx.getMissionsFor(selected);
-        if (missions.isEmpty()) {
+        long stationingId = findStationingOffer(selected);
+        if (stationingId >= 0L) {
+            CampaignState state = CampaignStateScript.getInstance().state();
+            int row = state.contractIndex(stationingId);
+            ContractType type = ContractType.fromByte(state.contractType[row]);
+            float offerY = stackTop - STATIONING_H;
+            widgets.add(new ButtonWidget(stackX, offerY, stackW, STATIONING_H,
+                    () -> onConfigureStationing(stationingId)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    type == ContractType.GARRISON
+                            ? "Garrison Contract — Configure ▸"
+                            : "Cadre Contract — Configure ▸",
+                    stackX + 12f, offerY + STATIONING_H - 8f, ACCEPT_COLOR));
+            float consumed = STATIONING_H + CARD_GAP;
+            stackTop -= consumed;
+            stackH -= consumed;
+        }
+        if (missions.isEmpty() && stationingId < 0L) {
             float hintY = stackTop - 24f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     "Nothing pending from this client.",
@@ -225,6 +247,21 @@ public class CommsConsolePanel extends OpsPanel {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, s,
                     stackX + stackW - 110f, stackTop - stackH + 18f, EMPTY_HINT));
         }
+    }
+
+    private long findStationingOffer(Client selected) {
+        if (selected == null || selected.patronHouseId < 0L || ctx.market == null) return -1L;
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return -1L;
+        CampaignState state = script.state();
+        int marketId = state.marketRegistry.intern(ctx.market.getId());
+        return StationingOfferLookup.find(state, selected.patronHouseId, marketId);
+    }
+
+    private void onConfigureStationing(long contractId) {
+        ctx.setSelectedMission(null);
+        ctx.setSelectedStationingContractId(contractId);
+        ctx.goTo(ScreenId.STATIONING);
     }
 
     private void onScroll(int delta) {

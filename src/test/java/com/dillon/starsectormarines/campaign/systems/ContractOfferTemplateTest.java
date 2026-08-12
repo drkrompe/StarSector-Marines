@@ -24,9 +24,9 @@ class ContractOfferTemplateTest {
     @Test
     void tierTwoCanRollEscortOrStrike() {
         ContractOfferTemplate escort = ContractOfferTemplate.roll(
-                HouseRank.TIER_2, floatRandom(0.10f));
+                HouseRank.TIER_2, sequenceRandom(new float[]{0.50f, 0.10f}, false));
         ContractOfferTemplate strike = ContractOfferTemplate.roll(
-                HouseRank.TIER_2, floatRandom(0.90f));
+                HouseRank.TIER_2, sequenceRandom(new float[]{0.50f, 0.90f}, false));
 
         assertEquals(ContractType.ESCORT, escort.type);
         assertEquals(45_000, escort.payout);
@@ -37,9 +37,24 @@ class ContractOfferTemplateTest {
     }
 
     @Test
+    void tierTwoStationingBranchSplitsGarrisonAndCadre() {
+        ContractOfferTemplate garrison = ContractOfferTemplate.roll(
+                HouseRank.TIER_2, sequenceRandom(new float[]{0.10f}, true));
+        ContractOfferTemplate cadre = ContractOfferTemplate.roll(
+                HouseRank.TIER_2, sequenceRandom(new float[]{0.10f}, false));
+
+        assertEquals(ContractType.GARRISON, garrison.type);
+        assertEquals(0, garrison.payout);
+        assertEquals(25, garrison.salvageBaseline & 0xFF);
+        assertEquals(ContractType.CADRE, cadre.type);
+        assertEquals(0, cadre.payout);
+        assertEquals(5, cadre.salvageBaseline & 0xFF);
+    }
+
+    @Test
     void tierThreeUsesThreeTimesBaselineAndTierFourHasNoStandardOffer() {
         ContractOfferTemplate escort = ContractOfferTemplate.roll(
-                HouseRank.TIER_3, floatRandom(0f));
+                HouseRank.TIER_3, sequenceRandom(new float[]{0.50f, 0f}, false));
 
         assertEquals(90_000, escort.payout);
         assertNull(ContractOfferTemplate.roll(HouseRank.TIER_4, floatRandom(0f)));
@@ -51,6 +66,22 @@ class ContractOfferTemplateTest {
             @Override
             public float nextFloat() {
                 return value;
+            }
+        };
+    }
+
+    private static Random sequenceRandom(float[] values, boolean booleanValue) {
+        return new Random() {
+            private int index;
+
+            @Override
+            public float nextFloat() {
+                return values[Math.min(index++, values.length - 1)];
+            }
+
+            @Override
+            public boolean nextBoolean() {
+                return booleanValue;
             }
         };
     }
