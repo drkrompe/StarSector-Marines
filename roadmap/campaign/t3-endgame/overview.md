@@ -5,7 +5,7 @@ player-facing capstone consequences remain.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
 `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
-`5174f44c`, `ad6ff5fd`, `527535fb`
+`5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`, `31be86ed`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -113,6 +113,14 @@ An autonomous civil war does **not** change player reputation. Mere failure to
 stop an off-screen rebellion is not a player choice. Player/claimant/incumbent
 deltas belong to explicit kingmaker contracts and decisions, where attribution
 can be persisted rather than inferred from a successful autonomous chain.
+
+## Chronicle outcome — locked v1
+
+An applied claim produces a dedicated immutable `THRONE_CLAIM_APPLIED`
+Chronicle snapshot instead of the generic resolved-chain event. It records the
+claimant and displaced rival, source and result faction identities, flipped
+market, and actual ownership-write day. The dispatch remains blocked while the
+claim is `PREPARED`, then renders the concrete faction transition exactly once.
 
 ## Still to specify after core writeback
 

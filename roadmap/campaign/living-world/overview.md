@@ -205,7 +205,9 @@ house to Tier 4, and Chronicle publication waits for applied writeback
 now include a separately persisted, replay-safe mutual-hostility rupture between
 claimant and former ruler (`ad6ff5fd`, `527535fb`). Player reputation stays
 neutral until explicit kingmaker participation can be attributed; the dedicated
-faction-flip dispatch and player-facing capstone remain follow-up slices.
+faction-flip snapshot and debug dispatch are now shipped (`d7be2649`,
+`31be86ed`). Civil-war player choices and the kingmaker capstone remain follow-up
+slices.
 
 ## Two payoffs that fall out for free
 

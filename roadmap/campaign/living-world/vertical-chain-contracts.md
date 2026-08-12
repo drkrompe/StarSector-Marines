@@ -10,7 +10,8 @@ COMPLETE (2026-08-12); player-facing capstone consequences remain.
 
 **Implemented:** `0a00ceb0`, `156ac5b1`, `a4cd42c8`, `76c7579a`,
 `9bf2356b`, `bdb45f7b`, `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`,
-`ae35056d`, `870d5b96`, `5174f44c`, `ad6ff5fd`, `527535fb`
+`ae35056d`, `870d5b96`, `5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`,
+`31be86ed`
 
 ## Ordinary promotion — locked v1 contract
 
@@ -62,6 +63,8 @@ ladder's remainder-carry semantics. Suppression floors at zero.
 - a prepared handoff suppresses the terminal Chronicle dispatch until ownership
   writeback is `APPLIED`; a rejected handoff fails its source chain;
 - after ownership applies, an independent persisted consequence makes claimant
-  and former ruler mutually hostile, with retry and partial-repair semantics.
+  and former ruler mutually hostile, with retry and partial-repair semantics;
+- applied claims publish a dedicated faction-flip Chronicle snapshot rather than
+  losing the result inside a generic resolved-chain headline.
 
 No living-world system may infer or perform the vanilla faction flip.

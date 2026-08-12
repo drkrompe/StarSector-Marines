@@ -52,6 +52,9 @@ after ownership applies, the Claimant League and former ruler become mutually
 hostile through a postcondition-first, partial-repair-safe adapter. Autonomous
 success remains player-reputation-neutral until an explicit kingmaker choice can
 be attributed (`ad6ff5fd`, `527535fb`).
+Applied claims now also emit a dedicated immutable faction-flip dispatch that
+names the claimant, displaced rival, source/result factions, market, and actual
+writeback day (`d7be2649`, `31be86ed`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -64,16 +67,16 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Faction-flip Chronicle and capstone surface
+## Next up — Civil-war choices and capstone surface
 
-Build outward from the completed ownership/rank/diplomacy boundary:
+Build outward from the completed ownership/rank/diplomacy/Chronicle boundary:
 
-1. Give the Chronicle a faction-flip-specific dispatch composed from the applied
-   claim rather than only the generic terminal-chain headline.
-2. Define the three-band player choices and kingmaker capstone that feed this
+1. Define the three-band player choices and kingmaker capstone that feed this
    political result.
-3. Persist player attribution for those choices, then apply claimant/incumbent
+2. Persist player attribution for those choices, then apply claimant/incumbent
    reputation deltas exactly once from that evidence.
+3. Decide whether the first playable band should reuse intervention contracts or
+   introduce a civil-war-specific contract lineage.
 
 ## Open forks still unresolved (design)
 
@@ -140,3 +143,5 @@ Build outward from the completed ownership/rank/diplomacy boundary:
 - Slice F3d — post-writeback Chronicle ordering (`5174f44c`).
 - Slice F4a — persisted consequence lifecycle (`ad6ff5fd`).
 - Slice F4b — replay-safe diplomatic rupture (`527535fb`).
+- Slice F5a — immutable faction-flip Chronicle snapshot (`d7be2649`).
+- Slice F5b — faction-flip dispatch rendering (`31be86ed`).
