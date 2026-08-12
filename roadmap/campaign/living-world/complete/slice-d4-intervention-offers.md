@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `0a2f3c09`
+
 ## Goal
 
 Turn a learned active plot into one time-bounded, correctly attributed player

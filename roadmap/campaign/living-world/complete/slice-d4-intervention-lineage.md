@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `dd63a0ba`
+
 ## Goal
 
 Represent “this contract opposes that hostile plot” without overloading the

@@ -18,6 +18,10 @@ intel renders the resulting dispatches (`dc3da47d`, `068943ed`, `55eefe4f`).
 D3 is shipped: relevant active plots roll deterministic weekly discovery,
 persist uncertain rumor snapshots, and expose a stable threatened-house query
 for intervention generation (`435b704e`, `b006dc3`, `3a16315e`).
+D4 is shipped: intervention contracts distinguish opposed chains from parent
+chains, threatened houses issue one bounded Strike offer, stale offers withdraw,
+and a correctly attributed player victory fails the hostile plot exactly once
+(`dd63a0ba`, `0a2f3c09`, `7b54ec81`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -30,19 +34,19 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice D4 (Threatened-house counter-offers)
+## Next up — Slice E1 (House consolidation)
 
-Turn a discovered active threat into an actionable offer without conflating
-the hostile plot with the player's intervention:
+Let the living world acquire a long-term shape instead of accumulating weak
+houses forever:
 
-1. Audit `contractChainId` semantics first. A counter-offer must reference its
-   hostile source chain without feeding completion progress into that chain.
-2. Generate at most one expiring intervention offer per discovered ACTIVE
-   threat: threatened house as patron, actor as target, bound market/industry.
-3. Expire or withdraw the offer when its source chain becomes terminal; persist
-   deduplication so reloads and repeated ticks cannot respawn it.
-4. Define completion impact through a shared chain operation (suppression,
-   failure, or progress reversal) before wiring mission resolution.
+1. Define “empty house” precisely from positive stake across all industries and
+   markets; transition eligible ACTIVE houses to `DORMANT` exactly once.
+2. Terminate or withdraw their active chains and open contracts without deleting
+   rows or invalidating stable ids.
+3. Re-evaluate invalid consolidation ambitions when a target industry vanishes
+   or the house becomes dormant; never let stale targets drive drift/chains.
+4. Add Chronicle outcome only if dormancy crosses the existing intimate/epic
+   news bands; routine low-tier consolidation remains silent.
 
 ## Open forks still unresolved (design)
 
@@ -86,3 +90,6 @@ the hostile plot with the player's intervention:
 - Slice D3a — active-rumor persistence (`435b704e`).
 - Slice D3b — deterministic active discovery (`b006dc3`).
 - Slice D3c — discovered-threat intervention query (`3a16315e`).
+- Slice D4a — separate opposed-chain contract lineage (`dd63a0ba`).
+- Slice D4b — bounded threatened-house intervention offers (`0a2f3c09`).
+- Slice D4c — validated player-success chain intervention (`7b54ec81`).

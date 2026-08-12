@@ -157,7 +157,7 @@ Each slice is independently observable.
 | ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
-| **D — Chains + Chronicle** (D1–D3 sim, outcomes, rumors ✅; counter-offer pending) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
+| ~~**D — Chains + Chronicle**~~ ✅ | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
@@ -172,14 +172,17 @@ and exactly-once stake/promotion resolution: `3137f238`, `2f7b4a86`,
 outcome classification, and debug-intel dispatches: `dc3da47d`, `068943ed`,
 `55eefe4f`), and D3 (persisted uncertain rumors, deterministic risk-gated
 active discovery, and the threatened-house intervention query: `435b704e`,
-`b006dc3`, `3a16315e`) — see
+`b006dc3`, `3a16315e`), and D4 (separate hostile-chain lineage, expiring
+threatened-house Strike offers, and validated player-success intervention:
+`dd63a0ba`, `0a2f3c09`, `7b54ec81`) — see
 [`complete/`](complete/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic. D4 now owns the actual threatened-house counter-offer lifecycle.
+mutation logic. Slice E now owns consolidation, ambition re-evaluation, and the
+long-tail transition toward throne claims.
 
 ## Two payoffs that fall out for free
 

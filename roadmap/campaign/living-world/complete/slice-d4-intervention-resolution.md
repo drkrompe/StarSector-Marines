@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `7b54ec81`
+
 ## Goal
 
 Make a successful player intervention actually stop the learned hostile plot,
