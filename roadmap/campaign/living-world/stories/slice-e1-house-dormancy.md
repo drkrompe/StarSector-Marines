@@ -19,9 +19,15 @@ stake inert, without deleting rows or guessing about never-seeded actors.
   stable. Later ticks are naturally idempotent because only ACTIVE rows qualify.
 - Consolidation runs after chain resolution and before ordinary contract
   generation so same-day political losses can suppress new offers.
+- Dormancy fails every ACTIVE chain where the house is actor or target, recording
+  the consolidation day without overwriting an existing terminal outcome.
+- The dormant patron's OFFERED contracts expire and accepted ordinary work
+  defaults without a player-reputation penalty. EXTRACTION remains available so
+  already-stranded personnel can still be recovered.
 
 ## Automated verification
 
 - `HouseConsolidationSystemTest` covers all-market emptiness, one-share survival,
-  never-seeded/non-active exclusions, stable identity, and repeated ticks.
+  never-seeded/non-active exclusions, stable identity, repeated ticks, chain
+  termination, contract closure, and extraction preservation.
 - `CampaignStateSystemOrderTest` locks advancement → consolidation → generation.

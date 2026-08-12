@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.campaign.systems;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
+import com.dillon.starsectormarines.campaign.ChainState;
+import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 
 import java.util.EnumSet;
@@ -17,12 +20,14 @@ public final class HouseConsolidationSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> reads() {
-        return EnumSet.of(CampaignTable.HOUSES, CampaignTable.STAKES);
+        return EnumSet.of(CampaignTable.HOUSES, CampaignTable.STAKES,
+                CampaignTable.CHAINS, CampaignTable.CONTRACTS);
     }
 
     @Override
     public EnumSet<CampaignTable> writes() {
-        return EnumSet.of(CampaignTable.HOUSES);
+        return EnumSet.of(CampaignTable.HOUSES, CampaignTable.CHAINS,
+                CampaignTable.CONTRACTS);
     }
 
     @Override
@@ -45,6 +50,35 @@ public final class HouseConsolidationSystem implements CampaignSystem {
             }
             if (hasHistory && !hasPositiveStake) {
                 state.houseStatus[houseRow] = HouseStatus.DORMANT.toByte();
+                terminatePoliticalWork(state, houseId, day);
+            }
+        }
+    }
+
+    private static void terminatePoliticalWork(CampaignState state, long houseId, int day) {
+        for (int chainRow = 0; chainRow < state.chainCount; chainRow++) {
+            if (ChainState.fromByte(state.chainState[chainRow]) != ChainState.ACTIVE
+                    || (state.chainActorHouseId[chainRow] != houseId
+                        && state.chainTarget[chainRow] != houseId)) {
+                continue;
+            }
+            state.chainState[chainRow] = ChainState.FAILED.toByte();
+            state.chainResolvedTick[chainRow] = day;
+        }
+
+        for (int contractRow = 0; contractRow < state.contractCount; contractRow++) {
+            if (state.contractPatronHouseId[contractRow] != houseId
+                    || ContractType.fromByte(state.contractType[contractRow])
+                        == ContractType.EXTRACTION) {
+                continue;
+            }
+            ContractState contractState = ContractState.fromByte(
+                    state.contractState[contractRow]);
+            if (contractState == ContractState.OFFERED) {
+                state.contractState[contractRow] = ContractState.EXPIRED.toByte();
+            } else if (contractState == ContractState.ACTIVE
+                    || contractState == ContractState.IN_PROGRESS) {
+                state.contractState[contractRow] = ContractState.DEFAULTED.toByte();
             }
         }
     }
