@@ -95,8 +95,13 @@ The battle-side evacuation foundation is now shipped as well: an eight-member
 identity tracker distinguishes active, evacuated, and lost representatives;
 only a complete sealed cohort reports; and `MissionResolver` scales that report
 to campaign stakes without consulting ordinary battle victory (`cc34a2ab`,
-`1174cae9`, `03017229`). Production spawning and objective behavior remain
-deliberately unwired.
+`1174cae9`, `03017229`). That first checkpoint deliberately left production
+spawning and objective behavior unwired.
+The controlled objective foundation now sits on that tracker: registered live
+entities count only when they enter the lift zone, registered deaths/missing
+entities become lost, ambient civilians are excluded by identity, and all
+battle-terminal paths seal before Results (`a2fa2a70`, `5d6257f5`). Production
+placement, routing, and mission emission remain unwired.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -116,14 +121,15 @@ Give the rescue mission a real measurable objective before exposing its factory:
 1. **Foundation shipped:** v1 uses eight identity-registered mission evacuees,
    distinct from ambient civilians. The tracker owns active/evacuated/lost state
    and only a fully registered sealed cohort can report.
-2. Spawn the cohort at a civilian shelter and an evacuation zone/lift point.
-   Civilians count as rescued only after boarding/escaping, never merely for
-   surviving when combat ends.
-3. Seal remaining active civilians as lost only at a terminal rescue decision.
-   Scale `floor(atRisk * evacuated / initial)` without overflow and preserve an
-   exact full rescue when all representatives escape.
-4. Feed that explicit count into `MissionOutcome`, then add the dedicated local
-   Distress Net client and emit the committed-row factory mission exactly once.
+2. **Controlled objective shipped:** real registered fixture entities count only
+   after entering the lift zone; ambient civilians never count. Next, choose a
+   production shelter/zone pair, spawn all eight, and route them into safety.
+3. **Terminal accounting shipped:** deaths mark loss through the shared mailbox,
+   any battle end seals remaining active members, and scaling preserves exact
+   full rescue without overflow.
+4. **Outcome seam shipped:** sealed counts feed `MissionOutcome`. After production
+   placement/routing works, add the dedicated local Distress Net client and emit
+   the committed-row factory mission exactly once.
 5. Keep swarm faction/roster/AI/art as the following payload slice; the cohort
    objective should be testable first against controlled battle fixtures.
 

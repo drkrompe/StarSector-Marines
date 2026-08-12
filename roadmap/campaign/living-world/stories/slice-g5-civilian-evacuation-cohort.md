@@ -1,8 +1,9 @@
 # Slice G5 — civilian evacuation cohort
 
-**Status:** FOUNDATION CODE COMPLETE (2026-08-12)
+**Status:** OBJECTIVE FOUNDATION CODE COMPLETE (2026-08-12)
 
-**Implemented:** `cc34a2ab`, `1174cae9`, `03017229`
+**Implemented:** `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
+`5d6257f5`
 
 ## Goal
 
@@ -55,6 +56,21 @@ that measures evacuation rather than combat victory or civilian survival.
 
 ## Next hunk
 
-Add controlled-fixture shelter and evacuation-zone placement, register exactly
-eight spawned mission civilians, and drive escape/loss transitions through a
-dedicated objective without touching ambient civilian accounting.
+Add production shelter and evacuation-zone placement, spawn and register exactly
+eight mission civilians, and give those civilians dedicated routing into the
+zone plus visual removal after boarding. The controlled fixture already proves
+that the objective counts only registered boundary crossings, consumes the
+shared death mailbox, and seals on all battle-terminal paths.
+
+## Objective checkpoint
+
+- Controlled tests spawn eight real civilian entities and register only those
+  identities; an unregistered ambient civilian standing inside the lift zone
+  does not count.
+- The objective marks live boundary crossings evacuated, missing identities
+  lost, positive partial/full results complete, and measured zero failed.
+- Registered deaths flow through the existing once-only death dispatcher.
+- Any other terminal battle outcome seals remaining active representatives as
+  lost before mission outcome computation.
+- Focused lifecycle/objective/outcome tests and the full Gradle build pass.
+  Manual playtesting remains intentionally skipped for this session.

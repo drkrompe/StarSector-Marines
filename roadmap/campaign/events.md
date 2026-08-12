@@ -1,11 +1,12 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE EVACUATION-COHORT FOUNDATION CODE COMPLETE
-(2026-08-12); controlled spawning and objective behavior next.
+**Status:** CIVILIAN-RESCUE EVACUATION-OBJECTIVE FOUNDATION CODE COMPLETE
+(2026-08-12); production shelter placement and evacuee routing next.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
-`fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`
+`fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
+`5d6257f5`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -243,9 +244,16 @@ the evacuation boundary as lost. `MissionResolver` reads that report only for a
 campaign-event mission, scales it to the frozen stakes using `long` arithmetic,
 and preserves `-1` for unfinished work and `0` for a measured zero rescue.
 
-No production mission reaches this seam yet. Cohort spawning, shelter/lift-point
-geometry, movement, casualty notification, terminal objective rules, local
-mission emission, and swarm content remain follow-up payloads.
+The controlled objective slice is also shipped. `CivilianEvacuationObjective`
+walks only registered identities, counts inclusive lift-zone entry, marks absent
+members lost, completes on a positive partial/full rescue, and fails on a
+measured zero. Ambient civilians at the same cell remain irrelevant. The shared
+death mailbox also records registered casualties, and every battle-terminal
+path seals a complete cohort before Results reads it.
+
+No production mission reaches this seam yet. Production cohort spawning,
+shelter/lift-point selection, evacuee routing and visual removal, local mission
+emission, and swarm content remain follow-up payloads.
 
 ## Design rules
 
