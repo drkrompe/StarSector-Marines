@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
+import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -668,6 +669,12 @@ public class BriefingScreen implements Screen {
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings());
+        if (m.contractId >= 0L && campaignScript != null) {
+            int day = Global.getSector() != null
+                    ? (int) Global.getSector().getClock().getDay() : 0;
+            RivalStrikeGarrisonService.armForContractLaunch(
+                    campaignScript.state(), m.contractId, day);
+        }
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }
