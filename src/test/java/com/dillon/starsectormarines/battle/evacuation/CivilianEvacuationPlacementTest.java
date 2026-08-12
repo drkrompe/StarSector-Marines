@@ -26,6 +26,8 @@ class CivilianEvacuationPlacementTest {
         assertNotNull(placement);
         assertEquals(10, placement.shelterX);
         assertEquals(8, placement.shelterY);
+        assertEquals(home.anchorCellX, placement.shelterApproachX);
+        assertEquals(home.anchorCellY, placement.shelterApproachY);
         assertEquals(8, placement.spawnCount());
         assertTrue(placement.liftX < 2 || placement.liftY < 2
                 || placement.liftX >= 18 || placement.liftY >= 14);

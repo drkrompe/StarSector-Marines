@@ -22,15 +22,22 @@ public final class CivilianEvacuationPlacement {
 
     public final int shelterX;
     public final int shelterY;
+    /** Exterior doorway-side rally point where marines make contact and open the shelter. */
+    public final int shelterApproachX;
+    public final int shelterApproachY;
     public final int liftX;
     public final int liftY;
     private final int[] spawnCells;
 
     private CivilianEvacuationPlacement(int shelterX, int shelterY,
+                                        int shelterApproachX,
+                                        int shelterApproachY,
                                         int liftX, int liftY,
                                         int[] spawnCells) {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
+        this.shelterApproachX = shelterApproachX;
+        this.shelterApproachY = shelterApproachY;
         this.liftX = liftX;
         this.liftY = liftY;
         this.spawnCells = spawnCells;
@@ -94,7 +101,8 @@ public final class CivilianEvacuationPlacement {
                 grid, shelter, sx, sy, lift[0], lift[1]);
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
-                sx, sy, lift[0], lift[1], spawns);
+                sx, sy, shelter.anchorCellX, shelter.anchorCellY,
+                lift[0], lift[1], spawns);
     }
 
     private static int[] farthestReachableLift(NavigationGrid grid,
