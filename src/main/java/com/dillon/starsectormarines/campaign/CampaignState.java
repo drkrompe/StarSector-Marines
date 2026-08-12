@@ -142,6 +142,16 @@ public final class CampaignState implements Serializable {
     public byte[]  contractIncidentPending = new byte[INITIAL_CAPACITY];
     /** Persisted {@link StationingIncidentType} for an armed incident; NONE otherwise. */
     public byte[]  contractIncidentType = new byte[INITIAL_CAPACITY];
+    /** Stable external event identity for the current/last Garrison defense; 0 means none. */
+    public long[]  contractDefenseEventKey = new long[INITIAL_CAPACITY];
+    /** Day the current Garrison defense was armed; -1 when absent. */
+    public int[]   contractDefenseTriggeredTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Persisted {@link GarrisonDefenseTriggerType}; NONE when absent. */
+    public byte[]  contractDefenseTriggerType = new byte[INITIAL_CAPACITY];
+    /** Attacking house for a rival strike, or -1 for faction/world events. */
+    public long[]  contractDefenseAttackerHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Attacking faction registry slot, or -1 when unknown. */
+    public int[]   contractDefenseAttackerFactionId = filledInts(INITIAL_CAPACITY, -1);
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -324,6 +334,11 @@ public final class CampaignState implements Serializable {
         contractNextIncidentTick[i] = -1;
         contractIncidentPending[i] = 0;
         contractIncidentType[i] = StationingIncidentType.NONE.toByte();
+        contractDefenseEventKey[i] = 0L;
+        contractDefenseTriggeredTick[i] = -1;
+        contractDefenseTriggerType[i] = GarrisonDefenseTriggerType.NONE.toByte();
+        contractDefenseAttackerHouseId[i] = -1L;
+        contractDefenseAttackerFactionId[i] = -1;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -480,6 +495,26 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractIncidentType = new byte[n];
         }
+        if (contractDefenseEventKey == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseEventKey = new long[n];
+        }
+        if (contractDefenseTriggeredTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseTriggeredTick = filledInts(n, -1);
+        }
+        if (contractDefenseTriggerType == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseTriggerType = new byte[n];
+        }
+        if (contractDefenseAttackerHouseId == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseAttackerHouseId = filledLongs(n, -1L);
+        }
+        if (contractDefenseAttackerFactionId == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseAttackerFactionId = filledInts(n, -1);
+        }
         return this;
     }
 
@@ -519,6 +554,14 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractNextIncidentTick, oldLength, n, -1);
         contractIncidentPending = Arrays.copyOf(contractIncidentPending, n);
         contractIncidentType = Arrays.copyOf(contractIncidentType, n);
+        contractDefenseEventKey = Arrays.copyOf(contractDefenseEventKey, n);
+        contractDefenseTriggeredTick = Arrays.copyOf(contractDefenseTriggeredTick, n);
+        Arrays.fill(contractDefenseTriggeredTick, oldLength, n, -1);
+        contractDefenseTriggerType = Arrays.copyOf(contractDefenseTriggerType, n);
+        contractDefenseAttackerHouseId = Arrays.copyOf(contractDefenseAttackerHouseId, n);
+        Arrays.fill(contractDefenseAttackerHouseId, oldLength, n, -1L);
+        contractDefenseAttackerFactionId = Arrays.copyOf(contractDefenseAttackerFactionId, n);
+        Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);

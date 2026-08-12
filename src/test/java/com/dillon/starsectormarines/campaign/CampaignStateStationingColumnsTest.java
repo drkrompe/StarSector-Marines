@@ -31,6 +31,12 @@ class CampaignStateStationingColumnsTest {
         assertEquals(0, state.contractIncidentPending[19]);
         assertEquals(StationingIncidentType.NONE,
                 StationingIncidentType.fromByte(state.contractIncidentType[19]));
+        assertEquals(0L, state.contractDefenseEventKey[19]);
+        assertEquals(-1, state.contractDefenseTriggeredTick[19]);
+        assertEquals(GarrisonDefenseTriggerType.NONE,
+                GarrisonDefenseTriggerType.fromByte(state.contractDefenseTriggerType[19]));
+        assertEquals(-1L, state.contractDefenseAttackerHouseId[19]);
+        assertEquals(-1, state.contractDefenseAttackerFactionId[19]);
     }
 
     @Test
@@ -46,6 +52,11 @@ class CampaignStateStationingColumnsTest {
         state.contractNextIncidentTick = null;
         state.contractIncidentPending = null;
         state.contractIncidentType = null;
+        state.contractDefenseEventKey = null;
+        state.contractDefenseTriggeredTick = null;
+        state.contractDefenseTriggerType = null;
+        state.contractDefenseAttackerHouseId = null;
+        state.contractDefenseAttackerFactionId = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -61,6 +72,11 @@ class CampaignStateStationingColumnsTest {
         assertNotNull(state.contractNextIncidentTick);
         assertNotNull(state.contractIncidentPending);
         assertNotNull(state.contractIncidentType);
+        assertNotNull(state.contractDefenseEventKey);
+        assertNotNull(state.contractDefenseTriggeredTick);
+        assertNotNull(state.contractDefenseTriggerType);
+        assertNotNull(state.contractDefenseAttackerHouseId);
+        assertNotNull(state.contractDefenseAttackerFactionId);
         assertEquals(state.contractId.length, state.contractMarinesCommitted.length);
         assertEquals(state.contractId.length, state.contractLastRetainerTick.length);
         assertEquals(-1, state.contractLastRetainerTick[0]);
@@ -71,5 +87,9 @@ class CampaignStateStationingColumnsTest {
         assertEquals(0, state.contractIncidentPending[0]);
         assertEquals(StationingIncidentType.NONE,
                 StationingIncidentType.fromByte(state.contractIncidentType[0]));
+        assertEquals(0L, state.contractDefenseEventKey[0]);
+        assertEquals(-1, state.contractDefenseTriggeredTick[0]);
+        assertEquals(-1L, state.contractDefenseAttackerHouseId[0]);
+        assertEquals(-1, state.contractDefenseAttackerFactionId[0]);
     }
 }

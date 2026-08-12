@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtraction
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
+import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 
@@ -63,6 +64,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new RelationshipInteractionSystem(),
                 new ChainAdvancementSystem(),
                 new ContractGenerator(),
+                new VanillaRaidGarrisonSystem(),
                 new StationingDefaultSystem(),
                 new ContractRetainerSystem(),
                 new CadreTrainingSystem(),

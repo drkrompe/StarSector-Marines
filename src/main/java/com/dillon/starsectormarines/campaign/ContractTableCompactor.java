@@ -66,6 +66,11 @@ public final class ContractTableCompactor {
         state.contractNextIncidentTick[to] = state.contractNextIncidentTick[from];
         state.contractIncidentPending[to] = state.contractIncidentPending[from];
         state.contractIncidentType[to] = state.contractIncidentType[from];
+        state.contractDefenseEventKey[to] = state.contractDefenseEventKey[from];
+        state.contractDefenseTriggeredTick[to] = state.contractDefenseTriggeredTick[from];
+        state.contractDefenseTriggerType[to] = state.contractDefenseTriggerType[from];
+        state.contractDefenseAttackerHouseId[to] = state.contractDefenseAttackerHouseId[from];
+        state.contractDefenseAttackerFactionId[to] = state.contractDefenseAttackerFactionId[from];
         state.contractSalvageBaseline[to] = state.contractSalvageBaseline[from];
         state.contractSalvageNegotiated[to] = state.contractSalvageNegotiated[from];
         state.contractCashMultiplier[to] = state.contractCashMultiplier[from];

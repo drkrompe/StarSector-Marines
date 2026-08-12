@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
+import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,6 +20,7 @@ class CampaignStateSystemOrderTest {
         List<CampaignSystem> systems = CampaignStateScript.defaultSystems();
 
         int defaults = indexOf(systems, StationingDefaultSystem.class);
+        int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
         int training = indexOf(systems, CadreTrainingSystem.class);
         int incidents = indexOf(systems, StationingIncidentSystem.class);
@@ -26,6 +28,7 @@ class CampaignStateSystemOrderTest {
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
+        assertTrue(raidDefense < defaults);
         assertTrue(defaults < training);
         assertTrue(retainers < lifecycle);
         assertTrue(training < lifecycle);

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -43,6 +44,11 @@ class StationingAssignmentServiceTest {
         assertEquals(0, fixture.state.contractIncidentPending[row]);
         assertEquals(StationingIncidentType.NONE,
                 StationingIncidentType.fromByte(fixture.state.contractIncidentType[row]));
+        assertEquals(0L, fixture.state.contractDefenseEventKey[row]);
+        assertEquals(-1, fixture.state.contractDefenseTriggeredTick[row]);
+        assertEquals(GarrisonDefenseTriggerType.NONE,
+                GarrisonDefenseTriggerType.fromByte(
+                        fixture.state.contractDefenseTriggerType[row]));
         assertEquals(25, fixture.state.contractSalvageBaseline[row] & 0xFF);
         assertEquals(fixture.captain.id(), fixture.state.captainRegistry.get(
                 fixture.state.contractCaptainId[row]));

@@ -26,6 +26,11 @@ class ContractTableCompactorTest {
         state.contractNextIncidentTick[1] = 56;
         state.contractIncidentPending[1] = 1;
         state.contractIncidentType[1] = StationingIncidentType.LIVE_FIRE_RAID.toByte();
+        state.contractDefenseEventKey[1] = 57L;
+        state.contractDefenseTriggeredTick[1] = 58;
+        state.contractDefenseTriggerType[1] = GarrisonDefenseTriggerType.VANILLA_RAID.toByte();
+        state.contractDefenseAttackerHouseId[1] = 59L;
+        state.contractDefenseAttackerFactionId[1] = 60;
 
         assertEquals(1, ContractTableCompactor.removeTerminal(state));
 
@@ -52,6 +57,12 @@ class ContractTableCompactorTest {
         assertEquals(1, state.contractIncidentPending[0]);
         assertEquals(StationingIncidentType.LIVE_FIRE_RAID,
                 StationingIncidentType.fromByte(state.contractIncidentType[0]));
+        assertEquals(57L, state.contractDefenseEventKey[0]);
+        assertEquals(58, state.contractDefenseTriggeredTick[0]);
+        assertEquals(GarrisonDefenseTriggerType.VANILLA_RAID,
+                GarrisonDefenseTriggerType.fromByte(state.contractDefenseTriggerType[0]));
+        assertEquals(59L, state.contractDefenseAttackerHouseId[0]);
+        assertEquals(60, state.contractDefenseAttackerFactionId[0]);
         assertEquals(5, state.contractSalvageBaseline[0] & 0xFF);
         assertEquals(4, state.contractSalvageNegotiated[0] & 0xFF);
         assertEquals(101, state.contractCashMultiplier[0] & 0xFF);
