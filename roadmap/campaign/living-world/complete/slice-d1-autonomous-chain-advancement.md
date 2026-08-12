@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `1d6ca71c`
+
 ## Goal
 
 Let NPC political chains mature into exactly-once world-state changes without

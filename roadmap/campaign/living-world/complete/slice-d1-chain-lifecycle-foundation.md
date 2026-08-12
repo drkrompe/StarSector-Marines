@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `3137f238`
+
 ## Goal
 
 Give autonomous political chains enough persisted identity to advance and

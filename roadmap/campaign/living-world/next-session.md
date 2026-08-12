@@ -8,7 +8,10 @@ autonomous promotion) are shipped.** The board is seeded with contested stakes;
 player ops move them decisively while the background world moves them slowly.
 ACTIVE houses adopt a deterministic local consolidation target (`c26ca415`),
 drift 3–5 share every seventh day (`daf3ef1b`), and gain one daily promotion
-point while holding a strict home-market majority (`11987f9a`).
+point while holding a strict home-market majority (`11987f9a`). D1 is also
+shipped: monthly autonomous plots bind an actor, rival, market, and industry;
+advance one point per day; and resolve exactly once into a 40-share transfer
+plus 30 promotion progress (`3137f238`, `2f7b4a86`, `1d6ca71c`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -21,17 +24,18 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice D1 (Autonomous chain foundation)
+## Next up — Slice D2 (Chronicle discovery foundation)
 
-Build the discrete-event half without jumping directly to Chronicle UI:
+Turn D1's persisted terminal-chain seam into learned, player-visible history:
 
-1. Define autonomous chain lifecycle/status identity; current `chains[]` has no
-   status or resolved marker and `ChainAdvancementSystem` is still a stub.
-2. Deterministically create at most one autonomous chain for an eligible
-   ambitious house and bind it to a local rival/industry.
-3. Advance slowly, resolve exactly once through `StakeLedger` and
-   `HousePromotion`, then leave a persisted event seam for Chronicle discovery.
-4. Keep player-backed chains out of the autonomous daily advancement path.
+1. Define a small append-only `chronicle[]` table for learned events, including
+   source chain, outcome, actor/target/location, happened day, and learned day.
+2. Give `DiscoveryPropagationSystem` an exactly-once consumption marker for
+   terminal chains; reloads and repeated ticks must not duplicate dispatches.
+3. Ship the two-band editor rule: houses the player has touched are intimate,
+   Tier-3+ chains are epic, and the silent middle remains unrecorded.
+4. Expose learned dispatches on the debug campaign intel first; richer prose and
+   active-chain rumor/intervention hooks can layer on after storage is stable.
 
 ## Open forks still unresolved (design)
 
@@ -66,3 +70,6 @@ Build the discrete-event half without jumping directly to Chronicle UI:
 - Slice C1 — home-market-majority autonomous promotion (`11987f9a`).
 - Slice C2a — minimal persisted consolidation ambitions (`c26ca415`).
 - Slice C2b — exactly-once weekly 3–5 share drift (`daf3ef1b`).
+- Slice D1a — autonomous chain identity + lifecycle (`3137f238`).
+- Slice D1b — monthly deterministic chain creation (`2f7b4a86`).
+- Slice D1c — daily advancement + exactly-once resolution (`1d6ca71c`).

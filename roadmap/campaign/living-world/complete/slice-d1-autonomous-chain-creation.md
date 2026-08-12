@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `2f7b4a86`
+
 ## Goal
 
 Turn persisted consolidation ambitions into occasional, concrete NPC plots.

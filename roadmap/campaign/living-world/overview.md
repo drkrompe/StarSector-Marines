@@ -157,22 +157,25 @@ Each slice is independently observable.
 | ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
-| **D — Chains + Chronicle** | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
+| **D — Chains + Chronicle** (D1 chains ✅) | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
 D adds headlines and decisive events. E is the long tail.
 
-**Shipped:** A (genesis seeding), B (player stake transfer + promotion), and C
+**Shipped:** A (genesis seeding), B (player stake transfer + promotion), C
 (minimal horizontal ambitions, weekly stake drift, and glacial home-market
-majority promotion: `c26ca415`, `daf3ef1b`, `11987f9a`) — see
+majority promotion: `c26ca415`, `daf3ef1b`, `11987f9a`), and D1 (persisted
+autonomous chain identity, monthly deterministic creation, daily advancement,
+and exactly-once stake/promotion resolution: `3137f238`, `2f7b4a86`,
+`1d6ca71c`) — see
 [`complete/`](complete/). The reusable primitives —
 [`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
 (stake moves) and
 [`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
-mutation logic.
+mutation logic. D2 now owns the Chronicle storage and discovery surface.
 
 ## Two payoffs that fall out for free
 
