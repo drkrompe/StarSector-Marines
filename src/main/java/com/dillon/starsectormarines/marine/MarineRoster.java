@@ -270,6 +270,22 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
+    /** Enlists into the first vacant line billet, creating a fireteam when needed. */
+    MarineSoldier enlistLineRecruit() {
+        MarineSquad target = null;
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && vacancies(squad) > 0) {
+                target = squad;
+                break;
+            }
+        }
+        if (target == null) target = createFireteam();
+        MarineSoldier recruit = createRecruit();
+        target.add(recruit.id());
+        armory.ensureBasicIssue(activeSoldierCount());
+        return recruit;
+    }
+
     /** One-time free campaign starting complement; later enlistment uses cargo marines. */
     public void bootstrapInitialComplement(int count) {
         if (initialComplementIssued) return;

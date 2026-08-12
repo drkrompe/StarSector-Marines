@@ -32,6 +32,24 @@ public final class MarinePersonnelLogistics {
         return recruit;
     }
 
+    /** Bulk-enlists line personnel, bounded by the request and real cargo. */
+    public static int enlistLine(MarineRoster roster, int requested) {
+        return enlistLine(roster, requested, playerCargo());
+    }
+
+    static int enlistLine(MarineRoster roster, int requested, CargoAPI cargo) {
+        if (roster == null || cargo == null || requested <= 0) return 0;
+        int count = Math.min(requested, availableRecruits(cargo));
+        int enlisted = 0;
+        while (enlisted < count) {
+            MarineSoldier recruit = roster.enlistLineRecruit();
+            if (recruit == null) break;
+            cargo.removeCommodity(Commodities.MARINES, 1f);
+            enlisted++;
+        }
+        return enlisted;
+    }
+
     /** Returns one ready reserve marine to the generic cargo pool. */
     public static boolean release(MarineRoster roster, String soldierId) {
         return release(roster, soldierId, playerCargo());
