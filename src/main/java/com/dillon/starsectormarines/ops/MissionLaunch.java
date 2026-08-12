@@ -58,7 +58,7 @@ public final class MissionLaunch {
 
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
-        if (m.source == MissionSource.CAMPAIGN_EVENT) {
+        if (isCivilianRescueBattle(m)) {
             sim = BattleSetup.createCivilianRescue(seed,
                     det.shuttleManifest, enemyHasHeavyArmor, m.risk);
         } else switch (m.type) {
@@ -89,5 +89,11 @@ public final class MissionLaunch {
 
         ctx.setDetachment(det);
         return sim;
+    }
+
+    static boolean isCivilianRescueBattle(Mission mission) {
+        return mission != null
+                && (mission.source == MissionSource.CAMPAIGN_EVENT
+                || mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE);
     }
 }

@@ -11,6 +11,8 @@ package com.dillon.starsectormarines.ops;
  *       committed to a stationing contract.</li>
  *   <li>{@link #CAMPAIGN_EVENT} — non-contract black-swan work carrying its own
  *       stable event lineage.</li>
+ *   <li>{@link #DEBUG_CIVILIAN_RESCUE} — picker-only swarm rescue with no
+ *       campaign-event lineage or writeback.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -19,5 +21,7 @@ public enum MissionSource {
     /** Battle fought by personnel already committed to a stationing assignment. */
     STATIONING,
     /** Cost-shaped black-swan mission; never inherits contract economics. */
-    CAMPAIGN_EVENT
+    CAMPAIGN_EVENT,
+    /** Direct debug-picker swarm rescue; never resolves a campaign event. */
+    DEBUG_CIVILIAN_RESCUE
 }

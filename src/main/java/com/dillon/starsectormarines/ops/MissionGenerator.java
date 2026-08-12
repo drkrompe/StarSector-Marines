@@ -103,8 +103,9 @@ public final class MissionGenerator {
 
     /**
      * Emits the full {@link MissionType} × {@link RiskLevel} grid for the debug
-     * client — 15 entries, one per (type, risk) combo. Bypasses
-     * {@link #MAX_MISSIONS} so every combo is reachable from a single planet.
+     * client — 15 ordinary type/risk entries plus three swarm-rescue risk
+     * entries. Bypasses {@link #MAX_MISSIONS} so every scenario is reachable
+     * from a single planet.
      *
      * <p>Industry id is the first non-disrupted industry on the planet (or null
      * — disruption writeback no-ops in that case). Payouts + drop counts use
@@ -145,7 +146,39 @@ public final class MissionGenerator {
                         planet.getName(), industryId));
             }
         }
+        out.addAll(debugCivilianRescueMissions(
+                planet.getName(), r, index));
         return out;
+    }
+
+    static List<Mission> debugCivilianRescueMissions(
+            String planetName, Random random, int startIndex) {
+        if (planetName == null || random == null) return Collections.emptyList();
+        List<Mission> missions = new ArrayList<>(RiskLevel.values().length);
+        int index = Math.max(0, startIndex);
+        for (RiskLevel risk : RiskLevel.values()) {
+            int requiredDrops = requiredDropsFor(MissionType.EXTRACTION, risk);
+            if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
+                requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
+            }
+            int employerShuttles = rollEmployerShuttles(
+                    random, risk, requiredDrops);
+            float x = 0.08f + random.nextFloat() * 0.84f;
+            float y = 0.08f + random.nextFloat() * 0.84f;
+            String id = "debug:CIVILIAN_RESCUE:"
+                    + risk.name() + ":" + index++;
+            missions.add(new Mission(id,
+                    "SWARM RESCUE — " + risk.name(),
+                    MissionType.EXTRACTION,
+                    MissionSource.DEBUG_CIVILIAN_RESCUE,
+                    0, risk, requirementsFor(risk),
+                    "DEBUG: evacuate the registered civilian cohort under "
+                            + risk.name() + " swarm pressure.",
+                    x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                    requiredDrops, employerShuttles,
+                    planetName, null));
+        }
+        return missions;
     }
 
     /**
