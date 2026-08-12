@@ -1,11 +1,13 @@
 # Campaign T3 endgame — the faction flip
 
-**Status:** ownership/rank/diplomacy writeback path CODE COMPLETE (2026-08-12);
-player-facing capstone consequences remain.
+**Status:** ownership/rank/diplomacy/player-reputation path CODE COMPLETE
+(2026-08-12); player-facing capstone narrative remains.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
 `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
-`5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`, `31be86ed`
+`5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`, `31be86ed`, `926047e8`,
+`4332927f`, `50591863`, `3610923d`, `487134ae`, `551081ab`, `4f6afb8b`,
+`753f3969`, `0ef347d3`, `03422b15`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -59,6 +61,8 @@ prepares one append-only `throneClaims[]` row keyed uniquely by source chain:
 | `throneClaimPlayerAllegiance` | `NONE`, `CLAIMANT`, or `INCUMBENT` captured from the source chain |
 | `throneClaimPlayerContribution` | Saturating successful-operation weight captured at preparation |
 | `throneClaimPlayerLastContributionTick` | Last attributed operation day; `-1` when autonomous |
+| `throneClaimPlayerConsequenceState` | Player-reputation lifecycle: `PENDING`, `APPLIED`, or `NOT_APPLICABLE` |
+| `throneClaimPlayerConsequenceAppliedTick` | Player-reputation completion day; `-1` until applied |
 | `throneClaimState` | `PREPARED`, `APPLIED`, or `FAILED` |
 | `throneClaimPreparedTick` | Campaign day the political chain completed |
 | `throneClaimAppliedTick` | Vanilla-write day; `-1` until terminal |
@@ -135,7 +139,8 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
   Locked in [civil-war participation](../living-world/civil-war-participation.md);
   persistence, contribution resolution, paired offers, and shared acceptance are
   shipped (`551081ab`, `4f6afb8b`).
-- Player reputation consequences for those explicit choices.
+- ~~Player reputation consequences for those explicit choices.~~ Shipped with
+  contribution scaling and autonomous/stale neutrality (`03422b15`).
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.
 

@@ -65,6 +65,11 @@ The player-facing offer lifecycle is shipped too: a dedicated producer creates
 one paired offer per side/band with a frozen contested objective, retires stale
 offers, and shared battle/stationing acceptance immediately withdraws the
 opposing choice without blocking later assault phases (`551081ab`, `4f6afb8b`).
+Attributed terminal consequences complete the participation arc: cumulative
+support scales fixed house-reputation deltas, applied claimant handoffs reward
+the claimant side, same-day decisive incumbent failures reward the incumbent,
+and autonomous or stale outcomes remain neutral through replay-safe persisted
+lifecycles (`753f3969`, `0ef347d3`, `03422b15`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -77,19 +82,20 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Attributed terminal consequences
+## Next up — Silent moral-compass foundation
 
-Finish the last implementation slice in
-[`civil-war-participation.md`](civil-war-participation.md):
+The civil-war participation arc is mechanically complete. Before building its
+explicit kingmaker testament, turn [`../moral-compass.md`](../moral-compass.md)
+from design discussion into the smallest implementable hidden foundation:
 
-1. Use the locked contribution tiers from `civil-war-participation.md`:
-   +5/-8 below 30, +10/-15 below 60, and +15/-25 at 60+.
-2. Persist an exactly-once consequence lifecycle for the
-   successful handoff path and the incumbent-attributed failed-chain path.
-3. Consume only snapshotted/persisted attribution; autonomous `NONE` outcomes
-   and mere offer acceptance remain neutral.
-4. Cover save/load, clamping, and terminal replay before the
-   player-facing kingmaker capstone is layered on top.
+1. Lock the initial 3–5 hidden axes and their bounded ranges; do not expose a
+   numeric UI or optimization feedback.
+2. Choose only already-persisted, replay-safe inputs for the first slice—civil-
+   war allegiance/outcome is the strongest existing candidate.
+3. Persist enough source identity or applied markers that save/load and table
+   compaction cannot double-count a moral choice.
+4. Defer captain drift, dialog gates, and the deposed-ruler testament until the
+   hidden record has multiple meaningful input families.
 
 ## Open forks still unresolved (design)
 
@@ -165,3 +171,6 @@ Finish the last implementation slice in
 - Slice F6e — recoverable contribution integration (`487134ae`).
 - Slice F7a — paired band offer generation (`551081ab`).
 - Slice F7b — shared acceptance and opposing withdrawal (`4f6afb8b`).
+- Slice F8a — terminal player-consequence contract (`753f3969`).
+- Slice F8b — persisted consequence lifecycles (`0ef347d3`).
+- Slice F8c — attributed claimant/incumbent reputation (`03422b15`).

@@ -203,10 +203,11 @@ verifies market/entity ownership transfer, successful claims promote their
 house to Tier 4, and Chronicle publication waits for applied writeback
 (`42f00725`, `ae35056d`, `870d5b96`, `5174f44c`). Reputation consequences
 now include a separately persisted, replay-safe mutual-hostility rupture between
-claimant and former ruler (`ad6ff5fd`, `527535fb`). Player reputation stays
-neutral until explicit kingmaker participation can be attributed; the dedicated
-faction-flip snapshot and debug dispatch are now shipped (`d7be2649`,
-`31be86ed`). The kingmaker capstone remains a follow-up slice.
+claimant and former ruler (`ad6ff5fd`, `527535fb`). Autonomous success stays
+player-reputation-neutral; explicit participation is attributed before any
+player consequence. The dedicated faction-flip snapshot and debug dispatch are
+also shipped (`d7be2649`, `31be86ed`). The kingmaker capstone remains a
+follow-up slice.
 
 Those player choices now have a complete persistence and resolution foundation:
 civil-war contracts reuse parent/opposed lineage for side identity, snapshot one
@@ -216,7 +217,11 @@ throne handoff (`926047e8`, `4332927f`, `50591863`, `3610923d`, `487134ae`).
 The player-facing producer now creates a historical pair per side/band, freezes
 a concrete contested objective, expires stale choices, and routes battle and
 stationing acceptance through shared contradictory-work/withdrawal rules
-(`551081ab`, `4f6afb8b`). Terminal attributed player consequences remain.
+(`551081ab`, `4f6afb8b`). Terminal contribution tiers now apply bounded
+supported/opposed house-reputation changes exactly once after an applied
+claimant handoff or a same-day decisive incumbent failure; autonomous and stale
+terminal outcomes remain neutral (`753f3969`, `0ef347d3`, `03422b15`). The
+silent moral-compass foundation and earned kingmaker capstone remain.
 
 ## Two payoffs that fall out for free
 

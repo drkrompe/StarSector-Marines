@@ -1,10 +1,9 @@
 # Civil-war participation contract
 
-**Status:** OFFER LIFECYCLE CODE COMPLETE (2026-08-12); terminal player
-consequences next.
+**Status:** CODE COMPLETE (2026-08-12)
 
 **Implemented:** `926047e8`, `4332927f`, `50591863`, `3610923d`,
-`487134ae`, `551081ab`, `4f6afb8b`
+`487134ae`, `551081ab`, `4f6afb8b`, `753f3969`, `0ef347d3`, `03422b15`
 
 This document fixes how the player enters an autonomous `CIVIL_WAR` without
 turning every discovered plot intervention into a kingmaker decision. The
@@ -123,7 +122,7 @@ terminal contribution replays remain neutral.
 2. ~~Add a pure validator/recorder for completed civil-war contributions.~~
 3. ~~Snapshot successful claimant attribution into `throneClaims[]`.~~
 4. ~~Generate paired band offers and wire acceptance/withdrawal behavior.~~
-5. Apply exactly-once player consequences from terminal attributed outcomes.
+5. ~~Apply exactly-once player consequences from terminal attributed outcomes.~~
 
 Weighted and decisive chain outcomes landed with the validator: early bands
 apply ±15/±30 progress; open-conflict claimant work arms threshold resolution;
@@ -138,6 +137,13 @@ chain's market-wide industry sentinel untouched. Mission and stationing
 acceptance share one domain validator: choosing a side activates that work and
 immediately expires the opposing offer, while later Planetary Assault phases
 remain deployable without being treated as a new choice.
+
+Terminal player consequences now persist independently on claimant handoffs and
+incumbent-failed chains. A daily consumer after contribution recovery applies
+the locked contribution tier to supported/opposed house reputation, clamps both
+rows, and closes autonomous, stale, or malformed outcomes without touching MRB,
+contract counters, or contract recency. Repeated ticks and legacy-load recovery
+cannot replay an applied outcome.
 
 ## Non-goals for the foundation
 
