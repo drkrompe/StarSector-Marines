@@ -128,8 +128,8 @@ public final class PatrolMotion {
 
     public static boolean squadHasArrived(Squad squad) {
         if (squad.aliveMembers == 0) return true;
-        float dx = squad.centroidX - squad.patrolWaypointX;
-        float dy = squad.centroidY - squad.patrolWaypointY;
+        float dx = squad.centroidX - (squad.patrolWaypointX + 0.5f);
+        float dy = squad.centroidY - (squad.patrolWaypointY + 0.5f);
         return Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS;
     }
 

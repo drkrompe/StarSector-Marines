@@ -104,7 +104,7 @@ public final class TurretAim {
 
         if (s.target == 0L) {
             s.target = scoring.findBestTarget(
-                    s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
+                    s.originX, s.originY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, /*allowNoLos*/ s.indirectFire);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;

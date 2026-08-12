@@ -97,8 +97,8 @@ public final class PatrolRoute implements Action {
         }
 
         NavigationGrid grid = sim.getGrid();
-        int seedX = anchor != null ? anchor.anchorX : Math.round(squad.centroidX);
-        int seedY = anchor != null ? anchor.anchorY : Math.round(squad.centroidY);
+        int seedX = anchor != null ? anchor.anchorX : (int) Math.floor(squad.centroidX);
+        int seedY = anchor != null ? anchor.anchorY : (int) Math.floor(squad.centroidY);
         int r = radius;
         for (int i = 0; i < FALLBACK_SAMPLE_ATTEMPTS; i++) {
             int dx = rng.nextInt(r * 2 + 1) - r;

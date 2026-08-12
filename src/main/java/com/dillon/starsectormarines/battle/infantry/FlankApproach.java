@@ -53,8 +53,8 @@ public final class FlankApproach implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        float dx = squad.centroidX - waypointX;
-        float dy = squad.centroidY - waypointY;
+        float dx = squad.centroidX - (waypointX + 0.5f);
+        float dy = squad.centroidY - (waypointY + 0.5f);
         if (Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS) {
             return ActionStatus.SUCCESS;
         }

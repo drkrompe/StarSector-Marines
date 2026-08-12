@@ -191,16 +191,17 @@ public final class BackstopAssignedSquad implements Action {
         // Compute the "behind" unit vector. Defaults to the direction from
         // the mech's current cell to the centroid (so it just trails the
         // squad) when no contact is known.
-        float threatDx = selfSquad.lastSeenEnemyX >= 0 ? selfSquad.lastSeenEnemyX - cx
+        float threatDx = selfSquad.lastSeenEnemyX >= 0 ? (selfSquad.lastSeenEnemyX + 0.5f) - cx
                 : cx - sim.world().x(member);
-        float threatDy = selfSquad.lastSeenEnemyY >= 0 ? selfSquad.lastSeenEnemyY - cy
+        float threatDy = selfSquad.lastSeenEnemyY >= 0 ? (selfSquad.lastSeenEnemyY + 0.5f) - cy
                 : cy - sim.world().y(member);
         float len = (float) Math.sqrt(threatDx * threatDx + threatDy * threatDy);
         if (len < 1e-3f) {
             // Degenerate — mech is on top of the centroid with no threat
-            // axis. Just hold the centroid itself.
-            int anchorX = Math.round(cx);
-            int anchorY = Math.round(cy);
+            // axis. Just hold the centroid's containing cell (floor — the
+            // centroid is a center-based continuous position).
+            int anchorX = (int) Math.floor(cx);
+            int anchorY = (int) Math.floor(cy);
             return grid.inBounds(anchorX, anchorY) && grid.isWalkable(anchorX, anchorY)
                     ? new int[]{anchorX, anchorY}
                     : null;
@@ -210,8 +211,8 @@ public final class BackstopAssignedSquad implements Action {
         float backDx = -threatDx * invLen;
         float backDy = -threatDy * invLen;
 
-        int anchorX = Math.round(cx + backDx * FOLLOW_DISTANCE);
-        int anchorY = Math.round(cy + backDy * FOLLOW_DISTANCE);
+        int anchorX = (int) Math.floor(cx + backDx * FOLLOW_DISTANCE);
+        int anchorY = (int) Math.floor(cy + backDy * FOLLOW_DISTANCE);
 
         // Spiral out from the anchor to find a walkable cell.
         for (int r = 0; r <= 4; r++) {

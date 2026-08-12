@@ -308,9 +308,8 @@ public final class BreachToEngage implements Goal {
             long t = sim.targetOf(u);
             if (t != 0L) return t;
         }
-        int cx = Math.round(squad.centroidX);
-        int cy = Math.round(squad.centroidY);
-        return sim.getTacticalScoring().findBestTarget(cx, cy, squad.faction, squad.id, 0L);
+        return sim.getTacticalScoring().findBestTarget(
+                squad.centroidX, squad.centroidY, squad.faction, squad.id, 0L);
     }
 
     /**

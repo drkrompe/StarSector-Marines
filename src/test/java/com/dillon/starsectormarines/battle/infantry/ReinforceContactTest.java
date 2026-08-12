@@ -46,8 +46,10 @@ public class ReinforceContactTest {
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 4;
         squad.originalSize = 4;
-        squad.centroidX = cx;
-        squad.centroidY = cy;
+        // Centroids are center-based true positions — a squad "at cell
+        // (cx, cy)" has its centroid on that cell's center.
+        squad.centroidX = Math.round(cx) + 0.5f;
+        squad.centroidY = Math.round(cy) + 0.5f;
         return squad;
     }
 

@@ -97,6 +97,23 @@ Deliberately NOT converted (agent judgment calls, confirmed):
 - BattleRenderer objective/equipment anchors — stored map cells.
 - spawnSmokingWreck stays int cells (EffectsService API snaps to cells).
 
+Critique pass on a36955e: no blockers; its three should-fix classes
+(findBestTarget corner-vs-position scoring, unconverted centroid
+consumers, Math.round-of-centroid siblings) landed as a follow-up
+commit — findBestTarget chain takes true float positions end-to-end,
+ReinforceContact/PatrolMotion/FlankApproach/Conquest/Assault centroid
+math is center-consistent (Assault zone centroids centered at source),
+round→floor at ZoneQueries/GarrisonAmbush/PatrolRoute/Backstop anchors.
+
+Balance/polish notes from the critique (deliberate, not fixed):
+- Detonations' per-unit +type.radius expansion is not mirrored by
+  FIRING_AOE_SPREAD_RADIUS ally-safety or projectedRocketDamageOnTarget
+  — rocket heuristics slightly under-margin vs the wider real blast.
+  Revisit at tuning time.
+- TurretAim drops lock on continuous out-of-range per tick — a target
+  strafing the exact range circle can drop/reacquire at sub-cell
+  granularity; self-heals, cosmetic. Hysteresis if it ever reads badly.
+
 Candidate follow-up slices (precision debt found in-sweep, out of scope):
 - TacticalScoring firing-position ring searches: distFromSelf/-Target
   compare int self cells vs int ring cells — tightly-coupled algorithm,

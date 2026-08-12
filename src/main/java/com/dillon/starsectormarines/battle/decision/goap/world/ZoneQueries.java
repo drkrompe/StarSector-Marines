@@ -62,8 +62,10 @@ public final class ZoneQueries {
             // for a single tick): fall through to the centroid so the goal
             // layer still has a usable answer this tick.
         }
-        int x = Math.round(squad.centroidX);
-        int y = Math.round(squad.centroidY);
+        // Containing cell of the center-based centroid is its floor (round
+        // biases toward the next cell and can flip the BFS start zone).
+        int x = (int) Math.floor(squad.centroidX);
+        int y = (int) Math.floor(squad.centroidY);
         return sim.getZoneGraph().zoneIdAt(x, y);
     }
 

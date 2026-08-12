@@ -139,8 +139,10 @@ public final class AssaultCommand implements MissionCommand {
                 sumX += (cellIdx % gridW);
                 sumY += (cellIdx / gridW);
             }
-            float cx = sumX / cells.length;
-            float cy = sumY / cells.length;
+            // Center-based (cell centers averaged), so comparisons against
+            // squad centroids — true-position means — are convention-matched.
+            float cx = sumX / cells.length + 0.5f;
+            float cy = sumY / cells.length + 0.5f;
             int id = zone.getZoneId();
             if (id >= 0 && id < zoneCount) {
                 zoneCentroidX[id] = cx;

@@ -255,7 +255,7 @@ public final class TacticalScoring {
      */
     public long findBestTarget(long self) {
         World world = roster.world();
-        return findBestTarget(world.cellX(self), world.cellY(self),
+        return findBestTarget(world.x(self), world.y(self),
                 roster.identity().faction(self),
                 roster.squad().hasSquad(self) ? roster.squad().squadId(self) : Squad.NO_SQUAD,
                 self, roster.vision().airLosRadius(self));
@@ -303,10 +303,12 @@ public final class TacticalScoring {
      * selection logic is identical; pass {@link Squad#NO_SQUAD}
      * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
      * when the caller doesn't squad up and isn't itself in the unit list.
+     * {@code selfX/selfY} are a TRUE continuous position (a cell's center is
+     * {@code cx + 0.5f}), not a cell index.
      */
-    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+    public long findBestTarget(float selfX, float selfY, Faction selfFaction,
                                int selfSquadId, long excludeFromCrowding) {
-        return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
+        return findBestTarget(selfX, selfY, selfFaction, selfSquadId, excludeFromCrowding,
                 0f);
     }
 
@@ -345,10 +347,10 @@ public final class TacticalScoring {
      * When no enemy combatants remain anywhere the method returns null —
      * caller treats null as "hold position, no target."
      */
-    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+    public long findBestTarget(float selfX, float selfY, Faction selfFaction,
                                int selfSquadId, long excludeFromCrowding,
                                float shooterAirRadius) {
-        return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
+        return findBestTarget(selfX, selfY, selfFaction, selfSquadId,
                 excludeFromCrowding, shooterAirRadius, /*allowNoLos*/ false);
     }
 
@@ -361,12 +363,12 @@ public final class TacticalScoring {
      * scored; the any-distance bucket still tracks the nearest non-visible
      * enemy for the path-toward-them fallback.
      */
-    public long findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+    public long findBestTarget(float selfX, float selfY, Faction selfFaction,
                                int selfSquadId, long excludeFromCrowding,
                                float shooterAirRadius, boolean allowNoLos) {
         long _profT0 = System.nanoTime();
         try {
-            return findBestTargetImpl(selfCellX, selfCellY, selfFaction, selfSquadId,
+            return findBestTargetImpl(selfX, selfY, selfFaction, selfSquadId,
                     excludeFromCrowding, shooterAirRadius, allowNoLos);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
@@ -374,7 +376,7 @@ public final class TacticalScoring {
         }
     }
 
-    private long findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
+    private long findBestTargetImpl(float selfX, float selfY, Faction selfFaction,
                                     int selfSquadId, long excludeFromCrowding,
                                     float shooterAirRadius, boolean allowNoLos) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
@@ -384,6 +386,11 @@ public final class TacticalScoring {
         VisionService vision = roster.vision();
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
+
+        // Grid cell of the shooter, for the LoS + zone lookups only — the
+        // distance scoring below uses the true position.
+        int selfCellX = (int) Math.floor(selfX);
+        int selfCellY = (int) Math.floor(selfY);
 
         long best = 0L;
         float bestScore = Float.MAX_VALUE;
@@ -400,7 +407,7 @@ public final class TacticalScoring {
 
             int ox = world.cellX(other);
             int oy = world.cellY(other);
-            float d = cellDistance(selfCellX, selfCellY, world.x(other), world.y(other));
+            float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;

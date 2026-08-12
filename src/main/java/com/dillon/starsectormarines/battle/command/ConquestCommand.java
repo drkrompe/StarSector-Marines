@@ -351,8 +351,8 @@ public final class ConquestCommand implements MissionCommand {
     }
 
     private static float distSq(Squad squad, CompoundTarget t) {
-        float dx = squad.centroidX - t.record.node.anchorX;
-        float dy = squad.centroidY - t.record.node.anchorY;
+        float dx = squad.centroidX - (t.record.node.anchorX + 0.5f);
+        float dy = squad.centroidY - (t.record.node.anchorY + 0.5f);
         return dx * dx + dy * dy;
     }
 

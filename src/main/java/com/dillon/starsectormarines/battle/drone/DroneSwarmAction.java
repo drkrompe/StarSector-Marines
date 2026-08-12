@@ -263,7 +263,7 @@ public final class DroneSwarmAction implements Action {
     private static long tryAgroScan(long member, BattleView sim) {
         float dAir = sim.vision().airLosRadius(member);
         long candidate = sim.getTacticalScoring().findBestTarget(
-                sim.world().cellX(member), sim.world().cellY(member), sim.identity().faction(member),
+                sim.world().x(member), sim.world().y(member), sim.identity().faction(member),
                 sim.squad().hasSquad(member) ? sim.squad().squadId(member) : Squad.NO_SQUAD, member, dAir);
         if (candidate == 0L) return 0L;
         float dist = TacticalScoring.cellDistance(

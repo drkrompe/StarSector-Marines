@@ -64,8 +64,8 @@ public final class ReinforceContact implements Goal {
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
 
-        float dx = squad.centroidX - squad.lastSeenEnemyX;
-        float dy = squad.centroidY - squad.lastSeenEnemyY;
+        float dx = squad.centroidX - (squad.lastSeenEnemyX + 0.5f);
+        float dy = squad.centroidY - (squad.lastSeenEnemyY + 0.5f);
         if (Math.sqrt(dx * dx + dy * dy) <= ALREADY_AT_CONTACT_RADIUS) return 0f;
 
         return 1.0f;
@@ -87,16 +87,20 @@ public final class ReinforceContact implements Goal {
     static int[] computeFlankWaypoint(Squad squad, BattleView sim) {
         int contactX = squad.lastSeenEnemyX;
         int contactY = squad.lastSeenEnemyY;
+        // Vector math runs in continuous space: the contact CELL's center vs
+        // the (center-based) squad centroids.
+        float contactCX = contactX + 0.5f;
+        float contactCY = contactY + 0.5f;
 
         Squad garrison = findEngagedFriendlyNearContact(squad, sim);
 
         float axisX, axisY;
         if (garrison != null) {
-            axisX = contactX - garrison.centroidX;
-            axisY = contactY - garrison.centroidY;
+            axisX = contactCX - garrison.centroidX;
+            axisY = contactCY - garrison.centroidY;
         } else {
-            axisX = contactX - squad.centroidX;
-            axisY = contactY - squad.centroidY;
+            axisX = contactCX - squad.centroidX;
+            axisY = contactCY - squad.centroidY;
         }
 
         float len = (float) Math.sqrt(axisX * axisX + axisY * axisY);
@@ -107,16 +111,16 @@ public final class ReinforceContact implements Goal {
         float perpX = -axisY;
         float perpY = axisX;
 
-        float toPatrolX = squad.centroidX - contactX;
-        float toPatrolY = squad.centroidY - contactY;
+        float toPatrolX = squad.centroidX - contactCX;
+        float toPatrolY = squad.centroidY - contactCY;
         float dot = toPatrolX * perpX + toPatrolY * perpY;
         if (dot < 0) {
             perpX = -perpX;
             perpY = -perpY;
         }
 
-        int rawX = Math.round(contactX + perpX * FLANK_RADIUS);
-        int rawY = Math.round(contactY + perpY * FLANK_RADIUS);
+        int rawX = (int) Math.floor(contactCX + perpX * FLANK_RADIUS);
+        int rawY = (int) Math.floor(contactCY + perpY * FLANK_RADIUS);
 
         return snapToWalkable(rawX, rawY, sim.getGrid(), contactX, contactY);
     }
@@ -130,8 +134,8 @@ public final class ReinforceContact implements Goal {
             if (s.faction != self.faction) continue;
             if (s.alertLevel != SquadAlertLevel.ENGAGED) continue;
             if (s.aliveMembers <= 0) continue;
-            float dx = s.centroidX - self.lastSeenEnemyX;
-            float dy = s.centroidY - self.lastSeenEnemyY;
+            float dx = s.centroidX - (self.lastSeenEnemyX + 0.5f);
+            float dy = s.centroidY - (self.lastSeenEnemyY + 0.5f);
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist > FRIENDLY_SEARCH_RADIUS) continue;
             if (dist < bestDist) {

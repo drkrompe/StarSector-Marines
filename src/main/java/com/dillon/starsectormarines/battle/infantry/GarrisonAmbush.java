@@ -147,8 +147,8 @@ public final class GarrisonAmbush implements Goal {
         int portalX = dwIdx % w;
         int portalY = dwIdx / w;
 
-        int anchorX = Math.round(squad.centroidX);
-        int anchorY = Math.round(squad.centroidY);
+        int anchorX = (int) Math.floor(squad.centroidX);
+        int anchorY = (int) Math.floor(squad.centroidY);
         int wantCells = Math.max(1, squad.aliveMembers);
 
         List<int[]> losCells = ChokePointHold.pickLosCells(
