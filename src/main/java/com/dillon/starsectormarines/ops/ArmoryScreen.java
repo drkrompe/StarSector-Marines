@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
+import com.dillon.starsectormarines.marine.SquadEquipmentPreset;
+import com.dillon.starsectormarines.marine.SquadPresetResult;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -43,6 +45,8 @@ public final class ArmoryScreen implements Screen {
     private int squadPage;
     private int memberPage;
     private TextFieldWidget renameField;
+    private String presetFeedback;
+    private boolean presetSucceeded;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -138,6 +142,7 @@ public final class ArmoryScreen implements Screen {
             addButton(x, y - BUTTON_H + 6f, SQUAD_COL_W, label, () -> {
                 selectedSquadId = squad.id();
                 memberPage = 0;
+                presetFeedback = null;
                 rebuild();
             }, selected ? VALUE : HEADER);
             y -= SQUAD_ROW_H;
@@ -200,7 +205,29 @@ public final class ArmoryScreen implements Screen {
             rebuild();
         }, HEADER);
 
-        float rowTop = top - 58f;
+        if (!squad.reserve()) {
+            float presetY = top - 52f;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Issue preset:", x, presetY + 25f, MUTED));
+            float presetX = x + 104f;
+            int i = 0;
+            for (SquadEquipmentPreset preset : SquadEquipmentPreset.values()) {
+                float buttonX = presetX + i++ * 94f;
+                addButton(buttonX, presetY, 88f, preset.displayName, () -> {
+                    SquadPresetResult result = roster.applySquadPreset(squad.id(), preset);
+                    presetSucceeded = result == SquadPresetResult.APPLIED;
+                    presetFeedback = presetMessage(result);
+                    rebuild();
+                }, HEADER);
+            }
+            if (presetFeedback != null) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, presetFeedback,
+                        presetX + 4f * 94f + 8f, presetY + 25f,
+                        presetSucceeded ? GOOD : BAD));
+            }
+        }
+
+        float rowTop = top - (squad.reserve() ? 58f : 96f);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Marine / status          Development          Field kit",
                 x, rowTop + 18f, HEADER));
@@ -294,6 +321,16 @@ public final class ArmoryScreen implements Screen {
         if (squad.reserve()) return "Reserve";
         String name = squad.name();
         return name.length() <= 10 ? name : name.substring(0, 10);
+    }
+
+    private static String presetMessage(SquadPresetResult result) {
+        return switch (result) {
+            case APPLIED -> "Issued to all RTD personnel";
+            case NO_READY_PERSONNEL -> "No RTD personnel";
+            case LOCKED_RECIPE -> "Recipe locked";
+            case INSUFFICIENT_WEAPONS -> "Not enough weapons";
+            case INSUFFICIENT_ARMOR -> "Not enough armor";
+        };
     }
 
     private void addPrintButton(float x, float y, float w, MarineWeapon weapon,

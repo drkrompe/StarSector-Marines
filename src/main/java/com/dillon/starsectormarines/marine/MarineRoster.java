@@ -305,7 +305,7 @@ public class MarineRoster implements Serializable {
                 || !armory.isPrimaryUnlocked(weapon, grade)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.primary() == weapon && other.primaryGrade() == grade) allocated++;
         }
         if (allocated >= armory.ownedPrimary(weapon, grade)) return false;
@@ -323,7 +323,7 @@ public class MarineRoster implements Serializable {
         if (!armory.isSecondaryUnlocked(secondary)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.secondary() == secondary) allocated++;
         }
         if (allocated >= armory.ownedSecondary(secondary)) return false;
@@ -337,7 +337,7 @@ public class MarineRoster implements Serializable {
                 || !armory.isArmorUnlocked(armor)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
-            if (other != soldier && other.status() == MarineSoldierStatus.ACTIVE
+            if (other != soldier && holdsAllocatedGear(other)
                     && other.armor() == armor) allocated++;
         }
         if (allocated >= armory.ownedArmor(armor)) return false;
@@ -372,6 +372,45 @@ public class MarineRoster implements Serializable {
             if (allocateArmor(soldierId, next)) return true;
         }
         return false;
+    }
+
+    /** Applies a whole-fireteam issue pattern only when every ready member can receive it. */
+    public SquadPresetResult applySquadPreset(String squadId, SquadEquipmentPreset preset) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve() || preset == null) {
+            return SquadPresetResult.NO_READY_PERSONNEL;
+        }
+        List<MarineSoldier> ready = new ArrayList<>();
+        for (MarineSoldier soldier : squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) ready.add(soldier);
+        }
+        if (ready.isEmpty()) return SquadPresetResult.NO_READY_PERSONNEL;
+        if (!armory.isPrimaryUnlocked(preset.primary, preset.grade)
+                || !armory.isArmorUnlocked(preset.armor)) {
+            return SquadPresetResult.LOCKED_RECIPE;
+        }
+
+        Set<String> targetIds = new HashSet<>();
+        for (MarineSoldier soldier : ready) targetIds.add(soldier.id());
+        int weaponsUsedElsewhere = 0;
+        int armorUsedElsewhere = 0;
+        for (MarineSoldier soldier : soldiers) {
+            if (targetIds.contains(soldier.id()) || !holdsAllocatedGear(soldier)) continue;
+            if (soldier.primary() == preset.primary && soldier.primaryGrade() == preset.grade) {
+                weaponsUsedElsewhere++;
+            }
+            if (soldier.armor() == preset.armor) armorUsedElsewhere++;
+        }
+        if (armory.ownedPrimary(preset.primary, preset.grade) - weaponsUsedElsewhere
+                < ready.size()) return SquadPresetResult.INSUFFICIENT_WEAPONS;
+        if (armory.ownedArmor(preset.armor) - armorUsedElsewhere
+                < ready.size()) return SquadPresetResult.INSUFFICIENT_ARMOR;
+
+        for (MarineSoldier soldier : ready) {
+            soldier.setPrimary(preset.primary, preset.grade);
+            soldier.setArmor(preset.armor);
+        }
+        return SquadPresetResult.APPLIED;
     }
 
     public void applySoldierOutcome(Set<String> survivors, Set<String> fallen,
@@ -429,6 +468,11 @@ public class MarineRoster implements Serializable {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
         }
         return count;
+    }
+
+    private static boolean holdsAllocatedGear(MarineSoldier soldier) {
+        return soldier.status() == MarineSoldierStatus.ACTIVE
+                || soldier.status() == MarineSoldierStatus.WIA;
     }
 
     private static SoldierAptitude aptitudeFor(int number) {
