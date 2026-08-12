@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
+import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -88,6 +89,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ContractLifecycleSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
+                new MoralCompassSystem(),
                 new StationingDefaultExtractionSystem(),
                 new ExtractionResolutionSystem(),
                 new StationingReleaseSystem(),

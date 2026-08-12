@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
+import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
@@ -55,6 +56,7 @@ class CampaignStateSystemOrderTest {
         int lifecycle = indexOf(systems, ContractLifecycleSystem.class);
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
+        int moralCompass = indexOf(systems, MoralCompassSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
@@ -78,6 +80,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(lifecycle < civilWarParticipation);
         assertTrue(throneResolution < civilWarConsequences);
         assertTrue(civilWarParticipation < civilWarConsequences);
+        assertTrue(civilWarConsequences < moralCompass);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);
     }
