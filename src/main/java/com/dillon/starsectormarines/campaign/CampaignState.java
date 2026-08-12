@@ -50,6 +50,8 @@ public final class CampaignState implements Serializable {
     public int[]  housePower        = new int[INITIAL_CAPACITY];
     /** Last sector day weekly stake drift evaluated; -1 until the first cadence tick. */
     public int[]  houseLastDriftTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Last sector day long-horizon ambition transitions were reviewed; -1 until first review. */
+    public int[]  houseLastAmbitionReviewTick = filledInts(INITIAL_CAPACITY, -1);
     public long[] houseClaimAgainst = new long[INITIAL_CAPACITY];
     public byte[] houseArchetype    = new byte[INITIAL_CAPACITY];
     public String[] houseDisplayName = new String[INITIAL_CAPACITY];
@@ -247,6 +249,7 @@ public final class CampaignState implements Serializable {
         housePromotionProgress[i] = 0;
         housePower[i] = 0;
         houseLastDriftTick[i] = -1;
+        houseLastAmbitionReviewTick[i] = -1;
         houseClaimAgainst[i] = -1L;
         houseArchetype[i] = archetype.toByte();
         houseDisplayName[i] = displayName;
@@ -526,6 +529,8 @@ public final class CampaignState implements Serializable {
         housePower            = Arrays.copyOf(housePower, n);
         houseLastDriftTick    = Arrays.copyOf(houseLastDriftTick, n);
         Arrays.fill(houseLastDriftTick, oldLength, n, -1);
+        houseLastAmbitionReviewTick = Arrays.copyOf(houseLastAmbitionReviewTick, n);
+        Arrays.fill(houseLastAmbitionReviewTick, oldLength, n, -1);
         houseClaimAgainst     = Arrays.copyOf(houseClaimAgainst, n);
         houseArchetype        = Arrays.copyOf(houseArchetype, n);
         houseDisplayName      = Arrays.copyOf(houseDisplayName, n);
@@ -637,6 +642,10 @@ public final class CampaignState implements Serializable {
         if (houseLastDriftTick == null) {
             int n = houseId != null ? houseId.length : INITIAL_CAPACITY;
             houseLastDriftTick = filledInts(n, -1);
+        }
+        if (houseLastAmbitionReviewTick == null) {
+            int n = houseId != null ? houseId.length : INITIAL_CAPACITY;
+            houseLastAmbitionReviewTick = filledInts(n, -1);
         }
         if (chainPatron == null) {
             int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
