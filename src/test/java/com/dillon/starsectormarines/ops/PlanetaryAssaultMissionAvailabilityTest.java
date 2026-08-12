@@ -13,10 +13,10 @@ class PlanetaryAssaultMissionAvailabilityTest {
     @Test
     void offeredAndInProgressAssaultsRemainMissionAvailable() {
         CampaignState state = state(ContractType.PLANETARY_ASSAULT, ContractState.OFFERED);
-        assertTrue(MissionGenerator.contractMissionAvailable(state, 0));
+        assertTrue(MissionGenerator.contractMissionAvailable(state, 0, 10));
 
         state.contractState[0] = ContractState.IN_PROGRESS.toByte();
-        assertTrue(MissionGenerator.contractMissionAvailable(state, 0));
+        assertTrue(MissionGenerator.contractMissionAvailable(state, 0, 10));
     }
 
     @Test
@@ -24,8 +24,18 @@ class PlanetaryAssaultMissionAvailabilityTest {
         CampaignState strike = state(ContractType.STRIKE, ContractState.IN_PROGRESS);
         CampaignState completed = state(ContractType.PLANETARY_ASSAULT, ContractState.COMPLETED);
 
-        assertFalse(MissionGenerator.contractMissionAvailable(strike, 0));
-        assertFalse(MissionGenerator.contractMissionAvailable(completed, 0));
+        assertFalse(MissionGenerator.contractMissionAvailable(strike, 0, 10));
+        assertFalse(MissionGenerator.contractMissionAvailable(completed, 0, 10));
+    }
+
+    @Test
+    void inProgressAssaultWaitsUntilPersistedReadyDay() {
+        CampaignState state = state(ContractType.PLANETARY_ASSAULT,
+                ContractState.IN_PROGRESS);
+        state.contractNextPhaseReadyTick[0] = 13;
+
+        assertFalse(MissionGenerator.contractMissionAvailable(state, 0, 12));
+        assertTrue(MissionGenerator.contractMissionAvailable(state, 0, 13));
     }
 
     private static CampaignState state(ContractType type, ContractState contractState) {

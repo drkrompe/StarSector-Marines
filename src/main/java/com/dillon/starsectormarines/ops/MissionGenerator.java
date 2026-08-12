@@ -168,8 +168,10 @@ public final class MissionGenerator {
         Random r = new Random(seed);
 
         int emitted = 0;
+        int currentDay = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay() : 0;
         for (int i = 0; i < state.contractCount && emitted < MAX_MISSIONS; i++) {
-            if (!contractMissionAvailable(state, i)) continue;
+            if (!contractMissionAvailable(state, i, currentDay)) continue;
             if (state.contractPatronHouseId[i] != client.patronHouseId) continue;
             if (state.contractMarketId[i] != pickupSlot) continue;
 
@@ -278,13 +280,17 @@ public final class MissionGenerator {
                 employerPowers);
     }
 
-    static boolean contractMissionAvailable(CampaignState state, int row) {
+    static boolean contractMissionAvailable(CampaignState state, int row, int currentDay) {
         if (state == null || row < 0 || row >= state.contractCount) return false;
         ContractState contractState = ContractState.fromByte(state.contractState[row]);
         if (contractState == ContractState.OFFERED) return true;
-        return contractState == ContractState.IN_PROGRESS
-                && ContractType.fromByte(state.contractType[row])
-                == ContractType.PLANETARY_ASSAULT;
+        if (contractState != ContractState.IN_PROGRESS
+                || ContractType.fromByte(state.contractType[row])
+                != ContractType.PLANETARY_ASSAULT) {
+            return false;
+        }
+        int readyDay = state.contractNextPhaseReadyTick[row];
+        return readyDay < 0 || currentDay >= readyDay;
     }
 
     static int targetMarketSlot(CampaignState state, int row) {

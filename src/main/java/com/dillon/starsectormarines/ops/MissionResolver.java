@@ -437,7 +437,7 @@ public final class MissionResolver {
                                                      long patronId, int day) {
         PlanetaryAssaultResolution.Result result = PlanetaryAssaultResolution.apply(
                 state, row, outcome.victory,
-                phaseIndex(outcome), phaseAttempt(outcome));
+                phaseIndex(outcome), phaseAttempt(outcome), day);
         if (result == null) {
             LOG.info("MarineOps: invalid Planetary Assault state for contract "
                     + outcome.contractId + " — no writeback");
