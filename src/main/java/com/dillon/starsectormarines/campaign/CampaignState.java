@@ -131,6 +131,19 @@ public final class CampaignState implements Serializable {
     public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
     public int chronicleCount = 0;
 
+    // ---------- throneClaims[] (Tier-3 endgame handoff; no vanilla writes here) ----------
+
+    public long[] throneClaimId = new long[INITIAL_CAPACITY];
+    public long[] throneClaimSourceChainId = filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] throneClaimHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    public int[] throneClaimSourceFactionId = filledInts(INITIAL_CAPACITY, -1);
+    public int[] throneClaimResultFactionId = filledInts(INITIAL_CAPACITY, -1);
+    public int[] throneClaimMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public byte[] throneClaimState = new byte[INITIAL_CAPACITY];
+    public int[] throneClaimPreparedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] throneClaimAppliedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int throneClaimCount = 0;
+
     // ---------- contracts[] (sixth table — see contracts/overview.md §"contracts[]") ----------
 
     public long[]  contractId            = new long[INITIAL_CAPACITY];
@@ -207,6 +220,7 @@ public final class CampaignState implements Serializable {
     public final LongIntMap stakeIndexById     = new LongIntMap();
     public final LongIntMap chainIndexById     = new LongIntMap();
     public final LongIntMap contractIndexById  = new LongIntMap();
+    public LongIntMap throneClaimIndexById     = new LongIntMap();
     /** house id → row index in {@code playerReputation[]}. Sparse — only touched houses get rep rows. */
     public final LongIntMap repIndexByHouseId  = new LongIntMap();
 
@@ -217,6 +231,7 @@ public final class CampaignState implements Serializable {
     private long nextChainId    = 1;
     private long nextChronicleId = 1;
     private long nextContractId = 1;
+    private long nextThroneClaimId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
@@ -411,6 +426,36 @@ public final class CampaignState implements Serializable {
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
+    }
+
+    /** Prepares one idempotent Tier-3 handoff row per source chain. */
+    public long prepareThroneClaim(long sourceChainId, long houseId,
+                                   int sourceFactionId, int resultFactionId,
+                                   int marketId, int preparedTick) {
+        for (int row = 0; row < throneClaimCount; row++) {
+            if (throneClaimSourceChainId[row] == sourceChainId) {
+                return throneClaimId[row];
+            }
+        }
+        ensureThroneClaimCapacity(throneClaimCount + 1);
+        int i = throneClaimCount++;
+        long id = nextThroneClaimId++;
+        throneClaimId[i] = id;
+        throneClaimSourceChainId[i] = sourceChainId;
+        throneClaimHouseId[i] = houseId;
+        throneClaimSourceFactionId[i] = sourceFactionId;
+        throneClaimResultFactionId[i] = resultFactionId;
+        throneClaimMarketId[i] = marketId;
+        throneClaimState[i] = ThroneClaimState.PREPARED.toByte();
+        throneClaimPreparedTick[i] = preparedTick;
+        throneClaimAppliedTick[i] = -1;
+        throneClaimIndexById.put(id, i);
+        return id;
+    }
+
+    /** O(1) lookup: throne-claim id to row index, or {@code -1}. */
+    public int throneClaimIndex(long id) {
+        return throneClaimIndexById.get(id);
     }
 
     /** Finds or creates a rep row for the given house id. Returns the row index. */
@@ -613,6 +658,28 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleLearnedTick, oldLength, n, -1);
     }
 
+    private void ensureThroneClaimCapacity(int needed) {
+        if (needed <= throneClaimId.length) return;
+        int oldLength = throneClaimId.length;
+        int n = Math.max(needed, throneClaimId.length * 2);
+        throneClaimId = Arrays.copyOf(throneClaimId, n);
+        throneClaimSourceChainId = Arrays.copyOf(throneClaimSourceChainId, n);
+        Arrays.fill(throneClaimSourceChainId, oldLength, n, -1L);
+        throneClaimHouseId = Arrays.copyOf(throneClaimHouseId, n);
+        Arrays.fill(throneClaimHouseId, oldLength, n, -1L);
+        throneClaimSourceFactionId = Arrays.copyOf(throneClaimSourceFactionId, n);
+        Arrays.fill(throneClaimSourceFactionId, oldLength, n, -1);
+        throneClaimResultFactionId = Arrays.copyOf(throneClaimResultFactionId, n);
+        Arrays.fill(throneClaimResultFactionId, oldLength, n, -1);
+        throneClaimMarketId = Arrays.copyOf(throneClaimMarketId, n);
+        Arrays.fill(throneClaimMarketId, oldLength, n, -1);
+        throneClaimState = Arrays.copyOf(throneClaimState, n);
+        throneClaimPreparedTick = Arrays.copyOf(throneClaimPreparedTick, n);
+        Arrays.fill(throneClaimPreparedTick, oldLength, n, -1);
+        throneClaimAppliedTick = Arrays.copyOf(throneClaimAppliedTick, n);
+        Arrays.fill(throneClaimAppliedTick, oldLength, n, -1);
+    }
+
     private void ensureRepCapacity(int needed) {
         if (needed <= repHouseId.length) return;
         int n = Math.max(needed, repHouseId.length * 2);
@@ -718,6 +785,42 @@ public final class CampaignState implements Serializable {
             nextChronicleId = 1L;
             for (int i = 0; i < chronicleCount; i++) {
                 nextChronicleId = Math.max(nextChronicleId, chronicleId[i] + 1L);
+            }
+        }
+        int throneClaimCapacity = throneClaimId != null
+                ? throneClaimId.length : INITIAL_CAPACITY;
+        if (throneClaimId == null) throneClaimId = new long[throneClaimCapacity];
+        if (throneClaimSourceChainId == null) {
+            throneClaimSourceChainId = filledLongs(throneClaimCapacity, -1L);
+        }
+        if (throneClaimHouseId == null) {
+            throneClaimHouseId = filledLongs(throneClaimCapacity, -1L);
+        }
+        if (throneClaimSourceFactionId == null) {
+            throneClaimSourceFactionId = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimResultFactionId == null) {
+            throneClaimResultFactionId = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimMarketId == null) {
+            throneClaimMarketId = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimState == null) throneClaimState = new byte[throneClaimCapacity];
+        if (throneClaimPreparedTick == null) {
+            throneClaimPreparedTick = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimAppliedTick == null) {
+            throneClaimAppliedTick = filledInts(throneClaimCapacity, -1);
+        }
+        if (throneClaimIndexById == null) throneClaimIndexById = new LongIntMap();
+        throneClaimIndexById.clear();
+        for (int i = 0; i < throneClaimCount; i++) {
+            throneClaimIndexById.put(throneClaimId[i], i);
+        }
+        if (nextThroneClaimId <= 0L) {
+            nextThroneClaimId = 1L;
+            for (int i = 0; i < throneClaimCount; i++) {
+                nextThroneClaimId = Math.max(nextThroneClaimId, throneClaimId[i] + 1L);
             }
         }
         if (contractOfferExpiresTick == null) {
