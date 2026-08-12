@@ -31,3 +31,42 @@ wall corner, so keep it < 1 and rely on the 8-dir path's wall clearance).
   ARRIVE_RADIUS test; `moveProgress` accessors deleted (2b already swept the
   gates, so the remaining references are the mover itself + FacingSystem's
   locomotion phase).
+
+## 2a-3 — critique findings on 2d4bad01 (fix slice)
+
+The 2a-1 critique pass confirmed the mover core sound (repath throttle,
+arrival pinning, gait cadence, conventions, released-ref safety all clean)
+but found:
+
+1. **BLOCKER — one-cell paths born exhausted.** `findPath(start==goal)`
+   returns `{x,y}`; `setPath` inits `pathIdx=1` == count, so the unit is
+   never pulled to the pin. Behaviors that re-issue findPath every repath
+   window (HoldPortalCordon, GarrisonCordon, BreakLOS, planter…) clobber
+   the in-flight path inside the final entry band (0.35–0.71 from center)
+   and strand the unit: `settled` true, `atCell` false forever —
+   ChargeSiteObjective gates on both → mission softlock.
+   Fix: init `pathIdx = 0` for one-cell paths (PurePursuit's n==1 branch
+   returns the center as an atEnd carrot; the mech pivot gate already
+   bypasses a (0,0) delta). Add the missing single-cell-assignment test.
+2. **Walk-pose/facing strobe.** FacingSystem's `havePathDelta`
+   (nextPathCell − flooredCell) is (0,0) for the second half of every
+   segment → `moving` flickers ~50% duty and targetless walkers snap to
+   SOUTH each cell.
+3. **Mech per-cell stutter + lost turn-step.** MechLocomotionSystem's
+   zero-delta fall-through turns the chassis toward its combat target
+   mid-segment; the pivot gate then freezes translation at the next
+   waypoint. And mech `moving` = path-un-exhausted is true during the
+   pivot gate, so `turnStepPhase` can't play.
+4. **Hold-with-retained-path renders frozen mid-stride** (rocket aim,
+   flee dwell) — presentation half of the deleted stop-snaps.
+
+Unified fix (this was in fact the original 2a design above — "derive from
+the mover's velocity"): MOVEMENT gains per-tick `VEL_X/VEL_Y` (cells/sec),
+zeroed for all movers at tick start, written by `advanceAlongPath` when it
+actually translates (and on the pin). FacingSystem: `moving` := |v| > 0;
+travel bearing := sign-quantized velocity octant (replaces the path-cell
+delta fallback). Mech row same; pivot-gated mech has v=0 → turnStep plays.
+MechLocomotionSystem: zero path-delta holds heading (stopTurning +
+continue), never falls through to target-turning while a path is
+un-exhausted. Plus: clamp translation step to carrot distance (future
+fast-mover overshoot); fix stale HoldPortalCordon doc.
