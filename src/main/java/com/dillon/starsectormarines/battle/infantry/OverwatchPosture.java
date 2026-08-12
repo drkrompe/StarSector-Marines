@@ -49,6 +49,7 @@ public final class OverwatchPosture implements Action {
     @Override public WorldState effects() { return EFF; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return COST; }
     @Override public int requiredMembers() { return 1; }
+    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {

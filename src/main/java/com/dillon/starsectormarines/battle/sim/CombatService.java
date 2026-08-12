@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -58,6 +61,59 @@ public final class CombatService {
     /** The primary handheld weapon flyweight, or {@code null} for a combatant with no per-weapon profile (militia/aliens/turrets fire off the baked attack stats). Seeded at allocate; assigned at deboard via {@link #setPrimaryWeapon}. */
     public MarineWeapon primaryWeapon(long id) { return (MarineWeapon) entityWorld.getObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON); }
     public void setPrimaryWeapon(long id, MarineWeapon w) { entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, w); }
+
+    public EquipmentGrade equipmentGrade(long id) {
+        EquipmentGrade grade = (EquipmentGrade) entityWorld.getObject(id, components.COMBAT,
+                BattleComponents.COMBAT_EQUIPMENT_GRADE);
+        return grade != null ? grade : EquipmentGrade.SERVICE;
+    }
+    public void setEquipmentGrade(long id, EquipmentGrade grade) {
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
+                grade != null ? grade : EquipmentGrade.SERVICE);
+        refreshTieredPrimaryStats(id);
+    }
+
+    public SoldierProfile soldierProfile(long id) {
+        SoldierProfile profile = (SoldierProfile) entityWorld.getObject(id, components.COMBAT,
+                BattleComponents.COMBAT_SOLDIER_PROFILE);
+        return profile != null ? profile : SoldierProfile.REGULAR;
+    }
+    public void setSoldierProfile(long id, SoldierProfile profile) {
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
+                profile != null ? profile : SoldierProfile.REGULAR);
+        refreshTieredPrimaryStats(id);
+    }
+
+    /** Replaces the whole family × grade × soldier combination at runtime. */
+    public void equipPrimaryWeapon(long id, MarineWeapon weapon, EquipmentGrade grade,
+                                   SoldierProfile profile) {
+        setPrimaryWeapon(id, weapon);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
+                grade != null ? grade : EquipmentGrade.SERVICE);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
+                profile != null ? profile : SoldierProfile.REGULAR);
+        refreshTieredPrimaryStats(id);
+    }
+
+    /** Adds earned XP and immediately refreshes the shooter's derived handling stats. */
+    public SoldierProfile addExperience(long id, int gainedXp) {
+        SoldierProfile updated = soldierProfile(id).withExperience(gainedXp);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE, updated);
+        refreshTieredPrimaryStats(id);
+        return updated;
+    }
+
+    private void refreshTieredPrimaryStats(long id) {
+        MarineWeapon weapon = primaryWeapon(id);
+        if (weapon == null) return;
+        EquipmentGrade grade = equipmentGrade(id);
+        SoldierProfile profile = soldierProfile(id);
+        setAttackRange(id, InfantryCombatStats.range(weapon, grade));
+        setAttackDamage(id, InfantryCombatStats.damage(weapon, grade));
+        setAccuracy(id, InfantryCombatStats.accuracy(weapon, grade, profile));
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN,
+                InfantryCombatStats.cooldown(weapon, grade, profile));
+    }
 
     public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
     public void setTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v); }

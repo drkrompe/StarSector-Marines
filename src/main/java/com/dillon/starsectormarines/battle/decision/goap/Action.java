@@ -97,6 +97,17 @@ public interface Action {
     }
 
     /**
+     * Whether the infantry dispatcher may fill an otherwise-empty fire intent
+     * with a legal shot of opportunity after this action executes. Most
+     * movement and posture actions permit it. Deliberately silent maneuvers
+     * (ambush overwatch, flanking, breach stack-up) override this to preserve
+     * their doctrine rather than relying on dispatcher-side type checks.
+     */
+    default boolean permitsOpportunityFire() {
+        return true;
+    }
+
+    /**
      * Runs one tick of this action for one assigned {@code member}. Called
      * in the serial unit-update pass; free to mutate the sim. Returns:
      * <ul>

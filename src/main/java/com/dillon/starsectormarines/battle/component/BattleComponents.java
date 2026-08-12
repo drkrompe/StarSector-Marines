@@ -53,6 +53,8 @@ public final class BattleComponents {
     public static final int IDENTITY_FACTION = 1;
     /** {@link #IDENTITY} field 2: the human-readable name (String OBJECT) — greppable id like {@code "m0"} / {@code "drone-dh1-5"}, seeded from the ctor String id, read by id via {@code IdentityService.name}. Debug/log/test-facing; the stable machine identity is the {@code long} entityId. */
     public static final int IDENTITY_NAME = 2;
+    /** Persisted campaign soldier id for player marines; null for generated units. */
+    public static final int IDENTITY_CAMPAIGN_SOLDIER_ID = 3;
 
     /** {@link #POSITION} field 0: logical cell x (INT). */
     public static final int POSITION_CELL_X = 0;
@@ -158,6 +160,10 @@ public final class BattleComponents {
     public static final int COMBAT_FIRE_STANCE = 11;
     /** {@link #COMBAT} field 12: run {@code battle.infantry.RepositionToCover} after this fire, as 0/1 (INT) — {@code EngagePosture}'s post-fire hook, gated so it only fires same-tick as a successful shot. */
     public static final int COMBAT_FIRE_REPOSITION = 12;
+    /** {@link #COMBAT} field 13: the primary weapon's {@link com.dillon.starsectormarines.battle.infantry.EquipmentGrade} (OBJECT). */
+    public static final int COMBAT_EQUIPMENT_GRADE = 13;
+    /** {@link #COMBAT} field 14: the combatant's immutable {@link com.dillon.starsectormarines.battle.infantry.SoldierProfile} (OBJECT). */
+    public static final int COMBAT_SOLDIER_PROFILE = 14;
 
     /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
     public static final int MOVEMENT_MOVE_PROGRESS = 0;
@@ -805,7 +811,8 @@ public final class BattleComponents {
     public final Query combatants;
 
     public BattleComponents(EntityWorld world) {
-        IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
+        IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
+                FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
         RENDER_POSITION = world.register(2, "RenderPosition", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
@@ -815,7 +822,8 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG,
                 FieldKind.FLOAT, FieldKind.OBJECT,
-                FieldKind.LONG, FieldKind.INT, FieldKind.INT);
+                FieldKind.LONG, FieldKind.INT, FieldKind.INT,
+                FieldKind.OBJECT, FieldKind.OBJECT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);

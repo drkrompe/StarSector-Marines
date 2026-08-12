@@ -9,7 +9,9 @@ public enum LayeredArmorFamily {
     RED_ELITE,
     OUTLAW,
     ARMY_GREEN,
-    MILITIA;
+    MILITIA,
+    /** Cloth fatigues and a bare head; kept last so legacy persisted ordinals remain stable. */
+    ARMORLESS;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {

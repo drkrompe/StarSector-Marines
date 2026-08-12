@@ -27,11 +27,16 @@ public class ClientListPanel extends OpsPanel {
     private static final float FOOTER_GAP    = 12f;
 
     private Runnable onBack;
+    private Runnable onArmory;
     private Runnable onTilesetDebug;
     private Runnable onUnitDebug;
 
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
+    }
+
+    public void setOnArmory(Runnable onArmory) {
+        this.onArmory = onArmory;
     }
 
     public void setOnTilesetDebug(Runnable onTilesetDebug) {
@@ -52,7 +57,8 @@ public class ClientListPanel extends OpsPanel {
         // Footer at column bottom — Back on the left, optional dev buttons (Tiles, Units)
         // packed evenly along the rest of the row. Layout adapts so we don't leave dead
         // space when only Tiles is wired and a future widening drops the Units button.
-        int devCount = (onTilesetDebug != null ? 1 : 0) + (onUnitDebug != null ? 1 : 0);
+        int devCount = (onArmory != null ? 1 : 0) + (onTilesetDebug != null ? 1 : 0)
+                + (onUnitDebug != null ? 1 : 0);
         float backFrac = devCount == 0 ? 1f : (devCount == 1 ? 0.55f : 0.40f);
         if (onBack != null) {
             float backW = rect.w * backFrac - (devCount > 0 ? 4f : 0f);
@@ -66,6 +72,13 @@ public class ClientListPanel extends OpsPanel {
             float devTotalW = rect.w * (1f - backFrac) - 4f;
             float devSlotW = (devTotalW - 4f * (devCount - 1)) / devCount;
             float devX = rect.x + rect.w * backFrac + 4f;
+            if (onArmory != null) {
+                ButtonWidget armory = new ButtonWidget(devX, rect.y, devSlotW, BACK_H, onArmory);
+                widgets.add(armory);
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        "Armory", devX + 8f, rect.y + BACK_H - 6f, HEADER_COLOR));
+                devX += devSlotW + 4f;
+            }
             if (onTilesetDebug != null) {
                 ButtonWidget tiles = new ButtonWidget(devX, rect.y, devSlotW, BACK_H, onTilesetDebug);
                 widgets.add(tiles);

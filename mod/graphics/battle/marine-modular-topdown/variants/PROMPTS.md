@@ -45,3 +45,31 @@ flashes, slings, bipods, ammunition, and other objects.
   warning marks, and a silhouette substantially larger and wider than a rifle.
 - Laser gun: slim gunmetal emitter, squared power cell, cyan inset conduits, cobalt panel,
   contained glow only.
+- SMG/light machine gun: compact shortened receiver and barrel, thick practical fore-end,
+  small box magazine, worn dark gunmetal and steel; explicitly shorter and stockier than
+  the standard rifle.
+- DMR/compact railgun: long narrow reinforced barrel shroud, squared receiver, small flush
+  magazine, restrained cool-blue rail details, and a practical precision silhouette;
+  explicitly longer and slimmer than the standard rifle.
+
+The SMG and DMR were generated on a uniform `#00ff00` chroma background because green was
+absent from their weapon palettes. Both prompts required exact zenith orthographic framing,
+north-pointing muzzles, complete silhouettes with generous padding, and no operator, hands,
+arms, straps, floor, shadow, reflection, muzzle flash, text, or perspective tilt.
+
+## Armorless and equipment-grade exemplars
+
+- Armorless body: olive-drab cloth fatigues, dark undershirt, canvas web harness and soft
+  shoulder fabric; explicit prohibition on hard plates, pauldrons, head, arms and weapon;
+  the empty round head socket remains centered for the independent layer.
+- Armorless head: bare crown/back of skull, close-cropped dark hair, ears barely visible and
+  a subtle north-facing hairline cue; explicit prohibition on helmet, neck armor and shoulders.
+- Surplus rifle: accepted rifle geometry retained, but rendered in worn parkerized steel,
+  faded olive furniture, a repaired seam, taped grip and restrained field wear.
+- Masterwork DMR: accepted DMR geometry retained, with precise dark gunmetal/charcoal ceramic,
+  tighter seams, titanium edges and restrained cyan status insets; quality reads through fit
+  and construction rather than ornament or glow.
+
+All four were generated with the built-in ImageGen tool on flat `#00ff00`, converted to alpha
+with the ImageGen chroma helper, normalized with `build_variants.py`, and checked in composed
+224 px previews before runtime registration.

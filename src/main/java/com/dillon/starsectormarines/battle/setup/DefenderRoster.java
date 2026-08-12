@@ -39,14 +39,17 @@ public final class DefenderRoster {
     public final int militiaCount;
     /** Members per non-garrison patrol squad. Scales with risk so 200-defender HIGH maps don't end up with 60+ three-member patrols. */
     public final int patrolSquadSize;
+    /** Mission pressure used to roll individual gear quality and experience. */
+    public final RiskLevel risk;
 
     private DefenderRoster(int totalCount, int eliteCount, int mechCount,
-                           int militiaCount, int patrolSquadSize) {
+                           int militiaCount, int patrolSquadSize, RiskLevel risk) {
         this.totalCount = totalCount;
         this.eliteCount = eliteCount;
         this.mechCount = mechCount;
         this.militiaCount = militiaCount;
         this.patrolSquadSize = patrolSquadSize;
+        this.risk = risk != null ? risk : RiskLevel.LOW;
     }
 
     /**
@@ -63,7 +66,7 @@ public final class DefenderRoster {
         int elites = Math.round(nonMech * eliteRatioFor(risk));
         if (elites > nonMech) elites = nonMech;
         int militia = nonMech - elites;
-        return new DefenderRoster(total, elites, mechs, militia, patrolSizeFor(risk));
+        return new DefenderRoster(total, elites, mechs, militia, patrolSizeFor(risk), risk);
     }
 
     private static int totalFor(MissionType type, RiskLevel risk) {

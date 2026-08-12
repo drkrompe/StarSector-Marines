@@ -8,6 +8,7 @@ package com.dillon.starsectormarines.ops;
  */
 public enum ScreenId {
     MISSION_SELECT,
+    ARMORY,
     BRIEFING,
     STATIONING,
     BATTLE,

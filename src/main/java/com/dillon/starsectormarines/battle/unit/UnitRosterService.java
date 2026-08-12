@@ -429,7 +429,9 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
         }
         if (layerDrawn) {
-            int armorFamily = LayeredArmorFamily.spawnDefault(spec.type).ordinal();
+            int armorFamily = (spec.layeredArmorFamily != null
+                    ? spec.layeredArmorFamily
+                    : LayeredArmorFamily.spawnDefault(spec.type)).ordinal();
             entityWorld.setFloat(id, components.LAYERED_ANIMATION,
                     BattleComponents.LAYERED_FACING_DEGREES, 180f);
             entityWorld.setInt(id, components.LAYERED_ANIMATION,
@@ -462,6 +464,8 @@ public final class UnitRosterService {
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, spec.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, spec.faction);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, spec.name);
+        entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID, spec.campaignSoldierId);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, spec.cellX);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, spec.cellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
@@ -487,6 +491,10 @@ public final class UnitRosterService {
             // per-weapon profile (militia/aliens/turrets); a fresh row appends null,
             // so this seed is what makes a marine's deboard loadout canonical.
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, spec.primaryWeapon);
+            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
+                    spec.equipmentGrade);
+            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
+                    spec.soldierProfile);
         }
         if (hasSecondary) {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec.secondaryWeapon);

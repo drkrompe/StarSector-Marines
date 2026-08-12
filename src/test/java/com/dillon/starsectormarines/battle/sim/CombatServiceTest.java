@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
+import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -13,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Contract for {@link CombatService}'s OBJECT primary-weapon column — the COMBAT
@@ -84,5 +89,25 @@ public class CombatServiceTest {
         assertFalse(combat.has(id));
         assertThrows(IllegalArgumentException.class, () -> combat.primaryWeapon(id));    // corpse
         assertThrows(IllegalArgumentException.class, () -> combat.primaryWeapon(999L));  // never allocated
+    }
+
+    @Test
+    public void equipAndExperienceRefreshDerivedCombatStats() {
+        UnitRosterService r = roster();
+        long id = r.spawn(unit("u"));
+        CombatService combat = r.combat();
+        SoldierProfile green = new SoldierProfile(SoldierAptitude.STEADY, 0);
+        combat.equipPrimaryWeapon(id, MarineWeapon.DMR, EquipmentGrade.SURPLUS, green);
+        float greenAccuracy = combat.accuracy(id);
+        float greenCooldown = combat.attackCooldown(id);
+
+        SoldierProfile veteran = combat.addExperience(id,
+                ExperienceTier.VETERAN.minimumXp);
+
+        assertEquals(ExperienceTier.VETERAN, veteran.experienceTier());
+        assertTrue(combat.accuracy(id) > greenAccuracy);
+        assertTrue(combat.attackCooldown(id) < greenCooldown);
+        assertEquals(EquipmentGrade.SURPLUS, combat.equipmentGrade(id));
+        assertEquals(veteran, combat.soldierProfile(id));
     }
 }

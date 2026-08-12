@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -341,6 +342,8 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
             Object[] primaryWeapon = t.has(c.COMBAT)
                     ? t.objects(c.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON).array() : null;
+            Object[] equipmentGrade = t.has(c.COMBAT)
+                    ? t.objects(c.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE).array() : null;
             float[] layeredFacing = hasLayered
                     ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES).array() : null;
             float[] layeredLocomotion = hasLayered
@@ -420,6 +423,8 @@ public final class UnitRenderService implements RenderSystem {
                     float cy = cam.cellToScreenY(ry[r] + 0.5f);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
+                            equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
+                                    : EquipmentGrade.SERVICE,
                             cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,
                             layeredFacing[r], layeredHeadLook[r], layeredLocomotion[r],
                             layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha);

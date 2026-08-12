@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Frozen snapshot of a completed mission's results — everything the RESULTS
  * screen displays and everything {@link MissionResolver#apply} writes back to
@@ -56,6 +60,8 @@ public final class MissionOutcome {
     public final int     salvageRecoveryBonusPct;
     /** Frozen deterministic chance for the high-value catalog roll. */
     public final int     salvageHighValueChancePct;
+    public final Set<String> survivingSoldierIds;
+    public final Set<String> fallenSoldierIds;
 
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
@@ -69,6 +75,29 @@ public final class MissionOutcome {
                           int campaignEventMarketId, int civiliansAtRisk,
                           int civiliansRescued, int salvageEntitlement,
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct) {
+        this(victory, missionId, missionName, missionType, risk, missionSource,
+                payoutBase, payoutEarned, marinesEngaged, marinesLost,
+                captainId, captainName, priorCaptainStatus, newCaptainStatus,
+                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
+                targetIndustryId, targetFactionId, contractId, campaignEventId,
+                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
+                salvageEntitlement, salvageRecoveryBonusPct,
+                salvageHighValueChancePct, Collections.emptySet(), Collections.emptySet());
+    }
+
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
+                          String captainId, String captainName,
+                          Status priorCaptainStatus, Status newCaptainStatus,
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, int civiliansAtRisk,
+                          int civiliansRescued, int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -100,5 +129,14 @@ public final class MissionOutcome {
         this.salvageEntitlement = salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));
+        this.survivingSoldierIds = immutableIds(survivingSoldierIds);
+        this.fallenSoldierIds = immutableIds(fallenSoldierIds);
+    }
+
+    private static Set<String> immutableIds(Set<String> source) {
+        if (source == null || source.isEmpty()) return Collections.emptySet();
+        Set<String> copy = new HashSet<>();
+        for (String id : source) if (id != null) copy.add(id);
+        return Collections.unmodifiableSet(copy);
     }
 }

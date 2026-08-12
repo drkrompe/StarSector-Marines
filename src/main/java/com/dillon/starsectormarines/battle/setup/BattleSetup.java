@@ -20,6 +20,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 
@@ -376,8 +378,9 @@ public final class BattleSetup {
             // (so they fire opportunistically en route), drop any secondary so
             // they're not lugging a rocket launcher to a charge plant.
             ChargeSiteObjective site = sites.get(dropIndex % sites.size());
-            MarineWeapon planterPrimary = roster[0].primary;
-            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, planterPrimary, null, 0);
+            MarineLoadout prior = roster[0];
+            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primary,
+                    prior.equipmentGrade, prior.soldierProfile, null, 0);
         }
         return roster;
     }
@@ -429,12 +432,15 @@ public final class BattleSetup {
         int rocketSlot = (capacity > 1) ? capacity - 1 : -1;
         for (int i = 0; i < capacity; i++) {
             MarineWeapon primary = rollPrimary(rng);
+            EquipmentGrade grade = InfantryLoadoutRolls.playerEquipmentGrade(rng);
+            SoldierProfile profile = InfantryLoadoutRolls.playerProfile(rng);
             if (i == rocketSlot) {
-                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary,
+                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, grade, profile,
                         MarineSecondary.ROCKET_LAUNCHER,
                         MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
             } else {
-                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, null, 0);
+                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, grade, profile,
+                        null, 0);
             }
         }
         return roster;
@@ -1052,7 +1058,7 @@ public final class BattleSetup {
                 : Collections.emptyList();
         if (defenderNodes.isEmpty()) {
             List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, roster.totalCount);
-            spawnLegacyDefenderCluster(sim, cells, roster);
+            spawnLegacyDefenderCluster(sim, cells, roster, rng);
             return;
         }
         // Highest priority first — these get garrisons; the rest become patrol anchors.
@@ -1097,7 +1103,8 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
+                        roster.risk, rng);
                 unit.role(UnitRole.GARRISON);
                 unit.home(cell[0], cell[1]);
                 if (squad == null) {
@@ -1151,7 +1158,8 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
+                        roster.risk, rng);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1181,7 +1189,8 @@ public final class BattleSetup {
      * {@link #allocateDefenders}'s Pass-1/2 ordering so the highest-rank
      * defenders cluster into the first squad rather than scattering.
      */
-    private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, DefenderRoster roster) {
+    private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells,
+                                                   DefenderRoster roster, Random rng) {
         // Same mech-vs-infantry split as allocateDefenders — each squad
         // drains from a single source queue so mechs and infantry never
         // share membership.
@@ -1206,7 +1215,8 @@ public final class BattleSetup {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
+                        roster.risk, rng);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1227,8 +1237,14 @@ public final class BattleSetup {
      * presence component attached <em>after</em> the unit is added to the sim —
      * see {@link #attachMechLoadout} — because the loadout store is keyed by the
      * entity id, which isn't assigned until {@code addUnit}. */
-    private static EntitySpec makeDefender(String id, UnitType type, int x, int y) {
-        return new EntitySpec(id, Faction.DEFENDER, type, x, y);
+    private static EntitySpec makeDefender(String id, UnitType type, int x, int y,
+                                           RiskLevel risk, Random rng) {
+        EntitySpec unit = new EntitySpec(id, Faction.DEFENDER, type, x, y);
+        if (!type.drawnAsLayers()) return unit;
+        MarineWeapon family = InfantryLoadoutRolls.defenderPrimary(type, rng);
+        EquipmentGrade grade = InfantryLoadoutRolls.defenderEquipmentGrade(type, risk, rng);
+        SoldierProfile profile = InfantryLoadoutRolls.defenderProfile(type, risk, rng);
+        return unit.primaryWeapon(family, grade, profile);
     }
 
     /**

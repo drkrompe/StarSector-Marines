@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
@@ -45,6 +49,10 @@ public final class EntitySpec {
     public int secondaryAmmo;
     public AirBody body;
     public MarineWeapon primaryWeapon;
+    public EquipmentGrade equipmentGrade = EquipmentGrade.SERVICE;
+    public SoldierProfile soldierProfile = SoldierProfile.REGULAR;
+    public String campaignSoldierId;
+    public LayeredArmorFamily layeredArmorFamily;
     public Objective assignedObjective;
     public int homeCellX = -1;
     public int homeCellY = -1;
@@ -89,6 +97,8 @@ public final class EntitySpec {
     public EntitySpec hubSpawnCooldown(float sec) { this.hubSpawnCooldown = sec; return this; }
     public EntitySpec turretKind(TurretKind kind) { this.turretKind = kind; return this; }
     public EntitySpec homeHubId(long id) { this.homeHubId = id; return this; }
+    public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
+    public EntitySpec layeredArmorFamily(LayeredArmorFamily family) { this.layeredArmorFamily = family; return this; }
 
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }
     public EntitySpec hp(float v) { this.hp = v; return this; }
@@ -109,11 +119,25 @@ public final class EntitySpec {
      * {@code Drone} factory both use (a per-weapon profile drives the fire math).
      */
     public EntitySpec primaryWeapon(MarineWeapon weapon) {
+        return primaryWeapon(weapon, EquipmentGrade.SERVICE, SoldierProfile.REGULAR);
+    }
+
+    /** Resolves one tiered weapon family through this individual soldier. */
+    public EntitySpec primaryWeapon(MarineWeapon weapon, EquipmentGrade grade,
+                                    SoldierProfile profile) {
         this.primaryWeapon = weapon;
-        this.attackRange = weapon.range;
-        this.attackDamage = weapon.damage;
-        this.accuracy = weapon.accuracy;
-        this.attackCooldown = weapon.cooldown;
+        this.equipmentGrade = grade != null ? grade : EquipmentGrade.SERVICE;
+        this.soldierProfile = profile != null ? profile : SoldierProfile.REGULAR;
+        this.attackRange = InfantryCombatStats.range(weapon, this.equipmentGrade);
+        this.attackDamage = InfantryCombatStats.damage(weapon, this.equipmentGrade);
+        this.accuracy = InfantryCombatStats.accuracy(weapon, this.equipmentGrade, this.soldierProfile);
+        this.attackCooldown = InfantryCombatStats.cooldown(weapon, this.equipmentGrade, this.soldierProfile);
+        return this;
+    }
+
+    /** Profile-only seed for infantry that still uses baked archetype weapon stats. */
+    public EntitySpec soldierProfile(SoldierProfile profile) {
+        this.soldierProfile = profile != null ? profile : SoldierProfile.REGULAR;
         return this;
     }
 

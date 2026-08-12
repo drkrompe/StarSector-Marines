@@ -7,7 +7,11 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -153,5 +157,79 @@ public class InfantryUnitPrepTest {
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),
                 "friendly turret must not be a rocket target");
+    }
+
+    @Test
+    public void opportunityPrimaryAuthorsClosestLegalTargetWithoutChangingPursuit() {
+        BattleSimulation sim = openArena(30, 10);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5));
+        long pursuit = sim.spawn(new EntitySpec("far", Faction.MARINE, UnitType.MARINE, 22, 5));
+        long opportunity = sim.spawn(new EntitySpec("near", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        sim.world().setTargetId(defender, pursuit);
+
+        assertTrue(InfantryUnitPrep.tryOpportunityPrimary(defender, sim));
+        assertEquals(opportunity, sim.combat().fireTargetId(defender));
+        assertEquals(pursuit, sim.world().targetId(defender),
+                "a passing shot must not replace the action's pursuit target");
+    }
+
+    @Test
+    public void opportunityPrimaryDoesNotOverrideActionAuthoredIntent() {
+        BattleSimulation sim = openArena(30, 10);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5));
+        long chosen = sim.spawn(new EntitySpec("chosen", Faction.MARINE, UnitType.MARINE, 10, 5));
+        sim.spawn(new EntitySpec("closer", Faction.MARINE, UnitType.MARINE, 7, 5));
+        sim.combat().setFireIntent(defender, chosen,
+                com.dillon.starsectormarines.battle.combat.FireStance.STANCED, false);
+
+        assertFalse(InfantryUnitPrep.tryOpportunityPrimary(defender, sim));
+        assertEquals(chosen, sim.combat().fireTargetId(defender));
+    }
+
+    @Test
+    public void silentDoctrineActionsOptOutOfDispatcherOpportunityFire() {
+        assertFalse(OverwatchPosture.INSTANCE.permitsOpportunityFire());
+        assertFalse(new FlankApproach(10, 10).permitsOpportunityFire());
+        assertFalse(new BreachAndAdvance(1, new int[]{1}, new int[]{1},
+                new int[]{2}, new int[]{2}).permitsOpportunityFire());
+        assertFalse(new ChokePointHold(1, 5, 5, java.util.List.of(new int[]{4, 5}))
+                .permitsOpportunityFire());
+        assertTrue(RegroupPosture.INSTANCE.permitsOpportunityFire(),
+                "ordinary movement should retain the opportunity-fire safety net");
+    }
+
+    @Test
+    public void defenderWithoutReadyPlanStillTakesOpportunityShot() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squadId));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "a replan gap must not cost a defender a legal shot");
+    }
+
+    @Test
+    public void dispatcherPreservesSilentOverwatchDoctrine() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squadId));
+        sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        SquadPlan.Step step = new SquadPlan.Step(OverwatchPosture.INSTANCE);
+        step.assignments.put("any", List.of(defender));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(0L, sim.combat().fireTargetId(defender),
+                "the shared safety net must not break a closed kill-zone ambush");
     }
 }

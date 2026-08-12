@@ -12,9 +12,12 @@ import java.awt.Color;
 /**
  * Primary handheld weapon catalog for marines. Each entry maps to a vanilla
  * Starsector weapon for free art / audio, but the stats are ground-combat
- * tuned (cells, not space-combat pixels). Loadout is per-marine, assigned at
- * deboard time in {@code tryDeboardMarine} via
- * {@link MarineLoadout#primary}.
+ * tuned (cells, not space-combat pixels). This enum is the weapon FAMILY:
+ * firing pattern, projectile presentation, and baseline stats. Per-instance
+ * {@link EquipmentGrade} and {@link SoldierProfile} modifiers are resolved
+ * when the combatant is seeded, so tier variants do not duplicate enum values
+ * or require different layered sprites. Loadout is per-marine, assigned at
+ * deboard time via {@link MarineLoadout#primary}.
  *
  * <p>Primaries render as colored line tracers (pulse-laser-style), not full
  * projectile sprites — vanilla pulse lasers have no bullet sprite anyway, and

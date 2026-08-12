@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -31,7 +33,7 @@ import java.util.List;
  */
 public final class SquadDetailPanel implements HudPanel {
 
-    private static final float PANEL_W       = 380f;
+    private static final float PANEL_W       = 440f;
     private static final float HEADER_H      = 32f;
     private static final float ROW_H         = 28f;
     private static final float PAD_INNER     = 8f;
@@ -44,8 +46,9 @@ public final class SquadDetailPanel implements HudPanel {
     private static final float COL_HP_BAR    = 56f;
     private static final float COL_HP_TEXT   = 156f;
     private static final float COL_PRIMARY   = 218f;
-    private static final float COL_SECONDARY = 268f;
-    private static final float COL_ROLE      = 338f;
+    private static final float COL_SECONDARY = 282f;
+    private static final float COL_PROFILE   = 344f;
+    private static final float COL_ROLE      = 416f;
     private static final float HP_BAR_W      = 92f;
     private static final float HP_BAR_H      = 10f;
 
@@ -77,6 +80,7 @@ public final class SquadDetailPanel implements HudPanel {
      * registry-backed — safe to hold); hp/maxHp/ammo/role are copied by value.
      */
     private record MemberRow(float hp, float maxHp, MarineWeapon primary,
+                             EquipmentGrade grade, SoldierProfile profile,
                              MarineSecondary secondary, int secondaryAmmo, UnitRole role) {}
 
     public SquadDetailPanel(BattleUiContext ctx) {
@@ -132,6 +136,7 @@ public final class SquadDetailPanel implements HudPanel {
         for (long u : live) {
             boolean hasSec = sim.world().hasSecondaryWeapon(u);
             rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u), sim.combat().primaryWeapon(u),
+                    sim.combat().equipmentGrade(u), sim.combat().soldierProfile(u),
                     hasSec ? sim.world().secondaryWeapon(u) : null,
                     hasSec ? sim.world().secondaryAmmo(u) : 0, sim.role().role(u)));
         }
@@ -219,7 +224,7 @@ public final class SquadDetailPanel implements HudPanel {
             Fonts.ORBITRON_20.drawString(curHp + "/" + maxHp,
                     rowLeft + COL_HP_TEXT, textBaseline, NAME_FG, alphaMult);
 
-            String primary = WeaponSymbols.primaryAbbrev(m.primary());
+            String primary = WeaponSymbols.primaryAbbrev(m.primary(), m.grade());
             Fonts.ORBITRON_20.drawString(primary,
                     rowLeft + COL_PRIMARY, textBaseline,
                     WeaponSymbols.primaryColor(m.primary()), alphaMult);
@@ -232,6 +237,9 @@ public final class SquadDetailPanel implements HudPanel {
                     Fonts.ORBITRON_20.drawString(text, rowLeft + COL_SECONDARY, textBaseline, c, alphaMult);
                 }
             }
+
+            Fonts.ORBITRON_20.drawString(m.profile().shortLabel(),
+                    rowLeft + COL_PROFILE, textBaseline, NAME_FG, alphaMult);
 
             String role = WeaponSymbols.roleBadge(m.role());
             if (role != null) {

@@ -13,6 +13,10 @@
     "headWidthSw": 0.48
   },
   "armorFamilies": {
+    "armorless": {
+      "body": "armor/armorless/body.png",
+      "head": "armor/armorless/head.png"
+    },
     "charcoal": {
       "body": "armor/charcoal/body.png",
       "head": "armor/charcoal/head.png"
@@ -80,6 +84,26 @@
       "pivotSw": [0.0667, 0.4867],
       "muzzleSw": [0.0667, 0.0],
       "aimedOffsetSw": [0.1733, -0.12]
+    },
+    "smg": {
+      "path": "weapons/smg.png",
+      "sizeHeightSw": 0.52,
+      "pivotHeightFraction": 0.75,
+      "aimedOffsetSw": [0.1733, -0.12]
+    },
+    "dmr": {
+      "path": "weapons/dmr.png",
+      "sizeHeightSw": 0.82,
+      "pivotHeightFraction": 0.75,
+      "aimedOffsetSw": [0.1733, -0.12]
+    }
+  },
+  "gradeOverrides": {
+    "surplus": {
+      "rifle": "weapons/grades/surplus/rifle.png"
+    },
+    "masterwork": {
+      "dmr": "weapons/grades/masterwork/dmr.png"
     }
   }
 }

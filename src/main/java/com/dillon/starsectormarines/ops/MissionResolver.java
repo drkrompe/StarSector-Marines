@@ -41,6 +41,8 @@ import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
 import java.util.Random;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Turns a finished {@link BattleSimulation} + the briefing's selected
@@ -125,16 +127,30 @@ public final class MissionResolver {
         // deboarded marine is in exactly one of the two (live registry or a
         // corpse), so engaged = survivors + casualties.
         UnitRosterService roster = sim.getRoster();
+        BattleComponents c = sim.getBattleComponents();
         int marinesAlive = 0;
+        Set<String> survivingSoldierIds = new HashSet<>();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            if (roster.identity().faction(roster.get(i)) == Faction.MARINE) marinesAlive++;
+            long unit = roster.get(i);
+            if (roster.identity().faction(unit) == Faction.MARINE) {
+                marinesAlive++;
+                String id = (String) sim.getEntityWorld().getObject(unit, c.IDENTITY,
+                        BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
+                if (id != null) survivingSoldierIds.add(id);
+            }
         }
         int rawMarinesLost = 0;
-        BattleComponents c = sim.getBattleComponents();
+        Set<String> fallenSoldierIds = new HashSet<>();
         for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
             Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
+            Object[] soldierIds = t.objects(c.IDENTITY,
+                    BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
-                if (factions[r] == Faction.MARINE) rawMarinesLost++;
+                if (factions[r] == Faction.MARINE) {
+                    rawMarinesLost++;
+                    String id = (String) soldierIds[r];
+                    if (id != null) fallenSoldierIds.add(id);
+                }
             }
         }
         int marinesEngaged = marinesAlive + rawMarinesLost;
@@ -217,7 +233,8 @@ public final class MissionResolver {
                 mission.campaignEventMarketId, mission.civiliansAtRisk,
                 civiliansRescued,
                 salvageEntitlement,
-                recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct);
+                recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
+                survivingSoldierIds, fallenSoldierIds);
     }
 
     public static void apply(MissionOutcome outcome) {
@@ -260,6 +277,26 @@ public final class MissionResolver {
 
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome);
+        }
+
+        MarineRosterScript personnelScript = MarineRosterScript.getInstance();
+        if (personnelScript != null) {
+            int survivorXp = outcome.victory ? switch (outcome.risk) {
+                case LOW -> 30;
+                case MEDIUM -> 50;
+                case HIGH -> 80;
+            } : 10;
+            personnelScript.roster().applySoldierOutcome(
+                    outcome.survivingSoldierIds, outcome.fallenSoldierIds, survivorXp);
+            if (outcome.victory) {
+                int materials = switch (outcome.risk) {
+                    case LOW -> 2;
+                    case MEDIUM -> 4;
+                    case HIGH -> 7;
+                };
+                personnelScript.roster().armory().recordVictory(
+                        materials, outcome.risk == RiskLevel.HIGH);
+            }
         }
 
         if (outcome.victory && outcome.missionSource == MissionSource.STORY

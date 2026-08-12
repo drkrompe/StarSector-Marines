@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,5 +55,16 @@ public class LayeredAppearanceTest {
         assertEquals(1f, LayeredMechAppearance.mechanicalFootReveal(0.40f, false), 0.001f);
         assertEquals(1f, LayeredMechAppearance.mechanicalFootReveal(0.52f, false), 0.001f);
         assertEquals(0f, LayeredMechAppearance.mechanicalFootReveal(0.90f, false), 0.001f);
+    }
+
+    @Test
+    public void infantryPrimaryWeaponsMapToDistinctLayerFamilies() {
+        assertEquals(LayeredWeaponFamily.RIFLE, LayeredWeaponFamily.fromPrimary(null));
+        assertEquals(LayeredWeaponFamily.LASER_GUN,
+                LayeredWeaponFamily.fromPrimary(MarineWeapon.PULSE_RIFLE));
+        assertEquals(LayeredWeaponFamily.SMG,
+                LayeredWeaponFamily.fromPrimary(MarineWeapon.SMG));
+        assertEquals(LayeredWeaponFamily.DMR,
+                LayeredWeaponFamily.fromPrimary(MarineWeapon.DMR));
     }
 }

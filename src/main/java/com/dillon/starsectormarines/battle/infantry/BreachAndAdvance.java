@@ -88,6 +88,7 @@ public final class BreachAndAdvance implements Action {
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, stackUpX.length); }
+    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public java.util.List<int[]> highlightCells(Squad squad, BattleView sim) {

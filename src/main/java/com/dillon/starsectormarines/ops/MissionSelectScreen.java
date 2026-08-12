@@ -71,6 +71,7 @@ public class MissionSelectScreen implements Screen {
         layout = new ColumnLayout(position);
 
         clientList.setOnBack(dismissDialog);
+        clientList.setOnArmory(() -> ctx.goTo(ScreenId.ARMORY));
         clientList.setOnTilesetDebug(() -> ctx.goTo(ScreenId.TILESET_DEBUG));
         clientList.setOnUnitDebug(() -> ctx.goTo(ScreenId.UNIT_DEBUG));
         // The panel asks for a re-layout when its scroll offset changes —

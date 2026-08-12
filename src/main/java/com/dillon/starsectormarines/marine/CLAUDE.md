@@ -9,6 +9,11 @@ script — including the captain list — round-trips through save/load with no
 custom serialization. `MarineRosterScript.getInstance()` finds the registered
 instance by scanning `sector.getScripts()`.
 
+The same persisted graph owns `MarineArmory` and `MarineSoldier`. Recipes, the shared
+fabrication-material resource, printed inventory, soldier identity/aptitude/XP/status and
+equipment allocations must remain plain serializable data. `readResolve` backfills new
+collections/objects for legacy saves.
+
 When adding new persistent gameplay state, prefer this pattern: a thin
 `EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
 check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data

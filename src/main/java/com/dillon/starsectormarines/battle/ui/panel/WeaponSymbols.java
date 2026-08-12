@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.awt.Color;
@@ -28,6 +29,11 @@ public final class WeaponSymbols {
             case DMR:         return "DMR";
             default:          return w.name().substring(0, 3);
         }
+    }
+
+    public static String primaryAbbrev(MarineWeapon w, EquipmentGrade grade) {
+        EquipmentGrade resolved = grade != null ? grade : EquipmentGrade.SERVICE;
+        return primaryAbbrev(w) + "-" + resolved.tierMark();
     }
 
     public static Color primaryColor(MarineWeapon w) {

@@ -18,6 +18,8 @@ def sw(ratio: float) -> int:
 BODY_WIDTH = sw(1.0)
 HEAD_WIDTH = sw(0.48)
 STANDARD_WEAPON_HEIGHT = sw(0.6533)
+SMG_HEIGHT = sw(0.52)
+DMR_HEIGHT = sw(0.82)
 ROCKET_HEIGHT = sw(1.04)
 
 BODY_CENTER_OFFSET = (sw(0.0), sw(0.12))
@@ -109,6 +111,7 @@ def main() -> None:
     source_root = directory / "sources"
 
     families = {
+        "armorless": ("armorless-body.png", "armorless-head.png"),
         "charcoal": ("charcoal-body.png", "charcoal-head.png"),
         "blue-scout": ("blue-scout-body.png", "blue-scout-head.png"),
         "red-heavy": ("red-heavy-body.png", "red-heavy-head.png"),
@@ -131,9 +134,20 @@ def main() -> None:
     rifle = Image.open(directory.parent / "marine-rifle.png").convert("RGBA")
     rocket = normalize_height(source_root / "rocket-launcher.png", ROCKET_HEIGHT)
     laser = normalize_height(source_root / "laser-gun.png", STANDARD_WEAPON_HEIGHT)
+    smg = normalize_height(source_root / "smg.png", SMG_HEIGHT)
+    dmr = normalize_height(source_root / "dmr.png", DMR_HEIGHT)
+    surplus_rifle = normalize_height(source_root / "rifle-surplus.png", STANDARD_WEAPON_HEIGHT)
+    masterwork_dmr = normalize_height(source_root / "dmr-masterwork.png", DMR_HEIGHT)
     rifle.save(weapons_dir / "rifle.png", optimize=True)
     rocket.save(weapons_dir / "rocket-launcher.png", optimize=True)
     laser.save(weapons_dir / "laser-gun.png", optimize=True)
+    smg.save(weapons_dir / "smg.png", optimize=True)
+    dmr.save(weapons_dir / "dmr.png", optimize=True)
+    grade_root = weapons_dir / "grades"
+    (grade_root / "surplus").mkdir(parents=True, exist_ok=True)
+    (grade_root / "masterwork").mkdir(parents=True, exist_ok=True)
+    surplus_rifle.save(grade_root / "surplus" / "rifle.png", optimize=True)
+    masterwork_dmr.save(grade_root / "masterwork" / "dmr.png", optimize=True)
 
     previews = directory / "previews"
     previews.mkdir(parents=True, exist_ok=True)
@@ -148,6 +162,18 @@ def main() -> None:
         ("army-green-rocket.png", "army-green", rocket, 0, ROCKET_WEAPON_OFFSET, rocket_pivot, "under_body"),
         ("army-green-rocket-firing-over-shoulder.png", "army-green", rocket, 0, ROCKET_WEAPON_OFFSET, rocket_pivot, "over_shoulder"),
         ("militia-rifle-looking-right.png", "militia", rifle, -20, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("outlaw-smg.png", "outlaw", smg, 0, STANDARD_WEAPON_OFFSET,
+         (smg.width // 2, round(smg.height * 0.75)), "under_body"),
+        ("army-green-dmr.png", "army-green", dmr, 0, STANDARD_WEAPON_OFFSET,
+         (dmr.width // 2, round(dmr.height * 0.75)), "under_body"),
+        ("armorless-surplus-rifle.png", "armorless", surplus_rifle, 20,
+         STANDARD_WEAPON_OFFSET,
+         (surplus_rifle.width // 2, round(surplus_rifle.height * 0.75)),
+         "under_body"),
+        ("armorless-masterwork-dmr.png", "armorless", masterwork_dmr, -20,
+         STANDARD_WEAPON_OFFSET,
+         (masterwork_dmr.width // 2, round(masterwork_dmr.height * 0.75)),
+         "under_body"),
     )
     for (filename, family, weapon, head_angle, weapon_offset, weapon_pivot,
          weapon_layer) in combinations:

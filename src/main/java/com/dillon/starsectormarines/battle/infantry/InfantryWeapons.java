@@ -153,10 +153,16 @@ public class InfantryWeapons {
                 world.cellX(target), world.cellY(target));
         float effectiveSpread = 0f;
         if (weapon != null) {
-            accuracy = RangeFalloff.accuracy(weapon.accuracy, weapon.accuracyFalloff, dist, weapon.range);
-            damage   = weapon.damage;
+            float effectiveRange = world.attackRange(shooter);
+            accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
+                    weapon.accuracyFalloff, dist, effectiveRange);
+            damage   = world.attackDamage(shooter);
             vsTurretMult = weapon.vsTurretMult;
-            effectiveSpread = RangeFalloff.spread(weapon.hitSpread, dist, weapon.range);
+            effectiveSpread = RangeFalloff.spread(
+                    InfantryCombatStats.spread(weapon,
+                            roster.combat().equipmentGrade(shooter),
+                            roster.combat().soldierProfile(shooter)),
+                    dist, effectiveRange);
         }
         accuracy *= stance.accuracyMult;
         boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
@@ -224,7 +230,10 @@ public class InfantryWeapons {
         int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
         world.setSecondaryAmmo(shooterId, ammo - 1);
-        boolean hit = ThreadLocalRandom.current().nextFloat() < sec.accuracy;
+        float secondaryAccuracy = Math.min(1f, sec.accuracy
+                * InfantryCombatStats.shooterAccuracyMult(
+                        roster.combat().soldierProfile(shooter)));
+        boolean hit = ThreadLocalRandom.current().nextFloat() < secondaryAccuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries

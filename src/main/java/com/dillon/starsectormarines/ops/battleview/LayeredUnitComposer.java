@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
@@ -20,6 +22,7 @@ final class LayeredUnitComposer {
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      MarineWeapon primary,
+                     EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
@@ -29,8 +32,9 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_ROCKET_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
+        LayeredWeaponFamily weaponFamily = LayeredWeaponFamily.fromPrimary(primary);
         LayeredSpriteCache weapon = rocket ? assets.rocketLauncher
-                : primary == MarineWeapon.PULSE_RIFLE ? assets.laserGun : assets.rifle;
+                : assets.weapon(weaponFamily, equipmentGrade);
 
         // Feet always exist underneath the actor. At rest both offsets keep them
         // occluded; locomotion alternately exposes only a toe-shaped tip.
@@ -41,7 +45,7 @@ final class LayeredUnitComposer {
         emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
                 0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
 
-        WeaponTransform wt = weaponTransform(weapon, rocket, pose, weaponPhase,
+        WeaponTransform wt = weaponTransform(weapon, weaponFamily, rocket, pose, weaponPhase,
                 actorX, actorY, pxPerSw, facingDeg);
 
         if (!overShoulder) emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
@@ -77,7 +81,8 @@ final class LayeredUnitComposer {
     }
 
     private static WeaponTransform weaponTransform(
-            LayeredSpriteCache weapon, boolean rocket, int pose, float phase,
+            LayeredSpriteCache weapon, LayeredWeaponFamily weaponFamily,
+            boolean rocket, int pose, float phase,
             float actorX, float actorY, float swPx, float facingDeg) {
         float t = smoothstep(clamp01(phase));
 
@@ -110,12 +115,21 @@ final class LayeredUnitComposer {
         pivot[1] += recoilOffset[1];
 
         float pivotX = weapon.pxWidth * 0.5f;
-        float pivotY = rocket ? ROCKET_PIVOT_Y : STANDARD_WEAPON_PIVOT_Y;
+        float pivotY = rocket ? ROCKET_PIVOT_Y
+                : weaponFamilyPivotY(weaponFamily, weapon);
         float centerX = (weapon.pxWidth * 0.5f - pivotX) / SOURCE_SHOULDER_PX * swPx;
         float centerY = -(weapon.pxHeight * 0.5f - pivotY) / SOURCE_SHOULDER_PX * swPx;
         float[] centerOffset = rotate(centerX, centerY, totalAngle);
         return new WeaponTransform(pivot[0] + centerOffset[0], pivot[1] + centerOffset[1],
                 pivot[0], pivot[1], pivotY, totalAngle);
+    }
+
+    private static float weaponFamilyPivotY(LayeredWeaponFamily weaponFamily,
+                                             LayeredSpriteCache weapon) {
+        return switch (weaponFamily) {
+            case SMG, DMR -> weapon.pxHeight * 0.75f;
+            case RIFLE, LASER_GUN -> STANDARD_WEAPON_PIVOT_Y;
+        };
     }
 
     private static void emitFlash(DrawList out, LayeredSpriteCache flash,

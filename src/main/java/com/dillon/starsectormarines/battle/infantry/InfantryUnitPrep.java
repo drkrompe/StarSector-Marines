@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -76,6 +77,29 @@ public final class InfantryUnitPrep {
         }
         float rcd = world.repositionCooldown(id);
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
+    }
+
+    /**
+     * Authors a primary-weapon shot when the active action did not already
+     * choose one and a visible enemy is inside attack range. This is the
+     * common safety net for movement/regroup/replan branches: individual
+     * actions retain first choice of target and stance, while an uncovered
+     * branch no longer makes a defender ignore a free shot.
+     *
+     * <p>The helper deliberately does not replace the unit's pursuit target.
+     * A passing shot should not pull a patrol, room-clear, or fallback path
+     * away from its objective. {@link FireStance#stanceFor(float)} is sampled
+     * after the action ran, so a unit that advanced this tick receives the
+     * moving-fire penalty and a planted unit receives the stanced roll.
+     * Cooldown/range/LOS are revalidated by the consume-once firing system.
+     */
+    public static boolean tryOpportunityPrimary(long unit, BattleView sim) {
+        if (sim.combat().fireTargetId(unit) != 0L) return false;
+        long target = sim.getTacticalScoring().closestEnemyInAttackRange(unit);
+        if (target == 0L) return false;
+        sim.combat().setFireIntent(unit, target,
+                FireStance.stanceFor(sim.world().moveProgress(unit)), false);
+        return true;
     }
 
     /**

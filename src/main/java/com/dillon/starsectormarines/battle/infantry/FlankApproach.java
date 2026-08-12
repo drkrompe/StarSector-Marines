@@ -49,6 +49,7 @@ public final class FlankApproach implements Action {
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
+    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {

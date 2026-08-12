@@ -442,20 +442,29 @@ public class BattleSprites {
                 "graphics/battle/marine-modular-topdown/marine-foot.png");
         LayeredSpriteCache rifle = loadLayeredSprite(MODULAR_ROOT + "weapons/rifle.png");
         LayeredSpriteCache laser = loadLayeredSprite(MODULAR_ROOT + "weapons/laser-gun.png");
+        LayeredSpriteCache smg = loadLayeredSprite(MODULAR_ROOT + "weapons/smg.png");
+        LayeredSpriteCache dmr = loadLayeredSprite(MODULAR_ROOT + "weapons/dmr.png");
+        LayeredSpriteCache surplusRifle = loadLayeredSprite(
+                MODULAR_ROOT + "weapons/grades/surplus/rifle.png");
+        LayeredSpriteCache masterworkDmr = loadLayeredSprite(
+                MODULAR_ROOT + "weapons/grades/masterwork/dmr.png");
         LayeredSpriteCache rocket = loadLayeredSprite(MODULAR_ROOT + "weapons/rocket-launcher.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
-        if (foot == null || rifle == null || laser == null || rocket == null || flash == null) {
+        if (foot == null || rifle == null || laser == null || smg == null || dmr == null
+                || rocket == null || flash == null || surplusRifle == null
+                || masterworkDmr == null) {
             LOG.warn("BattleSprites: modular shared layers incomplete; legacy unit sheets remain active");
             return;
         }
 
-        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, rocket, flash);
-        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, rocket, flash);
-        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, rocket, flash);
-        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, rocket, flash);
-        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, rocket, flash);
-        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.ARMORLESS, "armorless", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
@@ -485,8 +494,12 @@ public class BattleSprites {
                                    LayeredSpriteCache foot,
                                    LayeredSpriteCache rifle,
                                    LayeredSpriteCache laser,
+                                   LayeredSpriteCache smg,
+                                   LayeredSpriteCache dmr,
                                    LayeredSpriteCache rocket,
-                                   LayeredSpriteCache flash) {
+                                   LayeredSpriteCache flash,
+                                   LayeredSpriteCache surplusRifle,
+                                   LayeredSpriteCache masterworkDmr) {
         String familyRoot = MODULAR_ROOT + "armor/" + family + "/";
         LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
         LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
@@ -496,7 +509,8 @@ public class BattleSprites {
             return;
         }
         layeredUnitSprites.put(familyId,
-                new LayeredUnitAssets(body, head, foot, rifle, laser, rocket, flash));
+                new LayeredUnitAssets(body, head, foot, rifle, laser, smg, dmr,
+                        rocket, flash, surplusRifle, masterworkDmr));
     }
 
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */

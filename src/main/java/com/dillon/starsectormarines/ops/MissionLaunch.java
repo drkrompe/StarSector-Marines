@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 
 import java.util.List;
 
@@ -73,6 +74,10 @@ public final class MissionLaunch {
             default:
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk, m.type);
         }
+
+        // Scenario factories author seat roles/objectives first; the persistent
+        // roster then overlays each seat's identity, progression, armor and gear.
+        CampaignMarineDeployment.freeze(det.shuttleManifest).applyTo(sim);
 
         // Marine-side fighter cover (committed bays + employer) combined with the
         // mission's enemy support, then any force-spawned debug wings (both sides

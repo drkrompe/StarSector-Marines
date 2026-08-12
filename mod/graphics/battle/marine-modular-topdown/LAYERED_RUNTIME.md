@@ -39,16 +39,35 @@ still paints above the launcher and retains independent look rotation.
 
 ## Armor families and spawn defaults
 
-The cache loads charcoal, field-blue scout, red elite, outlaw, army green, and
-militia families. Body and head selectors are separate, so a helmet can be mixed
+The cache loads armorless fatigues/bare head, charcoal, field-blue scout, red elite,
+outlaw, army green, and militia families. Body and head selectors are separate, so a head can be mixed
 with any body at runtime. Unit type supplies only a default:
 
 - `MARINE`: charcoal armor.
 - `MARINE_BLUE`: dark field-blue scout armor.
 - `MARINE_RED`: rugged outlaw armor.
 - `MILITIA`: improvised militia carrier and helmet.
-- Pulse rifle loadouts use the laser-gun layer; SMG/DMR and generic combatants
-  use the rifle layer; an active secondary aim uses the rocket-launcher layer.
+- Pulse rifle loadouts use the laser-gun layer; SMG and DMR loadouts use their
+  own compact and precision layers; generic combatants use the rifle layer; an
+  active secondary aim uses the rocket-launcher layer.
+
+Weapon equipment grades fall back to their family's registered sprite and animation.
+Authored exact-grade overrides currently demonstrate the ends of the scale: a battered
+Surplus rifle and precision Masterwork DMR. They keep the same pivots, so grade changes
+combat statistics and surface read without changing facing or firing behavior.
+
+## Campaign armory bridge
+
+`MarineRosterScript` persists an armory and rank-and-file roster in the same xstream
+graph as captains. Soldiers have stable ids, aptitude, earned XP, status, primary/grade,
+secondary and armor allocations. Mission launch freezes those allocations into shuttle
+seats after the scenario authors roles/objectives. The campaign soldier id survives on
+the battle entity and corpse, allowing results to award survivor XP and mark real losses KIA.
+
+Victories award one shared `masterwork parts & materials` fabrication resource and advance
+recipe milestones. Recipes unlock permanently; printing creates finite inventory; allocation
+cannot exceed inventory. The Masterwork DMR recipe requires five victories including at least
+one high-risk operation.
 
 Adding an armor family is an asset-cache mapping. Adding a weapon animation is a
 new authored pose/transform profile; it should not introduce directional sheets

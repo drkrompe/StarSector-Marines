@@ -101,17 +101,24 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) {
             // Replan pass (run from BattleSimulation.tick) will catch up next
-            // tick at the latest. Idle this frame rather than fall through to
-            // some arbitrary default — keeps the planner authoritative.
+            // tick at the latest. Keep the planner authoritative for movement,
+            // but don't discard a legal consume-once shot while waiting.
+            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
             return;
         }
 
         SquadPlan.Step step = plan.currentStep();
         // Null possible under parallel dispatch: a sibling worker advanced past
         // the end between the isComplete() check and here. Skip this tick.
-        if (step == null || step.slotOf(unit) == null) return;
+        if (step == null || step.slotOf(unit) == null) {
+            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+            return;
+        }
 
         ActionStatus status = step.action.execute(unit, squad, sim);
+        if (step.action.permitsOpportunityFire()) {
+            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+        }
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state. Two members
             // both observing the same step's SUCCESS would double-advance

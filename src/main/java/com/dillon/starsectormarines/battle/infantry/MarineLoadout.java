@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 
 /**
  * Per-slot loadout for a shuttle's marine roster. One {@code MarineLoadout}
@@ -27,10 +28,18 @@ public final class MarineLoadout {
     public final Objective objective;
     /** Primary handheld weapon. Null = use the {@link UnitType} default stats with no per-weapon FX. */
     public final MarineWeapon primary;
+    /** Manufacturing/condition tier of {@link #primary}. */
+    public final EquipmentGrade equipmentGrade;
+    /** Individual aptitude and earned field experience. */
+    public final SoldierProfile soldierProfile;
     /** Optional secondary weapon. Null = no secondary slot. */
     public final MarineSecondary secondary;
     /** Starting ammo for the secondary. Ignored when {@link #secondary} is null. */
     public final int secondaryAmmo;
+    /** Stable campaign identity, null for generated defender/employer soldiers. */
+    public final String campaignSoldierId;
+    /** Persisted modular armor allocation; null keeps the archetype default. */
+    public final LayeredArmorFamily armorFamily;
 
     public MarineLoadout(UnitRole role, Objective objective) {
         this(role, objective, MarineWeapon.PULSE_RIFLE, null, 0);
@@ -38,11 +47,30 @@ public final class MarineLoadout {
 
     public MarineLoadout(UnitRole role, Objective objective, MarineWeapon primary,
                          MarineSecondary secondary, int secondaryAmmo) {
+        this(role, objective, primary, EquipmentGrade.SERVICE, SoldierProfile.REGULAR,
+                secondary, secondaryAmmo, null, null);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, MarineWeapon primary,
+                         EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                         MarineSecondary secondary, int secondaryAmmo) {
+        this(role, objective, primary, equipmentGrade, soldierProfile, secondary,
+                secondaryAmmo, null, null);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, MarineWeapon primary,
+                         EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                         MarineSecondary secondary, int secondaryAmmo,
+                         String campaignSoldierId, LayeredArmorFamily armorFamily) {
         this.role = role;
         this.objective = objective;
         this.primary = primary;
+        this.equipmentGrade = equipmentGrade != null ? equipmentGrade : EquipmentGrade.SERVICE;
+        this.soldierProfile = soldierProfile != null ? soldierProfile : SoldierProfile.REGULAR;
         this.secondary = secondary;
         this.secondaryAmmo = secondaryAmmo;
+        this.campaignSoldierId = campaignSoldierId;
+        this.armorFamily = armorFamily;
     }
 
     /**
@@ -58,10 +86,14 @@ public final class MarineLoadout {
         marine.role(role);
         marine.assignedObjective(objective);
         if (primary != null) {
-            marine.primaryWeapon(primary);
+            marine.primaryWeapon(primary, equipmentGrade, soldierProfile);
+        } else {
+            marine.soldierProfile(soldierProfile);
         }
         if (secondary != null && secondaryAmmo > 0) {
             marine.secondary(secondary, secondaryAmmo);
         }
+        marine.campaignSoldierId(campaignSoldierId);
+        if (armorFamily != null) marine.layeredArmorFamily(armorFamily);
     }
 }
