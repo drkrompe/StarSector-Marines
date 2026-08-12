@@ -12,7 +12,7 @@ public final class ContractTableCompactor {
         state.contractIndexById.clear();
         for (int read = 0; read < originalCount; read++) {
             ContractState contractState = ContractState.fromByte(state.contractState[read]);
-            if (contractState.isTerminal()) continue;
+            if (contractState.isTerminal() && !holdsStrandedPersonnel(state, read)) continue;
             if (write != read) copyRow(state, read, write);
             state.contractIndexById.put(state.contractId[write], write);
             write++;
@@ -21,11 +21,18 @@ public final class ContractTableCompactor {
         return originalCount - write;
     }
 
+    private static boolean holdsStrandedPersonnel(CampaignState state, int row) {
+        return ContractState.fromByte(state.contractState[row]) == ContractState.DEFAULTED
+                && ContractType.fromByte(state.contractType[row]).isStationing()
+                && (state.contractMarinesCommitted[row] > 0 || state.contractCaptainId[row] >= 0);
+    }
+
     private static void copyRow(CampaignState state, int from, int to) {
         state.contractId[to] = state.contractId[from];
         state.contractPatronHouseId[to] = state.contractPatronHouseId[from];
         state.contractTargetHouseId[to] = state.contractTargetHouseId[from];
         state.contractChainId[to] = state.contractChainId[from];
+        state.contractSourceContractId[to] = state.contractSourceContractId[from];
         state.contractType[to] = state.contractType[from];
         state.contractState[to] = state.contractState[from];
         state.contractAcceptedTick[to] = state.contractAcceptedTick[from];

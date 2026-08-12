@@ -100,6 +100,8 @@ public final class CampaignState implements Serializable {
     public long[]  contractTargetHouseId = new long[INITIAL_CAPACITY];
     /** Parent chain id, or -1 for one-off contracts. */
     public long[]  contractChainId       = new long[INITIAL_CAPACITY];
+    /** Parent contract id for system-generated followups; -1 for ordinary contracts. */
+    public long[]  contractSourceContractId = filledLongs(INITIAL_CAPACITY, -1L);
     public byte[]  contractType          = new byte[INITIAL_CAPACITY];
     public byte[]  contractState         = new byte[INITIAL_CAPACITY];
     public int[]   contractAcceptedTick  = new int[INITIAL_CAPACITY];
@@ -285,6 +287,7 @@ public final class CampaignState implements Serializable {
         contractPatronHouseId[i]    = patronHouseIdValue;
         contractTargetHouseId[i]    = targetHouseIdValue;
         contractChainId[i]          = chainIdValue;
+        contractSourceContractId[i] = -1L;
         contractType[i]             = type.toByte();
         contractState[i]            = state.toByte();
         contractAcceptedTick[i]     = acceptedTick;
@@ -430,6 +433,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractLastTrainingTick = filledInts(n, -1);
         }
+        if (contractSourceContractId == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractSourceContractId = filledLongs(n, -1L);
+        }
         return this;
     }
 
@@ -441,6 +448,8 @@ public final class CampaignState implements Serializable {
         contractPatronHouseId     = Arrays.copyOf(contractPatronHouseId, n);
         contractTargetHouseId     = Arrays.copyOf(contractTargetHouseId, n);
         contractChainId           = Arrays.copyOf(contractChainId, n);
+        contractSourceContractId  = Arrays.copyOf(contractSourceContractId, n);
+        Arrays.fill(contractSourceContractId, oldLength, n, -1L);
         contractType              = Arrays.copyOf(contractType, n);
         contractState             = Arrays.copyOf(contractState, n);
         contractAcceptedTick      = Arrays.copyOf(contractAcceptedTick, n);
@@ -465,6 +474,12 @@ public final class CampaignState implements Serializable {
 
     private static int[] filledInts(int length, int value) {
         int[] out = new int[length];
+        Arrays.fill(out, value);
+        return out;
+    }
+
+    private static long[] filledLongs(int length, long value) {
+        long[] out = new long[length];
         Arrays.fill(out, value);
         return out;
     }

@@ -19,6 +19,7 @@ class ContractTableCompactorTest {
         state.contractMarinesCommitted[1] = 88;
         state.contractLastRetainerTick[1] = 50;
         state.contractLastTrainingTick[1] = 51;
+        state.contractSourceContractId[1] = 99L;
 
         assertEquals(1, ContractTableCompactor.removeTerminal(state));
 
@@ -37,8 +38,22 @@ class ContractTableCompactorTest {
         assertEquals(88, state.contractMarinesCommitted[0]);
         assertEquals(50, state.contractLastRetainerTick[0]);
         assertEquals(51, state.contractLastTrainingTick[0]);
+        assertEquals(99L, state.contractSourceContractId[0]);
         assertEquals(5, state.contractSalvageBaseline[0] & 0xFF);
         assertEquals(4, state.contractSalvageNegotiated[0] & 0xFF);
         assertEquals(101, state.contractCashMultiplier[0] & 0xFF);
+    }
+
+    @Test
+    void defaultedStationingRowWithPersonnelCannotBeCompactedAway() {
+        CampaignState state = new CampaignState();
+        long id = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.DEFAULTED, 1, 30, -1, (byte) 0, 4, 5, -1,
+                0, 1_000, (byte) 25, (byte) 25, (byte) 100);
+        state.contractMarinesCommitted[0] = 50;
+
+        assertEquals(0, ContractTableCompactor.removeTerminal(state));
+        assertEquals(0, state.contractIndex(id));
+        assertEquals(1, state.contractCount);
     }
 }

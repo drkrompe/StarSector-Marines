@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 
 import java.util.EnumSet;
@@ -66,8 +67,9 @@ public final class ContractLifecycleSystem implements CampaignSystem {
             }
 
             long patronId = state.contractPatronHouseId[i];
+            ContractType type = ContractType.fromByte(state.contractType[i]);
             int patronRow = state.houseIndex(patronId);
-            if (patronRow >= 0
+            if (type.isStationing() && patronRow >= 0
                     && HouseStatus.fromByte(state.houseStatus[patronRow]) == HouseStatus.DEPOSED) {
                 state.contractState[i] = ContractState.DEFAULTED.toByte();
                 continue;
