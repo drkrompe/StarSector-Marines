@@ -25,6 +25,10 @@ class CampaignStateChainColumnsTest {
         assertEquals(ChainState.ACTIVE, ChainState.fromByte(state.chainState[row]));
         assertEquals(-1, state.chainLastAdvanceTick[row]);
         assertEquals(-1, state.chainResolvedTick[row]);
+        assertEquals(CivilWarAllegiance.NONE,
+                CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[row]));
+        assertEquals(0, state.chainPlayerContribution[row]);
+        assertEquals(-1, state.chainPlayerLastContributionTick[row]);
     }
 
     @Test
@@ -61,6 +65,10 @@ class CampaignStateChainColumnsTest {
         assertEquals(-1, state.chainIndustryId[20]);
         assertEquals(-1, state.chainLastAdvanceTick[20]);
         assertEquals(-1, state.chainResolvedTick[20]);
+        assertEquals(CivilWarAllegiance.NONE,
+                CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[20]));
+        assertEquals(0, state.chainPlayerContribution[20]);
+        assertEquals(-1, state.chainPlayerLastContributionTick[20]);
     }
 
     @Test
@@ -74,6 +82,9 @@ class CampaignStateChainColumnsTest {
         state.chainState = null;
         state.chainLastAdvanceTick = null;
         state.chainResolvedTick = null;
+        state.chainPlayerAllegiance = null;
+        state.chainPlayerContribution = null;
+        state.chainPlayerLastContributionTick = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -85,11 +96,18 @@ class CampaignStateChainColumnsTest {
         assertNotNull(state.chainState);
         assertNotNull(state.chainLastAdvanceTick);
         assertNotNull(state.chainResolvedTick);
+        assertNotNull(state.chainPlayerAllegiance);
+        assertNotNull(state.chainPlayerContribution);
+        assertNotNull(state.chainPlayerLastContributionTick);
         assertEquals(4L, state.chainActorHouseId[0]);
         assertEquals(-1, state.chainMarketId[0]);
         assertEquals(-1, state.chainIndustryId[0]);
         assertEquals(ChainState.ACTIVE, ChainState.fromByte(state.chainState[0]));
         assertEquals(-1, state.chainLastAdvanceTick[0]);
         assertEquals(-1, state.chainResolvedTick[0]);
+        assertEquals(CivilWarAllegiance.NONE,
+                CivilWarAllegiance.fromByte(state.chainPlayerAllegiance[0]));
+        assertEquals(0, state.chainPlayerContribution[0]);
+        assertEquals(-1, state.chainPlayerLastContributionTick[0]);
     }
 }

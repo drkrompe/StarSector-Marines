@@ -21,6 +21,8 @@ class ContractTableCompactorTest {
         state.contractLastTrainingTick[1] = 51;
         state.contractSourceContractId[1] = 99L;
         state.contractOpposedChainId[1] = 98L;
+        state.contractCivilWarBand[1] = CivilWarBand.MOBILIZATION.toByte();
+        state.contractCivilWarContributionAppliedTick[1] = 49;
         state.contractLastDefaultCheckTick[1] = 52;
         state.contractPhaseAttempts[1] = 4;
         state.contractNextPhaseReadyTick[1] = 55;
@@ -52,6 +54,9 @@ class ContractTableCompactorTest {
         assertEquals(51, state.contractLastTrainingTick[0]);
         assertEquals(99L, state.contractSourceContractId[0]);
         assertEquals(98L, state.contractOpposedChainId[0]);
+        assertEquals(CivilWarBand.MOBILIZATION,
+                CivilWarBand.fromByte(state.contractCivilWarBand[0]));
+        assertEquals(49, state.contractCivilWarContributionAppliedTick[0]);
         assertEquals(52, state.contractLastDefaultCheckTick[0]);
         assertEquals(4, state.contractPhaseAttempts[0]);
         assertEquals(55, state.contractNextPhaseReadyTick[0]);

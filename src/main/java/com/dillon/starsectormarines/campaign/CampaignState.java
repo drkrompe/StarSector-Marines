@@ -103,6 +103,12 @@ public final class CampaignState implements Serializable {
     public int[]   chainLastDiscoveryCheckTick = filledInts(INITIAL_CAPACITY, -1);
     /** Day an active-chain rumor was learned; -1 while undiscovered. */
     public int[]   chainDiscoveredTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Player side locked by the first completed civil-war participation contract. */
+    public byte[]  chainPlayerAllegiance = new byte[INITIAL_CAPACITY];
+    /** Saturating total weight of successful player civil-war operations. */
+    public short[] chainPlayerContribution = new short[INITIAL_CAPACITY];
+    /** Last day a player civil-war contribution applied; -1 until untouched. */
+    public int[]   chainPlayerLastContributionTick = filledInts(INITIAL_CAPACITY, -1);
     public int     chainCount        = 0;
 
     // ---------- playerReputation[] ----------
@@ -162,6 +168,11 @@ public final class CampaignState implements Serializable {
     public long[]  contractChainId       = new long[INITIAL_CAPACITY];
     /** Hostile chain this intervention opposes, or -1 for ordinary contracts. */
     public long[]  contractOpposedChainId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Civil-war phase captured at offer creation; {@link CivilWarBand#NONE} otherwise. */
+    public byte[]  contractCivilWarBand = new byte[INITIAL_CAPACITY];
+    /** Day this contract's political contribution applied; -1 until unprocessed. */
+    public int[]   contractCivilWarContributionAppliedTick =
+            filledInts(INITIAL_CAPACITY, -1);
     /** Parent contract id for system-generated followups; -1 for ordinary contracts. */
     public long[]  contractSourceContractId = filledLongs(INITIAL_CAPACITY, -1L);
     public byte[]  contractType          = new byte[INITIAL_CAPACITY];
@@ -358,6 +369,9 @@ public final class CampaignState implements Serializable {
         chainDiscoveryProcessedTick[i] = -1;
         chainLastDiscoveryCheckTick[i] = -1;
         chainDiscoveredTick[i] = -1;
+        chainPlayerAllegiance[i] = CivilWarAllegiance.NONE.toByte();
+        chainPlayerContribution[i] = 0;
+        chainPlayerLastContributionTick[i] = -1;
         chainIndexById.put(id, i);
         return id;
     }
@@ -543,6 +557,8 @@ public final class CampaignState implements Serializable {
         contractTargetHouseId[i]    = targetHouseIdValue;
         contractChainId[i]          = chainIdValue;
         contractOpposedChainId[i]   = -1L;
+        contractCivilWarBand[i]     = CivilWarBand.NONE.toByte();
+        contractCivilWarContributionAppliedTick[i] = -1;
         contractSourceContractId[i] = -1L;
         contractType[i]             = type.toByte();
         contractState[i]            = state.toByte();
@@ -677,6 +693,11 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chainLastDiscoveryCheckTick, oldLength, n, -1);
         chainDiscoveredTick = Arrays.copyOf(chainDiscoveredTick, n);
         Arrays.fill(chainDiscoveredTick, oldLength, n, -1);
+        chainPlayerAllegiance = Arrays.copyOf(chainPlayerAllegiance, n);
+        chainPlayerContribution = Arrays.copyOf(chainPlayerContribution, n);
+        chainPlayerLastContributionTick = Arrays.copyOf(
+                chainPlayerLastContributionTick, n);
+        Arrays.fill(chainPlayerLastContributionTick, oldLength, n, -1);
     }
 
     private void ensureChronicleCapacity(int needed) {
@@ -812,6 +833,18 @@ public final class CampaignState implements Serializable {
             int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
             chainDiscoveredTick = filledInts(n, -1);
         }
+        if (chainPlayerAllegiance == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPlayerAllegiance = new byte[n];
+        }
+        if (chainPlayerContribution == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPlayerContribution = new short[n];
+        }
+        if (chainPlayerLastContributionTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPlayerLastContributionTick = filledInts(n, -1);
+        }
         int chronicleCapacity = chronicleId != null ? chronicleId.length : INITIAL_CAPACITY;
         if (chronicleId == null) chronicleId = new long[chronicleCapacity];
         if (chronicleEventType == null) chronicleEventType = new byte[chronicleCapacity];
@@ -917,6 +950,14 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractOpposedChainId = filledLongs(n, -1L);
         }
+        if (contractCivilWarBand == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractCivilWarBand = new byte[n];
+        }
+        if (contractCivilWarContributionAppliedTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractCivilWarContributionAppliedTick = filledInts(n, -1);
+        }
         if (contractLastDefaultCheckTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractLastDefaultCheckTick = filledInts(n, -1);
@@ -974,6 +1015,10 @@ public final class CampaignState implements Serializable {
         contractChainId           = Arrays.copyOf(contractChainId, n);
         contractOpposedChainId    = Arrays.copyOf(contractOpposedChainId, n);
         Arrays.fill(contractOpposedChainId, oldLength, n, -1L);
+        contractCivilWarBand      = Arrays.copyOf(contractCivilWarBand, n);
+        contractCivilWarContributionAppliedTick = Arrays.copyOf(
+                contractCivilWarContributionAppliedTick, n);
+        Arrays.fill(contractCivilWarContributionAppliedTick, oldLength, n, -1);
         contractSourceContractId  = Arrays.copyOf(contractSourceContractId, n);
         Arrays.fill(contractSourceContractId, oldLength, n, -1L);
         contractType              = Arrays.copyOf(contractType, n);
