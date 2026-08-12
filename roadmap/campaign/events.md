@@ -1,9 +1,10 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE FOUNDATION CODE COMPLETE (2026-08-12); G3
-trigger/intel contract locked.
+**Status:** CIVILIAN-RESCUE TRIGGER + CHOICE VERTICAL CODE COMPLETE
+(2026-08-12); committed-event mission handoff next.
 
-**Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`
+**Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
+`34cf0654`, `5572c538`, `24ba5bdc`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -144,6 +145,13 @@ The page never previews credits, salvage, unique rewards, moral dimensions, or
 hidden deltas. It does not resolve committed work. A debug-only local spawn
 button may call the same preparation seam with a reserved non-automatic trigger
 key, but gets no alternate choice/outcome logic.
+
+This vertical is shipped. The deterministic producer runs after passive expiry,
+the Distress Net is registered on new and existing saves, choice buttons call
+the shared atomic policy, and debug reachability reuses production terms in a
+reserved trigger namespace. A committed call intentionally remains visible as
+awaiting mission deployment; no placeholder victory or rescued count is
+manufactured.
 
 ## Design rules
 

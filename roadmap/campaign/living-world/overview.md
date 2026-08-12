@@ -230,8 +230,12 @@ family is now shipped too: trigger-unique civilian-rescue events persist exact
 costs, stakes, choices, and outcomes; explicit refusal and positive rescue move
 mercy/stewardship exactly once while expiry and zero rescue remain neutral
 (`cf8b717b`, `5fd8969d`, `1b2afcb4`). Trigger/presentation and the later swarm
-battle remain separate follow-up slices; reactive surfaces and capstone
-testimony are still withheld.
+battle remain separate slices; reactive surfaces and capstone testimony are
+still withheld. Trigger/presentation is now shipped as its own vertical: a
+deterministic sparse producer selects eligible markets, Distress Net
+offers the exact cost-shaped choice without reward previews, and debug intel can
+force the same production-shaped call (`34cf0654`, `5572c538`, `24ba5bdc`). The
+committed-event mission bridge and swarm-defense battle remain next.
 
 ## Two payoffs that fall out for free
 

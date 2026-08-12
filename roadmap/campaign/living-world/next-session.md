@@ -78,8 +78,13 @@ The civilian-rescue foundation is shipped as the second honest source family:
 dedicated event rows persist trigger-unique identity, cost, stakes, choice, and
 outcome; explicit refusal and positive rescue feed mercy/stewardship exactly
 once; passive expiry and zero rescue remain morally neutral (`cf8b717b`,
-`5fd8969d`, `1b2afcb4`). It does not yet spawn or present events, and it does
-not depend on swarm art, AI, or battle content.
+`5fd8969d`, `1b2afcb4`). That foundation remains independent from swarm art,
+AI, and battle content. The trigger/choice vertical is now shipped too:
+deterministic 45-day epochs select one eligible market without
+iteration-order dependence, Distress Net presents exact costs/stakes/deadline
+and routes commit/refuse through the shared policy, and debug intel can force a
+production-shaped local call (`0da1b89e`, `34cf0654`, `5572c538`, `24ba5bdc`).
+Committed calls remain honestly unresolved until battle content exists.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -92,21 +97,21 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Civilian-rescue trigger and choice intel
+## Next up — Committed rescue mission handoff
 
-Make the shipped [`../events.md`](../events.md) lifecycle reachable without
-coupling it to the eventual swarm-defense battle:
+Define the narrow bridge from an accepted campaign event to the later
+swarm-defense battle before building that battle's content:
 
-1. Implement the locked 45-day epoch producer and stable hash-selected eligible
-   market. Keep cadence policy separate from `CivilianRescueEvent.prepare`.
-2. Surface pending events through the Distress Net intel boundary
-   that shows the endangered market, exact cargo cost, stakes, and deadline—but
-   no material or moral reward preview.
-3. Route accept/refuse through the shared event API, keep insufficient-cargo
-   attempts non-mutating, and make committed events visibly await mission
-   content rather than pretending the rescue has resolved.
-4. Add explicit debug reachability for automated/manual smoke testing, while
-   continuing to defer held swarm art, faction/AI work, and battle resolution.
+1. Lock event lineage on the mission/outcome path: a committed rescue must
+   produce at most one local playable mission, and only that event id may receive
+   its rescued-count outcome.
+2. Decide which existing mission/battle fields can carry evacuation stakes and
+   which need a dedicated rescue payload. Do not overload `contractId` or award
+   contract cash/salvage semantics.
+3. Specify exactly how the battle computes `civiliansRescued`—including partial
+   evacuation and zero—before wiring `CivilianRescueEvent.resolve`.
+4. Then scope the swarm faction/unit/AI/art slice against that bridge. Keep held
+   art integration separate from campaign persistence and choice code.
 
 ## Open forks still unresolved (design)
 
@@ -191,3 +196,7 @@ coupling it to the eventual swarm-defense battle:
 - Slice G2a — civilian-rescue lifecycle contract (`cf8b717b`).
 - Slice G2b — campaign-event persistence (`5fd8969d`).
 - Slice G2c — rescue choices, expiry, and moral recording (`1b2afcb4`).
+- Slice G3 contract — deterministic trigger and Distress Net (`0da1b89e`).
+- Slice G3a — automatic civilian-rescue producer (`34cf0654`).
+- Slice G3b — registered Distress Net choice surface (`5572c538`).
+- Slice G3c — debug local reachability (`24ba5bdc`).

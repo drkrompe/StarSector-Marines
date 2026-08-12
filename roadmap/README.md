@@ -122,9 +122,11 @@ universe over time, not retrofitted into intel slots.
    attributed terminal reputation, and two hidden moral-compass source families.
    Civilian rescue now has trigger-unique persistence, an atomic cost-shaped
    choice lifecycle, neutral passive expiry, explicit outcome facts, and exact-
-   once mercy/stewardship recording (`cf8b717b`, `5fd8969d`, `1b2afcb4`). Next:
-   add its deterministic trigger and diegetic choice surface while keeping swarm
-   battle content separate. See
+   once mercy/stewardship recording (`cf8b717b`, `5fd8969d`, `1b2afcb4`). Its
+   deterministic 45-day producer, always-registered Distress Net choice surface,
+   and production-shaped debug spawner are now shipped too (`34cf0654`,
+   `5572c538`, `24ba5bdc`). Next: lock the committed-event mission/outcome
+   bridge before building swarm battle content. See
    `campaign/contracts/overview.md` and `campaign/living-world/next-session.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
