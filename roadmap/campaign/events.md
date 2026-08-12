@@ -1,7 +1,7 @@
 # Black-swan events — the third content stream
 
 **Status:** CIVILIAN-RESCUE EVACUATION PAYLOAD CODE COMPLETE
-(2026-08-12); swarm-defense content next.
+(2026-08-12); swarm-defense threat contract locked.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
@@ -266,6 +266,36 @@ launch recognizes `CAMPAIGN_EVENT` and builds this battle; generic Extraction
 is unchanged. The matching market alone exposes one committed mission through
 an always-open Distress Net client. Swarm faction, roster, AI, and held art are
 the next content slice.
+
+### Swarm-defense threat — locked v1
+
+`Faction` remains the battle-side abstraction (`MARINE`, `DEFENDER`,
+`CIVILIAN`). V1 therefore represents the swarm as append-only unit and role
+identity on the `DEFENDER` side, not as a fourth faction that would silently
+rewrite two-sided win checks, fog colors, targeting, reinforcement, and command
+assumptions.
+
+The held `alien.png` seven-frame live sheet and `alien-dead.png` four-pose corpse
+sheet become the visual source for a new `SWARM_RUNNER` `UnitType`. The existing
+generic `ALIEN` value stays intact for compatibility. The runner is a fast,
+close-range biological attacker with no weapon, squad GOAP, morale, equipment,
+reinforcement, or ranged projectile semantics.
+
+A dedicated `SWARM_PRESSURE` role owns its behavior:
+
+- choose the nearest registered `ACTIVE` mission evacuee first;
+- never choose an ambient civilian merely because it shares `Faction.CIVILIAN`;
+- if no active evacuee remains, pressure the nearest live marine;
+- path directly toward the chosen target and apply contact damage only from an
+  adjacent cell; and
+- idle if neither a registered evacuee nor marine exists.
+
+The first roster is mission-local and risk-scaled, with no militia, regulars,
+mechs, turrets, conventional reinforcements, or fighter support. It spawns only
+on complete reachable cells outside the shelter/lift zones. The dedicated
+rescue factory replaces its temporary Extraction defender roster with this
+payload; evacuation accounting, zero-economy terms, and moral mapping do not
+change.
 
 ## Design rules
 

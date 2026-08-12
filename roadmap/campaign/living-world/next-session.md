@@ -123,7 +123,9 @@ Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 The civilian rescue is now an end-to-end measurable event. Add its intended
 enemy content without changing the shipped evacuation/writeback contract:
 
-1. Inventory the held swarm art and lock its unit/faction naming.
+1. **Contract locked:** held `alien.png` / `alien-dead.png` back append-only
+   `SWARM_RUNNER` and `SWARM_PRESSURE` identities. The opposed side remains
+   `Faction.DEFENDER`; legacy `ALIEN` stays intact.
 2. Add an append-only faction/unit archetype and a dedicated swarm roster for
    civilian-rescue battles; do not reuse ordinary militia defenders.
 3. Give swarm units a simple pressure behavior that attacks the evacuation
