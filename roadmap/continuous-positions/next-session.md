@@ -2,54 +2,59 @@
 
 ## State of play (2026-08-12)
 
-Migration running in worktree `worktree-continuous-positions`
-(`.claude/worktrees/continuous-positions`), based on main @ a27064fc.
-Survey phase done (two exhaustive code surveys; findings baked into
-`overview.md`). Coordinate convention locked: continuous cell space,
-center at `cx + 0.5`, `cellX = floor(x)`.
+**Code migration COMPLETE.** All phases landed in worktree branch
+`worktree-continuous-positions` and merged back to main. Every commit
+built green with the full test suite; each phase got an adversarial
+critique pass whose real findings were fixed in follow-up commits.
 
-## Story status
+The locked convention (see `overview.md`): POSITION is continuous floats
+in cell space, cell `(cx, cy)` spans `[cx, cx+1)`, center at
+`cx + 0.5`; `cellX(id) = floor(x)`; `renderX/renderY` are tolerant
+center-based reads for render/audio; ints survive only at genuine grid
+boundaries (LoS, zones, A*, occupancy, fog).
 
-REORDERED: 2b (gate helpers + sweep) runs BEFORE 2a (mover swap) so every
-commit stays green — 2a changes each helper's semantics in one place.
+## Remaining: in-game verification
 
-- [x] phase-1-storage-flip — landed 0d346838; critique pass clean
-- [x] phase-2b-arrival-semantics — helpers aabf8b5f, 50-site sweep 7a095c06
-- [x] phase-2a-continuous-mover — 2d4bad01 (mover) + 89f2e661
-      (RENDER_POSITION deleted) + 2c67bc12 (critique fixes: one-cell-path
-      blocker, velocity-authored presentation); combined critique pass on
-      the latter two pending
-- [x] phase-2c — landed a36955e (services + ~90-site sweep, one commit);
-      follow-up candidates logged in stories/phase-2c-worklist.md;
-      critique pass pending
-- [ ] phase-2c-spatial-boundaries
-- [ ] in-game verification + merge back to main
+The mod is deployed (`deployMod`) — next game launch runs the migrated
+code. Playtest checklist:
 
-## Commit chain
+- Movement smoothness: no per-cell stutter, no walk-pose strobe, mechs
+  pivot-then-walk without stutter-stepping, drones orbit smoothly.
+- Arrival: units settle exactly on cell centers; cordon holders /
+  planters reach their posts (the one-cell-path blocker is fixed +
+  regression-tested, but eyes-on confirmation is cheap).
+- Combat: tracers originate/terminate on sprites; ranges feel unchanged
+  (true-position distance shifts effective range by up to ~0.7 cells at
+  boundaries — deliberate); AoE catches big units at their extent.
+- Facing: walkers face their travel direction continuously; no south-
+  snap flicker; turn-step plays while a mech pivots.
+
+## Shipped story docs
+
+All in `complete/` — each records design + critique findings:
+phase-1-storage-flip, phase-2b-arrival-semantics (ran before 2a),
+phase-2a-continuous-mover, phase-2c-spatial-boundaries + worklist
+(includes follow-up candidates + balance notes).
+
+## Commit chain (worktree branch)
 
 - ec60c13a roadmap docs
 - 0d346838 phase 1: POSITION int,int -> float,float (behavior-identical)
 - aabf8b5f phase 2b groundwork: atCell/settled/mayRepath + FireStance(boolean)
-- 7a095c06 phase 2b sweep: 50 gates intent-classified (behavior-identical)
-- 2d4bad01 phase 2a-1: continuous carrot-following mover (moveProgress ->
-  GAIT_PHASE + LAST_REPATH_TIME; ARRIVE_RADIUS 0.35, LOOKAHEAD 0.45,
-  repath throttle 0.35s; 24 stop-snap pairs deleted, idle-pose reset
-  centralized in FacingSystem)
-- 89f2e661 phase 2a-2: RENDER_POSITION deleted; renderX/renderY = tolerant
-  center-based POSITION reads; draw sites drop +0.5; ShotEndpoint takes
-  centers; drone syncs POSITION from AirBody; WorldPicker/audio gain the
-  correct center
-- 2c67bc12 phase 2a-3: one-cell paths start at cursor 0 (born-exhausted
-  blocker — mission softlock via stranded planters); MOVEMENT VEL_X/VEL_Y
-  per-tick applied velocity; FacingSystem moving/bearing from velocity;
-  MechLocomotionSystem holds heading on zero path-delta
-- 24651e4c 2c groundwork: cellDistance + RangeFalloff.dist widened to float
+- 7a095c06 phase 2b sweep: 50 gates intent-classified
+- 2d4bad01 phase 2a-1: continuous carrot-following mover
+- 89f2e661 phase 2a-2: RENDER_POSITION deleted, render from POSITION
+- 2c67bc12 phase 2a-3: critique fixes (one-cell-path blocker,
+  velocity-authored presentation, mech hold-heading)
+- 24651e4c 2c groundwork: distance primitives widened to float
+- a36955e  phase 2c: true-position spatial services + ~90-site sweep
+- 9e7c9cf8 2a critique follow-ups (gunfire-alert floor, setPath doc)
+- 29c1f774 2c critique fixes (findBestTarget float chain, centroid
+  convention closure, round->floor)
 
-## Handoff notes
+## Follow-up candidates (logged, not scheduled)
 
-- Worktree branch must merge back to main at the end (concurrent sessions
-  share HEAD on main — never rebase main itself).
-- Phase 1 is behavior-identical by construction; if a test fails, the flip
-  leaked semantics — fix the flip, don't adjust the test.
-- Phase 2a intentionally deletes `moveProgress` accessors so 2b's worklist
-  is the resulting compile-error list.
+See `complete/phase-2c-worklist.md` "follow-ups" section: firing-position
+ring searches, averageEnemyCell threat centroid, overwatchAxis float
+fields, lastSeenEnemy as float pair; plus balance notes (rocket-safety
+heuristics vs the per-unit blast expansion, TurretAim range hysteresis).
