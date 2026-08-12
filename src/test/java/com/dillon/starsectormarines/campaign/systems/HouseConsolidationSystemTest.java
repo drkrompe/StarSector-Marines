@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.ChronicleBand;
+import com.dillon.starsectormarines.campaign.ChronicleEventType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -118,6 +120,34 @@ class HouseConsolidationSystemTest {
         assertEquals(ContractState.DEFAULTED, ContractState.fromByte(state.contractState[2]));
         assertEquals(ContractState.OFFERED, ContractState.fromByte(state.contractState[3]));
         assertEquals(ContractState.COMPLETED, ContractState.fromByte(state.contractState[4]));
+    }
+
+    @Test
+    void touchedDormancyIsIntimateUntouchedTierThreeIsEpicAndLowTierIsSilent() {
+        CampaignState state = new CampaignState();
+        long touched = house(state, HouseStatus.ACTIVE);
+        long epic = state.addHouse(1, 1, HouseFlavor.FEUDAL, HouseRank.TIER_3,
+                HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, "Epic");
+        long silent = house(state, HouseStatus.ACTIVE);
+        state.addStake(touched, 1, 7, (short) 0);
+        state.addStake(epic, 1, 7, (short) 0);
+        state.addStake(silent, 1, 7, (short) 0);
+        state.ensureRepRow(touched);
+
+        HouseConsolidationSystem system = new HouseConsolidationSystem();
+        system.tick(state, 20);
+        system.tick(state, 21);
+
+        assertEquals(2, state.chronicleCount);
+        assertEquals(ChronicleEventType.HOUSE_DORMANT,
+                ChronicleEventType.fromByte(state.chronicleEventType[0]));
+        assertEquals(ChronicleBand.INTIMATE,
+                ChronicleBand.fromByte(state.chronicleBand[0]));
+        assertEquals(touched, state.chronicleActorHouseId[0]);
+        assertEquals(ChronicleBand.EPIC,
+                ChronicleBand.fromByte(state.chronicleBand[1]));
+        assertEquals(epic, state.chronicleActorHouseId[1]);
+        assertEquals(20, state.chronicleHappenedTick[0]);
     }
 
     private static void addContract(CampaignState state, long patron,

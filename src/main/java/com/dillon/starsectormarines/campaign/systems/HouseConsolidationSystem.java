@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.ChronicleBand;
+import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 
 import java.util.EnumSet;
@@ -21,13 +23,14 @@ public final class HouseConsolidationSystem implements CampaignSystem {
     @Override
     public EnumSet<CampaignTable> reads() {
         return EnumSet.of(CampaignTable.HOUSES, CampaignTable.STAKES,
-                CampaignTable.CHAINS, CampaignTable.CONTRACTS);
+                CampaignTable.CHAINS, CampaignTable.CONTRACTS,
+                CampaignTable.PLAYER_REP);
     }
 
     @Override
     public EnumSet<CampaignTable> writes() {
         return EnumSet.of(CampaignTable.HOUSES, CampaignTable.CHAINS,
-                CampaignTable.CONTRACTS);
+                CampaignTable.CONTRACTS, CampaignTable.CHRONICLE);
     }
 
     @Override
@@ -51,8 +54,19 @@ public final class HouseConsolidationSystem implements CampaignSystem {
             if (hasHistory && !hasPositiveStake) {
                 state.houseStatus[houseRow] = HouseStatus.DORMANT.toByte();
                 terminatePoliticalWork(state, houseId, day);
+                ChronicleBand band = dormancyBand(state, houseRow);
+                if (band != null) {
+                    state.addChronicleHouseDormancy(band, houseId,
+                            state.houseMarketId[houseRow], day, day);
+                }
             }
         }
+    }
+
+    private static ChronicleBand dormancyBand(CampaignState state, int houseRow) {
+        if (state.repIndex(state.houseId[houseRow]) >= 0) return ChronicleBand.INTIMATE;
+        HouseRank rank = HouseRank.fromByte(state.houseRank[houseRow]);
+        return rank.ordinal() >= HouseRank.TIER_3.ordinal() ? ChronicleBand.EPIC : null;
     }
 
     private static void terminatePoliticalWork(CampaignState state, long houseId, int day) {

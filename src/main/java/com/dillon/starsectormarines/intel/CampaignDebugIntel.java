@@ -308,11 +308,20 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 "market", s.chronicleMarketId[row]);
         String industry = registryLabel(s.industryRegistry.get(s.chronicleIndustryId[row]),
                 "industry", s.chronicleIndustryId[row]);
-        String event = eventType == ChronicleEventType.ACTIVE_CHAIN_RUMOR
-                ? "RUMOR — " + actor + " moving against " + target
-                : outcome.name() + " — " + actor + " vs " + target;
+        String event;
+        String location;
+        if (eventType == ChronicleEventType.ACTIVE_CHAIN_RUMOR) {
+            event = "RUMOR — " + actor + " moving against " + target;
+            location = industry + " @ " + market;
+        } else if (eventType == ChronicleEventType.HOUSE_DORMANT) {
+            event = "DORMANT — " + actor + " left active politics";
+            location = market;
+        } else {
+            event = outcome.name() + " — " + actor + " vs " + target;
+            location = industry + " @ " + market;
+        }
         return "[" + band.name() + "/" + confidence.name() + "] " + event
-                + " — " + industry + " @ " + market
+                + " — " + location
                 + " — happened day " + s.chronicleHappenedTick[row]
                 + ", learned day " + s.chronicleLearnedTick[row];
     }

@@ -50,6 +50,19 @@ class CampaignDebugIntelChronicleTest {
                 CampaignDebugIntel.chronicleSummary(state, 0));
     }
 
+    @Test
+    void dormancySummaryUsesHouseAndHomeMarketWithoutChainFields() {
+        CampaignState state = new CampaignState();
+        int market = state.marketRegistry.intern("jangala");
+        long house = house(state, market, "House Drennar");
+        state.addChronicleHouseDormancy(ChronicleBand.INTIMATE,
+                house, market, 20, 20);
+
+        assertEquals("[INTIMATE/CONFIRMED] DORMANT — House Drennar left active politics"
+                        + " — jangala — happened day 20, learned day 20",
+                CampaignDebugIntel.chronicleSummary(state, 0));
+    }
+
     private static long house(CampaignState state, int market, String name) {
         return state.addHouse(market, 1, HouseFlavor.FEUDAL, HouseRank.TIER_1,
                 HouseStatus.ACTIVE, PatronArchetype.NEWCOMER, name);

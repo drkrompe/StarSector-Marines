@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.campaign;
 /** Persisted Chronicle event discriminator. Append only; never reorder. */
 public enum ChronicleEventType {
     CHAIN_OUTCOME,
-    ACTIVE_CHAIN_RUMOR;
+    ACTIVE_CHAIN_RUMOR,
+    HOUSE_DORMANT;
 
     private static final ChronicleEventType[] VALUES = values();
 

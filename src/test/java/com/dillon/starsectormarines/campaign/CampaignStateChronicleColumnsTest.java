@@ -53,6 +53,27 @@ class CampaignStateChronicleColumnsTest {
     }
 
     @Test
+    void houseDormancyRetainsConfirmedHouseAndMarketSnapshot() {
+        CampaignState state = new CampaignState();
+
+        long id = state.addChronicleHouseDormancy(
+                ChronicleBand.EPIC, 2L, 4, 20, 20);
+
+        assertEquals(1L, id);
+        assertEquals(ChronicleEventType.HOUSE_DORMANT,
+                ChronicleEventType.fromByte(state.chronicleEventType[0]));
+        assertEquals(ChronicleConfidence.CONFIRMED,
+                ChronicleConfidence.fromByte(state.chronicleConfidence[0]));
+        assertEquals(-1L, state.chronicleSourceChainId[0]);
+        assertEquals(2L, state.chronicleActorHouseId[0]);
+        assertEquals(-1L, state.chronicleTargetHouseId[0]);
+        assertEquals(4, state.chronicleMarketId[0]);
+        assertEquals(-1, state.chronicleIndustryId[0]);
+        assertEquals(20, state.chronicleHappenedTick[0]);
+        assertEquals(20, state.chronicleLearnedTick[0]);
+    }
+
+    @Test
     void growthInitializesUnusedChronicleAndChainSentinels() {
         CampaignState state = new CampaignState();
         for (int i = 0; i < 20; i++) {

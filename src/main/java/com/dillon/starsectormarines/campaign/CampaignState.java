@@ -388,6 +388,28 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
+    /** Appends a confirmed house-dormancy dispatch. */
+    public long addChronicleHouseDormancy(ChronicleBand band, long houseId,
+                                          int marketId, int happenedTick,
+                                          int learnedTick) {
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.HOUSE_DORMANT.toByte();
+        chronicleSourceChainId[i] = -1L;
+        chronicleChainOutcome[i] = ChainState.ACTIVE.toByte();
+        chronicleBand[i] = band.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
+        chronicleActorHouseId[i] = houseId;
+        chronicleTargetHouseId[i] = -1L;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = -1;
+        chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
     /** Finds or creates a rep row for the given house id. Returns the row index. */
     public int ensureRepRow(long houseIdValue) {
         int existing = repIndexByHouseId.get(houseIdValue);
