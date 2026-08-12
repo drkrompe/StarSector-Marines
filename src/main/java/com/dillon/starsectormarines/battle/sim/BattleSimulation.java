@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -138,6 +139,13 @@ public class BattleSimulation implements BattleControl {
     private final Detonations detonations;
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
     private final ObjectivesService objectivesService = new ObjectivesService();
+    /**
+     * Mission-only representative civilian accounting. Generic battles leave
+     * the tracker empty; rescue setup registers its full cohort and terminal
+     * objective handling seals it before Results computes an outcome.
+     */
+    private final CivilianEvacuationTracker civilianEvacuation =
+            new CivilianEvacuationTracker();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
@@ -465,6 +473,9 @@ public class BattleSimulation implements BattleControl {
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live) — the by-id read path {@link BattleView} consumers use. */
     public VehicleMission convoyMission(long id) { return rosterService.convoy().mission(id); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
+    public CivilianEvacuationTracker getCivilianEvacuationTracker() {
+        return civilianEvacuation;
+    }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */

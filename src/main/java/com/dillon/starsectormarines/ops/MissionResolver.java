@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -157,6 +158,16 @@ public final class MissionResolver {
                 ? LootRecoveryModifiers.resolve(captain)
                 : LootRecoveryModifier.NONE;
 
+        int civiliansRescued = -1;
+        if (mission.source == MissionSource.CAMPAIGN_EVENT) {
+            CivilianEvacuationReport report =
+                    sim.getCivilianEvacuationTracker().report();
+            if (report != null) {
+                civiliansRescued = report.campaignRescued(
+                        mission.civiliansAtRisk);
+            }
+        }
+
         Status priorStatus = captain != null ? captain.status() : null;
         Status newStatus   = priorStatus;
         int   xpGained        = 0;
@@ -203,7 +214,8 @@ public final class MissionResolver {
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
                 mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
                 mission.contractId, mission.campaignEventId,
-                mission.campaignEventMarketId, mission.civiliansAtRisk, -1,
+                mission.campaignEventMarketId, mission.civiliansAtRisk,
+                civiliansRescued,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct);
     }
