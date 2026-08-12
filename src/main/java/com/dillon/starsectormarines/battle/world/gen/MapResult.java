@@ -45,6 +45,8 @@ public final class MapResult {
     public final int defenderSpawnY;
     public final List<PointOfInterest> pointsOfInterest;
     public final List<Doodad> doodads;
+    /** Authored shuttle berths, ordered deterministically by filler dispatch. */
+    public final List<LandingPad> landingPads;
     /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
@@ -84,7 +86,7 @@ public final class MapResult {
                      List<Doodad> doodads) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
                 pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()),
-                Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY);
+                Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY, Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -94,7 +96,8 @@ public final class MapResult {
                      List<Doodad> doodads,
                      TacticalMap tacticalMap) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY);
+                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY,
+                Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -105,7 +108,8 @@ public final class MapResult {
                      TacticalMap tacticalMap,
                      Buildings buildings) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, buildings, Collections.emptyList(), RoadGraph.EMPTY);
+                pointsOfInterest, doodads, tacticalMap, buildings, Collections.emptyList(), RoadGraph.EMPTY,
+                Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -117,7 +121,8 @@ public final class MapResult {
                      Buildings buildings,
                      List<DefensePost> defensePosts) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, RoadGraph.EMPTY);
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, RoadGraph.EMPTY,
+                Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -129,6 +134,21 @@ public final class MapResult {
                      Buildings buildings,
                      List<DefensePost> defensePosts,
                      RoadGraph roadGraph) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -137,6 +157,7 @@ public final class MapResult {
         this.defenderSpawnY = defenderSpawnY;
         this.pointsOfInterest = pointsOfInterest;
         this.doodads = doodads;
+        this.landingPads = landingPads == null ? Collections.emptyList() : landingPads;
         this.tacticalMap = tacticalMap;
         this.buildings = buildings;
         this.defensePosts = defensePosts;
