@@ -1,0 +1,95 @@
+package com.dillon.starsectormarines.campaign;
+
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Method;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class CampaignStateChainColumnsTest {
+
+    @Test
+    void playerBackedChainRetainsPatronAsActor() {
+        CampaignState state = new CampaignState();
+
+        long id = state.addChain(4L, 9L, (byte) 2, ChainArchetype.CONSOLIDATE_STAKE,
+                (short) 12, (byte) 3, 40);
+
+        int row = state.chainIndex(id);
+        assertEquals(4L, state.chainPatron[row]);
+        assertEquals(4L, state.chainActorHouseId[row]);
+        assertEquals(9L, state.chainTarget[row]);
+        assertEquals(-1, state.chainMarketId[row]);
+        assertEquals(-1, state.chainIndustryId[row]);
+        assertEquals(ChainState.ACTIVE, ChainState.fromByte(state.chainState[row]));
+        assertEquals(-1, state.chainLastAdvanceTick[row]);
+        assertEquals(-1, state.chainResolvedTick[row]);
+    }
+
+    @Test
+    void autonomousChainRetainsActorAndLocationWithoutPatron() {
+        CampaignState state = new CampaignState();
+
+        long id = state.addAutonomousChain(4L, 9L, 2, 7, (byte) 1,
+                ChainArchetype.CONSOLIDATE_STAKE, (short) 10, (byte) 2, 30);
+
+        int row = state.chainIndex(id);
+        assertEquals(-1L, state.chainPatron[row]);
+        assertEquals(4L, state.chainActorHouseId[row]);
+        assertEquals(9L, state.chainTarget[row]);
+        assertEquals(2, state.chainMarketId[row]);
+        assertEquals(7, state.chainIndustryId[row]);
+        assertEquals(ChainState.ACTIVE, ChainState.fromByte(state.chainState[row]));
+        assertEquals(-1, state.chainLastAdvanceTick[row]);
+        assertEquals(-1, state.chainResolvedTick[row]);
+    }
+
+    @Test
+    void growthInitializesUnusedSentinels() {
+        CampaignState state = new CampaignState();
+        for (int i = 0; i < 20; i++) {
+            state.addAutonomousChain(i + 1L, i + 101L, i, i + 10, (byte) 1,
+                    ChainArchetype.CONSOLIDATE_STAKE, (short) 10, (byte) 2, i);
+        }
+
+        assertEquals(20, state.chainCount);
+        assertEquals(20L, state.chainActorHouseId[19]);
+        assertEquals(-1L, state.chainPatron[20]);
+        assertEquals(-1L, state.chainActorHouseId[20]);
+        assertEquals(-1, state.chainMarketId[20]);
+        assertEquals(-1, state.chainIndustryId[20]);
+        assertEquals(-1, state.chainLastAdvanceTick[20]);
+        assertEquals(-1, state.chainResolvedTick[20]);
+    }
+
+    @Test
+    void legacyStateBackfillsLifecycleAndInfersPlayerActor() throws Exception {
+        CampaignState state = new CampaignState();
+        state.addChain(4L, 9L, (byte) 2, ChainArchetype.CONSOLIDATE_STAKE,
+                (short) 12, (byte) 3, 40);
+        state.chainActorHouseId = null;
+        state.chainMarketId = null;
+        state.chainIndustryId = null;
+        state.chainState = null;
+        state.chainLastAdvanceTick = null;
+        state.chainResolvedTick = null;
+
+        Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
+        readResolve.setAccessible(true);
+        readResolve.invoke(state);
+
+        assertNotNull(state.chainActorHouseId);
+        assertNotNull(state.chainMarketId);
+        assertNotNull(state.chainIndustryId);
+        assertNotNull(state.chainState);
+        assertNotNull(state.chainLastAdvanceTick);
+        assertNotNull(state.chainResolvedTick);
+        assertEquals(4L, state.chainActorHouseId[0]);
+        assertEquals(-1, state.chainMarketId[0]);
+        assertEquals(-1, state.chainIndustryId[0]);
+        assertEquals(ChainState.ACTIVE, ChainState.fromByte(state.chainState[0]));
+        assertEquals(-1, state.chainLastAdvanceTick[0]);
+        assertEquals(-1, state.chainResolvedTick[0]);
+    }
+}

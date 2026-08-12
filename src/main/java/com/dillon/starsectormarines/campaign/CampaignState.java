@@ -75,14 +75,26 @@ public final class CampaignState implements Serializable {
     // ---------- chains[] ----------
 
     public long[]  chainId           = new long[INITIAL_CAPACITY];
-    public long[]  chainPatron       = new long[INITIAL_CAPACITY]; // -1 = autonomous
+    /** House that hired the player, or -1 for an autonomous chain. */
+    public long[]  chainPatron       = filledLongs(INITIAL_CAPACITY, -1L);
+    /** House politically pursuing the chain outcome, including autonomous chains. */
+    public long[]  chainActorHouseId = filledLongs(INITIAL_CAPACITY, -1L);
     public long[]  chainTarget       = new long[INITIAL_CAPACITY];
+    /** Market registry slot where the chain operates, or -1 when not location-bound. */
+    public int[]   chainMarketId     = filledInts(INITIAL_CAPACITY, -1);
+    /** Industry registry slot where the chain operates, or -1 when not industry-bound. */
+    public int[]   chainIndustryId   = filledInts(INITIAL_CAPACITY, -1);
     public byte[]  chainTier         = new byte[INITIAL_CAPACITY];
     public byte[]  chainArchetype    = new byte[INITIAL_CAPACITY];
+    public byte[]  chainState        = new byte[INITIAL_CAPACITY];
     public short[] chainProgress     = new short[INITIAL_CAPACITY];
     public short[] chainThreshold    = new short[INITIAL_CAPACITY];
     public byte[]  chainDiscoveryRisk = new byte[INITIAL_CAPACITY];
     public int[]   chainInitiatedTick = new int[INITIAL_CAPACITY];
+    /** Last day autonomous advancement evaluated this row; -1 until first evaluation. */
+    public int[]   chainLastAdvanceTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Day the chain reached a terminal state; -1 while active. */
+    public int[]   chainResolvedTick = filledInts(INITIAL_CAPACITY, -1);
     public int     chainCount        = 0;
 
     // ---------- playerReputation[] ----------
@@ -253,18 +265,44 @@ public final class CampaignState implements Serializable {
     /** Appends a chain. Returns the new chain id. */
     public long addChain(long patron, long target, byte tier, ChainArchetype archetype,
                          short threshold, byte discoveryRisk, int initiatedTick) {
+        return appendChain(patron, patron, target, -1, -1, tier, archetype,
+                threshold, discoveryRisk, initiatedTick);
+    }
+
+    /**
+     * Appends an autonomous, location-bound chain. The actor is retained even
+     * though no player-contract patron exists.
+     */
+    public long addAutonomousChain(long actorHouseId, long targetHouseId,
+                                   int marketId, int industryId,
+                                   byte tier, ChainArchetype archetype,
+                                   short threshold, byte discoveryRisk, int initiatedTick) {
+        return appendChain(-1L, actorHouseId, targetHouseId, marketId, industryId,
+                tier, archetype, threshold, discoveryRisk, initiatedTick);
+    }
+
+    private long appendChain(long patronHouseId, long actorHouseId, long targetHouseId,
+                             int marketId, int industryId,
+                             byte tier, ChainArchetype archetype,
+                             short threshold, byte discoveryRisk, int initiatedTick) {
         ensureChainCapacity(chainCount + 1);
         int i = chainCount++;
         long id = nextChainId++;
         chainId[i] = id;
-        chainPatron[i] = patron;
-        chainTarget[i] = target;
+        chainPatron[i] = patronHouseId;
+        chainActorHouseId[i] = actorHouseId;
+        chainTarget[i] = targetHouseId;
+        chainMarketId[i] = marketId;
+        chainIndustryId[i] = industryId;
         chainTier[i] = tier;
         chainArchetype[i] = archetype.toByte();
+        chainState[i] = ChainState.ACTIVE.toByte();
         chainProgress[i] = 0;
         chainThreshold[i] = threshold;
         chainDiscoveryRisk[i] = discoveryRisk;
         chainInitiatedTick[i] = initiatedTick;
+        chainLastAdvanceTick[i] = -1;
+        chainResolvedTick[i] = -1;
         chainIndexById.put(id, i);
         return id;
     }
@@ -415,16 +453,29 @@ public final class CampaignState implements Serializable {
 
     private void ensureChainCapacity(int needed) {
         if (needed <= chainId.length) return;
+        int oldLength = chainId.length;
         int n = Math.max(needed, chainId.length * 2);
         chainId            = Arrays.copyOf(chainId, n);
         chainPatron        = Arrays.copyOf(chainPatron, n);
+        Arrays.fill(chainPatron, oldLength, n, -1L);
+        chainActorHouseId  = Arrays.copyOf(chainActorHouseId, n);
+        Arrays.fill(chainActorHouseId, oldLength, n, -1L);
         chainTarget        = Arrays.copyOf(chainTarget, n);
+        chainMarketId      = Arrays.copyOf(chainMarketId, n);
+        Arrays.fill(chainMarketId, oldLength, n, -1);
+        chainIndustryId    = Arrays.copyOf(chainIndustryId, n);
+        Arrays.fill(chainIndustryId, oldLength, n, -1);
         chainTier          = Arrays.copyOf(chainTier, n);
         chainArchetype     = Arrays.copyOf(chainArchetype, n);
+        chainState         = Arrays.copyOf(chainState, n);
         chainProgress      = Arrays.copyOf(chainProgress, n);
         chainThreshold     = Arrays.copyOf(chainThreshold, n);
         chainDiscoveryRisk = Arrays.copyOf(chainDiscoveryRisk, n);
         chainInitiatedTick = Arrays.copyOf(chainInitiatedTick, n);
+        chainLastAdvanceTick = Arrays.copyOf(chainLastAdvanceTick, n);
+        Arrays.fill(chainLastAdvanceTick, oldLength, n, -1);
+        chainResolvedTick = Arrays.copyOf(chainResolvedTick, n);
+        Arrays.fill(chainResolvedTick, oldLength, n, -1);
     }
 
     private void ensureRepCapacity(int needed) {
@@ -456,6 +507,38 @@ public final class CampaignState implements Serializable {
         if (houseLastDriftTick == null) {
             int n = houseId != null ? houseId.length : INITIAL_CAPACITY;
             houseLastDriftTick = filledInts(n, -1);
+        }
+        if (chainPatron == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainPatron = filledLongs(n, -1L);
+        }
+        if (chainActorHouseId == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainActorHouseId = filledLongs(n, -1L);
+            int existingRows = Math.min(chainCount, chainPatron.length);
+            for (int i = 0; i < existingRows; i++) {
+                if (chainPatron[i] >= 0L) chainActorHouseId[i] = chainPatron[i];
+            }
+        }
+        if (chainMarketId == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainMarketId = filledInts(n, -1);
+        }
+        if (chainIndustryId == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainIndustryId = filledInts(n, -1);
+        }
+        if (chainState == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainState = new byte[n];
+        }
+        if (chainLastAdvanceTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainLastAdvanceTick = filledInts(n, -1);
+        }
+        if (chainResolvedTick == null) {
+            int n = chainId != null ? chainId.length : INITIAL_CAPACITY;
+            chainResolvedTick = filledInts(n, -1);
         }
         if (contractOfferExpiresTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
