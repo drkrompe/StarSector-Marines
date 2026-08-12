@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.HouseAmbition;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.StarsectorThroneClaimWriteback;
 import com.dillon.starsectormarines.campaign.ThroneClaimState;
 import com.dillon.starsectormarines.campaign.ThroneClaimWriteback;
 
@@ -17,6 +18,10 @@ import java.util.EnumSet;
 public final class ThroneClaimResolutionSystem implements CampaignSystem {
 
     private final ThroneClaimWriteback writeback;
+
+    public ThroneClaimResolutionSystem() {
+        this(new StarsectorThroneClaimWriteback());
+    }
 
     public ThroneClaimResolutionSystem(ThroneClaimWriteback writeback) {
         if (writeback == null) throw new IllegalArgumentException("writeback");

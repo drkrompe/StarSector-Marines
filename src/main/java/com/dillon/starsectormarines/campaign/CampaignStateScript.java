@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
+import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
@@ -72,6 +73,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new RelationshipInteractionSystem(),
                 new AutonomousChainCreationSystem(),
                 new ChainAdvancementSystem(),
+                new ThroneClaimResolutionSystem(),
                 new HouseConsolidationSystem(),
                 new ContractGenerator(),
                 new VanillaRaidGarrisonSystem(),

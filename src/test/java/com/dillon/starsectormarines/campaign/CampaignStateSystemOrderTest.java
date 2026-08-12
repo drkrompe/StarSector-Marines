@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
+import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,7 @@ class CampaignStateSystemOrderTest {
         int promotions = indexOf(systems, AutonomousPromotionSystem.class);
         int chainCreation = indexOf(systems, AutonomousChainCreationSystem.class);
         int chainAdvancement = indexOf(systems, ChainAdvancementSystem.class);
+        int throneResolution = indexOf(systems, ThroneClaimResolutionSystem.class);
         int consolidation = indexOf(systems, HouseConsolidationSystem.class);
         int contractGeneration = indexOf(systems,
                 com.dillon.starsectormarines.campaign.systems.ContractGenerator.class);
@@ -54,6 +56,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
         assertTrue(chainCreation < chainAdvancement);
+        assertTrue(chainAdvancement < throneResolution);
+        assertTrue(throneResolution < consolidation);
         assertTrue(chainAdvancement < consolidation);
         assertTrue(consolidation < contractGeneration);
         assertTrue(discovery < interventionOffers);
