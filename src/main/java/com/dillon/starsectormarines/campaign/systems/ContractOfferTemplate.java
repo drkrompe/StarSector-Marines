@@ -35,10 +35,20 @@ public final class ContractOfferTemplate {
                     ? ContractType.ESCORT
                     : ContractType.STRIKE;
         }
+        return forType(rank, type);
+    }
+
+    public static ContractOfferTemplate forType(HouseRank rank, ContractType type) {
+        if (rank == null || type == null || rank == HouseRank.TIER_4) return null;
+        if ((type == ContractType.ESCORT || type.isStationing())
+                && rank == HouseRank.TIER_1) {
+            return null;
+        }
         if (type.isStationing()) {
             return new ContractOfferTemplate(type, 0,
                     type == ContractType.GARRISON ? 25 : 5);
         }
+        if (type != ContractType.STRIKE && type != ContractType.ESCORT) return null;
         int basePayout = type == ContractType.ESCORT
                 ? ESCORT_BASE_PAYOUT
                 : STRIKE_BASE_PAYOUT;
