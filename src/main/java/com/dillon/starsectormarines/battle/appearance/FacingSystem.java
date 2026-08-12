@@ -59,8 +59,11 @@ public final class FacingSystem {
 
             Object[] types = t.objects(components.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             float[] hp = t.floats(components.HEALTH, BattleComponents.HEALTH_HP).array();
-            int[] cellX = t.ints(components.POSITION, BattleComponents.POSITION_CELL_X).array();
-            int[] cellY = t.ints(components.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            // Continuous position columns; the facing math floors per-row to grid
+            // cells below (identical to the old cell-index values this phase —
+            // units only ever sit on centers).
+            float[] posX = t.floats(components.POSITION, BattleComponents.POSITION_X).array();
+            float[] posY = t.floats(components.POSITION, BattleComponents.POSITION_Y).array();
             int[] sheetSel = t.ints(components.SPRITE, BattleComponents.SPRITE_SHEET).array();
             int[] frameIdx = t.ints(components.SPRITE, BattleComponents.SPRITE_INDEX).array();
             int[] flipV = t.ints(components.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
@@ -132,6 +135,13 @@ public final class FacingSystem {
                 boolean up = LiveAppearance.weaponUp(inAim, type.combatant,
                         hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f);
 
+                // The grid cell this row occupies — floored locally since the
+                // facing math below needs an integer cell delta, not the continuous
+                // position. Identical to the old cell-index values this phase
+                // (units only ever sit on centers).
+                int rowCellX = (int) Math.floor(posX[r]);
+                int rowCellY = (int) Math.floor(posY[r]);
+
                 // Facing source, exactly the renderer's fallback chain: aim at
                 // a live target first, else the next path cell, else none
                 // (defaults to SOUTH / S below). Non-combatants carry no
@@ -147,10 +157,10 @@ public final class FacingSystem {
                     long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
                             ? secondaryAimTarget[r] : targetId[r];
                     if (tid != 0L && roster.isLive(tid)) {
-                        int tcx = world.getInt(tid, components.POSITION, BattleComponents.POSITION_CELL_X);
-                        int tcy = world.getInt(tid, components.POSITION, BattleComponents.POSITION_CELL_Y);
-                        int tdx = tcx - cellX[r];
-                        int tdy = tcy - cellY[r];
+                        int tcx = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_X));
+                        int tcy = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_Y));
+                        int tdx = tcx - rowCellX;
+                        int tdy = tcy - rowCellY;
                         if (tdx != 0 || tdy != 0) {
                             targetDx = tdx;
                             targetDy = tdy;
@@ -168,8 +178,8 @@ public final class FacingSystem {
                     int[] path = (int[]) paths[r];
                     int idx = pathIdx[r];
                     if (idx < Paths.cellCount(path)) {
-                        int pdx = Paths.cellX(path, idx) - cellX[r];
-                        int pdy = Paths.cellY(path, idx) - cellY[r];
+                        int pdx = Paths.cellX(path, idx) - rowCellX;
+                        int pdy = Paths.cellY(path, idx) - rowCellY;
                         if (pdx != 0 || pdy != 0) {
                             pathDx = pdx;
                             pathDy = pdy;
@@ -186,8 +196,8 @@ public final class FacingSystem {
                     int[] path = (int[]) paths[r];
                     int idx = pathIdx[r];
                     if (idx < Paths.cellCount(path)) {
-                        pathDx = Paths.cellX(path, idx) - cellX[r];
-                        pathDy = Paths.cellY(path, idx) - cellY[r];
+                        pathDx = Paths.cellX(path, idx) - rowCellX;
+                        pathDy = Paths.cellY(path, idx) - rowCellY;
                         havePathDelta = pathDx != 0 || pathDy != 0;
                     }
                 }

@@ -225,15 +225,16 @@ public final class NavigationService {
         // emplacements (turrets, hubs) live in MOVEMENT-less tables and only claim
         // their current cell. Order-independent — occupancy is a saturating sum.
         for (ArchetypeTable t : world.matched(comps.gridOccupants)) {
-            int[] cellX = t.ints(comps.POSITION, BattleComponents.POSITION_CELL_X).array();
-            int[] cellY = t.ints(comps.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            float[] posX = t.floats(comps.POSITION, BattleComponents.POSITION_X).array();
+            float[] posY = t.floats(comps.POSITION, BattleComponents.POSITION_Y).array();
             boolean mover = t.has(comps.MOVEMENT);
             Object[] paths = mover
                     ? t.objects(comps.MOVEMENT, BattleComponents.MOVEMENT_PATH).array()
                     : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
-                int curX = cellX[r];
-                int curY = cellY[r];
+                // Bin at the floored grid cell — the occupancy map is cell-addressed.
+                int curX = (int) Math.floor(posX[r]);
+                int curY = (int) Math.floor(posY[r]);
                 incrementOccupancy(curX, curY);
                 if (!mover) continue;
                 int[] path = (int[]) paths[r];

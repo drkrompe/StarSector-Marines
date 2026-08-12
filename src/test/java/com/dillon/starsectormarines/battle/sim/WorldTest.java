@@ -68,4 +68,30 @@ public class WorldTest {
         assertThrows(IllegalArgumentException.class, () -> w.hp(id));   // corpse
         assertThrows(IllegalArgumentException.class, () -> w.hp(999L)); // never allocated
     }
+
+    @Test
+    public void positionIsContinuousCellSpaceCenteredOnTheCell() {
+        UnitRosterService r = roster();
+        long id = r.spawn(new EntitySpec("u", Faction.MARINE, UnitType.MARINE_BLUE, 3, 4));
+        World w = new World(r.entityWorld(), r.components(), r.combat(), r.movement());
+
+        // Spawning at cell (3,4) seeds the cell center — x()/y() are the
+        // continuous position, cellX()/cellY() the derived (floored) grid cell.
+        assertEquals(3.5f, w.x(id), 1e-6f);
+        assertEquals(4.5f, w.y(id), 1e-6f);
+        assertEquals(3, w.cellX(id));
+        assertEquals(4, w.cellY(id));
+
+        // setPos writes the raw continuous position; cellX/cellY floor it.
+        w.setPos(id, 3.99f, 4.0f);
+        assertEquals(3, w.cellX(id));
+        assertEquals(4, w.cellY(id));
+
+        // setCellPos is the cell-space convenience — it writes the cell center.
+        w.setCellPos(id, 7, 9);
+        assertEquals(7.5f, w.x(id), 1e-6f);
+        assertEquals(9.5f, w.y(id), 1e-6f);
+        assertEquals(7, w.cellX(id));
+        assertEquals(9, w.cellY(id));
+    }
 }

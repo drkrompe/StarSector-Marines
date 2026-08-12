@@ -79,13 +79,24 @@ public final class World {
     public float maxHp(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
     public void setMaxHp(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
 
-    // The cell pair lives in the entity world's POSITION columns. POSITION
-    // persists alive→dead, so a corpse still answers cell reads.
-    public int cellX(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_X); }
-    public int cellY(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y); }
+    // The continuous position lives in the entity world's POSITION columns.
+    // POSITION persists alive→dead, so a corpse still answers position reads.
+    // x/y are the authoritative float coordinates in cell space (cell (cx,cy)
+    // spans [cx,cx+1), center at cx+0.5); cellX/cellY are the derived grid cell
+    // (floor) for nav/LoS/fog lookups, kept as int-returning accessors so the
+    // existing cell-space call sites compile unchanged.
+    public float x(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X); }
+    public float y(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y); }
+    public void setPos(long id, float x, float y) {
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, x);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, y);
+    }
+
+    public int cellX(long id) { return (int) Math.floor(x(id)); }
+    public int cellY(long id) { return (int) Math.floor(y(id)); }
+    /** Convenience for spawn/nav code that thinks in cells — writes the cell center {@code (cx + 0.5, cy + 0.5)}. */
     public void setCellPos(long id, int x, int y) {
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, x);
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, y);
+        setPos(id, x + 0.5f, y + 0.5f);
     }
 
     // Smooth render position — the world's universal RENDER_POSITION component

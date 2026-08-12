@@ -33,8 +33,8 @@ public final class MechLocomotionSystem {
         for (ArchetypeTable table : world.matched(mechs)) {
             boolean hasMovement = table.has(components.MOVEMENT);
             boolean hasCombat = table.has(components.COMBAT);
-            int[] cellX = table.ints(components.POSITION, BattleComponents.POSITION_CELL_X).array();
-            int[] cellY = table.ints(components.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            float[] posX = table.floats(components.POSITION, BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION, BattleComponents.POSITION_Y).array();
             Object[] paths = hasMovement
                     ? table.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array() : null;
             int[] pathIdx = hasMovement
@@ -44,11 +44,16 @@ public final class MechLocomotionSystem {
 
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 long id = table.entityAt(row);
+                // Floored locally — the turn-toward math below needs an integer
+                // cell delta, not the continuous position. Identical to the old
+                // cell-index values this phase (units only ever sit on centers).
+                int rowCellX = (int) Math.floor(posX[row]);
+                int rowCellY = (int) Math.floor(posY[row]);
                 if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])) {
                     int nextX = Paths.cellX((int[]) paths[row], pathIdx[row]);
                     int nextY = Paths.cellY((int[]) paths[row], pathIdx[row]);
-                    int dx = nextX - cellX[row];
-                    int dy = nextY - cellY[row];
+                    int dx = nextX - rowCellX;
+                    int dy = nextY - rowCellY;
                     if (dx != 0 || dy != 0) {
                         MechLocomotion.turnToward(world, components, id,
                                 MechLocomotion.desiredFacing(dx, dy), dt);
@@ -60,10 +65,10 @@ public final class MechLocomotionSystem {
                     MechLocomotion.stopTurning(world, components, id);
                     continue;
                 }
-                int dx = world.getInt(target, components.POSITION,
-                        BattleComponents.POSITION_CELL_X) - cellX[row];
-                int dy = world.getInt(target, components.POSITION,
-                        BattleComponents.POSITION_CELL_Y) - cellY[row];
+                int dx = (int) Math.floor(world.getFloat(target, components.POSITION,
+                        BattleComponents.POSITION_X)) - rowCellX;
+                int dy = (int) Math.floor(world.getFloat(target, components.POSITION,
+                        BattleComponents.POSITION_Y)) - rowCellY;
                 if (dx == 0 && dy == 0) {
                     MechLocomotion.stopTurning(world, components, id);
                 } else {

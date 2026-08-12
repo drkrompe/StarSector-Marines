@@ -40,7 +40,7 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * (membership-narrowing). They are world-resident but never in the dense ground
  * roster; walk them via {@link #airCraft}.
  *
- * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
+ * <p>Column access is positional ({@code table.floats(POSITION, POSITION_X)});
  * the {@code int} constants below are the named field indices per component.
  */
 public final class BattleComponents {
@@ -56,10 +56,10 @@ public final class BattleComponents {
     /** Persisted campaign soldier id for player marines; null for generated units. */
     public static final int IDENTITY_CAMPAIGN_SOLDIER_ID = 3;
 
-    /** {@link #POSITION} field 0: logical cell x (INT). */
-    public static final int POSITION_CELL_X = 0;
-    /** {@link #POSITION} field 1: logical cell y (INT). */
-    public static final int POSITION_CELL_Y = 1;
+    /** {@link #POSITION} field 0: continuous position x (FLOAT) — cell (cx,cy) spans [cx,cx+1), center at cx+0.5; floor for the grid cell. */
+    public static final int POSITION_X = 0;
+    /** {@link #POSITION} field 1: continuous position y (FLOAT) — cell (cx,cy) spans [cy,cy+1), center at cy+0.5; floor for the grid cell. */
+    public static final int POSITION_Y = 1;
 
     /** {@link #RENDER_POSITION} field 0: smooth sub-cell draw x (FLOAT). */
     public static final int RENDER_POSITION_X = 0;
@@ -301,7 +301,14 @@ public final class BattleComponents {
 
     /** Who/what this entity is — {@code UnitType type, Faction faction, String name}. Persists alive→dead. */
     public final ComponentType IDENTITY;
-    /** Logical cell — {@code int cellX, cellY}. Every spatially-present entity, corpse included. */
+    /**
+     * Continuous position — {@code float x, y} in cell space (cell {@code (cx,cy)}
+     * spans {@code [cx,cx+1) x [cy,cy+1)}, center at {@code (cx+0.5, cy+0.5)}; see
+     * {@code roadmap/continuous-positions/overview.md}).
+     * {@link com.dillon.starsectormarines.battle.sim.World#cellX}/
+     * {@link com.dillon.starsectormarines.battle.sim.World#cellY} derive the grid
+     * cell via {@code floor}. Every spatially-present entity, corpse included.
+     */
     public final ComponentType POSITION;
     /** Smooth draw position — {@code float x, y}. Sub-cell, distinct cadence from the int cell. */
     public final ComponentType RENDER_POSITION;
@@ -813,7 +820,7 @@ public final class BattleComponents {
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.OBJECT, FieldKind.OBJECT);
-        POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
+        POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         RENDER_POSITION = world.register(2, "RenderPosition", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");

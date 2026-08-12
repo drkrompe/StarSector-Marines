@@ -69,8 +69,8 @@ public class DeadBodySystemTest {
         for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
-            int[] cellX = t.ints(c.POSITION, BattleComponents.POSITION_CELL_X).array();
-            int[] cellY = t.ints(c.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            float[] posX = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
+            float[] posY = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             int[] pose = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 assertEquals(id, t.entityAt(r), "the corpse IS the dead unit's entity id");
@@ -79,8 +79,8 @@ public class DeadBodySystemTest {
                 // row-move carried the shared columns.
                 assertEquals(UnitType.MARINE, types[r], "identity rides the row-move");
                 assertEquals(Faction.DEFENDER, factions[r]);
-                assertEquals(20, cellX[r], "corpse keeps the death cell");
-                assertEquals(20, cellY[r]);
+                assertEquals(20, (int) Math.floor(posX[r]), "corpse keeps the death cell");
+                assertEquals(20, (int) Math.floor(posY[r]));
                 assertTrue(pose[r] >= 0 && pose[r] < 4,
                         "a damage-resolver death authors a valid prone-pose frame into SPRITE.index");
             }

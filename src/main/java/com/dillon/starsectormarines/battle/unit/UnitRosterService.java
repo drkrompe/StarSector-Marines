@@ -466,8 +466,8 @@ public final class UnitRosterService {
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, spec.name);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID, spec.campaignSoldierId);
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, spec.cellX);
-        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, spec.cellY);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
         // VISION is universal — sight stats seeded from the unit's write-only seeds
