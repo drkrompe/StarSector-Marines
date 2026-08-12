@@ -1,6 +1,8 @@
 # Slice G5 — civilian evacuation cohort
 
-**Status:** CONTRACT LOCKED (2026-08-12)
+**Status:** FOUNDATION CODE COMPLETE (2026-08-12)
+
+**Implemented:** `cc34a2ab`, `1174cae9`, `03017229`
 
 ## Goal
 
@@ -37,3 +39,22 @@ that measures evacuation rather than combat victory or civilian survival.
 - Treating generic Extraction victory as rescue success.
 - Counting ambient civilians or merely surviving evacuees.
 - Distress Net mission emission, swarm content, or manual playtesting.
+
+## Foundation checkpoint
+
+- The isolated tracker enforces expected-count registration, unique positive
+  identities, one-way transitions, replay safety, and terminal sealing.
+- Its immutable report validates conservation and scales partial results using
+  overflow-safe arithmetic while preserving exact full rescue.
+- Every battle simulation owns the tracker, but generic battles leave it empty.
+- Mission outcome computation consumes a sealed report only for
+  `CAMPAIGN_EVENT`; unsealed remains `-1`, measured zero remains `0`, and battle
+  victory does not enter the calculation.
+- Focused tracker/outcome tests and the full Gradle build pass. Manual playtest
+  was intentionally skipped for this session.
+
+## Next hunk
+
+Add controlled-fixture shelter and evacuation-zone placement, register exactly
+eight spawned mission civilians, and drive escape/loss transitions through a
+dedicated objective without touching ambient civilian accounting.

@@ -1,11 +1,11 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE EVACUATION-COHORT CONTRACT LOCKED
-(2026-08-12); isolated battle tracker next.
+**Status:** CIVILIAN-RESCUE EVACUATION-COHORT FOUNDATION CODE COMPLETE
+(2026-08-12); controlled spawning and objective behavior next.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
-`fdfb0aef`
+`fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -234,6 +234,18 @@ mission emission. The isolated tracker and report scaling land first; later
 battle integration will give the evacuation zone sole authority to mark escape,
 give casualty handling authority to mark loss, and seal at full evacuation or a
 terminal impossible-rescue state.
+
+The G5 foundation is shipped. Each battle simulation owns an empty eight-member
+tracker; rescue fixtures may register identity-unique representatives and apply
+replay-safe evacuated/lost transitions. Only a fully registered, sealed tracker
+produces an immutable report, and sealing accounts every survivor still outside
+the evacuation boundary as lost. `MissionResolver` reads that report only for a
+campaign-event mission, scales it to the frozen stakes using `long` arithmetic,
+and preserves `-1` for unfinished work and `0` for a measured zero rescue.
+
+No production mission reaches this seam yet. Cohort spawning, shelter/lift-point
+geometry, movement, casualty notification, terminal objective rules, local
+mission emission, and swarm content remain follow-up payloads.
 
 ## Design rules
 

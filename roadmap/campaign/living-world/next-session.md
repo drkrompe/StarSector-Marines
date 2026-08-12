@@ -91,6 +91,12 @@ pure factory creates a deterministic zero-economy Extraction-shaped snapshot;
 and strict writeback accepts only an explicit in-range evacuation report for the
 matching committed row (`2a5461a6`, `0d49d30e`, `fdfb0aef`). The factory remains
 unemitted while generic Extraction is still an elimination placeholder.
+The battle-side evacuation foundation is now shipped as well: an eight-member
+identity tracker distinguishes active, evacuated, and lost representatives;
+only a complete sealed cohort reports; and `MissionResolver` scales that report
+to campaign stakes without consulting ordinary battle victory (`cc34a2ab`,
+`1174cae9`, `03017229`). Production spawning and objective behavior remain
+deliberately unwired.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -107,9 +113,9 @@ Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 
 Give the rescue mission a real measurable objective before exposing its factory:
 
-1. **Contract locked:** v1 uses eight identity-registered mission evacuees,
+1. **Foundation shipped:** v1 uses eight identity-registered mission evacuees,
    distinct from ambient civilians. The tracker owns active/evacuated/lost state
-   and only a non-empty sealed cohort can report.
+   and only a fully registered sealed cohort can report.
 2. Spawn the cohort at a civilian shelter and an evacuation zone/lift point.
    Civilians count as rescued only after boarding/escaping, never merely for
    surviving when combat ends.
