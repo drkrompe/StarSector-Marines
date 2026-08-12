@@ -33,11 +33,10 @@ return with individual experience and dispositions.
 - Casualty disposition is deterministic for a frozen mission outcome.
 - KIA and MIA open replacement billets; WIA retain their billet until recovery.
 
-## Next design seam
+## Active story
 
-The company now has durable fireteams but no durable command relationship.
-Before adding another personnel UI, define how captains attach to fireteams,
-whether rank controls one fireteam or a larger formation, and which existing
-mission-selected captain remains authoritative during transition. Trait and
-rank bonuses should ship only with the systems they actually modify.
-
+[`stories/captain-fireteam-command.md`](stories/captain-fireteam-command.md)
+locks the durable command relationship: one home captain per line fireteam, a
+rank-scaled formation of whole fireteams, and the briefing-selected captain as
+the authoritative mission commander. Home command supplies defaults but does
+not strand squads when their captain is unavailable.

@@ -12,16 +12,18 @@ clock and Results retains the fireteam breakdown.
 Deployment now preserves the employer/player boundary and fails closed when an
 explicit squad selection is stale. Both cases have automated coverage.
 
-## Next up
+## Active — captain-to-fireteam command
 
-Write the captain-to-fireteam command contract before implementing it. Resolve:
+The contract is locked in
+[`stories/captain-fireteam-command.md`](stories/captain-fireteam-command.md):
+each line fireteam may have one durable home captain; a captain commands a
+rank-scaled formation of whole fireteams; home command supplies mission defaults
+without preventing another active captain from borrowing the team. The
+briefing-selected captain remains the outcome authority.
 
-- whether one captain owns one fireteam or commands a formation of fireteams;
-- how captain rank changes deployment capacity without invalidating six-person
-  fireteam identity;
-- how stationing assignments borrow or retain company personnel;
-- how captain injury, reassignment, and absence affect a fireteam;
-- which traits earn a visible effect in deployment, resolution, or recovery.
+Next: Slice 1, the persisted domain binding and legacy repair. Stationing keeps
+its existing captain plus anonymous-marine contract until named detachment
+semantics are designed as one complete lifecycle.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.
@@ -37,4 +39,3 @@ session.
 - `c35e88d4` — preserve generated employer seats when overlaying player
   personnel.
 - `822572b7` — lock deterministic casualty disposition under replay.
-
