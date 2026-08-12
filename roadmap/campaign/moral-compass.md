@@ -1,5 +1,7 @@
 # Moral compass — the silent track
 
+**Status:** FOUNDATION CONTRACT LOCKED (2026-08-12); persistence next.
+
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The discipline here (never surface it) is load-bearing — read the
 > "Design discipline" section before proposing any UI for this.
@@ -19,12 +21,67 @@ learn what they've been only when the world reflects it back. This is the
 structural prerequisite for the Kingdom-of-Heaven-style kingmaker capstone
 speech (see [`t3-endgame/overview.md`](t3-endgame/overview.md)).
 
-## Shape
+## Foundation shape — locked v1
 
-A small set of integer dimensions, not one number — probably 3–5 axes:
-ruthlessness / honor, faction loyalty, civilian protection, ideological
-alignment, mercenary professionalism. Encoded as `int` columns on
-`CampaignState` (cheap, persistent).
+Four global signed axes live on `CampaignState`, each clamped to `-100..100`.
+The names and values are internal vocabulary only; no player-facing surface may
+render a number, progress bar, threshold, or `+axis` notification.
+
+| Axis | Negative pole | Positive pole | What it means |
+| --- | --- | --- | --- |
+| `mercy` | ruthless | merciful | treatment of helpless people and defeated enemies |
+| `integrity` | expedient | principled | willingness to keep commitments when betrayal would pay |
+| `stewardship` | exploitative | protective | whether populations/resources are costs or responsibilities |
+| `institutionalism` | insurgent | establishment | preference for overturning or preserving political order |
+
+These axes are deliberately independent. Supporting a rebel claimant is not
+automatically merciful, principled, or protective; defending an incumbent is
+not automatically cruel. A source changes only the dimensions its persisted
+facts actually establish.
+
+## Append-only choice ledger — locked v1
+
+Aggregate values alone are not replay-safe and cannot later explain a capstone
+line. Every applied source therefore appends one immutable `moralChoices[]` row:
+
+| Column | Meaning |
+| --- | --- |
+| `moralChoiceId` | Stable row identity |
+| `moralChoiceSourceType` | Append-only discriminator describing the choice family/outcome |
+| `moralChoiceSourceId` | Stable id in that source namespace |
+| four axis deltas | Exact signed values applied to the aggregates |
+| `moralChoiceHappenedTick` | Day the underlying choice/outcome became true |
+| `moralChoiceRecordedTick` | Day the ledger consumed it |
+
+`(sourceType, sourceId)` is unique. Recording checks for that pair before
+mutation, clamps the four aggregates, then appends the immutable row in the same
+local operation. Save/load retries and later source-table compaction therefore
+cannot double-count a choice. Future source families append enum values and call
+the same recorder rather than adding one-off applied flags across their tables.
+
+Linear uniqueness scans are intentional for the foundation: moral rows are
+rare, player-global, and orders of magnitude smaller than contracts or stakes.
+Add a composite index only if real volume justifies it.
+
+## First source — civil-war outcome
+
+Only a terminal outcome whose player-reputation consequence reached `APPLIED`
+qualifies. This reuses the completed attribution validation and keeps autonomous,
+stale, malformed, merely accepted, failed, or abandoned work neutral.
+
+| Successful contribution | Institutionalism delta |
+| ---: | ---: |
+| 1–29 | 5 toward the supported side |
+| 30–59 | 10 toward the supported side |
+| 60+ | 20 toward the supported side |
+
+An applied claimant victory records `CIVIL_WAR_CLAIMANT` and a negative delta
+(overturning the established order). A same-day decisive incumbent victory
+records `CIVIL_WAR_INCUMBENT` and a positive delta (preserving it). Both use the
+source chain id as `moralChoiceSourceId`; claimant `happenedTick` is the handoff
+application day, while incumbent `happenedTick` is the failed-chain resolution
+day. The other three axes receive zero because side selection alone establishes
+nothing about mercy, integrity, or stewardship.
 
 ## How it surfaces — diegetic only
 
@@ -74,10 +131,12 @@ the player learns to read).
 
 ## Implementation surfaces
 
-- `CampaignState`: 3–5 `int` columns for the axes.
-- New `MoralCompassSystem` (a `CampaignSystem` impl) — reads contract
-  outcomes, event responses, mission results; writes the axes. Runs after
-  `MissionResolutionSystem`.
+- `CampaignState`: four bounded aggregate ints plus the append-only primitive
+  `moralChoices[]` ledger.
+- `MoralChoiceRecorder`: the only aggregate mutation seam; source-unique and
+  exactly once.
+- New `MoralCompassSystem` (a `CampaignSystem` impl) — initially consumes only
+  attributed terminal civil-war outcomes after their player consequences.
 - A `CaptainTraitDriftSystem` — reads compass + captain time-in-service,
   occasionally promotes a captain to a new trait (CYNICAL, IDEALIST, …).
 - NPC dialog gates — content-side, read the compass via a getter.
