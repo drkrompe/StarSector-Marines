@@ -26,6 +26,12 @@ E1 is shipped: houses with exhausted stake history become stable-id DORMANT
 tombstones, their political work closes safely, stale consolidation targets
 retarget or clear, and only meaningful disappearances enter the Chronicle
 (`975db3ba`, `f736a7d6`, `eefc505c`, `500d2c17`).
+E2 is shipped: houses persist a 30-day ambition-review clock; strong Tier-1/2
+houses switch from consolidation to rank-targeted promotion intent at 75% of
+their progress threshold; and Tier-3 houses at 750 progress / 1000 power persist
+a throne claim against their faction identity (`f022d4ad`, `31bb6875`,
+`3c58964b`, `57be6214`). Vertical ambitions deliberately do not create generic
+consolidation chains.
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -38,19 +44,21 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Slice E2 (Promotion and throne-claim ambitions)
+## Next up — Vertical chain contracts
 
-Build the ambition transition that feeds the existing rank ladder and hands off
-at the T3 endgame boundary:
+Specify the payloads that make the new ambitions actionable without weakening
+the T3 vanilla-write isolation boundary:
 
-1. Define when a consolidating Tier-1/2 house switches to `PROMOTE` rather than
-   continuing horizontal expansion, using persisted rank progress and power.
-2. Define the T3 `CLAIM_THRONE` eligibility threshold and target identity without
-   performing the vanilla faction flip in the living-world layer.
-3. Add deterministic re-evaluation cadence/state so ambition transitions do not
-   flap daily or overwrite player/story-authored ambitions.
-4. Map `PROMOTE`/`CLAIM_THRONE` into chain archetypes only after their resolution
-   payload and T3-endgame handoff contracts are explicit.
+1. Define the `PROMOTE` chain resolution payload: progress movement, rival
+   suppression, location identity, and how much horizontal stake must accompany
+   a vertical win.
+2. Define the `CLAIM_THRONE` chain stages and the exact persisted handoff record
+   consumed by the isolated T3 endgame system.
+3. Decide how ordinary autonomous progress behaves at the T3 threshold while a
+   throne chain is absent or active, so no internal Tier-4 state outruns the
+   vanilla faction result.
+4. Only then append vertical `ChainArchetype` values, creation/advancement
+   payloads, discovery/Chronicle classification, and intervention hooks.
 
 ## Open forks still unresolved (design)
 
@@ -100,3 +108,7 @@ at the T3 endgame boundary:
 - Slice E1a — empty-house dormancy + political cleanup (`975db3ba`, `f736a7d6`).
 - Slice E1b — stale consolidation re-evaluation (`eefc505c`).
 - Slice E1c — selective dormancy Chronicle events (`500d2c17`).
+- Slice E2a — persisted monthly ambition review (`f022d4ad`).
+- Slice E2b — power/progress-gated promotion intent (`31bb6875`).
+- Slice E2c — faction-targeted Tier-3 throne claims (`3c58964b`).
+- Slice E2d — vertical-chain integration guards (`57be6214`).
