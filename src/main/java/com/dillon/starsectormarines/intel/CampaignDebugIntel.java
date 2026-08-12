@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
+import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
@@ -65,6 +66,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_GARRISON = "spawn-local-garrison";
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
     private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
+    private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
@@ -181,6 +183,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Garrison offers", BTN_SPAWN_GARRISON, 320f, 24f, 8f);
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
         ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
+        ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
@@ -437,6 +440,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnOffersForLocalPatrons(s, ContractType.CADRE);
         } else if (BTN_SPAWN_ASSAULT.equals(buttonId)) {
             spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
+        } else if (BTN_SPAWN_RESCUE.equals(buttonId)) {
+            spawnLocalRescue(s);
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
             clearTerminalContracts(s);
         } else if (buttonId instanceof String) {
@@ -506,6 +511,32 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             if (!localMarketSlots.contains(s.houseMarketId[i])) continue;
             DebugContractOfferSpawner.spawn(s, i, type, day);
         }
+    }
+
+    private static void spawnLocalRescue(CampaignState state) {
+        StarSystemAPI system = currentPlayerSystem();
+        if (system == null || Global.getSector() == null) return;
+        Set<Integer> localSlots = collectLocalMarketSlots(state, system);
+        int selectedSlot = -1;
+        MarketAPI selectedMarket = null;
+        for (int slot : localSlots) {
+            String marketId = state.marketRegistry.get(slot);
+            MarketAPI market = marketId != null
+                    ? Global.getSector().getEconomy().getMarket(marketId) : null;
+            if (market == null || market.isHidden()
+                    || market.getPrimaryEntity() == null || market.getSize() < 3) {
+                continue;
+            }
+            if (selectedMarket == null
+                    || market.getId().compareTo(selectedMarket.getId()) < 0) {
+                selectedSlot = slot;
+                selectedMarket = market;
+            }
+        }
+        if (selectedMarket == null) return;
+        int day = (int) Global.getSector().getClock().getDay();
+        DebugCivilianRescueSpawner.spawn(
+                state, selectedSlot, selectedMarket.getSize(), day);
     }
 
     /** Compact terminal contracts out of the table to keep the list browsable. */

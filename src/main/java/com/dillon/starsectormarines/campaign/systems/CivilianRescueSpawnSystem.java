@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.campaign.systems;
 
-import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
@@ -53,7 +52,8 @@ public final class CivilianRescueSpawnSystem implements CampaignSystem {
         if (state == null || markets == null || day < FIRST_EPOCH_DAY) return;
         int epoch = (day - FIRST_EPOCH_DAY) / EPOCH_DAYS;
         long triggerKey = triggerKey(epoch);
-        if (hasTrigger(state, triggerKey) || hasOpenRescue(state)) return;
+        if (hasTrigger(state, triggerKey)
+                || CivilianRescueEvent.hasOpenRescue(state)) return;
 
         int marketSlot = selectMarket(state, epoch);
         if (marketSlot < 0) return;
@@ -61,10 +61,19 @@ public final class CivilianRescueSpawnSystem implements CampaignSystem {
                 state.marketRegistry.get(marketSlot));
         if (marketSize < 3) return;
 
-        int tier = Math.max(1, marketSize - 2);
-        CivilianRescueEvent.prepare(state, triggerKey, marketSlot,
-                day, day + CHOICE_DAYS, 25 * tier, 15 * tier,
-                100 * tier * tier);
+        prepareEvent(state, triggerKey, marketSlot, marketSize, day);
+    }
+
+    public static long prepareEvent(CampaignState state, long triggerKey,
+                                    int marketSlot, int marketSize, int day) {
+        long tier = (long) marketSize - 2L;
+        if (tier < 1L || tier > 4_634L
+                || day < 0 || day > Integer.MAX_VALUE - CHOICE_DAYS) {
+            return -1L;
+        }
+        return CivilianRescueEvent.prepare(state, triggerKey, marketSlot,
+                day, day + CHOICE_DAYS, (int) (25L * tier),
+                (int) (15L * tier), (int) (100L * tier * tier));
     }
 
     static long triggerKey(int epoch) {
@@ -105,22 +114,6 @@ public final class CivilianRescueSpawnSystem implements CampaignSystem {
             if (CampaignEventType.fromByte(state.eventType[row])
                     == CampaignEventType.CIVILIAN_RESCUE
                     && state.eventTriggerKey[row] == triggerKey) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasOpenRescue(CampaignState state) {
-        for (int row = 0; row < state.eventCount; row++) {
-            if (CampaignEventType.fromByte(state.eventType[row])
-                    != CampaignEventType.CIVILIAN_RESCUE) {
-                continue;
-            }
-            CampaignEventState eventState = CampaignEventState.fromByte(
-                    state.eventState[row]);
-            if (eventState == CampaignEventState.PENDING_CHOICE
-                    || eventState == CampaignEventState.COMMITTED) {
                 return true;
             }
         }

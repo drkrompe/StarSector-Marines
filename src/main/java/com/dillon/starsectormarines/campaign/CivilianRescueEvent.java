@@ -112,6 +112,23 @@ public final class CivilianRescueEvent {
         return Result.RESOLVED;
     }
 
+    public static boolean hasOpenRescue(CampaignState state) {
+        if (state == null) return false;
+        for (int row = 0; row < state.eventCount; row++) {
+            if (CampaignEventType.fromByte(state.eventType[row])
+                    != CampaignEventType.CIVILIAN_RESCUE) {
+                continue;
+            }
+            CampaignEventState eventState = CampaignEventState.fromByte(
+                    state.eventState[row]);
+            if (eventState == CampaignEventState.PENDING_CHOICE
+                    || eventState == CampaignEventState.COMMITTED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean validPreparation(CampaignState state, long triggerKey,
                                             int marketId, int createdTick,
                                             int deadlineTick,
