@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
+import com.dillon.starsectormarines.intel.CivilianRescueIntel;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -42,6 +43,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureBridgeIntel();
         ensureMarineRoster();
         ensureCampaignState();
+        ensureCivilianRescueIntel();
         if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
             ensureCampaignDebugIntel();
         }
@@ -117,6 +119,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (mgr.getFirstIntel(CampaignDebugIntel.class) != null) return;
         mgr.addIntel(new CampaignDebugIntel(), true);
         LOG.info("Starsector Marines: CampaignDebugIntel registered (dev)");
+    }
+
+    private static void ensureCivilianRescueIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(CivilianRescueIntel.class) != null) return;
+        mgr.addIntel(new CivilianRescueIntel(), true);
+        LOG.info("Starsector Marines: Distress Net intel registered");
     }
 
     private static void logRosterContents() {
