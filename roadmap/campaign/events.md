@@ -1,7 +1,7 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE FOUNDATION CODE COMPLETE (2026-08-12);
-trigger and player-facing choice surface next.
+**Status:** CIVILIAN-RESCUE FOUNDATION CODE COMPLETE (2026-08-12); G3
+trigger/intel contract locked.
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`
 
@@ -103,6 +103,47 @@ commitment consumes cargo atomically; passive expiry remains neutral; and the
 daily moral consumer records only explicit refusal or a positive rescued count.
 There is still no automatic event producer, intel/interaction surface, or swarm
 battle payload. Those are deliberately separate follow-up slices.
+
+### Trigger and choice surface — locked v1
+
+Production and presentation are separate seams. `CivilianRescueSpawnSystem` is
+a stateless daily `CampaignSystem` that may inspect vanilla markets but writes
+only `CampaignState.EVENTS`. It never creates intel, consumes cargo, resolves a
+mission, or touches the hidden compass.
+
+The automatic schedule is deterministic and sector-global:
+
+- The first eligible epoch starts on day 30; epochs are 45 days wide.
+- At most one automatic rescue may exist per epoch. The epoch number is the
+  automatic trigger key, so retries within the window return the first snapshot.
+- No new event is prepared while any rescue is `PENDING_CHOICE` or `COMMITTED`.
+  A terminal event permits a later epoch; it never permits a second event in the
+  same epoch.
+- There is no historical catch-up. On a late load/tick, only the current epoch
+  is considered.
+- Eligible markets are registered, visible vanilla markets with a primary
+  entity and size 3+. The producer picks exactly one using a stable hash of
+  `(epoch, market id)`, independent of economy iteration order.
+
+The first content constants are deliberately simple and frozen into the row.
+For `tier = max(1, marketSize - 2)`, the event costs `25 * tier` supplies and
+`15 * tier` fuel, puts `100 * tier * tier` civilians at risk, and expires three
+days after creation. Later balance changes affect new rows only.
+
+`CivilianRescueIntel` is a single, always-registered **Distress Net** page. It
+reads the newest active rescue from `CampaignState`, maps it to the endangered
+market for location/context, and presents:
+
+- market, civilians at risk, exact supplies/fuel commitment, and days remaining;
+- **Commit relief stores**, routed through `CivilianRescueEvent.commit`;
+- **Decline the call**, routed through `CivilianRescueEvent.refuse`;
+- an explicit insufficient-cargo response that leaves the event untouched; and
+- for `COMMITTED`, a truthful “relief committed; mission response pending” state.
+
+The page never previews credits, salvage, unique rewards, moral dimensions, or
+hidden deltas. It does not resolve committed work. A debug-only local spawn
+button may call the same preparation seam with a reserved non-automatic trigger
+key, but gets no alternate choice/outcome logic.
 
 ## Design rules
 

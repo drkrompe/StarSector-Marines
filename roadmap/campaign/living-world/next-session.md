@@ -97,9 +97,9 @@ Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 Make the shipped [`../events.md`](../events.md) lifecycle reachable without
 coupling it to the eventual swarm-defense battle:
 
-1. Lock a deterministic, sparse world-condition producer and stable trigger-key
-   derivation. Keep cadence policy separate from `CivilianRescueEvent.prepare`.
-2. Surface pending local events through a diegetic intel/interaction boundary
+1. Implement the locked 45-day epoch producer and stable hash-selected eligible
+   market. Keep cadence policy separate from `CivilianRescueEvent.prepare`.
+2. Surface pending events through the Distress Net intel boundary
    that shows the endangered market, exact cargo cost, stakes, and deadline—but
    no material or moral reward preview.
 3. Route accept/refuse through the shared event API, keep insufficient-cargo
