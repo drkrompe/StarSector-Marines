@@ -1,15 +1,25 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,5 +93,50 @@ class CampaignMarineDeploymentTest {
                 roster, Collections.singleton("missing-squad"), 2);
 
         assertEquals(0, deployment.size());
+    }
+
+    @Test
+    void employerShuttleSeatsRemainGeneratedWhenApplyingPlayerPersonnel() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(1);
+        MarineSoldier playerMarine = roster.lineReadySoldiers().get(0);
+        BattleSimulation sim = BattleSetup.createPlaceholder(7_007L, Arrays.asList(
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.HERMES, 1)),
+                false, RiskLevel.LOW, MissionType.ASSAULT);
+
+        CampaignMarineDeployment.freeze(roster, 1).applyTo(sim, 1);
+
+        assertEquals(0, assignedPersonnel(sim, ShuttleType.AEROSHUTTLE, null));
+        assertEquals(1, assignedPersonnel(sim, ShuttleType.HERMES, playerMarine.id()));
+    }
+
+    private static int assignedPersonnel(BattleSimulation sim, ShuttleType shuttleType,
+                                         String expectedSoldierId) {
+        BattleComponents components = sim.getBattleComponents();
+        int matches = 0;
+        int matchingShuttles = 0;
+        for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {
+            Object[] types = table.objects(components.AIR_IDENTITY,
+                    BattleComponents.AIR_IDENTITY_TYPE).array();
+            Object[] missions = table.objects(components.SHUTTLE_MISSION,
+                    BattleComponents.SHUTTLE_MISSION_STATE).array();
+            for (int row = 0; row < table.rowCount(); row++) {
+                if (types[row] != shuttleType) continue;
+                matchingShuttles++;
+                ShuttleMission mission = (ShuttleMission) missions[row];
+                for (MarineLoadout[] cycle : mission.cycleLoadouts) {
+                    for (MarineLoadout loadout : cycle) {
+                        if (expectedSoldierId == null) {
+                            assertNull(loadout.campaignSoldierId);
+                        } else if (expectedSoldierId.equals(loadout.campaignSoldierId)) {
+                            matches++;
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals(1, matchingShuttles);
+        return matches;
     }
 }
