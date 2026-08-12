@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreset;
 import com.dillon.starsectormarines.marine.SquadPresetResult;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -22,6 +23,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.List;
 
 /** Fabrication plus squad-centric persistent personnel management. */
@@ -74,13 +76,37 @@ public final class ArmoryScreen implements Screen {
         float top = position.getY() + position.getHeight() - PAD;
 
         addButton(left, position.getY() + PAD, 120f, "Back",
-                () -> ctx.goTo(ScreenId.MISSION_SELECT), HEADER);
+                ctx::returnFromArmory, HEADER);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Fleet Armory / Fireteam Personnel", left, top, HEADER));
         if (roster == null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     "Marine roster unavailable.", left, top - 38f, MUTED));
             return;
+        }
+
+        int personnelTarget = ctx.getArmoryPersonnelTarget();
+        if (personnelTarget > 0) {
+            PersonnelReadiness readiness = PersonnelReadiness.assess(
+                    roster, Collections.emptySet(), personnelTarget);
+            int enlistable = Math.min(readiness.companyShortfall(),
+                    MarinePersonnelLogistics.availableRecruits());
+            String label = readiness.ready() ? "Return Ready"
+                    : enlistable > 0 ? "Enlist " + enlistable + " & Return"
+                    : "Need " + readiness.companyShortfall() + " · No Cargo";
+            Runnable action = readiness.ready() ? ctx::returnFromArmory
+                    : enlistable > 0 ? () -> {
+                        MarinePersonnelLogistics.enlistLine(
+                                roster, readiness.companyShortfall());
+                        ctx.returnFromArmory();
+                    } : null;
+            addButton(left + 132f, position.getY() + PAD, 236f,
+                    label, action, action != null ? GOOD : BAD);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Mission personnel: " + readiness.companyReady() + " / "
+                            + readiness.requiredSeats() + " company-ready",
+                    left + 380f, position.getY() + PAD + BUTTON_H - 6f,
+                    readiness.ready() ? GOOD : VALUE));
         }
 
         MarineArmory armory = roster.armory();

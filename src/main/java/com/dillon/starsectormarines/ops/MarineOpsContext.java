@@ -75,6 +75,9 @@ public class MarineOpsContext {
     private boolean lootSettlementStarted;
     private LootSettlementPlan lootSettlement;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
+    /** Screen and ready-seat target associated with the current armory visit. */
+    private ScreenId armoryReturnScreen = ScreenId.MISSION_SELECT;
+    private int armoryPersonnelTarget;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
@@ -160,6 +163,20 @@ public class MarineOpsContext {
     /** Request a screen transition; the plugin observes this and re-attaches. */
     public void goTo(ScreenId screen) {
         this.currentScreen = screen;
+    }
+
+    public void openArmoryFrom(ScreenId returnScreen, int personnelTarget) {
+        armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.MISSION_SELECT;
+        armoryPersonnelTarget = Math.max(0, personnelTarget);
+        goTo(ScreenId.ARMORY);
+    }
+
+    public void returnFromArmory() {
+        goTo(armoryReturnScreen);
+    }
+
+    public int getArmoryPersonnelTarget() {
+        return armoryPersonnelTarget;
     }
 
     public String getSelectedCaptainId() {

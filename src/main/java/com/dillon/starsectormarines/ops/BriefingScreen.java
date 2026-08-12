@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -36,6 +37,7 @@ import org.apache.log4j.Logger;
 import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -336,6 +338,7 @@ public class BriefingScreen implements Screen {
         float floor = layout.rightCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
         if (m.source == MissionSource.STATIONING) {
+            PersonnelReadiness readiness = personnelReadiness(m);
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                     Strings.get("briefingStationedDetachment"), x, y, HEADER_COLOR));
             y -= ROW_GAP;
@@ -343,6 +346,13 @@ public class BriefingScreen implements Screen {
                     Strings.get("briefingStationedPersonnel"), x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     m.requirements, valueX, y, VALUE_COLOR));
+            y -= ROW_GAP;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Personnel", x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    readiness.selectedReady() + " / " + readiness.requiredSeats()
+                            + " ready · short " + readiness.selectedShortfall(),
+                    valueX, y, readiness.ready() ? ACCEPT_COLOR : BLOCKED_COLOR));
             y -= ROW_GAP;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("briefingTransport"), x, y, LABEL_COLOR));
@@ -360,6 +370,22 @@ public class BriefingScreen implements Screen {
 
         // === YOUR FLEET BRINGS ===
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, Strings.get("briefingYourFleet"), x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+
+        if (m.source.isDebug()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Personnel", x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    ctx.getDebugPersonnelPreset().displayName + " fixture",
+                    valueX, y, ACCEPT_COLOR));
+        } else {
+            PersonnelReadiness readiness = personnelReadiness(m);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Personnel", x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    readiness.selectedReady() + "/" + readiness.requiredSeats()
+                            + " selected · " + readiness.companyReady()
+                            + " company · " + readiness.selectedShortfall() + " short",
+                    valueX, y, readiness.ready() ? ACCEPT_COLOR : BLOCKED_COLOR));
+        }
         y -= ROW_GAP;
 
         // Transport — one toggle row per available shuttle, with sortie-cycle annotation.
@@ -466,9 +492,11 @@ public class BriefingScreen implements Screen {
         // and the label flips to a red "Insufficient Transport".
         Mission m = ctx.getSelectedMission();
         boolean debugPersonnel = m != null && m.source.isDebug();
+        PersonnelReadiness readiness = m != null && !debugPersonnel
+                ? personnelReadiness(m) : null;
         boolean transportOk = m == null || m.source == MissionSource.STATIONING
                 || isTransportSufficient(m, effectivePlayerShuttles());
-        boolean personnelOk = debugPersonnel || m == null || hasEnoughAssignedMarines(m);
+        boolean personnelOk = debugPersonnel || m == null || readiness.ready();
         boolean canAccept = transportOk && personnelOk;
 
         ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
@@ -483,12 +511,20 @@ public class BriefingScreen implements Screen {
                         : "Assign Squads",
                 squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
-        ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H,
-                canAccept ? this::onAccept : null);
+        Runnable deployAction = canAccept ? this::onAccept
+                : !transportOk || readiness == null ? null
+                : readiness.needsRecruitment()
+                        ? () -> ctx.openArmoryFrom(
+                                ScreenId.BRIEFING, readiness.requiredSeats())
+                        : this::openSquadDeployment;
+        ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H, deployAction);
         widgets.add(deploy);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 canAccept ? Strings.get("briefingAccept")
-                        : transportOk ? "Assign More" : Strings.get("briefingAcceptBlocked"),
+                        : !transportOk ? Strings.get("briefingAcceptBlocked")
+                        : readiness.needsRecruitment()
+                                ? "Recruit " + readiness.companyShortfall()
+                                : "Assign " + readiness.selectedShortfall(),
                 deployX + INNER_PAD, btnY + BTN_H - 6f,
                 canAccept ? ACCEPT_COLOR : BLOCKED_COLOR));
 
@@ -498,25 +534,21 @@ public class BriefingScreen implements Screen {
                 backX + INNER_PAD, btnY + BTN_H - 6f, HEADER_COLOR));
     }
 
-    private boolean hasEnoughAssignedMarines(Mission m) {
+    private PersonnelReadiness personnelReadiness(Mission m) {
         MarineRosterScript script = MarineRosterScript.getInstance();
-        if (script == null) return true;
+        MarineRoster roster = script != null ? script.roster() : null;
+        return PersonnelReadiness.assess(roster,
+                ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m));
+    }
+
+    private int requiredPersonnelSeats(Mission m) {
+        if (m == null) return 0;
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
                 m, m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : effectivePlayerShuttles());
+                        ? Collections.emptyList() : effectivePlayerShuttles());
         int firstPlayer = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
-        int needed = CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
-        int ready = 0;
-        MarineRoster roster = script.roster();
-        if (ctx.getSelectedMarineSquadIds().isEmpty()) {
-            ready = roster.lineReadySoldiers().size();
-        } else {
-            for (String squadId : ctx.getSelectedMarineSquadIds()) {
-                ready += roster.readyCount(roster.squadById(squadId));
-            }
-        }
-        return ready >= needed;
+        return CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
     }
 
     private void openSquadDeployment() {

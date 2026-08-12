@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -48,7 +49,8 @@ public final class SquadDeploymentScreen implements Screen {
         float left = position.getX() + PAD;
         float top = position.getY() + position.getHeight() - PAD;
         int capacity = ctx.getMarineDeploymentCapacity();
-        int assigned = assignedReady();
+        PersonnelReadiness readiness = PersonnelReadiness.assess(
+                roster, ctx.getSelectedMarineSquadIds(), capacity);
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Pre-Battle Fireteam Assignment", left, top, HEADER));
@@ -56,9 +58,13 @@ public final class SquadDeploymentScreen implements Screen {
                 "Select persistent fireteams; tactical squads form around their actual lifts.",
                 left, top - 30f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "READY SEATS  " + Math.min(assigned, capacity) + " / " + capacity
-                        + (assigned > capacity ? "   (" + (assigned - capacity) + " reserve)" : ""),
-                left, top - 60f, assigned >= capacity ? READY : BAD));
+                "READY SEATS  " + Math.min(readiness.selectedReady(), capacity)
+                        + " / " + capacity + "   COMPANY " + readiness.companyReady()
+                        + "   SHORT " + readiness.selectedShortfall()
+                        + (readiness.selectedReady() > capacity
+                                ? "   (" + (readiness.selectedReady() - capacity)
+                                        + " reserve)" : ""),
+                left, top - 60f, readiness.ready() ? READY : BAD));
 
         if (roster == null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
@@ -79,6 +85,8 @@ public final class SquadDeploymentScreen implements Screen {
 
         addButton(left, position.getY() + PAD, 160f, "Back to Briefing",
                 () -> ctx.goTo(ScreenId.BRIEFING), HEADER);
+        addButton(left + 172f, position.getY() + PAD, 184f, "Manage Personnel",
+                () -> ctx.openArmoryFrom(ScreenId.SQUAD_DEPLOYMENT, capacity), HEADER);
     }
 
     private void addSquad(MarineSquad squad, float x, float y, float w) {
@@ -105,15 +113,6 @@ public final class SquadDeploymentScreen implements Screen {
         if (!unavailable.isEmpty()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, unavailable, x + w * 0.58f, y, MUTED));
         }
-    }
-
-    private int assignedReady() {
-        if (roster == null) return 0;
-        int total = 0;
-        for (String id : ctx.getSelectedMarineSquadIds()) {
-            total += roster.readyCount(roster.squadById(id));
-        }
-        return total;
     }
 
     private void addButton(float x, float y, float w, String label, Runnable action, Color color) {
