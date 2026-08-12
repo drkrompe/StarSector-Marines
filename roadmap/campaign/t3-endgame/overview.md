@@ -124,7 +124,9 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
 
 ## Still to specify after core writeback
 
-- Contract composition and player choices across the three progress bands.
+- ~~Contract composition and player choices across the three progress bands.~~
+  Locked in [civil-war participation](../living-world/civil-war-participation.md);
+  implementation remains.
 - Player reputation consequences for those explicit choices.
 - The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.

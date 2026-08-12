@@ -67,16 +67,17 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — Civil-war choices and capstone surface
+## Next up — Civil-war participation persistence
 
-Build outward from the completed ownership/rank/diplomacy/Chronicle boundary:
+Implement the contract fixed in
+[`civil-war-participation.md`](civil-war-participation.md):
 
-1. Define the three-band player choices and kingmaker capstone that feed this
-   political result.
-2. Persist player attribution for those choices, then apply claimant/incumbent
-   reputation deltas exactly once from that evidence.
-3. Decide whether the first playable band should reuse intervention contracts or
-   introduce a civil-war-specific contract lineage.
+1. Add chain allegiance/contribution and contract band/applied-tick columns with
+   growth, compaction, and legacy-save coverage.
+2. Record completed aligned contracts exactly once and lock allegiance on the
+   first successful contribution.
+3. Snapshot successful claimant attribution into the throne handoff.
+4. Then generate paired band offers and apply weighted/decisive outcomes.
 
 ## Open forks still unresolved (design)
 
