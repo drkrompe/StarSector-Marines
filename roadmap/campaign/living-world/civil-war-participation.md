@@ -89,6 +89,33 @@ victory may later apply claimant/incumbent player consequences exactly once from
 the handoff snapshot. An incumbent-aligned decisive victory has no throne claim;
 its terminal consequences must consume the failed chain's persisted attribution.
 
+### Player-reputation consequence contract
+
+Successful contribution is cumulative and fixes the terminal house-reputation
+magnitude. Values clamp to the existing `-100..100` range:
+
+| Successful contribution | Supported house | Opposed house | Meaning |
+| ---: | ---: | ---: | --- |
+| 1–29 | +5 | -8 | visible support |
+| 30–59 | +10 | -15 | material intervention |
+| 60+ | +15 | -25 | decisive/kingmaker intervention |
+
+For an applied claimant handoff, the claimant is supported and the displaced
+incumbent is opposed. The immutable handoff snapshot supplies allegiance and
+contribution; the source chain supplies the persisted displaced-house identity.
+For an incumbent victory, the incumbent is supported and claimant opposed, but
+only when the failed chain's resolution day equals its last contribution day.
+This same-day condition distinguishes the decisive incumbent assault from a
+later unrelated invalidation of a chain the player merely touched earlier.
+
+These are political outcome deltas, not another contract payout: they do not
+change MRB reputation or completed/failed contract counters. Separate persisted
+claim/chain consequence states and applied days make terminal scanning exactly
+once. Claimant consequences wait for ownership state `APPLIED`; incumbent
+consequences wait for a terminal failed chain and recovered contribution.
+Autonomous outcomes, offer acceptance, failed/abandoned operations, and late
+terminal contribution replays remain neutral.
+
 ## Implementation slices
 
 1. ~~Persist chain allegiance/contribution and contract band/applied tick,

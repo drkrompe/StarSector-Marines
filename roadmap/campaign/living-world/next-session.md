@@ -82,13 +82,13 @@ Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 Finish the last implementation slice in
 [`civil-war-participation.md`](civil-war-participation.md):
 
-1. Lock the claimant/incumbent player-reputation deltas and whether accumulated
-   contribution changes their magnitude.
-2. Persist a postcondition-first, exactly-once consequence lifecycle for the
+1. Use the locked contribution tiers from `civil-war-participation.md`:
+   +5/-8 below 30, +10/-15 below 60, and +15/-25 at 60+.
+2. Persist an exactly-once consequence lifecycle for the
    successful handoff path and the incumbent-attributed failed-chain path.
 3. Consume only snapshotted/persisted attribution; autonomous `NONE` outcomes
    and mere offer acceptance remain neutral.
-4. Cover retries, partial application, save/load, and terminal replay before the
+4. Cover save/load, clamping, and terminal replay before the
    player-facing kingmaker capstone is layered on top.
 
 ## Open forks still unresolved (design)

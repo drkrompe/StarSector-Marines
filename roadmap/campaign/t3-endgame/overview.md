@@ -116,6 +116,10 @@ An autonomous civil war does **not** change player reputation. Mere failure to
 stop an off-screen rebellion is not a player choice. Player/claimant/incumbent
 deltas belong to explicit kingmaker contracts and decisions, where attribution
 can be persisted rather than inferred from a successful autonomous chain.
+The locked terminal scale is +5/-8 for 1–29 contribution, +10/-15 for 30–59,
+and +15/-25 for 60+. It changes house reputation only—not MRB reputation or
+contract counters—and an incumbent outcome qualifies only when its decisive
+contribution and failed-chain resolution share a day.
 
 ## Chronicle outcome — locked v1
 
