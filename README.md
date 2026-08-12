@@ -11,7 +11,7 @@ Each marine ops session is a full-canvas takeover — own UI pipeline, own input
 routing, own rendering, no vanilla chrome in the play area. The screens grow
 into their own universe over time, not retrofitted into intel slots.
 
-**Status: pre-release / active development (v0.1.0).** Not yet playable as a
+**Status: pre-release / active development (v0.0.1).** Not yet playable as a
 complete gameplay loop — published as a reference for modders interested in
 custom UIs, ground-combat systems, 3D asset pipelines, or campaign-tier
 architecture in Starsector.
