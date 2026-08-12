@@ -124,6 +124,27 @@ public final class CampaignState implements Serializable {
     public int[]   repLastContractTick = new int[INITIAL_CAPACITY];
     public int     repCount           = 0;
 
+    // ---------- moralChoices[] (hidden player-character record) ----------
+
+    /** Ruthless (-100) to merciful (+100). Never rendered numerically. */
+    public int moralMercy = 0;
+    /** Expedient (-100) to principled (+100). Never rendered numerically. */
+    public int moralIntegrity = 0;
+    /** Exploitative (-100) to protective (+100). Never rendered numerically. */
+    public int moralStewardship = 0;
+    /** Insurgent (-100) to establishment (+100). Never rendered numerically. */
+    public int moralInstitutionalism = 0;
+    public long[] moralChoiceId = new long[INITIAL_CAPACITY];
+    public byte[] moralChoiceSourceType = new byte[INITIAL_CAPACITY];
+    public long[] moralChoiceSourceId = filledLongs(INITIAL_CAPACITY, -1L);
+    public short[] moralChoiceMercyDelta = new short[INITIAL_CAPACITY];
+    public short[] moralChoiceIntegrityDelta = new short[INITIAL_CAPACITY];
+    public short[] moralChoiceStewardshipDelta = new short[INITIAL_CAPACITY];
+    public short[] moralChoiceInstitutionalismDelta = new short[INITIAL_CAPACITY];
+    public int[] moralChoiceHappenedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] moralChoiceRecordedTick = filledInts(INITIAL_CAPACITY, -1);
+    public int moralChoiceCount = 0;
+
     // ---------- chronicle[] (learned events only) ----------
 
     public long[] chronicleId = new long[INITIAL_CAPACITY];
@@ -267,6 +288,7 @@ public final class CampaignState implements Serializable {
     private long nextChronicleId = 1;
     private long nextContractId = 1;
     private long nextThroneClaimId = 1;
+    private long nextMoralChoiceId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
@@ -571,6 +593,26 @@ public final class CampaignState implements Serializable {
         return repIndexByHouseId.get(houseIdValue);
     }
 
+    /** Appends one already-validated immutable moral-choice snapshot. */
+    long appendMoralChoice(MoralChoiceSource sourceType, long sourceId,
+                           short mercyDelta, short integrityDelta,
+                           short stewardshipDelta, short institutionalismDelta,
+                           int happenedTick, int recordedTick) {
+        ensureMoralChoiceCapacity(moralChoiceCount + 1);
+        int i = moralChoiceCount++;
+        long id = nextMoralChoiceId++;
+        moralChoiceId[i] = id;
+        moralChoiceSourceType[i] = sourceType.toByte();
+        moralChoiceSourceId[i] = sourceId;
+        moralChoiceMercyDelta[i] = mercyDelta;
+        moralChoiceIntegrityDelta[i] = integrityDelta;
+        moralChoiceStewardshipDelta[i] = stewardshipDelta;
+        moralChoiceInstitutionalismDelta[i] = institutionalismDelta;
+        moralChoiceHappenedTick[i] = happenedTick;
+        moralChoiceRecordedTick[i] = recordedTick;
+        return id;
+    }
+
     /**
      * Appends a contract. Returns the new contract id. Salvage / cash columns
      * default to the per-type baseline at the negotiated value; callers should
@@ -813,6 +855,25 @@ public final class CampaignState implements Serializable {
         repLastContractTick   = Arrays.copyOf(repLastContractTick, n);
     }
 
+    private void ensureMoralChoiceCapacity(int needed) {
+        if (needed <= moralChoiceId.length) return;
+        int oldLength = moralChoiceId.length;
+        int n = Math.max(needed, moralChoiceId.length * 2);
+        moralChoiceId = Arrays.copyOf(moralChoiceId, n);
+        moralChoiceSourceType = Arrays.copyOf(moralChoiceSourceType, n);
+        moralChoiceSourceId = Arrays.copyOf(moralChoiceSourceId, n);
+        Arrays.fill(moralChoiceSourceId, oldLength, n, -1L);
+        moralChoiceMercyDelta = Arrays.copyOf(moralChoiceMercyDelta, n);
+        moralChoiceIntegrityDelta = Arrays.copyOf(moralChoiceIntegrityDelta, n);
+        moralChoiceStewardshipDelta = Arrays.copyOf(moralChoiceStewardshipDelta, n);
+        moralChoiceInstitutionalismDelta = Arrays.copyOf(
+                moralChoiceInstitutionalismDelta, n);
+        moralChoiceHappenedTick = Arrays.copyOf(moralChoiceHappenedTick, n);
+        Arrays.fill(moralChoiceHappenedTick, oldLength, n, -1);
+        moralChoiceRecordedTick = Arrays.copyOf(moralChoiceRecordedTick, n);
+        Arrays.fill(moralChoiceRecordedTick, oldLength, n, -1);
+    }
+
     /**
      * Backfills {@code houseArchetype} for saves written before that column
      * existed. xstream bypasses the constructor, so any column added after
@@ -993,6 +1054,40 @@ public final class CampaignState implements Serializable {
             nextThroneClaimId = 1L;
             for (int i = 0; i < throneClaimCount; i++) {
                 nextThroneClaimId = Math.max(nextThroneClaimId, throneClaimId[i] + 1L);
+            }
+        }
+        int moralChoiceCapacity = moralChoiceId != null
+                ? moralChoiceId.length : INITIAL_CAPACITY;
+        if (moralChoiceId == null) moralChoiceId = new long[moralChoiceCapacity];
+        if (moralChoiceSourceType == null) {
+            moralChoiceSourceType = new byte[moralChoiceCapacity];
+        }
+        if (moralChoiceSourceId == null) {
+            moralChoiceSourceId = filledLongs(moralChoiceCapacity, -1L);
+        }
+        if (moralChoiceMercyDelta == null) {
+            moralChoiceMercyDelta = new short[moralChoiceCapacity];
+        }
+        if (moralChoiceIntegrityDelta == null) {
+            moralChoiceIntegrityDelta = new short[moralChoiceCapacity];
+        }
+        if (moralChoiceStewardshipDelta == null) {
+            moralChoiceStewardshipDelta = new short[moralChoiceCapacity];
+        }
+        if (moralChoiceInstitutionalismDelta == null) {
+            moralChoiceInstitutionalismDelta = new short[moralChoiceCapacity];
+        }
+        if (moralChoiceHappenedTick == null) {
+            moralChoiceHappenedTick = filledInts(moralChoiceCapacity, -1);
+        }
+        if (moralChoiceRecordedTick == null) {
+            moralChoiceRecordedTick = filledInts(moralChoiceCapacity, -1);
+        }
+        if (nextMoralChoiceId <= 0L) {
+            nextMoralChoiceId = 1L;
+            for (int i = 0; i < moralChoiceCount; i++) {
+                nextMoralChoiceId = Math.max(
+                        nextMoralChoiceId, moralChoiceId[i] + 1L);
             }
         }
         if (contractOfferExpiresTick == null) {
