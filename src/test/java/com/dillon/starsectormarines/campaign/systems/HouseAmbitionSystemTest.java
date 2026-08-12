@@ -74,6 +74,62 @@ class HouseAmbitionSystemTest {
                 state.houseAmbition[state.houseIndex(dormant)]));
     }
 
+    @Test
+    void invalidConsolidationTargetRetargetsStrongestSurvivingHomeStake() {
+        CampaignState state = new CampaignState();
+        long house = house(state, 1, HouseStatus.ACTIVE);
+        state.addStake(house, 1, 7, (short) 0);
+        state.addStake(house, 1, 9, (short) 60);
+        int row = state.houseIndex(house);
+        state.houseAmbition[row] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
+        state.houseAmbitionTarget[row] = 7L;
+
+        new HouseAmbitionSystem().tick(state, 20);
+
+        assertEquals(HouseAmbition.CONSOLIDATE_STAKE,
+                HouseAmbition.fromByte(state.houseAmbition[row]));
+        assertEquals(9L, state.houseAmbitionTarget[row]);
+    }
+
+    @Test
+    void invalidConsolidationWithoutReplacementClearsToNone() {
+        CampaignState state = new CampaignState();
+        long house = house(state, 1, HouseStatus.ACTIVE);
+        state.addStake(house, 1, 7, (short) 0);
+        state.addStake(house, 2, 9, (short) 60);
+        int row = state.houseIndex(house);
+        state.houseAmbition[row] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
+        state.houseAmbitionTarget[row] = 7L;
+
+        new HouseAmbitionSystem().tick(state, 20);
+
+        assertEquals(HouseAmbition.NONE,
+                HouseAmbition.fromByte(state.houseAmbition[row]));
+        assertEquals(-1L, state.houseAmbitionTarget[row]);
+    }
+
+    @Test
+    void dormantHouseClearsConsolidationButOtherInactiveNarrativeStateSurvives() {
+        CampaignState state = new CampaignState();
+        long dormant = house(state, 1, HouseStatus.DORMANT);
+        long deposed = house(state, 1, HouseStatus.DEPOSED);
+        int dormantRow = state.houseIndex(dormant);
+        int deposedRow = state.houseIndex(deposed);
+        state.houseAmbition[dormantRow] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
+        state.houseAmbitionTarget[dormantRow] = 7L;
+        state.houseAmbition[deposedRow] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
+        state.houseAmbitionTarget[deposedRow] = 9L;
+
+        new HouseAmbitionSystem().tick(state, 20);
+
+        assertEquals(HouseAmbition.NONE,
+                HouseAmbition.fromByte(state.houseAmbition[dormantRow]));
+        assertEquals(-1L, state.houseAmbitionTarget[dormantRow]);
+        assertEquals(HouseAmbition.CONSOLIDATE_STAKE,
+                HouseAmbition.fromByte(state.houseAmbition[deposedRow]));
+        assertEquals(9L, state.houseAmbitionTarget[deposedRow]);
+    }
+
     private static long house(CampaignState state, int market, HouseStatus status) {
         return state.addHouse(market, 1, HouseFlavor.FEUDAL, HouseRank.TIER_1,
                 status, PatronArchetype.NEWCOMER, "House");

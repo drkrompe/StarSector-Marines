@@ -30,9 +30,19 @@ public final class HouseAmbitionSystem implements CampaignSystem {
     public void tick(CampaignState state, int day) {
         if (state == null) return;
         for (int houseRow = 0; houseRow < state.houseCount; houseRow++) {
-            if (HouseStatus.fromByte(state.houseStatus[houseRow]) != HouseStatus.ACTIVE
-                    || HouseAmbition.fromByte(state.houseAmbition[houseRow])
-                        != HouseAmbition.NONE) {
+            HouseStatus status = HouseStatus.fromByte(state.houseStatus[houseRow]);
+            HouseAmbition ambition = HouseAmbition.fromByte(state.houseAmbition[houseRow]);
+            if (status == HouseStatus.DORMANT) {
+                if (ambition == HouseAmbition.CONSOLIDATE_STAKE) clearAmbition(state, houseRow);
+                continue;
+            }
+            if (status != HouseStatus.ACTIVE) continue;
+            if (ambition == HouseAmbition.CONSOLIDATE_STAKE
+                    && !hasTargetedHomeStake(state, houseRow)) {
+                clearAmbition(state, houseRow);
+                ambition = HouseAmbition.NONE;
+            }
+            if (ambition != HouseAmbition.NONE) {
                 continue;
             }
             int industryId = strongestHomeIndustry(state, houseRow);
@@ -40,6 +50,28 @@ public final class HouseAmbitionSystem implements CampaignSystem {
             state.houseAmbition[houseRow] = HouseAmbition.CONSOLIDATE_STAKE.toByte();
             state.houseAmbitionTarget[houseRow] = industryId;
         }
+    }
+
+    private static boolean hasTargetedHomeStake(CampaignState state, int houseRow) {
+        long target = state.houseAmbitionTarget[houseRow];
+        if (target < 0L || target > Integer.MAX_VALUE) return false;
+        long houseId = state.houseId[houseRow];
+        int marketId = state.houseMarketId[houseRow];
+        int industryId = (int) target;
+        for (int stakeRow = 0; stakeRow < state.stakeCount; stakeRow++) {
+            if (state.stakeHouseId[stakeRow] == houseId
+                    && state.stakeMarketId[stakeRow] == marketId
+                    && state.stakeIndustryId[stakeRow] == industryId
+                    && state.stakeShare[stakeRow] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void clearAmbition(CampaignState state, int houseRow) {
+        state.houseAmbition[houseRow] = HouseAmbition.NONE.toByte();
+        state.houseAmbitionTarget[houseRow] = -1L;
     }
 
     static int strongestHomeIndustry(CampaignState state, int houseRow) {
