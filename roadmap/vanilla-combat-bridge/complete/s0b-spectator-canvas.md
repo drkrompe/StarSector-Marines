@@ -41,6 +41,9 @@ Take the S0 battle and strip it down to a canvas we own:
    command widgets is to starve them — verified fact 12).
 2. **Free camera** — WASD pan + RMB-drag pan + scroll zoom, via
    `ViewportAPI.setExternalControl(true)` then per-frame `setCenter` / `setViewMult`.
+   Its close-up floor is 120 visible world units (about 17 ground cells at the
+   current 7-units-per-cell scale); the opening view and 40,000-unit zoom-out
+   ceiling remain unchanged (`168c9a51`).
 3. **Below-ships render layer** — a `CombatLayeredRenderingPlugin` drawing a flat
    backdrop quad under the ships (stand-in for the ground-battle plate).
 4. **UI overlay** — a `renderInUICoords` pass drawing a screen-space marker (e.g. a

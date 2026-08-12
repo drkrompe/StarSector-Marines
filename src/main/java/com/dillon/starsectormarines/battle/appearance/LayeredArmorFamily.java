@@ -10,14 +10,23 @@ public enum LayeredArmorFamily {
     OUTLAW,
     ARMY_GREEN,
     MILITIA,
-    /** Cloth fatigues and a bare head; kept last so legacy persisted ordinals remain stable. */
-    ARMORLESS;
+    /** Cloth fatigues and a bare head; legacy ordinal 6 must remain stable. */
+    ARMORLESS,
+    /** Grimy frontier workwear and an uncovered colonist head. */
+    CIVILIAN_COLONIST,
+    /** Reinforced industrial workwear and a sealed hazard helmet. */
+    ENGINEER,
+    /** Worn field-lab clothing and a compact research headset. */
+    SCIENTIST;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {
             case MARINE_BLUE: return BLUE_SCOUT;
             case MARINE_RED: return OUTLAW;
             case MILITIA: return MILITIA;
+            case CIVILIAN: return CIVILIAN_COLONIST;
+            case ENGINEER: return ENGINEER;
+            case SCIENTIST: return SCIENTIST;
             case MARINE:
             default: return CHARCOAL;
         }

@@ -61,12 +61,12 @@ public class BspMapSpritePreviewTest {
     private static final long[] SEEDS = { 1L, 42L, 777L };
 
     private static final Path OUT_DIR       = Paths.get("build/map-previews");
-    private static final Path URBAN_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset.png");
-    private static final Path ROAD_SHEET    = Paths.get("mod/graphics/tilesets/urban-tileset-2.png");
-    private static final Path FLOORS_SHEET  = Paths.get("mod/graphics/tilesets/Floors_Tiles.png");
-    private static final Path WATER_SHEET   = Paths.get("mod/graphics/tilesets/Water_tiles.png");
-    private static final Path STREET3_SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-3.png");
-    private static final Path NATURE_SHEET  = Paths.get("mod/graphics/tilesets/nature-tiles.png");
+    private static final Path URBAN_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-imagegen.png");
+    private static final Path ROAD_SHEET    = Paths.get("mod/graphics/tilesets/urban-tileset-2-imagegen.png");
+    private static final Path FLOORS_SHEET  = Paths.get("mod/graphics/tilesets/Floors_Tiles-imagegen.png");
+    private static final Path WATER_SHEET   = Paths.get("mod/graphics/tilesets/Water_tiles-imagegen.png");
+    private static final Path STREET3_SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-3-imagegen.png");
+    private static final Path NATURE_SHEET  = Paths.get("mod/graphics/tilesets/nature-tiles-imagegen.png");
 
     private static final Color BG          = new Color(0x10, 0x14, 0x1C);
     private static final Color WALL_CENTER = new Color(0x18, 0x18, 0x1C);

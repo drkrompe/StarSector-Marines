@@ -10,6 +10,7 @@ public enum ScreenId {
     MISSION_SELECT,
     ARMORY,
     BRIEFING,
+    SQUAD_DEPLOYMENT,
     STATIONING,
     BATTLE,
     RESULTS,

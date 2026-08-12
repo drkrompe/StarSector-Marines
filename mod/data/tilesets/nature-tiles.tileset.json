@@ -1,5 +1,5 @@
 {
-  "sheet": "graphics/tilesets/nature-tiles.png",
+  "sheet": "graphics/tilesets/nature-tiles-imagegen.png",
   "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
   "tiles": [
     { "id": "nature.grass-1", "frame": 0, "layer": "ground", "name": "grass" },

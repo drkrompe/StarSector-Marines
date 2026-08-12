@@ -32,20 +32,20 @@ public class TileRegistryCellLabelTest {
     @Test
     void gridSheetsResolveFoldedInCells() throws Exception {
         TileRegistry reg = loadAll();
-        assertEquals("chair-south-yellow", reg.cellLabel("graphics/tilesets/urban-tileset.png", 6, 1).name);
-        assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2.png", 12, 0).name);
-        assertEquals("grass-1", reg.cellLabel("graphics/tilesets/Floors_Tiles.png", 1, 10).name);
-        assertEquals("water-edge-s", reg.cellLabel("graphics/tilesets/Water_tiles.png", 8, 0).name);
+        assertEquals("chair-south-yellow", reg.cellLabel("graphics/tilesets/urban-tileset-imagegen.png", 6, 1).name);
+        assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2-imagegen.png", 12, 0).name);
+        assertEquals("grass-1", reg.cellLabel("graphics/tilesets/Floors_Tiles-imagegen.png", 1, 10).name);
+        assertEquals("water-edge-s", reg.cellLabel("graphics/tilesets/Water_tiles-imagegen.png", 8, 0).name);
     }
 
     @Test
     void slicedSheetsFallBackToTileNameByFrame() throws Exception {
         TileRegistry reg = loadAll();
         // nature: frame 0 is nature.grass-1 (name "grass"); row is always 0 for a strip.
-        assertEquals("grass", reg.cellLabel("graphics/tilesets/nature-tiles.png", 0, 0).name);
+        assertEquals("grass", reg.cellLabel("graphics/tilesets/nature-tiles-imagegen.png", 0, 0).name);
 
         // urban-3: frame 5 is the south-facing bench, carrying a description too.
-        CellLabel bench = reg.cellLabel("graphics/tilesets/urban-tileset-3.png", 5, 0);
+        CellLabel bench = reg.cellLabel("graphics/tilesets/urban-tileset-3-imagegen.png", 5, 0);
         assertNotNull(bench);
         assertEquals("bench-s", bench.name);
         assertTrue(bench.description.startsWith("bench facing south"), bench.description);
@@ -54,9 +54,9 @@ public class TileRegistryCellLabelTest {
     @Test
     void unlabelledCellsReturnNull() throws Exception {
         TileRegistry reg = loadAll();
-        assertNull(reg.cellLabel("graphics/tilesets/urban-tileset.png", 99, 99), "out-of-range grid cell");
-        assertNull(reg.cellLabel("graphics/tilesets/nature-tiles.png", 99, 0), "out-of-range sliced frame");
+        assertNull(reg.cellLabel("graphics/tilesets/urban-tileset-imagegen.png", 99, 99), "out-of-range grid cell");
+        assertNull(reg.cellLabel("graphics/tilesets/nature-tiles-imagegen.png", 99, 0), "out-of-range sliced frame");
         // A sliced fallback only fires on row 0 (a strip has no other rows).
-        assertNull(reg.cellLabel("graphics/tilesets/nature-tiles.png", 0, 3), "sliced lookup off row 0");
+        assertNull(reg.cellLabel("graphics/tilesets/nature-tiles-imagegen.png", 0, 3), "sliced lookup off row 0");
     }
 }

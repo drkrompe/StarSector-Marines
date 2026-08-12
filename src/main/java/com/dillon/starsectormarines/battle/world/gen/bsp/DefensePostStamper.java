@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -898,14 +900,34 @@ public final class DefensePostStamper implements GenStage {
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
         // Ring cells are NOT topology.WALL — the wall renderer skips them; the
-        // doodad pass paints the embankment art instead.
-        doodads.add(new Doodad(x, y, tile, /*fromRoadSheet=*/true, Doodad.COVER_HEAVY));
+        // doodad pass paints the embankment art instead. The old road-sheet
+        // turret block (cols 3..5) is now a topology token: resolve it to the
+        // dedicated generated sandbag sheet. Bow-out and vent art remain on
+        // the road sheet because they intentionally have different materials.
+        DoodadDef generated = generatedSandbagFor(tile);
+        doodads.add(generated != null
+                ? new Doodad(x, y, generated)
+                : new Doodad(x, y, tile, /*fromRoadSheet=*/true, Doodad.COVER_HEAVY));
         grid.recomputeCoverAt(x, y);
         // Refresh neighbors so their facing-cover picks up this cell.
         grid.recomputeCoverAt(x + 1, y);
         grid.recomputeCoverAt(x - 1, y);
         grid.recomputeCoverAt(x, y + 1);
         grid.recomputeCoverAt(x, y - 1);
+    }
+
+    private static DoodadDef generatedSandbagFor(TileManifest.TileFrame tile) {
+        if (tile.row < 0 || tile.row > 2 || tile.col < 3 || tile.col > 5) return null;
+        int dx = tile.col - 4;
+        int dy = 1 - tile.row;
+        String suffix;
+        if (dy > 0) suffix = dx < 0 ? "corner-nw" : dx > 0 ? "corner-ne" : "straight-n";
+        else if (dy < 0) suffix = dx < 0 ? "corner-sw" : dx > 0 ? "corner-se" : "straight-s";
+        else suffix = dx < 0 ? "straight-w" : dx > 0 ? "straight-e" : null;
+        if (suffix == null) return null;
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return null;
+        return registry.doodad("doodad.sandbag-" + suffix);
     }
 
     /**

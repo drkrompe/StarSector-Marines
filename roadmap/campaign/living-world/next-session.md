@@ -114,6 +114,20 @@ LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
 zones, while the rescue factory now omits conventional defenders, defense-post
 turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
 `6b386199`, `88421954`, `710d2981`).
+The first playtest correction is shipped too: `SWARM_PRESSURE` no longer rolls
+the generic on-hit fallback that made runners stop under sustained fire, and
+full-distance contact pursuit is locked by regression tests (`fb50b964`).
+Debug rescue also scales swarm size from simultaneous first-wave marine seats
+instead of fighting the fixed production 12/24/40 roster or counting later
+sortie cycles at time zero. LOW/MEDIUM/HIGH use 2:1, 3:1, and 4:1 pressure, with
+a 24-cell shelter approach band so the first landing can establish a defense
+(`8b2af722`, `e0d29078`). Production remains unchanged.
+Outcome closure has its first checkpoint too. The debug client offers direct
+LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
+swarm fixtures verify zero/partial/full evacuation; and Results displays both
+representative and campaign-scaled rescue totals (`38bc6323`, `a27064fc`,
+`cf442e11`). Distress Net now retains the newest terminal rescue result after
+the active call closes (`9e0417aa`).
 
 Two reusable primitives now exist on top of `CampaignState`, and they are the
 seams the rest of the thread builds on:
@@ -126,21 +140,14 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — civilian-rescue outcome closure
+## Next up — black-swan event follow-through
 
-The event now runs from campaign trigger through its intended battle threat.
-Close the player-facing outcome loop without widening the shipped accounting
-contract:
-
-1. Add a controlled battle-to-campaign fixture for zero, partial, and full
-   evacuation with a swarm roster present.
-2. Surface representative and campaign-scaled rescue totals in battle results;
-   do not infer them from the winning faction.
-3. Give the terminal event a durable player-facing resolution dispatch while
-   keeping moral-axis numbers hidden.
-4. Keep the event zero-economy and replay-safe; no credits or salvage should be
-   manufactured by the presentation layer.
-5. Defer roster/stat tuning to a later manual playtest session.
+The first black-swan event now runs from deterministic trigger through choice,
+mission emission, swarm battle, explicit report, campaign writeback, debrief,
+hidden moral consequence, and durable terminal dispatch. The next design hunk
+should choose whether to generalize this infrastructure for a second event
+archetype or return to another living-world spine. Keep swarm roster/stat tuning
+deferred until manual playtesting resumes.
 
 ## Open forks still unresolved (design)
 
@@ -244,3 +251,10 @@ contract:
 - Slice G6b — evacuee-first pressure behavior (`6b386199`).
 - Slice G6c — deterministic risk-scaled roster (`88421954`).
 - Slice G6d — dedicated rescue-factory integration (`710d2981`).
+- Slice G7a — direct debug swarm-rescue missions (`38bc6323`).
+- G6 playtest correction — implacable pursuit under fire (`fb50b964`).
+- G6 debug scaling — swarm pressure follows first-wave strength and preserves
+  an opening deployment phase (`8b2af722`, `e0d29078`).
+- Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
+- Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
+- Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

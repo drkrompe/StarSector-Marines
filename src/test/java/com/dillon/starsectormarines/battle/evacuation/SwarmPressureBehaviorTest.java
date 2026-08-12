@@ -8,13 +8,33 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SwarmPressureBehaviorTest {
+
+    @Test
+    void sealedShelterRedirectsVisibleSwarmPressureToMarines() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        6, 4, 10, 8, 8, 6, 8, 6)), 11L);
+        assertNotNull(payload);
+        long runner = runner(sim, 2, 2);
+        long marine = marine(sim, 4, 2);
+
+        assertTrue(sim.isCivilianShelterProtected());
+        assertEquals(marine,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
 
     @Test
     void activeRegisteredEvacueeOutranksCloserMarineAndAmbientCivilian() {
@@ -47,6 +67,36 @@ class SwarmPressureBehaviorTest {
     }
 
     @Test
+    void hiddenEvacueeIsNotKnownBeforeRunnerSensesIt() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long marine = marine(sim, 4, 2);
+        long evacuee = civilian(sim, "hidden evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        sim.getGrid().setWalkable(6, 2, false);
+
+        assertEquals(marine,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
+    void runnerRemembersEvacueeAfterInitialDiscovery() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        marine(sim, 4, 2);
+        long evacuee = civilian(sim, "discovered evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        assertEquals(evacuee,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+
+        sim.combat().setTargetId(runner, evacuee);
+        sim.getGrid().setWalkable(6, 2, false);
+
+        assertEquals(evacuee,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
     void pathsTowardDistantTargetAndAppliesOnlyContactDamage() {
         BattleSimulation sim = simulation();
         long runner = runner(sim, 2, 2);
@@ -68,6 +118,28 @@ class SwarmPressureBehaviorTest {
 
         assertTrue(sim.world().hp(evacuee) < initialHp);
         assertTrue(sim.combat().cooldownTimer(runner) > 0f);
+    }
+
+    @Test
+    void repeatedBehaviorTicksCloseAllTheWayToMeleeContact() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long evacuee = civilian(sim, "evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        float initialHp = sim.world().hp(evacuee);
+        boolean damaged = false;
+
+        for (int tick = 0; tick < 160; tick++) {
+            SwarmPressureBehavior.INSTANCE.update(runner, sim);
+            if (sim.resolveUnit(evacuee) == 0L
+                    || sim.world().hp(evacuee) < initialHp) {
+                damaged = true;
+                break;
+            }
+        }
+
+        assertTrue(damaged,
+                "an unobstructed runner must close the full distance and land contact damage");
     }
 
     private static BattleSimulation simulation() {

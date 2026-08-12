@@ -3,6 +3,11 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -16,6 +21,9 @@ import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
@@ -56,8 +64,8 @@ public class ResultsScreen implements Screen {
     private static final Color STATUS_KIA     = new Color(0xE0, 0x60, 0x60);
     private static final Color PROMOTION_COLOR = new Color(0xFF, 0xD0, 0x60);
 
-    private static final float CARD_W      = 520f;
-    private static final float CARD_H      = 380f;
+    private static final float CARD_W      = 960f;
+    private static final float CARD_H      = 620f;
     private static final float INNER_PAD   = 20f;
     private static final float ROW_GAP     = 32f;
     private static final float LABEL_COL_W = 200f;
@@ -112,6 +120,16 @@ public class ResultsScreen implements Screen {
         // Stat rows
         float rowY = outcomeY - 72f;
         if (outcome != null) {
+            if (outcome.evacuationRepresentatives > 0) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        Strings.get("resultsEvacuationLabel"),
+                        cardX + INNER_PAD, rowY, LABEL_COLOR));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        formatEvacuation(outcome),
+                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
+                rowY -= ROW_GAP;
+            }
+
             // Payout
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("resultsPayoutLabel"),
@@ -199,6 +217,7 @@ public class ResultsScreen implements Screen {
                         cardX + INNER_PAD + LABEL_COL_W, rowY, PROMOTION_COLOR));
                 rowY -= ROW_GAP;
             }
+            buildSquadDebrief(outcome, cardX + 500f, outcomeY + 38f, 420f);
         }
 
         // Return stays available while the review-only picker is being built;
@@ -215,6 +234,96 @@ public class ResultsScreen implements Screen {
             float btnX = cardX + (CARD_W - BTN_W) / 2f;
             addButton(btnX, btnY, "resultsReturn", this::returnToMissions);
         }
+    }
+
+    private void buildSquadDebrief(MissionOutcome outcome, float x, float topY, float width) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "PERSONNEL — RTD / WIA / MIA / KIA", x, topY, HEADER_COLOR));
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script != null ? script.roster() : null;
+        Map<String, MarineSoldierStatus> dispositions = new HashMap<>();
+        for (String id : outcome.survivingSoldierIds) dispositions.put(id, MarineSoldierStatus.ACTIVE);
+        for (String id : outcome.fallenSoldierIds) {
+            MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
+            dispositions.put(id, soldier != null ? soldier.status() : MarineSoldierStatus.KIA);
+        }
+        if (roster == null || dispositions.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "No persistent personnel assigned.", x, topY - 30f, LABEL_COLOR));
+            return;
+        }
+
+        List<MarineSquad> deployed = new ArrayList<>();
+        for (MarineSquad squad : roster.squads()) {
+            for (String id : squad.memberIds()) {
+                if (dispositions.containsKey(id)) { deployed.add(squad); break; }
+            }
+        }
+        int rows = 9;
+        float gap = 14f;
+        float colW = (width - gap) / 2f;
+        for (int i = 0; i < deployed.size() && i < rows * 2; i++) {
+            int col = i / rows;
+            int row = i % rows;
+            addSquadDebrief(roster, deployed.get(i), dispositions,
+                    x + col * (colW + gap), topY - 30f - row * 50f);
+        }
+        if (deployed.size() > rows * 2) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "+" + (deployed.size() - rows * 2) + " squads",
+                    x + width - 120f, cardY + 62f, LABEL_COLOR));
+        }
+    }
+
+    private void addSquadDebrief(MarineRoster roster, MarineSquad squad,
+                                  Map<String, MarineSoldierStatus> dispositions,
+                                  float x, float y) {
+        int rtd = 0, wia = 0, mia = 0, kia = 0;
+        StringBuilder members = new StringBuilder();
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            MarineSoldierStatus status = dispositions.get(soldier.id());
+            if (status == null) continue;
+            switch (status) {
+                case ACTIVE -> rtd++;
+                case WIA -> wia++;
+                case MIA -> mia++;
+                case KIA -> kia++;
+            }
+            if (members.length() > 0) members.append(' ');
+            members.append(shortName(soldier.name()))
+                    .append(status == MarineSoldierStatus.ACTIVE ? 'R' : status.name().charAt(0));
+        }
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                squad.name() + "  " + rtd + "R " + wia + "W " + mia + "M " + kia + "K",
+                x, y, HEADER_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                members.toString(), x, y - 21f, VALUE_COLOR));
+    }
+
+    private static String shortName(String name) {
+        if (name == null || name.isEmpty()) return "???";
+        int split = name.lastIndexOf(' ');
+        String value = split >= 0 ? name.substring(split + 1) : name;
+        return value.substring(0, Math.min(4, value.length()));
+    }
+
+    static String formatEvacuation(MissionOutcome outcome) {
+        if (outcome == null || outcome.evacuationRepresentatives <= 0
+                || outcome.representativesEvacuated < 0) {
+            return "—";
+        }
+        if (outcome.civiliansAtRisk > outcome.evacuationRepresentatives) {
+            return MessageFormat.format(Strings.get("resultsEvacuationScaledFmt"),
+                    outcome.representativesEvacuated,
+                    outcome.evacuationRepresentatives,
+                    NumberFormat.getIntegerInstance().format(
+                            outcome.civiliansRescued),
+                    NumberFormat.getIntegerInstance().format(
+                            outcome.civiliansAtRisk));
+        }
+        return MessageFormat.format(Strings.get("resultsEvacuationFmt"),
+                outcome.representativesEvacuated,
+                outcome.evacuationRepresentatives);
     }
 
     private void returnToMissions() {

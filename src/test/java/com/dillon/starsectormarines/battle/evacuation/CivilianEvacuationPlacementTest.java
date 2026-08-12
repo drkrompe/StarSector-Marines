@@ -26,12 +26,18 @@ class CivilianEvacuationPlacementTest {
         assertNotNull(placement);
         assertEquals(10, placement.shelterX);
         assertEquals(8, placement.shelterY);
+        assertEquals(home.anchorCellX, placement.shelterApproachX);
+        assertEquals(home.anchorCellY, placement.shelterApproachY);
         assertEquals(8, placement.spawnCount());
         assertTrue(placement.liftX < 2 || placement.liftY < 2
                 || placement.liftX >= 18 || placement.liftY >= 14);
         for (int i = 0; i < placement.spawnCount(); i++) {
             assertTrue(grid.isWalkable(
                     placement.spawnX(i), placement.spawnY(i)));
+            assertTrue(placement.spawnX(i) > home.left
+                    && placement.spawnX(i) < home.right);
+            assertTrue(placement.spawnY(i) > home.top
+                    && placement.spawnY(i) < home.bottom);
             for (int j = i + 1; j < placement.spawnCount(); j++) {
                 assertTrue(placement.spawnX(i) != placement.spawnX(j)
                         || placement.spawnY(i) != placement.spawnY(j));

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * Serial movement and boarding driver for the registered rescue cohort.
@@ -11,11 +12,19 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
  */
 public final class CivilianEvacuationSystem {
 
+    /** A marine must physically reach the bunker entrance to open it. */
+    static final int RELIEF_TRIGGER_RADIUS = 2;
+    /** Civilians stop when no living marine remains within this distance of the cohort. */
+    static final int ESCORT_RADIUS = 6;
+
     private final CivilianEvacuationTracker tracker;
     private int liftX = -1;
     private int liftY = -1;
+    private int shelterApproachX = -1;
+    private int shelterApproachY = -1;
     private int radius;
     private boolean configured;
+    private boolean evacuationTriggered;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -32,6 +41,8 @@ public final class CivilianEvacuationSystem {
         }
         liftX = placement.liftX;
         liftY = placement.liftY;
+        shelterApproachX = placement.shelterApproachX;
+        shelterApproachY = placement.shelterApproachY;
         radius = CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
         configured = true;
         return true;
@@ -39,6 +50,12 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
+        if (!evacuationTriggered && marineWithin(
+                shelterApproachX, shelterApproachY,
+                RELIEF_TRIGGER_RADIUS, sim)) {
+            evacuationTriggered = true;
+        }
+        boolean escorted = evacuationTriggered && cohortHasEscort(sim);
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
             if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE) {
@@ -51,6 +68,10 @@ public final class CivilianEvacuationSystem {
             if (insideLiftZone(sim.world().cellX(id),
                     sim.world().cellY(id))) {
                 board(id, sim);
+                continue;
+            }
+            if (!escorted) {
+                sim.clearPath(id);
                 continue;
             }
 
@@ -73,6 +94,43 @@ public final class CivilianEvacuationSystem {
 
     public boolean isConfigured() {
         return configured;
+    }
+
+    /** True while the cohort remains behind the sealed shelter barricade. */
+    public boolean isShelterProtected() {
+        return configured && !evacuationTriggered && !tracker.isSealed();
+    }
+
+    public boolean isEvacuationTriggered() {
+        return evacuationTriggered;
+    }
+
+    private boolean cohortHasEscort(BattleSimulation sim) {
+        for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+            long civilian = tracker.entityIdAt(i);
+            if (tracker.state(civilian)
+                    != CivilianEvacuationTracker.State.ACTIVE
+                    || sim.resolveUnit(civilian) == 0L) {
+                continue;
+            }
+            if (marineWithin(sim.world().cellX(civilian),
+                    sim.world().cellY(civilian), ESCORT_RADIUS, sim)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean marineWithin(int x, int y, int distance,
+                                        BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE) continue;
+            int dx = sim.world().cellX(unit) - x;
+            int dy = sim.world().cellY(unit) - y;
+            if (dx * dx + dy * dy <= distance * distance) return true;
+        }
+        return false;
     }
 
     private void board(long id, BattleSimulation sim) {

@@ -24,6 +24,7 @@ class DebugCivilianRescueMissionTest {
             assertEquals(MissionType.EXTRACTION, mission.type);
             assertEquals(MissionSource.DEBUG_CIVILIAN_RESCUE,
                     mission.source);
+            assertTrue(mission.source.isDebug());
             assertEquals(0, mission.payout);
             assertEquals(8, mission.civiliansAtRisk);
             assertEquals(-1L, mission.campaignEventId);
@@ -43,5 +44,6 @@ class DebugCivilianRescueMissionTest {
                 null, null, 1, 0, "Test Colony", null);
 
         assertFalse(MissionLaunch.isCivilianRescueBattle(mission));
+        assertFalse(mission.source.isDebug());
     }
 }

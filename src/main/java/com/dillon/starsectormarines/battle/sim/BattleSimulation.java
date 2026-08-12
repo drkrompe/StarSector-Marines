@@ -490,6 +490,14 @@ public class BattleSimulation implements BattleControl {
             CivilianEvacuationPlacement placement) {
         return civilianEvacuationSystem.configure(placement);
     }
+    /** Whether the rescue cohort is still sealed inside its opening shelter. */
+    public boolean isCivilianShelterProtected() {
+        return civilianEvacuationSystem.isShelterProtected();
+    }
+    /** Whether a marine has reached the bunker entrance and begun evacuation. */
+    public boolean isCivilianEvacuationTriggered() {
+        return civilianEvacuationSystem.isEvacuationTriggered();
+    }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */

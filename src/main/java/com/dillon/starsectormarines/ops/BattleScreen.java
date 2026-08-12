@@ -241,6 +241,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         sprites.ensureNatureSheet();
         sprites.ensureWaterSheet();
         sprites.ensureUrbanTile3Sheet();
+        sprites.ensureDoodadSheet();
         sprites.ensureShuttleSprites();
         sprites.ensureConvoySprites();
         sprites.ensureDroneSprite();

@@ -22,15 +22,22 @@ public final class CivilianEvacuationPlacement {
 
     public final int shelterX;
     public final int shelterY;
+    /** Exterior doorway-side rally point where marines make contact and open the shelter. */
+    public final int shelterApproachX;
+    public final int shelterApproachY;
     public final int liftX;
     public final int liftY;
     private final int[] spawnCells;
 
     private CivilianEvacuationPlacement(int shelterX, int shelterY,
+                                        int shelterApproachX,
+                                        int shelterApproachY,
                                         int liftX, int liftY,
                                         int[] spawnCells) {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
+        this.shelterApproachX = shelterApproachX;
+        this.shelterApproachY = shelterApproachY;
         this.liftX = liftX;
         this.liftY = liftY;
         this.spawnCells = spawnCells;
@@ -90,10 +97,12 @@ public final class CivilianEvacuationPlacement {
         int sy = shelter.interiorAnchorY;
         int[] lift = farthestReachableLift(grid, sx, sy);
         if (lift == null) return null;
-        int[] spawns = reachableSpawnCells(grid, sx, sy, lift[0], lift[1]);
+        int[] spawns = reachableSpawnCells(
+                grid, shelter, sx, sy, lift[0], lift[1]);
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
-                sx, sy, lift[0], lift[1], spawns);
+                sx, sy, shelter.anchorCellX, shelter.anchorCellY,
+                lift[0], lift[1], spawns);
     }
 
     private static int[] farthestReachableLift(NavigationGrid grid,
@@ -122,6 +131,7 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static int[] reachableSpawnCells(NavigationGrid grid,
+                                              PointOfInterest shelter,
                                               int sx, int sy,
                                               int liftX, int liftY) {
         List<int[]> candidates = new ArrayList<>();
@@ -132,6 +142,12 @@ public final class CivilianEvacuationPlacement {
                  x <= Math.min(grid.getWidth() - 1,
                          sx + SHELTER_ZONE_RADIUS); x++) {
                 if (!grid.isWalkable(x, y)) continue;
+                // POI bounds are the wall ring. Keeping every representative
+                // strictly inside it makes "residential shelter" a physical
+                // placement guarantee rather than a loose radius around one
+                // indoor anchor.
+                if (x <= shelter.left || x >= shelter.right
+                        || y <= shelter.top || y >= shelter.bottom) continue;
                 if (Math.abs(x - sx) + Math.abs(y - sy)
                         > SHELTER_ZONE_RADIUS) continue;
                 if (insideLiftZone(x, y, liftX, liftY)) continue;

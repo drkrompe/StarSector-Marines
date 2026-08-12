@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,6 +11,8 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,5 +44,37 @@ class CivilianRescueBattleFactoryTest {
         }
         assertEquals(SwarmDefenseRoster.LOW_COUNT, defenders);
         assertTrue(sim.getReinforcementService().isEmpty());
+    }
+
+    @Test
+    void dedicatedFactoryAcceptsForceScaledDebugSwarm() {
+        BattleSimulation sim = BattleSetup.createCivilianRescue(
+                5_006L, Collections.emptyList(), false, RiskLevel.LOW, 180);
+
+        int defenders = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long entity = sim.liveUnitAt(i);
+            if (sim.identity().faction(entity) == Faction.DEFENDER) defenders++;
+        }
+        assertEquals(180, defenders);
+    }
+
+    @Test
+    void forceScaledDebugBattleHasAnOpeningBeforeCivilianDefeat() {
+        List<ShuttleAssignment> manifest = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            manifest.add(new ShuttleAssignment(ShuttleType.VALKYRIE, 5));
+        }
+        int swarmCount = SwarmDefenseRoster.debugCountFor(
+                RiskLevel.LOW, 8 * ShuttleType.VALKYRIE.capacity);
+        BattleSimulation sim = BattleSetup.createCivilianRescue(
+                5_007L, manifest, false, RiskLevel.LOW, swarmCount);
+
+        for (int tick = 0; tick < 90; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertFalse(sim.isComplete());
+        assertTrue(sim.getCivilianEvacuationTracker().activeCount() > 0);
     }
 }

@@ -1,13 +1,13 @@
 # Black-swan events — the third content stream
 
-**Status:** CIVILIAN-RESCUE SWARM PAYLOAD CODE COMPLETE (2026-08-12).
+**Status:** CIVILIAN-RESCUE OUTCOME CLOSURE CODE COMPLETE (2026-08-12).
 
 **Implemented:** `cf8b717b`, `5fd8969d`, `1b2afcb4`, `0da1b89e`,
 `34cf0654`, `5572c538`, `24ba5bdc`, `2a5461a6`, `0d49d30e`,
 `fdfb0aef`, `cc34a2ab`, `1174cae9`, `03017229`, `a2fa2a70`,
 `5d6257f5`, `c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`,
 `84e9e175`, `94cb765b`, `80020b48`, `6b386199`, `88421954`,
-`710d2981`
+`710d2981`, `38bc6323`, `a27064fc`, `cf442e11`, `9e0417aa`
 
 > Design discussion, not a spec. Continues from [`themes.md`](themes.md).
 > The cadence/balance numbers here are intentions, not committed values.
@@ -283,25 +283,63 @@ reinforcement, or ranged projectile semantics.
 
 A dedicated `SWARM_PRESSURE` role owns its behavior:
 
-- choose the nearest registered `ACTIVE` mission evacuee first;
+- choose the nearest registered `ACTIVE` mission evacuee only after it enters
+  the runner's bounded vision and line of sight;
+- remember a discovered evacuee after line of sight breaks, but never receive
+  the cohort's position before first contact;
 - never choose an ambient civilian merely because it shares `Faction.CIVILIAN`;
-- if no active evacuee remains, pressure the nearest live marine;
+- before civilian discovery—or after no active evacuee remains—pressure the
+  nearest live marine;
 - path directly toward the chosen target and apply contact damage only from an
   adjacent cell; and
 - idle if neither a registered evacuee nor marine exists.
 
 The first roster is mission-local and risk-scaled, with no militia, regulars,
 mechs, turrets, conventional reinforcements, or fighter support. It spawns only
-on complete reachable cells outside the shelter/lift zones. The dedicated
-rescue factory replaces its temporary Extraction defender roster with this
-payload; evacuation accounting, zero-economy terms, and moral mapping do not
-change.
+on complete reachable cells at least 16 Manhattan cells from the shelter and
+outside the lift zone. All eight evacuees now spawn strictly inside the chosen
+residential building's wall ring. The barricade stays sealed through the first
+marine landing and for a further 12-second perimeter-establishment window;
+during that phase the cohort does not move and runners pressure marines rather
+than civilians (`66692aa4`). A 30-second absolute fallback release prevents a
+lost or absent response from deadlocking the mission. The dedicated rescue
+factory replaces its temporary Extraction defender roster with this payload;
+evacuation accounting, zero-economy terms, and moral mapping do not change.
 
 The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
 12/24/40-runner rosters; incomplete placement discards the map attempt before
 it becomes player-visible. Focused runner, pressure, roster, and factory tests
 plus the full Gradle build pass. Manual playtesting remains intentionally
 deferred for this session.
+
+The first later playtest exposed one inherited behavior leak: ordinary
+non-squad units roll a generic fallback response when hit, so sustained marine
+fire could repeatedly stop runners before contact. `fb50b964` makes
+`SWARM_PRESSURE` implacable as designed and adds full-distance melee-closure and
+no-flinch regression coverage.
+
+Debug rescue separately scales the initial swarm against simultaneous first-wave
+marine seats: 2:1 at LOW, 3:1 at MEDIUM, and 4:1 at HIGH (`8b2af722`,
+`e0d29078`). Counting later sortie cycles at time zero proved instantly lethal,
+so they remain reinforcement depth; debug runners also begin at least 24 cells
+from the shelter. This preserves a large opening swarm without changing
+production event balance.
+
+### Outcome closure — first checkpoint
+
+The debug mission client now exposes direct LOW/MEDIUM/HIGH **SWARM RESCUE**
+entries. They launch the production civilian-rescue battle factory but use a
+dedicated debug source with no campaign-event identity, so resolving one cannot
+mutate a real event row. All three remain zero-payout and bring no scripted air
+support.
+
+Controlled fixtures install both the real eight-member cohort and a real swarm
+roster, then verify zero, partial, and full sealed evacuation reports without
+consulting battle victory. Mission outcomes retain both the representative
+count and the campaign-scaled count. The debrief renders those facts explicitly
+(`3 of 8 reps · 300 of 800 civilians`, for example). Distress Net now retains
+the newest terminal rescue with its market, exact result, and resolution day.
+That dispatch exposes no hidden moral axes and creates no economic reward.
 
 ## Design rules
 

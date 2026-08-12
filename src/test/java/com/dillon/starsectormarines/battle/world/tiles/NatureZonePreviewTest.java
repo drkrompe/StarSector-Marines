@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class NatureZonePreviewTest {
 
-    private static final Path SHEET = Paths.get("mod/graphics/tilesets/nature-tiles.png");
+    private static final Path SHEET = Paths.get("mod/graphics/tilesets/nature-tiles-imagegen.png");
     private static final Path OUT_DIR = Paths.get("build/zone-previews");
 
     private static final int ZONE_W = 24;

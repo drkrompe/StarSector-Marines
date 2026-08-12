@@ -47,6 +47,7 @@ public class MarineRosterScript implements EveryFrameScript {
                         (int) day));
             }
         }
+        roster.recoverWounded(day);
     }
 
     /** Find the registered roster script on the sector, or null if not yet installed. */

@@ -1,5 +1,5 @@
 {
-  "sheet": "graphics/tilesets/Water_tiles.png",
+  "sheet": "graphics/tilesets/Water_tiles-imagegen.png",
   "cellPx": 16,
   "blocks": [
     { "id": "water.water", "cells": [[6, 7], [7, 7], [8, 7]] }

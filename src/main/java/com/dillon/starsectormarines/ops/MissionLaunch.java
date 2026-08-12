@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -11,6 +13,7 @@ import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 
 import java.util.List;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 
 /**
  * The single accept-path both pre-battle entry points ({@link BriefingScreen},
@@ -59,8 +62,13 @@ public final class MissionLaunch {
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
         if (isCivilianRescueBattle(m)) {
+            int firstWaveMarineSeats = firstWaveSeats(det.shuttleManifest);
+            int swarmCount = m.source.isDebug()
+                    ? SwarmDefenseRoster.debugCountFor(
+                            m.risk, firstWaveMarineSeats)
+                    : SwarmDefenseRoster.countFor(m.risk);
             sim = BattleSetup.createCivilianRescue(seed,
-                    det.shuttleManifest, enemyHasHeavyArmor, m.risk);
+                    det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount);
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
@@ -77,7 +85,21 @@ public final class MissionLaunch {
 
         // Scenario factories author seat roles/objectives first; the persistent
         // roster then overlays each seat's identity, progression, armor and gear.
-        CampaignMarineDeployment.freeze(det.shuttleManifest).applyTo(sim);
+        int firstPlayerShuttle = m.source == MissionSource.STATIONING
+                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+        int playerSeats = CampaignMarineDeployment.requiredSeats(
+                det.shuttleManifest, firstPlayerShuttle);
+        ctx.setMarineDeploymentCapacity(playerSeats);
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        if (m.source.isDebug()) {
+            CampaignMarineDeployment.debugFixture(
+                    ctx.getDebugPersonnelPreset(), playerSeats)
+                    .applyTo(sim, firstPlayerShuttle);
+        } else if (personnel != null) {
+            CampaignMarineDeployment.freeze(personnel.roster(),
+                    ctx.getSelectedMarineSquadIds(), playerSeats)
+                    .applyTo(sim, firstPlayerShuttle);
+        }
 
         // Marine-side fighter cover (committed bays + employer) combined with the
         // mission's enemy support, then any force-spawned debug wings (both sides
@@ -93,5 +115,14 @@ public final class MissionLaunch {
 
     static boolean isCivilianRescueBattle(Mission mission) {
         return mission != null && mission.source.isCivilianRescue();
+    }
+
+    private static int firstWaveSeats(List<ShuttleAssignment> manifest) {
+        if (manifest == null) return 0;
+        int seats = 0;
+        for (ShuttleAssignment assignment : manifest) {
+            if (assignment != null) seats += assignment.type.capacity;
+        }
+        return seats;
     }
 }
