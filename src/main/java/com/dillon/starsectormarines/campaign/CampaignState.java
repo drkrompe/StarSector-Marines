@@ -122,6 +122,10 @@ public final class CampaignState implements Serializable {
     public int[]   contractBasePayout    = new int[INITIAL_CAPACITY];
     /** Retainer paid per in-game month for stationing contracts; 0 for mission-mode. */
     public int[]   contractRetainerPerMonth = new int[INITIAL_CAPACITY];
+    /** Marines removed from player cargo for a stationing contract; 0 for mission-mode. */
+    public int[]   contractMarinesCommitted = new int[INITIAL_CAPACITY];
+    /** Last day through which stationing retainer was paid; -1 until acceptance. */
+    public int[]   contractLastRetainerTick = filledInts(INITIAL_CAPACITY, -1);
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -291,6 +295,9 @@ public final class CampaignState implements Serializable {
         contractIndustryId[i]       = industryIdx;
         contractBasePayout[i]       = basePayout;
         contractRetainerPerMonth[i] = retainerPerMonth;
+        contractMarinesCommitted[i] = 0;
+        contractLastRetainerTick[i] = type.isStationing()
+                && state != ContractState.OFFERED ? acceptedTick : -1;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -407,11 +414,20 @@ public final class CampaignState implements Serializable {
             // offers spawned post-load get the real archetype-driven window.
             Arrays.fill(contractOfferExpiresTick, -1);
         }
+        if (contractMarinesCommitted == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractMarinesCommitted = new int[n];
+        }
+        if (contractLastRetainerTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractLastRetainerTick = filledInts(n, -1);
+        }
         return this;
     }
 
     private void ensureContractCapacity(int needed) {
         if (needed <= contractId.length) return;
+        int oldLength = contractId.length;
         int n = Math.max(needed, contractId.length * 2);
         contractId                = Arrays.copyOf(contractId, n);
         contractPatronHouseId     = Arrays.copyOf(contractPatronHouseId, n);
@@ -429,8 +445,17 @@ public final class CampaignState implements Serializable {
         contractIndustryId        = Arrays.copyOf(contractIndustryId, n);
         contractBasePayout        = Arrays.copyOf(contractBasePayout, n);
         contractRetainerPerMonth  = Arrays.copyOf(contractRetainerPerMonth, n);
+        contractMarinesCommitted  = Arrays.copyOf(contractMarinesCommitted, n);
+        contractLastRetainerTick  = Arrays.copyOf(contractLastRetainerTick, n);
+        Arrays.fill(contractLastRetainerTick, oldLength, n, -1);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
+    }
+
+    private static int[] filledInts(int length, int value) {
+        int[] out = new int[length];
+        Arrays.fill(out, value);
+        return out;
     }
 }

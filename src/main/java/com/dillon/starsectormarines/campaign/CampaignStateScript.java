@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
+import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.fs.starfarer.api.EveryFrameScript;
@@ -54,6 +55,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new RelationshipInteractionSystem(),
                 new ChainAdvancementSystem(),
                 new ContractGenerator(),
+                new ContractRetainerSystem(),
                 new ContractLifecycleSystem(),
                 new DiscoveryPropagationSystem()
         ));
