@@ -34,7 +34,7 @@ public enum UnitType {
     /** Hostile fauna / xeno boarder. Aggressive brawler — high HP, high damage, slightly faster, mid accuracy. Above-baseline morale impact (animal panic). */
     ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  30f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f),
     /** Walker mech with chaingun arms and rocket-pod shoulders. Defender elite that shows up when the target planet has industries producing or demanding heavy armaments (Heavy Industry, Orbital Works, Ground Defenses, Heavy Batteries). High HP, three-weapon chassis loadout ({@link MechLoadoutComponent}) fired concurrently. Dead sheet has 4 prone hulks; the sim also spawns a {@link com.dillon.starsectormarines.battle.combat.fx.SmokingWreck} on death so the corpse smolders. Renders ~1.6× cell so it visually dominates infantry. Base {@code attackRange} is set to the LRM range so target acquisition reaches across the grid; base {@code attackDamage}/{@code attackCooldown} are unused on mechs (weapons read from {@link MechLoadoutComponent} instead) but kept non-zero as a defensive fallback. High morale impact — eating fire from a walker mech rattles a squad fast. */
-    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true,  90f, 4.0f, 1.4f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f),
+    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true, 540f, 4.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
     CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
@@ -156,6 +156,18 @@ public enum UnitType {
      * own layer — everything else (infantry, mechs, civilians) is sheet-drawn.
      */
     public boolean drawnAsSheet() { return !isStatic() && this != DRONE; }
+
+    /**
+     * Whether this infantry archetype has the modular body/head/weapon asset set.
+     * These units retain their legacy sheet and SPRITE component as a load-failure
+     * fallback and for corpse rendering.
+     */
+    public boolean drawnAsLayers() {
+        return this == MARINE || this == MARINE_BLUE || this == MARINE_RED || this == MILITIA;
+    }
+
+    /** Whether this chassis has a modular true-overhead live composition. */
+    public boolean drawnAsMechLayers() { return this == HEAVY_MECH; }
 
     /**
      * Sprite-sheet frame indexing convention. Each layout names what indices 0..N

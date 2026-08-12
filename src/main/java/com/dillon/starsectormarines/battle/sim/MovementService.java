@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -50,8 +51,9 @@ public final class MovementService {
     public void setPathIdx(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
 
     /**
-     * Advances a mover one path step: lerps its render position toward the next
-     * path cell as move-progress climbs from 0 to 1, and on arrival advances the
+     * Advances a mover one path step: maps move-progress onto its render position
+     * toward the next path cell (linear for ordinary movers; planted two-stage
+     * drive for mechs), and on arrival advances the
      * logical cell, resets progress, and steps the path cursor. The flat
      * {@code int[]} path (cell {@code i} at {@code (path[i*2], path[i*2+1])},
      * {@link GridPathfinder#EMPTY_PATH} when nothing is scheduled) is fetched once
@@ -73,6 +75,19 @@ public final class MovementService {
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { setPathIdx(id, pathIdx + 1); return; }
+        if (entityWorld.has(id, components.MECH_LOCOMOTION)) {
+            float currentFacing = entityWorld.getFloat(id, components.MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+            float remainingTurn = Math.abs(MechLocomotion.deltaDegrees(currentFacing,
+                    MechLocomotion.desiredFacing(dx, dy)));
+            // Never strand a chassis halfway between cells. At the beginning of
+            // each new segment, however, a heavy mech pivots before translating.
+            if (moveProgress(id) <= 0.0001f
+                    && remainingTurn > MechLocomotion.MOVE_ALIGNMENT_DEGREES) {
+                world.setRenderPos(id, curX, curY);
+                return;
+            }
+        }
         float mp = moveProgress(id) + (moveSpeed(id) * dt) / cellDist;
         if (mp >= 1f) {
             world.setCellPos(id, nextX, nextY);
@@ -81,7 +96,9 @@ public final class MovementService {
             setPathIdx(id, pathIdx + 1);
         } else {
             setMoveProgress(id, mp);
-            world.setRenderPos(id, curX + dx * mp, curY + dy * mp);
+            float renderProgress = entityWorld.has(id, components.MECH_LOCOMOTION)
+                    ? MechLocomotion.mechanicalTravelProgress(mp) : mp;
+            world.setRenderPos(id, curX + dx * renderProgress, curY + dy * renderProgress);
         }
     }
 }

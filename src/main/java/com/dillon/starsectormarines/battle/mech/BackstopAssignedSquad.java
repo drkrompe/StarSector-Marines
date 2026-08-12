@@ -42,11 +42,11 @@ public final class BackstopAssignedSquad implements Action {
 
     /**
      * Cells between the backed squad's centroid and the mech's anchor cell.
-     * Chosen so the mech's chaingun (22-cell range) reaches roughly two
-     * cells beyond the marines' rifle envelope (~12 cells) — the mech adds
+     * Chosen so the mech's chaingun (30-cell range) reaches roughly two
+     * cells beyond the marines' 24-cell rifle envelope — the mech adds
      * "outranging support fire" without crowding the squad's own LoS.
      */
-    private static final float FOLLOW_DISTANCE = 6f;
+    private static final float FOLLOW_DISTANCE = 4f;
     /**
      * How far the backed squad's centroid can drift from the cached
      * backstop anchor before we re-pick. Keeps the action from re-pathing

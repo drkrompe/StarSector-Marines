@@ -229,6 +229,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         this.ctx = ctx;
         this.speedMultiplier = 1f;
         sprites.ensureUnitSheets();
+        sprites.ensureLayeredUnitSprites();
+        sprites.ensureLayeredMechSprites();
         sprites.ensureVehicleSheets();
         sprites.ensureTurretSprites();
         sprites.ensureMarineSecondarySprites();

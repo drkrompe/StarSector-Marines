@@ -72,7 +72,9 @@ public final class EngageAtCurrentBand implements Action {
         // mech advances toward a firing position so it can re-acquire LOS for
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
-        boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
+        float preferredDirectRange = m.srmAmmoSalvos > 0
+                ? m.srmPod.range : m.chaingun.range;
+        boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
         if (!closeEngagement && sim.world().moveProgress(u) == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -50,6 +52,10 @@ public final class FacingSystem {
             boolean hasCombat = t.has(components.COMBAT);
             boolean hasMovement = t.has(components.MOVEMENT);
             boolean hasSecondary = t.has(components.SECONDARY_WEAPON);
+            boolean hasLayeredAnimation = t.has(components.LAYERED_ANIMATION);
+            boolean hasMechLayeredAnimation = t.has(components.MECH_LAYERED_ANIMATION);
+            boolean hasMechLocomotion = t.has(components.MECH_LOCOMOTION);
+            boolean hasMechLoadout = t.has(components.MECH_LOADOUT);
 
             Object[] types = t.objects(components.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             float[] hp = t.floats(components.HEALTH, BattleComponents.HEALTH_HP).array();
@@ -70,9 +76,50 @@ public final class FacingSystem {
                     ? t.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array() : null;
             int[] pathIdx = hasMovement
                     ? t.ints(components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX).array() : null;
+            float[] moveProgress = hasMovement
+                    ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS).array() : null;
 
             float[] actionTimer = hasSecondary
                     ? t.floats(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER).array() : null;
+            Object[] secondarySpec = hasSecondary
+                    ? t.objects(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
+            int[] secondaryFired = hasSecondary
+                    ? t.ints(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED).array() : null;
+            long[] secondaryAimTarget = hasSecondary
+                    ? t.longs(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID).array() : null;
+
+            float[] layeredFacing = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES).array() : null;
+            float[] locomotionPhase = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_LOCOMOTION_PHASE).array() : null;
+            float[] weaponPhase = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_WEAPON_PHASE).array() : null;
+            float[] headLook = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_HEAD_LOOK_DEGREES).array() : null;
+            int[] weaponPose = hasLayeredAnimation
+                    ? t.ints(components.LAYERED_ANIMATION, BattleComponents.LAYERED_WEAPON_POSE).array() : null;
+            int[] layeredFlags = hasLayeredAnimation
+                    ? t.ints(components.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS).array() : null;
+            Object[] mechLoadout = hasMechLoadout
+                    ? t.objects(components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE).array() : null;
+            float[] mechFacing = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FACING_DEGREES).array() : null;
+            float[] mechHipFacing = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES).array() : null;
+            float[] mechLocomotion = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LOCOMOTION_PHASE).array() : null;
+            float[] mechChaingunPhase = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_CHAINGUN_PHASE).array() : null;
+            float[] mechSrmPhase = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_SRM_PHASE).array() : null;
+            float[] mechLrmPhase = hasMechLayeredAnimation
+                    ? t.floats(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LRM_PHASE).array() : null;
+            int[] mechFlags = hasMechLayeredAnimation
+                    ? t.ints(components.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FLAGS).array() : null;
+            float[] mechSteeringFacing = hasMechLocomotion
+                    ? t.floats(components.MECH_LOCOMOTION, BattleComponents.MECH_LOCOMOTION_FACING_DEGREES).array() : null;
+            float[] mechAngularVelocity = hasMechLocomotion
+                    ? t.floats(components.MECH_LOCOMOTION, BattleComponents.MECH_LOCOMOTION_ANGULAR_VELOCITY).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 // A released-not-yet-transmuted row (killed this tick, death
@@ -93,20 +140,30 @@ public final class FacingSystem {
                 int dx = 0;
                 int dy = 0;
                 boolean haveDelta = false;
+                int targetDx = 0;
+                int targetDy = 0;
+                boolean haveTargetDelta = false;
                 if (hasCombat && type.combatant) {
-                    long tid = targetId[r];
+                    long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
+                            ? secondaryAimTarget[r] : targetId[r];
                     if (tid != 0L && roster.isLive(tid)) {
                         int tcx = world.getInt(tid, components.POSITION, BattleComponents.POSITION_CELL_X);
                         int tcy = world.getInt(tid, components.POSITION, BattleComponents.POSITION_CELL_Y);
                         int tdx = tcx - cellX[r];
                         int tdy = tcy - cellY[r];
                         if (tdx != 0 || tdy != 0) {
+                            targetDx = tdx;
+                            targetDy = tdy;
+                            haveTargetDelta = true;
                             dx = tdx;
                             dy = tdy;
                             haveDelta = true;
                         }
                     }
                 }
+                int pathDx = 0;
+                int pathDy = 0;
+                boolean havePathDelta = false;
                 if (!haveDelta && hasMovement) {
                     int[] path = (int[]) paths[r];
                     int idx = pathIdx[r];
@@ -114,10 +171,24 @@ public final class FacingSystem {
                         int pdx = Paths.cellX(path, idx) - cellX[r];
                         int pdy = Paths.cellY(path, idx) - cellY[r];
                         if (pdx != 0 || pdy != 0) {
+                            pathDx = pdx;
+                            pathDy = pdy;
+                            havePathDelta = true;
                             dx = pdx;
                             dy = pdy;
                             haveDelta = true;
                         }
+                    }
+                } else if (hasMovement) {
+                    // Layered actors can walk along the path while looking/aiming
+                    // independently at a target, so retain both deltas even though
+                    // the legacy sheet's target-first fallback already resolved.
+                    int[] path = (int[]) paths[r];
+                    int idx = pathIdx[r];
+                    if (idx < Paths.cellCount(path)) {
+                        pathDx = Paths.cellX(path, idx) - cellX[r];
+                        pathDy = Paths.cellY(path, idx) - cellY[r];
+                        havePathDelta = pathDx != 0 || pathDy != 0;
                     }
                 }
 
@@ -135,7 +206,154 @@ public final class FacingSystem {
                 // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
                 // stays out of this system — it authors the unclamped logical frame.
                 sheetSel[r] = inAim ? LiveAppearance.SHEET_SECONDARY_AIM : LiveAppearance.SHEET_BASE;
+
+                if (hasLayeredAnimation) {
+                    authorLayeredRow(r, type, hasCombat, hasMovement, inAim,
+                            cooldownTimer, attackCooldown, actionTimer, secondarySpec,
+                            secondaryFired, paths, pathIdx, moveProgress, haveTargetDelta, targetDx,
+                            targetDy, havePathDelta, pathDx, pathDy, layeredFacing,
+                            locomotionPhase, weaponPhase, headLook, weaponPose,
+                            layeredFlags);
+                }
+                if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
+                    authorLayeredMechRow(r, hasMovement, paths, pathIdx, moveProgress,
+                            haveTargetDelta, targetDx, targetDy,
+                            (MechLoadoutComponent) mechLoadout[r], mechFacing,
+                            mechLocomotion, mechChaingunPhase, mechSrmPhase,
+                            mechLrmPhase, mechFlags, mechSteeringFacing,
+                            mechAngularVelocity, mechHipFacing);
+                }
             }
         }
+    }
+
+    private static void authorLayeredMechRow(
+            int row, boolean hasMovement, Object[] paths, int[] pathIdx, float[] moveProgress,
+            boolean haveTargetDelta, int targetDx, int targetDy,
+            MechLoadoutComponent loadout, float[] facing, float[] locomotion,
+            float[] chaingunPhase, float[] srmPhase, float[] lrmPhase, int[] flags,
+            float[] steeringFacing, float[] angularVelocity, float[] hipFacing) {
+        boolean moving = hasMovement && moveProgress[row] > 0.0001f
+                && pathIdx[row] < Paths.cellCount((int[]) paths[row]);
+        boolean turning = Math.abs(angularVelocity[row]) > 0.0001f;
+        float hips = steeringFacing[row];
+        hipFacing[row] = hips;
+        float desiredTorso = haveTargetDelta
+                ? LayeredAppearance.facingDegrees(targetDx, targetDy) : hips;
+        facing[row] = LayeredMechAppearance.torsoFacing(hips, desiredTorso);
+        locomotion[row] = turning && !moving
+                ? LayeredMechAppearance.turnStepPhase(steeringFacing[row])
+                : LayeredAppearance.locomotionPhase(hasMovement ? moveProgress[row] : 0f);
+
+        boolean chaingunActive = loadout.chaingunBurstRemaining > 0;
+        boolean srmActive = loadout.srmSalvoRemaining > 0;
+        boolean lrmActive = loadout.lrmSalvoRemaining > 0;
+        chaingunPhase[row] = LayeredMechAppearance.trackPhase(
+                loadout.chaingunBurstTimer, loadout.chaingun.burstSpacing);
+        srmPhase[row] = LayeredMechAppearance.trackPhase(
+                loadout.srmSalvoTimer, loadout.srmPod.burstSpacing);
+        lrmPhase[row] = LayeredMechAppearance.trackPhase(
+                loadout.lrmSalvoTimer, loadout.lrmArtillery.burstSpacing);
+
+        int authoredFlags = moving ? LayeredMechAppearance.FLAG_MOVING : 0;
+        if (turning) authoredFlags |= LayeredMechAppearance.FLAG_TURNING;
+        if (chaingunActive) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_ACTIVE;
+        if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;
+        if (lrmActive) authoredFlags |= LayeredMechAppearance.FLAG_LRM_ACTIVE;
+        if (LayeredMechAppearance.trackFlash(loadout.chaingunCooldown,
+                loadout.chaingun.cooldown, loadout.chaingunBurstRemaining,
+                loadout.chaingunBurstTimer, loadout.chaingun.burstSpacing)) {
+            authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
+        }
+        if (LayeredMechAppearance.trackFlash(loadout.srmCooldown,
+                loadout.srmPod.cooldown, loadout.srmSalvoRemaining,
+                loadout.srmSalvoTimer, loadout.srmPod.burstSpacing)) {
+            authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
+        }
+        if (LayeredMechAppearance.trackFlash(loadout.lrmCooldown,
+                loadout.lrmArtillery.cooldown, loadout.lrmSalvoRemaining,
+                loadout.lrmSalvoTimer, loadout.lrmArtillery.burstSpacing)) {
+            authoredFlags |= LayeredMechAppearance.FLAG_LRM_FLASH;
+        }
+        flags[row] = authoredFlags;
+    }
+
+    private static void authorLayeredRow(
+            int row, UnitType type, boolean hasCombat, boolean hasMovement, boolean inAim,
+            float[] cooldownTimer, float[] attackCooldown, float[] actionTimer,
+            Object[] secondarySpec, int[] secondaryFired, Object[] paths, int[] pathIdx,
+            float[] moveProgress,
+            boolean haveTargetDelta, int targetDx, int targetDy,
+            boolean havePathDelta, int pathDx, int pathDy,
+            float[] facing, float[] locomotion, float[] phase, float[] headLook,
+            int[] pose, int[] flags) {
+
+        boolean moving = hasMovement && havePathDelta
+                && pathIdx[row] < Paths.cellCount((int[]) paths[row]);
+        boolean primaryUp = hasCombat && LiveAppearance.weaponUp(false, type.combatant,
+                cooldownTimer[row], attackCooldown[row]);
+
+        // While walking, shoulders follow travel unless the weapon is actively
+        // shouldered. The helmet can continue tracking the target independently.
+        int torsoDx = 0;
+        int torsoDy = -1;
+        if ((inAim || primaryUp) && haveTargetDelta) {
+            torsoDx = targetDx;
+            torsoDy = targetDy;
+        } else if (havePathDelta) {
+            torsoDx = pathDx;
+            torsoDy = pathDy;
+        } else if (haveTargetDelta) {
+            torsoDx = targetDx;
+            torsoDy = targetDy;
+        }
+        float torsoFacing = LayeredAppearance.facingDegrees(torsoDx, torsoDy);
+        facing[row] = torsoFacing;
+        locomotion[row] = LayeredAppearance.locomotionPhase(
+                hasMovement ? moveProgress[row] : 0f);
+        headLook[row] = haveTargetDelta
+                ? LayeredAppearance.headLookDegrees(torsoFacing,
+                    LayeredAppearance.facingDegrees(targetDx, targetDy))
+                : 0f;
+
+        int authoredPose = LayeredAppearance.POSE_IDLE;
+        float authoredPhase = 0f;
+        int authoredFlags = moving ? LayeredAppearance.FLAG_MOVING : 0;
+
+        if (inAim) {
+            MarineSecondary secondary = (MarineSecondary) secondarySpec[row];
+            float duration = secondary != null ? secondary.aimDuration : 1f;
+            float progress = clamp01((duration - actionTimer[row]) / duration);
+            boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
+            authoredPose = fired ? LayeredAppearance.POSE_ROCKET_FIRE
+                    : LayeredAppearance.POSE_ROCKET_AIM;
+            authoredPhase = fired ? clamp01((progress - 0.5f) * 2f)
+                    : clamp01(progress * 2f);
+            if (fired) {
+                authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
+                float elapsedAfterFire = Math.max(0f, progress - 0.5f) * duration;
+                if (elapsedAfterFire <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
+                    authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
+                }
+            }
+        } else if (primaryUp) {
+            float elapsed = Math.max(0f, attackCooldown[row] - cooldownTimer[row]);
+            if (elapsed <= LayeredAppearance.PRIMARY_FLASH_SECONDS) {
+                authoredPose = LayeredAppearance.POSE_FIRING;
+                authoredPhase = clamp01(elapsed / LayeredAppearance.PRIMARY_FLASH_SECONDS);
+                authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
+            } else {
+                authoredPose = LayeredAppearance.POSE_AIMED;
+                authoredPhase = clamp01(elapsed / LiveAppearance.WEAPON_UP_TIME);
+            }
+        }
+
+        pose[row] = authoredPose;
+        phase[row] = authoredPhase;
+        flags[row] = authoredFlags;
+    }
+
+    private static float clamp01(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 }

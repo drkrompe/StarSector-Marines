@@ -85,6 +85,48 @@ public final class BattleComponents {
      */
     public static final int SPRITE_FLIP_V = 2;
 
+    /** {@link #LAYERED_ANIMATION} field 0: torso facing in continuous sprite degrees (FLOAT). */
+    public static final int LAYERED_FACING_DEGREES = 0;
+    /** Field 1: repeating locomotion phase [0,1) (FLOAT). */
+    public static final int LAYERED_LOCOMOTION_PHASE = 1;
+    /** Field 2: normalized phase within the current weapon pose [0,1] (FLOAT). */
+    public static final int LAYERED_WEAPON_PHASE = 2;
+    /** Field 3: helmet rotation relative to the torso, degrees (FLOAT). */
+    public static final int LAYERED_HEAD_LOOK_DEGREES = 3;
+    /** Field 4: one of {@code LayeredAppearance.POSE_*} (INT). */
+    public static final int LAYERED_WEAPON_POSE = 4;
+    /** Field 5: bitset of {@code LayeredAppearance.FLAG_*} (INT). */
+    public static final int LAYERED_FLAGS = 5;
+    /** Field 6: {@code LayeredArmorFamily} ordinal for the shoulder/body layer (INT). */
+    public static final int LAYERED_BODY_FAMILY = 6;
+    /** Field 7: independently swappable helmet-family ordinal (INT). */
+    public static final int LAYERED_HEAD_FAMILY = 7;
+
+    /** {@link #MECH_LAYERED_ANIMATION} field 0: upper chassis facing (FLOAT). */
+    public static final int MECH_LAYERED_FACING_DEGREES = 0;
+    /** Field 1: repeating locomotion phase [0,1) (FLOAT). */
+    public static final int MECH_LAYERED_LOCOMOTION_PHASE = 1;
+    /** Fields 2..4: independent weapon-cycle phases (FLOAT). */
+    public static final int MECH_LAYERED_CHAINGUN_PHASE = 2;
+    public static final int MECH_LAYERED_SRM_PHASE = 3;
+    public static final int MECH_LAYERED_LRM_PHASE = 4;
+    /** Field 5: {@code LayeredMechAppearance.FLAG_*} bitset (INT). */
+    public static final int MECH_LAYERED_FLAGS = 5;
+    /** Fields 6..9: independently swappable chassis hardpoint selectors (INT). */
+    public static final int MECH_LAYERED_CHASSIS = 6;
+    public static final int MECH_LAYERED_ARMS = 7;
+    public static final int MECH_LAYERED_LEFT_SHOULDER = 8;
+    public static final int MECH_LAYERED_RIGHT_SHOULDER = 9;
+    /** Field 10: locomotion/hip facing used by the independently planted feet (FLOAT). */
+    public static final int MECH_LAYERED_HIP_FACING_DEGREES = 10;
+
+    /** {@link #MECH_LOCOMOTION} field 0: persistent chassis heading in sprite degrees (FLOAT). */
+    public static final int MECH_LOCOMOTION_FACING_DEGREES = 0;
+    /** Field 1: signed angular velocity in degrees/sec, authored by steering (FLOAT). */
+    public static final int MECH_LOCOMOTION_ANGULAR_VELOCITY = 1;
+    /** Field 2: maximum chassis turn rate in degrees/sec (FLOAT). */
+    public static final int MECH_LOCOMOTION_TURN_RATE = 2;
+
     /** {@link #HEALTH} field 0: current hp (FLOAT). */
     public static final int HEALTH_HP = 0;
     /** {@link #HEALTH} field 1: max hp (FLOAT). */
@@ -276,6 +318,22 @@ public final class BattleComponents {
      * <em>weapon kind</em>, not the unit type.
      */
     public final ComponentType SPRITE;
+    /**
+     * Optional authored transform animation for modular top-down infantry:
+     * {@code float facing, locomotionPhase, weaponPhase, headLook; int pose,
+     * flags, bodyFamily, headFamily}. Presence means the live unit can use layered rendering. It remains
+     * presentation-only and is removed on death; {@link #SPRITE} stays alongside
+     * it as the legacy/failure fallback and as the later corpse carrier.
+     */
+    public final ComponentType LAYERED_ANIMATION;
+    /** Live-only authored transform state for independently animated mech hardpoints. */
+    public final ComponentType MECH_LAYERED_ANIMATION;
+    /**
+     * Live-only mech steering state: persistent facing, current angular velocity,
+     * and maximum turn rate. Unlike {@link #MECH_LAYERED_ANIMATION}, this is
+     * simulation-authoritative: path movement reads it to pivot before stepping.
+     */
+    public final ComponentType MECH_LOCOMOTION;
     /** Dead-archetype marker — pure presence tag, no columns. */
     public final ComponentType CORPSE;
     /**
@@ -694,6 +752,8 @@ public final class BattleComponents {
      * Walked by {@code FacingSystem.tick()} and the live-sprite render sweep.
      */
     public final Query liveSprites;
+    /** Live modular actors carrying authored layered-animation state. */
+    public final Query layeredSprites;
 
     /**
      * Every entity currently crashing ({@code {CRASHING}}) — the falling drones the
@@ -784,10 +844,22 @@ public final class BattleComponents {
         TURRET_STATE    = world.register(28, "TurretState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
         DRONE_STATE     = world.register(29, "DroneState", FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.LONG);
         VEHICLE_CONTROL = world.register(30, "VehicleControl", FieldKind.OBJECT);
+        LAYERED_ANIMATION = world.register(31, "LayeredAnimation",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.INT, FieldKind.INT, FieldKind.INT, FieldKind.INT);
+        MECH_LAYERED_ANIMATION = world.register(32, "MechLayeredAnimation",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
+                FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
+        MECH_LOCOMOTION = world.register(33, "MechLocomotion",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, HEALTH}, null);
+        layeredSprites = world.query(
+                new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE,
+                        LAYERED_ANIMATION, HEALTH}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);

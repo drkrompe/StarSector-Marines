@@ -88,7 +88,9 @@ public final class DeadBodySystem {
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
                 components.SQUAD, components.ROLE, components.HOME, components.TASK,
-                components.HUB_STATE, components.TURRET_STATE, components.DRONE_STATE};
+                components.HUB_STATE, components.TURRET_STATE, components.DRONE_STATE,
+                components.LAYERED_ANIMATION, components.MECH_LAYERED_ANIMATION,
+                components.MECH_LOCOMOTION};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

@@ -1,0 +1,85 @@
+{
+  "coordinateSystem": {
+    "facing": "north",
+    "northAxis": "negativeY",
+    "positiveRotation": "counterClockwise"
+  },
+  "anatomyScale": {
+    "unit": "sw",
+    "description": "One shoulder-width unit equals the opaque alpha-bounds width of the body/shoulder sprite.",
+    "referencePixels": 150,
+    "resolve": "pixels = round(sw * shoulderWidthPixels)",
+    "bodyWidthSw": 1.0,
+    "headWidthSw": 0.48
+  },
+  "armorFamilies": {
+    "charcoal": {
+      "body": "armor/charcoal/body.png",
+      "head": "armor/charcoal/head.png"
+    },
+    "blueScout": {
+      "body": "armor/blue-scout/body.png",
+      "head": "armor/blue-scout/head.png"
+    },
+    "redHeavy": {
+      "body": "armor/red-heavy/body.png",
+      "head": "armor/red-heavy/head.png"
+    },
+    "outlaw": {
+      "body": "armor/outlaw/body.png",
+      "head": "armor/outlaw/head.png"
+    },
+    "armyGreen": {
+      "body": "armor/army-green/body.png",
+      "head": "armor/army-green/head.png"
+    },
+    "militia": {
+      "body": "armor/militia/body.png",
+      "head": "armor/militia/head.png"
+    }
+  },
+  "armorRegistration": {
+    "bodyPivot": [75, 56],
+    "headPivot": [36, 43],
+    "headAttachmentOffset": [0, -30],
+    "bodyPivotSw": [0.5, 0.3733],
+    "headPivotSw": [0.24, 0.2867],
+    "headAttachmentOffsetSw": [0.0, -0.2]
+  },
+  "weapons": {
+    "rifle": {
+      "path": "weapons/rifle.png",
+      "pivot": [12, 73],
+      "muzzle": [12, 0],
+      "sizeSw": [0.1667, 0.6533],
+      "pivotSw": [0.08, 0.4867],
+      "muzzleSw": [0.08, 0.0],
+      "aimedOffsetSw": [0.1733, -0.12]
+    },
+    "rocketLauncher": {
+      "path": "weapons/rocket-launcher.png",
+      "pivot": [32, 84],
+      "muzzle": [32, 0],
+      "aimedOffset": [50, -18],
+      "sizeSw": [0.4267, 1.04],
+      "pivotSw": [0.2133, 0.56],
+      "muzzleSw": [0.2133, 0.0],
+      "aimedOffsetSw": [0.3333, -0.12],
+      "drawOrderByPose": {
+        "carried": ["weapon", "body", "head"],
+        "aimed": ["weapon", "body", "head"],
+        "firing": ["body", "weapon", "head", "firingFx"]
+      },
+      "firingLayer": "overShoulder"
+    },
+    "laserGun": {
+      "path": "weapons/laser-gun.png",
+      "pivot": [10, 73],
+      "muzzle": [10, 0],
+      "sizeSw": [0.14, 0.6533],
+      "pivotSw": [0.0667, 0.4867],
+      "muzzleSw": [0.0667, 0.0],
+      "aimedOffsetSw": [0.1733, -0.12]
+    }
+  }
+}

@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * LR Support doctrine: hold at LR-band cover, lob LRMs at the squad's
- * known threat axis, withhold SRMs. Picks a cover cell ~25–35 cells from
+ * known threat axis, withhold SRMs. Picks a cover cell ~32–38 cells from
  * {@code squad.lastSeenEnemyX/Y} with LoS to that cell — once per threat
  * axis shift, cached on {@link MechLoadoutComponent#overwatchCellX} so per-tick
  * re-search doesn't blow the planner budget.
@@ -44,10 +44,10 @@ public final class OverwatchKillZone implements Action {
 
     public static final OverwatchKillZone INSTANCE = new OverwatchKillZone();
 
-    /** Lower bound on overwatch-cell distance from {@code lastSeenEnemy}. Above the mech's chaingun range (22 cells) so a chaingun-band target can't sustain on the mech's overwatch position. */
-    private static final float OVERWATCH_MIN_DIST = 25f;
+    /** Lower bound on overwatch-cell distance from {@code lastSeenEnemy}. Just above the mech's 30-cell chaingun range so LR doctrine still establishes an artillery position. */
+    private static final float OVERWATCH_MIN_DIST = 32f;
     /** Upper bound. Below the mech's LRM range (40 cells) so the picked cell is comfortably inside the firing envelope for arc'd LRMs. */
-    private static final float OVERWATCH_MAX_DIST = 36f;
+    private static final float OVERWATCH_MAX_DIST = 38f;
     /** Cover-bonus weight when scoring candidate overwatch cells. Higher = strong preference for high-cover cells over short-walk cells. */
     private static final float OVERWATCH_COVER_WEIGHT = 5f;
 

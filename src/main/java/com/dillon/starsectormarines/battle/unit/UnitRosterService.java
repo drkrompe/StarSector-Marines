@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -351,6 +353,7 @@ public final class UnitRosterService {
         boolean hasSecondary = spec.secondaryWeapon != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
+        boolean layerDrawn = spec.type.drawnAsLayers();
         // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
         // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
         // a ground unit has none. It is kept OFF the corpse-remove mask
@@ -386,10 +389,12 @@ public final class UnitRosterService {
         // marker, so the archetype membership itself is the classification gate
         // that replaced the old instanceof-subclass checks.
         boolean isDrone = spec.type.isDrone();
+        boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
                 6 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0) + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
+                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
+                  + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
@@ -408,6 +413,11 @@ public final class UnitRosterService {
         if (hasHome) archetype[c++] = components.HOME;
         if (hasTask) archetype[c++] = components.TASK;
         if (sheetDrawn) archetype[c++] = components.SPRITE;
+        if (layerDrawn) archetype[c++] = components.LAYERED_ANIMATION;
+        if (mechLayerDrawn) {
+            archetype[c++] = components.MECH_LAYERED_ANIMATION;
+            archetype[c++] = components.MECH_LOCOMOTION;
+        }
         if (isHub) archetype[c++] = components.HUB_STATE;
         if (isTurret) archetype[c++] = components.TURRET_STATE;
         if (isDrone) archetype[c++] = components.DRONE_STATE;
@@ -417,6 +427,37 @@ public final class UnitRosterService {
         // pass and render still draws sanely instead of frame 0.
         if (sheetDrawn) {
             entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
+        }
+        if (layerDrawn) {
+            int armorFamily = LayeredArmorFamily.spawnDefault(spec.type).ordinal();
+            entityWorld.setFloat(id, components.LAYERED_ANIMATION,
+                    BattleComponents.LAYERED_FACING_DEGREES, 180f);
+            entityWorld.setInt(id, components.LAYERED_ANIMATION,
+                    BattleComponents.LAYERED_WEAPON_POSE, LayeredAppearance.POSE_IDLE);
+            entityWorld.setInt(id, components.LAYERED_ANIMATION,
+                    BattleComponents.LAYERED_BODY_FAMILY, armorFamily);
+            entityWorld.setInt(id, components.LAYERED_ANIMATION,
+                    BattleComponents.LAYERED_HEAD_FAMILY, armorFamily);
+        }
+        if (mechLayerDrawn) {
+            entityWorld.setFloat(id, components.MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 180f);
+            entityWorld.setFloat(id, components.MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_TURN_RATE,
+                    com.dillon.starsectormarines.battle.mech.MechLocomotion.DEFAULT_TURN_RATE_DEGREES);
+            entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_FACING_DEGREES, 180f);
+            entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES, 180f);
+            // Stock chassis: chaingun arms, compact SRM left, heavy LRM right.
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_CHASSIS, 0);
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_ARMS, 0);
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_LEFT_SHOULDER, 3);
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_RIGHT_SHOULDER, 2);
         }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, spec.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, spec.faction);

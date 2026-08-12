@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -46,6 +47,19 @@ public class BattleSprites {
     private final java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites =
             new java.util.EnumMap<>(UnitType.class);
     private boolean unitSpritesLoadAttempted;
+
+    // ---- modular layered infantry -----------------------------------------
+
+    private static final String MODULAR_ROOT =
+            "graphics/battle/marine-modular-topdown/variants/";
+    private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
+            new java.util.EnumMap<>(LayeredArmorFamily.class);
+    private boolean layeredUnitSpritesLoadAttempted;
+
+    // ---- modular layered heavy mech ---------------------------------------
+
+    private LayeredMechAssets layeredMechSprites;
+    private boolean layeredMechSpritesLoadAttempted;
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -130,6 +144,8 @@ public class BattleSprites {
 
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites()          { return unitSprites; }
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
+    public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
+    public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     public java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets() { return vehicleSheets; }
     public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
     public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
@@ -409,6 +425,102 @@ public class BattleSprites {
             } catch (Exception e) {
                 LOG.error("BattleSprites: failed to load mech projectile " + w.projectileSpritePath, e);
             }
+        }
+    }
+
+    /**
+     * Loads independent body/head/feet/weapon textures for the four converted
+     * infantry archetypes. A family is published only when every required layer
+     * loaded; otherwise {@code UnitRenderService} keeps using its legacy sheet.
+     */
+    public void ensureLayeredUnitSprites() {
+        if (layeredUnitSpritesLoadAttempted) return;
+        layeredUnitSpritesLoadAttempted = true;
+
+        // Shared prototype layers live one directory above variants.
+        LayeredSpriteCache foot = loadLayeredSprite(
+                "graphics/battle/marine-modular-topdown/marine-foot.png");
+        LayeredSpriteCache rifle = loadLayeredSprite(MODULAR_ROOT + "weapons/rifle.png");
+        LayeredSpriteCache laser = loadLayeredSprite(MODULAR_ROOT + "weapons/laser-gun.png");
+        LayeredSpriteCache rocket = loadLayeredSprite(MODULAR_ROOT + "weapons/rocket-launcher.png");
+        LayeredSpriteCache flash = loadLayeredSprite(
+                "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
+        if (foot == null || rifle == null || laser == null || rocket == null || flash == null) {
+            LOG.warn("BattleSprites: modular shared layers incomplete; legacy unit sheets remain active");
+            return;
+        }
+
+        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, rocket, flash);
+        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, rocket, flash);
+    }
+
+    /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
+    public void ensureLayeredMechSprites() {
+        if (layeredMechSpritesLoadAttempted) return;
+        layeredMechSpritesLoadAttempted = true;
+        String root = "graphics/battle/mech-modular-topdown/";
+        LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
+        LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
+        LayeredSpriteCache foot = loadLayeredSprite(root + "foot.png");
+        LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
+        LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
+        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
+        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        LayeredSpriteCache flash = loadLayeredSprite(
+                "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
+        if (chassis == null || socketedChassis == null || foot == null || arm == null
+                || linearCannon == null || srm == null || lrm == null || flash == null) {
+            LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
+            return;
+        }
+        layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis, foot,
+                arm, linearCannon, srm, lrm, flash);
+    }
+
+    private void loadLayeredFamily(LayeredArmorFamily familyId, String family,
+                                   LayeredSpriteCache foot,
+                                   LayeredSpriteCache rifle,
+                                   LayeredSpriteCache laser,
+                                   LayeredSpriteCache rocket,
+                                   LayeredSpriteCache flash) {
+        String familyRoot = MODULAR_ROOT + "armor/" + family + "/";
+        LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
+        LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
+        if (body == null || head == null) {
+            LOG.warn("BattleSprites: modular family " + family
+                    + " incomplete; actors using it keep their legacy sheet");
+            return;
+        }
+        layeredUnitSprites.put(familyId,
+                new LayeredUnitAssets(body, head, foot, rifle, laser, rocket, flash));
+    }
+
+    /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */
+    public LayeredSpriteCache loadLayeredSprite(String path) {
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleSprites: getSprite returned null for modular layer " + path);
+                return null;
+            }
+            try (InputStream stream = Global.getSettings().openStream(path)) {
+                BufferedImage image = ImageIO.read(stream);
+                if (image == null) {
+                    LOG.warn("BattleSprites: ImageIO.read returned null for modular layer " + path);
+                    return null;
+                }
+                LOG.info("BattleSprites: loaded modular layer " + path + " ("
+                        + image.getWidth() + "x" + image.getHeight() + ")");
+                return new LayeredSpriteCache(sprite, image.getWidth(), image.getHeight());
+            }
+        } catch (Exception e) {
+            LOG.error("BattleSprites: failed to load modular layer " + path, e);
+            return null;
         }
     }
 

@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -58,6 +61,10 @@ public final class UnitRenderService implements RenderSystem {
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
     private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
+    /** Composition-wide scale relative to the original layered infantry sizing. */
+    static final float LAYERED_INFANTRY_SCALE = 0.60f;
+    /** Composition-wide scale relative to the original layered mech sizing. */
+    static final float LAYERED_MECH_SCALE = 1.40f;
 
     private final BattleSprites sprites;
 
@@ -328,8 +335,50 @@ public final class UnitRenderService implements RenderSystem {
             int[] frameIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
             int[] flipV = t.ints(c.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
             boolean hasSecondary = t.has(c.SECONDARY_WEAPON);
+            boolean hasLayered = t.has(c.LAYERED_ANIMATION);
+            boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
+            Object[] primaryWeapon = t.has(c.COMBAT)
+                    ? t.objects(c.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON).array() : null;
+            float[] layeredFacing = hasLayered
+                    ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES).array() : null;
+            float[] layeredLocomotion = hasLayered
+                    ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_LOCOMOTION_PHASE).array() : null;
+            float[] layeredWeaponPhase = hasLayered
+                    ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_WEAPON_PHASE).array() : null;
+            float[] layeredHeadLook = hasLayered
+                    ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_HEAD_LOOK_DEGREES).array() : null;
+            int[] layeredPose = hasLayered
+                    ? t.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_WEAPON_POSE).array() : null;
+            int[] layeredFlags = hasLayered
+                    ? t.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS).array() : null;
+            int[] layeredBodyFamily = hasLayered
+                    ? t.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_BODY_FAMILY).array() : null;
+            int[] layeredHeadFamily = hasLayered
+                    ? t.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_HEAD_FAMILY).array() : null;
+            float[] mechFacing = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FACING_DEGREES).array() : null;
+            float[] mechHipFacing = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES).array() : null;
+            float[] mechLocomotion = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LOCOMOTION_PHASE).array() : null;
+            float[] mechChaingunPhase = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_CHAINGUN_PHASE).array() : null;
+            float[] mechSrmPhase = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_SRM_PHASE).array() : null;
+            float[] mechLrmPhase = hasMechLayered
+                    ? t.floats(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LRM_PHASE).array() : null;
+            int[] mechFlags = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FLAGS).array() : null;
+            int[] mechArms = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_ARMS).array() : null;
+            int[] mechChassis = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_CHASSIS).array() : null;
+            int[] mechLeftShoulder = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LEFT_SHOULDER).array() : null;
+            int[] mechRightShoulder = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_RIGHT_SHOULDER).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 // Gate 1: a released-but-not-yet-transmuted row (see the method doc
@@ -345,6 +394,37 @@ public final class UnitRenderService implements RenderSystem {
                 if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(denseIdx);
 
                 UnitType type = (UnitType) types[r];
+                LayeredMechAssets mechAssets = hasMechLayered
+                        ? sprites.layeredMechSprites() : null;
+                if (mechAssets != null) {
+                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
+                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    // Chassis width is the single sizing unit. Total appendage
+                    // overhang remains close to the legacy 1.6-cell silhouette.
+                    float hullWidth = unitSize * type.renderScale * 0.82f
+                            * LAYERED_MECH_SCALE;
+                    LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
+                            mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
+                            mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
+                            mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha);
+                    continue;
+                }
+                LayeredUnitAssets layeredAssets = hasLayered
+                        ? sprites.layeredUnitSprites().get(
+                            LayeredArmorFamily.fromOrdinal(layeredBodyFamily[r])) : null;
+                LayeredUnitAssets layeredHeadAssets = hasLayered
+                        ? sprites.layeredUnitSprites().get(
+                            LayeredArmorFamily.fromOrdinal(layeredHeadFamily[r])) : null;
+                if (layeredAssets != null && layeredHeadAssets != null) {
+                    float cx = cam.cellToScreenX(rx[r] + 0.5f);
+                    float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                    LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
+                            primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
+                            cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,
+                            layeredFacing[r], layeredHeadLook[r], layeredLocomotion[r],
+                            layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha);
+                    continue;
+                }
                 UnitSpriteCache cache = sprites.unitSprites().get(type);
                 if (sheetSel[r] == LiveAppearance.SHEET_SECONDARY_AIM && secSpec != null) {
                     UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get((MarineSecondary) secSpec[r]);

@@ -20,7 +20,7 @@ import java.awt.Color;
  *
  * <p>The catalog is intentionally small and opinionated:
  * <ul>
- *   <li>{@link #CHAINGUN} — close-band brawler. Heavy 8-round burst at high
+ *   <li>{@link #CHAINGUN} — close-band brawler. Heavy 12-round burst at high
  *       cycle rate. Reads as the mech walking forward "brrt"-ing.</li>
  *   <li>{@link #SRM_POD} — mid-close burst-damage salvo. Wave of 4 dumb
  *       rockets per launch, ammo-limited, big anti-anything punch.</li>
@@ -39,7 +39,7 @@ public enum MechWeapon {
 
     /**
      * Dual chaingun arms — close-band saturation. Each trigger pull rips a
-     * 10-round burst at 60ms spacing for a ~0.6s sustained brrt across both
+     * 12-round burst at 60ms spacing for a ~0.7s sustained brrt across both
      * arms, then a 2-second cooldown. Rounds scatter across a 1.2-cell
      * pattern and each detonates with a small AoE on landing, so a clustered
      * squad eats multiple rounds via splash — anti-cluster suppression, not
@@ -52,8 +52,8 @@ public enum MechWeapon {
      * <p>Tuning intent — the chaingun is the "ammo never runs out" hitter
      * the mech leans on once SRM/LRM salvos are spent. Per-round damage
      * (1.5) sits below the rocket pods so they're still the headline punch,
-     * but a 15-damage burst × 0.55 accuracy × the AoE saturation pattern
-     * adds up to ~4 DPS sustained to a locked target. Combined with the
+     * but an 18-damage burst × 0.55 accuracy × the AoE saturation pattern
+     * adds up to ~5 DPS sustained to a locked target. Combined with the
      * 0.6-cell AoE catching clustered squadmates, that swings the
      * post-rocket-empty fight from "marines outlast the mech" to "even
      * trade if the marines don't break LOS" — the design target is
@@ -63,9 +63,9 @@ public enum MechWeapon {
     CHAINGUN("Chaingun",
              "chaingun_fire",
              new Color(0xFF, 0xE8, 0xC0),
-             22f, 1.5f, 0.55f, 2.00f, 0.4f,
+             30f, 1.5f, 0.55f, 2.00f, 0.4f,
              ImpactProfile.KINETIC,
-             10, 0.06f,
+             12, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
              0f, 1.2f, false,
              0.6f, 3, /*wallDmgRadius*/ 0f, /*raycastShots*/ true),
@@ -131,7 +131,7 @@ public enum MechWeapon {
     /** Damage multiplier vs {@link MapTurret} targets — chainguns plink (0.4×), missiles wreck (2-2.5×). */
     public final float vsTurretMult;
     public final ImpactProfile impactProfile;
-    /** Projectiles per trigger pull. CHAINGUN burst (8), SRM salvo (4), LRM single (1). */
+    /** Projectiles per trigger pull. CHAINGUN burst (12), SRM salvo (4), LRM salvo (5). */
     public final int burstCount;
     /** Sim-seconds between rounds within a burst / salvo. Zero for single-shot LRM. */
     public final float burstSpacing;

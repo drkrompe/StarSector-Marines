@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -99,6 +100,28 @@ public final class World {
     }
     public void setRenderX(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, v); }
     public void setRenderY(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, v); }
+
+    // Modular appearance is an OPTIONAL, live-only presentation capability.
+    // Body and helmet selectors are intentionally independent equipment writes.
+    public boolean hasLayeredAppearance(long id) {
+        return entityWorld.has(id, components.LAYERED_ANIMATION);
+    }
+    public LayeredArmorFamily layeredBodyFamily(long id) {
+        return LayeredArmorFamily.fromOrdinal(entityWorld.getInt(id, components.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_BODY_FAMILY));
+    }
+    public LayeredArmorFamily layeredHeadFamily(long id) {
+        return LayeredArmorFamily.fromOrdinal(entityWorld.getInt(id, components.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_HEAD_FAMILY));
+    }
+    public void setLayeredBodyFamily(long id, LayeredArmorFamily family) {
+        entityWorld.setInt(id, components.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_BODY_FAMILY, family.ordinal());
+    }
+    public void setLayeredHeadFamily(long id, LayeredArmorFamily family) {
+        entityWorld.setInt(id, components.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_HEAD_FAMILY, family.ordinal());
+    }
 
     // Combat lives in the entity world's OPTIONAL COMBAT component, narrowed to
     // combatants: a non-combatant (civilian/engineer/scientist) carries none.
