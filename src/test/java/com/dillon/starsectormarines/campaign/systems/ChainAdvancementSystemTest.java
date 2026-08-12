@@ -160,6 +160,60 @@ class ChainAdvancementSystemTest {
                 fixture.state.houseIndex(fixture.actor)]);
     }
 
+    @Test
+    void civilWarResolutionPreparesHandoffWithoutApplyingFactionFlip() {
+        Fixture fixture = new Fixture();
+        int actorRow = fixture.state.houseIndex(fixture.actor);
+        fixture.state.houseRank[actorRow] = HouseRank.TIER_3.toByte();
+        fixture.state.houseRank[fixture.state.houseIndex(fixture.target)] =
+                HouseRank.TIER_3.toByte();
+        fixture.state.housePromotionProgress[actorRow] = 1000;
+        long chain = fixture.state.addAutonomousChain(fixture.actor, fixture.target,
+                1, -1, HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 1, (byte) 128, 1);
+        int chainRow = fixture.state.chainIndex(chain);
+        ChainAdvancementSystem system = new ChainAdvancementSystem();
+
+        system.tick(fixture.state, 20);
+
+        assertEquals(ChainState.RESOLVED,
+                ChainState.fromByte(fixture.state.chainState[chainRow]));
+        assertEquals(1, fixture.state.throneClaimCount);
+        assertEquals(chain, fixture.state.throneClaimSourceChainId[0]);
+        assertEquals(fixture.actor, fixture.state.throneClaimHouseId[0]);
+        assertEquals(1, fixture.state.throneClaimSourceFactionId[0]);
+        assertEquals(1, fixture.state.throneClaimMarketId[0]);
+        assertEquals("starsector_marines_claimant_" + fixture.actor,
+                fixture.state.factionRegistry.get(
+                    fixture.state.throneClaimResultFactionId[0]));
+        assertEquals(HouseRank.TIER_3,
+                HouseRank.fromByte(fixture.state.houseRank[actorRow]));
+        assertEquals(1000, fixture.state.housePromotionProgress[actorRow]);
+
+        system.tick(fixture.state, 21);
+        assertEquals(1, fixture.state.throneClaimCount);
+    }
+
+    @Test
+    void crossFactionCivilWarFailsWithoutPreparingHandoff() {
+        Fixture fixture = new Fixture();
+        int actorRow = fixture.state.houseIndex(fixture.actor);
+        fixture.state.houseRank[actorRow] = HouseRank.TIER_3.toByte();
+        fixture.state.houseFactionId[fixture.state.houseIndex(fixture.target)] = 2;
+        long chain = fixture.state.addAutonomousChain(fixture.actor, fixture.target,
+                1, -1, HouseRank.TIER_3.toByte(), ChainArchetype.CIVIL_WAR,
+                (short) 1, (byte) 128, 1);
+        int chainRow = fixture.state.chainIndex(chain);
+
+        new ChainAdvancementSystem().tick(fixture.state, 20);
+
+        assertEquals(ChainState.FAILED,
+                ChainState.fromByte(fixture.state.chainState[chainRow]));
+        assertEquals(0, fixture.state.throneClaimCount);
+        assertEquals(HouseRank.TIER_3,
+                HouseRank.fromByte(fixture.state.houseRank[actorRow]));
+    }
+
     private static final class Fixture {
         final CampaignState state = new CampaignState();
         final long actor = house(state, "Actor");

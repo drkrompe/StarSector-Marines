@@ -23,6 +23,7 @@ import java.util.EnumSet;
  */
 public final class ChainAdvancementSystem implements CampaignSystem {
 
+    static final String CLAIMANT_FACTION_PREFIX = "starsector_marines_claimant_";
     static final int DAILY_PROGRESS = 1;
     static final int RESOLUTION_STAKE_SEIZE = 40;
     static final int RESOLUTION_PROMOTION_PROGRESS = 30;
@@ -38,13 +39,13 @@ public final class ChainAdvancementSystem implements CampaignSystem {
     @Override
     public EnumSet<CampaignTable> reads() {
         return EnumSet.of(CampaignTable.HOUSES, CampaignTable.STAKES,
-                CampaignTable.CHAINS);
+                CampaignTable.CHAINS, CampaignTable.THRONE_CLAIMS);
     }
 
     @Override
     public EnumSet<CampaignTable> writes() {
         return EnumSet.of(CampaignTable.CHAINS, CampaignTable.HOUSES,
-                CampaignTable.STAKES);
+                CampaignTable.STAKES, CampaignTable.THRONE_CLAIMS);
     }
 
     @Override
@@ -61,14 +62,15 @@ public final class ChainAdvancementSystem implements CampaignSystem {
             if (actorHouseId < 0L) continue; // legacy autonomous row: actor unrecoverable
             int actorRow = state.houseIndex(actorHouseId);
             int targetRow = state.houseIndex(state.chainTarget[chainRow]);
+            ChainArchetype archetype = ChainArchetype.fromByte(
+                    state.chainArchetype[chainRow]);
             if (!activeHouse(state, actorRow) || !activeHouse(state, targetRow)
                     || state.chainMarketId[chainRow] < 0
-                    || state.chainIndustryId[chainRow] < 0) {
+                    || (archetype != ChainArchetype.CIVIL_WAR
+                        && state.chainIndustryId[chainRow] < 0)) {
                 terminate(state, chainRow, ChainState.FAILED, day);
                 continue;
             }
-            ChainArchetype archetype = ChainArchetype.fromByte(
-                    state.chainArchetype[chainRow]);
             if (archetype == ChainArchetype.PROMOTE
                     && promotionAlreadyAchieved(state, chainRow, actorRow)) {
                 terminate(state, chainRow, ChainState.RESOLVED, day);
@@ -99,6 +101,13 @@ public final class ChainAdvancementSystem implements CampaignSystem {
     private static boolean validPayload(CampaignState state, int chainRow, int actorRow,
                                         int targetRow, ChainArchetype archetype) {
         if (archetype == ChainArchetype.CONSOLIDATE_STAKE) return true;
+        if (archetype == ChainArchetype.CIVIL_WAR) {
+            return (state.chainTier[chainRow] & 0xFF) == HouseRank.TIER_3.ordinal()
+                    && HouseRank.fromByte(state.houseRank[actorRow]) == HouseRank.TIER_3
+                    && state.houseFactionId[actorRow] == state.houseFactionId[targetRow]
+                    && state.chainMarketId[chainRow] == state.houseMarketId[actorRow]
+                    && state.chainIndustryId[chainRow] == -1;
+        }
         if (archetype != ChainArchetype.PROMOTE) return false;
         int startingTier = state.chainTier[chainRow] & 0xFF;
         HouseRank actorRank = HouseRank.fromByte(state.houseRank[actorRow]);
@@ -114,6 +123,14 @@ public final class ChainAdvancementSystem implements CampaignSystem {
 
     private static void resolvePayload(CampaignState state, int chainRow, int actorRow,
                                        int targetRow, ChainArchetype archetype, int day) {
+        if (archetype == ChainArchetype.CIVIL_WAR) {
+            int resultFactionId = state.factionRegistry.intern(
+                    CLAIMANT_FACTION_PREFIX + state.houseId[actorRow]);
+            state.prepareThroneClaim(state.chainId[chainRow], state.houseId[actorRow],
+                    state.houseFactionId[actorRow], resultFactionId,
+                    state.chainMarketId[chainRow], day);
+            return;
+        }
         int stakeSeize = archetype == ChainArchetype.PROMOTE
                 ? PROMOTION_STAKE_SEIZE : RESOLUTION_STAKE_SEIZE;
         StakeLedger.seizeShare(state, state.chainTarget[chainRow],
