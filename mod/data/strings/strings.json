@@ -74,6 +74,7 @@
 		"resultsSalvageLabel":    "Salvage:",
 		"resultsSalvageFmt":      "{0}% entitlement",
 		"resultsSalvageManifestFmt": "{0}% · {1} stacks · Cr. {2}",
+		"resultsSalvageModifiedFmt": "{0}% · +{1}% recovery · {2} stacks · Cr. {3}",
 		"resultsCasualtiesLabel": "Marines Lost:",
 		"resultsCasualtiesFmt":   "{0} of {1}",
 		"resultsCaptainLabel":    "Captain:",

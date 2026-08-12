@@ -40,6 +40,15 @@ public final class LootRoller {
         List<LootStack> rolled = new ArrayList<>();
         long totalValue = 0L;
 
+        if (request.highValueChancePct > 0
+                && random.nextInt(100) < request.highValueChancePct) {
+            LootCandidate candidate = removeHighValue(eligible, random);
+            int quantity = rollQuantity(candidate, random, targetValue);
+            LootStack stack = new LootStack(candidate, quantity);
+            rolled.add(stack);
+            totalValue += stack.totalValue();
+        }
+
         while (!eligible.isEmpty() && rolled.size() < drawLimit && totalValue < targetValue) {
             LootCandidate candidate = removeWeighted(eligible, random);
             int quantity = rollQuantity(candidate, random, targetValue - totalValue);
@@ -65,6 +74,10 @@ public final class LootRoller {
         hash *= 0x100000001b3L;
         hash ^= request.entitlement;
         hash *= 0x100000001b3L;
+        hash ^= request.recoveryBonusPct;
+        hash *= 0x100000001b3L;
+        hash ^= request.highValueChancePct;
+        hash *= 0x100000001b3L;
         return hash;
     }
 
@@ -83,8 +96,11 @@ public final class LootRoller {
     private static int targetPoolValue(LootRollRequest request) {
         float typeMult = typeMultiplier(request.missionType);
         float riskMult = riskMultiplier(request.risk);
-        long target = Math.round((double) request.payout * typeMult * riskMult);
-        return (int) Math.min(Integer.MAX_VALUE, Math.max(MIN_POOL_VALUE, target));
+        long baseTarget = Math.min(Integer.MAX_VALUE,
+                Math.max(MIN_POOL_VALUE,
+                        Math.round((double) request.payout * typeMult * riskMult)));
+        long modifiedTarget = baseTarget * (100L + request.recoveryBonusPct) / 100L;
+        return (int) Math.min(Integer.MAX_VALUE, modifiedTarget);
     }
 
     private static float typeMultiplier(MissionType type) {
@@ -115,6 +131,19 @@ public final class LootRoller {
             if (pick <= 0d) return candidates.remove(i);
         }
         return candidates.remove(candidates.size() - 1);
+    }
+
+    private static LootCandidate removeHighValue(List<LootCandidate> candidates, Random random) {
+        List<LootCandidate> byValue = new ArrayList<>(candidates);
+        byValue.sort(Comparator
+                .comparingInt((LootCandidate candidate) -> candidate.unitValue)
+                .reversed()
+                .thenComparing(candidate -> candidate.itemId));
+        int quartileSize = Math.max(1, (byValue.size() + 3) / 4);
+        List<LootCandidate> highValue = new ArrayList<>(byValue.subList(0, quartileSize));
+        LootCandidate selected = removeWeighted(highValue, random);
+        candidates.remove(selected);
+        return selected;
     }
 
     private static int rollQuantity(LootCandidate candidate, Random random, long remainingValue) {

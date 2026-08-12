@@ -44,6 +44,10 @@ public final class MissionOutcome {
     public final long    contractId;
     /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
+    /** Frozen captain + fleet recovery-pool bonus, in percentage points. */
+    public final int     salvageRecoveryBonusPct;
+    /** Frozen deterministic chance for the high-value catalog roll. */
+    public final int     salvageHighValueChancePct;
 
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
@@ -53,7 +57,8 @@ public final class MissionOutcome {
                           Status priorCaptainStatus, Status newCaptainStatus,
                           int xpGained, float injuredUntilDay, Rank promotedTo,
                           String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, int salvageEntitlement) {
+                          long contractId, int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -76,5 +81,7 @@ public final class MissionOutcome {
         this.targetFactionId    = targetFactionId;
         this.contractId         = contractId;
         this.salvageEntitlement = salvageEntitlement;
+        this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);
+        this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));
     }
 }

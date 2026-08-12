@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.Trait;
+import com.dillon.starsectormarines.ops.loot.LootRecoveryModifier;
+import com.dillon.starsectormarines.ops.loot.LootRecoveryModifiers;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
@@ -135,9 +137,12 @@ public final class MissionResolver {
         int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Salvage entitlement carries into the (deferred) loot UI. For now it's
-        // just the negotiated % — captain SALVAGE_EXPERT trait + fleet Salvage
-        // Rig modifiers are layered on at the loot-roll step when that lands.
+        // Freeze the negotiated claim and current Layer-3 recovery modifiers so
+        // reopening Results cannot change the manifest with later fleet edits.
         int salvageEntitlement = victory ? (mission.salvageNegotiated & 0xFF) : 0;
+        LootRecoveryModifier recoveryModifier = victory
+                ? LootRecoveryModifiers.resolve(captain)
+                : LootRecoveryModifier.NONE;
 
         Status priorStatus = captain != null ? captain.status() : null;
         Status newStatus   = priorStatus;
@@ -184,7 +189,8 @@ public final class MissionResolver {
                 captain != null ? captain.name() : null,
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
                 mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
-                mission.contractId, salvageEntitlement);
+                mission.contractId, salvageEntitlement,
+                recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct);
     }
 
     public static void apply(MissionOutcome outcome) {

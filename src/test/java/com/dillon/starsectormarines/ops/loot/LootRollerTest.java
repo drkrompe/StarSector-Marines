@@ -56,6 +56,29 @@ class LootRollerTest {
         assertTrue(LootRoller.roll(request("mission-a", 50), Collections.emptyList()).isEmpty());
     }
 
+    @Test
+    void recoveryBonusExpandsPoolTarget() {
+        List<LootCandidate> catalog = uniformValueCatalog(20, 1_000);
+        LootRollRequest base = new LootRollRequest("mission-a", MissionType.RAID, RiskLevel.LOW,
+                "tritachyon", "orbitalworks", 1_000, 100, 0, 0);
+        LootRollRequest doubled = new LootRollRequest("mission-a", MissionType.RAID, RiskLevel.LOW,
+                "tritachyon", "orbitalworks", 1_000, 100, 100, 0);
+
+        assertEquals(5, LootRoller.roll(base, catalog).stacks.size());
+        assertEquals(10, LootRoller.roll(doubled, catalog).stacks.size());
+    }
+
+    @Test
+    void guaranteedHighValueRollDrawsFromTopQuartileFirst() {
+        List<LootCandidate> catalog = ascendingValueCatalog(8);
+        LootRollRequest request = new LootRollRequest("mission-a", MissionType.RAID, RiskLevel.LOW,
+                "tritachyon", "orbitalworks", 5_000, 100, 0, 100);
+
+        LootManifest manifest = LootRoller.roll(request, catalog);
+
+        assertTrue(manifest.stacks.get(0).unitValue >= 7_000);
+    }
+
     private static LootRollRequest request(String missionId, int entitlement) {
         return new LootRollRequest(missionId, MissionType.RAID, RiskLevel.MEDIUM,
                 "tritachyon", "orbitalworks", 25_000, entitlement);
@@ -69,6 +92,24 @@ class LootRollerTest {
             int max = kind == LootKind.COMMODITY ? 20 : 1;
             out.add(new LootCandidate(kind, "item-" + i, "Item " + i, null,
                     500 + i * 250, 1f + i, 1f + (i % 5), min, max));
+        }
+        return out;
+    }
+
+    private static List<LootCandidate> uniformValueCatalog(int count, int unitValue) {
+        List<LootCandidate> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            out.add(new LootCandidate(LootKind.WEAPON, "weapon-" + i, "Weapon " + i, null,
+                    unitValue, 1f, 1f, 1, 1));
+        }
+        return out;
+    }
+
+    private static List<LootCandidate> ascendingValueCatalog(int count) {
+        List<LootCandidate> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            out.add(new LootCandidate(LootKind.WEAPON, "weapon-" + i, "Weapon " + i, null,
+                    (i + 1) * 1_000, 1f, 1f, 1, 1));
         }
         return out;
     }

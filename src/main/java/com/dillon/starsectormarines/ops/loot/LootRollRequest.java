@@ -14,10 +14,20 @@ public final class LootRollRequest {
     public final String targetIndustryId;
     public final int payout;
     public final int entitlement;
+    public final int recoveryBonusPct;
+    public final int highValueChancePct;
 
     public LootRollRequest(String missionId, MissionType missionType, RiskLevel risk,
                            String targetFactionId, String targetIndustryId,
                            int payout, int entitlement) {
+        this(missionId, missionType, risk, targetFactionId, targetIndustryId,
+                payout, entitlement, 0, 0);
+    }
+
+    public LootRollRequest(String missionId, MissionType missionType, RiskLevel risk,
+                           String targetFactionId, String targetIndustryId,
+                           int payout, int entitlement,
+                           int recoveryBonusPct, int highValueChancePct) {
         this.missionId = missionId;
         this.missionType = missionType;
         this.risk = risk;
@@ -25,11 +35,14 @@ public final class LootRollRequest {
         this.targetIndustryId = targetIndustryId;
         this.payout = Math.max(0, payout);
         this.entitlement = Math.max(0, entitlement);
+        this.recoveryBonusPct = Math.max(0, recoveryBonusPct);
+        this.highValueChancePct = Math.max(0, Math.min(100, highValueChancePct));
     }
 
     public static LootRollRequest from(MissionOutcome outcome) {
         return new LootRollRequest(outcome.missionId, outcome.missionType, outcome.risk,
                 outcome.targetFactionId, outcome.targetIndustryId,
-                outcome.payoutBase, outcome.salvageEntitlement);
+                outcome.payoutBase, outcome.salvageEntitlement,
+                outcome.salvageRecoveryBonusPct, outcome.salvageHighValueChancePct);
     }
 }

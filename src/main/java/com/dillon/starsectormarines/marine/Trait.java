@@ -1,9 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
 /**
- * Captain trait — granted on recruitment or as a level-up reward. Mechanics aren't wired
- * yet; this enum just defines the slots so the {@link MarineCaptain} POJO has somewhere to
- * store them across saves.
+ * Captain trait — granted on recruitment or as a level-up reward. Most mechanics are not
+ * wired yet; this enum defines stable save identities as each trait comes online.
  */
 public enum Trait {
     /** Bonus vs fortified ground targets. */
@@ -21,5 +20,7 @@ public enum Trait {
     /** Faster XP gain. */
     NATURAL_LEADER,
     /** Larger effective squad cap (works around rank ceiling). */
-    LOGISTICS_CHIEF
+    LOGISTICS_CHIEF,
+    /** Improves post-battle recovery and adds a high-value salvage roll. */
+    SALVAGE_EXPERT
 }
