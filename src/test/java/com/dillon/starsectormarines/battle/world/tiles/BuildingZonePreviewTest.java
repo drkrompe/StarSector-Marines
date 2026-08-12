@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercial
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -462,6 +463,11 @@ public class BuildingZonePreviewTest {
         renderBuildingBatch(new IndustrialYardFiller(), "industrial-yard");
     }
 
+    @Test
+    void renderCivilianSpaceportVariants() throws Exception {
+        renderBuildingBatch(new SpaceportFiller(), "civilian-spaceport");
+    }
+
     private void renderBuildingBatch(BlockFiller filler, String kindLabel) throws Exception {
         Files.createDirectories(OUT_DIR);
         BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
@@ -583,6 +589,13 @@ public class BuildingZonePreviewTest {
                     case STRIPED: {
                         TileManifest.TileFrame f = frame(reg.block("road.striped").resolve(nWall, sWall, eWall, wWall));
                         stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
+                        break;
+                    }
+                    case LZ_MARKER: {
+                        TileManifest.TileFrame f = frame(reg.block("road.lz-marker")
+                                .resolve(false, false, false, false));
+                        stampCell(drawer, roadSink, f, x, y, gridH,
+                                FixedGridTileDrawer.OVERLAY_INSET_PX);
                         break;
                     }
                     case TILE: {

@@ -38,8 +38,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
-import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
@@ -239,12 +240,19 @@ public final class BattleSetup {
      */
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
                                                   boolean enemyHasHeavyArmor, RiskLevel risk) {
+        return createSabotage(seed, manifest, enemyHasHeavyArmor, risk, TargetProfile.NEUTRAL);
+    }
+
+    /** Campaign-aware sabotage factory; the target profile drives civilian port generation. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor, RiskLevel risk,
+                                                  TargetProfile profile) {
         MapScale scale = MapScale.forRisk(risk);
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         // Defense posts stamp before sim construction for the same reason —
         // the embankment ring cells flip walkability, and the zone graph the
         // sim builds on construction needs to reflect that.
@@ -278,15 +286,15 @@ public final class BattleSetup {
         // different charge site each time (cycle 0 of shuttle 0 → site 0,
         // cycle 1 of shuttle 0 → site 1, etc.).
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        List<LandingPad> lzCells = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
         stampLzPads(sim, lzCells);
         int globalDropIdx = 0;
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
-            int[] lz = lzCells.get(i);
-            float lzCenterX = lz[0] + 0.5f;
-            float lzCenterY = lz[1] + 0.5f;
-            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, null);
+            LandingPad lz = lzCells.get(i);
+            float lzCenterX = lz.centerX + 0.5f;
+            float lzCenterY = lz.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, lz.approach);
             long shuttleId = sim.spawnShuttle(
                     a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
@@ -323,7 +331,14 @@ public final class BattleSetup {
     }
 
     /** Drops a yellow-striped landing-pad doodad under each LZ cell so the touchdown reads as a deliberate landing on a marked pad. Lives on the road sheet, drawn between floor and units. */
-    private static void stampLzPads(BattleSimulation sim, List<int[]> lzCells) {
+    private static void stampLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
+        for (LandingPad lz : lzCells) {
+            sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
+        }
+    }
+
+    /** Conquest keeps its beachhead-cell picker rather than consuming civilian berths. */
+    private static void stampLzCellMarkers(BattleSimulation sim, List<int[]> lzCells) {
         for (int[] lz : lzCells) {
             sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
         }
@@ -472,10 +487,18 @@ public final class BattleSetup {
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor, RiskLevel risk,
                                                      MissionType type) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, risk, type,
+                TargetProfile.NEUTRAL);
+    }
+
+    /** Campaign-aware catch-all factory; the target profile drives economic districts. */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile) {
         MapScale scale = MapScale.forRisk(risk);
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         List<DefensePost> defensePosts = new ArrayList<>();
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
@@ -491,14 +514,14 @@ public final class BattleSetup {
         // ASSAULT has no per-cycle role distinction (everyone is a combatant), so no
         // cycleLoadouts setup is needed — Shuttle.totalCycles drives repeat behavior.
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        List<LandingPad> lzCells = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
         stampLzPads(sim, lzCells);
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
-            int[] lz = lzCells.get(i);
-            float lzCenterX = lz[0] + 0.5f;
-            float lzCenterY = lz[1] + 0.5f;
-            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, null);
+            LandingPad lz = lzCells.get(i);
+            float lzCenterX = lz.centerX + 0.5f;
+            float lzCenterY = lz.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, lz.approach);
             long shuttleId = sim.spawnShuttle(
                     a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
@@ -541,21 +564,29 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk) {
         return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk,
-                SwarmDefenseRoster.countFor(risk));
+                SwarmDefenseRoster.countFor(risk), TargetProfile.NEUTRAL);
     }
 
     /** Civilian rescue with an explicit initial swarm size. */
     public static BattleSimulation createCivilianRescue(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount) {
+        return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk,
+                swarmCount, TargetProfile.NEUTRAL);
+    }
+
+    /** Campaign-aware civilian rescue; preserves the target world's economic districts. */
+    public static BattleSimulation createCivilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
+            TargetProfile profile) {
         for (int attempt = 0; attempt < 8; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(
-                    scale.width, scale.height, battleSeed);
+                    scale.width, scale.height, battleSeed, null, profile);
             Random rng = new Random(battleSeed);
-            List<MapVehicle> vehiclePlacements =
-                    stampVehicles(map.grid, map.topology, rng);
+            List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
             BattleSimulation sim =
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList()).sim();
@@ -563,24 +594,23 @@ public final class BattleSetup {
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, map, battleSeed);
             if (payload == null) continue;
-
             // The payload installs the marine evacuation objective. Defenders
             // win by eliminating the responding marine force.
             sim.addObjective(new EliminateFactionObjective(
                     Faction.DEFENDER, Faction.MARINE));
 
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
-            List<int[]> lzCells = pickLandingZones(map.grid,
-                    map.marineSpawnX, map.marineSpawnY, assignments.size());
+            List<LandingPad> lzCells = LandingPadSelector.select(map,
+                    assignments.size(), LZ_MIN_SEPARATION);
             stampLzPads(sim, lzCells);
             for (int i = 0; i < lzCells.size(); i++) {
                 ShuttleAssignment assignment =
                         assignments.get(i % assignments.size());
-                int[] lz = lzCells.get(i);
-                float lzCenterX = lz[0] + 0.5f;
-                float lzCenterY = lz[1] + 0.5f;
+                LandingPad lz = lzCells.get(i);
+                float lzCenterX = lz.centerX + 0.5f;
+                float lzCenterY = lz.centerY + 0.5f;
                 float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
-                        scale.width, scale.height, null);
+                        scale.width, scale.height, lz.approach);
                 long shuttleId = sim.spawnShuttle(
                         assignment.type, Faction.MARINE,
                         lzCenterX, lzCenterY,
@@ -654,7 +684,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is.
         MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
-        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
         // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
@@ -683,7 +713,7 @@ public final class BattleSetup {
         // use the BFS picker until they get their own tuned strategies.
         List<int[]> lzCells = pickConquestLandingZones(map.grid,
                 map.marineSpawnX, map.marineSpawnY, assignments.size(), axis, rng);
-        stampLzPads(sim, lzCells);
+        stampLzCellMarkers(sim, lzCells);
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             int[] lz = lzCells.get(i);
@@ -1032,6 +1062,27 @@ public final class BattleSetup {
         return new float[]{
                 lzCenterX, gridH + SHUTTLE_OFFMAP_Y,
                 lzCenterX, gridH + SHUTTLE_OFFMAP_Y + 4f };
+    }
+
+    /** Entry/exit vector authored by a civilian berth's clear approach side. */
+    private static float[] shuttleEntryFor(float lzCenterX, float lzCenterY,
+                                           int gridW, int gridH,
+                                           LandingPad.Approach approach) {
+        switch (approach) {
+            case SOUTH:
+                return new float[]{lzCenterX, -SHUTTLE_OFFMAP_Y,
+                        lzCenterX, -SHUTTLE_OFFMAP_Y - 4f};
+            case EAST:
+                return new float[]{gridW + SHUTTLE_OFFMAP_Y, lzCenterY,
+                        gridW + SHUTTLE_OFFMAP_Y + 4f, lzCenterY};
+            case WEST:
+                return new float[]{-SHUTTLE_OFFMAP_Y, lzCenterY,
+                        -SHUTTLE_OFFMAP_Y - 4f, lzCenterY};
+            case NORTH:
+            default:
+                return new float[]{lzCenterX, gridH + SHUTTLE_OFFMAP_Y,
+                        lzCenterX, gridH + SHUTTLE_OFFMAP_Y + 4f};
+        }
     }
 
     /**
@@ -1452,47 +1503,6 @@ public final class BattleSetup {
     }
 
     /**
-     * BFS from the marine anchor; keeps the first {@code count} walkable cells
-     * that are each at least {@link #LZ_MIN_SEPARATION} from every previously
-     * picked LZ. Spreads drops across the marine quadrant instead of stacking
-     * them on the anchor. Falls back to the anchor itself if not enough spread
-     * cells exist (tight map) — better one stacked LZ than zero shuttles.
-     */
-    private static List<int[]> pickLandingZones(NavigationGrid grid, int anchorX, int anchorY, int count) {
-        List<int[]> picked = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
-        Queue<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{anchorX, anchorY});
-        seen.add(key(anchorX, anchorY));
-        int minSepSq = LZ_MIN_SEPARATION * LZ_MIN_SEPARATION;
-        while (!q.isEmpty() && picked.size() < count) {
-            int[] p = q.poll();
-            if (grid.isWalkable(p[0], p[1])) {
-                boolean farEnough = true;
-                for (int[] prev : picked) {
-                    int dx = prev[0] - p[0];
-                    int dy = prev[1] - p[1];
-                    if (dx * dx + dy * dy < minSepSq) {
-                        farEnough = false;
-                        break;
-                    }
-                }
-                if (farEnough) picked.add(new int[]{p[0], p[1]});
-            }
-            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-            for (int[] d : nbrs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (!grid.inBounds(nx, ny)) continue;
-                if (!seen.add(key(nx, ny))) continue;
-                q.add(new int[]{nx, ny});
-            }
-        }
-        while (picked.size() < count) picked.add(new int[]{anchorX, anchorY});
-        return picked;
-    }
-
-    /**
      * CONQUEST-specific LZ picker — drops along the beachhead line instead of
      * a tight cluster around the marine anchor. The line runs parallel to the
      * attacker edge at the marine anchor's perpendicular coordinate
@@ -1638,10 +1648,36 @@ public final class BattleSetup {
      * {@link PlacementGuards#wouldPartitionWalkable connectivity} is checked
      * so the truck can't sever a thin walkable strip from the main graph.
      */
-    private static List<MapVehicle> stampVehicles(NavigationGrid grid, CellTopology topology, Random rng) {
+    static List<MapVehicle> stampVehicles(MapResult map, Random rng) {
+        NavigationGrid grid = map.grid;
+        CellTopology topology = map.topology;
         int target = VEHICLE_COUNT_MIN + rng.nextInt(VEHICLE_COUNT_MAX - VEHICLE_COUNT_MIN + 1);
         VehicleKind[] kinds = VehicleKind.values();
         List<MapVehicle> placed = new ArrayList<>(target);
+
+        // An operating civilian port parks purpose-appropriate ground traffic
+        // on the service side of some berths. Keep other berths empty so the
+        // apron doesn't become a solid vehicle lot.
+        List<LandingPad> portPads = new ArrayList<>();
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.CIVILIAN_SPACEPORT) portPads.add(pad);
+        }
+        int serviceTarget = Math.min(target, Math.min(3, (portPads.size() + 1) / 2));
+        VehicleKind[] serviceKinds = {
+                VehicleKind.FLATBED_TRUCK,
+                VehicleKind.TANKER_TRUCK,
+                VehicleKind.CARGO_TRUCK,
+                VehicleKind.UTILITY_TRUCK
+        };
+        for (int i = 0; i < serviceTarget; i++) {
+            LandingPad pad = portPads.get(i * 2);
+            VehicleKind kind = serviceKinds[rng.nextInt(serviceKinds.length)];
+            int[] anchor = findServiceVehicleAnchor(map, pad, kind);
+            if (anchor == null) continue;
+            stampOneVehicle(grid, topology, anchor[0], anchor[1], kind);
+            placed.add(new MapVehicle(kind, anchor[0], anchor[1]));
+        }
+
         int attempts = 0;
         int maxAttempts = target * 50;
         while (placed.size() < target && attempts < maxAttempts) {
@@ -1649,7 +1685,7 @@ public final class BattleSetup {
             VehicleKind kind = kinds[rng.nextInt(kinds.length)];
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
-            if (!canPlaceVehicle(grid, topology, x, y, kind)) continue;
+            if (!canPlaceVehicle(map, x, y, kind, false)) continue;
             if (PlacementGuards.wouldPartitionWalkable(
                     grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
             stampOneVehicle(grid, topology, x, y, kind);
@@ -1658,7 +1694,39 @@ public final class BattleSetup {
         return placed;
     }
 
-    private static boolean canPlaceVehicle(NavigationGrid grid, CellTopology topology, int x, int y, VehicleKind kind) {
+    private static int[] findServiceVehicleAnchor(MapResult map, LandingPad pad,
+                                                   VehicleKind kind) {
+        int x;
+        int y;
+        if (pad.approach.dx != 0) {
+            x = pad.approach == LandingPad.Approach.EAST
+                    ? pad.left() - kind.footprintCellsX - 1
+                    : pad.right() + 2;
+            y = pad.centerY - kind.footprintCellsY / 2;
+        } else {
+            x = pad.centerX - kind.footprintCellsX / 2;
+            y = pad.approach == LandingPad.Approach.NORTH
+                    ? pad.bottom() - kind.footprintCellsY - 1
+                    : pad.top() + 2;
+        }
+
+        int step = pad.approach.dx != 0 ? kind.footprintCellsY : kind.footprintCellsX;
+        int[] offsets = {0, step, -step, step * 2, -step * 2};
+        for (int offset : offsets) {
+            int candidateX = pad.approach.dx != 0 ? x : x + offset;
+            int candidateY = pad.approach.dx != 0 ? y + offset : y;
+            if (!canPlaceVehicle(map, candidateX, candidateY, kind, true)) continue;
+            if (PlacementGuards.wouldPartitionWalkable(map.grid, candidateX, candidateY,
+                    kind.footprintCellsX, kind.footprintCellsY)) continue;
+            return new int[]{candidateX, candidateY};
+        }
+        return null;
+    }
+
+    private static boolean canPlaceVehicle(MapResult map, int x, int y,
+                                           VehicleKind kind, boolean allowApron) {
+        NavigationGrid grid = map.grid;
+        CellTopology topology = map.topology;
         for (int dy = 0; dy < kind.footprintCellsY; dy++) {
             for (int dx = 0; dx < kind.footprintCellsX; dx++) {
                 int cx = x + dx;
@@ -1666,7 +1734,18 @@ public final class BattleSetup {
                 if (!grid.inBounds(cx, cy)) return false;
                 if (!grid.isWalkable(cx, cy)) return false;
                 if (PlacementGuards.touchesDoorway(grid, cx, cy)) return false;
-                if (!topology.isStreet(cx, cy) && !topology.isCourtyard(cx, cy)) return false;
+                boolean ordinaryPavement = topology.isStreet(cx, cy) || topology.isCourtyard(cx, cy);
+                boolean portApron = allowApron
+                        && topology.getGroundKind(cx, cy) == CellTopology.GroundKind.STRIPED;
+                if (!ordinaryPavement && !portApron) return false;
+                for (LandingPad pad : map.landingPads) {
+                    if (pad.contains(cx, cy)) return false;
+                }
+                if (allowApron) {
+                    for (Doodad doodad : map.doodads) {
+                        if (doodad.cellX == cx && doodad.cellY == cy) return false;
+                    }
+                }
             }
         }
         return true;

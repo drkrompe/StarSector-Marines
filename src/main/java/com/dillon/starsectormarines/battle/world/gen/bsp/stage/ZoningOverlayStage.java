@@ -52,6 +52,14 @@ public final class ZoningOverlayStage implements GenStage {
             int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
             int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
             districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
+            // A real campaign spaceport gets a coherent port district on the
+            // marine half of ordinary urban maps. The profile previously died
+            // at the launch boundary for non-conquest missions, leaving its
+            // spaceport tier unused.
+            if (profile != null && profile.spaceportTier() > 0) {
+                districtMap.forceThemeAt(ctx.width / 4, ctx.height / 2,
+                        MapDistrictTheme.HARBOR_PORT);
+            }
             ctx.put(BspKeys.DISTRICT_MAP, districtMap);
             LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + ctx.width + "x" + ctx.height + " grid, "

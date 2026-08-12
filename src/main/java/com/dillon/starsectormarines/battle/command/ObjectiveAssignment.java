@@ -27,39 +27,54 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * @param targetNode  tactical node for node-scoped kinds; {@code null} otherwise
  * @param objectiveId backref to a mission {@code Objective} for kinds that
  *                    serve one; {@code -1} for pure tactical assignments
+ * @param targetCellX  exact rally/escort cell; {@code -1} when not cell-scoped
+ * @param targetCellY  exact rally/escort cell; {@code -1} when not cell-scoped
  */
 public record ObjectiveAssignment(
         int squadId,
         AssignmentKind kind,
         int targetZoneId,
         TacticalNode targetNode,
-        int objectiveId) {
+        int objectiveId,
+        int targetCellX,
+        int targetCellY) {
 
     /** Sentinel returned by zone-id / objective-id slots when the assignment isn't scoped to them. */
     public static final int UNSCOPED = -1;
 
     /** Convenience: zone-scoped clear with no node + no objective backref. */
     public static ObjectiveAssignment clearZone(int squadId, int zoneId) {
-        return new ObjectiveAssignment(squadId, AssignmentKind.CLEAR_ZONE, zoneId, null, UNSCOPED);
+        return new ObjectiveAssignment(squadId, AssignmentKind.CLEAR_ZONE,
+                zoneId, null, UNSCOPED, UNSCOPED, UNSCOPED);
     }
 
     /** Convenience: zone-scoped compound capture — push, clear, hold until captured. */
     public static ObjectiveAssignment secureCompound(int squadId, int zoneId, TacticalNode compoundNode) {
-        return new ObjectiveAssignment(squadId, AssignmentKind.SECURE_COMPOUND, zoneId, compoundNode, UNSCOPED);
+        return new ObjectiveAssignment(squadId, AssignmentKind.SECURE_COMPOUND,
+                zoneId, compoundNode, UNSCOPED, UNSCOPED, UNSCOPED);
     }
 
     /** Convenience: node-scoped hold with no zone + no objective backref. */
     public static ObjectiveAssignment holdNode(int squadId, TacticalNode node) {
-        return new ObjectiveAssignment(squadId, AssignmentKind.HOLD_NODE, UNSCOPED, node, UNSCOPED);
+        return new ObjectiveAssignment(squadId, AssignmentKind.HOLD_NODE,
+                UNSCOPED, node, UNSCOPED, UNSCOPED, UNSCOPED);
     }
 
     /** Convenience: objective-scoped rush, optionally with a zone hint for the planner. */
     public static ObjectiveAssignment rushObjective(int squadId, int objectiveId, int zoneId) {
-        return new ObjectiveAssignment(squadId, AssignmentKind.RUSH_OBJECTIVE, zoneId, null, objectiveId);
+        return new ObjectiveAssignment(squadId, AssignmentKind.RUSH_OBJECTIVE,
+                zoneId, null, objectiveId, UNSCOPED, UNSCOPED);
+    }
+
+    /** Exact-cell escort/rally assignment; the action maintains its own standoff radius. */
+    public static ObjectiveAssignment escort(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.ESCORT,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
     /** Convenience: catch-all support assignment with no concrete scope. */
     public static ObjectiveAssignment support(int squadId) {
-        return new ObjectiveAssignment(squadId, AssignmentKind.SUPPORT, UNSCOPED, null, UNSCOPED);
+        return new ObjectiveAssignment(squadId, AssignmentKind.SUPPORT,
+                UNSCOPED, null, UNSCOPED, UNSCOPED, UNSCOPED);
     }
 }

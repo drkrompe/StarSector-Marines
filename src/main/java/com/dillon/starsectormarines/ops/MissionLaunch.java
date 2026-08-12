@@ -68,10 +68,11 @@ public final class MissionLaunch {
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
             sim = BattleSetup.createCivilianRescue(seed,
-                    det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount);
+                    det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount, profile);
         } else switch (m.type) {
             case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
+                sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
+                        enemyHasHeavyArmor, m.risk, profile);
                 break;
             case CONQUEST:
                 sim = BattleSetup.createConquest(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk, profile);
@@ -80,7 +81,8 @@ public final class MissionLaunch {
             case RAID:
             case EXTRACTION:
             default:
-                sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk, m.type);
+                sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
+                        enemyHasHeavyArmor, m.risk, m.type, profile);
         }
 
         // Scenario factories author seat roles/objectives first; the persistent

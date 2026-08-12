@@ -297,14 +297,28 @@ A dedicated `SWARM_PRESSURE` role owns its behavior:
 The first roster is mission-local and risk-scaled, with no militia, regulars,
 mechs, turrets, conventional reinforcements, or fighter support. It spawns only
 on complete reachable cells at least 16 Manhattan cells from the shelter and
-outside the lift zone. All eight evacuees now spawn strictly inside the chosen
-residential building's wall ring. The barricade stays sealed through the first
-marine landing and for a further 12-second perimeter-establishment window;
-during that phase the cohort does not move and runners pressure marines rather
-than civilians (`66692aa4`). A 30-second absolute fallback release prevents a
-lost or absent response from deadlocking the mission. The dedicated rescue
-factory replaces its temporary Extraction defender roster with this payload;
-evacuation accounting, zero-economy terms, and moral mapping do not change.
+outside the lift zone. All eight evacuees spawn strictly inside the chosen
+residential building's wall ring. Runners do not know the shelter contents at
+mission start: they acquire an evacuee only through line of sight within their
+20-cell search radius, then remember that contact (`e9fee785`).
+
+The mission is an escorted relief operation, not a timed survival hold. Its
+marine commander assigns every arriving squad to the shelter's exterior
+approach, making the opening leg a fight through the horde to the bunker. The
+barricade stays sealed until a live marine reaches within two cells of that
+approach; there is no automatic fallback release (`c167e2f8`). Once relieved,
+the commander retargets every live squad's `ESCORT` assignment to a moving
+representative near the active cohort's center. The mission-priority escort
+posture advances toward that rally cell, fires while moving, and then holds a
+three-cell protective ring. Civilians proceed toward the lift only while a live
+marine remains within six cells of an active cohort member, and stop when their
+escort falls behind (`45c6579f`). This creates the locked loop: deploy, break
+through to the bunker, trigger evacuation, then fight off the swarm while
+escorting the cohort to the landing zone.
+
+The dedicated rescue factory replaces its temporary Extraction defender roster
+with this payload; evacuation accounting, zero-economy terms, and moral mapping
+do not change.
 
 The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
 12/24/40-runner rosters; incomplete placement discards the map attempt before
