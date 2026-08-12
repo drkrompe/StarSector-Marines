@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.ExtractionResolutionSystem;
+import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -55,6 +56,7 @@ public class CampaignStateScript implements EveryFrameScript {
     /** Default per-tick system order. Plug new systems in here. */
     public static List<CampaignSystem> defaultSystems() {
         return new ArrayList<>(Arrays.asList(
+                new HousePowerSystem(),
                 new AutonomousPromotionSystem(),
                 new RelationshipInteractionSystem(),
                 new ChainAdvancementSystem(),
