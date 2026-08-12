@@ -268,7 +268,9 @@ method together act as a copyable template — see
   Recon→Softening→Main Assault→optional Mop-up/Consolidation sequence with
   staged economy, non-final retry, contract-wide negotiation, idempotent phase
   result keys, and three-day refit cadence (`d567c838`, `58a3715f`, `b297a8c5`,
-  `e404b8a9`, `80f12862`, `28734a6f`). EXTRACTION remains system-generated.
+  `e404b8a9`, `80f12862`, `28734a6f`). Shared MRB/house-standing eligibility
+  gates now constrain generation and first acceptance without hiding Recovery
+  or accepted obligations (`9de789d4`). EXTRACTION remains system-generated.
 - ~~**ContractGenerator unit test**~~ — **shipped** in `fb268bbe`: seeded
   reproducibility, offer shape, per-patron cap, and global cap are covered.
 

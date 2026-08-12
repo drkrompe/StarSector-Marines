@@ -105,8 +105,10 @@ universe over time, not retrofitted into intel slots.
    3–5 phase sequence with staged payout/salvage, non-final retries,
    contract-wide negotiation, exactly-once result keys, and three-day refit
    windows (`d567c838`, `58a3715f`, `b297a8c5`, `e404b8a9`, `80f12862`,
-   `28734a6f`). Next: contract gates from MRB/house reputation, then campaign
-   incident triggers for stationing. See `campaign/contracts/overview.md`.
+   `28734a6f`). New work is now gated by MRB tier and per-house standing while
+   Recovery and accepted obligations remain reachable (`9de789d4`). Next:
+   campaign incident triggers for stationing. See
+   `campaign/contracts/overview.md`.
 3. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

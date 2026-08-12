@@ -2,6 +2,8 @@
 
 **Status:** CODE COMPLETE (2026-08-12)
 
+**Implemented:** `9de789d4`
+
 ## Goal
 
 Make MRB credibility and per-house reputation constrain which patrons can offer
