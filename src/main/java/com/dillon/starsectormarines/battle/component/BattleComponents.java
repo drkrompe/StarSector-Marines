@@ -128,6 +128,10 @@ public final class BattleComponents {
     public static final int HEALTH_HP = 0;
     /** {@link #HEALTH} field 1: max hp (FLOAT). */
     public static final int HEALTH_MAX_HP = 1;
+    /** Field 2: multiplier applied to post-cover incoming damage; 1 = unmodified. */
+    public static final int HEALTH_DAMAGE_TAKEN_MULT = 2;
+    /** Field 3: multiplier applied to incoming ballistic hit rolls; 1 = unmodified. */
+    public static final int HEALTH_INCOMING_ACCURACY_MULT = 3;
 
     /** {@link #COMBAT} field 0: base attack damage (FLOAT). */
     public static final int COMBAT_ATTACK_DAMAGE = 0;
@@ -819,7 +823,8 @@ public final class BattleComponents {
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");
-        HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT);
+        HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT, FieldKind.FLOAT);
         COMBAT          = world.register(6, "Combat",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG,

@@ -110,7 +110,8 @@ public final class DamageResolver {
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(roster.identity().type(targetId)) ? vsTurretMult : 1f;
-        float newHp = world.hp(targetId) - damage * effectiveMult * (1f - dr);
+        float newHp = world.hp(targetId) - damage * effectiveMult * (1f - dr)
+                * world.damageTakenMult(targetId);
         world.setHp(targetId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         if (died) {

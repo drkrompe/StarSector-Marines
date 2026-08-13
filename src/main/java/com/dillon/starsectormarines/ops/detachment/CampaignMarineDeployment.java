@@ -79,7 +79,9 @@ public final class CampaignMarineDeployment {
             frozen.add(new MarineLoadout(UnitRole.COMBATANT, null,
                     soldier.primary(), soldier.primaryGrade(), soldier.profile(),
                     secondary, secondary != null ? secondary.startingAmmo : 0,
-                    soldier.id(), armorFamily(soldier.armor())));
+                    soldier.id(), armorFamily(soldier.armor()),
+                    soldier.armor().bonusHp, soldier.armor().damageReduction,
+                    soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -147,7 +149,9 @@ public final class CampaignMarineDeployment {
         return new MarineLoadout(scenario.role, scenario.objective,
                 allocation.primary, allocation.equipmentGrade, allocation.soldierProfile,
                 allocation.secondary, allocation.secondaryAmmo,
-                allocation.campaignSoldierId, allocation.armorFamily);
+                allocation.campaignSoldierId, allocation.armorFamily,
+                allocation.armorBonusHp, allocation.armorDamageReduction,
+                allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult);
     }
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {

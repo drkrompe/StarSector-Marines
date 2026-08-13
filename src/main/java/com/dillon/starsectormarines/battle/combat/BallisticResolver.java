@@ -354,7 +354,8 @@ public final class BallisticResolver {
             }
 
             boolean isLockedTarget = victim == target;
-            float hitChance = isLockedTarget ? finalAccuracy : INCIDENTAL_HIT_CHANCE;
+            float hitChance = (isLockedTarget ? finalAccuracy : INCIDENTAL_HIT_CHANCE)
+                    * world.incomingAccuracyMult(victim);
             if (rng.nextFloat() < hitChance) {
                 return new Resolution(e.x, e.y, e.t, victim, isLockedTarget, e.friendly, StopKind.UNIT_HIT);
             }

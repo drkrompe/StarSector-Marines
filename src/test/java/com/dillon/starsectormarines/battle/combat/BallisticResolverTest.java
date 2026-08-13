@@ -57,6 +57,24 @@ class BallisticResolverTest {
         return ROW + 0.5f;
     }
 
+    @Test
+    void targetEvasionMultipliesTheLockedHitRoll() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = sim.spawn(new EntitySpec("evasive", Faction.DEFENDER,
+                UnitType.MARINE, 8, ROW).armor(0f, 0f, 1f, 0.5f));
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0.75f);
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, target, 1f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.OVERSHOOT, result.kind(),
+                "a 75% roll misses when target armor halves an otherwise certain hit");
+    }
+
     /** Directly stamps {@code MOVEMENT_VEL_X/Y} — the columns {@code MovementService.velX/velY} read — bypassing a real movement-pass tick so a scene can pin an exact applied velocity for the time-domain solve. */
     private static void setVelocity(BattleSimulation sim, long id, float vx, float vy) {
         BattleComponents c = sim.getBattleComponents();

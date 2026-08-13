@@ -79,6 +79,8 @@ public final class World {
 
     public float maxHp(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
     public void setMaxHp(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
+    public float damageTakenMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT); }
+    public float incomingAccuracyMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT); }
 
     // The continuous position lives in the entity world's POSITION columns.
     // POSITION persists alive→dead, so a corpse still answers position reads.
