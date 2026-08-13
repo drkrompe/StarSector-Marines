@@ -205,12 +205,12 @@ public final class DevConfig {
      * permanently for that battle (one log line, no crash) — this flag only
      * decides whether the pipeline is attempted at all.
      *
-     * <p>Off by default: the effect is an unplaytested prototype (see the
-     * overview's "Pixel-art aesthetic" risk) and this repo can't playtest
-     * visuals headlessly — flip to {@code true} locally to look at it.
+     * <p>On by default for playtesting; visuals are still uncalibrated (see
+     * the overview's "Pixel-art aesthetic" risk) — the tuning constants live
+     * at the top of {@code GroundParallaxPipeline}.
      */
     @DebugOnly
-    public static final boolean SURFACE_RELIEF_PARALLAX = false;
+    public static final boolean SURFACE_RELIEF_PARALLAX = true;
 
     private DevConfig() {}
 }
