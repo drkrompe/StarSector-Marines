@@ -64,7 +64,12 @@ public final class ReinforcementSystem {
 
     private boolean dispatch(BattleControl sim, ReinforcementRequest req) {
         float cost = resources.reinforcementCost();
-        if (!resources.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
+        // Prepaid requests (the bulge counterattack's up-front earmark, see
+        // ReinforcementRequest#prepaid) already debited their cost in one lump
+        // at muster — skip the per-dispatch debit here, and skip the refund
+        // below on the no-means path too. The earmark is a sunk bet: a wave
+        // request no means can deliver still burns its ticket.
+        if (!req.prepaid && !resources.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
             return false;
         }
         for (ReinforcementMeans m : service.means()) {
@@ -74,7 +79,9 @@ public final class ReinforcementSystem {
                 return true;
             }
         }
-        resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
+        if (!req.prepaid) {
+            resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
+        }
         LOG.warn("reinforcement: no means could fulfill " + req + " — bugged map?");
         return true;
     }
