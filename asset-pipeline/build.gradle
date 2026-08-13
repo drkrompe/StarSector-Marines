@@ -110,3 +110,33 @@ tasks.register('processAudio', JavaExec) {
 
     javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
 }
+
+// Derives <sheet>_height.png / <sheet>_normal.png for terrain tile-sheet albedos
+// listed in src/tool/resources/tilemaps/tilemaps.json, written next to each source
+// sheet under mod/graphics/. See TileMapRecipeManifest for the manifest schema.
+tasks.register('deriveTileMaps', JavaExec) {
+    description 'Derive height/normal maps for terrain tile sheets from their albedo PNGs'
+    group 'build'
+
+    classpath = sourceSets.tool.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.assets.pipeline.DeriveTileMapsTask'
+
+    def tilesetDir   = file("${rootDir}/mod/data/tilesets")  // *.tileset.json (sheet + grid/slice metadata)
+    def modDir       = file("${rootDir}/mod")                // "sheet" paths in tileset json are relative to this
+    def graphicsDir  = file("${rootDir}/mod/graphics")       // albedo PNGs live here; baked outputs land here too
+    def recipeFile   = file('src/tool/resources/tilemaps/tilemaps.json')
+
+    inputs.dir tilesetDir
+    inputs.file recipeFile
+    // NOT inputs.dir(graphicsDir) -- that would treat this task's own prior
+    // outputs (*_height.png / *_normal.png, checked in next to the albedos)
+    // as new input on the following run.
+    inputs.files fileTree(graphicsDir) {
+        include '**/*.png'
+        exclude '**/*_height.png', '**/*_normal.png'
+    }
+    outputs.dir graphicsDir
+    args tilesetDir.absolutePath, modDir.absolutePath, recipeFile.absolutePath
+
+    javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
+}
