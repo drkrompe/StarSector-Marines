@@ -7,6 +7,12 @@ import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.air.AirScale;
+import com.dillon.starsectormarines.battle.air.ParkedAircraft;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
@@ -18,17 +24,22 @@ import com.dillon.starsectormarines.battle.world.tiles.TileSink;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -147,6 +158,73 @@ public class BspMapSpritePreviewTest {
         System.out.println("  wrote " + out.toAbsolutePath());
     }
 
+    /** Final setup preview: three marine berths reserved, surplus civilian craft parked. */
+    @Test
+    void renderOccupiedCivilianSpaceport() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BufferedImage urban = ImageIO.read(Files.newInputStream(URBAN_SHEET));
+        BufferedImage road = ImageIO.read(Files.newInputStream(ROAD_SHEET));
+        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        BufferedImage water = ImageIO.read(Files.newInputStream(WATER_SHEET));
+        BufferedImage street3 = ImageIO.read(Files.newInputStream(STREET3_SHEET));
+        BufferedImage nature = ImageIO.read(Files.newInputStream(NATURE_SHEET));
+        SpriteSheetFrames street3Frames = SpriteSheetSlicer.slice(street3);
+        SpriteSheetFrames natureFrames = SpriteSheetSlicer.slice(nature);
+
+        TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
+                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT));
+        List<ShuttleAssignment> manifest = List.of(
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+        BattleSimulation sim = BattleSetup.createPlaceholder(42L, manifest,
+                false, RiskLevel.LOW, MissionType.ASSAULT, profile);
+        MapResult finalMap = new MapResult(sim.getGrid(), sim.getTopology(),
+                0, 0, sim.getGrid().getWidth() - 1, sim.getGrid().getHeight() - 1,
+                Collections.emptyList(), Collections.emptyList());
+        BufferedImage img = renderMapSprites(finalMap, 42L, urban, road, floors, water,
+                street3, street3Frames, nature, natureFrames, false);
+        drawParkedAircraft(img, sim.getParkedAircraft(), sim.getGrid().getHeight());
+
+        Path out = OUT_DIR.resolve("civilian-spaceport-occupied.png");
+        ImageIO.write(img, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    private static void drawParkedAircraft(BufferedImage img,
+                                           List<ParkedAircraft> aircraft,
+                                           int gridH) throws Exception {
+        String install = System.getProperty("starsectorDir");
+        assertNotNull(install, "starsectorDir is required for vanilla hull previews");
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        for (ParkedAircraft parked : aircraft) {
+            Path hullPath = Paths.get(install, "starsector-core")
+                    .resolve(parked.type.spritePath);
+            BufferedImage hull = ImageIO.read(Files.newInputStream(hullPath));
+            float lengthCells = hull.getHeight() * AirScale.METERS_PER_PX;
+            int drawH = Math.max(CELL_PX, Math.round(lengthCells * CELL_PX));
+            int drawW = Math.max(CELL_PX,
+                    Math.round(drawH * ((float) hull.getWidth() / hull.getHeight())));
+            int cx = Math.round((parked.centerX + 0.5f) * CELL_PX);
+            int cy = Math.round((gridH - parked.centerY - 0.5f) * CELL_PX);
+
+            AffineTransform before = g.getTransform();
+            g.translate(cx, cy);
+            g.rotate(Math.toRadians(-parked.facingDegrees));
+            g.drawImage(hull, -drawW / 2, -drawH / 2, drawW, drawH, null);
+            g.setTransform(before);
+
+            g.setColor(new Color(0, 0, 0, 190));
+            g.fillRoundRect(cx - 31, cy + drawH / 2 + 3, 62, 17, 5, 5);
+            g.setColor(new Color(220, 235, 240));
+            g.setFont(new Font("SansSerif", Font.BOLD, 10));
+            g.drawString(parked.type.name(), cx - 27, cy + drawH / 2 + 15);
+        }
+        g.dispose();
+    }
+
     private static void gMarkLandingPads(BufferedImage img, MapResult map) {
         Graphics2D g = img.createGraphics();
         g.setColor(new Color(80, 220, 255, 210));
@@ -173,6 +251,16 @@ public class BspMapSpritePreviewTest {
                                             BufferedImage floors, BufferedImage water,
                                             BufferedImage street3, SpriteSheetFrames street3Frames,
                                             BufferedImage nature, SpriteSheetFrames natureFrames) {
+        return renderMapSprites(map, seed, urban, road, floors, water,
+                street3, street3Frames, nature, natureFrames, true);
+    }
+
+    private BufferedImage renderMapSprites(MapResult map, long seed,
+                                            BufferedImage urban, BufferedImage road,
+                                            BufferedImage floors, BufferedImage water,
+                                            BufferedImage street3, SpriteSheetFrames street3Frames,
+                                            BufferedImage nature, SpriteSheetFrames natureFrames,
+                                            boolean drawSpawnMarkers) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
         TileRegistry reg = TileRegistry.installed();
@@ -320,10 +408,12 @@ public class BspMapSpritePreviewTest {
         }
 
         // ---- Spawn markers ---- green = marine, red = defender.
-        g.setColor(MARINE_FG);
-        drawDiamond(g, map.marineSpawnX, map.marineSpawnY, gh);
-        g.setColor(DEFENDER_FG);
-        drawDiamond(g, map.defenderSpawnX, map.defenderSpawnY, gh);
+        if (drawSpawnMarkers) {
+            g.setColor(MARINE_FG);
+            drawDiamond(g, map.marineSpawnX, map.marineSpawnY, gh);
+            g.setColor(DEFENDER_FG);
+            drawDiamond(g, map.defenderSpawnX, map.defenderSpawnY, gh);
+        }
 
         // ---- Label strip ----
         g.setColor(LABEL_BG);
