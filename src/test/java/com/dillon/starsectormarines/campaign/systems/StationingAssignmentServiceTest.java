@@ -13,9 +13,15 @@ import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -70,6 +76,53 @@ class StationingAssignmentServiceTest {
         assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
                 fixture.captain, 10, 1, 10, fixture.store));
         assertEquals(10, fixture.store.available);
+    }
+
+    @Test
+    void namedAcceptanceBindsFireteamsAndDerivesLivingStrengthWithoutCargo() {
+        Fixture fixture = fixture(ContractType.GARRISON, HouseRank.TIER_2, 0);
+        MarineRoster roster = new MarineRoster();
+        roster.add(fixture.captain);
+        roster.ensureActiveSoldiers(7);
+        MarineSquad first = roster.squads().get(0);
+        MarineSquad second = roster.squads().get(1);
+        roster.applySoldierOutcome(Map.of(
+                roster.squadMembers(first).get(0).id(), MarineSoldierStatus.WIA,
+                roster.squadMembers(first).get(1).id(), MarineSoldierStatus.KIA),
+                0, 10f, 7f);
+
+        assertTrue(StationingAssignmentService.acceptNamed(
+                fixture.state, fixture.contractId, roster, fixture.captain,
+                List.of(first.id(), second.id()), 2, 40));
+
+        int row = fixture.state.contractIndex(fixture.contractId);
+        assertEquals(List.of(first, second), roster.squadsStationedOn(fixture.contractId));
+        assertEquals(6, roster.stationedLivingCount(fixture.contractId));
+        assertEquals(6, fixture.state.contractMarinesCommitted[row]);
+        assertEquals(100, fixture.state.contractExpiresTick[row]);
+        assertEquals(198, fixture.state.contractRetainerPerMonth[row]);
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+        assertEquals(0, fixture.store.available);
+    }
+
+    @Test
+    void invalidNamedSelectionLeavesContractAndRosterUntouched() {
+        Fixture fixture = fixture(ContractType.CADRE, HouseRank.TIER_2, 0);
+        MarineRoster roster = new MarineRoster();
+        roster.add(fixture.captain);
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+
+        assertFalse(StationingAssignmentService.acceptNamed(
+                fixture.state, fixture.contractId, roster, fixture.captain,
+                List.of(squad.id(), squad.id()), 1, 20));
+
+        int row = fixture.state.contractIndex(fixture.contractId);
+        assertFalse(squad.stationed());
+        assertEquals(ContractState.OFFERED,
+                ContractState.fromByte(fixture.state.contractState[row]));
+        assertEquals(Status.ACTIVE, fixture.captain.status());
+        assertEquals(0, fixture.state.contractMarinesCommitted[row]);
     }
 
     @Test

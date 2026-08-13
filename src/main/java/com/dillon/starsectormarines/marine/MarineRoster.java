@@ -183,7 +183,7 @@ public class MarineRoster implements Serializable {
         }
         Set<String> unique = new LinkedHashSet<>();
         for (String squadId : squadIds) {
-            if (squadId != null) unique.add(squadId);
+            if (squadId == null || !unique.add(squadId)) return false;
         }
         if (unique.isEmpty() || unique.size() > captain.rank().fireteamCap()) return false;
         boolean hasReadyMember = false;
@@ -274,6 +274,29 @@ public class MarineRoster implements Serializable {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
         }
         return count;
+    }
+
+    /** ACTIVE and WIA personnel remain living strength for a named assignment. */
+    public int livingCount(Iterable<String> squadIds) {
+        if (squadIds == null) return 0;
+        Set<String> unique = new HashSet<>();
+        int count = 0;
+        for (String squadId : squadIds) {
+            if (squadId == null || !unique.add(squadId)) continue;
+            for (MarineSoldier soldier : squadMembers(squadById(squadId))) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE
+                        || soldier.status() == MarineSoldierStatus.WIA) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public int stationedLivingCount(long contractId) {
+        List<String> squadIds = new ArrayList<>();
+        for (MarineSquad squad : squadsStationedOn(contractId)) squadIds.add(squad.id());
+        return livingCount(squadIds);
     }
 
     /** Filled billets include deployable and temporarily wounded personnel. */
