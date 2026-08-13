@@ -1,6 +1,6 @@
 # Captain-to-fireteam command
 
-**Status:** IN PROGRESS — Slices 1–2 shipped (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–3 shipped (2026-08-12)
 
 ## Problem
 
@@ -75,8 +75,9 @@ player-facing explanation.
    repair in `MarineRoster`.~~ ✅ `9c4c4ee8`
 2. ~~**Formation management** — add a captain-assignment control to the armory
    formation surface, including full/unavailable feedback.~~ ✅ `aa26d3ec`
-3. **Briefing authority** — default to the selected captain's home formation,
-   enforce active-captain and rank limits, and display selected/max fireteams.
+3. ~~**Briefing authority** — default to the selected captain's home formation,
+   enforce active-captain and rank limits, and display selected/max fireteams.~~
+   ✅ `f6247ace`
 4. **Outcome context** — retain the selected force command and deployed
    fireteam ids in the frozen outcome so debrief/history cannot drift after
    reassignment.
@@ -102,6 +103,19 @@ Named stationing is deliberately outside these slices.
 - Assign/change cycles only through active captains with an open whole-team
   command slot; unassign is explicit.
 - The roster-order picker skips unavailable and full captains under test.
+
+## Slice 3 implementation
+
+- Ordinary briefing selection initializes from the active force commander's
+  roster-ordered home formation. Changing commanders resets that mission-local
+  selection to the new captain's formation without changing home assignments.
+- Other line fireteams remain borrowable, but additions stop at
+  `Rank.fireteamCap()`. Briefing and assignment surfaces show selected/max
+  whole fireteams and block ordinary deployment without a valid active captain.
+- Initialized empty selections are fail-closed through readiness and deployment
+  freezing; they no longer invoke the legacy implicit-whole-company fallback.
+- Debug fixtures remain captain-free and stationing retains its existing
+  captain plus anonymous-marine lifecycle.
 
 ## Acceptance
 
