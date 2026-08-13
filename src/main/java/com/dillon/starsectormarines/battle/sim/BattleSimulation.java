@@ -298,6 +298,8 @@ public class BattleSimulation implements BattleControl {
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
+    /** Post-movement soft-collision relaxation pass — pushes overlapping ground units apart. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
+    private final SeparationSystem separation;
     private boolean complete = false;
     private Faction winner;
 
@@ -401,6 +403,7 @@ public class BattleSimulation implements BattleControl {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
+        this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         this.hitResponse = new HitResponseSystem(
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
@@ -1004,6 +1007,12 @@ public class BattleSimulation implements BattleControl {
         // regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
+        // Soft-collision relaxation — nudges overlapping ground units apart.
+        // Runs here (serial, after every UPDATE_UNITS position write has
+        // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
+        // read final POSITION). See SeparationSystem class doc.
+        separation.tick(TICK_DT);
+        tickProfile.lap(TickProfile.Phase.SEPARATION);
         // Mirror queued drone-hub spawns into the units list. Only callers
         // running inside UPDATE_UNITS route through queueSpawn; AIR_SYSTEM /
         // GROUND_SYSTEM deboards keep using inline addUnit because they
