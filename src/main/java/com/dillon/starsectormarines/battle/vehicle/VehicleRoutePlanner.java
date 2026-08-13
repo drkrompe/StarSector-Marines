@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Direction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ import java.util.List;
  * slice 4.
  */
 public final class VehicleRoutePlanner {
+
+    /** A rescue route plus the forced first-step direction it consumed. */
+    static record RescueRoute(float[][] points, int firstStepDirectionBit) {}
 
     private VehicleRoutePlanner() {}
 
@@ -82,6 +86,92 @@ public final class VehicleRoutePlanner {
             mask[startY * w + startX] = clearance.passableArray()[startY * w + startX];
         }
         return routeMasked(startX, startY, goalX, goalY, grid, costField, mask, w, h);
+    }
+
+    /**
+     * Finds a rescue route whose first cell step is the most forward-facing
+     * untried direction. The first step is forced before the cost-field route
+     * is searched, so the sparse string-pull cannot silently choose a different
+     * initial bearing. Returning {@code null} means no untried valid first step
+     * reaches the goal through the avoidance mask.
+     */
+    static RescueRoute routeAvoidingForwardFirst(int startX, int startY, int goalX, int goalY,
+                                                  float facingDegrees, int triedFirstStepMask,
+                                                  NavigationGrid grid, TerrainCostField costField,
+                                                  VehicleClearance clearance,
+                                                  int avoidX, int avoidY, float avoidRadius) {
+        double radians = Math.toRadians(facingDegrees);
+        float forwardX = -(float) Math.sin(radians);
+        float forwardY = (float) Math.cos(radians);
+        Direction bestDirection = null;
+        float[][] bestRoute = null;
+        float bestDot = -Float.MAX_VALUE;
+        for (Direction direction : Direction.ALL) {
+            if ((triedFirstStepMask & (1 << direction.bit())) != 0) continue;
+            float[][] candidate = routeAvoidingVia(startX, startY,
+                    startX + direction.dx, startY + direction.dy, goalX, goalY,
+                    grid, costField, clearance, avoidX, avoidY, avoidRadius);
+            if (candidate == null) continue;
+            float length = direction.isDiagonal() ? (float) Math.sqrt(2f) : 1f;
+            float dot = (forwardX * direction.dx + forwardY * direction.dy) / length;
+            if (dot > bestDot) {
+                bestDot = dot;
+                bestDirection = direction;
+                bestRoute = candidate;
+            }
+        }
+        return bestRoute == null ? null : new RescueRoute(bestRoute, bestDirection.bit());
+    }
+
+    /**
+     * Routes through an explicitly selected adjacent first cell, retaining that
+     * waypoint in the output so the controller receives the intended initial
+     * bearing even after the remaining cell path is string-pulled.
+     */
+    private static float[][] routeAvoidingVia(int startX, int startY, int viaX, int viaY,
+                                               int goalX, int goalY,
+                                               NavigationGrid grid, TerrainCostField costField,
+                                               VehicleClearance clearance,
+                                               int avoidX, int avoidY, float avoidRadius) {
+        int w = clearance.getWidth(), h = clearance.getHeight();
+        boolean[] mask = avoidanceMask(clearance, avoidX, avoidY, avoidRadius);
+        if (startX < 0 || startX >= w || startY < 0 || startY >= h) return null;
+        // The physical rescue pose may sit inside the avoid disc. Its own cell
+        // remains valid, but the forced next cell must be clear of the disc.
+        mask[startY * w + startX] = clearance.passableArray()[startY * w + startX];
+        int[] step = GridPathfinder.findPath(grid, startX, startY, viaX, viaY,
+                costField.costArray(), mask);
+        if (step.length != 4 || step[2] != viaX || step[3] != viaY) return null;
+
+        if (viaX == goalX && viaY == goalY) {
+            return new float[][]{{startX + 0.5f, viaX + 0.5f},
+                    {startY + 0.5f, viaY + 0.5f}};
+        }
+        float[][] tail = routeMasked(viaX, viaY, goalX, goalY, grid, costField, mask, w, h);
+        if (tail == null) return null;
+        float[] xs = new float[tail[0].length + 1];
+        float[] ys = new float[tail[1].length + 1];
+        xs[0] = startX + 0.5f;
+        ys[0] = startY + 0.5f;
+        System.arraycopy(tail[0], 0, xs, 1, tail[0].length);
+        System.arraycopy(tail[1], 0, ys, 1, tail[1].length);
+        return new float[][]{xs, ys};
+    }
+
+    private static boolean[] avoidanceMask(VehicleClearance clearance,
+                                           int avoidX, int avoidY, float avoidRadius) {
+        int w = clearance.getWidth(), h = clearance.getHeight();
+        boolean[] mask = clearance.passableArray().clone();
+        int r = (int) Math.ceil(avoidRadius);
+        float r2 = avoidRadius * avoidRadius;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > r2) continue;
+                int x = avoidX + dx, y = avoidY + dy;
+                if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = false;
+            }
+        }
+        return mask;
     }
 
     private static float[][] routeMasked(int startX, int startY, int goalX, int goalY,

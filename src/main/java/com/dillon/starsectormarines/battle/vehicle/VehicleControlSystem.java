@@ -90,6 +90,12 @@ public final class VehicleControlSystem {
 
     /** (Re)build the corridor for a route array and clear all per-route tracking + recovery state. Used on direction flip and on a recovery re-route. */
     private void initCorridor(VehicleControlComponent s, float[] xs, float[] ys) {
+        initCorridor(s, xs, ys, true);
+    }
+
+    /** Rebuilds the control state; a recovery re-route retains its tried rescue bearings. */
+    private void initCorridor(VehicleControlComponent s, float[] xs, float[] ys,
+                              boolean clearRescueFirstSteps) {
         s.corridor = new ReferenceCorridor(xs, ys, 1);
         s.trajectory = null;
         s.trajProgress = 0f;
@@ -101,6 +107,7 @@ public final class VehicleControlSystem {
         s.recoveryBestRemaining = Float.MAX_VALUE;
         s.wallStuckTime = 0f;
         s.timeSinceProgress = 0f;
+        if (clearRescueFirstSteps) s.rescueFirstStepTriedMask = 0;
     }
 
     /**
@@ -136,6 +143,7 @@ public final class VehicleControlSystem {
             s.recoveryBestRemaining = rem;
             s.recoveryAttempts = 0;
             s.timeSinceProgress = 0f;
+            s.rescueFirstStepTriedMask = 0;
         } else {
             s.timeSinceProgress += dt;
             if (s.timeSinceProgress > VehicleController.STALL_SECONDS) {
@@ -423,9 +431,13 @@ public final class VehicleControlSystem {
         Pose ahead = s.corridor.targetAhead(body.x, body.y, VehicleController.REROUTE_AVOID_RADIUS + 1.5f);
         int avoidX = (int) Math.floor(ahead.x);
         int avoidY = (int) Math.floor(ahead.y);
-        float[][] re = VehicleRoutePlanner.routeAvoiding(cur[0], cur[1], goal[0], goal[1],
-                grid, cost, clr, avoidX, avoidY, VehicleController.REROUTE_AVOID_RADIUS);
-        if (re == null) return false; // boxed in — hold (rung 4)
+        VehicleRoutePlanner.RescueRoute rescue = VehicleRoutePlanner.routeAvoidingForwardFirst(
+                cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
+                s.rescueFirstStepTriedMask, grid, cost, clr, avoidX, avoidY,
+                VehicleController.REROUTE_AVOID_RADIUS);
+        if (rescue == null) return false; // boxed in or every first step already exhausted — hold (rung 4)
+        s.rescueFirstStepTriedMask |= 1 << rescue.firstStepDirectionBit();
+        float[][] re = rescue.points();
 
         float[][] full = VehicleController.appendTail(re, xs, ys, goalIdx);
         if (inbound) {
@@ -435,7 +447,11 @@ public final class VehicleControlSystem {
             mission.outboundX = full[0];
             mission.outboundY = full[1];
         }
-        initCorridor(s, full[0], full[1]);
+        initCorridor(s, full[0], full[1], false);
+        // Installing a corridor is not physical progress. Seed the new route's
+        // baseline here so its first forward tick cannot immediately clear the
+        // tried-bearing history before the truck has actually escaped.
+        s.recoveryBestRemaining = s.corridor.remainingLength(body.x, body.y);
         return true;
     }
 
