@@ -424,6 +424,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
         spawnImpactFx(sim);
+        for (float[] impact : sim.getHeavyImpactsThisFrame()) {
+            renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
+            Vector2f loc = new Vector2f(
+                    impact[0] * AUDIO_WORLD_UNITS_PER_CELL,
+                    impact[1] * AUDIO_WORLD_UNITS_PER_CELL);
+            Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION,
+                    0.72f, 1.0f, loc, new Vector2f(0f, 0f));
+        }
         // Drain wreck smoke puffs the sim queued this tick — each entry is
         // {x, y, radiusCells}. Same scaled clock means wrecks stop smoking
         // when the sim pauses.

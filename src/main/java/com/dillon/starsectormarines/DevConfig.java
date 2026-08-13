@@ -168,6 +168,10 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = true;
 
+    /** Expose Orbital Barrage without requiring an orbital-fire-capable ship. */
+    @DebugOnly
+    public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = true;
+
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
      * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real

@@ -158,7 +158,9 @@ public final class CommandPowerPanel implements HudPanel {
             int charges = svc.getChargesRemaining(p.id);
             String sub = cd > 0f
                     ? ((int) Math.ceil(cd)) + "s"
-                    : Math.round(p.cpCost) + " CP" + (charges >= 0 ? "  " + charges + "x" : "");
+                    : Math.round(p.cpCost) + " CP"
+                    + (p.supplyCost > 0 ? " + " + p.supplyCost + " sup" : "")
+                    + (charges >= 0 ? "  " + charges + "x" : "");
             Fonts.ORBITRON_20.drawString(sub, x0 + PAD, y0 + 8f, cd > 0f ? NAME_DISABLED : COST_FG, alphaMult);
         }
 

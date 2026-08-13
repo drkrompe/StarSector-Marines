@@ -197,6 +197,22 @@ public final class ImpactFx {
         spawnFireBurst(x, y, radiusCells, 0.5f + radiusCells * 0.4f);
     }
 
+    /** Large external-impact recipe for orbital fire and future heavy support weapons. */
+    public void spawnHeavyImpact(float x, float y, float radiusCells) {
+        float core = Math.max(1.2f, Math.min(2.4f, radiusCells * 0.55f));
+        spawnSparkFlash(x, y, core, 0.24f, SPARK_COLOR);
+        spawnFireBurst(x, y, core * 0.85f, 0.8f);
+        for (int i = 0; i < 10; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2.0;
+            float distance = rng.nextFloat() * radiusCells * 0.65f;
+            float px = x + (float) Math.cos(angle) * distance;
+            float py = y + (float) Math.sin(angle) * distance;
+            spawnSmokePuff(px, py, 0.7f + rng.nextFloat() * 0.7f,
+                    1.4f + rng.nextFloat() * 0.8f);
+        }
+        spawnDust(x, y, false, core, 0.6f);
+    }
+
     /**
      * Emits a small additive glow particle as a rocket-engine puff at (x, y).
      * Drives the lit-engine trail behind in-flight rockets — callers spawn

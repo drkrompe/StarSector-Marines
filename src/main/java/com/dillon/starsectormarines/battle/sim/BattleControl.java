@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -24,6 +25,12 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * off the raw {@code BattleSimulation} parameter.
  */
 public interface BattleControl extends BattleView {
+
+    /** Resolve an externally delivered blast through the shared AoE/structure pipeline. */
+    void detonateNow(PendingDetonation detonation);
+
+    /** Queue the view/audio event paired with an externally delivered heavy blast. */
+    void spawnHeavyImpact(float x, float y, float radius);
 
     /** Replace a unit's path; queues the occupancy/destIndex delta. Pass an empty path (or {@link #clearPath}) to drop the current path. */
     void setPath(long u, int[] newPath);

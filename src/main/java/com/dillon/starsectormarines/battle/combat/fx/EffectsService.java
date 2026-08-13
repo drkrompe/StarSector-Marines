@@ -68,6 +68,7 @@ public final class EffectsService {
     private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
     private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
     private final List<float[]> wallDustsThisFrame = new ArrayList<>();
+    private final List<float[]> heavyImpactsThisFrame = new ArrayList<>();
 
     public EffectsService(Random rng) {
         this.rng = rng;
@@ -110,11 +111,17 @@ public final class EffectsService {
         wallDustsThisFrame.add(new float[]{cellX, cellY});
     }
 
+    /** Queues a presentation event for an externally delivered heavy blast. */
+    public void spawnHeavyImpact(float x, float y, float radius) {
+        heavyImpactsThisFrame.add(new float[]{x, y, radius});
+    }
+
     // ---- Per-frame event drains ----
 
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
     public List<float[]> getFireBurstsThisFrame() { return fireBurstsThisFrame; }
     public List<float[]> getWallDustsThisFrame()  { return wallDustsThisFrame; }
+    public List<float[]> getHeavyImpactsThisFrame() { return heavyImpactsThisFrame; }
 
     /**
      * Clears the per-frame event lists. Called from
@@ -126,6 +133,7 @@ public final class EffectsService {
         smokePuffsThisFrame.clear();
         fireBurstsThisFrame.clear();
         wallDustsThisFrame.clear();
+        heavyImpactsThisFrame.clear();
     }
 
     // ---- Tick passes ----

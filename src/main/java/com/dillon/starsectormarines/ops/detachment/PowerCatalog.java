@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -44,6 +45,8 @@ public final class PowerCatalog {
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
     private static final String TARSUS_HULL = "tarsus";
     private static final String ATLAS_HULL = "atlas";
+    private static final String ONSLAUGHT_HULL = "onslaught";
+    private static final String INVICTUS_HULL = "invictus";
 
     private PowerCatalog() {}
 
@@ -69,6 +72,9 @@ public final class PowerCatalog {
         }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_EMERGENCY_RESUPPLY) {
             byId.put(EmergencyResupply.ID, new EmergencyResupply());
+        }
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_ORBITAL_BARRAGE) {
+            byId.put(OrbitalBarrage.ID, new OrbitalBarrage());
         }
 
         if (committedShips != null) {
@@ -96,6 +102,7 @@ public final class PowerCatalog {
             if (mods != null && (mods.contains(GROUND_SUPPORT_MOD)
                     || mods.contains(ADVANCED_GROUND_SUPPORT_MOD))) {
                 byId.putIfAbsent(MechSupport.ID, new MechSupport());
+                byId.putIfAbsent(OrbitalBarrage.ID, new OrbitalBarrage());
             }
         }
         String baseId = ship.getHullSpec() != null ? ship.getHullSpec().getBaseHullId() : null;
@@ -103,6 +110,9 @@ public final class PowerCatalog {
         if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MechSupport.ID, new MechSupport());
         if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
             byId.putIfAbsent(EmergencyResupply.ID, new EmergencyResupply());
+        }
+        if (ONSLAUGHT_HULL.equals(baseId) || INVICTUS_HULL.equals(baseId)) {
+            byId.putIfAbsent(OrbitalBarrage.ID, new OrbitalBarrage());
         }
     }
 
@@ -116,6 +126,7 @@ public final class PowerCatalog {
         if (ReconPing.ID.equals(id)) return new ReconPing();
         if (MechSupport.ID.equals(id)) return new MechSupport();
         if (EmergencyResupply.ID.equals(id)) return new EmergencyResupply();
+        if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
         return null;
     }
 }

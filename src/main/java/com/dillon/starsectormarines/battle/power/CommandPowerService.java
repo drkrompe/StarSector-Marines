@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -77,6 +80,8 @@ public final class CommandPowerService {
 
     private final List<PendingActivation> pending = new ArrayList<>();
     private final List<ActivePing> activePings = new ArrayList<>();
+    private final List<PendingDetonation> activeFireMissions = new ArrayList<>();
+    private CommandPowerResources resources = CommandPowerResources.FREE;
 
     public CommandPowerService() {
         // Roster starts empty; the battle setup injects the resolved powers via
@@ -114,6 +119,10 @@ public final class CommandPowerService {
 
     public CommandPower getPower(String id) { return powers.get(id); }
 
+    public void setResources(CommandPowerResources resources) {
+        this.resources = resources != null ? resources : CommandPowerResources.FREE;
+    }
+
     public List<CommandPower> getAvailablePowers() {
         return new ArrayList<>(powers.values());
     }
@@ -135,12 +144,18 @@ public final class CommandPowerService {
         return power != null
                 && getCooldownRemaining(power.id) <= 0f
                 && getChargesRemaining(power.id) != 0
-                && commandPoints >= power.cpCost;
+                && commandPoints >= power.cpCost
+                && resources.availableSupplies() >= power.supplyCost;
     }
 
     /** Live transient reveals — projected into the fog by the view layer. */
     public List<ActivePing> getActivePings() {
         return Collections.unmodifiableList(activePings);
+    }
+
+    /** Telegraphs for orbital fire missions awaiting impact. */
+    public List<PendingDetonation> getActiveFireMissions() {
+        return Collections.unmodifiableList(activeFireMissions);
     }
 
     // ---- activation request (input pass) ----
@@ -165,16 +180,22 @@ public final class CommandPowerService {
 
     /** Debit the cost and start the cooldown. Caller must have checked
      *  {@link #canActivate} first. */
-    void commit(CommandPower power) {
+    boolean commit(CommandPower power) {
+        if (!resources.spendSupplies(power.supplyCost)) return false;
         commandPoints -= power.cpCost;
         cooldowns.put(power.id, power.cooldownSeconds);
         Integer remaining = charges.get(power.id);
         if (remaining != null) charges.put(power.id, Math.max(0, remaining - 1));
+        return true;
     }
 
     /** Register a transient reveal — called from {@link ReconPing#resolve}. */
     public void addActivePing(int cellX, int cellY, int radius, float seconds) {
         activePings.add(new ActivePing(cellX, cellY, radius, seconds));
+    }
+
+    public void addFireMission(PendingDetonation detonation) {
+        if (detonation != null) activeFireMissions.add(detonation);
     }
 
     void regenCommandPoints(float dt) {
@@ -194,6 +215,18 @@ public final class CommandPowerService {
             p.remainingSeconds -= dt;
             if (p.remainingSeconds <= 0f) {
                 activePings.remove(i);
+            }
+        }
+    }
+
+    void tickFireMissions(float dt, BattleControl battle) {
+        for (int i = activeFireMissions.size() - 1; i >= 0; i--) {
+            PendingDetonation mission = activeFireMissions.get(i);
+            mission.remainingTime -= dt;
+            if (mission.remainingTime <= 0f) {
+                battle.detonateNow(mission);
+                battle.spawnHeavyImpact(mission.endpointX, mission.endpointY, mission.aoeRadius);
+                activeFireMissions.remove(i);
             }
         }
     }

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
+import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 
 import java.util.List;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -110,6 +111,7 @@ public final class MissionLaunch {
         sim.setFlybyRoster(FlybyRoster.combine(
                 FlybyRoster.combine(det.marineWings, m.enemyFighterSupport), debugWings));
         sim.setCommandPowers(det.powers);
+        sim.setCommandPowerResources(new CampaignCommandPowerResources());
 
         ctx.setDetachment(det);
         return sim;

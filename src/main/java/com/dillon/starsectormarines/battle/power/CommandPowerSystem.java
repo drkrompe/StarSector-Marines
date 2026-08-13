@@ -32,11 +32,12 @@ public final class CommandPowerSystem {
             CommandPower power = service.getPower(req.powerId);
             if (!service.canActivate(power)) continue; // not affordable / on cooldown — drop
             if (!power.canTarget(req.cellX, req.cellY, battle)) continue;
-            service.commit(power);
+            if (!service.commit(power)) continue;
             power.resolve(req.cellX, req.cellY, service, battle);
         }
         service.regenCommandPoints(dt);
         service.tickCooldowns(dt);
         service.tickActivePings(dt);
+        service.tickFireMissions(dt, battle);
     }
 }
