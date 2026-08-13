@@ -59,12 +59,15 @@ default-extraction path resolves exactly once. Anonymous saves retain their
 original scalar cargo behavior. Cross-save repair, compaction protection, and
 named/legacy Results presentation are covered by the full focused matrix.
 
-The next personnel story is now contract-locked in
-[`stories/captain-trait-drift.md`](stories/captain-trait-drift.md). Start Slice
-1: append the two outlook traits and persist/backfill each captain's exactly-once
-outlook authority. Do not add combat modifiers, transfers, reversals, or any
-numeric moral surface. Manual UI/balance validation remains queued, as requested
-for the current automated-only session.
+The active personnel story is
+[`stories/captain-trait-drift.md`](stories/captain-trait-drift.md). Slice 1
+shipped in `b9e8ffd6`: `IDEALIST` and `CYNICAL` are append-only trait identities,
+and each captain now persists a mutually exclusive, exactly-once outlook with
+conservative legacy/dev-save repair. Start Slice 2: aggregate only witnessed
+mercy, integrity, and stewardship ledger deltas, enforce the 90-day/three-choice
+gates, and wire deterministic daily evaluation. Do not add combat modifiers,
+transfers, reversals, or any numeric moral surface. Manual UI/balance validation
+remains queued, as requested for the current automated-only session.
 
 ## Commit chain
 
