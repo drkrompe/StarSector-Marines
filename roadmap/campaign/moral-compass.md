@@ -1,7 +1,8 @@
 # Moral compass — the silent track
 
 **Status:** TWO SOURCE FAMILIES CODE COMPLETE (2026-08-12); first diegetic
-reaction remains withheld.
+reaction contract locked in
+[`personnel/stories/captain-trait-drift.md`](personnel/stories/captain-trait-drift.md).
 
 **Implemented:** `facfa007`, `6765eac6`, `2a1924e7`, `cf8b717b`,
 `5fd8969d`, `1b2afcb4`
@@ -161,8 +162,10 @@ the player learns to read).
   exactly once.
 - `MoralCompassSystem` consumes attributed terminal civil-war outcomes and
   explicit terminal civilian-rescue facts after their prerequisite lifecycles.
-- A `CaptainTraitDriftSystem` — reads compass + captain time-in-service,
-  occasionally promotes a captain to a new trait (CYNICAL, IDEALIST, …).
+- A `CaptainTraitDriftSystem` — the locked first reaction reads captain-local
+  ledger history plus time-in-service and grants one deterministic, irreversible
+  `CYNICAL` or `IDEALIST` outlook without exposing the hidden scores. See
+  [`personnel/stories/captain-trait-drift.md`](personnel/stories/captain-trait-drift.md).
 - NPC dialog gates — content-side, read the compass via a getter.
 - Capstone scene infrastructure — lives in
   [`t3-endgame/overview.md`](t3-endgame/overview.md) when written.
