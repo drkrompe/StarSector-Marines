@@ -51,11 +51,17 @@ isolated Gradle build passed.
 
 The deployment-reachability correction is shipped and recorded in
 [`complete/deployment-readiness.md`](complete/deployment-readiness.md).
-The captain-command story is complete. The next personnel expansion should be
-chosen as a new contract rather than appended here. Named stationing is the
-obvious candidate, but it must define named transfer, return, casualties, and
-partial recovery as one lifecycle; until then stationing keeps its captain plus
-anonymous committed-marine count. Manual UI/balance validation remains queued.
+The captain-command story is complete. Named stationing is now the active
+contract: [`stories/named-stationing.md`](stories/named-stationing.md) locks
+whole-fireteam binding, derived strength, legacy anonymous compatibility,
+incident casualties, completion/withdrawal, and both employer-default
+extraction outcomes as one lifecycle.
+
+Start Slice 1 only: persist `MarineSquad.stationingContractId`; add roster-level
+availability, bind/unbind/query, and ordered repair; then gate ordinary
+deployment and personnel/armory mutations on that availability. Do not change
+stationing acceptance or consume/return semantics until those domain invariants
+are committed. Manual UI/balance validation remains queued.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.

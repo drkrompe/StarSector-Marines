@@ -90,9 +90,10 @@ universe over time, not retrofitted into intel slots.
    production shortfall/recruitment route (`605cda22`, `59c4864b`, `75413bfc`).
    Captain-scoped briefing defaults, rank-scaled whole-fireteam limits, and
    frozen Results command context are now shipped (`f6247ace`, `48471e93`),
-   completing the captain-command story. Next personnel work should begin a
-   new contract; named stationing is the candidate only when its full transfer,
-   casualty, and return lifecycle is designed together. See
+   completing the captain-command story. Named stationing is now contract-locked
+   as the next story: campaign/personnel owns whole-team binding, legacy-safe
+   return, incident casualties, and default extraction; battles only consume
+   frozen identities. Slice 1 is the persisted availability domain. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
