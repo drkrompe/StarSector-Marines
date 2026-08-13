@@ -188,12 +188,16 @@ public class RecaptureTargetServiceTest {
                 new TacticalMap(List.of(city, port)), biomes);
         RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
-        // Both garrisons wiped → both nodes open. City slice has a live
+        // Both nodes manned first (the recapture semantic is "had a garrison,
+        // then lost it"), then wiped → both open. City slice has a live
         // defender (contested); port slice has none (conceded).
-        garrison(sim, city, 0, 4);
-        garrison(sim, port, 0, 4);
+        Squad citySquad = garrison(sim, city, 3, 4);
+        Squad portSquad = garrison(sim, port, 3, 4);
         presence(sim, "city-def", 10, 55);
+        sys.tick(TICK, sim);
 
+        citySquad.aliveMembers = 0;
+        portSquad.aliveMembers = 0;
         sys.tick(TICK, sim);
 
         assertTrue(targetFor(reg, city).isOpen());
@@ -215,8 +219,10 @@ public class RecaptureTargetServiceTest {
                 new TacticalMap(List.of(city)), biomes);
         RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
 
-        garrison(sim, city, 0, 4);                     // original garrison dead → open
+        Squad original = garrison(sim, city, 3, 4);    // manned first...
         presence(sim, "city-def", 10, 53);             // keeps the slice contested throughout
+        sys.tick(TICK, sim);
+        original.aliveMembers = 0;                     // ...then wiped → open
         sys.tick(TICK, sim);
 
         RecaptureTarget t = targetFor(reg, city);
@@ -243,6 +249,58 @@ public class RecaptureTargetServiceTest {
         sys.tick(TICK, sim);
         assertTrue(t.isOpen(), "re-opens when the replacement is wiped");
         assertEquals(1, reg.eligibleTargets().size(), "eligible again");
+    }
+
+    @Test
+    public void neverMannedTargetIsNotEligible() {
+        BattleSimulation sim = openSim();
+        BiomeMap biomes = biomeMap();
+        TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(city)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+
+        // BattleSetup ran out of defenders: the node has garrisonSize > 0 but
+        // no squad was ever assigned. Slice is contested (defenders alive
+        // elsewhere in the band) — without the manned latch the trigger would
+        // start dispatching to this position from tick 1.
+        presence(sim, "city-def", 10, 53);
+        sys.tick(TICK, sim);
+
+        assertTrue(targetFor(reg, city).isOpen(), "unassigned node reads open");
+        assertTrue(reg.eligibleTargets().isEmpty(),
+                "a never-manned position is not a recapture target — nothing was lost there");
+    }
+
+    @Test
+    public void dispatchTimeoutReopensTargetWithNoArrival() {
+        BattleSimulation sim = openSim();
+        BiomeMap biomes = biomeMap();
+        TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(city)), biomes);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+
+        Squad original = garrison(sim, city, 3, 4);
+        presence(sim, "city-def", 10, 53);
+        sys.tick(TICK, sim);
+        original.aliveMembers = 0;
+        sys.tick(TICK, sim);
+        RecaptureTarget t = targetFor(reg, city);
+        assertEquals(1, reg.eligibleTargets().size(), "manned-then-wiped → eligible");
+
+        // Dispatch that dies in the delivery pipeline: no squad ever gets
+        // assignedNode == city (convoy routing abort, no-means drop, or a
+        // fallback reassignment). The dedup must not suppress forever.
+        reg.markDispatched(t);
+        for (int i = 0; i < RecaptureTargetSystem.DISPATCH_TIMEOUT_TICKS - 1; i++) {
+            sys.tick(TICK, sim);
+            assertTrue(reg.eligibleTargets().isEmpty(),
+                    "still suppressed while the dispatch could legitimately be en route (tick " + i + ")");
+        }
+        sys.tick(TICK, sim);
+        assertFalse(t.isDispatched(), "dispatch flag presumed lost at the timeout");
+        assertEquals(1, reg.eligibleTargets().size(), "target re-opens for dispatch");
     }
 
     @Test
