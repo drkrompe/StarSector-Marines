@@ -118,6 +118,7 @@ public final class SquadAlertSystem {
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
             squad._killZoneSightedThisTick = false;
+            squad._underFireAtLosLastTick = squad._underFireAtLosThisTick;
             squad._underFireAtLosThisTick = false;
         }
 
@@ -210,18 +211,18 @@ public final class SquadAlertSystem {
             }
         }
 
-        // Story A backstop: per-tick under-fire-at-LoS scan for garrison
-        // squads with the kill-zone gate set. Mirrors WorldStateBuilder's
-        // evalUnderFireAtLos predicate but runs every tick (not per replan)
-        // so timeUnderSustainedFire accumulates accurately across the
-        // 2-second replan window. Scoped to holdsFireUntilKillZone garrisons
-        // because the field is only consumed by their gate override.
+        // Per-tick under-fire-at-LoS scan for every squad. Mirrors
+        // WorldStateBuilder's evalUnderFireAtLos predicate, but runs before the
+        // GOAP replan pass so infantry can treat incoming fire as an immediate
+        // plan interrupt rather than waiting for the two-second cadence.
+        // Garrison squads additionally consume the same flag below for the
+        // legacy timeUnderSustainedFire kill-zone diagnostic/override.
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
                 long u = dense[i];
                 if (!roster.squad().hasSquad(u)) continue;
                 Squad squad = roster.getSquad(roster.squad().squadId(u));
-                if (squad == null || !squad.holdsFireUntilKillZone) continue;
+                if (squad == null) continue;
                 if (squad._underFireAtLosThisTick) continue;
                 int uCellX = world.cellX(u);
                 int uCellY = world.cellY(u);

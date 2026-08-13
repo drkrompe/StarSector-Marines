@@ -76,7 +76,7 @@ public class BreakLOSTest {
         // different (hidden) cell.
         long marine = marineAt(sim, 2, 2, squadId);
         sim.world().setFallbackCell(marine, -1, -1);
-        defenderAt(sim, 11, 7);
+        defenderAt(sim, 11, 2);
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertTrue(sim.world().fallbackCellX(marine) >= 0 && sim.world().fallbackCellY(marine) >= 0,
@@ -113,6 +113,28 @@ public class BreakLOSTest {
         assertTrue(sim.movement().settled(marine), "arrived → path cleared, no un-exhausted path remains");
         assertEquals(sim.world().cellX(marine) + 0.5f, sim.world().renderX(marine), 1e-6f);
         assertEquals(sim.world().cellY(marine) + 0.5f, sim.world().renderY(marine), 1e-6f);
+    }
+
+    @Test
+    public void hiddenMemberCannotFinishSharedStepWhileSquadmateIsExposed() {
+        BattleSimulation sim = walledSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 2;
+
+        // The wall at x=7 hides (5,7) from the defender at (11,7), while the
+        // second marine at (5,2) remains visible through the wall's row-2 gap.
+        long hidden = marineAt(sim, 5, 7, squadId);
+        long exposed = sim.spawn(new EntitySpec("m2", Faction.MARINE, UnitType.MARINE, 5, 2)
+                .squad(squadId));
+        defenderAt(sim, 11, 7);
+        sim.world().setFallbackCell(hidden, 5, 7);
+        sim.world().setFallbackCell(exposed, -1, -1);
+
+        ActionStatus status = BreakLOS.INSTANCE.execute(hidden, squad, sim);
+
+        assertEquals(ActionStatus.RUNNING, status,
+                "one already-hidden member must not advance the shared plan while a squadmate remains exposed");
     }
 
     @Test
