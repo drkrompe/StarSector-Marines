@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slices 1–3 complete; incident battle bridge next (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–3 complete; Slice 4 frozen payload shipped (2026-08-12)
 
 ## Problem
 
@@ -149,6 +149,16 @@ release while preserving prior KIA/MIA. Captain consequences, employer breach,
 legacy cargo restoration, retry semantics, and replay guards remain intact.
 The combined completion, withdrawal, extraction, binding, and acceptance tests
 pass; Slice 3 is closed.
+
+## Slice 4 checkpoint
+
+`492864ef` freezes bound fireteam IDs and current ACTIVE seats into both Cadre
+incident and Garrison defense payloads. WIA remain in committed living strength
+but do not consume battle seats; local lift sizing now follows the frozen ACTIVE
+count. The response transition seeds the battle context from those immutable
+team IDs, while anonymous legacy payloads retain their scalar seat behavior.
+Named casualty settlement, strength recomputation, and the explicit no-force
+response remain before Slice 4 closes.
 
 ## Acceptance
 
