@@ -16,8 +16,10 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Maps committed ships (their base hull + fitted hull mods) and the mission's
@@ -82,7 +84,11 @@ public final class PowerCatalog {
         }
 
         if (committedShips != null) {
-            for (FleetMemberAPI ship : committedShips) contribute(ship, byId);
+            for (FleetMemberAPI ship : committedShips) {
+                for (CommandPower power : contributedBy(ship)) {
+                    byId.putIfAbsent(power.id, power);
+                }
+            }
         }
         for (String id : employerPowerIds(m)) {
             CommandPower p = forId(id);
@@ -94,31 +100,47 @@ public final class PowerCatalog {
         return new ArrayList<>(byId.values());
     }
 
-    /** Adds the powers a single committed ship contributes (by hull mod or base hull). */
-    private static void contribute(FleetMemberAPI ship, Map<String, CommandPower> byId) {
-        if (ship == null) return;
+    /**
+     * Powers contributed by one fleet member, without employer or debug grants.
+     * This is also the source of truth for the briefing's member-level
+     * commitment rows, so presentation and launch resolution cannot drift.
+     */
+    public static List<CommandPower> contributedBy(FleetMemberAPI ship) {
+        if (ship == null) return List.of();
         ShipVariantAPI v = ship.getVariant();
-        if (v != null) {
-            Collection<String> mods = v.getHullMods();
-            if (mods != null && (mods.contains(HIRES_SENSORS_MOD) || mods.contains(SURVEYING_EQUIPMENT_MOD))) {
-                byId.putIfAbsent(ReconPing.ID, new ReconPing());
-            }
-            if (mods != null && (mods.contains(GROUND_SUPPORT_MOD)
-                    || mods.contains(ADVANCED_GROUND_SUPPORT_MOD))) {
-                byId.putIfAbsent(MechSupport.ID, new MechSupport());
-                byId.putIfAbsent(OrbitalBarrage.ID, new OrbitalBarrage());
-            }
-        }
+        Collection<String> mods = v != null && v.getHullMods() != null
+                ? v.getHullMods() : Set.of();
         String baseId = ship.getHullSpec() != null ? ship.getHullSpec().getBaseHullId() : null;
-        if (APOGEE_HULL.equals(baseId)) byId.putIfAbsent(ReconPing.ID, new ReconPing());
-        if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MechSupport.ID, new MechSupport());
-        if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MarineInsertion.ID, new MarineInsertion());
+        List<String> ids = contributedPowerIds(baseId, mods);
+        List<CommandPower> out = new ArrayList<>(ids.size());
+        for (String id : ids) {
+            CommandPower power = forId(id);
+            if (power != null) out.add(power);
+        }
+        return out;
+    }
+
+    /** Pure capability mapping used by {@link #contributedBy(FleetMemberAPI)}. */
+    static List<String> contributedPowerIds(String baseId, Collection<String> mods) {
+        Set<String> ids = new LinkedHashSet<>();
+        Collection<String> fitted = mods != null ? mods : Set.of();
+        if (fitted.contains(HIRES_SENSORS_MOD) || fitted.contains(SURVEYING_EQUIPMENT_MOD)) {
+            ids.add(ReconPing.ID);
+        }
+        if (fitted.contains(GROUND_SUPPORT_MOD) || fitted.contains(ADVANCED_GROUND_SUPPORT_MOD)) {
+            ids.add(MechSupport.ID);
+            ids.add(OrbitalBarrage.ID);
+        }
+        if (APOGEE_HULL.equals(baseId)) ids.add(ReconPing.ID);
+        if (VALKYRIE_HULL.equals(baseId)) ids.add(MechSupport.ID);
+        if (VALKYRIE_HULL.equals(baseId)) ids.add(MarineInsertion.ID);
         if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
-            byId.putIfAbsent(EmergencyResupply.ID, new EmergencyResupply());
+            ids.add(EmergencyResupply.ID);
         }
         if (ONSLAUGHT_HULL.equals(baseId) || INVICTUS_HULL.equals(baseId)) {
-            byId.putIfAbsent(OrbitalBarrage.ID, new OrbitalBarrage());
+            ids.add(OrbitalBarrage.ID);
         }
+        return new ArrayList<>(ids);
     }
 
     /** The employer's offered power ids for this mission (the contract co-source). */

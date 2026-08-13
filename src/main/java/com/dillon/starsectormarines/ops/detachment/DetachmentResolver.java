@@ -47,9 +47,17 @@ public final class DetachmentResolver {
     public static Detachment resolve(Mission m,
                                      List<ShuttleType> committedShuttles,
                                      FlybyRoster committedWings) {
+        return resolve(m, committedShuttles, committedWings, committedShips());
+    }
+
+    /** Resolve using the exact fleet members committed as command-power sources. */
+    public static Detachment resolve(Mission m,
+                                     List<ShuttleType> committedShuttles,
+                                     FlybyRoster committedWings,
+                                     List<FleetMemberAPI> committedPowerSources) {
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, committedShuttles);
         FlybyRoster marineWings = FlybyRoster.combine(m.clientFighterSupport, committedWings);
-        List<CommandPower> powers = PowerCatalog.resolve(committedShips(), m);
+        List<CommandPower> powers = PowerCatalog.resolve(committedPowerSources, m);
         return new Detachment(manifest, marineWings, powers);
     }
 
@@ -61,9 +69,8 @@ public final class DetachmentResolver {
     }
 
     /**
-     * Ships that source command powers. Slice 1 = the whole player fleet (same
-     * scan set the wing/shuttle resolvers use), preserving today's "your fleet is
-     * your spellbook" reach; Slice 2 narrows this to the committed subset.
+     * Whole-fleet compatibility fallback for callers that do not expose the
+     * canonical briefing's member-level commitment surface.
      */
     private static List<FleetMemberAPI> committedShips() {
         if (Global.getSector() == null) return Collections.emptyList();

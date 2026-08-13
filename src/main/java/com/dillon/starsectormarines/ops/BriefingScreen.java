@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -34,6 +35,7 @@ import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
 
@@ -65,7 +67,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * <p>Full-canvas, two columns (S8 Slice B): the left "mission" column holds the
  * briefing details, salvage negotiation, and captain selection; the right
  * "detachment" column splits into <em>Your Fleet Brings</em> (the player's
- * committed transports + fighter cover, opt-in toggles) and <em>Employer
+ * committed transports + fighter cover + power-source ships, opt-in toggles) and <em>Employer
  * Provides</em> (the contract's shuttles / fighter support / offered powers,
  * read-only), with Deploy / Back below. The old decorative planet map is gone —
  * its space is reclaimed for the action area.
@@ -134,7 +136,11 @@ public class BriefingScreen implements Screen {
     private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
     /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
     private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
-    /** Power roster available from the current whole-fleet/employer resolver. */
+    /** Stable fleet-member ids held back as command-power sources. */
+    private final java.util.Set<String> deselectedPowerSources = new java.util.HashSet<>();
+    /** Fleet members that can source at least one command power. */
+    private List<PlayerFleetPowerSources.SourceShip> cachedPowerSources = java.util.Collections.emptyList();
+    /** Power roster available from the committed source ships plus employer. */
     private List<CommandPower> cachedAvailablePowers = java.util.Collections.emptyList();
     /** Stable ids selected into the current mission's command deck. */
     private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
@@ -182,12 +188,14 @@ public class BriefingScreen implements Screen {
             lastSelectedMissionId = m.id;
             deselectedTransports.clear();
             deselectedCarriers.clear();
+            deselectedPowerSources.clear();
             selectedPowerIds.clear();
             commandDeckInitialized = false;
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
         cachedAvailable = PlayerFleetShuttles.queryAvailable();
         cachedCarriers = PlayerFleetWings.committableCarriers();
+        cachedPowerSources = PlayerFleetPowerSources.committableShips();
         cachedAvailablePowers = availablePowers(m);
         java.util.Set<String> availableIds = new java.util.HashSet<>();
         for (CommandPower power : cachedAvailablePowers) availableIds.add(power.id);
@@ -426,6 +434,31 @@ public class BriefingScreen implements Screen {
         y = buildCommandDeck(x, y, rowW, floor);
         y -= SECTION_GAP;
 
+        // Power-bearing ships — one commitment controls every capability that
+        // member supplies. Employer powers remain available independently.
+        if (!cachedPowerSources.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Power Sources", x, y, LABEL_COLOR));
+            y -= ROW_GAP;
+            for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
+                if (y < floor) return;
+                boolean committed = !deselectedPowerSources.contains(source.memberId);
+                String rowLabel = (committed ? "[x] " : "[ ] ") + source.shipName
+                        + " — " + summarizePowers(source.powers)
+                        + (committed ? "" : " — held back");
+                widgets.add(new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H, () -> {
+                    if (!deselectedPowerSources.remove(source.memberId)) {
+                        deselectedPowerSources.add(source.memberId);
+                    }
+                    rebuild();
+                }));
+                widgets.add(new SpriteThumbWidget(source.spriteName, x, y - 20f, THUMB, THUMB));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel,
+                        x + THUMB + 10f, y, committed ? VALUE_COLOR : LABEL_COLOR));
+                y -= ROW_GAP;
+            }
+            y -= SECTION_GAP;
+        }
+
         // Transport — one toggle row per available shuttle, with sortie-cycle annotation.
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
         y -= ROW_GAP;
@@ -557,7 +590,8 @@ public class BriefingScreen implements Screen {
         if (mission == null) return Collections.emptyList();
         return mission.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(mission).powers
-                : DetachmentResolver.resolve(mission, effectivePlayerShuttles(), committedWings()).powers;
+                : DetachmentResolver.resolve(mission, effectivePlayerShuttles(), committedWings(),
+                        committedPowerSourceMembers()).powers;
     }
 
     private void buildButtons() {
@@ -688,6 +722,15 @@ public class BriefingScreen implements Screen {
         return PlayerFleetWings.rosterFrom(committedCarriers());
     }
 
+    /** Exact fleet members committed as command-power capability sources. */
+    private List<FleetMemberAPI> committedPowerSourceMembers() {
+        List<FleetMemberAPI> out = new java.util.ArrayList<>();
+        for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
+            if (!deselectedPowerSources.contains(source.memberId)) out.add(source.member);
+        }
+        return out;
+    }
+
     // ---- debug air picker (DevConfig.DEBUG_AIRCRAFT_PICKER) ----
 
     /**
@@ -773,6 +816,16 @@ public class BriefingScreen implements Screen {
             if (id == null || id.isEmpty()) continue;
             if (sb.length() > 0) sb.append(", ");
             sb.append(prettifyId(id));
+        }
+        return sb.length() == 0 ? Strings.get("briefingAirNone") : sb.toString();
+    }
+
+    private static String summarizePowers(List<CommandPower> powers) {
+        StringBuilder sb = new StringBuilder();
+        for (CommandPower power : powers) {
+            if (power == null) continue;
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(power.displayName);
         }
         return sb.length() == 0 ? Strings.get("briefingAirNone") : sb.toString();
     }
@@ -883,7 +936,9 @@ public class BriefingScreen implements Screen {
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
-                selectedPowerIds);
+                selectedPowerIds,
+                m.source == MissionSource.STATIONING
+                        ? java.util.Collections.emptyList() : committedPowerSourceMembers());
         if (m.contractId >= 0L && campaignScript != null) {
             int day = Global.getSector() != null
                     ? (int) Global.getSector().getClock().getDay() : 0;

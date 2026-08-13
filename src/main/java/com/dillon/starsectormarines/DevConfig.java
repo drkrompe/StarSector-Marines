@@ -158,23 +158,23 @@ public final class DevConfig {
      * it ({@code Mission.employerPowerIds}). Flip off to feel the real gating.
      */
     @DebugOnly
-    public static final boolean ALWAYS_GRANT_RECON_PING = true;
+    public static final boolean ALWAYS_GRANT_RECON_PING = false;
 
     /** Expose Mech Support for battle iteration without requiring its fleet source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_MECH_SUPPORT = true;
+    public static final boolean DEBUG_GRANT_MECH_SUPPORT = false;
 
     /** Expose Emergency Resupply without requiring a Tarsus or Atlas source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = true;
+    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = false;
 
     /** Expose Orbital Barrage without requiring an orbital-fire-capable ship. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = true;
+    public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = false;
 
     /** Expose Marine Drop without requiring a troop-transport source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_MARINE_INSERTION = true;
+    public static final boolean DEBUG_GRANT_MARINE_INSERTION = false;
 
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
