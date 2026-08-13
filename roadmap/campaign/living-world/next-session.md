@@ -140,14 +140,18 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — black-swan event follow-through
+## Next up — G8 defector asylum
 
 The first black-swan event now runs from deterministic trigger through choice,
 mission emission, swarm battle, explicit report, campaign writeback, debrief,
-hidden moral consequence, and durable terminal dispatch. The next design hunk
-should choose whether to generalize this infrastructure for a second event
-archetype or return to another living-world spine. Keep swarm roster/stat tuning
-deferred until manual playtesting resumes.
+hidden moral consequence, and durable terminal dispatch. The second archetype
+is now contract-locked in
+[`stories/g8-defector-asylum.md`](stories/g8-defector-asylum.md): a discovered
+political chain produces a costly asylum request, followed ten days later by an
+explicit keep-the-promise/betrayal choice. Start Slice 1 with append-only event
+identity/state/outcome and legacy-safe columns, then implement the pure replay-
+safe lifecycle. Keep swarm roster/stat tuning deferred until manual playtesting
+resumes.
 
 ## Open forks still unresolved (design)
 
@@ -258,3 +262,4 @@ deferred until manual playtesting resumes.
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
+- G8 contract — discovered-chain defector asylum and delayed integrity choice.

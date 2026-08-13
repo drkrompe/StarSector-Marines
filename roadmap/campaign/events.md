@@ -376,6 +376,13 @@ That dispatch exposes no hidden moral axes and creates no economic reward.
   archetype. Other archetypes can follow (sector plague, refugee fleet,
   abandoned colony with unknown threat, defector arriving with intel).
 
+The second concrete archetype is now locked as **defector asylum** in
+[`living-world/stories/g8-defector-asylum.md`](living-world/stories/g8-defector-asylum.md).
+It is intentionally campaign-only: an already-discovered political chain
+produces a costly asylum request and a delayed buyout, forcing the player to
+keep or explicitly break a promise. This adds an honest integrity source and a
+two-stage event lifecycle without cloning the rescue battle.
+
 ## Open questions (parked)
 
 - **Cadence** — probably balanced to ~1 event per 30–60 in-game days,
