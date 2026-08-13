@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -76,6 +77,9 @@ public final class PowerCatalog {
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_ORBITAL_BARRAGE) {
             byId.put(OrbitalBarrage.ID, new OrbitalBarrage());
         }
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MARINE_INSERTION) {
+            byId.put(MarineInsertion.ID, new MarineInsertion());
+        }
 
         if (committedShips != null) {
             for (FleetMemberAPI ship : committedShips) contribute(ship, byId);
@@ -108,6 +112,7 @@ public final class PowerCatalog {
         String baseId = ship.getHullSpec() != null ? ship.getHullSpec().getBaseHullId() : null;
         if (APOGEE_HULL.equals(baseId)) byId.putIfAbsent(ReconPing.ID, new ReconPing());
         if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MechSupport.ID, new MechSupport());
+        if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MarineInsertion.ID, new MarineInsertion());
         if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
             byId.putIfAbsent(EmergencyResupply.ID, new EmergencyResupply());
         }
@@ -127,6 +132,7 @@ public final class PowerCatalog {
         if (MechSupport.ID.equals(id)) return new MechSupport();
         if (EmergencyResupply.ID.equals(id)) return new EmergencyResupply();
         if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
+        if (MarineInsertion.ID.equals(id)) return new MarineInsertion();
         return null;
     }
 }

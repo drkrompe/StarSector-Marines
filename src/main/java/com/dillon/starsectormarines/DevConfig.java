@@ -172,6 +172,10 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = true;
 
+    /** Expose Marine Drop without requiring a troop-transport source. */
+    @DebugOnly
+    public static final boolean DEBUG_GRANT_MARINE_INSERTION = true;
+
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
      * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real
