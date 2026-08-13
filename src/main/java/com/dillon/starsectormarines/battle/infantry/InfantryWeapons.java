@@ -170,15 +170,12 @@ public class InfantryWeapons {
         }
         accuracy *= stance.accuracyMult;
 
-        // Round velocity: projectile-sprite weapons derive it from their
-        // flightSec constant (dist / flightSec) so a slow round visibly
-        // travels; every other weapon (line-tracer primaries, and the null-
-        // weapon militia/alien/turret callers) uses the resolver's flat
-        // default. No new per-weapon velocity stat in S1 (S2 owns that).
-        float roundVelocity = BallisticResolver.DEFAULT_ROUND_VELOCITY;
-        if (weapon != null && weapon.projectileSpritePath != null && weapon.flightSec > 0f) {
-            roundVelocity = Math.max(dist, 0.01f) / weapon.flightSec;
-        }
+        // Round velocity: per-weapon MarineWeapon.roundVelocity when set;
+        // the null-weapon militia/alien/turret callers use the resolver's
+        // flat default.
+        float roundVelocity = weapon != null && weapon.roundVelocity > 0f
+                ? weapon.roundVelocity
+                : BallisticResolver.DEFAULT_ROUND_VELOCITY;
 
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 accuracy, effectiveSpread, roundVelocity, ThreadLocalRandom.current());

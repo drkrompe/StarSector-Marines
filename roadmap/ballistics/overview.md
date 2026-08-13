@@ -11,7 +11,9 @@
 **S1 shipped 2026-08-13** (`complete/s1-resolver-core.md` — includes the
 landed-vs-planned deviations, notably: the contact circle is the
 pre-existing `UnitType.radius`, shared with `SeparationSystem`, not a new
-stat). S2 (moving targets) is next — see `next-session.md`.
+stat). **S2 shipped 2026-08-13** (`complete/s2-moving-targets.md` — time-domain
+contact solve, shooter lead, per-weapon `roundVelocity`; landed as specced).
+S3 (visible rounds) is next — see `next-session.md`.
 
 ## Why
 
@@ -163,9 +165,9 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
 - ~~**S1 — resolver core (static world).**~~ **SHIPPED** — see
   [`complete/s1-resolver-core.md`](complete/s1-resolver-core.md)
   (`85ec50e6` + `382b0ee6` on `worktree-ballistics-s1`).
-- **S2 — moving targets.** Velocity extrapolation in the contact solve +
-  shooter lead. Per-weapon round velocity becomes a real stat. Story:
-  [`stories/s2-moving-targets.md`](stories/s2-moving-targets.md).
+- ~~**S2 — moving targets.**~~ **SHIPPED** — velocity extrapolation in the
+  contact solve + shooter lead; per-weapon round velocity is now a real
+  stat. See [`complete/s2-moving-targets.md`](complete/s2-moving-targets.md).
 - **S3 — stylized visible rounds.** Primaries render as traveling tinted
   bolts on the flight clock (new `ShotFx.Bolt` body + generated bolt
   sprite). Story: [`stories/s3-visible-rounds.md`](stories/s3-visible-rounds.md).

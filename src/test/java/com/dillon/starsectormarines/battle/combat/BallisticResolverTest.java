@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -54,6 +55,13 @@ class BallisticResolverTest {
 
     private static float rowCenter() {
         return ROW + 0.5f;
+    }
+
+    /** Directly stamps {@code MOVEMENT_VEL_X/Y} — the columns {@code MovementService.velX/velY} read — bypassing a real movement-pass tick so a scene can pin an exact applied velocity for the time-domain solve. */
+    private static void setVelocity(BattleSimulation sim, long id, float vx, float vy) {
+        BattleComponents c = sim.getBattleComponents();
+        sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx);
+        sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy);
     }
 
     /** Stub {@link Random} that hands back a pre-programmed sequence of {@code nextFloat()} results, in call order. */
@@ -329,5 +337,270 @@ class BallisticResolverTest {
     @Test
     void blockChanceByLevelMatchesTheTuningNeutralAnchor() {
         assertArrayEquals(new float[]{0f, 0.15f, 0.30f, 0.45f}, BallisticResolver.BLOCK_CHANCE_BY_LEVEL, EPS);
+    }
+
+    // ---- S2: time-domain contact solve + shooter lead ----
+    // roadmap/ballistics/stories/s2-moving-targets.md, "Tests" section.
+
+    // ---- stationary regression: w = 0 collapses to S1's math exactly ----
+
+    @Test
+    void stationaryUnitContactsCollapseExactlyToS1sDistanceDomainMath() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        assertTrue(sim.getRoster().movement().has(target),
+                "target carries MOVEMENT (MARINE is a mover type) — this proves w=0 collapses the "
+                        + "time-domain solve to S1's math, not that a non-mover skipped extrapolation entirely");
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(target, res.victimId());
+        assertTrue(res.hitIntended());
+        // Contact is at the near EDGE of the target's radius (0.3), not its
+        // center — exactly S1's ray-circle solve: entry = dist - radius.
+        assertEquals(cellCenter(10) - UnitType.MARINE.radius, res.endX(), EPS);
+        assertEquals(rowCenter(), res.endY(), EPS);
+        assertEquals((cellCenter(10) - UnitType.MARINE.radius - cellCenter(2)) / VEL, res.flightTime(), EPS);
+    }
+
+    // ---- perpendicular mover: lead connects where the raw aim point would miss ----
+
+    @Test
+    void perpendicularMoverConnectsWithLeadAndTheUnledRayWouldHaveMissed() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        // Fire-tick position (10.5, 11.5), dist=10 from the shooter, walking
+        // north (-y) at 0.5 c/s. One-step lead over tLead=dist/v=1.0s places
+        // the aim point at (10.5, 11.0) — off the mover's fire-tick
+        // position, but close enough to its actual position at contact time
+        // that the exact time-domain quadratic finds a real root within its
+        // 0.3-cell radius.
+        long mover = sim.spawn(new EntitySpec("mover", Faction.DEFENDER, UnitType.MARINE, 10, 11));
+        setVelocity(sim, mover, 0f, -0.5f);
+        float roundVelocity = 10f;
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (spread=0, irrelevant), cover roll (no cover, no
+        // block), hit roll (guaranteed via finalAccuracy=1).
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
+                "the led ray must contact the mover — a raw (unled) aim at the same geometry does not, per the companion check below");
+        assertEquals(mover, res.victimId());
+        assertTrue(res.hitIntended());
+        assertEquals(10.267f, res.endX(), 1e-2f);
+        assertEquals(10.840f, res.endY(), 1e-2f);
+        assertEquals(0.9425f, res.flightTime(), 1e-3f);
+
+        // Companion check: firing at the mover's RAW fire-tick position
+        // (10.5, 11.5) instead of the led point — same shooter, same mover
+        // motion — never intersects its 0.3-cell radius (disc < 0). This is
+        // the same quadratic resolve() solves internally
+        // (roadmap/ballistics/stories/s2-moving-targets.md, "Time-domain
+        // contact solve"), evaluated here against the unled direction to
+        // prove lead and extrapolation only balance as a pair: extrapolation
+        // without lead systematically misses a lateral mover.
+        float fromX = 2.5f, fromY = 5.5f;
+        float u0x = 10.5f, u0y = 11.5f;
+        float wx = 0f, wy = -0.5f;
+        float rawDx = u0x - fromX, rawDy = u0y - fromY;
+        float rawDist = (float) Math.sqrt(rawDx * rawDx + rawDy * rawDy);
+        float rawDirX = rawDx / rawDist, rawDirY = rawDy / rawDist;
+        float relVelX = wx - roundVelocity * rawDirX;
+        float relVelY = wy - roundVelocity * rawDirY;
+        float r0x = u0x - fromX, r0y = u0y - fromY;
+        float a = relVelX * relVelX + relVelY * relVelY;
+        float b = 2f * (r0x * relVelX + r0y * relVelY);
+        float c = r0x * r0x + r0y * r0y - UnitType.MARINE.radius * UnitType.MARINE.radius;
+        float disc = b * b - 4f * a * c;
+        assertTrue(disc < 0f, "firing at the raw (unled) position must not intersect the mover's circle at any time");
+    }
+
+    // ---- mover entering the corridor: gathered (widened margin) and contacted mid-flight ----
+
+    @Test
+    void moverEnteringTheCorridorDuringASlowRoundsFlightIsGatheredAndContacted() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        // Locked target far downrange on the shooter's row, stationary — aim
+        // direction is pinned exactly horizontal, keeping this scenario's
+        // geometry simple.
+        long farTarget = spawn(sim, Faction.DEFENDER, 20);
+        // Incidental candidate at (7.5, 7.3): 1.8 cells off the ray at fire
+        // time — outside S1's flat GATHER_MARGIN_CELLS (1.0) plus radius, so
+        // S1's gather would never have surfaced it. Walking toward the row
+        // (-y) at 1.5 c/s, it enters the ray's corridor mid-flight.
+        long candidate = sim.spawn(new EntitySpec("candidate", Faction.DEFENDER, UnitType.MARINE, 7, 7));
+        sim.world().setPos(candidate, 7.5f, 7.3f);
+        setVelocity(sim, candidate, 0f, -1.5f);
+        float roundVelocity = 5f; // slow round — long flight, wide exposure window
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (irrelevant), candidate's cover roll (no grid cover
+        // anywhere here), candidate's hit roll (INCIDENTAL_HIT_CHANCE=0.35;
+        // it is not the locked target). The candidate's contact time (~1.0s)
+        // is well before the far target's (~3.5s), so the round never
+        // reaches the far target's event — no rolls queued for it.
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(candidate, res.victimId(), "the corridor-entering candidate must be gathered and contacted before the round ever reaches the far target");
+        assertFalse(res.hitIntended(), "candidate is not the locked target");
+        assertEquals(1.0f, res.flightTime(), 1e-2f);
+        assertEquals(7.5f, res.endX(), 1e-2f);
+        assertEquals(5.5f, res.endY(), 1e-2f);
+    }
+
+    // ---- mover leaving cover: edge-clip lookup uses the extrapolated cell, not the fire-tick cell ----
+
+    @Test
+    void moverLeavingCoverByContactTimeSkipsTheEdgeClipRoll() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        // Cover facing WEST (the shooter's direction) at the victim's
+        // FIRE-TICK cell only — level 3, a 0.45 block chance if (wrongly)
+        // read at the fire-tick cell.
+        grid.setCoverAtFacing(10, ROW, NavigationGrid.FACING_W, 3);
+        assertEquals(0, grid.getCoverAt(12, ROW, -10, 0), "sanity: no cover baked at the cell the victim extrapolates into");
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        long mover = spawn(sim, Faction.DEFENDER, 10); // fire-tick cell (10, ROW) — the covered cell
+        setVelocity(sim, mover, 2f, 0f); // sprinting east, deeper into the corridor
+        float roundVelocity = 10f;
+        BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (irrelevant), cover-clip roll pinned at 0.1 — WOULD
+        // block under the (wrong) fire-tick-cell reading (0.1 < 0.45) but
+        // must NOT block under the correct extrapolated-cell reading (cover
+        // 0 there, so any roll fails to trigger it). hit roll: guaranteed.
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.1f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
+                "a COVER_CLIP result here means the edge-clip lookup wrongly used the mover's fire-tick cell instead of its extrapolated cell");
+        assertEquals(mover, res.victimId());
+        assertTrue(res.hitIntended());
+    }
+
+    // ---- degenerate pacing: a ~= 0 must never NaN, and never falsely contacts ----
+
+    @Test
+    void degeneratePacingUnitProducesNoContactAndNoNaN() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        long farTarget = spawn(sim, Faction.DEFENDER, 20); // stationary, pins the aim direction horizontal
+        // Exactly paces the round's own velocity vector (10, 0) — relative
+        // velocity is the zero vector, so a < 1e-6 in the quadratic. Not
+        // already overlapping (r0 = (8, 0), well outside the 0.3 radius), so
+        // c > 0: must skip without ever computing a sqrt.
+        long pacer = spawn(sim, Faction.DEFENDER, 10);
+        setVelocity(sim, pacer, 10f, 0f);
+        float roundVelocity = 10f;
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (irrelevant); the pacer produces no event at all
+        // (skipped before any roll), so only the far target's cover+hit
+        // rolls are queued — a queue sized for the pacer too would exhaust
+        // wrong if it wrongly produced an event.
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(farTarget, res.victimId(), "the pacing unit must never register a contact");
+        assertFalse(Float.isNaN(res.endX()));
+        assertFalse(Float.isNaN(res.endY()));
+        assertFalse(Float.isNaN(res.flightTime()));
+        assertTrue(sim.getRoster().isAliveById(pacer), "sanity: the pacer exists and is alive, just never contacted");
+    }
+
+    // ---- behind-shooter regression, re-asserted in the time domain ----
+
+    @Test
+    void enemyBehindTheShooterStillProducesNoContactWhileMoving() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        // One cell directly behind the shooter, drifting perpendicular (+y)
+        // at 1 c/s — a genuinely non-degenerate quadratic (a > 0, real
+        // roots exist) whose EXIT root still lands behind the shooter
+        // (sExit < 0), so it must be skipped exactly as S1's stationary
+        // case was, not false-clamped to s=0.
+        long behindEnemy = spawn(sim, Faction.DEFENDER, 1);
+        setVelocity(sim, behindEnemy, 0f, 1f);
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (irrelevant), cover roll (no block), hit roll
+        // (hits). No roll is consumed for behindEnemy — it's skipped before
+        // any event is created.
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(target, res.victimId(), "the moving enemy behind the shooter must never produce a contact — its exit root is still negative");
+        assertTrue(res.hitIntended());
+        assertTrue(sim.getRoster().isAliveById(behindEnemy), "sanity: behindEnemy exists and is alive, just never contacted");
+    }
+
+    // ---- muzzle clearance and wall cap stay DISTANCE tests, evaluated at contact time, even for a moving contact ----
+
+    @Test
+    void friendlyMuzzleClearanceUsesContactTimeDistanceEvenWhileMoving() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        long farTarget = spawn(sim, Faction.DEFENDER, 10);
+        // Friendly at fire-tick distance 3.0 cells (outside the 2.0-cell
+        // FRIENDLY_MUZZLE_CLEARANCE), but closing on the shooter at 5 c/s:
+        // by contact time it has closed to 1.8 cells (v*sEntry), inside the
+        // clearance. A naive fire-tick-distance check would have let this
+        // contact through; the correct v*sEntry check must skip it.
+        long friendly = spawn(sim, Faction.MARINE, 5);
+        setVelocity(sim, friendly, -5f, 0f);
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // angle, offsetR (irrelevant) — friendly is skipped before any roll;
+        // farTarget's cover roll (no block), hit roll (guaranteed).
+        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(farTarget, res.victimId(), "the closing friendly must still be muzzle-clearance-skipped at its contact-time distance");
+        assertTrue(res.hitIntended());
+    }
+
+    @Test
+    void wallCapStillSkipsAMovingContactPastTheWall() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(6, ROW, false);
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
+        // 8 cells out, closing on the shooter at 3 c/s — even accounting for
+        // that motion, its contact-time distance (v*sEntry ~= 5.92) is still
+        // well past the wall at 4.0 cells, so the wall must still cap the
+        // ray before this contact is ever recorded.
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        setVelocity(sim, target, -3f, 0f);
+        BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        QueueRandom rng = new QueueRandom(0f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.WALL, res.kind());
+        assertEquals(0L, res.victimId());
+        assertEquals(cellCenter(6), res.endX(), EPS);
+        assertEquals(rowCenter(), res.endY(), EPS);
+        assertEquals((cellCenter(6) - cellCenter(2)) / VEL, res.flightTime(), EPS);
     }
 }
