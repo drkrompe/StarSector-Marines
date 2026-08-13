@@ -164,9 +164,11 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
   [`complete/s1-resolver-core.md`](complete/s1-resolver-core.md)
   (`85ec50e6` + `382b0ee6` on `worktree-ballistics-s1`).
 - **S2 — moving targets.** Velocity extrapolation in the contact solve +
-  shooter lead. Per-weapon round velocity becomes a real stat.
-- **S3 — stylized visible rounds.** Renderer consumes per-shot
-  velocity-derived lifetimes; tracer/sprite pass for visible rounds.
+  shooter lead. Per-weapon round velocity becomes a real stat. Story:
+  [`stories/s2-moving-targets.md`](stories/s2-moving-targets.md).
+- **S3 — stylized visible rounds.** Primaries render as traveling tinted
+  bolts on the flight clock (new `ShotFx.Bolt` body + generated bolt
+  sprite). Story: [`stories/s3-visible-rounds.md`](stories/s3-visible-rounds.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.
