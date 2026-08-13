@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
+
 /**
  * A battlefield ability the player can invoke during a battle. The fleet the
  * player brought to the planet determines <em>which</em> powers exist (the
@@ -32,11 +35,20 @@ public abstract class CommandPower {
     /** Sim-seconds before this power can fire again after committing. */
     public final float cooldownSeconds;
 
+    /** Maximum activations this battle; {@code 0} means unlimited. */
+    public final int maxCharges;
+
     protected CommandPower(String id, String displayName, float cpCost, float cooldownSeconds) {
+        this(id, displayName, cpCost, cooldownSeconds, 0);
+    }
+
+    protected CommandPower(String id, String displayName, float cpCost,
+                           float cooldownSeconds, int maxCharges) {
         this.id = id;
         this.displayName = displayName;
         this.cpCost = cpCost;
         this.cooldownSeconds = cooldownSeconds;
+        this.maxCharges = Math.max(0, maxCharges);
     }
 
     /**
@@ -45,7 +57,17 @@ public abstract class CommandPower {
      * already running, so implementations only produce the effect (for
      * {@link ReconPing}, register a transient reveal on {@code service}).
      */
-    public abstract void resolve(int cellX, int cellY, CommandPowerService service);
+    public abstract void resolve(int cellX, int cellY, CommandPowerService service,
+                                 BattleControl battle);
+
+    /**
+     * Whether this power can be committed at the targeted cell. The UI uses
+     * the same predicate as the sim commit pass, so an invalid physical drop
+     * remains armed instead of silently consuming the click or command points.
+     */
+    public boolean canTarget(int cellX, int cellY, BattleView battle) {
+        return battle != null && battle.getGrid().inBounds(cellX, cellY);
+    }
 
     /**
      * Radius in cells of the targeting-preview ring the UI draws while aiming

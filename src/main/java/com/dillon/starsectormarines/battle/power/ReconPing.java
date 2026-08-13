@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+
 /**
  * The S1 skeleton power: a recon sweep that lifts fog in a radius around the
  * targeted cell for a short window, then fades. Chosen because it touches only
@@ -34,7 +36,8 @@ public final class ReconPing extends CommandPower {
     }
 
     @Override
-    public void resolve(int cellX, int cellY, CommandPowerService service) {
+    public void resolve(int cellX, int cellY, CommandPowerService service,
+                        BattleControl battle) {
         service.addActivePing(cellX, cellY, REVEAL_RADIUS_CELLS, REVEAL_SECONDS);
     }
 }

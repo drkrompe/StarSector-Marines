@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.power.CommandPowerService.PendingActivation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 
 /**
  * Stateless tick consumer for {@link CommandPowerService} — the
@@ -17,9 +18,11 @@ import com.dillon.starsectormarines.battle.power.CommandPowerService.PendingActi
 public final class CommandPowerSystem {
 
     private final CommandPowerService service;
+    private final BattleControl battle;
 
-    public CommandPowerSystem(CommandPowerService service) {
+    public CommandPowerSystem(CommandPowerService service, BattleControl battle) {
         this.service = service;
+        this.battle = battle;
     }
 
     public void tick(float dt) {
@@ -28,8 +31,9 @@ public final class CommandPowerSystem {
         for (PendingActivation req : service.drainPending()) {
             CommandPower power = service.getPower(req.powerId);
             if (!service.canActivate(power)) continue; // not affordable / on cooldown — drop
+            if (!power.canTarget(req.cellX, req.cellY, battle)) continue;
             service.commit(power);
-            power.resolve(req.cellX, req.cellY, service);
+            power.resolve(req.cellX, req.cellY, service, battle);
         }
         service.regenCommandPoints(dt);
         service.tickCooldowns(dt);

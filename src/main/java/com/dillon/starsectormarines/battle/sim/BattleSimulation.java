@@ -205,8 +205,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.power.CommandPowerService commandPowers =
             new com.dillon.starsectormarines.battle.power.CommandPowerService();
     /** Stateless consumer that drains queued activations (commit cost + cooldown + resolve), regens command points, and ages cooldowns + transient pings each tick. */
-    private final com.dillon.starsectormarines.battle.power.CommandPowerSystem commandPowerSystem =
-            new com.dillon.starsectormarines.battle.power.CommandPowerSystem(commandPowers);
+    private final com.dillon.starsectormarines.battle.power.CommandPowerSystem commandPowerSystem;
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -302,6 +301,8 @@ public class BattleSimulation implements BattleControl {
             new TacticalContextService();
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
+        this.commandPowerSystem = new com.dillon.starsectormarines.battle.power.CommandPowerSystem(
+                commandPowers, this);
         this.navigation = new NavigationService(grid, topology);
         this.mapEditor = new MapEditor(navigation);
         // Alias-fields share the same instances as the service so the sim's

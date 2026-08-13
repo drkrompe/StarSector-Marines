@@ -24,6 +24,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  */
 public final class ShuttleMission {
 
+    /** Physical cargo recipe. Infantry preserves the historical default. */
+    public AirDeliveryPayload payload = InfantryPayload.INSTANCE;
+
     /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
     public static final float HOVER_HP_THRESHOLD = 0.4f;
 

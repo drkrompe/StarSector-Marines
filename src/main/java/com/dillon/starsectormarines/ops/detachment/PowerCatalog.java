@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -37,6 +38,9 @@ public final class PowerCatalog {
     private static final String SURVEYING_EQUIPMENT_MOD = HullMods.SURVEYING_EQUIPMENT;
     /** Apogee — built-in survey/sensor suite (the canonical scanner cruiser). Base hull id. */
     private static final String APOGEE_HULL = "apogee";
+    private static final String VALKYRIE_HULL = "valkyrie";
+    private static final String GROUND_SUPPORT_MOD = "ground_support";
+    private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
 
     private PowerCatalog() {}
 
@@ -56,6 +60,9 @@ public final class PowerCatalog {
         // Dev convenience — grant recon ping for free (see DevConfig). Off in prod.
         if (com.dillon.starsectormarines.DevConfig.ALWAYS_GRANT_RECON_PING) {
             byId.put(ReconPing.ID, new ReconPing());
+        }
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MECH_SUPPORT) {
+            byId.put(MechSupport.ID, new MechSupport());
         }
 
         if (committedShips != null) {
@@ -80,9 +87,14 @@ public final class PowerCatalog {
             if (mods != null && (mods.contains(HIRES_SENSORS_MOD) || mods.contains(SURVEYING_EQUIPMENT_MOD))) {
                 byId.putIfAbsent(ReconPing.ID, new ReconPing());
             }
+            if (mods != null && (mods.contains(GROUND_SUPPORT_MOD)
+                    || mods.contains(ADVANCED_GROUND_SUPPORT_MOD))) {
+                byId.putIfAbsent(MechSupport.ID, new MechSupport());
+            }
         }
         String baseId = ship.getHullSpec() != null ? ship.getHullSpec().getBaseHullId() : null;
         if (APOGEE_HULL.equals(baseId)) byId.putIfAbsent(ReconPing.ID, new ReconPing());
+        if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MechSupport.ID, new MechSupport());
     }
 
     /** The employer's offered power ids for this mission (the contract co-source). */
@@ -93,6 +105,7 @@ public final class PowerCatalog {
     /** Maps a stable power id to a fresh power instance. Returns null for unknown ids. */
     private static CommandPower forId(String id) {
         if (ReconPing.ID.equals(id)) return new ReconPing();
+        if (MechSupport.ID.equals(id)) return new MechSupport();
         return null;
     }
 }

@@ -59,6 +59,7 @@ public final class CommandPowerPanel implements HudPanel {
     private static final Color COST_FG      = new Color(0x90, 0xC0, 0xFF);
     private static final Color CP_FG        = new Color(0xC8, 0xE0, 0xFF);
     private static final Color RETICLE      = new Color(0x80, 0xF0, 0xA0, 0xE0);
+    private static final Color RETICLE_INVALID = new Color(0xF0, 0x60, 0x50, 0xE8);
 
     private final BattleUiContext ctx;
 
@@ -154,9 +155,10 @@ public final class CommandPowerPanel implements HudPanel {
             Fonts.ORBITRON_20.drawString(p.displayName, x0 + PAD, y0 + BTN_H - 10f, nameColor, alphaMult);
 
             // Second line: cost when ready, cooldown countdown otherwise.
+            int charges = svc.getChargesRemaining(p.id);
             String sub = cd > 0f
                     ? ((int) Math.ceil(cd)) + "s"
-                    : Math.round(p.cpCost) + " CP";
+                    : Math.round(p.cpCost) + " CP" + (charges >= 0 ? "  " + charges + "x" : "");
             Fonts.ORBITRON_20.drawString(sub, x0 + PAD, y0 + 8f, cd > 0f ? NAME_DISABLED : COST_FG, alphaMult);
         }
 
@@ -176,10 +178,13 @@ public final class CommandPowerPanel implements HudPanel {
 
         float cx = cam.cellToScreenX(cellX + 0.5f);
         float cy = cam.cellToScreenY(cellY + 0.5f);
-        float a = RETICLE.getAlpha() / 255f * alphaMult;
+        boolean valid = power.canTarget(cellX, cellY, ctx.getSim());
+        Color reticleColor = valid ? RETICLE : RETICLE_INVALID;
+        float a = reticleColor.getAlpha() / 255f * alphaMult;
 
         glDisable(GL_TEXTURE_2D);
-        glColor4f(RETICLE.getRed() / 255f, RETICLE.getGreen() / 255f, RETICLE.getBlue() / 255f, a);
+        glColor4f(reticleColor.getRed() / 255f, reticleColor.getGreen() / 255f,
+                reticleColor.getBlue() / 255f, a);
         glLineWidth(1.5f);
 
         // Crosshair.
@@ -249,8 +254,11 @@ public final class CommandPowerPanel implements HudPanel {
                 int cellX = (int) Math.floor(cam.screenToCellX(e.getX()));
                 int cellY = (int) Math.floor(cam.screenToCellY(e.getY()));
                 if (cellX >= 0 && cellY >= 0 && cellX < cam.worldCellsW() && cellY < cam.worldCellsH()) {
-                    svc.requestActivation(targetingPowerId, cellX, cellY);
-                    targetingPowerId = null;
+                    CommandPower power = svc.getPower(targetingPowerId);
+                    if (power != null && power.canTarget(cellX, cellY, sim)) {
+                        svc.requestActivation(targetingPowerId, cellX, cellY);
+                        targetingPowerId = null;
+                    }
                     e.consume();
                 }
             }

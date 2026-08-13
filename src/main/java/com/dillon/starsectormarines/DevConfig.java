@@ -160,6 +160,10 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean ALWAYS_GRANT_RECON_PING = true;
 
+    /** Expose Mech Support for battle iteration without requiring its fleet source. */
+    @DebugOnly
+    public static final boolean DEBUG_GRANT_MECH_SUPPORT = true;
+
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
      * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real
