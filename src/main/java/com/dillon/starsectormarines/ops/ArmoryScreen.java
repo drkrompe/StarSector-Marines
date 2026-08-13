@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.marine.MarineArmory;
@@ -20,6 +21,7 @@ import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.SpriteThumbWidget;
+import com.dillon.starsectormarines.ui.StatBarWidget;
 import com.dillon.starsectormarines.ui.TextFieldWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -45,6 +47,10 @@ public final class ArmoryScreen implements Screen {
     private static final Color MUTED = new Color(0x92, 0x9A, 0xA5);
     private static final Color GOOD = new Color(0x80, 0xD8, 0x98);
     private static final Color BAD = new Color(0xE0, 0x70, 0x70);
+    private static final Color DAMAGE_BAR = new Color(0xE4, 0x78, 0x68);
+    private static final Color DPS_BAR = new Color(0xF0, 0xB8, 0x52);
+    private static final Color RANGE_BAR = new Color(0x72, 0xB8, 0xE8);
+    private static final Color ACCURACY_BAR = new Color(0x72, 0xD2, 0x8D);
 
     private final WidgetRoot widgets = new WidgetRoot();
     private PositionAPI position;
@@ -149,7 +155,7 @@ public final class ArmoryScreen implements Screen {
                 "Parts & materials: " + armory.fabricationMaterials()
                         + "    Victories: " + armory.victories()
                         + "    High-risk: " + armory.highRiskVictories()
-                        + "    Select an item to equip · + fabricates one",
+                        + "    Select to equip · + fabricates one",
                 left, top + 24f, VALUE));
 
         float rosterW = 236f;
@@ -164,7 +170,7 @@ public final class ArmoryScreen implements Screen {
 
     private void buildLoadoutRoster(float x, float top, float width) {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "FORMATION", x, top - 10f, HEADER));
+                "FORMATION", x, top - 14f, HEADER));
         int pageSize = 4;
         int pages = Math.max(1, (roster.squads().size() + pageSize - 1) / pageSize);
         int selectedIndex = 0;
@@ -179,17 +185,19 @@ public final class ArmoryScreen implements Screen {
             squadPage = selectedIndex / pageSize;
         }
         squadPage = Math.max(0, Math.min(squadPage, pages - 1));
-        addButton(x + width - 72f, top - 32f, 32f, "<", squadPage > 0 ? () -> {
-            squadPage--;
-            selectFirstSquadOnLoadoutPage(pageSize);
-            rebuild();
-        } : null, squadPage > 0 ? HEADER : MUTED);
-        addButton(x + width - 36f, top - 32f, 32f, ">", squadPage + 1 < pages ? () -> {
-            squadPage++;
-            selectFirstSquadOnLoadoutPage(pageSize);
-            rebuild();
-        } : null, squadPage + 1 < pages ? HEADER : MUTED);
-        float y = top - 48f;
+        if (pages > 1) {
+            addButton(x + width - 72f, top - 38f, 32f, "<", squadPage > 0 ? () -> {
+                squadPage--;
+                selectFirstSquadOnLoadoutPage(pageSize);
+                rebuild();
+            } : null, squadPage > 0 ? HEADER : MUTED);
+            addButton(x + width - 36f, top - 38f, 32f, ">", squadPage + 1 < pages ? () -> {
+                squadPage++;
+                selectFirstSquadOnLoadoutPage(pageSize);
+                rebuild();
+            } : null, squadPage + 1 < pages ? HEADER : MUTED);
+        }
+        float y = top - 58f;
         int start = squadPage * pageSize;
         int end = Math.min(roster.squads().size(), start + pageSize);
         for (int i = start; i < end; i++) {
@@ -208,8 +216,8 @@ public final class ArmoryScreen implements Screen {
 
         MarineSquad selectedSquad = roster.squadById(selectedSquadId);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "MARINES", x, y - 4f, HEADER));
-        y -= 42f;
+                "MARINES", x, y - 8f, HEADER));
+        y -= 50f;
         if (selectedSquad != null) {
             for (MarineSoldier soldier : roster.squadMembers(selectedSquad)) {
                 if (y < position.getY() + 136f) break;
@@ -226,13 +234,13 @@ public final class ArmoryScreen implements Screen {
         }
 
         if (selectedSquad != null && !selectedSquad.reserve()) {
-            float presetY = position.getY() + 70f;
+            float presetY = position.getY() + 72f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                    "FIRETEAM PRESET", x, presetY + 68f, HEADER));
+                    "FIRETEAM PRESET", x, presetY + 92f, HEADER));
             int i = 0;
             for (SquadEquipmentPreset preset : SquadEquipmentPreset.values()) {
                 float bx = x + (i % 2) * (width / 2f + 2f);
-                float by = presetY + (1 - i / 2) * 36f;
+                float by = presetY + (1 - i / 2) * 38f;
                 addButton(bx, by, width / 2f - 4f, preset.displayName, () -> {
                     SquadPresetResult result = roster.applySquadPreset(selectedSquad.id(), preset);
                     presetSucceeded = result == SquadPresetResult.APPLIED;
@@ -267,40 +275,53 @@ public final class ArmoryScreen implements Screen {
                 x, top - 36f, VALUE));
         boolean editable = canEdit(soldier);
 
-        float primaryY = top - 152f;
-        addButton(x, primaryY, width, 96f, "", editable ? () -> {
+        float primaryY = top - 220f;
+        float primaryH = 164f;
+        addButton(x, primaryY, width, primaryH, "", editable ? () -> {
             loadoutSucceeded = roster.cyclePrimary(soldier.id());
             loadoutFeedback = loadoutSucceeded ? "Primary cycled" : "No available primary";
             rebuild();
         } : null, editable ? HEADER : MUTED);
         widgets.add(new SpriteThumbWidget(weaponIcon(soldier.primary()),
-                x + 12f, primaryY + 8f, 92f, 80f));
+                x + 10f, primaryY + 72f, 72f, 80f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "PRIMARY",
-                x + 112f, primaryY + 78f, MUTED));
+                x + 92f, primaryY + primaryH - 10f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 soldier.primary().displayName + " · " + soldier.primaryGrade().displayName
                         + " [" + soldier.primaryGrade().tierMark() + "]",
-                x + 112f, primaryY + 50f, GOOD));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "DMG " + fmt(soldier.primary().damage * soldier.primaryGrade().damageMult)
-                        + "  ACC " + pct(soldier.primary().accuracy * soldier.primaryGrade().accuracyMult)
-                        + "  CD " + fmt(soldier.primary().cooldown * soldier.primaryGrade().cooldownMult),
-                x + 112f, primaryY + 24f, VALUE));
+                x + 92f, primaryY + primaryH - 36f, GOOD));
 
-        float armorY = top - 370f;
+        MarineWeapon weapon = soldier.primary();
+        EquipmentGrade grade = soldier.primaryGrade();
+        float volley = InfantryCombatStats.volleyDamage(weapon, grade);
+        float dps = InfantryCombatStats.estimatedDps(weapon, grade, soldier.profile());
+        float effectiveRange = InfantryCombatStats.range(weapon, grade);
+        float statLabelX = x + 92f;
+        float barX = x + 144f;
+        float barW = Math.max(56f, width - 206f);
+        addStatRow("DMG", fmt(volley), volley / maxVolleyDamage(),
+                statLabelX, barX, primaryY + 64f, barW, DAMAGE_BAR);
+        addStatRow("DPS", fmt(dps), dps / maxEstimatedDps(soldier),
+                statLabelX, barX, primaryY + 44f, barW, DPS_BAR);
+        addStatRow("RNG", Integer.toString(Math.round(effectiveRange)),
+                effectiveRange / maxEffectiveRange(),
+                statLabelX, barX, primaryY + 24f, barW, RANGE_BAR);
+        addAccuracyBands(x + 12f, primaryY + 7f, width - 24f, weapon, grade, soldier);
+
+        float armorY = top - 430f;
         addButton(x + 36f, armorY, width - 72f, 190f, "", editable ? () -> {
             loadoutSucceeded = roster.cycleArmor(soldier.id());
             loadoutFeedback = loadoutSucceeded ? "Armor cycled" : "No available armor";
             rebuild();
         } : null, editable ? HEADER : MUTED);
         widgets.add(new SpriteThumbWidget(soldier.armor().iconPath,
-                x + 48f, armorY + 12f, width - 96f, 166f));
+                x + 54f, armorY + 38f, width - 108f, 122f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "ARMOR · TIER " + soldier.armor().tierMark(), x + 48f, armorY + 174f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                soldier.armor().displayName, x + 48f, armorY + 28f, GOOD));
+                soldier.armor().displayName, x + 48f, armorY + 30f, GOOD));
 
-        float secondaryY = top - 478f;
+        float secondaryY = top - 532f;
         addButton(x, secondaryY, width, 82f, "", editable ? () -> {
             MarineSecondary next = soldier.secondary() == null
                     ? MarineSecondary.ROCKET_LAUNCHER : null;
@@ -337,7 +358,7 @@ public final class ArmoryScreen implements Screen {
         float cellGap = 6f;
         float cellW = Math.max(86f, (width - 3f * cellGap) / 4f);
         float cellH = 66f;
-        float y = top - 86f;
+        float y = top - 96f;
         for (int row = 0; row < weapons.length; row++) {
             MarineWeapon weapon = weapons[row];
             for (int col = 0; col < grades.length; col++) {
@@ -349,8 +370,8 @@ public final class ArmoryScreen implements Screen {
         }
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "ARMOR VAULT", x, y + 20f, HEADER));
-        y -= 70f;
+                "ARMOR VAULT", x, y + 18f, HEADER));
+        y -= 88f;
         int col = 0;
         for (MarineArmorPattern armor : MarineArmorPattern.values()) {
             float bx = x + (col % 4) * (cellW + cellGap);
@@ -361,7 +382,7 @@ public final class ArmoryScreen implements Screen {
 
         float secondaryY = position.getY() + 70f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "SPECIAL ISSUE", x, secondaryY + 74f, HEADER));
+                "SPECIAL ISSUE", x, secondaryY + 94f, HEADER));
         boolean unlocked = armory.isSecondaryUnlocked(MarineSecondary.ROCKET_LAUNCHER);
         addButton(x, secondaryY, Math.min(width, 300f), 64f,
                 "Launcher [" + armory.ownedSecondary(MarineSecondary.ROCKET_LAUNCHER) + "]",
@@ -369,12 +390,13 @@ public final class ArmoryScreen implements Screen {
                 unlocked ? HEADER : MUTED);
         widgets.add(new SpriteThumbWidget(MarineSecondary.ROCKET_LAUNCHER.aimSpritePath,
                 x + 8f, secondaryY + 6f, 56f, 52f));
+        boolean canPrint = armory.canPrintSecondary(MarineSecondary.ROCKET_LAUNCHER);
         addButton(x + Math.min(width, 300f) - 30f, secondaryY + 5f, 24f, "+",
-                unlocked ? () -> {
+                canPrint ? () -> {
                     loadoutSucceeded = armory.printSecondary(MarineSecondary.ROCKET_LAUNCHER);
                     loadoutFeedback = loadoutSucceeded ? "Launcher fabricated" : "Insufficient materials";
                     rebuild();
-                } : null, unlocked ? VALUE : MUTED);
+                } : null, canPrint ? VALUE : MUTED);
     }
 
     private void addPrimaryCell(float x, float y, float w, float h, MarineSoldier soldier,
@@ -393,12 +415,13 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 unlocked ? "[" + armory.ownedPrimary(weapon, grade) + "]" : "LOCK",
                 x + 48f, y + 25f, unlocked ? VALUE : MUTED));
-        addButton(x + w - 27f, y + 4f, 23f, 23f, "+", unlocked ? () -> {
+        boolean canPrint = armory.canPrintPrimary(weapon, grade);
+        addButton(x + w - 27f, y + 4f, 23f, 23f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printPrimary(weapon, grade);
             loadoutFeedback = loadoutSucceeded ? weapon.displayName + " fabricated"
                     : "Insufficient materials";
             rebuild();
-        } : null, unlocked ? VALUE : MUTED);
+        } : null, canPrint ? VALUE : MUTED);
     }
 
     private void addArmorCell(float x, float y, float w, float h, MarineSoldier soldier,
@@ -414,12 +437,13 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 "T" + armor.tierMark() + " [" + armory.ownedArmor(armor) + "]",
                 x + 6f, y + h - 6f, unlocked ? VALUE : MUTED));
-        addButton(x + w - 27f, y + 4f, 23f, 23f, "+", unlocked ? () -> {
+        boolean canPrint = armory.canPrintArmor(armor);
+        addButton(x + w - 27f, y + 4f, 23f, 23f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printArmor(armor);
             loadoutFeedback = loadoutSucceeded ? armor.displayName + " fabricated"
                     : "Insufficient materials";
             rebuild();
-        } : null, unlocked ? VALUE : MUTED);
+        } : null, canPrint ? VALUE : MUTED);
     }
 
     private void equipSecondary(MarineSoldier soldier) {
@@ -686,6 +710,57 @@ public final class ArmoryScreen implements Screen {
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) return false;
         MarineSquad squad = roster.squadForSoldier(soldier.id());
         return squad != null && !squad.stationed();
+    }
+
+    private void addStatRow(String label, String value, float fill,
+                            float labelX, float barX, float y, float barW, Color color) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, labelX, y + 14f, MUTED));
+        widgets.add(new StatBarWidget(barX, y + 2f, barW, 9f, fill, color));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, value,
+                barX + barW + 7f, y + 14f, VALUE));
+    }
+
+    private void addAccuracyBands(float x, float y, float width, MarineWeapon weapon,
+                                  EquipmentGrade grade, MarineSoldier soldier) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "ACC", x, y + 15f, MUTED));
+        float groupX = x + 48f;
+        float gap = 6f;
+        float bandW = (width - 48f - 2f * gap) / 3f;
+        float[] fractions = { 0.20f, 0.60f, 1.00f };
+        String[] names = { "N", "M", "MAX" };
+        for (int i = 0; i < fractions.length; i++) {
+            float accuracy = InfantryCombatStats.accuracyAtRangeFraction(
+                    weapon, grade, soldier.profile(), fractions[i]);
+            float bx = groupX + i * (bandW + gap);
+            widgets.add(new StatBarWidget(bx, y + 1f, bandW, 8f, accuracy, ACCURACY_BAR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    names[i] + " " + pct(accuracy), bx, y + 15f, GOOD));
+        }
+    }
+
+    private static float maxVolleyDamage() {
+        float max = 1f;
+        for (MarineWeapon weapon : playerWeapons()) {
+            max = Math.max(max, InfantryCombatStats.volleyDamage(weapon, EquipmentGrade.MASTERWORK));
+        }
+        return max;
+    }
+
+    private static float maxEstimatedDps(MarineSoldier soldier) {
+        float max = 1f;
+        for (MarineWeapon weapon : playerWeapons()) {
+            max = Math.max(max, InfantryCombatStats.estimatedDps(
+                    weapon, EquipmentGrade.MASTERWORK, soldier.profile()));
+        }
+        return max;
+    }
+
+    private static float maxEffectiveRange() {
+        float max = 1f;
+        for (MarineWeapon weapon : playerWeapons()) {
+            max = Math.max(max, InfantryCombatStats.range(weapon, EquipmentGrade.MASTERWORK));
+        }
+        return max;
     }
 
     private static MarineWeapon[] playerWeapons() {

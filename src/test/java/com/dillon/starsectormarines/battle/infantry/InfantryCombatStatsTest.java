@@ -54,6 +54,24 @@ public class InfantryCombatStatsTest {
     }
 
     @Test
+    public void comparisonStatsRepresentBurstOutputAndRangeFalloff() {
+        assertEquals(3f, InfantryCombatStats.volleyDamage(
+                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 1e-6f);
+        assertEquals(3f, InfantryCombatStats.estimatedDps(
+                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+
+        float near = InfantryCombatStats.accuracyAtRangeFraction(
+                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
+        float middle = InfantryCombatStats.accuracyAtRangeFraction(
+                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.6f);
+        float maximum = InfantryCombatStats.accuracyAtRangeFraction(
+                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
+        assertTrue(near > middle);
+        assertTrue(middle > maximum);
+        assertEquals(0.2f, maximum, 1e-6f);
+    }
+
+    @Test
     public void experienceThresholdsAreStable() {
         assertEquals(ExperienceTier.GREEN, ExperienceTier.fromXp(99));
         assertEquals(ExperienceTier.REGULAR, ExperienceTier.fromXp(100));

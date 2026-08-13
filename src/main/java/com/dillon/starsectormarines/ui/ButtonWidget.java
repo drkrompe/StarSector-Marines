@@ -18,9 +18,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 /**
  * Rectangular pressable button. Renders as a filled quad with a 1px border;
  * the fill color shifts on hover/press so it's obvious the input layer is
- * working. Text is intentionally absent for now — bitmap font rendering inside
- * our GL pass is a separate concern from the input/event routing this layer
- * exists to prove.
+ * working. A null action is a disabled button: it renders subdued and does not
+ * arm or consume input. Text is supplied by a sibling label widget.
  *
  * <p>{@link #onClick} fires on mouse-up inside the widget after a mouse-down
  * that also landed inside (standard "armed" semantics).
@@ -42,11 +41,12 @@ public class ButtonWidget extends BaseWidget {
 
     @Override
     public void onMouseMove(int px, int py) {
-        hovered = contains(px, py);
+        hovered = onClick != null && contains(px, py);
     }
 
     @Override
     public boolean onMouseDown(int px, int py) {
+        if (onClick == null) return false;
         armed = true;
         return true;
     }
@@ -55,8 +55,8 @@ public class ButtonWidget extends BaseWidget {
     public boolean onMouseUp(int px, int py) {
         boolean wasArmed = armed;
         armed = false;
-        if (wasArmed && contains(px, py)) {
-            if (onClick != null) onClick.run();
+        if (wasArmed && onClick != null && contains(px, py)) {
+            onClick.run();
             return true;
         }
         return false;
@@ -69,7 +69,8 @@ public class ButtonWidget extends BaseWidget {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         float r, g, b;
-        if (armed)        { r = 0.45f; g = 0.65f; b = 0.85f; }
+        if (onClick == null) { r = 0.10f; g = 0.12f; b = 0.15f; }
+        else if (armed)   { r = 0.45f; g = 0.65f; b = 0.85f; }
         else if (hovered) { r = 0.30f; g = 0.45f; b = 0.65f; }
         else              { r = 0.15f; g = 0.22f; b = 0.32f; }
         glColor4f(r, g, b, 0.85f * alphaMult);
@@ -81,7 +82,8 @@ public class ButtonWidget extends BaseWidget {
         glVertex2f(x,     y + h);
         glEnd();
 
-        glColor4f(0.75f, 0.85f, 1.0f, 0.9f * alphaMult);
+        if (onClick == null) glColor4f(0.35f, 0.39f, 0.44f, 0.72f * alphaMult);
+        else glColor4f(0.75f, 0.85f, 1.0f, 0.9f * alphaMult);
         glLineWidth(1f);
         glBegin(GL_LINE_LOOP);
         glVertex2f(x,     y);
