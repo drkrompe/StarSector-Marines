@@ -1,6 +1,6 @@
 # Captain-to-fireteam command
 
-**Status:** IN PROGRESS — Slices 1–3 shipped (2026-08-12)
+**Status:** COMPLETE — Slices 1–4 shipped (2026-08-12)
 
 ## Problem
 
@@ -78,9 +78,9 @@ player-facing explanation.
 3. ~~**Briefing authority** — default to the selected captain's home formation,
    enforce active-captain and rank limits, and display selected/max fireteams.~~
    ✅ `f6247ace`
-4. **Outcome context** — retain the selected force command and deployed
+4. ~~**Outcome context** — retain the selected force command and deployed
    fireteam ids in the frozen outcome so debrief/history cannot drift after
-   reassignment.
+   reassignment.~~ ✅ `48471e93`
 
 Named stationing is deliberately outside these slices.
 
@@ -116,6 +116,18 @@ Named stationing is deliberately outside these slices.
   freezing; they no longer invoke the legacy implicit-whole-company fallback.
 - Debug fixtures remain captain-free and stationing retains its existing
   captain plus anonymous-marine lifecycle.
+
+## Slice 4 implementation
+
+- Battle completion copies the briefing-ordered deployed fireteam ids into the
+  immutable `MissionOutcome` beside the already-frozen commander id/name.
+- Results resolves debrief rows from those frozen ids rather than rediscovering
+  teams from mutable live roster membership; legacy outcomes retain the prior
+  soldier-disposition fallback.
+- Debug fixtures and stationing freeze no named fireteams, preserving their
+  documented personnel models.
+- Ordered immutability and legacy evacuation constructor compatibility are
+  covered by focused tests; the complete isolated Gradle build passed.
 
 ## Acceptance
 
