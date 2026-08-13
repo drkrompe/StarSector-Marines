@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slice 1 domain binding complete; Slice 2 next (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–2 complete; release lifecycle next (2026-08-12)
 
 ## Problem
 
@@ -120,6 +120,20 @@ changes reject stationed fireteams, with disabled armory controls and explicit
 save repair for legacy defaults and illegal reserve bindings. Focused binding,
 command-policy, armory, and readiness tests pass. Cargo, stationing acceptance,
 and legacy contract settlement remain unchanged for Slice 2.
+
+## Slice 2 complete
+
+`113c4603` adds the campaign acceptance transaction for named detachments. It
+validates and binds unique rank-bounded fireteams without touching cargo, counts
+ACTIVE and WIA as living committed strength, excludes KIA/MIA, and freezes the
+resulting terms and captain assignment through the existing contract columns.
+`d529805d` moves the live stationing offer screen exclusively onto that route:
+home teams default in, available teams may be borrowed within command cap,
+large rosters paginate, and management names the bound teams with RTD/WIA
+strength. The old cargo-consuming acceptance helper is package-only test
+coverage; no live offer can create a new anonymous assignment. Existing
+anonymous active contracts and all settlement paths remain unchanged for the
+Slice 3 named/legacy branch.
 
 ## Acceptance
 
