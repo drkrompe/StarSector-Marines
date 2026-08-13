@@ -74,8 +74,9 @@ Danger points (all catalogued in the phase stories):
    floor-back hack deleted.
 
 Deferred (follow-up stories, not this migration): Theta*/string-pulled path
-smoothing, unit-unit separation steering, surface-to-surface range (subtract
-radii), geometric hit resolution.
+smoothing, surface-to-surface range (subtract radii), geometric hit
+resolution. Unit-unit separation steering is now **active** — see
+[`stories/separation-steering.md`](stories/separation-steering.md).
 
 ## Cross-refs
 
