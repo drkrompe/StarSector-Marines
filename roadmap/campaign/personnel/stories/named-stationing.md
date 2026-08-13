@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slices 1–2 complete; release lifecycle next (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–2 complete; Slice 3 withdrawal branch shipped (2026-08-12)
 
 ## Problem
 
@@ -134,6 +134,16 @@ strength. The old cargo-consuming acceptance helper is package-only test
 coverage; no live offer can create a new anonymous assignment. Existing
 anonymous active contracts and all settlement paths remain unchanged for the
 Slice 3 named/legacy branch.
+
+## Slice 3 checkpoint
+
+`a31e9a2a` branches idle early withdrawal by personnel authority. Named
+assignments release their bound fireteams and create no cargo; anonymous legacy
+rows still return the exact stored marine count. A failed cargo delivery or
+named release leaves contract columns, captain state, and reputation untouched,
+and replay cannot settle the same withdrawal twice. Normal completion and both
+employer-default extraction outcomes remain to be converted before Slice 3
+closes.
 
 ## Acceptance
 
