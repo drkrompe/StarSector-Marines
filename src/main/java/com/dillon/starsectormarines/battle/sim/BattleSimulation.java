@@ -59,6 +59,7 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
+import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -227,6 +228,14 @@ public class BattleSimulation implements BattleControl {
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
     private CompoundGarrisonSystem garrisonSystem;
+
+    /**
+     * Per-tick recompute driver for the defender's recapture-target registry
+     * (progressive reinforcement, {@code roadmap/conquest/stories/progressive-reinforcement.md}).
+     * Conquest-only; null on mission types with no biome layer. Set via
+     * {@link #setRecaptureSystem}.
+     */
+    private RecaptureTargetSystem recaptureSystem;
 
     /**
      * Per-target attacker index — wraps the {@code Entity → attacker list} map
@@ -870,6 +879,16 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
+     * Installs the recapture-target recompute driver. {@code BattleSetup}
+     * calls this from {@code installReinforcementLayer} on conquest maps
+     * (biome layer present); left null elsewhere, in which case the tick
+     * loop skips it entirely.
+     */
+    public void setRecaptureSystem(RecaptureTargetSystem system) {
+        this.recaptureSystem = system;
+    }
+
+    /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
      * Returns immediately once the battle is complete.
@@ -1101,6 +1120,10 @@ public class BattleSimulation implements BattleControl {
         // airstrike) into per-faction pools. Ticked after capture so a
         // just-flipped compound stops producing immediately.
         battleResources.tick(TICK_DT, compoundService);
+        // Recapture-target recompute must precede the reinforcement trigger
+        // poll below so FrontLineReinforcementTrigger dispatches against this
+        // tick's fresh contested/open state, not last tick's.
+        if (recaptureSystem != null) recaptureSystem.tick(TICK_DT, this);
         // Reinforcement slow-tick: poll triggers, drain the request queue, and
         // dispatch via the first feasible means provider. Dispatch debits
         // resource tickets; insufficient balance defers the request.

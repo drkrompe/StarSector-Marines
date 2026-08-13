@@ -34,6 +34,10 @@ public enum InfantryPayload implements AirDeliveryPayload {
                 Squad garrison = context.squad(mission.squadId);
                 if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
             }
+            if (mission.assignNode != null) {
+                Squad squad = context.squad(mission.squadId);
+                if (squad != null) squad.assignedNode = mission.assignNode;
+            }
         }
         marine.squad(mission.squadId);
         Squad squad = context.squad(mission.squadId);

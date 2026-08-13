@@ -100,6 +100,11 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 /*pendingDelay*/ 0f);
         ShuttleMission mission = sim.world().mission(shuttleId);
         mission.totalCycles = 1;
+        // Objective assignment (progressive-reinforcement slice 4): resolve the
+        // request's objective to a tactical node now, at dispatch time, so the
+        // deboarded squad is assigned the moment it lands rather than only once
+        // it physically walks to the position — see ObjectiveNodes.
+        mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk

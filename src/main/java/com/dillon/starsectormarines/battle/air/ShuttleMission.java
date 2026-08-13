@@ -132,6 +132,18 @@ public final class ShuttleMission {
      */
     public TacticalNode garrisonNode;
 
+    /**
+     * Tactical node stamped as the deboarded squad's {@link Squad#assignedNode}
+     * at squad mint — the recapture-target objective a progressive-reinforcement
+     * drop should advance on and re-man (see
+     * {@code roadmap/conquest/stories/progressive-reinforcement.md}, the "assign
+     * at deboard, not on arrival" contract). Distinct from {@link #garrisonNode},
+     * which stamps a marine {@code HOLD_NODE} <em>objective</em> — this only sets
+     * the squad's spawn-time anchor. {@code null} for drops with no objective
+     * (assault / overflow).
+     */
+    public TacticalNode assignNode;
+
     /** Sim-seconds of fire-support fuel left; seeded on HOVER_STATION entry, counted down each tick, hits zero → DEPARTING. */
     public float hoverTimerSec;
 

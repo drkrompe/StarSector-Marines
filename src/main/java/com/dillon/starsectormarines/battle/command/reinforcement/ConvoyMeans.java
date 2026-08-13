@@ -226,6 +226,11 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // Stash the routing inputs so the recovery ladder can re-route mid-drive.
         mission.routeCostField = cost;
         mission.routeClearance = clr;
+        // Objective assignment (progressive-reinforcement slice 4): resolve the
+        // request's objective to a tactical node now, at dispatch time, so the
+        // deboarded squad is assigned the moment it deboards rather than only
+        // once it physically walks to the position — see ObjectiveNodes.
+        mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY

@@ -48,8 +48,11 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
+import com.dillon.starsectormarines.battle.command.reinforcement.FrontLineReinforcementTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.GarrisonDepletedTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.ObjectiveLostTrigger;
+import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetService;
+import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ShuttleMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
@@ -781,15 +784,27 @@ public final class BattleSetup {
     }
 
     /**
-     * Install the reinforcement layer on the sim. Triggers (run order =
-     * insertion):
+     * Install the reinforcement layer on the sim. The trigger set depends on
+     * whether the map carries a biome layer ({@code map.biomeMap != null}) and
+     * a non-empty {@link TacticalMap} — conquest maps get the front-line
+     * dispatcher, everything else keeps the legacy compound-only trigger:
      * <ul>
-     *   <li>{@link GarrisonDepletedTrigger} — defender compound strength
-     *       drops below threshold.</li>
-     *   <li>{@link ObjectiveLostTrigger} — a previously defender-held
-     *       zone has been taken by marines.</li>
+     *   <li><b>Conquest (biome layer present):</b> {@link RecaptureTargetService}
+     *       tracks every defender tactical node's garrison state, driven each
+     *       tick by {@link RecaptureTargetSystem} (installed via
+     *       {@link BattleSimulation#setRecaptureSystem}); {@link
+     *       FrontLineReinforcementTrigger} round-robins dispatch across the
+     *       nearest-to-defender contested biome slice. {@link
+     *       GarrisonDepletedTrigger} is <em>not</em> registered here — both
+     *       triggers would otherwise post duplicate requests for the same
+     *       depleted compound.</li>
+     *   <li><b>Everything else:</b> {@link GarrisonDepletedTrigger} — defender
+     *       compound strength drops below threshold. Only reacts to
+     *       COMMAND_POST/BARRACKS/ARMORY, not the wider defender node set.</li>
      * </ul>
-     * Means (priority = insertion order; first {@code canFulfill = true}
+     * Both configurations also register {@link ObjectiveLostTrigger} — a
+     * previously defender-held zone has been taken by marines — unconditionally.
+     * <p>Means (priority = insertion order; first {@code canFulfill = true}
      * wins):
      * <ul>
      *   <li>{@link ConvoyMeans} — readable truck delivery; needs a road
@@ -801,7 +816,7 @@ public final class BattleSetup {
      *       on the side-appropriate perimeter and pulls them toward the
      *       rally via {@code assignedNode}.</li>
      * </ul>
-     * Non-Conquest maps register the same set and self-gate harmlessly
+     * Non-Conquest maps register the same means set and self-gate harmlessly
      * (no compounds → no garrison fires; no road graph → convoy yields to
      * shuttle; no LZ → shuttle yields to walk-in). Replaces the prior
      * {@link #maybeSpawnDebugConvoy} debug-spawn path.
@@ -812,7 +827,13 @@ public final class BattleSetup {
      */
     private static void installReinforcementLayer(BattleSimulation sim, MapResult map, TraversalAxis axis) {
         ReinforcementService rs = sim.getReinforcementService();
-        rs.addTrigger(new GarrisonDepletedTrigger());
+        if (map.biomeMap != null && map.tacticalMap != null && map.tacticalMap.size() > 0) {
+            RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
+            sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.biomeMap));
+            rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, axis));
+        } else {
+            rs.addTrigger(new GarrisonDepletedTrigger());
+        }
         rs.addTrigger(new ObjectiveLostTrigger());
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis));
         rs.addMeans(new ShuttleMeans(axis));

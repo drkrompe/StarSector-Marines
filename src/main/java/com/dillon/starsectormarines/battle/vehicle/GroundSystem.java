@@ -210,6 +210,10 @@ public class GroundSystem {
         if (loadout != null) loadout.seedInto(marine);
         if (m.squadId == Squad.NO_SQUAD) {
             m.squadId = roster.mintSquad(faction, deboardType);
+            if (m.assignNode != null) {
+                Squad minted = roster.getSquad(m.squadId);
+                if (minted != null) minted.assignedNode = m.assignNode;
+            }
         }
         marine.squad(m.squadId);
         Squad squad = roster.getSquad(m.squadId);
