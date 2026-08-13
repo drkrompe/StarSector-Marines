@@ -6,7 +6,9 @@ public enum CampaignEventState {
     COMMITTED,
     REFUSED,
     RESOLVED,
-    EXPIRED;
+    EXPIRED,
+    /** A committed multi-stage event is presenting its later decision. */
+    PENDING_FOLLOWUP;
 
     private static final CampaignEventState[] VALUES = values();
 

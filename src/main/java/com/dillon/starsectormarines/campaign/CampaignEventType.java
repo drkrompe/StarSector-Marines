@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.campaign;
 /** Persisted black-swan event discriminator. Append only. */
 public enum CampaignEventType {
     NONE,
-    CIVILIAN_RESCUE;
+    CIVILIAN_RESCUE,
+    DEFECTOR_ASYLUM;
 
     private static final CampaignEventType[] VALUES = values();
 

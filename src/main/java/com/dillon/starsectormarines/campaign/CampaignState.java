@@ -160,6 +160,13 @@ public final class CampaignState implements Serializable {
     public int[] eventFuelRequired = new int[INITIAL_CAPACITY];
     public int[] eventCiviliansAtRisk = new int[INITIAL_CAPACITY];
     public int[] eventCiviliansRescued = new int[INITIAL_CAPACITY];
+    public long[] eventSourceChainId = filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] eventActorHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] eventTargetHouseId = filledLongs(INITIAL_CAPACITY, -1L);
+    public int[] eventFollowupTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventFollowupDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
+    public int[] eventCreditsOffered = new int[INITIAL_CAPACITY];
+    public byte[] eventDefectorOutcome = new byte[INITIAL_CAPACITY];
     public int eventCount = 0;
 
     // ---------- chronicle[] (learned events only) ----------
@@ -653,6 +660,13 @@ public final class CampaignState implements Serializable {
         eventFuelRequired[i] = fuelRequired;
         eventCiviliansAtRisk[i] = civiliansAtRisk;
         eventCiviliansRescued[i] = 0;
+        eventSourceChainId[i] = -1L;
+        eventActorHouseId[i] = -1L;
+        eventTargetHouseId[i] = -1L;
+        eventFollowupTick[i] = -1;
+        eventFollowupDeadlineTick[i] = -1;
+        eventCreditsOffered[i] = 0;
+        eventDefectorOutcome[i] = DefectorAsylumOutcome.NONE.toByte();
         eventIndexById.put(id, i);
         return id;
     }
@@ -946,6 +960,18 @@ public final class CampaignState implements Serializable {
         eventFuelRequired = Arrays.copyOf(eventFuelRequired, n);
         eventCiviliansAtRisk = Arrays.copyOf(eventCiviliansAtRisk, n);
         eventCiviliansRescued = Arrays.copyOf(eventCiviliansRescued, n);
+        eventSourceChainId = Arrays.copyOf(eventSourceChainId, n);
+        Arrays.fill(eventSourceChainId, oldLength, n, -1L);
+        eventActorHouseId = Arrays.copyOf(eventActorHouseId, n);
+        Arrays.fill(eventActorHouseId, oldLength, n, -1L);
+        eventTargetHouseId = Arrays.copyOf(eventTargetHouseId, n);
+        Arrays.fill(eventTargetHouseId, oldLength, n, -1L);
+        eventFollowupTick = Arrays.copyOf(eventFollowupTick, n);
+        Arrays.fill(eventFollowupTick, oldLength, n, -1);
+        eventFollowupDeadlineTick = Arrays.copyOf(eventFollowupDeadlineTick, n);
+        Arrays.fill(eventFollowupDeadlineTick, oldLength, n, -1);
+        eventCreditsOffered = Arrays.copyOf(eventCreditsOffered, n);
+        eventDefectorOutcome = Arrays.copyOf(eventDefectorOutcome, n);
     }
 
     /**
@@ -1193,6 +1219,27 @@ public final class CampaignState implements Serializable {
         }
         if (eventCiviliansRescued == null) {
             eventCiviliansRescued = new int[eventCapacity];
+        }
+        if (eventSourceChainId == null) {
+            eventSourceChainId = filledLongs(eventCapacity, -1L);
+        }
+        if (eventActorHouseId == null) {
+            eventActorHouseId = filledLongs(eventCapacity, -1L);
+        }
+        if (eventTargetHouseId == null) {
+            eventTargetHouseId = filledLongs(eventCapacity, -1L);
+        }
+        if (eventFollowupTick == null) {
+            eventFollowupTick = filledInts(eventCapacity, -1);
+        }
+        if (eventFollowupDeadlineTick == null) {
+            eventFollowupDeadlineTick = filledInts(eventCapacity, -1);
+        }
+        if (eventCreditsOffered == null) {
+            eventCreditsOffered = new int[eventCapacity];
+        }
+        if (eventDefectorOutcome == null) {
+            eventDefectorOutcome = new byte[eventCapacity];
         }
         if (eventIndexById == null) eventIndexById = new LongIntMap();
         eventIndexById.clear();

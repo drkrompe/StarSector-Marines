@@ -34,6 +34,14 @@ class CampaignStateEventColumnsTest {
         assertEquals(25, state.eventFuelRequired[0]);
         assertEquals(120, state.eventCiviliansAtRisk[0]);
         assertEquals(0, state.eventCiviliansRescued[0]);
+        assertEquals(-1L, state.eventSourceChainId[0]);
+        assertEquals(-1L, state.eventActorHouseId[0]);
+        assertEquals(-1L, state.eventTargetHouseId[0]);
+        assertEquals(-1, state.eventFollowupTick[0]);
+        assertEquals(-1, state.eventFollowupDeadlineTick[0]);
+        assertEquals(0, state.eventCreditsOffered[0]);
+        assertEquals(DefectorAsylumOutcome.NONE,
+                DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[0]));
     }
 
     @Test
@@ -56,6 +64,14 @@ class CampaignStateEventColumnsTest {
         assertEquals(-1, state.eventResolvedTick[20]);
         assertEquals(0, state.eventSuppliesRequired[20]);
         assertEquals(0, state.eventCiviliansAtRisk[20]);
+        assertEquals(-1L, state.eventSourceChainId[20]);
+        assertEquals(-1L, state.eventActorHouseId[20]);
+        assertEquals(-1L, state.eventTargetHouseId[20]);
+        assertEquals(-1, state.eventFollowupTick[20]);
+        assertEquals(-1, state.eventFollowupDeadlineTick[20]);
+        assertEquals(0, state.eventCreditsOffered[20]);
+        assertEquals(DefectorAsylumOutcome.NONE,
+                DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[20]));
     }
 
     @Test
@@ -76,6 +92,13 @@ class CampaignStateEventColumnsTest {
         state.eventFuelRequired = null;
         state.eventCiviliansAtRisk = null;
         state.eventCiviliansRescued = null;
+        state.eventSourceChainId = null;
+        state.eventActorHouseId = null;
+        state.eventTargetHouseId = null;
+        state.eventFollowupTick = null;
+        state.eventFollowupDeadlineTick = null;
+        state.eventCreditsOffered = null;
+        state.eventDefectorOutcome = null;
         state.eventIndexById = null;
         Field nextId = CampaignState.class.getDeclaredField("nextEventId");
         nextId.setAccessible(true);
@@ -89,10 +112,19 @@ class CampaignStateEventColumnsTest {
         assertNotNull(state.eventMarketId);
         assertNotNull(state.eventDecisionTick);
         assertNotNull(state.eventCiviliansRescued);
+        assertNotNull(state.eventSourceChainId);
+        assertNotNull(state.eventActorHouseId);
+        assertNotNull(state.eventTargetHouseId);
+        assertNotNull(state.eventFollowupTick);
+        assertNotNull(state.eventFollowupDeadlineTick);
+        assertNotNull(state.eventCreditsOffered);
+        assertNotNull(state.eventDefectorOutcome);
         assertNotNull(state.eventIndexById);
         assertEquals(0, state.eventIndex(existing));
         assertEquals(-1L, state.eventTriggerKey[0]);
         assertEquals(-1, state.eventDecisionTick[0]);
+        assertEquals(-1L, state.eventSourceChainId[0]);
+        assertEquals(-1, state.eventFollowupTick[0]);
         assertEquals(2L, state.appendCampaignEvent(
                 CampaignEventType.CIVILIAN_RESCUE,
                 8L, 1, 12, 13, 10, 5, 100));
@@ -114,6 +146,13 @@ class CampaignStateEventColumnsTest {
         state.eventFuelRequired = null;
         state.eventCiviliansAtRisk = null;
         state.eventCiviliansRescued = null;
+        state.eventSourceChainId = null;
+        state.eventActorHouseId = null;
+        state.eventTargetHouseId = null;
+        state.eventFollowupTick = null;
+        state.eventFollowupDeadlineTick = null;
+        state.eventCreditsOffered = null;
+        state.eventDefectorOutcome = null;
         state.eventIndexById = null;
 
         readResolve(state);
@@ -126,6 +165,13 @@ class CampaignStateEventColumnsTest {
         assertEquals(-1, state.eventCreatedTick[0]);
         assertEquals(-1, state.eventDecisionTick[0]);
         assertEquals(-1, state.eventResolvedTick[0]);
+        assertEquals(-1L, state.eventSourceChainId[0]);
+        assertEquals(-1L, state.eventActorHouseId[0]);
+        assertEquals(-1L, state.eventTargetHouseId[0]);
+        assertEquals(-1, state.eventFollowupTick[0]);
+        assertEquals(-1, state.eventFollowupDeadlineTick[0]);
+        assertEquals(DefectorAsylumOutcome.NONE,
+                DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[0]));
         assertNotNull(state.eventIndexById);
     }
 
