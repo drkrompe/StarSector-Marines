@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -78,6 +79,14 @@ public final class MapResult {
      * network (wilderness / spacehulk gens) return {@link RoadGraph#EMPTY}.
      */
     public final RoadGraph roadGraph;
+    /**
+     * Conquest biome-band overlay ({@code roadmap/conquest/stories/progressive-reinforcement.md}) —
+     * the slice a cell falls in (BEACH/PORT/CITY/FORTRESS_DISTRICT/OUTSKIRTS),
+     * read by {@link com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetService}
+     * to bucket recapture targets. Null for generators with no biome layer
+     * (legacy district mode, non-conquest missions).
+     */
+    public final BiomeMap biomeMap;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -149,6 +158,22 @@ public final class MapResult {
                      List<DefensePost> defensePosts,
                      RoadGraph roadGraph,
                      List<LandingPad> landingPads) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, null);
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     BiomeMap biomeMap) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -162,5 +187,6 @@ public final class MapResult {
         this.buildings = buildings;
         this.defensePosts = defensePosts;
         this.roadGraph = roadGraph;
+        this.biomeMap = biomeMap;
     }
 }

@@ -28,11 +28,14 @@ import java.util.Set;
  * a side-appropriate, viable perimeter cell (walkable + outside buildings,
  * via {@link LandingZoneScorer}) — defender = "end" side of the
  * {@link TraversalAxis} (north for SOUTH_TO_NORTH, east for WEST_TO_EAST),
- * marine = "start" side. The squad's {@link Squad#assignedNode} is set to
- * the closest compound-kind {@link TacticalNode} to the rally so
- * {@code PatrolRoute} pulls them off the perimeter and into the fight; if
- * no compound is nearby the squad spawns as a free agent and falls through
- * to ambient engagement.
+ * marine = "start" side. The squad's {@link Squad#assignedNode} prefers the
+ * request's objective node ({@link ObjectiveNodes#resolve} — a progressive-
+ * reinforcement recapture target, assigned at deboard per the design's
+ * "assign at deboard, not on arrival" contract); with no objective it falls
+ * back to the closest compound-kind {@link TacticalNode} to the rally so
+ * {@code PatrolRoute} pulls them off the perimeter and into the fight. If
+ * neither resolves, the squad spawns as a free agent and falls through to
+ * ambient engagement.
  *
  * <p>This is the {@code canFulfill = true} fallback under
  * {@link ConvoyMeans} (and, eventually, {@code ShuttleMeans}): a road-less
@@ -96,7 +99,10 @@ public final class WalkInMeans implements ReinforcementMeans {
             return;
         }
 
-        TacticalNode anchor = nearestCompoundNode(sim, req.rallyX, req.rallyY);
+        TacticalNode objectiveNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
+        TacticalNode anchor = objectiveNode != null
+                ? objectiveNode
+                : nearestCompoundNode(sim, req.rallyX, req.rallyY);
         UnitType infantryType = FactionUnitRoster.forFaction(req.side).infantry();
 
         Squad squad = null;

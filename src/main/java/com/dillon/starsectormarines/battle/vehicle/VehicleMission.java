@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -71,6 +72,18 @@ public final class VehicleMission {
      * {@link com.dillon.starsectormarines.battle.air.ShuttleMission#deboardUnitType}.
      */
     public UnitType deboardUnitType;
+
+    /**
+     * Tactical node stamped as the deboarded squad's {@link Squad#assignedNode}
+     * at squad mint — the recapture-target objective a progressive-reinforcement
+     * delivery should advance on and re-man (see
+     * {@code roadmap/conquest/stories/progressive-reinforcement.md}, the "assign
+     * at deboard, not on arrival" contract). Distinct from a marine
+     * {@code HOLD_NODE} <em>objective</em> assignment — this only sets the
+     * squad's spawn-time anchor. {@code null} for deliveries with no objective.
+     * Mirrors {@link com.dillon.starsectormarines.battle.air.ShuttleMission#assignNode}.
+     */
+    public TacticalNode assignNode;
 
     /**
      * Squad identity assigned to all marines deboarded from this vehicle. Lazily
