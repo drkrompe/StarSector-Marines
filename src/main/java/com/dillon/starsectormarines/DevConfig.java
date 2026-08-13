@@ -191,5 +191,26 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean S0_COMBAT_PROBE = true;
 
+    /**
+     * When {@code true}: the {@code RenderLayer#GROUND} pass renders into an
+     * offscreen FBO pair (color + height) instead of the backbuffer, then a
+     * fullscreen fragment shader applies offset-limited parallax before the
+     * rest of the frame draws on top ({@code roadmap/surface-relief/} S2).
+     * {@code false} (default) is pixel-identical to pre-S2 rendering — no FBO
+     * bind, no shader, ground draws straight to the backbuffer as before.
+     *
+     * <p>Independently fail-soft: even with this {@code true}, a shader
+     * compile/link failure or FBO-incomplete result flips
+     * {@code GroundParallaxPipeline} into the same direct-to-backbuffer path
+     * permanently for that battle (one log line, no crash) — this flag only
+     * decides whether the pipeline is attempted at all.
+     *
+     * <p>Off by default: the effect is an unplaytested prototype (see the
+     * overview's "Pixel-art aesthetic" risk) and this repo can't playtest
+     * visuals headlessly — flip to {@code true} locally to look at it.
+     */
+    @DebugOnly
+    public static final boolean SURFACE_RELIEF_PARALLAX = false;
+
     private DevConfig() {}
 }
