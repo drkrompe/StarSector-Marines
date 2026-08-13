@@ -17,7 +17,12 @@ trigger + wiring (`28e512ab`)._
   (means deboard via scorer) → `28e512ab` (FrontLineReinforcementTrigger,
   ObjectiveNodes resolve, ShuttleMission/VehicleMission `assignNode`
   deboard stamping, BiomeMap plumbed through MapResult, wiring in
-  `installReinforcementLayer` + BattleSimulation tick).
+  `installReinforcementLayer` + BattleSimulation tick) → `c99cdecf`
+  (critique-pass hardening: `manned` latch — never-garrisoned nodes
+  aren't recapture targets — and a 90-tick dispatch-age timeout that
+  re-opens targets whose dispatch died in the delivery pipeline:
+  convoy routing aborts after the request is consumed, no-means drops,
+  `SquadFallbackSystem` stealing a mauled squad's `assignedNode`).
 
 ## Immediate next-up
 
@@ -35,9 +40,12 @@ trigger + wiring (`28e512ab`)._
 
 - Overflow → patrol (biome-constrained) — trigger posts nothing when no
   eligible targets; WalkInMeans free-agent fallback covers ambient.
-- A request whose every means is supply-gated out is dropped with the
-  target left `dispatched` — moot today (defender can't reinforce at all
-  in that state) but worth revisiting if means gating gets finer.
+- `ReinforcementMeans.dispatch` is void — a means that aborts internally
+  after `canFulfill` passed (convoy routing failures) consumes the
+  request without spawning, and the chain never falls through to the
+  next means. The dispatch-age timeout (`c99cdecf`) heals the stranded
+  target, but a boolean-returning dispatch with means fall-through would
+  retry immediately instead of ~90 s later.
 - Tug-of-war "not in this cut" list still open: defender positive win
   condition, marine-side compound supply, incoming-garrison marker.
 - `BattleSimulation.getReinforcementService()` uses an inline FQN return
