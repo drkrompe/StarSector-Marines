@@ -4,7 +4,7 @@
 
 ## Where this is
 
-**S1–S4 gameplay spine shipped; S8 canonical briefing is through B-1.** S1 (power framework
+**S1–S4 gameplay spine shipped; S8 canonical briefing is through B-2 and C.** S1 (power framework
 skeleton — recon ping) is built; see
 [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
 **Fork #1 is resolved — explicit detachment** (overview § "The commitment
@@ -21,9 +21,10 @@ layer"): the committed detachment is the single source of powers + fighter cover
 accept a mission via both entry points, confirm carriers/transports/powers track
 the committed detachment.
 
-**Top remaining follow-up:** power narrowing rides the whole fleet until a
-*member-level* commitment surface exists (a recon-source ship is neither
-transport nor carrier). See the Slice 3 doc § follow-ups.
+**Member-level power commitment is now shipped.** The canonical briefing lists
+each power-bearing fleet member as a committable row; holding one back removes
+its capabilities before command-deck slotting and launch. Free debug power
+grants are off, so fleet/employer sourcing is now the observed default.
 
 ### Commit chain
 
@@ -45,6 +46,10 @@ transport nor carrier). See the Slice 3 doc § follow-ups.
   Insertion (`88e04e15`). The latter three establish campaign supplies paid at
   activation, reusable physical air delivery, persistent battlefield caches,
   telegraphed friendly-fire AoE, and commander-visible called-in squads.
+- S8 Slice C — constant five-slot Command Deck with weighted cards, launch-time
+  filtering, and at-use CP/supply readouts (`499b9d15`).
+- S8 Slice B-2 — member-level power-source commitment; the exact selected ship
+  objects feed `PowerCatalog`, and one ship may supply several capabilities.
 
 ## Docs in this dir
 
@@ -110,11 +115,11 @@ detachment UI. S8 collapses both into one screen.
      two columns (map gone); `BriefingScreen` = left Mission column + right
      "Your Fleet Brings / Employer Provides". See
      [`complete/s8-slice2-action-layout.md`](complete/s8-slice2-action-layout.md).
-   - **B-2 — member-level commitment** (the top S2 follow-up): power-source ships
+   - ~~**B-2 — member-level commitment**~~ ✅: power-source ships
      (Apogee / Hi-Res Sensors) as committable rows in *Your Fleet Brings*, so
      `PowerCatalog` narrows to the committed subset; then flip
      `DevConfig.ALWAYS_GRANT_RECON_PING` off to feel the gating.
-3. **Slice C — Command Deck (slotting UI)**: slottable powers under a constant
+3. ~~**Slice C — Command Deck (slotting UI)**~~ ✅: slottable powers under a constant
    command budget (S5 does the real curve); slotted subset filters
    `PowerCatalog.resolve`.
 
@@ -123,11 +128,11 @@ physical deliveries to exercise (mech, resupply, marine squad). It is the next
 battlefield-mechanics seam: named/limited LZs, AA contesting, and craft-class
 risk. In-game **feel-out** of the complete power roster is still pending.
 
-The practical next step remains **S8 B-2 member-level commitment**, followed by
-S8 C command-deck slotting. Without B-2, power availability still scans the
-whole player fleet; the new roster makes that over-generosity much more visible.
-If staying in the live battle instead, take S6 and build AA/LZ counterplay on
-the shared `AirDeliveryPower` path.
+The practical next step is an **in-game feel-out of the completed S8 loadout**:
+hold back individual source ships, verify cards disappear/reappear, deploy a
+mixed deck, and confirm the battle roster exactly matches it. After that, take
+**S6 Drop Geography** and build AA/LZ counterplay on the shared
+`AirDeliveryPower` path, or begin S5's real command-capacity progression curve.
 
 ## Cross-track dependencies
 

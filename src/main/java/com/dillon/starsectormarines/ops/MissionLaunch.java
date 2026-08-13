@@ -13,10 +13,11 @@ import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
-
-import java.util.List;
-import java.util.Collection;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * The single accept-path both pre-battle entry points ({@link BriefingScreen},
@@ -62,9 +63,24 @@ public final class MissionLaunch {
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings,
                                                    Collection<String> selectedPowerIds) {
+        return buildSimulation(ctx, m, committedShuttles, committedWings, debugWings,
+                selectedPowerIds, null);
+    }
+
+    /** Build using an explicit member-level command-power source commitment. */
+    public static BattleSimulation buildSimulation(MarineOpsContext ctx,
+                                                   Mission m,
+                                                   List<ShuttleType> committedShuttles,
+                                                   FlybyRoster committedWings,
+                                                   FlybyRoster debugWings,
+                                                   Collection<String> selectedPowerIds,
+                                                   List<FleetMemberAPI> committedPowerSources) {
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
-                : DetachmentResolver.resolve(m, committedShuttles, committedWings);
+                : committedPowerSources == null
+                        ? DetachmentResolver.resolve(m, committedShuttles, committedWings)
+                        : DetachmentResolver.resolve(m, committedShuttles, committedWings,
+                                committedPowerSources);
         det = CommandDeck.apply(det, selectedPowerIds);
 
         // Heavy-armaments availability on the target world drives whether the
