@@ -1,4 +1,19 @@
-# S2 — moving targets
+# S2 — moving targets — SHIPPED
+
+> **Shipped 2026-08-13** on `worktree-ballistics-s2s3`, commit `d1664bd8`.
+> Landed as specced below — no material deviations. `BallisticResolver`,
+> `MovementService`, `MarineWeapon`/`InfantryWeapons`, and 8 new
+> `BallisticResolverTest` cases (stationary regression, perpendicular-mover
+> lead with a companion no-lead-would-miss quadratic check computed inline
+> in the test rather than a second live `resolve()` call, corridor-entering
+> mover, mover-leaving-cover split-position, degenerate `a≈0` pacing,
+> behind-shooter exit-root skip re-asserted in time domain, and muzzle
+> clearance / wall cap re-asserted as still-distance-domain under motion).
+> Full suite green (1482 tests) before commit.
+
+Original contract below, kept verbatim for the record.
+
+---
 
 > The contact solve goes space-time: candidates extrapolate along their
 > current velocity, shooters lead the aim point, and round velocity becomes
