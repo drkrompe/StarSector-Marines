@@ -43,6 +43,17 @@ public final class MechLoadoutComponent {
     /** True only when the upper torso is physically aligned enough to fire at {@link #torsoAimTargetId}. */
     public boolean torsoOnTarget;
 
+    /** Seconds without meaningful progress toward the current path destination. */
+    public float collisionStallSeconds;
+    /** Best remaining straight-line distance reached for the current path destination. */
+    public float collisionBestRemainingDistance = Float.POSITIVE_INFINITY;
+    /** Destination used to establish {@link #collisionBestRemainingDistance}. */
+    public int collisionProgressDestX = Integer.MIN_VALUE;
+    /** Destination used to establish {@link #collisionBestRemainingDistance}. */
+    public int collisionProgressDestY = Integer.MIN_VALUE;
+    /** True while a stalled mech may pass through soft separation from other mechs. */
+    public boolean collisionEscapeActive;
+
     /** Whether this state permits firing at {@code target}. */
     public boolean isAimedAt(long target) {
         return torsoOnTarget && torsoAimTargetId == target;
