@@ -496,16 +496,25 @@ public final class ArmoryScreen implements Screen {
     }
 
     private void buildServiceRifleBay(float x, float y, float width) {
-        widgets.add(new PanelWidget(x, y, width, 104f));
+        MarineSoldier soldier = selectedSoldier();
+        boolean installed = soldier != null && soldier.primary() == MarineWeapon.FIELD_RIFLE
+                && soldier.primaryGrade() == EquipmentGrade.SERVICE;
+        boolean canEquip = !installed && soldier != null && roster.canAllocatePrimary(
+                soldier.id(), MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
+        InventoryState state = inventoryState(true, installed, soldier, canEquip);
+        widgets.add(new SelectableRowWidget(x, y, width, 104f, true, false,
+                () -> selectWeaponRow(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE, true)));
         widgets.add(new SpriteThumbWidget(weaponIcon(MarineWeapon.FIELD_RIFLE),
                 x + 10f, y + 10f, 78f, 84f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 MarineWeapon.FIELD_RIFLE.catalogName(EquipmentGrade.SERVICE),
                 x + 100f, y + 78f, GOOD));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "UNLIMITED · FLEET STANDARD", x + 100f, y + 50f, VALUE));
+                inventoryStateLabel(state) + " · UNLIMITED", x + 100f, y + 50f,
+                inventoryStateColor(state)));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Primary-slot X restores it.", x + 100f, y + 24f, MUTED));
+                installed ? "Current fleet issue" : "Double-click to equip",
+                x + 100f, y + 24f, MUTED));
     }
 
     private int inventoryItemCount() {
