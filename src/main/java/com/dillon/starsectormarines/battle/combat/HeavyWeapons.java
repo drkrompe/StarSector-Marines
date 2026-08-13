@@ -243,7 +243,7 @@ public class HeavyWeapons {
                     if (!roster.isLive(cgTarget)) {
                         m.chaingunBurstRemaining = 0;
                         m.chaingunBurstTargetId = 0L;
-                    } else {
+                    } else if (m.isAimedAt(cgTarget)) {
                         fireMechWeapon(u, cgTarget, m.chaingun);
                         m.chaingunBurstRemaining--;
                         m.chaingunBurstTimer = m.chaingun.burstSpacing;
@@ -260,7 +260,7 @@ public class HeavyWeapons {
                     if (!roster.isLive(srmTarget)) {
                         m.srmSalvoRemaining = 0;
                         m.srmSalvoTargetId = 0L;
-                    } else {
+                    } else if (m.isAimedAt(srmTarget)) {
                         fireMechWeapon(u, srmTarget, m.srmPod);
                         m.srmSalvoRemaining--;
                         m.srmSalvoTimer = m.srmPod.burstSpacing;
@@ -282,7 +282,7 @@ public class HeavyWeapons {
                     if (!roster.isLive(lrmTarget)) {
                         m.lrmSalvoRemaining = 0;
                         m.lrmSalvoTargetId = 0L;
-                    } else {
+                    } else if (m.isAimedAt(lrmTarget)) {
                         boolean hasLos = grid.hasLineOfSight(
                                 world.cellX(u), world.cellY(u),
                                 world.cellX(lrmTarget), world.cellY(lrmTarget));

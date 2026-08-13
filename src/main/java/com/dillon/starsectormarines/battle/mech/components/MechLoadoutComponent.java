@@ -27,10 +27,26 @@ public final class MechLoadoutComponent {
 
     public static final int DEFAULT_SRM_AMMO_SALVOS = 6;
     public static final int DEFAULT_LRM_AMMO_SALVOS = 3;
+    /** Default upper-torso traverse speed, in sprite degrees per sim-second. */
+    public static final float DEFAULT_TORSO_TURN_RATE_DEGREES = 120f;
 
     public final MechWeapon chaingun;
     public final MechWeapon srmPod;
     public final MechWeapon lrmArtillery;
+
+    /** Current upper-torso bearing in sprite degrees; independent of the hips. */
+    public float torsoFacingDegrees = 180f;
+    /** Maximum upper-torso traverse speed, in degrees per sim-second. */
+    public float torsoTurnRateDegrees = DEFAULT_TORSO_TURN_RATE_DEGREES;
+    /** Target this torso state was last evaluated against. {@code 0L} means neutral/no target. */
+    public long torsoAimTargetId;
+    /** True only when the upper torso is physically aligned enough to fire at {@link #torsoAimTargetId}. */
+    public boolean torsoOnTarget;
+
+    /** Whether this state permits firing at {@code target}. */
+    public boolean isAimedAt(long target) {
+        return torsoOnTarget && torsoAimTargetId == target;
+    }
 
     /**
      * Doctrine slot for this chassis. Set at spawn time by

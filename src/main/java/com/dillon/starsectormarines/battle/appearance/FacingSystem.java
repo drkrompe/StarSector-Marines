@@ -255,9 +255,10 @@ public final class FacingSystem {
         boolean turning = Math.abs(angularVelocity[row]) > 0.0001f;
         float hips = steeringFacing[row];
         hipFacing[row] = hips;
-        float desiredTorso = haveTargetDelta
-                ? LayeredAppearance.facingDegrees(targetDx, targetDy) : hips;
-        facing[row] = LayeredMechAppearance.torsoFacing(hips, desiredTorso);
+        // Unlike the infantry look-at, the mech torso is simulation state:
+        // MechTurretSystem integrates it at a finite traverse rate and weapon
+        // tracks require that same state to be on target before firing.
+        facing[row] = loadout.torsoFacingDegrees;
         // Gait is gated on applied velocity (not on the raw phase): a stopped
         // unit keeps its stale phase value, and the gate is what returns it
         // to the idle pose.
