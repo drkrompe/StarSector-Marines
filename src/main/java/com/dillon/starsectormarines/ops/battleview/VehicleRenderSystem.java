@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.ParkedAircraft;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -35,7 +38,8 @@ public final class VehicleRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         List<MapVehicle> vehicles = ctx.sim.getVehicles();
-        if (vehicles.isEmpty()) return;
+        List<ParkedAircraft> aircraft = ctx.sim.getParkedAircraft();
+        if (vehicles.isEmpty() && aircraft.isEmpty()) return;
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
@@ -64,6 +68,27 @@ public final class VehicleRenderSystem implements RenderSystem {
             out.addSheetQuad(RenderLayer.VEHICLES, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawW, drawH,
+                    1f, 1f, 1f, alphaMult);
+        }
+
+        for (ParkedAircraft parked : aircraft) {
+            ShuttleSpriteCache cache = sprites.shuttleSprites().get(parked.type);
+            if (cache == null || cache.sprite == null) continue;
+
+            float hullLenCells = HullFootprintResolver.visualLengthCells(
+                    parked.type.renderHullId());
+            float pxLen = hullLenCells * cellPx;
+            float[] pivot = HullPivotResolver.pivotOffset(parked.type.renderHullId());
+            float rad = (float) Math.toRadians(parked.facingDegrees);
+            float c = (float) Math.cos(rad);
+            float s = (float) Math.sin(rad);
+            float cx = cam.cellToScreenX(parked.centerX + 0.5f
+                    + pivot[0] * c - pivot[1] * s);
+            float cy = cam.cellToScreenY(parked.centerY + 0.5f
+                    + pivot[0] * s + pivot[1] * c);
+            out.addSprite(RenderLayer.VEHICLES, cache.sprite,
+                    cx, cy, pxLen * cache.aspect, pxLen,
+                    parked.facingDegrees,
                     1f, 1f, 1f, alphaMult);
         }
     }
