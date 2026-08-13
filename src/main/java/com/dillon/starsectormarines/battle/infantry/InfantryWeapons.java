@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -31,7 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
  * shared subsystem instance can serve every unit without per-shooter scratch
  * space. Services are constructor-injected; the subsystem pushes events
- * (shots, detonations, deaths, fall-backs) through them without ever
+ * (shots, projectiles, resolved-round impacts) through them without ever
  * holding a {@code BattleSimulation} reference.
  *
  * <p>Parallel structure to {@link com.dillon.starsectormarines.battle.air.AirSystem}:
@@ -39,30 +38,27 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class InfantryWeapons {
 
-    private static final float SHOT_LIFETIME = 0.15f;
-
     private final UnitRosterService roster;
-    private final DamageService damageService;
-    private final HitResponseSystem hitResponse;
+    private final BallisticResolver resolver;
     private final ShotService shots;
     private final CoverAccuracyResolver coverAccuracy;
 
     /**
      * Reused per-tick gather of the units with an active burst before the
-     * continuation pass. fireShot resolves damage inline in this serial phase,
-     * so a killing round releases its target and swap-and-pops the registry;
+     * continuation pass. Damage from {@code fireShot} now applies on a
+     * delayed flight clock (see {@link ShotService.PendingImpact}), but a
+     * unit can still die mid-loop from another source (detonation arrival,
+     * a concurrently-resolving impact) and swap-and-pop the registry;
      * gathering first makes the iteration a snapshot so that release can't
      * reshuffle the slots out from under it. Only mid-burst units are gathered
      * (a small fraction), so the copy is cheap.
      */
     private final LongArrayList burstScratch = new LongArrayList();
 
-    public InfantryWeapons(UnitRosterService roster,
-                           DamageService damageService, HitResponseSystem hitResponse,
+    public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
                            ShotService shots, CoverAccuracyResolver coverAccuracy) {
         this.roster = roster;
-        this.damageService = damageService;
-        this.hitResponse = hitResponse;
+        this.resolver = resolver;
         this.shots = shots;
         this.coverAccuracy = coverAccuracy;
     }
@@ -131,10 +127,17 @@ public class InfantryWeapons {
      * otherwise from the {@code Entity}'s baked-in stats (militia, aliens,
      * turrets — all the "no MarineWeapon" callers). Accuracy is multiplied
      * by {@code stance.accuracyMult} — STANCED preserves the base roll,
-     * MOVING applies the on-the-move suppression penalty.
+     * MOVING applies the on-the-move suppression penalty. Cover is NOT part
+     * of this accuracy stack — {@link BallisticResolver} re-expresses it as
+     * physical interception along the round's flight (see
+     * {@code roadmap/ballistics/overview.md} §4).
      *
-     * <p>Public because behaviors call this when firing; fall-back is also
-     * rolled here, which can mutate the target's path via the context.
+     * <p>The round's full flight is resolved once, here, at fire time; damage
+     * and hit-response are NOT applied inline. A victim contact queues a
+     * {@link ShotService.PendingImpact} that {@code BattleSimulation} drains
+     * on the round's flight clock, in the serial SHOTS phase.
+     *
+     * <p>Public because behaviors call this when firing.
      */
     public void fireShot(long shooter, long target, FireStance stance) {
         World world = roster.world();
@@ -148,9 +151,8 @@ public class InfantryWeapons {
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
-        // through to their baked Entity stats with flat accuracy and the
-        // baseline miss-scatter ring — preserves the legacy behavior for
-        // every "no MarineWeapon" caller.
+        // through to their baked Entity stats with flat accuracy and no
+        // lateral spread.
         float dist = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = 0f;
@@ -167,39 +169,45 @@ public class InfantryWeapons {
                     dist, effectiveRange);
         }
         accuracy *= stance.accuracyMult;
-        accuracy = coverAccuracy.apply(accuracy,
-                world.cellX(target), world.cellY(target),
-                world.cellX(shooter), world.cellY(shooter));
-        boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
+
+        // Round velocity: projectile-sprite weapons derive it from their
+        // flightSec constant (dist / flightSec) so a slow round visibly
+        // travels; every other weapon (line-tracer primaries, and the null-
+        // weapon militia/alien/turret callers) uses the resolver's flat
+        // default. No new per-weapon velocity stat in S1 (S2 owns that).
+        float roundVelocity = BallisticResolver.DEFAULT_ROUND_VELOCITY;
+        if (weapon != null && weapon.projectileSpritePath != null && weapon.flightSec > 0f) {
+            roundVelocity = Math.max(dist, 0.01f) / weapon.flightSec;
+        }
+
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target,
+                accuracy, effectiveSpread, roundVelocity, ThreadLocalRandom.current());
+
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
-        if (hit) {
-            damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target);
-            hitResponse.rollReprioritizeOnHit(target, shooter);
+        if (res.victimId() != 0L) {
+            // Friendly-fire damage is pre-multiplied at queue time (see
+            // PendingImpact's javadoc) — the sink applies it as-is.
+            float appliedDamage = res.friendlyHit()
+                    ? damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : damage;
+            shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
+                    res.flightTime(), appliedDamage, vsTurretMult, moraleImpact, res.friendlyHit()));
         }
 
         // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
-        // glues to the sprite across a moving burst. Tracer endpoint and
-        // miss-scatter both resolve through ShotEndpoint so all three
-        // weapon paths (infantry primary / secondary / mech) live by the
-        // same hit-jitter + miss-ring rules.
+        // glues to the sprite across a moving burst. Endpoint is wherever
+        // the resolver's round physically stopped.
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target), world.renderY(target),
-                hit, effectiveSpread, ThreadLocalRandom.current());
-        float toX = ep.x();
-        float toY = ep.y();
         TurretKind tk = shooterType.isTurret() ? roster.turretState().kind(shooter) : null;
-        // Primary weapons with their own projectile sprite (SMG bullets) use
-        // the weapon's flightSec so a slow round visibly travels — line tracers
-        // keep the default SHOT_LIFETIME since they're drawn full-length instantly.
-        float lifetime = SHOT_LIFETIME;
-        if (weapon != null && weapon.projectileSpritePath != null && weapon.flightSec > 0f) {
-            lifetime = weapon.flightSec;
-        }
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                tk, weapon, null, null, moraleImpact));
+        float lifetime = Math.max(res.flightTime(), 0.05f);
+        // struckUnit: true whenever the round physically damaged someone
+        // (victimId != 0 only on StopKind.UNIT_HIT), independent of whether
+        // that victim was the locked target — near-miss morale must not
+        // double-drain a round that actually connected.
+        boolean struckUnit = res.victimId() != 0L;
+        shots.postShot(new ShotEvent(fromX, fromY, res.endX(), res.endY(), res.hitIntended(), shooterFaction, lifetime,
+                tk, weapon, null, null, moraleImpact, struckUnit));
     }
 
     /**

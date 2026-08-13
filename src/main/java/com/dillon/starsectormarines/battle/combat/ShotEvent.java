@@ -45,6 +45,17 @@ public class ShotEvent {
     public final MechWeapon mechWeapon;
     /** Scales the morale drain this shot inflicts if it counts as a near-miss against a hostile squad. Sourced from the shooter's {@link UnitType#moraleImpact} at fire time. Defaults to 1.0 for shots emitted by paths that don't thread shooter type (detonations, legacy callers). */
     public final float moraleImpact;
+    /**
+     * True when the resolved round physically damaged ANY unit — the locked
+     * target or an incidental contact — regardless of {@link #hit} (which
+     * only means "hit the locked target," see the class doc). Near-miss
+     * morale drain in {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem}
+     * must skip such shots: a round that struck someone (even incidentally)
+     * already drains morale through the hit path, and treating it as a
+     * near-miss too would double-drain via a stale cooldown window. Defaults
+     * false for callers that don't thread a resolved victim.
+     */
+    public final boolean struckUnit;
 
     public float lifetime;
     /** Initial lifetime — fixed at construction. Renderer uses this (not the global shot-lifetime constant) to compute fade-out alpha and projectile travel progress, so per-weapon flight times scale correctly. */
@@ -80,6 +91,15 @@ public class ShotEvent {
                      TurretKind turretKind, MarineWeapon marineWeapon,
                      MarineSecondary marineSecondary, MechWeapon mechWeapon,
                      float moraleImpact) {
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, mechWeapon, moraleImpact, false);
+    }
+
+    public ShotEvent(float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     float moraleImpact, boolean struckUnit) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -93,5 +113,6 @@ public class ShotEvent {
         this.marineSecondary = marineSecondary;
         this.mechWeapon = mechWeapon;
         this.moraleImpact = moraleImpact;
+        this.struckUnit = struckUnit;
     }
 }

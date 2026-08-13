@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
@@ -128,6 +129,8 @@ public class BattleSimulation implements BattleControl {
     private final FogOfWarService fogOfWar = new FogOfWarService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry;
+    /** Fire-time ballistic resolution for infantry primaries — ray vs walls/doodads/unit radii, walked in time order. Pure/stateless (reads only); constructed once and shared. See {@code roadmap/ballistics/overview.md}. */
+    private final BallisticResolver ballisticResolver;
     /**
      * Consumes the per-tick {@code COMBAT} fire intent behaviors queue
      * instead of firing inline — the FiringSystem proving slice
@@ -410,8 +413,8 @@ public class BattleSimulation implements BattleControl {
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, coverAccuracy);
-        this.infantry = new InfantryWeapons(rosterService,
-                damageService, hitResponse, shots, coverAccuracy);
+        this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, coverAccuracy);
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations, coverAccuracy);
@@ -1138,6 +1141,19 @@ public class BattleSimulation implements BattleControl {
         // deboarded militia join the roster between ticks, not mid-loop.
         groundSystem.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
+        // Ballistic-round impact clock — a resolved round's damage/hit-response
+        // applies here, on its flight-time delay, rather than inline at fire
+        // time (see BallisticResolver / InfantryWeapons.fireShot). Runs before
+        // tickShots so a round's damage lands the same tick its visual ShotEvent
+        // expires. Outside the parallel dispatch and FIRING's deferral window,
+        // so DamageService.applyDamage resolves inline through this sink rather
+        // than re-queuing for a drain that already ran this tick.
+        shots.tickImpacts(TICK_DT, impact -> {
+            if (!rosterService.isAliveById(impact.victimId)) return;
+            damageService.applyDamage(impact.victimId, impact.damage, impact.vsTurretMult, impact.moraleImpact);
+            hitResponse.rollFallbackOnHit(impact.victimId);
+            hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
+        });
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
