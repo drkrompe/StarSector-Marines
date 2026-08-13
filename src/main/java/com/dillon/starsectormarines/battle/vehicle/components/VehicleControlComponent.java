@@ -68,6 +68,13 @@ public final class VehicleControlComponent {
     public float recoveryBestRemaining = Float.MAX_VALUE;
     /** Seconds since the last net progress toward the goal; crossing the stall threshold triggers a re-route. */
     public float timeSinceProgress;
+    /**
+     * First-step directions already attempted by the current no-progress rescue
+     * sequence, keyed by {@link com.dillon.starsectormarines.battle.nav.Direction#bit()}.
+     * Kept across rescue re-routes so a repeat stall asks for the next-most-forward
+     * escape instead of driving into the same failed corridor again.
+     */
+    public int rescueFirstStepTriedMask;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by the control system's {@code consumeArrived}. */
     public boolean arrived;
