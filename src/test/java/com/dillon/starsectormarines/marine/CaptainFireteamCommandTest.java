@@ -16,7 +16,7 @@ class CaptainFireteamCommandTest {
 
     @Test
     void rankCapacityRoundsUpToWholeFireteams() {
-        int[] expected = {1, 2, 4, 7, 14, 27, 54, 107};
+        int[] expected = {1, 2, 7, 14, 27, 54, 107, 214};
 
         for (Rank rank : Rank.values()) {
             assertEquals(expected[rank.ordinal()], rank.fireteamCap());

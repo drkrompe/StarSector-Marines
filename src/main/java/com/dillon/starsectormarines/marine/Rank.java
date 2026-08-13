@@ -11,12 +11,15 @@ package com.dillon.starsectormarines.marine;
 public enum Rank {
     PRIVATE("Private", 5, 250),
     CORPORAL("Corporal", 10, 500),
-    SERGEANT("Sergeant", 20, 1000),
-    LIEUTENANT("Lieutenant", 40, 2000),
-    CAPTAIN("Captain", 80, 4000),
-    MAJOR("Major", 160, 8000),
-    COLONEL("Colonel", 320, 16000),
-    GENERAL("General", 640, Integer.MAX_VALUE);
+    // A starting Sergeant must be able to command the full opening company:
+    // seven six-marine fireteams. Higher ranks retain a strictly increasing
+    // command ceiling from that baseline.
+    SERGEANT("Sergeant", 42, 1000),
+    LIEUTENANT("Lieutenant", 80, 2000),
+    CAPTAIN("Captain", 160, 4000),
+    MAJOR("Major", 320, 8000),
+    COLONEL("Colonel", 640, 16000),
+    GENERAL("General", 1280, Integer.MAX_VALUE);
 
     private final String displayName;
     private final int squadCap;
