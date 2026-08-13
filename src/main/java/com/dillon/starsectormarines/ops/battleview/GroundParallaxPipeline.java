@@ -136,14 +136,20 @@ public final class GroundParallaxPipeline {
             + "uniform float strength;\n"
             + "uniform float heightScale;\n"
             + "uniform float heightBias;\n"
+            + "uniform float aspect;\n"
             + "varying vec2 vUv;\n"
             + "void main() {\n"
             + "    float h = texture2D(heightTex, vUv).r;\n"
             + "    float hsb = h * heightScale + heightBias;\n"
-            + "    vec3 eye = normalize(vec3(screenCenter - vUv, eyeHeight));\n"
+            // Eye vector in an isotropic (aspect-corrected) space, so equal
+            // screen-pixel distances from center pull equally hard on both axes;
+            // the offset converts back to UV space before sampling.
+            + "    vec2 d = (screenCenter - vUv) * vec2(aspect, 1.0);\n"
+            + "    vec3 eye = normalize(vec3(d, eyeHeight));\n"
             // Offset-limited form (Welsh 2004) -- no divide by eye.z, so shallow
             // eye vectors at screen edges can't explode into shimmer.
-            + "    vec2 offsetUv = clamp(vUv + hsb * eye.xy * strength, 0.0, 1.0);\n"
+            + "    vec2 off = hsb * eye.xy * strength * vec2(1.0 / aspect, 1.0);\n"
+            + "    vec2 offsetUv = clamp(vUv + off, 0.0, 1.0);\n"
             + "    gl_FragColor = texture2D(colorTex, offsetUv) * gl_Color;\n"
             + "}\n";
 
@@ -210,6 +216,9 @@ public final class GroundParallaxPipeline {
     public void dispose() {
         releaseFbos();
         shader.dispose();
+        // BattleScreen persists across battles; the sampler's per-cell cache must
+        // not outlive this battle's map (same grid coords, different tiles).
+        microHeight.invalidate();
     }
 
     private void releaseFbos() {
@@ -247,13 +256,16 @@ public final class GroundParallaxPipeline {
     }
 
     private boolean composite(float alphaMult) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, heightTex);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorTex);
-
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         try {
+            // Bind AFTER the push so glPopAttrib restores the caller's texture
+            // bindings/active unit (GL_TEXTURE_BIT covers both) -- same order as
+            // DecalAccumulator.blit.
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, heightTex);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, colorTex);
+
             shader.use();
             shader.set1i("colorTex", 0);
             shader.set1i("heightTex", 1);
@@ -262,6 +274,7 @@ public final class GroundParallaxPipeline {
             shader.set1f("strength", STRENGTH);
             shader.set1f("heightScale", HEIGHT_SCALE);
             shader.set1f("heightBias", HEIGHT_BIAS);
+            shader.set1f("aspect", fboPxW / (float) fboPxH);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
@@ -281,10 +294,9 @@ public final class GroundParallaxPipeline {
             broken = true;
             return false;
         } finally {
+            // The program binding lives outside the attrib stack; texture
+            // bindings/active unit are restored by the pop.
             ShaderProgram.useNone();
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE0);
             glPopAttrib();
         }
     }
