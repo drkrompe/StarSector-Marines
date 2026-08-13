@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
+import com.dillon.starsectormarines.campaign.systems.DefectorAsylumSpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.ExtractionResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
@@ -102,6 +103,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ExtractionResolutionSystem(),
                 new StationingReleaseSystem(),
                 new DiscoveryPropagationSystem(),
+                new DefectorAsylumSpawnSystem(),
                 new CivilWarParticipationOfferSystem(),
                 new ThreatInterventionOfferSystem()
         ));
