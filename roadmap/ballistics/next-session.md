@@ -2,15 +2,13 @@
 
 ## State of play (2026-08-13)
 
-- **S1 SHIPPED** on branch `worktree-ballistics-s1` (worktree
-  `.claude/worktrees/ballistics-s1`): core `85ec50e6`, merge of main's
-  separation steering + counterattack `(merge commit)`, radius
-  reconciliation `382b0ee6`. Full record:
+- **S1 SHIPPED and merged to main** (fast-forward to `76a7f1be`,
+  2026-08-13): core `85ec50e6`, merge of main's separation steering +
+  counterattack `b3ea049c`, radius reconciliation `382b0ee6`, docs
+  `76a7f1be`. Full record:
   [`complete/s1-resolver-core.md`](complete/s1-resolver-core.md).
-  1450+ tests green post-merge.
-- **Branch not yet merged to main** — owner call. The worktree branch
-  contains ONLY ballistics commits on top of main (post-merge), so the
-  merge back is `git merge worktree-ballistics-s1` from the main checkout.
+  1450+ tests green post-merge; the `ballistics-s1` worktree/branch are
+  retired.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
