@@ -1,18 +1,25 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.MarineRoster;
+
 /** Debug/maintenance compaction that preserves every contracts[] SoA column. */
 public final class ContractTableCompactor {
 
     private ContractTableCompactor() {}
 
     public static int removeTerminal(CampaignState state) {
+        return removeTerminal(state, null);
+    }
+
+    public static int removeTerminal(CampaignState state, MarineRoster roster) {
         if (state == null) return 0;
         int originalCount = state.contractCount;
         int write = 0;
         state.contractIndexById.clear();
         for (int read = 0; read < originalCount; read++) {
             ContractState contractState = ContractState.fromByte(state.contractState[read]);
-            if (contractState.isTerminal() && !mustRetainTerminal(state, read)) continue;
+            if (contractState.isTerminal()
+                    && !mustRetainTerminal(state, read, roster)) continue;
             if (write != read) copyRow(state, read, write);
             state.contractIndexById.put(state.contractId[write], write);
             write++;
@@ -21,22 +28,27 @@ public final class ContractTableCompactor {
         return originalCount - write;
     }
 
-    private static boolean mustRetainTerminal(CampaignState state, int row) {
-        if (ContractState.fromByte(state.contractState[row]) == ContractState.DEFAULTED
-                && ContractType.fromByte(state.contractType[row]).isStationing()
-                && ownsPersonnel(state, row)) {
+    private static boolean mustRetainTerminal(CampaignState state, int row,
+                                              MarineRoster roster) {
+        if (ContractType.fromByte(state.contractType[row]).isStationing()
+                && ownsPersonnel(state, row, roster)) {
             return true;
         }
         if (ContractType.fromByte(state.contractType[row]) != ContractType.EXTRACTION) return false;
         long sourceId = state.contractSourceContractId[row];
         for (int sourceRow = 0; sourceRow < state.contractCount; sourceRow++) {
-            if (state.contractId[sourceRow] == sourceId) return ownsPersonnel(state, sourceRow);
+            if (state.contractId[sourceRow] == sourceId) {
+                return ownsPersonnel(state, sourceRow, roster);
+            }
         }
         return false;
     }
 
-    private static boolean ownsPersonnel(CampaignState state, int row) {
-        return state.contractMarinesCommitted[row] > 0 || state.contractCaptainId[row] >= 0;
+    private static boolean ownsPersonnel(CampaignState state, int row, MarineRoster roster) {
+        return state.contractMarinesCommitted[row] > 0
+                || state.contractCaptainId[row] >= 0
+                || roster != null
+                && !roster.squadsStationedOn(state.contractId[row]).isEmpty();
     }
 
     private static void copyRow(CampaignState state, int from, int to) {

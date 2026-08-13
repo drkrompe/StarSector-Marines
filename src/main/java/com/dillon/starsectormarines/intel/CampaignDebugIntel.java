@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
@@ -541,7 +542,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     /** Compact terminal contracts out of the table to keep the list browsable. */
     private static void clearTerminalContracts(CampaignState s) {
-        ContractTableCompactor.removeTerminal(s);
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        ContractTableCompactor.removeTerminal(s, script != null ? script.roster() : null);
     }
 
     private static void acceptOffer(CampaignState s, long id) {
