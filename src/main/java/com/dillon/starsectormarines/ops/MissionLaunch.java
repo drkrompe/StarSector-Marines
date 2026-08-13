@@ -12,8 +12,10 @@ import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
+import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 
 import java.util.List;
+import java.util.Collection;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 
 /**
@@ -47,9 +49,23 @@ public final class MissionLaunch {
                                                    List<ShuttleType> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings) {
+        Detachment available = m.source == MissionSource.STATIONING
+                ? DetachmentResolver.resolveStationed(m)
+                : DetachmentResolver.resolve(m, committedShuttles, committedWings);
+        return buildSimulation(ctx, m, committedShuttles, committedWings, debugWings,
+                CommandDeck.defaultSelection(available.powers));
+    }
+
+    public static BattleSimulation buildSimulation(MarineOpsContext ctx,
+                                                   Mission m,
+                                                   List<ShuttleType> committedShuttles,
+                                                   FlybyRoster committedWings,
+                                                   FlybyRoster debugWings,
+                                                   Collection<String> selectedPowerIds) {
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : DetachmentResolver.resolve(m, committedShuttles, committedWings);
+        det = CommandDeck.apply(det, selectedPowerIds);
 
         // Heavy-armaments availability on the target world drives whether the
         // defender side fields a HEAVY_MECH (see BattleSetup).
