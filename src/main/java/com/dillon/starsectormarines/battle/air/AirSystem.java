@@ -6,11 +6,8 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
@@ -26,15 +23,11 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Owns every airborne vehicle in the battle and drives them each tick.
@@ -71,8 +64,6 @@ public class AirSystem {
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
     /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
     private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
-    /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick. */
-    private static final int DEBOARD_SCAN_RADIUS = 5;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
     private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
@@ -82,7 +73,7 @@ public class AirSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
-    private final Consumer<EntitySpec> addUnitSink;
+    private final Function<EntitySpec, Long> addUnitSink;
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
 
     /**
@@ -116,7 +107,7 @@ public class AirSystem {
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
-                     Random rng, Consumer<EntitySpec> addUnitSink, EffectsService effects) {
+                     Random rng, Function<EntitySpec, Long> addUnitSink, EffectsService effects) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -380,7 +371,10 @@ public class AirSystem {
                 case LANDED:
                     mission.deboardCountdown -= dt;
                     if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0) {
-                        if (tryDeboardMarine(mission, type, world.airFaction(id))) {
+                        AirDeliveryPayload payload = mission.payload != null
+                                ? mission.payload : InfantryPayload.INSTANCE;
+                        if (payload.tryDeploy(new AirDeliveryContext(mission, type, world.airFaction(id),
+                                navigation, roster, addUnitSink))) {
                             mission.marinesRemaining--;
                             mission.deboardedThisSortie++;
                         }
@@ -455,7 +449,9 @@ public class AirSystem {
                             if (mission.cycleLoadouts != null && mission.currentCycle < mission.cycleLoadouts.length) {
                                 mission.marineLoadout = mission.cycleLoadouts[mission.currentCycle];
                             }
-                            mission.marinesRemaining = type.capacity;
+                            AirDeliveryPayload payload = mission.payload != null
+                                    ? mission.payload : InfantryPayload.INSTANCE;
+                            mission.marinesRemaining = payload.unitsPerSortie(type);
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —
@@ -703,68 +699,4 @@ public class AirSystem {
      * units or walls); caller leaves {@code marinesRemaining} unchanged and the
      * shuttle re-tries next interval.
      */
-    private boolean tryDeboardMarine(ShuttleMission mission, ShuttleType type, Faction faction) {
-        int lzCellX = (int) Math.floor(mission.lzX);
-        int lzCellY = (int) Math.floor(mission.lzY);
-        int[] cell = findDeboardCell(lzCellX, lzCellY);
-        if (cell == null) return false;
-        UnitType deboardType = (mission.deboardUnitType != null)
-                ? mission.deboardUnitType
-                : FactionUnitRoster.forFaction(faction).infantry();
-        EntitySpec marine = new EntitySpec(roster.nextMarineId(), faction, deboardType, cell[0], cell[1]);
-        int slot = mission.deboardedThisSortie;   // 0-based deboard index — correct even for a partial sortie
-        MarineLoadout loadout = (mission.marineLoadout != null && slot < mission.marineLoadout.length)
-                ? mission.marineLoadout[slot] : null;
-        if (loadout != null) loadout.seedInto(marine);
-        if (mission.squadId == Squad.NO_SQUAD) {
-            mission.squadId = roster.mintSquad(faction, deboardType);
-            // Garrison drops are born holding their compound: stamp HOLD_NODE so
-            // the squad runs GarrisonCompound from its first tick rather than
-            // idling until a commander assignment (and so the commander leaves
-            // it on station — Pass 1/2 skip HOLD_NODE squads). See ShuttleMission#garrisonNode.
-            if (mission.garrisonNode != null) {
-                Squad garrison = roster.getSquad(mission.squadId);
-                if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
-            }
-        }
-        marine.squad(mission.squadId);
-        Squad squad = roster.getSquad(mission.squadId);
-        if (squad != null) squad.originalSize++;
-        addUnitSink.accept(marine);
-        return true;
-    }
-
-    /**
-     * BFS outward from the LZ cell for the first walkable, unoccupied cell at
-     * distance >= 1. Distance 0 (the LZ itself) is skipped so the marine
-     * sprite doesn't draw directly under the parked shuttle. Returns
-     * {@code null} if no eligible cell is found within {@link #DEBOARD_SCAN_RADIUS}.
-     */
-    private int[] findDeboardCell(int lzX, int lzY) {
-        NavigationGrid grid = navigation.getGrid();
-        Set<Long> seen = new HashSet<>();
-        Queue<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{lzX, lzY, 0});
-        seen.add(((long) lzX << 32) | (lzY & 0xFFFFFFFFL));
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        while (!q.isEmpty()) {
-            int[] p = q.poll();
-            if (p[2] > DEBOARD_SCAN_RADIUS) continue;
-            if (p[2] > 0
-                    && grid.inBounds(p[0], p[1])
-                    && grid.isWalkable(p[0], p[1])
-                    && !navigation.isCellOccupied(p[0], p[1])) {
-                return new int[]{p[0], p[1]};
-            }
-            for (int[] d : dirs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (!grid.inBounds(nx, ny)) continue;
-                long k = ((long) nx << 32) | (ny & 0xFFFFFFFFL);
-                if (!seen.add(k)) continue;
-                q.add(new int[]{nx, ny, p[2] + 1});
-            }
-        }
-        return null;
-    }
 }

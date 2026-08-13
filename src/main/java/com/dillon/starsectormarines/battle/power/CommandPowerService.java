@@ -72,6 +72,8 @@ public final class CommandPowerService {
 
     /** Per-power cooldown remaining (sim-seconds); absent / {@code <= 0} = ready. */
     private final Map<String, Float> cooldowns = new LinkedHashMap<>();
+    /** Remaining per-battle activations for limited powers; absent = unlimited. */
+    private final Map<String, Integer> charges = new LinkedHashMap<>();
 
     private final List<PendingActivation> pending = new ArrayList<>();
     private final List<ActivePing> activePings = new ArrayList<>();
@@ -84,6 +86,8 @@ public final class CommandPowerService {
 
     public void register(CommandPower power) {
         powers.put(power.id, power);
+        if (power.maxCharges > 0) charges.put(power.id, power.maxCharges);
+        else charges.remove(power.id);
     }
 
     /**
@@ -94,8 +98,11 @@ public final class CommandPowerService {
     public void setPowers(List<CommandPower> resolved) {
         powers.clear();
         cooldowns.clear();
+        charges.clear();
         if (resolved != null) {
-            for (CommandPower power : resolved) register(power);
+            for (CommandPower power : resolved) {
+                register(power);
+            }
         }
     }
 
@@ -117,10 +124,17 @@ public final class CommandPowerService {
         return v == null ? 0f : Math.max(0f, v);
     }
 
+    /** Remaining uses, or {@code -1} when the power is unlimited. */
+    public int getChargesRemaining(String powerId) {
+        Integer remaining = charges.get(powerId);
+        return remaining == null ? -1 : Math.max(0, remaining);
+    }
+
     /** True if the power exists, is off cooldown, and the pool can pay for it. */
     public boolean canActivate(CommandPower power) {
         return power != null
                 && getCooldownRemaining(power.id) <= 0f
+                && getChargesRemaining(power.id) != 0
                 && commandPoints >= power.cpCost;
     }
 
@@ -154,6 +168,8 @@ public final class CommandPowerService {
     void commit(CommandPower power) {
         commandPoints -= power.cpCost;
         cooldowns.put(power.id, power.cooldownSeconds);
+        Integer remaining = charges.get(power.id);
+        if (remaining != null) charges.put(power.id, Math.max(0, remaining - 1));
     }
 
     /** Register a transient reveal — called from {@link ReconPing#resolve}. */
