@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
+import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -83,8 +84,11 @@ public class BattleRenderer {
     private static final Color  CHARGE_TINT_COMPLETE = new Color(0xE0, 0x40, 0x40);
     private static final Color  CHARGE_TINT_ARC      = new Color(0xFF, 0xC8, 0x70);
     private static final Color  KIT_DROP_TINT        = new Color(0x80, 0xE8, 0xFF);
+    private static final Color  RESUPPLY_TINT         = new Color(0x70, 0xD8, 0x78);
+    private static final Color  RESUPPLY_CONTESTED    = new Color(0xF0, 0x70, 0x50);
     private static final float  CHARGE_ICON_SIZE     = 1.5f;
     private static final float  KIT_DROP_SIZE        = 1.0f;
+    private static final float  RESUPPLY_SIZE         = 1.25f;
     private static final float  CHARGE_PULSE_AMP     = 0.10f;
     private static final float  CHARGE_PULSE_HZ      = 1.5f;
     private static final float  KIT_DROP_PULSE_AMP   = 0.10f;
@@ -662,6 +666,28 @@ public class BattleRenderer {
             float pulse = 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
             emitIcon(out, sprites.iconStar(), cx, cy,
                     cellPx * KIT_DROP_SIZE * pulse, KIT_DROP_TINT, alphaMult);
+        }
+
+        for (ResupplyCache cache : sim.getResupplyCaches()) {
+            float cx = rc.camera.cellToScreenX(cache.cellX + 0.5f);
+            float cy = rc.camera.cellToScreenY(cache.cellY + 0.5f);
+            float pulse = cache.depleted() ? 0.8f
+                    : 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
+            Color tint = cache.contested ? RESUPPLY_CONTESTED : RESUPPLY_TINT;
+            float alpha = cache.depleted() ? alphaMult * 0.35f : alphaMult;
+            emitIcon(out, sprites.iconStar(), cx, cy,
+                    cellPx * RESUPPLY_SIZE * pulse, tint, alpha);
+            float barW = cellPx * 1.3f;
+            float barH = Math.max(2f, cellPx * 0.10f);
+            float fill = barW * cache.stockFraction();
+            out.addSolidRect(RenderLayer.OBJECTIVES, cx - barW / 2f, cy - cellPx * 0.85f,
+                    cx + barW / 2f, cy - cellPx * 0.85f + barH,
+                    0.08f, 0.12f, 0.10f, alpha * 0.8f);
+            if (fill > 0f) out.addSolidRect(RenderLayer.OBJECTIVES, cx - barW / 2f,
+                    cy - cellPx * 0.85f, cx - barW / 2f + fill,
+                    cy - cellPx * 0.85f + barH,
+                    tint.getRed() / 255f, tint.getGreen() / 255f,
+                    tint.getBlue() / 255f, alpha);
         }
 
         if (!objectiveArcMesh.isEmpty()) out.addPoly(RenderLayer.OBJECTIVES, objectiveArcMesh);

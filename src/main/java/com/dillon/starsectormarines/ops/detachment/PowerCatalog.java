@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -41,6 +42,8 @@ public final class PowerCatalog {
     private static final String VALKYRIE_HULL = "valkyrie";
     private static final String GROUND_SUPPORT_MOD = "ground_support";
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
+    private static final String TARSUS_HULL = "tarsus";
+    private static final String ATLAS_HULL = "atlas";
 
     private PowerCatalog() {}
 
@@ -63,6 +66,9 @@ public final class PowerCatalog {
         }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MECH_SUPPORT) {
             byId.put(MechSupport.ID, new MechSupport());
+        }
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_EMERGENCY_RESUPPLY) {
+            byId.put(EmergencyResupply.ID, new EmergencyResupply());
         }
 
         if (committedShips != null) {
@@ -95,6 +101,9 @@ public final class PowerCatalog {
         String baseId = ship.getHullSpec() != null ? ship.getHullSpec().getBaseHullId() : null;
         if (APOGEE_HULL.equals(baseId)) byId.putIfAbsent(ReconPing.ID, new ReconPing());
         if (VALKYRIE_HULL.equals(baseId)) byId.putIfAbsent(MechSupport.ID, new MechSupport());
+        if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
+            byId.putIfAbsent(EmergencyResupply.ID, new EmergencyResupply());
+        }
     }
 
     /** The employer's offered power ids for this mission (the contract co-source). */
@@ -106,6 +115,7 @@ public final class PowerCatalog {
     private static CommandPower forId(String id) {
         if (ReconPing.ID.equals(id)) return new ReconPing();
         if (MechSupport.ID.equals(id)) return new MechSupport();
+        if (EmergencyResupply.ID.equals(id)) return new EmergencyResupply();
         return null;
     }
 }

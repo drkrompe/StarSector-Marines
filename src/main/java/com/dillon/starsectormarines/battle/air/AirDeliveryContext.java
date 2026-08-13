@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
+import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -27,16 +29,18 @@ public final class AirDeliveryContext {
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final Function<EntitySpec, Long> spawnSink;
+    private final ResupplyService resupply;
 
     AirDeliveryContext(ShuttleMission mission, ShuttleType carrier, Faction faction,
                        NavigationService navigation, UnitRosterService roster,
-                       Function<EntitySpec, Long> spawnSink) {
+                       Function<EntitySpec, Long> spawnSink, ResupplyService resupply) {
         this.mission = mission;
         this.carrier = carrier;
         this.faction = faction;
         this.navigation = navigation;
         this.roster = roster;
         this.spawnSink = spawnSink;
+        this.resupply = resupply;
     }
 
     public int[] findOpenDeboardCell() {
@@ -84,6 +88,10 @@ public final class AirDeliveryContext {
 
     public void attachMechLoadout(long unit, MechRole role) {
         roster.world().attachMechLoadout(unit, MechLoadoutComponent.defaultLoadout(role));
+    }
+
+    public void deployResupplyCache(int cellX, int cellY) {
+        resupply.add(new ResupplyCache(cellX, cellY, faction));
     }
 
     private static long key(int x, int y) {
