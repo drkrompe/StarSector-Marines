@@ -26,6 +26,12 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * </ul>
  * The 5-arg constructor defaults objective = rally, matching the legacy
  * behavior where the rally served double duty.
+ *
+ * <p>Prepaid requests (see {@link #prepaid}) are the bulge counterattack's
+ * ({@code roadmap/conquest/stories/biome-counterattack.md}) up-front ticket
+ * earmark: the poster already debited the cost in one lump at muster, so
+ * {@link ReinforcementSystem#tick} must neither debit nor refund on dispatch
+ * — the earmark is a sunk bet, win or lose.
  */
 public final class ReinforcementRequest {
 
@@ -33,7 +39,15 @@ public final class ReinforcementRequest {
     public enum Reason {
         GARRISON_DEPLETED,
         OBJECTIVE_LOST,
-        SCRIPTED_TIMER
+        SCRIPTED_TIMER,
+        /**
+         * The staged bulge counterattack's massed wave — see
+         * {@code roadmap/conquest/stories/biome-counterattack.md} and
+         * {@link CounterattackSystem}. Informational like the others; it does
+         * not branch dispatch logic, but a request with this reason is always
+         * {@link #prepaid}.
+         */
+        COUNTERATTACK
     }
 
     /**
@@ -54,6 +68,18 @@ public final class ReinforcementRequest {
     public final int objectiveX;
     public final int objectiveY;
 
+    /**
+     * True when the poster already paid the ticket cost in a single up-front
+     * lump (the bulge counterattack's earmark — see {@link Reason#COUNTERATTACK}
+     * and {@code roadmap/conquest/stories/biome-counterattack.md}), rather than
+     * per-dispatch. {@link ReinforcementSystem#tick} skips both the debit on
+     * dispatch and the refund on the no-means path for a prepaid request: the
+     * commitment was the point, so a wave request no means can deliver still
+     * burns its ticket. Defaults to {@code false} for every non-widest
+     * constructor — the steady per-dispatch debit is unchanged.
+     */
+    public final boolean prepaid;
+
     public ReinforcementRequest(Faction side, Reason reason, Strength strength,
                                 int rallyX, int rallyY) {
         this(side, reason, strength, rallyX, rallyY, rallyX, rallyY);
@@ -62,6 +88,13 @@ public final class ReinforcementRequest {
     public ReinforcementRequest(Faction side, Reason reason, Strength strength,
                                 int rallyX, int rallyY,
                                 int objectiveX, int objectiveY) {
+        this(side, reason, strength, rallyX, rallyY, objectiveX, objectiveY, false);
+    }
+
+    public ReinforcementRequest(Faction side, Reason reason, Strength strength,
+                                int rallyX, int rallyY,
+                                int objectiveX, int objectiveY,
+                                boolean prepaid) {
         this.side = side;
         this.reason = reason;
         this.strength = strength;
@@ -69,6 +102,7 @@ public final class ReinforcementRequest {
         this.rallyY = rallyY;
         this.objectiveX = objectiveX;
         this.objectiveY = objectiveY;
+        this.prepaid = prepaid;
     }
 
     public boolean hasRally() { return rallyX != RALLY_UNSET && rallyY != RALLY_UNSET; }
