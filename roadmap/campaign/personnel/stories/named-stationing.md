@@ -1,0 +1,132 @@
+# Named stationing detachments
+
+**Status:** CONTRACT LOCKED — implementation not started (2026-08-12)
+
+## Problem
+
+Stationing predates persistent rank-and-file personnel. Acceptance currently
+removes anonymous marine cargo, stores one `contractMarinesCommitted` count,
+and marks only the captain `GARRISONED`. Incidents and garrison defenses scale
+from that count, so their battles cannot deploy the actual fireteams, attribute
+individual casualties, or return named survivors.
+
+Now that briefing command is complete, stationing must become a real personnel
+lifecycle. This is campaign/personnel authority. Battles consume a frozen
+detachment and report identities; they do not decide who remains stationed or
+who returns.
+
+## Contract
+
+### Persistent binding and availability
+
+- Each non-reserve `MarineSquad` may carry one `stationingContractId`; `-1`
+  means available. The squad id remains stable and home command is unchanged.
+- Binding is whole-fireteam organizational state. Every member remains in the
+  persistent roster with their existing ACTIVE/WIA/MIA/KIA disposition.
+- A stationed fireteam is excluded from ordinary briefing defaults, borrowing,
+  transfer, demobilization, and equipment mutation. WIA recovery still advances;
+  a recovered member rejoins their still-stationed team rather than appearing
+  in the home deployment pool.
+- Only the selected active captain's rank-bounded formation may be stationed.
+  Home teams are defaults; bounded borrowing does not rewrite home command.
+
+### Acceptance and strength
+
+- New stationing acceptance selects whole named fireteams. It never removes
+  marine cargo: enlisted named personnel already left cargo when recruited.
+- `contractMarinesCommitted` remains for retainers, existing trigger math, UI,
+  and save compatibility, but for named assignments it is a derived living
+  headcount: bound members whose status is ACTIVE or WIA. KIA/MIA are no longer
+  committed strength.
+- Incident battle seats use only ACTIVE bound members at mission creation.
+  WIA remain assigned but do not deploy. Payloads therefore carry both the
+  derived committed headcount and frozen fireteam ids/active seat count.
+- Acceptance is atomic: validate captain, rank cap, unique available line
+  teams, at least one ACTIVE member, contract terms, and contradictory-work
+  rules before binding any team or changing the captain status.
+
+### Legacy contracts
+
+- A stationing row with `contractMarinesCommitted > 0` and no bound fireteams
+  is a legacy anonymous assignment. Never auto-bind current roster teams: its
+  cargo was already removed, so doing both would double-charge personnel.
+- Legacy rows retain their existing count/cargo return behavior through
+  completion, withdrawal, default extraction, incidents, and save compaction.
+- New offers require the named roster path. There is no new anonymous fallback.
+
+### Incidents, defenses, and casualties
+
+- Cadre incidents and Garrison defenses freeze the contract's bound fireteam
+  ids into the stationing mission and load only those ACTIVE soldiers into the
+  local shuttle manifest.
+- `MissionOutcome` is the sole named casualty input. Shared deterministic
+  disposition writes ACTIVE/WIA/MIA/KIA first; stationing resolution then
+  recomputes the contract's derived living strength from the bound teams.
+- A successful response keeps surviving teams bound. WIA remain stationed and
+  may recover before a later incident.
+- A failed/overrun response clears every binding after the outcome has assigned
+  individual fates. Survivors and WIA return to normal roster authority; the
+  captain keeps the outcome's ACTIVE/INJURED/KIA state. No cargo is created.
+- If no ACTIVE bound member can answer a pending battle, the response cannot
+  launch and the assignment resolves through an explicit no-force failure path;
+  it must not generate anonymous replacements.
+
+### Completion, withdrawal, and employer default
+
+- Normal completion and idle early withdrawal clear all matching fireteam
+  bindings exactly once, restore a still-`GARRISONED` captain to ACTIVE, and do
+  not mutate marine cargo. Individual WIA/MIA/KIA state is preserved.
+- Employer default keeps teams bound while the extraction obligation is open.
+  Successful extraction clears bindings for the named survivors. Failed
+  extraction marks every still-recoverable bound member MIA, clears the
+  bindings, and applies the existing captain injury consequence.
+- Every terminal path clears `contractCaptainId` and the derived committed
+  count only after its named or legacy personnel mutation succeeds. Replay sees
+  no remaining authority and performs no second return.
+
+### Presentation
+
+- Stationing configuration uses the same selected/max whole-fireteam language
+  as briefing and shows active heads plus WIA separately.
+- Management names the bound fireteams and reports ACTIVE/WIA/MIA/KIA totals.
+  Incident copy names the actual detachment rather than only a scalar count.
+- Results already carries frozen commander/fireteam context; stationing missions
+  populate it and use the normal named fireteam debrief.
+
+## Slices
+
+1. **Domain binding** — persist `stationingContractId`, add roster availability,
+   bind/unbind/query/repair operations, and prevent roster/armory mutation while
+   away. Cover legacy field defaulting and duplicate-binding repair.
+2. **Named acceptance and management** — replace marine-count acceptance for
+   new offers with captain-scoped whole-fireteam selection; derive committed
+   strength and update local stationing UI. Preserve the anonymous legacy path.
+3. **Release lifecycle** — branch completion, withdrawal, and default extraction
+   between named bindings and legacy cargo; make every path replay-safe.
+4. **Incident battle bridge** — extend payloads/factories with frozen fireteam
+   identity and ACTIVE seats, apply named casualty outcomes, recompute strength,
+   and explicitly resolve no-force responses.
+5. **Debrief and migration closure** — management/debrief presentation, save
+   repair coverage, compaction guards, and full legacy/new lifecycle matrices.
+
+## Acceptance
+
+- One fireteam cannot be stationed on two contracts or selected for an ordinary
+  mission while away.
+- New acceptance consumes no anonymous cargo and binds only whole, available
+  teams within the active captain's rank cap.
+- Every incident deploys only the identities already stationed; no unrelated or
+  generated player personnel fill missing named seats.
+- Completion, withdrawal, response failure, and both extraction outcomes each
+  settle named personnel exactly once without cargo duplication.
+- Anonymous saves continue to return the exact stored cargo count and are never
+  silently converted into named assignments.
+- Stationing Results remains stable if home command or roster organization
+  changes after the battle.
+
+## Explicit non-goals
+
+- No battle-AI or map-generation changes.
+- No per-market physical barracks inventory or travel-time simulation.
+- No mid-term reinforcement/replacement UI in v1.
+- No conversion of ambient/employer marines into player personnel.
