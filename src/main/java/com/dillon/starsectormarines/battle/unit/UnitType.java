@@ -73,8 +73,11 @@ public enum UnitType {
      * migration's per-type extent (infantry/civilian-family 0.3, drone 0.35,
      * turret 0.45, hub 0.5, mech 0.6). Consumed by {@code Detonations}
      * (widens a unit's AoE hit test beyond the raw blast radius to cover its
-     * physical extent) and {@code WorldPicker} (widens a unit's click pick
-     * radius so bigger units are easier to select).
+     * physical extent), {@code WorldPicker} (widens a unit's click pick
+     * radius so bigger units are easier to select), {@code SeparationSystem}
+     * (soft-collision body + inverse-mass {@code radius²}), and
+     * {@code BallisticResolver} (unit-contact circle for ballistic rays) —
+     * one physical body circle per type, shared by every consumer.
      */
     public final float radius;
 
@@ -108,15 +111,6 @@ public enum UnitType {
      * attached (squad-type denormalization at mint time).
      */
     public boolean isMech() { return this == HEAVY_MECH; }
-
-    /**
-     * Collision radius in cells for {@code BallisticResolver}'s unit-contact
-     * test — distinct from {@link #radius}, which sizes AoE/pick footprints.
-     * Infantry-class archetypes and everything else default to {@code 0.35f};
-     * mech/large chassis ({@link #isMech}) use {@code 0.6f}. No per-instance
-     * override in S1.
-     */
-    public float collisionRadius() { return isMech() ? 0.6f : 0.35f; }
 
     /**
      * Whether this archetype is a static emplacement — a {@link #TURRET} or a
