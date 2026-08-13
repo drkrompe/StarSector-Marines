@@ -1,6 +1,8 @@
 # Captain moral trait drift
 
-**Status:** CONTRACT LOCKED — implementation next (2026-08-12)
+**Status:** SLICE 1 COMPLETE — deterministic drift system next (2026-08-12)
+
+**Implemented:** `b9e8ffd6`
 
 ## Purpose
 
@@ -81,8 +83,9 @@ which currently affect only institutionalism, from granting either outlook.
 
 ## Slices
 
-1. **Persistent outlook authority** — append traits; persist/backfill the
-   captain outlook fields; lock mutual exclusion and repair behavior.
+1. ~~**Persistent outlook authority** — append traits; persist/backfill the
+   captain outlook fields; lock mutual exclusion and repair behavior.~~ Shipped
+   in `b9e8ffd6` with focused exactly-once and legacy-repair coverage.
 2. **Deterministic drift system** — captain-local ledger aggregation, eligibility,
    classification, daily-system ordering, exactly-once commendation, tests.
 3. **Roster presentation and closure** — readable trait labels on the existing
