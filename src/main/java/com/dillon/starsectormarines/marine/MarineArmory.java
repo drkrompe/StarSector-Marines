@@ -76,15 +76,30 @@ public final class MarineArmory implements Serializable {
 
     public boolean printPrimary(MarineWeapon weapon, EquipmentGrade grade) {
         String key = primaryKey(weapon, grade);
-        return print(key, primaryCost(grade));
+        return print(key, primaryFabricationCost(grade));
     }
 
     public boolean printSecondary(MarineSecondary secondary) {
-        return print(secondaryKey(secondary), 5);
+        return print(secondaryKey(secondary), secondaryFabricationCost(secondary));
     }
 
     public boolean printArmor(MarineArmorPattern armor) {
-        return print(armorKey(armor), armor == MarineArmorPattern.ARMORLESS ? 1 : 3);
+        return print(armorKey(armor), armorFabricationCost(armor));
+    }
+
+    public boolean canPrintPrimary(MarineWeapon weapon, EquipmentGrade grade) {
+        return isPrimaryUnlocked(weapon, grade)
+                && fabricationMaterials >= primaryFabricationCost(grade);
+    }
+
+    public boolean canPrintSecondary(MarineSecondary secondary) {
+        return isSecondaryUnlocked(secondary)
+                && fabricationMaterials >= secondaryFabricationCost(secondary);
+    }
+
+    public boolean canPrintArmor(MarineArmorPattern armor) {
+        return isArmorUnlocked(armor)
+                && fabricationMaterials >= armorFabricationCost(armor);
     }
 
     /** Award fabrication feedstock and open recipes at stable operation milestones. */
@@ -141,7 +156,7 @@ public final class MarineArmory implements Serializable {
         if (printedGear.getOrDefault(key, 0) < count) printedGear.put(key, count);
     }
 
-    private static int primaryCost(EquipmentGrade grade) {
+    public static int primaryFabricationCost(EquipmentGrade grade) {
         if (grade == null) return 2;
         return switch (grade) {
             case SURPLUS -> 1;
@@ -149,6 +164,14 @@ public final class MarineArmory implements Serializable {
             case MILSPEC -> 4;
             case MASTERWORK -> 8;
         };
+    }
+
+    public static int secondaryFabricationCost(MarineSecondary secondary) {
+        return 5;
+    }
+
+    public static int armorFabricationCost(MarineArmorPattern armor) {
+        return armor == MarineArmorPattern.ARMORLESS ? 1 : 3;
     }
 
     public static String primaryKey(MarineWeapon weapon, EquipmentGrade grade) {

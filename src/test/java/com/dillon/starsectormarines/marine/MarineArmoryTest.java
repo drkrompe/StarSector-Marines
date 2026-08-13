@@ -37,6 +37,23 @@ class MarineArmoryTest {
     }
 
     @Test
+    void fabricationAvailabilityIncludesRecipeAndMaterialCost() {
+        MarineArmory armory = new MarineArmory();
+        assertFalse(armory.canPrintPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE));
+        assertFalse(armory.canPrintSecondary(
+                com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER));
+        assertFalse(armory.canPrintArmor(MarineArmorPattern.CHARCOAL));
+
+        armory.addFabricationMaterials(3);
+        assertTrue(armory.canPrintPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE));
+        assertTrue(armory.canPrintArmor(MarineArmorPattern.CHARCOAL));
+        assertFalse(armory.canPrintSecondary(
+                com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER));
+        assertFalse(armory.canPrintPrimary(MarineWeapon.DMR, EquipmentGrade.MASTERWORK),
+                "an unaffordable locked recipe stays disabled");
+    }
+
+    @Test
     void allocationCannotExceedPrintedInventory() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(13);
