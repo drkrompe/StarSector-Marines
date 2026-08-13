@@ -211,6 +211,22 @@ public class MarineRoster implements Serializable {
         return released;
     }
 
+    /** Marks every recoverable member MIA before releasing an overrun assignment. */
+    public int failStationingExtraction(long contractId) {
+        List<MarineSquad> stationed = squadsStationedOn(contractId);
+        if (stationed.isEmpty()) return 0;
+        for (MarineSquad squad : stationed) {
+            for (MarineSoldier soldier : squadMembers(squad)) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE
+                        || soldier.status() == MarineSoldierStatus.WIA) {
+                    soldier.setStatus(MarineSoldierStatus.MIA);
+                    soldier.setUnavailableUntilDay(0f);
+                }
+            }
+        }
+        return releaseStationing(contractId);
+    }
+
     /** Assigns or atomically reassigns one line fireteam to an active captain. */
     public boolean assignCaptainToSquad(String captainId, String squadId) {
         MarineCaptain captain = byId(captainId);
