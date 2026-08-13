@@ -130,6 +130,12 @@ public final class MovementService {
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #has}. */
     public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
 
+    /** Velocity x actually applied by this tick's movement pass, cells/sec — 0 when the mover hasn't moved this tick. Fail-loud on a non-mover; gate on {@link #has}. */
+    public float velX(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X); }
+
+    /** Velocity y actually applied by this tick's movement pass, cells/sec. See {@link #velX}. */
+    public float velY(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y); }
+
     public int[] path(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
     public void setPathRef(long id, int[] p) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, p); }
 

@@ -51,8 +51,8 @@ public enum MarineWeapon {
                 new Color(0x80, 0xFF, 0x80),
                 24f, 1.0f, 0.35f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
-                3, 0.09f, null, 0f, 0f,
-                0.30f, 0.4f),
+                3, 0.09f, null, 0f,
+                0.30f, 0.4f, 55f),
     /**
      * Close-range area-suppression — fast 3-round bursts of small bullet
      * sprites. Vanilla light MG. Per-shot damage is lighter (0.7) so a full
@@ -69,8 +69,8 @@ public enum MarineWeapon {
                 new Color(0xFF, 0xE8, 0xC0),
                 16f, 0.7f, 0.50f, 0.50f, 0.30f,
                 ImpactProfile.RIFLE,
-                3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f, 0.10f,
-                0.60f, 1.4f),
+                3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f,
+                0.60f, 1.4f, 45f),
     /**
      * Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus.
      * Vanilla railgun. Single shot, line tracer for now.
@@ -85,8 +85,8 @@ public enum MarineWeapon {
                 new Color(0xC8, 0xC8, 0xFF),
                 32f, 4.0f, 0.55f, 1.80f, 0.40f,
                 ImpactProfile.KINETIC,
-                1, 0f, null, 0f, 0f,
-                0.10f, 0.15f),
+                1, 0f, null, 0f,
+                0.10f, 0.15f, 110f),
     /**
      * Drone-mounted pulse laser — built-in armament for the autonomous
      * defender drones launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}.
@@ -106,8 +106,8 @@ public enum MarineWeapon {
                 new Color(0x60, 0xCF, 0xFF),
                 26f, 0.8f, 0.40f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
-                2, 0.10f, null, 0f, 0f,
-                0.35f, 0.5f);
+                2, 0.10f, null, 0f,
+                0.35f, 0.5f, 55f);
 
     public final String displayName;
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
@@ -130,8 +130,6 @@ public enum MarineWeapon {
     public final String projectileSpritePath;
     /** Projectile sprite visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
     public final float projectileVisualCells;
-    /** Sim-seconds the projectile is visible in flight. Ignored when {@link #projectileSpritePath} is null. */
-    public final float flightSec;
     /**
      * Fraction of base {@link #accuracy} lost at {@link #range} cells.
      * 0 = no falloff (legacy flat behavior), 0.5 = halve accuracy at max
@@ -150,13 +148,22 @@ public enum MarineWeapon {
      * near-miss ring. Mirrors {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread}.
      */
     public final float hitSpread;
+    /**
+     * Round speed in cells/sec, fed to {@link com.dillon.starsectormarines.battle.combat.BallisticResolver#resolve}
+     * as {@code roundVelocity} — the real per-weapon stat that replaced S1's
+     * {@code dist / flightSec} stopgap derivation. Used whenever &gt; 0;
+     * {@code InfantryWeapons.fireShot} falls back to
+     * {@link com.dillon.starsectormarines.battle.combat.BallisticResolver#DEFAULT_ROUND_VELOCITY}
+     * for the null-weapon militia/alien/turret callers.
+     */
+    public final float roundVelocity;
 
     MarineWeapon(String displayName, String fireSoundId, Color tracerColor,
                  float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                  ImpactProfile impactProfile,
                  int burstCount, float burstSpacing, String projectileSpritePath,
-                 float projectileVisualCells, float flightSec,
-                 float accuracyFalloff, float hitSpread) {
+                 float projectileVisualCells,
+                 float accuracyFalloff, float hitSpread, float roundVelocity) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.tracerColor = tracerColor;
@@ -170,8 +177,8 @@ public enum MarineWeapon {
         this.burstSpacing = burstSpacing;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
-        this.flightSec = flightSec;
         this.accuracyFalloff = accuracyFalloff;
         this.hitSpread = hitSpread;
+        this.roundVelocity = roundVelocity;
     }
 }
