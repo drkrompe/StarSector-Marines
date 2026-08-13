@@ -71,9 +71,14 @@ class SpaceportVehiclePlacementTest {
         List<ParkedAircraft> parked = BattleSetup.stampParkedAircraft(
                 map, deployment, new Random(42L));
 
+        assertTrue(deployment.size() == 3);
+        for (LandingPad pad : deployment) {
+            assertTrue(pad.purpose == LandingPad.Purpose.CIVILIAN_SPACEPORT,
+                    "default deployment should use an authored port berth, not fallback pavement");
+            assertTrue(pad.isClear(map.grid, map.topology));
+        }
         assertFalse(parked.isEmpty(),
                 "default deployment should leave a civilian berth occupied");
-        for (LandingPad pad : deployment) assertTrue(pad.isClear(map.grid, map.topology));
     }
 
     @Test
