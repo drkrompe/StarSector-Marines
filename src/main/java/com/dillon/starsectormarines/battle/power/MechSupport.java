@@ -9,7 +9,7 @@ public final class MechSupport extends AirDeliveryPower {
     public static final String ID = "mech_support";
 
     public MechSupport() {
-        super(ID, "Mech Support", 4f, 1, ShuttleType.VALKYRIE,
+        super(ID, "Mech Support", 4f, 1, 0, 3, ShuttleType.VALKYRIE,
                 MechSupportPayload.INSTANCE, 5);
     }
 }

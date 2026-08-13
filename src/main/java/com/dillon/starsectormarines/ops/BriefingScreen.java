@@ -25,6 +25,8 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
+import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -132,6 +134,11 @@ public class BriefingScreen implements Screen {
     private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
     /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
     private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
+    /** Power roster available from the current whole-fleet/employer resolver. */
+    private List<CommandPower> cachedAvailablePowers = java.util.Collections.emptyList();
+    /** Stable ids selected into the current mission's command deck. */
+    private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
+    private boolean commandDeckInitialized;
 
     /**
      * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
@@ -175,10 +182,20 @@ public class BriefingScreen implements Screen {
             lastSelectedMissionId = m.id;
             deselectedTransports.clear();
             deselectedCarriers.clear();
+            selectedPowerIds.clear();
+            commandDeckInitialized = false;
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
         cachedAvailable = PlayerFleetShuttles.queryAvailable();
         cachedCarriers = PlayerFleetWings.committableCarriers();
+        cachedAvailablePowers = availablePowers(m);
+        java.util.Set<String> availableIds = new java.util.HashSet<>();
+        for (CommandPower power : cachedAvailablePowers) availableIds.add(power.id);
+        selectedPowerIds.retainAll(availableIds);
+        if (!commandDeckInitialized) {
+            selectedPowerIds.addAll(CommandDeck.defaultSelection(cachedAvailablePowers));
+            commandDeckInitialized = true;
+        }
 
         // Header — mission name (large), spanning the canvas top.
         widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD,
@@ -364,6 +381,8 @@ public class BriefingScreen implements Screen {
                     Strings.get("briefingTransport"), x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("briefingStationedLocalLifts"), valueX, y, VALUE_COLOR));
+            y -= ROW_GAP + SECTION_GAP;
+            buildCommandDeck(x, y, rowW, floor);
             return;
         }
 
@@ -403,6 +422,9 @@ public class BriefingScreen implements Screen {
                             ? ACCEPT_COLOR : BLOCKED_COLOR));
         }
         y -= ROW_GAP;
+
+        y = buildCommandDeck(x, y, rowW, floor);
+        y -= SECTION_GAP;
 
         // Transport — one toggle row per available shuttle, with sortie-cycle annotation.
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
@@ -493,6 +515,49 @@ public class BriefingScreen implements Screen {
                     summarizePowerIds(m.employerPowerIds), valueX, y, VALUE_COLOR));
             y -= ROW_GAP;
         }
+    }
+
+    /** Compact two-column command deck; returns the next free row below it. */
+    private float buildCommandDeck(float x, float y, float rowW, float floor) {
+        int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "COMMAND DECK  " + used + " / " + CommandDeck.BUDGET,
+                x, y, used <= CommandDeck.BUDGET ? HEADER_COLOR : BLOCKED_COLOR));
+        y -= ROW_GAP;
+        if (cachedAvailablePowers.isEmpty()) {
+            if (y >= floor) widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "No powers available from fleet or employer", x, y, LABEL_COLOR));
+            return y - ROW_GAP;
+        }
+
+        for (CommandPower power : cachedAvailablePowers) {
+            if (y < floor) return y;
+            boolean selected = selectedPowerIds.contains(power.id);
+            boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
+            Runnable toggle = selected || canAdd ? () -> {
+                if (!selectedPowerIds.remove(power.id)) selectedPowerIds.add(power.id);
+                rebuild();
+            } : null;
+            widgets.add(new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H, toggle));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    (selected ? "[x] " : "[ ] ") + power.displayName,
+                    x + 7f, y, selected ? ACCEPT_COLOR : canAdd ? VALUE_COLOR : LABEL_COLOR));
+            String cost = CommandDeck.weight(power) + " slot"
+                    + (CommandDeck.weight(power) == 1 ? "" : "s")
+                    + " · " + Math.round(power.cpCost) + " CP"
+                    + (power.supplyCost > 0 ? " · " + power.supplyCost + " sup" : "");
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, cost,
+                    x + rowW - 190f, y, selected || canAdd ? LABEL_COLOR : BLOCKED_COLOR));
+            y -= ROW_GAP;
+        }
+        return y;
+    }
+
+    private List<CommandPower> availablePowers(Mission mission) {
+        if (mission == null) return Collections.emptyList();
+        return mission.source == MissionSource.STATIONING
+                ? DetachmentResolver.resolveStationed(mission).powers
+                : DetachmentResolver.resolve(mission, effectivePlayerShuttles(), committedWings()).powers;
     }
 
     private void buildButtons() {
@@ -817,7 +882,8 @@ public class BriefingScreen implements Screen {
                 m.source == MissionSource.STATIONING
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
-                m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings());
+                m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
+                selectedPowerIds);
         if (m.contractId >= 0L && campaignScript != null) {
             int day = Global.getSector() != null
                     ? (int) Global.getSector().getClock().getDay() : 0;

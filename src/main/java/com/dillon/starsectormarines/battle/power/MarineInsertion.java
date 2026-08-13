@@ -9,7 +9,7 @@ public final class MarineInsertion extends AirDeliveryPower {
     public static final String ID = "marine_insertion";
 
     public MarineInsertion() {
-        super(ID, "Marine Drop", 3f, 1, 2,
+        super(ID, "Marine Drop", 3f, 1, 2, 2,
                 ShuttleType.VALKYRIE, InfantryPayload.INSTANCE, 4);
     }
 }

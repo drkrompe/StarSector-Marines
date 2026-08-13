@@ -41,6 +41,9 @@ public abstract class CommandPower {
     /** Campaign supplies consumed when the activation commits. */
     public final int supplyCost;
 
+    /** Pre-battle command-deck capacity consumed when this power is slotted. */
+    public final int slotWeight;
+
     protected CommandPower(String id, String displayName, float cpCost, float cooldownSeconds) {
         this(id, displayName, cpCost, cooldownSeconds, 0);
     }
@@ -52,12 +55,19 @@ public abstract class CommandPower {
 
     protected CommandPower(String id, String displayName, float cpCost,
                            float cooldownSeconds, int maxCharges, int supplyCost) {
+        this(id, displayName, cpCost, cooldownSeconds, maxCharges, supplyCost, 1);
+    }
+
+    protected CommandPower(String id, String displayName, float cpCost,
+                           float cooldownSeconds, int maxCharges, int supplyCost,
+                           int slotWeight) {
         this.id = id;
         this.displayName = displayName;
         this.cpCost = cpCost;
         this.cooldownSeconds = cooldownSeconds;
         this.maxCharges = Math.max(0, maxCharges);
         this.supplyCost = Math.max(0, supplyCost);
+        this.slotWeight = Math.max(1, slotWeight);
     }
 
     /**
