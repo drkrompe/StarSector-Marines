@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slices 1–3 complete; Slice 4 frozen payload shipped (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–4 complete; debrief and migration closure next (2026-08-12)
 
 ## Problem
 
@@ -150,15 +150,21 @@ legacy cargo restoration, retry semantics, and replay guards remain intact.
 The combined completion, withdrawal, extraction, binding, and acceptance tests
 pass; Slice 3 is closed.
 
-## Slice 4 checkpoint
+## Slice 4 complete
 
 `492864ef` freezes bound fireteam IDs and current ACTIVE seats into both Cadre
 incident and Garrison defense payloads. WIA remain in committed living strength
 but do not consume battle seats; local lift sizing now follows the frozen ACTIVE
 count. The response transition seeds the battle context from those immutable
 team IDs, while anonymous legacy payloads retain their scalar seat behavior.
-Named casualty settlement, strength recomputation, and the explicit no-force
-response remain before Slice 4 closes.
+`1a2fc58e` applies individual battle fates before campaign writeback, rejects
+stale frozen formations, recomputes named living strength from the bound roster,
+keeps successful survivors stationed, and clears named authority after a failed
+response. `9e4c1ac2` closes the zero-ACTIVE-seat case without launching an empty
+battle: WIA identities are preserved, teams are released, the unengaged captain
+returns ACTIVE, and terminal contract authority is cleared. Anonymous payloads
+continue through their existing scalar loss path. Focused payload, mission
+factory, casualty, no-force, and legacy resolution tests pass; Slice 4 is closed.
 
 ## Acceptance
 
