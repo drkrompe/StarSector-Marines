@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportDistrictFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WaterfrontFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BeachShorelineStage;
@@ -45,6 +46,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameSt
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoomCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpawnAnchorStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpaceportDistrictPlanStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage;
@@ -132,6 +134,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new MilitaryBaseFiller());
         registerCompound(new GatedHousingFiller());
         registerCompound(new DenseQuarterFiller());
+        registerCompound(new SpaceportDistrictFiller());
 
         this.conquestRecipe = buildConquestRecipe();
         this.legacyRecipe = buildLegacyRecipe();
@@ -192,6 +195,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
                 new LabelLeavesStage(),                     // Step 2
+                new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3

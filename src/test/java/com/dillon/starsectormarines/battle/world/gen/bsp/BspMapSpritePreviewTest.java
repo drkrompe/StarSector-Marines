@@ -76,7 +76,7 @@ public class BspMapSpritePreviewTest {
 
     private static final Path OUT_DIR       = Paths.get("build/map-previews");
     private static final Path URBAN_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-imagegen.png");
-    private static final Path ROAD_SHEET    = Paths.get("mod/graphics/tilesets/urban-tileset-2-imagegen.png");
+    private static final Path ROAD_SHEET    = Paths.get("mod/graphics/tilesets/urban-tileset-2-spaceport-apron.png");
     private static final Path FLOORS_SHEET  = Paths.get("mod/graphics/tilesets/Floors_Tiles-imagegen.png");
     private static final Path WATER_SHEET   = Paths.get("mod/graphics/tilesets/Water_tiles-imagegen.png");
     private static final Path STREET3_SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-3-imagegen.png");

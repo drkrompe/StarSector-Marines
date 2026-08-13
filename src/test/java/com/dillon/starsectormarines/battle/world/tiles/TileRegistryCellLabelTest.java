@@ -33,7 +33,7 @@ public class TileRegistryCellLabelTest {
     void gridSheetsResolveFoldedInCells() throws Exception {
         TileRegistry reg = loadAll();
         assertEquals("chair-south-yellow", reg.cellLabel("graphics/tilesets/urban-tileset-imagegen.png", 6, 1).name);
-        assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2-imagegen.png", 12, 0).name);
+        assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2-spaceport-apron.png", 12, 0).name);
         assertEquals("grass-1", reg.cellLabel("graphics/tilesets/Floors_Tiles-imagegen.png", 1, 10).name);
         assertEquals("water-edge-s", reg.cellLabel("graphics/tilesets/Water_tiles-imagegen.png", 8, 0).name);
     }

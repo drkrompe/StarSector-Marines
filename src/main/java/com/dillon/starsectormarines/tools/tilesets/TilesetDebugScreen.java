@@ -107,7 +107,7 @@ public class TilesetDebugScreen implements Screen {
     private static final List<SheetSpec> SHEETS = new ArrayList<>();
     static {
         SHEETS.add(new SheetSpec("Urban-1", "graphics/tilesets/urban-tileset-imagegen.png",   32));
-        SHEETS.add(new SheetSpec("Urban-2", "graphics/tilesets/urban-tileset-2-imagegen.png", 32));
+        SHEETS.add(new SheetSpec("Urban-2", "graphics/tilesets/urban-tileset-2-spaceport-apron.png", 32));
         SHEETS.add(new SheetSpec("Floors",  "graphics/tilesets/Floors_Tiles-imagegen.png",    16));
         SHEETS.add(new SheetSpec("Water",   "graphics/tilesets/Water_tiles-imagegen.png",     16));
         SHEETS.add(new SheetSpec("Nature",  TileManifest.NATURE_SHEET,                0));

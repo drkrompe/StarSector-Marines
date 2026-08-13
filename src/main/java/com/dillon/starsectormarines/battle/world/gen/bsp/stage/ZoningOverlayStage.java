@@ -57,15 +57,20 @@ public final class ZoningOverlayStage implements GenStage {
             // at the launch boundary for non-conquest missions, leaving its
             // spaceport tier unused.
             if (profile != null && profile.spaceportTier() > 0) {
-                int portX = ctx.width / 4;
-                int portY = ctx.height / 2;
-                districtMap.forceThemeAt(portX, portY, MapDistrictTheme.HARBOR_PORT);
-                // A civilian port needs more than one coarse district to hold
-                // default deployment berths plus local traffic. Extend toward
-                // the marine-side lower quarter, away from the civic core.
-                districtMap.forceThemeAt(portX,
-                        portY - districtMap.districtCellHeight(),
-                        MapDistrictTheme.HARBOR_PORT);
+                // Reserve the marine-side outer quadrant as one 2x2 coarse
+                // district block. Keeping the campus inside one side of both
+                // trunk roads lets the later claim pass form a contiguous
+                // facility instead of scattering pads across Main Street.
+                int portX = ctx.width / 8;
+                int portY = 5 * ctx.height / 8;
+                for (int dx = 0; dx <= 1; dx++) {
+                    for (int dy = 0; dy <= 1; dy++) {
+                        districtMap.forceThemeAt(
+                                portX + dx * districtMap.districtCellWidth(),
+                                portY + dy * districtMap.districtCellHeight(),
+                                MapDistrictTheme.HARBOR_PORT);
+                    }
+                }
             }
             ctx.put(BspKeys.DISTRICT_MAP, districtMap);
             LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
