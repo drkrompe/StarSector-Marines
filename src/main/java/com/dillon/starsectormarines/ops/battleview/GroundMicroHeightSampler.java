@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -42,7 +44,11 @@ import java.util.Map;
  * static for the life of a battle (wall→rubble demolition doesn't change this:
  * both map to the un-derived sheet, so the result is macro-only either way) —
  * {@link #combine} caches per-cell so the O(cellPx²) pixel average only runs
- * once per cell, not once per frame. First-touch cost only.
+ * once per cell, not once per frame. First-touch cost only. The per-cell cache
+ * is scoped to ONE battle: {@code BattleScreen} persists across battles, so
+ * {@link GroundParallaxPipeline#dispose()} calls {@link #invalidate()} on
+ * detach — grid coordinates mean different tiles on the next map. Loaded
+ * height sheets survive invalidation (they're battle-independent assets).
  */
 final class GroundMicroHeightSampler implements HeightSource {
 
@@ -68,6 +74,11 @@ final class GroundMicroHeightSampler implements HeightSource {
         return value;
     }
 
+    /** Drops the per-cell cache (NOT the loaded sheets). Call between battles — cell coords don't survive a map change. */
+    void invalidate() {
+        cache.clear();
+    }
+
     private float resolve(float macroHeight, CellTopology topology, int gridX, int gridY) {
         if (topology.isWall(gridX, gridY)) return macroHeight;
 
@@ -91,7 +102,11 @@ final class GroundMicroHeightSampler implements HeightSource {
         if (c == null) return macroHeight; // open/enclosed fill case -- no source rect to sample
 
         HeightSheetTexture tex = heightSheetFor(block.sheetPath);
-        float micro = tex.averageHeight(c[0] * block.cellPx, c[1] * block.cellPx, block.cellPx, block.cellPx);
+        // Same source-rect inset drawGroundBlock/emitCellPx applies -- average only the texels the color pass actually draws.
+        int inset = (block.cellPx >= TileManifest.TILE_SIZE)
+                ? FixedGridTileDrawer.GROUND_INSET_PX_LARGE : FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
+        float micro = tex.averageHeight(c[0] * block.cellPx + inset, c[1] * block.cellPx + inset,
+                block.cellPx - 2 * inset, block.cellPx - 2 * inset);
         if (micro < 0f) return macroHeight; // sheet not baked (e.g. skipped by S1) or failed to load
 
         return macroHeight + (micro - 0.5f) * MICRO_SCALE;

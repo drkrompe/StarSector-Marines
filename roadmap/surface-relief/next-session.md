@@ -49,6 +49,13 @@
 - Letterboxed-viewport band now clears to opaque black behind the
   composite (rare zoom-out-past-map case) — pre-existing edge, noted not
   fixed.
-- The S2 implementation agent died mid-workflow (connection loss); the
-  integration agent wrote most of `GroundParallaxPipeline` — reviewed
-  main-thread, but weight the critique pass accordingly.
+- Critique pass ran post-commit; fixes landed for: stale micro-height
+  cache across battles (invalidate on dispose), composite texture binds
+  now inside the attrib bracket, fake-eye math aspect-corrected,
+  micro sample rect matches the color pass's source inset. Verified
+  non-issues: the vanilla-combat-bridge backdrop has its OWN
+  `BattleRenderer`/pipeline instance (its `MAX_FBO_DIM` trip can't
+  disable the battle screen's parallax); drain fallbacks can't lose or
+  double-draw GROUND (draw list is read non-destructively). Accepted:
+  the raw fallback `drainColor.run()` can rethrow a draw-list exception
+  — same crash the flag-off path would produce, kept loud on purpose.
