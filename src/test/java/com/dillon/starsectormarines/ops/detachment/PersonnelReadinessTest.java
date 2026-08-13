@@ -43,4 +43,18 @@ class PersonnelReadinessTest {
         assertEquals(2, readiness.companyShortfall());
         assertTrue(readiness.needsRecruitment());
     }
+
+    @Test
+    void initializedEmptyCaptainSelectionUsesNoPersonnel() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(10);
+
+        PersonnelReadiness readiness = PersonnelReadiness.assessSelection(
+                roster, Collections.emptySet(), 6);
+
+        assertEquals(0, readiness.selectedReady());
+        assertEquals(6, readiness.selectedShortfall());
+        assertFalse(readiness.ready());
+        assertFalse(readiness.needsRecruitment());
+    }
 }

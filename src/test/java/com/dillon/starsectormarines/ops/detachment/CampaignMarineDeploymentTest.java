@@ -96,6 +96,18 @@ class CampaignMarineDeploymentTest {
     }
 
     @Test
+    void initializedEmptySelectionDoesNotLoadTheWholeCompany() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(6);
+
+        CampaignMarineDeployment deployment =
+                CampaignMarineDeployment.freezeSelection(
+                        roster, Collections.emptySet(), 2);
+
+        assertEquals(0, deployment.size());
+    }
+
+    @Test
     void employerShuttleSeatsRemainGeneratedWhenApplyingPlayerPersonnel() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(1);

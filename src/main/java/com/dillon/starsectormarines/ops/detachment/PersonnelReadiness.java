@@ -15,10 +15,26 @@ public record PersonnelReadiness(int requiredSeats,
     public static PersonnelReadiness assess(MarineRoster roster,
                                             Set<String> selectedSquadIds,
                                             int requiredSeats) {
+        return assess(roster, selectedSquadIds, requiredSeats, false);
+    }
+
+    /** Captain-authorized selection; an empty set deliberately contributes zero seats. */
+    public static PersonnelReadiness assessSelection(MarineRoster roster,
+                                                     Set<String> selectedSquadIds,
+                                                     int requiredSeats) {
+        return assess(roster, selectedSquadIds, requiredSeats, true);
+    }
+
+    private static PersonnelReadiness assess(MarineRoster roster,
+                                             Set<String> selectedSquadIds,
+                                             int requiredSeats,
+                                             boolean explicitSelection) {
         int required = Math.max(0, requiredSeats);
         int company = roster != null ? roster.lineReadySoldiers().size() : 0;
-        boolean explicitSelection = selectedSquadIds != null && !selectedSquadIds.isEmpty();
-        int selected = explicitSelection ? selectedReady(roster, selectedSquadIds) : company;
+        int selected = explicitSelection
+                ? selectedReady(roster, selectedSquadIds)
+                : selectedSquadIds != null && !selectedSquadIds.isEmpty()
+                        ? selectedReady(roster, selectedSquadIds) : company;
         return new PersonnelReadiness(required, selected, company,
                 Math.max(0, required - selected),
                 Math.max(0, required - company));

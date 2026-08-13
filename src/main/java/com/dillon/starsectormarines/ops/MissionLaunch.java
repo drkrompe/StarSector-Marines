@@ -98,7 +98,7 @@ public final class MissionLaunch {
                     ctx.getDebugPersonnelPreset(), playerSeats)
                     .applyTo(sim, firstPlayerShuttle);
         } else if (personnel != null) {
-            CampaignMarineDeployment.freeze(personnel.roster(),
+            CampaignMarineDeployment.freezeSelection(personnel.roster(),
                     ctx.getSelectedMarineSquadIds(), playerSeats)
                     .applyTo(sim, firstPlayerShuttle);
         }

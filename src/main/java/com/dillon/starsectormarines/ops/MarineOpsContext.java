@@ -58,6 +58,8 @@ public class MarineOpsContext {
     /** Persistent fireteams selected for the current mission's player-controlled seats. */
     private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
     private String squadSelectionMissionId;
+    /** Distinguishes an intentional empty selection from the legacy implicit-whole-line state. */
+    private boolean marineSquadSelectionInitialized;
     private int marineDeploymentCapacity;
     /** Picker-only fixture; debug missions never consume or mutate the campaign roster. */
     private DebugPersonnelPreset debugPersonnelPreset = DebugPersonnelPreset.MIXED;
@@ -112,7 +114,8 @@ public class MarineOpsContext {
     public void setSelectedMission(Mission mission) {
         if (selectedMission == null || mission == null || !selectedMission.id.equals(mission.id)) {
             selectedMarineSquadIds.clear();
-            squadSelectionMissionId = mission != null ? mission.id : null;
+            squadSelectionMissionId = null;
+            marineSquadSelectionInitialized = false;
             marineDeploymentCapacity = 0;
         }
         this.selectedMission = mission;
@@ -145,10 +148,29 @@ public class MarineOpsContext {
     public void toggleMarineSquad(String squadId) {
         if (squadId == null) return;
         if (!selectedMarineSquadIds.remove(squadId)) selectedMarineSquadIds.add(squadId);
+        markMarineSquadSelectionInitialized();
     }
 
     public void selectMarineSquad(String squadId) {
-        if (squadId != null) selectedMarineSquadIds.add(squadId);
+        if (squadId != null) {
+            selectedMarineSquadIds.add(squadId);
+            markMarineSquadSelectionInitialized();
+        }
+    }
+
+    public void replaceMarineSquadSelection(Iterable<String> squadIds) {
+        selectedMarineSquadIds.clear();
+        if (squadIds != null) {
+            for (String squadId : squadIds) {
+                if (squadId != null) selectedMarineSquadIds.add(squadId);
+            }
+        }
+        markMarineSquadSelectionInitialized();
+    }
+
+    public boolean hasInitializedMarineSquadSelectionFor(Mission mission) {
+        return marineSquadSelectionInitialized && mission != null
+                && mission.id.equals(squadSelectionMissionId);
     }
 
     public boolean hasSquadSelectionFor(Mission mission) {
@@ -184,7 +206,19 @@ public class MarineOpsContext {
     }
 
     public void setSelectedCaptainId(String captainId) {
+        if (selectedCaptainId == null ? captainId != null
+                : !selectedCaptainId.equals(captainId)) {
+            selectedMarineSquadIds.clear();
+            squadSelectionMissionId = null;
+            marineSquadSelectionInitialized = false;
+        }
         this.selectedCaptainId = captainId;
+    }
+
+    private void markMarineSquadSelectionInitialized() {
+        Mission mission = selectedMission;
+        squadSelectionMissionId = mission != null ? mission.id : null;
+        marineSquadSelectionInitialized = mission != null;
     }
 
     public long getSelectedStationingContractId() {
@@ -278,6 +312,7 @@ public class MarineOpsContext {
         lootManifest = LootManifest.EMPTY;
         selectedMarineSquadIds.clear();
         squadSelectionMissionId = null;
+        marineSquadSelectionInitialized = false;
         marineDeploymentCapacity = 0;
         missionsByClient.clear();
     }

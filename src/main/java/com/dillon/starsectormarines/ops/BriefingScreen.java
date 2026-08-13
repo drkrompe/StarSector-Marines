@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -166,6 +167,7 @@ public class BriefingScreen implements Screen {
         }
 
         Mission m = ctx.getSelectedMission();
+        initializeCaptainFormation(m);
 
         // Selection scope is per-mission — clear the deselection set when the
         // player switches missions so they don't carry over hidden state.
@@ -319,7 +321,11 @@ public class BriefingScreen implements Screen {
         for (MarineCaptain c : captains) {
             if (rowY < buttonsTop) break; // out of room, overflow handled in a polish pass
             widgets.add(new CaptainRowWidget(c, x, rowY, w, SQUAD_ROW_H,
-                    ctx::getSelectedCaptainId, ctx::setSelectedCaptainId));
+                    ctx::getSelectedCaptainId, id -> {
+                        ctx.setSelectedCaptainId(id);
+                        initializeCaptainFormation(m);
+                        rebuild();
+                    }));
             rowY -= SQUAD_ROW_H + SQUAD_ROW_GAP;
         }
     }
@@ -385,6 +391,16 @@ public class BriefingScreen implements Screen {
                             + " selected · " + readiness.companyReady()
                             + " company · " + readiness.selectedShortfall() + " short",
                     valueX, y, readiness.ready() ? ACCEPT_COLOR : BLOCKED_COLOR));
+            MarineCaptain captain = ctx.getSelectedCaptain();
+            int selectedTeams = CaptainDeploymentPolicy.selectedCount(
+                    MarineRosterScript.getInstance() != null
+                            ? MarineRosterScript.getInstance().roster() : null,
+                    ctx.getSelectedMarineSquadIds());
+            int teamCap = captain != null ? captain.rank().fireteamCap() : 0;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    selectedTeams + "/" + teamCap + " fireteams",
+                    x + rowW - 150f, y, captainCommandReady(m)
+                            ? ACCEPT_COLOR : BLOCKED_COLOR));
         }
         y -= ROW_GAP;
 
@@ -497,7 +513,8 @@ public class BriefingScreen implements Screen {
         boolean transportOk = m == null || m.source == MissionSource.STATIONING
                 || isTransportSufficient(m, effectivePlayerShuttles());
         boolean personnelOk = debugPersonnel || m == null || readiness.ready();
-        boolean canAccept = transportOk && personnelOk;
+        boolean commandOk = m == null || captainCommandReady(m);
+        boolean canAccept = transportOk && personnelOk && commandOk;
 
         ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
                 debugPersonnel ? () -> {
@@ -522,6 +539,7 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
+                        : !commandOk ? "Select Commander"
                         : readiness.needsRecruitment()
                                 ? "Recruit " + readiness.companyShortfall()
                                 : "Assign " + readiness.selectedShortfall(),
@@ -537,8 +555,11 @@ public class BriefingScreen implements Screen {
     private PersonnelReadiness personnelReadiness(Mission m) {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script != null ? script.roster() : null;
-        return PersonnelReadiness.assess(roster,
-                ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m));
+        return m != null && m.source != MissionSource.STATIONING
+                ? PersonnelReadiness.assessSelection(roster,
+                        ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m))
+                : PersonnelReadiness.assess(roster,
+                        ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m));
     }
 
     private int requiredPersonnelSeats(Mission m) {
@@ -564,20 +585,28 @@ public class BriefingScreen implements Screen {
 
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script != null && seats > 0) {
-            MarineRoster roster = script.roster();
-            if (!ctx.hasSquadSelectionFor(m)) {
-                int assigned = 0;
-                for (MarineSquad squad : roster.squads()) {
-                    if (squad.reserve()) continue;
-                    int ready = roster.readyCount(squad);
-                    if (ready <= 0) continue;
-                    ctx.selectMarineSquad(squad.id());
-                    assigned += ready;
-                    if (assigned >= seats) break;
-                }
-            }
+            initializeCaptainFormation(m);
         }
         ctx.goTo(ScreenId.SQUAD_DEPLOYMENT);
+    }
+
+    private void initializeCaptainFormation(Mission mission) {
+        if (mission == null || mission.source.isDebug()
+                || mission.source == MissionSource.STATIONING
+                || ctx.hasInitializedMarineSquadSelectionFor(mission)) return;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script != null ? script.roster() : null;
+        ctx.replaceMarineSquadSelection(CaptainDeploymentPolicy.defaultSquadIds(
+                roster, ctx.getSelectedCaptain()));
+    }
+
+    private boolean captainCommandReady(Mission mission) {
+        if (mission == null || mission.source.isDebug()
+                || mission.source == MissionSource.STATIONING) return true;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script != null ? script.roster() : null;
+        return CaptainDeploymentPolicy.isValidCommand(roster,
+                ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
     }
 
     /** Currently-committed carriers — {@link #cachedCarriers} minus the deselected. */
