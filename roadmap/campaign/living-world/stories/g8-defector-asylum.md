@@ -1,8 +1,8 @@
 # G8 — defector asylum
 
-**Status:** SLICE 1 COMPLETE — discovered-chain producer next (2026-08-12)
+**Status:** SLICES 1–2 COMPLETE — Encrypted Channel choices next (2026-08-12)
 
-**Implemented:** `94a3f2f1`
+**Implemented:** `94a3f2f1`, `7591dd86`
 
 ## Purpose
 
@@ -116,8 +116,10 @@ historical facts.
    follow-up/protect/betray transitions and replay tests.~~ Shipped in
    `94a3f2f1`; focused defector, event-column, lifecycle, and rescue-regression
    tests pass.
-2. **Discovered-chain producer** — deterministic epoch selection, source
-   snapshots, common open-event gating, system ordering, tests.
+2. ~~**Discovered-chain producer** — deterministic epoch selection, source
+   snapshots, common open-event gating, system ordering, tests.~~ Shipped in
+   `7591dd86`; row-order, cadence, source replay, cross-archetype blocking, and
+   frozen-term coverage pass.
 3. **Encrypted Channel choices** — resource/credit adapters, reconstruction on
    load, two-stage copy and input routing.
 4. **World reaction and closure** — chain/reputation consequences, moral source

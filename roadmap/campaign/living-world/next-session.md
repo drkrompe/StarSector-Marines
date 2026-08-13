@@ -150,10 +150,12 @@ is now contract-locked in
 political chain produces a costly asylum request, followed ten days later by an
 explicit keep-the-promise/betrayal choice. Slice 1 is now shipped in `94a3f2f1`:
 the two-stage transition authority, atomic resource/payment seams, legacy
-backfill, and default-to-protection timeout are covered. Start Slice 2 with
-deterministic discovered-chain selection, source snapshots, common open-event
-gating, and system-order tests. Keep swarm roster/stat tuning deferred until
-manual playtesting resumes.
+backfill, and default-to-protection timeout are covered. Slice 2 is now shipped
+in `7591dd86`: physical row order cannot change selection, epoch and source
+identity prevent replay, and rescue/defector producers share one open-event
+gate. Start Slice 3 with the reconstructible Encrypted Channel intel and its two
+choice surfaces. Keep swarm roster/stat tuning deferred until manual playtesting
+resumes.
 
 ## Open forks still unresolved (design)
 
@@ -267,3 +269,4 @@ manual playtesting resumes.
 - G8 contract — discovered-chain defector asylum and delayed integrity choice
   (`6337ce55`).
 - G8 Slice 1 — append-only persistence and two-stage lifecycle (`94a3f2f1`).
+- G8 Slice 2 — deterministic discovered-chain producer (`7591dd86`).
