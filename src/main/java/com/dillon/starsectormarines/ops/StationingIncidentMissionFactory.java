@@ -14,13 +14,13 @@ public final class StationingIncidentMissionFactory {
 
     public static Mission create(StationingIncidentPayload payload,
                                  String planetName, String factionId) {
-        if (payload == null || planetName == null || payload.committedMarines <= 0
+        if (payload == null || planetName == null || payload.activeSeats <= 0
                 || payload.captainId == null) {
             return null;
         }
         MissionType missionType = missionType(payload.type);
         RiskLevel risk = risk(payload.type);
-        int drops = Math.max(2, Math.min(10, (payload.committedMarines + 9) / 10));
+        int drops = Math.max(2, Math.min(10, (payload.activeSeats + 9) / 10));
         String title = title(payload.type) + " — " + planetName;
         String flavor = "The stationed Cadre is already on site. Respond with the assigned "
                 + "captain and " + payload.committedMarines + " committed marines.";

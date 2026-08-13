@@ -249,9 +249,9 @@ public final class StationingScreen implements Screen {
                         NumberFormat.getIntegerInstance().format(
                                 state.contractRetainerPerMonth[row])), x, y, VALUE));
         StationingIncidentPayload incident = StationingIncidentPayload.from(
-                state, state.contractId[row]);
+                state, state.contractId[row], roster);
         GarrisonDefensePayload defense = GarrisonDefensePayload.from(
-                state, state.contractId[row]);
+                state, state.contractId[row], roster);
         if (incident != null) {
             y -= ROW + 4f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
@@ -401,8 +401,9 @@ public final class StationingScreen implements Screen {
             rebuild();
             return;
         }
-        ctx.setSelectedMission(mission);
         ctx.setSelectedCaptainId(payload.captainId);
+        ctx.setSelectedMission(mission);
+        ctx.replaceMarineSquadSelection(payload.fireteamIds);
         ctx.goTo(ScreenId.BRIEFING);
     }
 
@@ -416,8 +417,9 @@ public final class StationingScreen implements Screen {
             rebuild();
             return;
         }
-        ctx.setSelectedMission(mission);
         ctx.setSelectedCaptainId(payload.captainId);
+        ctx.setSelectedMission(mission);
+        ctx.replaceMarineSquadSelection(payload.fireteamIds);
         ctx.goTo(ScreenId.BRIEFING);
     }
 

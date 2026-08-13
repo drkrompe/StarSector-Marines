@@ -315,6 +315,12 @@ public class MarineRoster implements Serializable {
         return livingCount(squadIds);
     }
 
+    public int stationedActiveCount(long contractId) {
+        int count = 0;
+        for (MarineSquad squad : squadsStationedOn(contractId)) count += readyCount(squad);
+        return count;
+    }
+
     /** Filled billets include deployable and temporarily wounded personnel. */
     public int manningCount(MarineSquad squad) {
         int count = 0;
