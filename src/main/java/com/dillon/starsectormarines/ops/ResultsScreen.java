@@ -238,7 +238,7 @@ public class ResultsScreen implements Screen {
 
     private void buildSquadDebrief(MissionOutcome outcome, float x, float topY, float width) {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "PERSONNEL — RTD / WIA / MIA / KIA", x, topY, HEADER_COLOR));
+                personnelHeader(outcome), x, topY, HEADER_COLOR));
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script != null ? script.roster() : null;
         Map<String, MarineSoldierStatus> dispositions = new HashMap<>();
@@ -247,25 +247,33 @@ public class ResultsScreen implements Screen {
             MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
             dispositions.put(id, soldier != null ? soldier.status() : MarineSoldierStatus.KIA);
         }
-        if (roster == null || dispositions.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "No persistent personnel assigned.", x, topY - 30f, LABEL_COLOR));
-            return;
-        }
-
         List<MarineSquad> deployed = new ArrayList<>();
-        if (!outcome.deployedFireteamIds.isEmpty()) {
+        if (roster != null && !outcome.deployedFireteamIds.isEmpty()) {
             for (String squadId : outcome.deployedFireteamIds) {
                 MarineSquad squad = roster.squadById(squadId);
                 if (squad != null && !squad.reserve()) deployed.add(squad);
             }
-        } else {
+        } else if (roster != null) {
             // Legacy outcomes predate the frozen briefing selection.
             for (MarineSquad squad : roster.squads()) {
                 for (String id : squad.memberIds()) {
                     if (dispositions.containsKey(id)) { deployed.add(squad); break; }
                 }
             }
+        }
+        boolean namedStationing = outcome.missionSource == MissionSource.STATIONING
+                && !outcome.deployedFireteamIds.isEmpty();
+        if (namedStationing && roster != null) {
+            for (MarineSquad squad : deployed) {
+                for (MarineSoldier soldier : roster.squadMembers(squad)) {
+                    dispositions.putIfAbsent(soldier.id(), soldier.status());
+                }
+            }
+        }
+        if (roster == null || dispositions.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    noPersonnelMessage(outcome), x, topY - 30f, LABEL_COLOR));
+            return;
         }
         int rows = 9;
         float gap = 14f;
@@ -281,6 +289,22 @@ public class ResultsScreen implements Screen {
                     "+" + (deployed.size() - rows * 2) + " squads",
                     x + width - 120f, cardY + 62f, LABEL_COLOR));
         }
+    }
+
+    static String personnelHeader(MissionOutcome outcome) {
+        if (outcome != null && outcome.missionSource == MissionSource.STATIONING) {
+            return outcome.deployedFireteamIds.isEmpty()
+                    ? "STATIONING PERSONNEL — AGGREGATE REPORT"
+                    : "STATIONED DETACHMENT — RTD / WIA / MIA / KIA";
+        }
+        return "PERSONNEL — RTD / WIA / MIA / KIA";
+    }
+
+    static String noPersonnelMessage(MissionOutcome outcome) {
+        return outcome != null && outcome.missionSource == MissionSource.STATIONING
+                && outcome.deployedFireteamIds.isEmpty()
+                ? "Legacy anonymous detachment — aggregate casualties only."
+                : "No persistent personnel assigned.";
     }
 
     private void addSquadDebrief(MarineRoster roster, MarineSquad squad,
