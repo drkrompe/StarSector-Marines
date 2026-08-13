@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignEventType;
+import com.dillon.starsectormarines.campaign.CampaignEvents;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -53,7 +54,7 @@ public final class CivilianRescueSpawnSystem implements CampaignSystem {
         int epoch = (day - FIRST_EPOCH_DAY) / EPOCH_DAYS;
         long triggerKey = triggerKey(epoch);
         if (hasTrigger(state, triggerKey)
-                || CivilianRescueEvent.hasOpenRescue(state)) return;
+                || CampaignEvents.hasOpenEvent(state)) return;
 
         int marketSlot = selectMarket(state, epoch);
         if (marketSlot < 0) return;
