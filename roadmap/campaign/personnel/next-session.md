@@ -63,6 +63,12 @@ deployment and personnel/armory mutations on that availability. Do not change
 stationing acceptance or consume/return semantics until those domain invariants
 are committed. Manual UI/balance validation remains queued.
 
+First checkpoint shipped as `1432dda1`: persistence plus atomic rank-bounded
+bind/query/release are live, and stationed teams no longer contribute ordinary
+line readiness or captain deployment selection. Continue Slice 1 with mutation
+gates (transfer, demobilization, individual and whole-team equipment changes)
+and save-repair tests. Keep acceptance/cargo behavior untouched.
+
 Keep manual UI/balance validation deferred for the current automated-only
 session.
 
@@ -85,3 +91,5 @@ session.
 - `75413bfc` — route briefing shortfalls through assignment or the armory.
 - `f6247ace` — enforce captain formation defaults and whole-fireteam briefing limits.
 - `48471e93` — freeze commander/fireteam deployment context into mission outcomes.
+- `49eb9297` — lock the named-stationing lifecycle contract.
+- `1432dda1` — persist and bind named stationing fireteams.
