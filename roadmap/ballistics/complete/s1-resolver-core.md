@@ -1,4 +1,28 @@
-# S1 — resolver core (static world)
+# S1 — resolver core (static world) — SHIPPED
+
+> **Shipped 2026-08-13** on `worktree-ballistics-s1`: core in `85ec50e6`,
+> radius reconciliation in `382b0ee6` (post-merge with main's separation
+> steering). Implemented via orchestrated workflow (3 contract-coders →
+> integrator → 3 adversarial audits) + one fix agent for the 5 audit
+> findings; main-thread review after.
+>
+> **Landed vs. planned deviations:**
+> - `UnitType.collisionRadius()` was built as specced, then **deleted** in
+>   `382b0ee6`: main's separation steering established the pre-existing
+>   `UnitType.radius` (infantry 0.3, drone 0.35, turret 0.45, hub 0.5,
+>   mech 0.6) as THE physical body circle (soft-collision, mass = radius²),
+>   and ballistics now tests that same circle. One radius concept per body.
+> - Audit fixes beyond the spec: race-free `gatherAlongSegment` (call-local
+>   monotone-rectangle dedupe instead of shared visit-stamps), ray-circle
+>   exit-root skip (no false t=0 contact on units behind the muzzle),
+>   `DoodadService.getDoodadLevelOnCell` (own-cell only — the bled facing
+>   cover double-rolled crossings and granted cover from behind), and
+>   `ShotEvent.struckUnit` so incidental hits don't arm the near-miss
+>   morale cooldown and discount their own landed-hit drain.
+
+Original contract below, kept verbatim for the record.
+
+---
 
 > Infantry primaries swap from hitscan accuracy rolls to fire-time-resolved
 > ballistic rays. Static world only: contacts test units at their
