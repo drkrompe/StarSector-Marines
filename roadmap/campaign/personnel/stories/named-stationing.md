@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slices 1–2 complete; Slice 3 withdrawal branch shipped (2026-08-12)
+**Status:** IN PROGRESS — Slices 1–3 complete; incident battle bridge next (2026-08-12)
 
 ## Problem
 
@@ -135,15 +135,20 @@ coverage; no live offer can create a new anonymous assignment. Existing
 anonymous active contracts and all settlement paths remain unchanged for the
 Slice 3 named/legacy branch.
 
-## Slice 3 checkpoint
+## Slice 3 complete
 
 `a31e9a2a` branches idle early withdrawal by personnel authority. Named
 assignments release their bound fireteams and create no cargo; anonymous legacy
 rows still return the exact stored marine count. A failed cargo delivery or
 named release leaves contract columns, captain state, and reputation untouched,
-and replay cannot settle the same withdrawal twice. Normal completion and both
-employer-default extraction outcomes remain to be converted before Slice 3
-closes.
+and replay cannot settle the same withdrawal twice. `0039f9b5` applies the same
+authority split to normal completion. `c05999e2` completes employer-default
+extraction: teams remain bound while recovery is pending, success releases them
+without cargo, and failure marks every recoverable ACTIVE/WIA member MIA before
+release while preserving prior KIA/MIA. Captain consequences, employer breach,
+legacy cargo restoration, retry semantics, and replay guards remain intact.
+The combined completion, withdrawal, extraction, binding, and acceptance tests
+pass; Slice 3 is closed.
 
 ## Acceptance
 
