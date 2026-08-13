@@ -45,10 +45,24 @@ public final class CampaignMarineDeployment {
     public static CampaignMarineDeployment freeze(MarineRoster roster,
                                                    Set<String> selectedSquadIds,
                                                    int requiredSeats) {
+        return freeze(roster, selectedSquadIds, requiredSeats, false);
+    }
+
+    /** Fail-closed briefing selection; empty means no named personnel, not the whole line. */
+    public static CampaignMarineDeployment freezeSelection(
+            MarineRoster roster, Set<String> selectedSquadIds,
+            int requiredSeats) {
+        return freeze(roster, selectedSquadIds, requiredSeats, true);
+    }
+
+    private static CampaignMarineDeployment freeze(
+            MarineRoster roster, Set<String> selectedSquadIds,
+            int requiredSeats, boolean explicitSelection) {
         if (roster == null || requiredSeats <= 0) return EMPTY;
         List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
         List<MarineSoldier> active = new ArrayList<>();
-        boolean hasExplicitSelection = selectedSquadIds != null && !selectedSquadIds.isEmpty();
+        boolean hasExplicitSelection = explicitSelection
+                || selectedSquadIds != null && !selectedSquadIds.isEmpty();
         if (hasExplicitSelection) {
             for (String squadId : selectedSquadIds) {
                 for (MarineSoldier soldier : roster.squadMembers(roster.squadById(squadId))) {
