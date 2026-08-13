@@ -14,11 +14,11 @@ public final class GarrisonDefenseMissionFactory {
 
     public static Mission create(GarrisonDefensePayload payload,
                                  String planetName, String factionId) {
-        if (payload == null || planetName == null || payload.committedMarines <= 0
+        if (payload == null || planetName == null || payload.activeSeats <= 0
                 || payload.captainId == null) {
             return null;
         }
-        int drops = Math.max(2, Math.min(10, (payload.committedMarines + 9) / 10));
+        int drops = Math.max(2, Math.min(10, (payload.activeSeats + 9) / 10));
         String title = title(payload.triggerType) + " — " + planetName;
         String flavor = "The stationed Garrison is already under attack. Defend the market "
                 + "with the assigned captain and " + payload.committedMarines
