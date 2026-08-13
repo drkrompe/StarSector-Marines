@@ -42,6 +42,7 @@ public final class ArmoryScreen implements Screen {
     private enum Tab { PERSONNEL, LOADOUTS }
     private enum InventoryTab { WEAPONS, ARMOR, SPECIAL }
     private enum InventoryState { AVAILABLE, OUT_OF_STOCK, LOCKED, INSTALLED, MARINE_UNAVAILABLE }
+    private enum ReadoutFormat { DECIMAL, INTEGER, PERCENT }
     private enum WeaponTab {
         RIFLE("Rifle", MarineWeapon.FIELD_RIFLE),
         PULSE("Pulse", MarineWeapon.PULSE_RIFLE),
@@ -363,12 +364,11 @@ public final class ArmoryScreen implements Screen {
                 secondaryCanRemove ? () -> removeSecondary(soldier) : null,
                 secondaryCanRemove ? BAD : MUTED);
 
-        buildMarineReadout(x, secondaryY - 36f, width, soldier);
-
         if (loadoutFeedback != null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, loadoutFeedback,
-                    x, position.getY() + 58f, loadoutSucceeded ? GOOD : BAD));
+                    x, secondaryY - 9f, loadoutSucceeded ? GOOD : BAD));
         }
+        buildMarineReadout(x, secondaryY - 40f, width, soldier);
     }
 
     /** Persistent whole-kit summary; baseline is an FR-1 Rook in fatigues. */
@@ -379,44 +379,94 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "MARINE PERFORMANCE", x, top, HEADER));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "FR-1 BASE  →  CURRENT KIT", x, top - 25f, MUTED));
+                "BASELINE · FR-1 ROOK + FATIGUES", x, top - 25f, MUTED));
 
-        float y = top - 52f;
-        addReadoutLine("DPS", fmt(InfantryCombatStats.estimatedDps(baseWeapon, baseGrade, soldier.profile())),
-                fmt(InfantryCombatStats.estimatedDps(soldier.primary(), soldier.primaryGrade(), soldier.profile())),
-                x, y);
-        y -= 23f;
-        addReadoutLine("RANGE", Integer.toString(Math.round(InfantryCombatStats.range(baseWeapon, baseGrade))),
-                Integer.toString(Math.round(InfantryCombatStats.range(soldier.primary(), soldier.primaryGrade()))),
-                x, y);
+        float tableTop = top - 52f;
+        float rowH = 22f;
+        int rowCount = 9;
+        widgets.add(new PanelWidget(x, tableTop - 24f - rowCount * rowH,
+                width, 28f + rowCount * rowH));
+        float baseRight = x + width * 0.47f;
+        float kitRight = x + width * 0.70f;
+        float changeX = x + width * 0.76f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "STAT", x + 8f, tableTop, MUTED));
+        addRightAligned("BASE", baseRight, tableTop, MUTED);
+        addRightAligned("KIT", kitRight, tableTop, HEADER);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "CHANGE", changeX, tableTop, MUTED));
+
+        float y = tableTop - 27f;
+        addReadoutLine("DPS",
+                InfantryCombatStats.estimatedDps(baseWeapon, baseGrade, soldier.profile()),
+                InfantryCombatStats.estimatedDps(soldier.primary(), soldier.primaryGrade(), soldier.profile()),
+                ReadoutFormat.DECIMAL, x, width, y);
+        y -= rowH;
+        addReadoutLine("RANGE", InfantryCombatStats.range(baseWeapon, baseGrade),
+                InfantryCombatStats.range(soldier.primary(), soldier.primaryGrade()),
+                ReadoutFormat.INTEGER, x, width, y);
         float[] accuracyBands = { 0.20f, 0.60f, 1.00f };
         String[] accuracyLabels = { "ACC NEAR", "ACC MED", "ACC FAR" };
         for (int i = 0; i < accuracyBands.length; i++) {
-            y -= 23f;
+            y -= rowH;
             addReadoutLine(accuracyLabels[i],
-                    pct(InfantryCombatStats.accuracyAtRangeFraction(
-                            baseWeapon, baseGrade, soldier.profile(), accuracyBands[i])),
-                    pct(InfantryCombatStats.accuracyAtRangeFraction(
-                            soldier.primary(), soldier.primaryGrade(), soldier.profile(), accuracyBands[i])),
-                    x, y);
+                    InfantryCombatStats.accuracyAtRangeFraction(
+                            baseWeapon, baseGrade, soldier.profile(), accuracyBands[i]),
+                    InfantryCombatStats.accuracyAtRangeFraction(
+                            soldier.primary(), soldier.primaryGrade(), soldier.profile(), accuracyBands[i]),
+                    ReadoutFormat.PERCENT, x, width, y);
         }
-        y -= 23f;
-        addReadoutLine("HEALTH", Integer.toString(Math.round(UnitType.MARINE.maxHp + baseArmor.bonusHp)),
-                Integer.toString(Math.round(UnitType.MARINE.maxHp + soldier.armor().bonusHp)), x, y);
-        y -= 23f;
-        addReadoutLine("BLOCK", pct(baseArmor.damageReduction), pct(soldier.armor().damageReduction), x, y);
-        y -= 23f;
-        addReadoutLine("MOVE", fmt(UnitType.MARINE.moveSpeed * baseArmor.moveSpeedMult),
-                fmt(UnitType.MARINE.moveSpeed * soldier.armor().moveSpeedMult), x, y);
-        y -= 23f;
-        addReadoutLine("EVASION", pct(1f - baseArmor.incomingAccuracyMult),
-                pct(1f - soldier.armor().incomingAccuracyMult), x, y);
+        y -= rowH;
+        addReadoutLine("HEALTH", UnitType.MARINE.maxHp + baseArmor.bonusHp,
+                UnitType.MARINE.maxHp + soldier.armor().bonusHp,
+                ReadoutFormat.INTEGER, x, width, y);
+        y -= rowH;
+        addReadoutLine("BLOCK", baseArmor.damageReduction, soldier.armor().damageReduction,
+                ReadoutFormat.PERCENT, x, width, y);
+        y -= rowH;
+        addReadoutLine("MOVE", UnitType.MARINE.moveSpeed * baseArmor.moveSpeedMult,
+                UnitType.MARINE.moveSpeed * soldier.armor().moveSpeedMult,
+                ReadoutFormat.DECIMAL, x, width, y);
+        y -= rowH;
+        addReadoutLine("EVASION", 1f - baseArmor.incomingAccuracyMult,
+                1f - soldier.armor().incomingAccuracyMult,
+                ReadoutFormat.PERCENT, x, width, y);
     }
 
-    private void addReadoutLine(String label, String baseline, String current, float x, float y) {
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, x, y, MUTED));
+    private void addReadoutLine(String label, float baseline, float current,
+                                ReadoutFormat format, float x, float width, float y) {
+        float baseRight = x + width * 0.47f;
+        float kitRight = x + width * 0.70f;
+        float changeX = x + width * 0.76f;
+        float delta = current - baseline;
+        Color deltaColor = delta > 0.0005f ? GOOD : delta < -0.0005f ? BAD : MUTED;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, x + 8f, y, MUTED));
+        addRightAligned(formatReadout(baseline, format), baseRight, y, MUTED);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "→", x + width * 0.51f, y, MUTED));
+        addRightAligned(formatReadout(current, format), kitRight, y, VALUE);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                baseline + "  →  " + current, x + 116f, y, VALUE));
+                formatReadoutDelta(delta, format), changeX, y, deltaColor));
+    }
+
+    private void addRightAligned(String text, float right, float y, Color color) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, text,
+                right - Fonts.ORBITRON_20.measureWidth(text), y, color));
+    }
+
+    private static String formatReadout(float value, ReadoutFormat format) {
+        return switch (format) {
+            case DECIMAL -> fmt(value);
+            case INTEGER -> Integer.toString(Math.round(value));
+            case PERCENT -> pct(value);
+        };
+    }
+
+    private static String formatReadoutDelta(float delta, ReadoutFormat format) {
+        if (Math.abs(delta) <= 0.0005f) return "=";
+        return switch (format) {
+            case DECIMAL -> String.format(java.util.Locale.ROOT, "%+.2f", delta);
+            case INTEGER -> String.format(java.util.Locale.ROOT, "%+d", Math.round(delta));
+            case PERCENT -> String.format(java.util.Locale.ROOT, "%+dpp", Math.round(delta * 100f));
+        };
     }
 
     private void buildInventoryBrowser(float x, float top, float width) {
