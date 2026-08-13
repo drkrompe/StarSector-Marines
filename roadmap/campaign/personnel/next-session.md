@@ -59,12 +59,12 @@ default-extraction path resolves exactly once. Anonymous saves retain their
 original scalar cargo behavior. Cross-save repair, compaction protection, and
 named/legacy Results presentation are covered by the full focused matrix.
 
-The next personnel pickup should be selected from new roadmap work rather than
-continuing a stationing slice. Manual UI/balance validation remains queued, as
-requested for the current automated-only session.
-
-Keep manual UI/balance validation deferred for the current automated-only
-session.
+The next personnel story is now contract-locked in
+[`stories/captain-trait-drift.md`](stories/captain-trait-drift.md). Start Slice
+1: append the two outlook traits and persist/backfill each captain's exactly-once
+outlook authority. Do not add combat modifiers, transfers, reversals, or any
+numeric moral surface. Manual UI/balance validation remains queued, as requested
+for the current automated-only session.
 
 ## Commit chain
 
