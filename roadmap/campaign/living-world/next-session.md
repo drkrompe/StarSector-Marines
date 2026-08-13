@@ -148,10 +148,12 @@ hidden moral consequence, and durable terminal dispatch. The second archetype
 is now contract-locked in
 [`stories/g8-defector-asylum.md`](stories/g8-defector-asylum.md): a discovered
 political chain produces a costly asylum request, followed ten days later by an
-explicit keep-the-promise/betrayal choice. Start Slice 1 with append-only event
-identity/state/outcome and legacy-safe columns, then implement the pure replay-
-safe lifecycle. Keep swarm roster/stat tuning deferred until manual playtesting
-resumes.
+explicit keep-the-promise/betrayal choice. Slice 1 is now shipped in `94a3f2f1`:
+the two-stage transition authority, atomic resource/payment seams, legacy
+backfill, and default-to-protection timeout are covered. Start Slice 2 with
+deterministic discovered-chain selection, source snapshots, common open-event
+gating, and system-order tests. Keep swarm roster/stat tuning deferred until
+manual playtesting resumes.
 
 ## Open forks still unresolved (design)
 
@@ -262,4 +264,6 @@ resumes.
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
-- G8 contract — discovered-chain defector asylum and delayed integrity choice.
+- G8 contract — discovered-chain defector asylum and delayed integrity choice
+  (`6337ce55`).
+- G8 Slice 1 — append-only persistence and two-stage lifecycle (`94a3f2f1`).

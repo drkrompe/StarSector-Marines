@@ -1,6 +1,8 @@
 # G8 — defector asylum
 
-**Status:** CONTRACT LOCKED — persistence/lifecycle first (2026-08-12)
+**Status:** SLICE 1 COMPLETE — discovered-chain producer next (2026-08-12)
+
+**Implemented:** `94a3f2f1`
 
 ## Purpose
 
@@ -109,9 +111,11 @@ historical facts.
 
 ## Slices
 
-1. **Persistent lifecycle authority** — append identities/state/outcome and
+1. ~~**Persistent lifecycle authority** — append identities/state/outcome and
    event columns; backfill legacy saves; implement pure prepare/commit/refuse/
-   follow-up/protect/betray transitions and replay tests.
+   follow-up/protect/betray transitions and replay tests.~~ Shipped in
+   `94a3f2f1`; focused defector, event-column, lifecycle, and rescue-regression
+   tests pass.
 2. **Discovered-chain producer** — deterministic epoch selection, source
    snapshots, common open-event gating, system ordering, tests.
 3. **Encrypted Channel choices** — resource/credit adapters, reconstruction on
