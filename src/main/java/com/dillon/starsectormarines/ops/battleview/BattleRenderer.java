@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
@@ -180,7 +181,10 @@ public class BattleRenderer {
      * Persistent decal-accumulator FBO.
      */
     private final DecalAccumulator decalAccumulator =
-            new DecalAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
+            new DecalAccumulator(DevConfig.DECAL_FBO_PX_PER_CELL);
+
+    /** S2 (surface-relief) ground FBO + offset-limited-parallax composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
+    private final GroundParallaxPipeline groundParallax = new GroundParallaxPipeline();
 
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
@@ -340,6 +344,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the S2 ground-parallax FBO pair. */
+    public GroundParallaxPipeline getGroundParallax() { return groundParallax; }
 
     @DebugOnly
     private void renderZoneOverlayDebug(BattleSimulation sim, float alphaMult) {
@@ -773,8 +780,18 @@ public class BattleRenderer {
         for (RenderSystem system : worldSystems) {
             if (layers.contains(system.layer())) system.collect(rc, drawList);
         }
+        boolean parallax = DevConfig.SURFACE_RELIEF_PARALLAX && layers.contains(RenderLayer.GROUND);
         for (RenderLayer layer : RenderLayer.values()) {
-            if (layers.contains(layer)) drainLayer(layer);
+            if (!layers.contains(layer)) continue;
+            if (layer == RenderLayer.GROUND && parallax) {
+                // S2: redirect GROUND through the FBO pair + parallax composite instead
+                // of draining straight to the backbuffer. groundParallax falls back to
+                // drainLayer(GROUND) itself (a plain Runnable) on any failure, so this
+                // call always ends up painting the layer exactly once.
+                groundParallax.renderGround(rc, () -> drainLayer(RenderLayer.GROUND));
+            } else {
+                drainLayer(layer);
+            }
         }
     }
 }
