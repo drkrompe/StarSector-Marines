@@ -1,6 +1,12 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.Rank;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -103,5 +109,41 @@ class ContractTableCompactorTest {
         assertEquals(0, ContractTableCompactor.removeTerminal(state));
         assertEquals(0, state.contractIndex(parentId));
         assertEquals(1, state.contractIndex(extractionId));
+    }
+
+    @Test
+    void namedBindingRetainsTerminalRowEvenWhenScalarAuthorityIsMissing() {
+        CampaignState state = new CampaignState();
+        long completedId = state.addContract(1L, -1L, -1L, ContractType.CADRE,
+                ContractState.COMPLETED, 1, 30, -1, (byte) 0, -1, 5, -1,
+                0, 1_000, (byte) 5, (byte) 5, (byte) 100);
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        roster.add(captain);
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+        roster.bindStationing(completedId, captain.id(), List.of(squad.id()));
+
+        assertEquals(0, ContractTableCompactor.removeTerminal(state, roster));
+        assertEquals(0, state.contractIndex(completedId));
+
+        assertEquals(1, roster.releaseStationing(completedId));
+        assertEquals(1, ContractTableCompactor.removeTerminal(state, roster));
+        assertEquals(-1, state.contractIndex(completedId));
+    }
+
+    @Test
+    void completedLegacyPersonnelRowAlsoWaitsForSettlement() {
+        CampaignState state = new CampaignState();
+        long completedId = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.COMPLETED, 1, 30, -1, (byte) 0, -1, 5, -1,
+                0, 1_000, (byte) 25, (byte) 25, (byte) 100);
+        state.contractMarinesCommitted[0] = 40;
+
+        assertEquals(0, ContractTableCompactor.removeTerminal(state));
+        assertEquals(0, state.contractIndex(completedId));
+
+        state.contractMarinesCommitted[0] = 0;
+        assertEquals(1, ContractTableCompactor.removeTerminal(state));
     }
 }
