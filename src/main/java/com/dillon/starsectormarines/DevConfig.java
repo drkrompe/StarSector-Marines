@@ -11,7 +11,8 @@ package com.dillon.starsectormarines;
 public final class DevConfig {
 
     /**
-     * When {@code > 0}: seed the player's available-transport list
+     * When {@code > 0}: seed the player's available-transport list on
+     * <em>debug missions only</em>
      * ({@code PlayerFleetShuttles.queryAvailable}) with this many Valkyries,
      * as if the player fielded them. Unlike the old transport-gate bypass,
      * this feeds the <em>real</em> resolver path: the seeded ships show up as
@@ -27,11 +28,11 @@ public final class DevConfig {
      * is wanted.
      */
     @DebugOnly
-    public static final int DEBUG_SEED_PLAYER_VALKYRIES = 8;
+    public static final int DEBUG_SEED_PLAYER_VALKYRIES = 0;
 
     /**
      * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
-     * for every generated mission to this value. Clamps both the mission's
+     * for every <em>debug-generated</em> mission to this value. Clamps both the mission's
      * authored drop count and the employer's coverage roll, so the briefing
      * and battlefield both see the override. {@code 0} disables the override
      * and the per-(type, risk) table in {@code MissionGenerator.requiredDropsFor}
@@ -41,7 +42,7 @@ public final class DevConfig {
      * through a CONQUEST-HIGH 40-drop wave to test one thing.
      */
     @DebugOnly
-    public static final int DROP_COUNT_OVERRIDE = 40;
+    public static final int DROP_COUNT_OVERRIDE = 0;
 
     /**
      * When {@code true}: show an "AIR DEBUG — force-spawn" panel at the top of the

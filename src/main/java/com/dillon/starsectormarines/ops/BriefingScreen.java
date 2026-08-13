@@ -193,7 +193,7 @@ public class BriefingScreen implements Screen {
             commandDeckInitialized = false;
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
-        cachedAvailable = PlayerFleetShuttles.queryAvailable();
+        cachedAvailable = PlayerFleetShuttles.queryAvailable(m != null && m.source.isDebug());
         cachedCarriers = PlayerFleetWings.committableCarriers();
         cachedPowerSources = PlayerFleetPowerSources.committableShips();
         cachedAvailablePowers = availablePowers(m);
