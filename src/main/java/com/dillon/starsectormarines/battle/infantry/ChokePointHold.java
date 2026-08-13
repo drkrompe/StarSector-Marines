@@ -20,19 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <b>Squad posture: single-ingress choke-point ambush.</b> Story L's
+ * <b>Squad posture: single-ingress choke-point defense.</b> Story L's
  * single-portal flavor — every assigned member binds to a pre-scored
  * LOS-to-portal cell inside the squad's zone and holds the position. When an
  * enemy combatant crosses the watched portal cell, the
  * {@link Predicate#ENEMY_IN_PORTAL_CELL} trigger flips true and <em>all</em>
- * on-post members with LoS fire on the intruder this tick — a deterministic
+ * on-post members with LoS prefer the intruder this tick — a deterministic
  * concentrated burst, not a per-member RNG.
  *
- * <p>Cordon discipline by positioning, not target filtering: the bound cells
- * face the doorway, so the squad's natural LoS arc converges on it. When the
- * trigger is false the squad holds (no opportunistic fire — the multi-portal
- * variant {@link GarrisonCordon} owns that doctrine; single-portal hold is
- * about the burst).
+ * <p>Cordon discipline is about positioning, not withholding fire: the bound
+ * cells face the doorway, so the squad's natural LoS arc converges on it. When
+ * no enemy occupies the exact portal cell, the shared infantry dispatcher
+ * still fills a legal shot of opportunity against another visible enemy. The
+ * portal trigger only supplies target preference for the concentrated burst;
+ * it is never permission to begin defending the position.
  *
  * <p>Parameterized per-portal — the {@link GarrisonAmbush} goal's customPlan
  * constructs one instance carrying the portal id, portal cell, and the
@@ -79,7 +80,6 @@ public final class ChokePointHold implements Action {
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, losCells.size()); }
-    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public java.util.List<int[]> highlightCells(Squad squad, BattleView sim) {
@@ -220,9 +220,8 @@ public final class ChokePointHold implements Action {
 
         boolean atPost = sim.movement().atCell(member, targetX, targetY);
         if (!atPost) {
-            // Transit: walk to the bound LOS cell. No opportunistic fire —
-            // single-portal hold is about the concentrated burst, the squad
-            // holds discipline en route as well as on-post.
+            // Transit: walk to the bound LOS cell. The dispatcher may add a
+            // moving shot after this action executes without changing the post.
             if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), targetX, targetY,
@@ -235,11 +234,13 @@ public final class ChokePointHold implements Action {
         // On-post — pin in place between bursts.
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
 
-        // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
-        // every on-post member with LoS to the portal cell fires. The
+        // Concentrated-fire preference: ENEMY_IN_PORTAL_CELL true this tick →
+        // every on-post member with LoS authors intent against that intruder. The
         // predicate consult here is deterministic across members (everyone
         // sees the same world state in the same tick), so this naturally
         // produces the "everybody shoots" burst.
+        // When false, leave fire intent empty so the dispatcher can select any
+        // other legal target of opportunity.
         if (!triggerActive(squad, sim)) return ActionStatus.RUNNING;
 
         // Build enemy target — alive combatant standing on the portal cell.

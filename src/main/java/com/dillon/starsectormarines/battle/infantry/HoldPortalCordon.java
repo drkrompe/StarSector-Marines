@@ -195,9 +195,8 @@ public final class HoldPortalCordon implements Action {
      * LOS + range; {@code battle.combat.FiringSystem} applies the cooldown
      * gate and executes the shot. Stance is caller-supplied because the same
      * helper serves the transit phase ({@link FireStance#MOVING}) and the
-     * on-post phase ({@link FireStance#STANCED}) — neither one wants the
-     * strict {@code stanceFor} heuristic, since the holder may have
-     * moveProgress=0 mid-walk between consecutive cells. Burst follow-ups
+     * on-post phase ({@link FireStance#STANCED}) — the phase is the action's
+     * own state, so it needn't re-derive it from movement. Burst follow-ups
      * queue the same way EngagePosture does it so machine-gun weapons still
      * rip a burst from the post.
      */

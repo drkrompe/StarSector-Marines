@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link ChokePointHold} on synthetic grids: portal-id stamping,
- * the on-cell concentrated-fire trigger, and the no-fire-when-trigger-false
- * branch.
+ * the on-cell concentrated-fire preference, and normal target selection when
+ * the exact portal cell is empty.
  */
 public class ChokePointHoldTest {
 
@@ -108,7 +108,7 @@ public class ChokePointHoldTest {
     }
 
     @Test
-    public void noFireWhenPortalCellEmpty() {
+    public void portalCellEmptyFallsBackToAnotherLegalTarget() {
         BattleSimulation sim = singlePortalRoom();
         int portalId = sim.getZoneGraph().getPortals().get(0).getPortalId();
 
@@ -116,15 +116,16 @@ public class ChokePointHoldTest {
         long d1 = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
                 .squad(squad.id));
 
+        long attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 6, 2));
+        sim.world().setAttackRange(d1, 10f);
         List<int[]> cells = List.of(new int[]{5, 5});
         attachPlanWithLosCells(squad, portalId, 6, 3, cells, List.of(d1));
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
         hold.execute(d1, squad, sim);
 
-        assertEquals(0f, sim.world().cooldownTimer(d1), 1e-6f,
-                "no enemy on the portal cell → no shot, cooldown stays at zero");
-        assertTrue(sim.getShotsThisFrame().isEmpty(),
-                "no enemy on the portal cell → no shots emitted");
+        assertTrue(InfantryUnitPrep.tryOpportunityPrimary(d1, sim));
+        assertEquals(attacker, sim.combat().fireTargetId(d1),
+                "the portal trigger is a target preference, not permission to defend the post");
     }
 
     @Test

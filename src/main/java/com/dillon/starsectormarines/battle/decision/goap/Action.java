@@ -99,9 +99,10 @@ public interface Action {
     /**
      * Whether the infantry dispatcher may fill an otherwise-empty fire intent
      * with a legal shot of opportunity after this action executes. Most
-     * movement and posture actions permit it. Deliberately silent maneuvers
-     * (ambush overwatch, flanking, breach stack-up) override this to preserve
-     * their doctrine rather than relying on dispatcher-side type checks.
+     * movement and posture actions permit it. Mission movement and defensive
+     * holds should retain this safety net: a passing shot does not replace an
+     * action's movement objective or assigned position. An override is reserved
+     * for an explicit scripted ceasefire, not ordinary tactical doctrine.
      */
     default boolean permitsOpportunityFire() {
         return true;
