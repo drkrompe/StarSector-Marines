@@ -3,12 +3,13 @@
 ## State of play (2026-08-13)
 
 - ~~S1 — derivation pipeline~~ **shipped** `cf2e4db1` (see `complete/`).
-- **S2 — screen-space parallax: code-complete at `80aac9e2`, NOT yet
-  verified in-game.** Full build green (jar produced, tests pass). The
-  effect is gated behind `DevConfig.SURFACE_RELIEF_PARALLAX`
-  (**default false** — off path is pixel-identical to pre-S2 rendering).
-- Commit chain (worktree `worktree-surface-relief`, branched off main at
-  `98462906` which added these docs): `cf2e4db1` S1 → `80aac9e2` S2.
+- **S2 — screen-space parallax: code-complete, NOT yet verified
+  in-game.** Full build green (jar produced, tests pass). Gated behind
+  `DevConfig.SURFACE_RELIEF_PARALLAX`, **default true** (flipped for
+  playtesting; off path is pixel-identical to pre-S2 rendering).
+- Commit chain (developed on `worktree-surface-relief`, MERGED to main
+  2026-08-13): `cf2e4db1` S1 → `80aac9e2` S2 → `9bd7491f` flag on →
+  `6e36fe6d` critique fixes.
 
 ## What S2 landed
 
