@@ -38,6 +38,36 @@ class StationingReleaseSystemTest {
     }
 
     @Test
+    void completedNamedContractReleasesTeamsWithoutCargoOnce() {
+        Fixture fixture = fixture(ContractState.COMPLETED);
+        fixture.namedAssignment = true;
+
+        fixture.system.tick(fixture.state, 61);
+        fixture.system.tick(fixture.state, 62);
+
+        assertEquals(1, fixture.namedReleases);
+        assertEquals(0, fixture.returnedMarines);
+        assertEquals(Status.ACTIVE, fixture.captain.status());
+        assertEquals(0, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(-1, fixture.state.contractCaptainId[0]);
+    }
+
+    @Test
+    void failedNamedReleaseRetriesWithoutClearingAuthority() {
+        Fixture fixture = fixture(ContractState.COMPLETED);
+        fixture.namedAssignment = true;
+        fixture.namedReleaseSucceeds = false;
+
+        fixture.system.tick(fixture.state, 61);
+
+        assertEquals(0, fixture.namedReleases);
+        assertEquals(0, fixture.returnedMarines);
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+        assertEquals(75, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(0, fixture.state.contractCaptainId[0]);
+    }
+
+    @Test
     void defaultedContractKeepsPersonnelForExtractionFlow() {
         Fixture fixture = fixture(ContractState.DEFAULTED);
 
@@ -67,6 +97,9 @@ class StationingReleaseSystemTest {
         final StationingReleaseSystem system;
         int returnedMarines;
         boolean deliverySucceeds = true;
+        boolean namedAssignment;
+        boolean namedReleaseSucceeds = true;
+        int namedReleases;
 
         Fixture(CampaignState state, MarineCaptain captain) {
             this.state = state;
@@ -83,6 +116,19 @@ class StationingReleaseSystemTest {
         public boolean addMarines(int count) {
             if (!deliverySucceeds) return false;
             returnedMarines += count;
+            return true;
+        }
+
+        @Override
+        public boolean hasNamedAssignment(long contractId) {
+            return namedAssignment;
+        }
+
+        @Override
+        public boolean releaseNamedAssignment(long contractId) {
+            if (!namedReleaseSucceeds) return false;
+            namedAssignment = false;
+            namedReleases++;
             return true;
         }
     }
