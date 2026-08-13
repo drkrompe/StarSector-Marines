@@ -478,6 +478,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
         renderer.getDecalAccumulator().dispose();
+        // Same leak concern as the decal accumulator, for S2's ground FBO pair.
+        renderer.getGroundParallax().dispose();
 
         if (!audioActive) return;
         audioActive = false;

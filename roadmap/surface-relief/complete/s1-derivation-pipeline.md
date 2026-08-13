@@ -1,5 +1,13 @@
 # S1 — Height/normal derivation pipeline
 
+> **SHIPPED** `cf2e4db1` (2026-08-13). As planned, plus: kernel's wrap-at-edges
+> generalized to an `EdgeMode{WRAP,CLAMP}` parameter instead of a forked copy;
+> `TileSheetSlicer` vendors the runtime auto-strip slicing algorithm (tool
+> source set can't depend on root `main`); recipes live in
+> `asset-pipeline/src/tool/resources/tilemaps/tilemaps.json`. Baked 5 sheets
+> (water, floors, nature, urban-3, spaceport-apron); determinism verified
+> byte-identical. Walls/structure sheets deliberately skipped.
+
 ## Goal
 
 Build-time auto-generation of height and normal sheets from the existing

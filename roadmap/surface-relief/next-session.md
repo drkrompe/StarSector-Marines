@@ -2,28 +2,60 @@
 
 ## State of play (2026-08-13)
 
-- Feature docs created (overview + S1–S4). S1 (derivation pipeline) and
-  S2 (screen-space parallax) are the active implementation slice,
-  orchestrated in a worktree; S3 (bump lighting) and S4 (unit relief) are
-  design sketches.
-- Kernel source of truth:
-  `MoonLightEngine/asset-pipeline/.../tools/assets/terrain/TerrainMaterialDerivationKernel.java`
-  (NOT yet vendored — the mod repo's asset-pipeline only carries
-  mesh/animation/material code).
+- ~~S1 — derivation pipeline~~ **shipped** `cf2e4db1` (see `complete/`).
+- **S2 — screen-space parallax: code-complete at `80aac9e2`, NOT yet
+  verified in-game.** Full build green (jar produced, tests pass). The
+  effect is gated behind `DevConfig.SURFACE_RELIEF_PARALLAX`
+  (**default false** — off path is pixel-identical to pre-S2 rendering).
+- Commit chain (worktree `worktree-surface-relief`, branched off main at
+  `98462906` which added these docs): `cf2e4db1` S1 → `80aac9e2` S2.
 
-## Decisions locked
+## What S2 landed
 
-- Screen-space composite, not per-quad texcoord offsets (atlas bleed).
-- Offset-limited form only; fake-perspective eye from screen center;
-  max offset ~2–4 px.
-- Macro (tile-id metadata) × micro (derived sheet) height composition.
-- Derivation is build-time in `:asset-pipeline` tool source set; per-cell
-  clamp addressing; per-sheet percentile window.
-- Hard off-toggle; shader failure degrades to plain rendering.
+- `render2d.ShaderProgram` — GLSL 1.20 compile/link helper (GL20 core,
+  same path as the planet drawables), fail-soft broken-flag idiom.
+- `ops.battleview.GroundParallaxPipeline` — color+height FBO pair
+  (GL30 core, mirrors `DecalAccumulator.withFboBound` incl. the
+  sample-once FBO-binding rule), ortho set to the SAME UI-space viewport
+  rect the GROUND quads already emit into (zero coordinate translation),
+  fullscreen offset-limited composite. Every failure path falls back to
+  draining GROUND straight to the backbuffer.
+- `GroundHeightPass` (macro per-cell quads) + `HeightSource` seam +
+  `GroundMicroHeightSampler`/`HeightSheetTexture` (per-cell micro height
+  from S1 sheets, cached per battle).
+- Macro heights: `GenMappingRegistry.macroHeight` code defaults +
+  `"macroHeight"` override block in `urban.mapping.json`
+  (WALL 0.90 / INDOOR 0.65 / RUBBLE 0.30 / WATER 0.15, else 0.50).
+- `MAX_FBO_DIM` guard: the vanilla-combat-bridge backdrop renders GROUND
+  through a WORLD-UNIT camera; absurd FBO sizes degrade to fallback
+  instead of allocating.
 
-## Next up
+## Next up (in order)
 
-1. S1 + S2 implementation (in flight — see worktree/orchestration state).
-2. Playtest the aesthetic question: does relief read well on pixel art?
-   Water is the first tuning target.
-3. Then S3; S4 after light plumbing exists.
+1. **In-game smoke test** — flip `DevConfig.SURFACE_RELIEF_PARALLAX`,
+   load a battle: does the shader compile live, does parallax read, is
+   toggle-off pixel-identical? GL runtime behavior is structurally
+   mirrored from shipped precedents but UNVERIFIED live.
+2. **Tune** `STRENGTH` / `EYE_HEIGHT` / `HEIGHT_SCALE` / `HEIGHT_BIAS`
+   in `GroundParallaxPipeline` — reasoned guesses, not calibrated.
+   Water is the first target per overview.
+3. Micro-height for the SLICED sheets (nature-tiles, urban-tileset-3 —
+   baked by S1 but not wired; see `GroundMicroHeightSampler` javadoc).
+   Also GRASS/DIRT/STREET/SIDEWALK special-cases fall back to macro-only.
+4. Then S3 (bump lighting), S4 (unit relief) per their story docs.
+
+## Known edges
+
+- Letterboxed-viewport band now clears to opaque black behind the
+  composite (rare zoom-out-past-map case) — pre-existing edge, noted not
+  fixed.
+- Critique pass ran post-commit; fixes landed for: stale micro-height
+  cache across battles (invalidate on dispose), composite texture binds
+  now inside the attrib bracket, fake-eye math aspect-corrected,
+  micro sample rect matches the color pass's source inset. Verified
+  non-issues: the vanilla-combat-bridge backdrop has its OWN
+  `BattleRenderer`/pipeline instance (its `MAX_FBO_DIM` trip can't
+  disable the battle screen's parallax); drain fallbacks can't lose or
+  double-draw GROUND (draw list is read non-destructively). Accepted:
+  the raw fallback `drainColor.run()` can rethrow a draw-list exception
+  — same crash the flag-off path would produce, kept loud on purpose.
