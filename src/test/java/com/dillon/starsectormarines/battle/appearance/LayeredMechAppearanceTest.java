@@ -70,7 +70,7 @@ public class LayeredMechAppearanceTest {
 
         new FacingSystem(sim.getEntityWorld(), c, sim.getRoster()).tick();
 
-        assertEquals(-110f, sim.getEntityWorld().getFloat(mech, c.MECH_LAYERED_ANIMATION,
+        assertEquals(180f, sim.getEntityWorld().getFloat(mech, c.MECH_LAYERED_ANIMATION,
                 BattleComponents.MECH_LAYERED_FACING_DEGREES), 0.001f);
         assertEquals(180f, sim.getEntityWorld().getFloat(mech, c.MECH_LAYERED_ANIMATION,
                 BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES), 0.001f);

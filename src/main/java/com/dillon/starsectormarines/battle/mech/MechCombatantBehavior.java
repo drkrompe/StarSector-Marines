@@ -101,7 +101,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
     public static void tryFireChaingun(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
+        if (m.isAimedAt(target) && hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
             sim.fireMechWeapon(u, target, m.chaingun);
             m.chaingunCooldown = m.chaingun.cooldown;
@@ -115,7 +115,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
     public static void tryFireSrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
+        if (m.isAimedAt(target) && hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
             sim.fireMechWeapon(u, target, m.srmPod);
             m.srmAmmoSalvos--;
@@ -135,7 +135,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public static void tryFireLrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
+        if (m.isAimedAt(target) && m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range
                 && dist >  m.chaingun.range) {
             float accMult = hasLos
