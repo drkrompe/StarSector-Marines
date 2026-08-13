@@ -48,6 +48,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
+import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.FrontLineReinforcementTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.GarrisonDepletedTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.ObjectiveLostTrigger;
@@ -797,7 +798,10 @@ public final class BattleSetup {
      *       nearest-to-defender contested biome slice. {@link
      *       GarrisonDepletedTrigger} is <em>not</em> registered here — both
      *       triggers would otherwise post duplicate requests for the same
-     *       depleted compound.</li>
+     *       depleted compound. {@link CounterattackSystem} (installed via
+     *       {@link BattleSimulation#setCounterattackSystem}) rides the same
+     *       {@link RecaptureTargetService} to stage the offensive-inverse
+     *       bulge — see {@code roadmap/conquest/stories/biome-counterattack.md}.</li>
      *   <li><b>Everything else:</b> {@link GarrisonDepletedTrigger} — defender
      *       compound strength drops below threshold. Only reacts to
      *       COMMAND_POST/BARRACKS/ARMORY, not the wider defender node set.</li>
@@ -831,6 +835,8 @@ public final class BattleSetup {
             RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
             sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.biomeMap));
             rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, axis));
+            sim.setCounterattackSystem(new CounterattackSystem(
+                    recaptureTargets, rs, sim.getBattleResources(), axis));
         } else {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }

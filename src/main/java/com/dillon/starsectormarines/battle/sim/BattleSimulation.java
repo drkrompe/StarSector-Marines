@@ -60,6 +60,7 @@ import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
+import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -236,6 +237,16 @@ public class BattleSimulation implements BattleControl {
      * {@link #setRecaptureSystem}.
      */
     private RecaptureTargetSystem recaptureSystem;
+
+    /**
+     * Staged bulge counterattack state machine (progressive reinforcement's
+     * offensive inverse, {@code roadmap/conquest/stories/biome-counterattack.md}).
+     * Conquest-only; null on mission types with no biome layer. Set via
+     * {@link #setCounterattackSystem}. Ticks after {@link #recaptureSystem}
+     * (so it sees this tick's fresh contested state) and before {@link
+     * #reinforcementSystem} (so its prepaid wave posts drain this same tick).
+     */
+    private CounterattackSystem counterattackSystem;
 
     /**
      * Per-target attacker index — wraps the {@code Entity → attacker list} map
@@ -889,6 +900,21 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
+     * Installs the bulge counterattack state machine. {@code BattleSetup}
+     * calls this from {@code installReinforcementLayer} on conquest maps
+     * (biome layer present); left null elsewhere, in which case the tick
+     * loop skips it entirely.
+     */
+    public void setCounterattackSystem(CounterattackSystem system) {
+        this.counterattackSystem = system;
+    }
+
+    /** Per-faction resource pools (reinforcement tickets, airstrike tickets). {@code BattleSetup} reads this to wire up {@link CounterattackSystem}'s earmark debits. */
+    public BattleResources getBattleResources() {
+        return battleResources;
+    }
+
+    /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
      * Returns immediately once the battle is complete.
@@ -1124,6 +1150,11 @@ public class BattleSimulation implements BattleControl {
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.
         if (recaptureSystem != null) recaptureSystem.tick(TICK_DT, this);
+        // Bulge counterattack must run after the recapture recompute (sees
+        // this tick's fresh contested state for its muster/resolve checks)
+        // and before the reinforcement dispatch below (its ASSAULT-phase
+        // prepaid posts drain this same tick, not next).
+        if (counterattackSystem != null) counterattackSystem.tick(TICK_DT, this);
         // Reinforcement slow-tick: poll triggers, drain the request queue, and
         // dispatch via the first feasible means provider. Dispatch debits
         // resource tickets; insufficient balance defers the request.

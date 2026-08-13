@@ -145,6 +145,33 @@ Budget cost, rarity/cooldown, telegraph timing, wave size. Playtest
 the loss-then-reclaim rhythm — the bulge must threaten without making
 the map feel like it refuses to stay taken.
 
+## Decisions (resolved 2026-08-13, first implementation pass)
+
+- **Scope cut:** slices 1, 2, and 4 land first (decision + earmark,
+  massed prepaid dispatch, emergent resolve). The phase machine exists
+  from day one (muster → telegraph → assault → resolve → cooldown) but
+  slice 3's *telegraph surface* is deferred — no comms/notification UI
+  exists in battle yet, and per the no-stopgap rule we don't build a
+  pop-up placeholder. The telegraph phase logs its comms line and
+  exposes phase + target slice for the future comms-officer layer.
+- **Overflow detection** = `RecaptureTargetService.eligibleTargets()`
+  empty while ≥ 1 slice is contested — progressive reinforcement has
+  nothing left to plug, so the overflow pools into the bulge.
+- **Target slice** = rear-most conceded slice with ≥ 1 once-`manned`
+  lost position (marines actually took ground there; never-manned
+  positions aren't "lost", matching the recapture semantic).
+- **Earmark** = one lump `tryConsume` at muster, all-or-nothing, with a
+  surplus floor so the bulge never empties the steady reserve. The wave
+  posts **prepaid** `ReinforcementRequest`s through the normal means
+  pipeline — supply gates still apply, and a wave request no means can
+  deliver burns its share of the earmark (the bet's downside). A
+  telegraph-phase abort (defenders re-take the slice naturally) refunds
+  the lump and doesn't count against the per-battle cap.
+- **Resolve** = emergent, no wave-squad bookkeeping: success is the
+  debounced frontline filter re-including the slice
+  (`isContested(slice)` flips true); a resolve window expiring is
+  failure and the earmark stays burned.
+
 ## Open questions
 
 - **Budget cost.** How expensive is a bulge relative to steady
