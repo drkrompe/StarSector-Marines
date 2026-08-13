@@ -1,0 +1,28 @@
+// Per-sheet derivation recipe for :asset-pipeline:deriveTileMaps. Only
+// sheets listed under "sheets" get baked -- this manifest doubles as the
+// bake's inclusion list. See TileMapRecipeManifest for the schema.
+//
+// Ground/terrain sheets only (roadmap/surface-relief/stories/s1-derivation-pipeline.md).
+// urban-tileset.tileset.json (indoor floor/wall, walls mixed into the same
+// sheet as floor) is intentionally NOT listed: baking it would pool wall and
+// floor luminance into one shared percentile window, which isn't a "ground"
+// sheet's honest micro-relief range, and walls get their macro height from
+// the gen-mapping registry (S2), not this per-texel bake. doodads.png (props)
+// and unit sprite sheets (S4) are out of scope for S1 entirely.
+{
+  "defaults": {
+    "heightPolarity": "BRIGHT_HIGH",
+    "heightBlurRadius": 2,
+    "lowPercentile": 0.02,
+    "highPercentile": 0.98,
+    "normalStrength": 2.5
+  },
+  "sheets": [
+    { "tileset": "Water_tiles.tileset.json" },
+    { "tileset": "Floors_Tiles.tileset.json" },
+    { "tileset": "nature-tiles.tileset.json" },
+    { "tileset": "urban-tileset-3.tileset.json" },
+    { "tileset": "urban-tileset-2.tileset.json",
+      "sheetOverride": "graphics/tilesets/urban-tileset-2-spaceport-apron.png" }
+  ]
+}
