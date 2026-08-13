@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
@@ -23,6 +26,40 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpaceportVehiclePlacementTest {
+
+    @Test
+    void groundCrewSpawnOnServiceSideOutsideEveryBerth() {
+        NavigationGrid grid = openStripedGrid(52, 24);
+        CellTopology topology = new CellTopology(52, 24);
+        paintStriped(topology, 52, 24);
+        LandingPad first = LandingPad.spaceport(14, 12, LandingPad.Approach.EAST);
+        LandingPad second = LandingPad.spaceport(38, 12, LandingPad.Approach.WEST);
+        MapResult map = map(grid, topology, List.of(first, second));
+        List<ParkedAircraft> parked = BattleSetup.stampParkedAircraft(
+                map, Collections.emptyList(), new Random(4L));
+        BattleSimulation sim = new BattleSimulation(grid, topology);
+
+        int count = BattleSetup.spawnSpaceportGroundCrew(
+                sim, map, parked, new Random(4L));
+
+        assertTrue(count == 4);
+        int engineers = 0;
+        int civilians = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            assertTrue(sim.identity().name(unit).startsWith("port-crew-"));
+            assertTrue(sim.identity().faction(unit) == Faction.CIVILIAN);
+            if (sim.identity().type(unit) == UnitType.ENGINEER) engineers++;
+            if (sim.identity().type(unit) == UnitType.CIVILIAN) civilians++;
+            int x = sim.world().cellX(unit);
+            int y = sim.world().cellY(unit);
+            assertFalse(first.contains(x, y));
+            assertFalse(second.contains(x, y));
+            assertTrue(grid.isWalkable(x, y));
+        }
+        assertTrue(engineers == 2);
+        assertTrue(civilians == 2);
+    }
 
     @Test
     void generatedTierOnePortHasCivilianOccupancyAfterDefaultDeploymentReservation() {

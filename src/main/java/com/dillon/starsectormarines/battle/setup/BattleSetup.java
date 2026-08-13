@@ -326,6 +326,7 @@ public final class BattleSetup {
 
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.SABOTAGE, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
+        spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         // Marine commander: routes non-planter squads toward the closest
         // unfinished charge site so cover-fire teams (or squads whose
         // planter has died) spread across the multi-site map instead of
@@ -561,6 +562,7 @@ public final class BattleSetup {
         // spawn around the defender anchor.
         allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
+        spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, null);
         if (type == MissionType.ASSAULT) {
             sim.setCommander(Faction.MARINE, new AssaultCommand());
@@ -645,6 +647,7 @@ public final class BattleSetup {
             }
 
             spawnAmbientCivilians(sim, map, rng);
+            spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
             SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
                     sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
@@ -1513,6 +1516,83 @@ public final class BattleSetup {
                 if (!seen.add(key(nx, ny))) continue;
                 q.add(new int[]{nx, ny, p[2] + 1});
             }
+        }
+        return candidates.isEmpty() ? null : candidates.get(rng.nextInt(candidates.size()));
+    }
+
+    /**
+     * Adds a two-person service crew near each occupied civilian berth, capped
+     * at four people. The crew starts on the service side (opposite the clear
+     * flight approach), never inside any authored pad, doorway, building, or
+     * setup obstacle, and uses ordinary FLEE behavior once combat begins.
+     */
+    static int spawnSpaceportGroundCrew(BattleSimulation sim, MapResult map,
+                                        List<ParkedAircraft> parkedAircraft,
+                                        Random rng) {
+        if (parkedAircraft == null || parkedAircraft.isEmpty()) return 0;
+        Set<Long> claimed = new HashSet<>();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            claimed.add(key(sim.world().cellX(unit), sim.world().cellY(unit)));
+        }
+
+        int spawned = 0;
+        int target = Math.min(4, parkedAircraft.size() * 2);
+        for (ParkedAircraft aircraft : parkedAircraft) {
+            LandingPad pad = landingPadAt(map.landingPads,
+                    aircraft.centerX, aircraft.centerY);
+            if (pad == null) continue;
+            int serviceX = pad.centerX - pad.approach.dx * 4;
+            int serviceY = pad.centerY - pad.approach.dy * 4;
+            for (int member = 0; member < 2 && spawned < target; member++) {
+                int[] cell = findPortCrewCell(map, serviceX, serviceY, claimed, rng);
+                if (cell == null) break;
+                UnitType type = member == 0 ? UnitType.ENGINEER : UnitType.CIVILIAN;
+                sim.spawn(new EntitySpec("port-crew-" + spawned,
+                        Faction.CIVILIAN, type, cell[0], cell[1]).role(UnitRole.FLEE));
+                claimed.add(key(cell[0], cell[1]));
+                spawned++;
+            }
+        }
+        return spawned;
+    }
+
+    private static LandingPad landingPadAt(List<LandingPad> pads, int centerX, int centerY) {
+        for (LandingPad pad : pads) {
+            if (pad.centerX == centerX && pad.centerY == centerY) return pad;
+        }
+        return null;
+    }
+
+    private static int[] findPortCrewCell(MapResult map, int anchorX, int anchorY,
+                                          Set<Long> claimed, Random rng) {
+        List<int[]> candidates = new ArrayList<>();
+        for (int radius = 0; radius <= 3; radius++) {
+            for (int y = anchorY - radius; y <= anchorY + radius; y++) {
+                for (int x = anchorX - radius; x <= anchorX + radius; x++) {
+                    if (Math.max(Math.abs(x - anchorX), Math.abs(y - anchorY)) != radius) continue;
+                    if (!map.grid.inBounds(x, y) || !map.grid.isWalkable(x, y)) continue;
+                    if (map.grid.isDoorway(x, y) || claimed.contains(key(x, y))) continue;
+                    if (map.topology.getBuildingId(x, y) != 0) continue;
+                    boolean insideBerth = false;
+                    for (LandingPad pad : map.landingPads) {
+                        if (pad.contains(x, y)) {
+                            insideBerth = true;
+                            break;
+                        }
+                    }
+                    if (insideBerth) continue;
+                    boolean onProp = false;
+                    for (Doodad doodad : map.doodads) {
+                        if (doodad.cellX == x && doodad.cellY == y) {
+                            onProp = true;
+                            break;
+                        }
+                    }
+                    if (!onProp) candidates.add(new int[]{x, y});
+                }
+            }
+            if (!candidates.isEmpty()) break;
         }
         return candidates.isEmpty() ? null : candidates.get(rng.nextInt(candidates.size()));
     }
