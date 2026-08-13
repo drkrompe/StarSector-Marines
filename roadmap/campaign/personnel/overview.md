@@ -47,9 +47,11 @@ authoritative mission commander, and frozen deployed-command context in
 Results. Home command supplies defaults but does not strand squads when their
 captain is unavailable.
 
-## Active story
+## Complete — named stationing
 
 [`stories/named-stationing.md`](stories/named-stationing.md) replaces the old
 captain-plus-anonymous-count stationing model with whole persistent fireteams.
 Campaign/personnel owns binding, availability, casualties, and exactly-once
-return; stationing battles only consume and report frozen identities.
+return; stationing battles only consume and report frozen identities. Named
+acceptance, release/default lifecycle, incident writeback, legacy compatibility,
+save repair, compaction guards, and debrief presentation are shipped.
