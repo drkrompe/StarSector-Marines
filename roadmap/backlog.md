@@ -8,6 +8,12 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 
 ## Gameplay
 
+- **Modeled small-arms ballistics** — design-stage track, fully specced in
+  [`ballistics/overview.md`](ballistics/overview.md): fire-time-resolved
+  ballistic rays replace pure accuracy rolls (radius collision + hit roll
+  on contact, cover becomes physical block chance, velocity-extrapolated
+  moving targets, visible stylized rounds). Pick up in a worktree per
+  [`ballistics/next-session.md`](ballistics/next-session.md).
 - **Briefing screen** — mission detail view with accept/decline. Reads
   selected mission from `MarineOpsContext`.
 - **Mission resolution** — consume marines (from cargo and/or captain's
