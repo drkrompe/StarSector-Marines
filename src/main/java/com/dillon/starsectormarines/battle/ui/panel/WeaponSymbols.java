@@ -24,6 +24,7 @@ public final class WeaponSymbols {
     public static String primaryAbbrev(MarineWeapon w) {
         if (w == null) return "RIF";
         switch (w) {
+            case FIELD_RIFLE: return "FLD";
             case PULSE_RIFLE: return "RIF";
             case SMG:         return "SMG";
             case DMR:         return "DMR";

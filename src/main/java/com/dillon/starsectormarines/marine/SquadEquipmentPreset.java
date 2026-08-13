@@ -8,7 +8,7 @@ public enum SquadEquipmentPreset {
     LINE("Line", MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, MarineArmorPattern.CHARCOAL),
     RECON("Recon", MarineWeapon.SMG, EquipmentGrade.SERVICE, MarineArmorPattern.ARMY_GREEN),
     MARKSMAN("Marksman", MarineWeapon.DMR, EquipmentGrade.SERVICE, MarineArmorPattern.CHARCOAL),
-    FIELD("Field", MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS, MarineArmorPattern.ARMORLESS);
+    FIELD("Field", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS, MarineArmorPattern.ARMORLESS);
 
     public final String displayName;
     public final MarineWeapon primary;

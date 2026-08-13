@@ -33,7 +33,7 @@ public final class MarineSoldier implements Serializable {
         this.name = name;
         this.aptitude = aptitude != null ? aptitude : SoldierAptitude.STEADY;
         this.status = MarineSoldierStatus.ACTIVE;
-        this.primary = MarineWeapon.PULSE_RIFLE;
+        this.primary = MarineWeapon.FIELD_RIFLE;
         this.primaryGrade = EquipmentGrade.SERVICE;
         this.armor = MarineArmorPattern.ARMORLESS;
     }
@@ -55,7 +55,7 @@ public final class MarineSoldier implements Serializable {
     }
 
     void setPrimary(MarineWeapon weapon, EquipmentGrade grade) {
-        primary = weapon != null ? weapon : MarineWeapon.PULSE_RIFLE;
+        primary = weapon != null ? weapon : MarineWeapon.FIELD_RIFLE;
         primaryGrade = grade != null ? grade : EquipmentGrade.SERVICE;
     }
 
@@ -76,7 +76,7 @@ public final class MarineSoldier implements Serializable {
         if (name == null) name = "Marine";
         if (aptitude == null) aptitude = SoldierAptitude.STEADY;
         if (status == null) status = MarineSoldierStatus.ACTIVE;
-        if (primary == null) primary = MarineWeapon.PULSE_RIFLE;
+        if (primary == null) primary = MarineWeapon.FIELD_RIFLE;
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;
         if (armor == null) armor = MarineArmorPattern.ARMORLESS;
         experienceXp = Math.max(0, experienceXp);

@@ -13,6 +13,7 @@ public enum LayeredWeaponFamily {
     public static LayeredWeaponFamily fromPrimary(MarineWeapon weapon) {
         if (weapon == null) return RIFLE;
         return switch (weapon) {
+            case FIELD_RIFLE -> RIFLE;
             case PULSE_RIFLE, DRONE_PULSE -> LASER_GUN;
             case SMG -> SMG;
             case DMR -> DMR;
