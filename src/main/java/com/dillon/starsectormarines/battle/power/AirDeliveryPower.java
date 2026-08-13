@@ -22,7 +22,13 @@ abstract class AirDeliveryPower extends CommandPower {
     protected AirDeliveryPower(String id, String displayName, float cpCost, int maxCharges,
                                ShuttleType carrier, AirDeliveryPayload payload,
                                int minimumClearance) {
-        super(id, displayName, cpCost, 0f, maxCharges);
+        this(id, displayName, cpCost, maxCharges, 0, carrier, payload, minimumClearance);
+    }
+
+    protected AirDeliveryPower(String id, String displayName, float cpCost, int maxCharges,
+                               int supplyCost, ShuttleType carrier,
+                               AirDeliveryPayload payload, int minimumClearance) {
+        super(id, displayName, cpCost, 0f, maxCharges, supplyCost);
         this.carrier = carrier;
         this.payload = payload;
         this.minimumClearance = minimumClearance;
