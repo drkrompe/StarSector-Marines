@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
+import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -72,6 +73,7 @@ public class CampaignStateScript implements EveryFrameScript {
     /** Default per-tick system order. Plug new systems in here. */
     public static List<CampaignSystem> defaultSystems() {
         return new ArrayList<>(Arrays.asList(
+                new NamedStationingRepairSystem(),
                 new HousePowerSystem(),
                 new HouseAmbitionSystem(),
                 new StakeDriftSystem(),
