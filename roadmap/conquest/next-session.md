@@ -26,15 +26,40 @@ trigger + wiring (`28e512ab`)._
 
 ## Immediate next-up
 
-1. **Playtest + tune progressive reinforcement** (slice 5 remainder):
-   fire cadence (currently 1 Hz shared with `REINFORCEMENT_TICK_PERIOD`,
-   one dispatch per tick), `RALLY_REAR_SHIFT` (8 cells), and whether the
-   round-robin spread reads on the map. Watch: conquest maps no longer
-   run `GarrisonDepletedTrigger` — compounds only get help once their
-   garrison is *fully wiped* (by design; verify it feels right).
-2. **biome-counterattack** (`stories/biome-counterattack.md`) — now
-   unblocked; builds on the frontline filter, RecaptureTargetService,
-   the two-coordinate split, and the Commander tier.
+1. **Playtest + tune** both reinforcement systems together:
+   - Progressive reinforcement (slice 5 remainder): fire cadence,
+     `RALLY_REAR_SHIFT` (8 cells), round-robin spread readability.
+     Watch: conquest maps no longer run `GarrisonDepletedTrigger` —
+     compounds only get help once their garrison is *fully wiped*.
+   - Bulge counterattack (slice 5): `BURST_TICKETS` (4),
+     `SURPLUS_FLOOR_TICKETS` (2), `TELEGRAPH_SEC` (20),
+     `SUCCESS_HOLD_TICKS` (10), `COOLDOWN_SEC` (240) /
+     `ABORT_COOLDOWN_SEC` (30), `MAX_BULGES_PER_BATTLE` (2). The
+     loss-then-reclaim rhythm must threaten without the map refusing
+     to stay taken.
+2. **Bulge slice 3 — telegraph surface**: the comms-officer warning /
+   threatened-slice signpost. `CounterattackSystem` exposes
+   `getPhase()`/`getBulgeSlice()` and logs at TELEGRAPH entry and
+   RESOLVE outcome as the hooks; needs a real battle comms/notification
+   surface (none exists — new story, player-POV per the
+   comms-officer-as-narrator model).
+
+## Bulge counterattack — shipped core (`db87ed0d`)
+
+Slices 1, 2, 4 of `stories/biome-counterattack.md`:
+`CounterattackSystem` phase machine (IDLE → TELEGRAPH → ASSAULT →
+RESOLVE → COOLDOWN; abort path refunds + short cooldown, doesn't count
+against the cap), all-or-nothing lump earmark with surplus floor,
+prepaid `ReinforcementRequest`s through the normal means pipeline
+(supply gates apply; posted-but-undeliverable requests burn their
+share, unposted tickets refund), emergent resolve via sustained
+`isContested` hold (10 ticks — a wave's own transit presence can't
+insta-latch success). Workflow-orchestrated build: 3 adversarial
+verify lenses found 8 issues, 7 fixed pre-commit (transit-presence
+success latch, assault-tick re-contest race ×2, abort churn,
+frontline double-dispatch, undeliverable-wave muster, stale snapshot),
+1 skipped as a recorded design decision (overflow gate counts
+in-flight dispatches as plugged — revisit only if playtest shows it).
 
 ## Known deferred / follow-ups
 
