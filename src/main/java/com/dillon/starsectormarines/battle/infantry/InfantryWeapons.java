@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
+import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -44,6 +45,7 @@ public class InfantryWeapons {
     private final DamageService damageService;
     private final HitResponseSystem hitResponse;
     private final ShotService shots;
+    private final CoverAccuracyResolver coverAccuracy;
 
     /**
      * Reused per-tick gather of the units with an active burst before the
@@ -57,11 +59,12 @@ public class InfantryWeapons {
 
     public InfantryWeapons(UnitRosterService roster,
                            DamageService damageService, HitResponseSystem hitResponse,
-                           ShotService shots) {
+                           ShotService shots, CoverAccuracyResolver coverAccuracy) {
         this.roster = roster;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
         this.shots = shots;
+        this.coverAccuracy = coverAccuracy;
     }
 
     /**
@@ -164,6 +167,9 @@ public class InfantryWeapons {
                     dist, effectiveRange);
         }
         accuracy *= stance.accuracyMult;
+        accuracy = coverAccuracy.apply(accuracy,
+                world.cellX(target), world.cellY(target),
+                world.cellX(shooter), world.cellY(shooter));
         boolean hit = ThreadLocalRandom.current().nextFloat() < accuracy;
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
         if (hit) {
@@ -232,6 +238,11 @@ public class InfantryWeapons {
         float secondaryAccuracy = Math.min(1f, sec.accuracy
                 * InfantryCombatStats.shooterAccuracyMult(
                         roster.combat().soldierProfile(shooter)));
+        // Handheld rockets are direct-fire, so a target correctly tucked
+        // behind cover is harder to center in the impact pattern too.
+        secondaryAccuracy = coverAccuracy.apply(secondaryAccuracy,
+                world.cellX(target), world.cellY(target),
+                world.cellX(shooter), world.cellY(shooter));
         boolean hit = ThreadLocalRandom.current().nextFloat() < secondaryAccuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint

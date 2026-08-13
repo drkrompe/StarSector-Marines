@@ -230,6 +230,7 @@ public enum TurretKind {
      * Endpoint scatter on a hit, in cells. The hit/miss roll still resolves
      * against the locked target; this just nudges WHERE the impact lands so a
      * burst of grenades sprays the cell cluster instead of stacking on one.
+     * A miss expands beyond this nominal impact pattern.
      */
     public final float hitSpread;
     /** Minimum engagement range in cells. Targets closer than this aren't acquired or kept locked — keeps lobbed-AoE weapons from dropping on top of friendlies. {@code 0} = no minimum. */

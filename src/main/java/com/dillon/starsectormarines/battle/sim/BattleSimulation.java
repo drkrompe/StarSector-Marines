@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -320,6 +321,7 @@ public class BattleSimulation implements BattleControl {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
+        CoverAccuracyResolver coverAccuracy = new CoverAccuracyResolver(grid, doodadService);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
         // which we build right after. We construct the service second and
@@ -398,12 +400,12 @@ public class BattleSimulation implements BattleControl {
         this.turretFire = new TurretFireSystem(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
-                hitResponse, world);
+                hitResponse, world, coverAccuracy);
         this.infantry = new InfantryWeapons(rosterService,
-                damageService, hitResponse, shots);
+                damageService, hitResponse, shots, coverAccuracy);
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
-                shots, detonations);
+                shots, detonations, coverAccuracy);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);

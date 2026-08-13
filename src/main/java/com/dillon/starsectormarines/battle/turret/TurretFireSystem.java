@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotRaycast;
+import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.Random;
@@ -45,6 +46,7 @@ public final class TurretFireSystem implements TurretFireSink {
     private final DetonationSink detonationSink;
     private final HitResponseSystem hitResponse;
     private final World world;
+    private final CoverAccuracyResolver coverAccuracy;
 
     @FunctionalInterface
     public interface DetonationSink {
@@ -54,7 +56,8 @@ public final class TurretFireSystem implements TurretFireSink {
     public TurretFireSystem(Random rng, NavigationGrid grid, CellTopology topology,
                             ShotService shots, DamageService damageService,
                             DetonationSink detonationSink,
-                            HitResponseSystem hitResponse, World world) {
+                            HitResponseSystem hitResponse, World world,
+                            CoverAccuracyResolver coverAccuracy) {
         this.rng = rng;
         this.grid = grid;
         this.topology = topology;
@@ -63,6 +66,7 @@ public final class TurretFireSystem implements TurretFireSink {
         this.detonationSink = detonationSink;
         this.hitResponse = hitResponse;
         this.world = world;
+        this.coverAccuracy = coverAccuracy;
     }
 
     @Override
@@ -79,6 +83,13 @@ public final class TurretFireSystem implements TurretFireSink {
             float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
             float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
+        }
+        // Ground-level direct fire reads the target's facing toward the
+        // muzzle. Arc and aerial attacks bypass cardinal cover.
+        if (!aerialShooter && kind.arcHeight <= 0f) {
+            effectiveAccuracy = coverAccuracy.apply(effectiveAccuracy,
+                    tcx, tcy,
+                    (int) Math.floor(fromX), (int) Math.floor(fromY));
         }
 
         if (kind.cellsPerSec() > 0f) {
@@ -142,8 +153,16 @@ public final class TurretFireSystem implements TurretFireSink {
         boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
 
         float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
-        float accScatterMult = 2f - Math.max(0f, Math.min(1f, effectiveAccuracy));
-        float scatterRadius = kind.hitSpread * distScale * accScatterMult;
+        boolean hit = rng.nextFloat() < effectiveAccuracy;
+        float scatterRadius = kind.hitSpread * distScale;
+        if (!hit) {
+            // Projectile kinds still resolve the same real accuracy roll as
+            // instant/tracer kinds. A miss expands beyond the nominal impact
+            // pattern instead of merely nudging every round by an
+            // accuracy-dependent amount.
+            scatterRadius += MISS_OFFSET_MIN
+                    + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
+        }
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float r = rng.nextFloat() * scatterRadius;
         float toX = tcx + 0.5f + (float) Math.cos(angle) * r;
@@ -159,7 +178,7 @@ public final class TurretFireSystem implements TurretFireSink {
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 kind.hasBoostRamp(), kind.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival));
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, /*hit*/ true, shooterFaction,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
                 flightTime, kind, null, null));
     }
 }

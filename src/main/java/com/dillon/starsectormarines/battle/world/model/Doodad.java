@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.world.model;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 
@@ -16,11 +15,10 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
  * <p><b>Cover.</b> Each doodad carries a {@link #cover} quality in
  * {@code [0..3]} matching the cell-grid cover scale ({@link com.dillon.starsectormarines.battle.nav.NavigationGrid#MAX_COVER}).
  * Read by {@link com.dillon.starsectormarines.battle.decision.TacticalScoring} when
- * picking firing positions — a marine prefers cells with high-cover doodads
- * (crates, rubble piles) over plain interior tiles. <em>Not</em> consumed by
- * {@link BattleSimulation#fireShot}: the damage-reduction lookup still reads
- * the cell-grid cover only. Doodad cover is a planner-side hint that augments
- * but doesn't override the existing cell model.
+ * picking firing positions and by direct-fire accuracy resolution — a marine
+ * prefers cells with high-cover doodads (crates, rubble piles), and incoming
+ * fire from the protected facing is less likely to hit. Doodads remain
+ * non-blocking and do not reduce damage after a hit.
  *
  * <p>Cover is intrinsic data on the {@link DoodadDef} (moddable-tilesets Phase 2):
  * the {@link #Doodad(int, int, DoodadDef)} ctor reads it from the def, so every

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -38,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -81,6 +81,7 @@ public class BspMapSpritePreviewTest {
     private static final Path WATER_SHEET   = Paths.get("mod/graphics/tilesets/Water_tiles-imagegen.png");
     private static final Path STREET3_SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-3-imagegen.png");
     private static final Path NATURE_SHEET  = Paths.get("mod/graphics/tilesets/nature-tiles-imagegen.png");
+    private static final Path DOODAD_SHEET  = Paths.get("mod/graphics/doodads/doodads.png");
 
     private static final Color BG          = new Color(0x10, 0x14, 0x1C);
     private static final Color WALL_CENTER = new Color(0x18, 0x18, 0x1C);
@@ -88,6 +89,10 @@ public class BspMapSpritePreviewTest {
     private static final Color LABEL_FG    = new Color(0xE0, 0xE8, 0xF4);
     private static final Color MARINE_FG   = new Color(80, 220, 100);
     private static final Color DEFENDER_FG = new Color(220, 80, 80);
+    private static final Color MED_COVER_FG = new Color(255, 210, 70, 225);
+    private static final Color HEAVY_COVER_FG = new Color(255, 75, 205, 235);
+
+    private static BufferedImage doodadSheet;
 
     @BeforeAll
     static void installRegistry() throws Exception {
@@ -100,6 +105,8 @@ public class BspMapSpritePreviewTest {
         }
         reg.validateReferences();
         TileRegistry.install(reg);
+        doodadSheet = ImageIO.read(Files.newInputStream(DOODAD_SHEET));
+        assertNotNull(doodadSheet, "failed to load " + DOODAD_SHEET);
     }
 
     @Test
@@ -156,6 +163,12 @@ public class BspMapSpritePreviewTest {
         Path out = OUT_DIR.resolve("civilian-spaceport-district.png");
         ImageIO.write(img, "PNG", out.toFile());
         System.out.println("  wrote " + out.toAbsolutePath());
+
+        BufferedImage cover = copyOf(img);
+        drawDoodadCoverOverlay(cover, map.doodads, map.grid.getHeight());
+        Path coverOut = OUT_DIR.resolve("civilian-spaceport-district-cover.png");
+        ImageIO.write(cover, "PNG", coverOut.toFile());
+        System.out.println("  wrote " + coverOut.toAbsolutePath());
     }
 
     /** Final setup preview: three marine berths reserved, surplus civilian craft parked. */
@@ -181,7 +194,7 @@ public class BspMapSpritePreviewTest {
                 false, RiskLevel.LOW, MissionType.ASSAULT, profile);
         MapResult finalMap = new MapResult(sim.getGrid(), sim.getTopology(),
                 0, 0, sim.getGrid().getWidth() - 1, sim.getGrid().getHeight() - 1,
-                Collections.emptyList(), Collections.emptyList());
+                List.of(), sim.getDoodads());
         BufferedImage img = renderMapSprites(finalMap, 42L, urban, road, floors, water,
                 street3, street3Frames, nature, natureFrames, false);
         drawParkedAircraft(img, sim.getParkedAircraft(), sim.getGrid().getHeight());
@@ -189,6 +202,12 @@ public class BspMapSpritePreviewTest {
         Path out = OUT_DIR.resolve("civilian-spaceport-occupied.png");
         ImageIO.write(img, "PNG", out.toFile());
         System.out.println("  wrote " + out.toAbsolutePath());
+
+        BufferedImage cover = copyOf(img);
+        drawDoodadCoverOverlay(cover, finalMap.doodads, finalMap.grid.getHeight());
+        Path coverOut = OUT_DIR.resolve("civilian-spaceport-occupied-cover.png");
+        ImageIO.write(cover, "PNG", coverOut.toFile());
+        System.out.println("  wrote " + coverOut.toAbsolutePath());
     }
 
     private static void drawParkedAircraft(BufferedImage img,
@@ -280,6 +299,7 @@ public class BspMapSpritePreviewTest {
         TileSink waterSink   = new Graphics2DTileSink(g, water);
         TileSink street3Sink = new Graphics2DTileSink(g, street3);
         TileSink natureSink  = new Graphics2DTileSink(g, nature);
+        TileSink doodadSink  = new Graphics2DTileSink(g, doodadSheet);
         FixedGridTileDrawer urbanDrawer  = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
         FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
         int urbanInset  = urbanDrawer.defaultGroundInsetPx();
@@ -407,6 +427,13 @@ public class BspMapSpritePreviewTest {
             }
         }
 
+        // ---- Doodad pass ---- mirrors DoodadRenderSystem's sheet dispatch.
+        for (Doodad d : map.doodads) {
+            TileSink sink = TileManifest.DOODAD_SHEET.equals(d.sheetPath)
+                    ? doodadSink : d.fromRoadSheet ? roadSink : urbanSink;
+            stampFrame(urbanDrawer, sink, d.tile, d.cellX, d.cellY, gh, 0);
+        }
+
         // ---- Spawn markers ---- green = marine, red = defender.
         if (drawSpawnMarkers) {
             g.setColor(MARINE_FG);
@@ -420,9 +447,12 @@ public class BspMapSpritePreviewTest {
         g.fillRect(0, gh * CELL_PX, img.getWidth(), labelH);
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        long mediumCover = map.doodads.stream().filter(d -> d.cover == Doodad.COVER_MED).count();
+        long heavyCover = map.doodads.stream().filter(d -> d.cover == Doodad.COVER_HEAVY).count();
         g.drawString(String.format(
-                "BSP sprite preview — seed=%d  %dx%d cells  marine=green  defender=red",
-                seed, gw, gh), 8, gh * CELL_PX + 17);
+                "BSP sprite preview — seed=%d  %dx%d  doodads=%d  med=%d  heavy=%d  marine=green  defender=red",
+                seed, gw, gh, map.doodads.size(), mediumCover, heavyCover),
+                8, gh * CELL_PX + 17);
 
         g.dispose();
         return img;
@@ -505,5 +535,36 @@ public class BspMapSpritePreviewTest {
         int[] xs = { cx, cx + s, cx, cx - s };
         int[] ys = { cy - s, cy, cy + s, cy };
         g.fillPolygon(xs, ys, 4);
+    }
+
+    private static BufferedImage copyOf(BufferedImage source) {
+        BufferedImage copy = new BufferedImage(source.getWidth(), source.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = copy.createGraphics();
+        g.drawImage(source, 0, 0, null);
+        g.dispose();
+        return copy;
+    }
+
+    /** Yellow = medium cover, magenta = heavy cover. The clean preview remains unmarked. */
+    private static void drawDoodadCoverOverlay(BufferedImage img, List<Doodad> doodads, int gridH) {
+        Graphics2D g = img.createGraphics();
+        g.setFont(new Font("SansSerif", Font.BOLD, 9));
+        for (Doodad d : doodads) {
+            if (d.cover < Doodad.COVER_MED) continue;
+            g.setColor(d.cover == Doodad.COVER_HEAVY ? HEAVY_COVER_FG : MED_COVER_FG);
+            int x = d.cellX * CELL_PX + 1;
+            int y = (gridH - 1 - d.cellY) * CELL_PX + 1;
+            g.drawRect(x, y, CELL_PX - 3, CELL_PX - 3);
+            g.drawString(d.cover == Doodad.COVER_HEAVY ? "H" : "M", x + 3, y + 10);
+        }
+        g.setColor(new Color(0, 0, 0, 215));
+        g.fillRoundRect(8, 8, 248, 22, 6, 6);
+        g.setFont(new Font("SansSerif", Font.BOLD, 12));
+        g.setColor(MED_COVER_FG);
+        g.drawString("M medium", 17, 23);
+        g.setColor(HEAVY_COVER_FG);
+        g.drawString("H heavy doodad cover", 99, 23);
+        g.dispose();
     }
 }
