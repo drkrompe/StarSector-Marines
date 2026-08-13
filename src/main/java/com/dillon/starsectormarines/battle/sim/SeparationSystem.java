@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
 
@@ -34,11 +37,16 @@ import java.util.Arrays;
  * via {@code allocateAir}/{@code allocateVehicle}), never enter the dense
  * roster this system walks, and carry no POSITION component at all.
  *
- * <p><b>S1 scope.</b> Every participant is currently treated as equal mass
- * (a flat 50/50 overlap split via {@link #weightOf}) — the inverse-mass
- * weighting and immovable structures/turrets are S2 (see the story doc's
- * slice list). {@link #weightOf} already takes both ids so that slice is a
- * one-method change; nothing else in the accumulate pass needs to move.
+ * <p><b>Mass model.</b> Each participant's mass is {@code radius²} ({@link
+ * #weightOf}); a heavier {@code b} yields less, so a mech (radius 0.6, mass
+ * 0.36) shoves a marine (radius 0.3, mass 0.09) roughly 4× as far as the
+ * marine shoves back. Static emplacements ({@link
+ * com.dillon.starsectormarines.battle.unit.UnitType#isStatic()} — turrets
+ * and drone hubs) are immovable — infinite mass: a mover overlapping one
+ * yields the full overlap ({@code weightOf(mover, immovable) == 1}), and an
+ * immovable unit never accumulates an impulse of its own ({@link
+ * #accumulate} skips it as the outer participant entirely, via {@link
+ * #isImmovable}).
  *
  * <p><b>Algorithm.</b> Two-phase, order-independent, single-threaded:
  * <ol>
@@ -56,8 +64,15 @@ import java.util.Arrays;
  *       the impulse), and write it back via {@link World#setPos}.</li>
  * </ol>
  *
- * <p>{@link #MOVEMENT_VEL_X}/{@code Y} fold-in (so {@code FacingSystem}
- * animates a shoved unit) is S2 — S1 only ever touches POSITION.
+ * <p>Every applied displacement is also folded additively into the
+ * {@code MOVEMENT} component's {@code MOVEMENT_VEL_X}/{@code Y} fields (the
+ * same fields {@link MovementService#setVelocity} writes) so {@code
+ * FacingSystem}, which derives pose from "velocity applied this tick",
+ * animates a shoved unit instead of ghost-sliding it. Read via {@link
+ * UnitRosterService#entityWorld()}/{@link UnitRosterService#components()}
+ * rather than through {@code MovementService} because {@code setVelocity}
+ * is private to that class and this is an additive fold-in, not a plain
+ * overwrite.
  */
 public final class SeparationSystem {
 
@@ -79,6 +94,8 @@ public final class SeparationSystem {
     private final World world;
     private final UnitSpatialIndex unitIndex;
     private final NavigationGrid grid;
+    private final EntityWorld entityWorld;
+    private final BattleComponents components;
 
     /** Reused neighbor-query output buffer — cleared and repopulated by every {@link UnitSpatialIndex#gather} call inside {@link #tick}. */
     private final LongBucket scratch = new LongBucket();
@@ -98,14 +115,19 @@ public final class SeparationSystem {
         this.world = roster.world();
         this.unitIndex = unitIndex;
         this.grid = grid;
+        this.entityWorld = roster.entityWorld();
+        this.components = roster.components();
     }
 
     /**
      * Runs one relaxation pass over the current roster. Sole caller is
      * {@code BattleSimulation.tick()}, right after the occupancy-delta drain
      * and before the spawn flush — see the story doc's "Tick slot" section
-     * for why that slot is safe (all this-tick movement has landed; nothing
-     * downstream reads POSITION before {@code APPEARANCE}).
+     * for why that slot is safe: all this-tick {@code UPDATE_UNITS} position
+     * writes have landed (serial slot), and every phase that reads POSITION
+     * afterward this tick — {@code FIRING} through {@code APPEARANCE} — is
+     * supposed to see post-separation positions; no later phase writes
+     * ground-unit POSITION except spawn placement.
      */
     public void tick(float dt) {
         int liveCount = roster.liveCount();
@@ -121,7 +143,7 @@ public final class SeparationSystem {
     private void accumulate(long[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
             long a = dense[i];
-            if (!participates(a)) continue;
+            if (!participates(a) || isImmovable(a)) continue;
             float ax = world.x(a);
             float ay = world.y(a);
             float ra = radiusOf(a);
@@ -179,16 +201,26 @@ public final class SeparationSystem {
             float ay = world.y(a);
             float nx = ax + ix;
             float ny = ay + iy;
+            float appliedX, appliedY;
             if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ny))) {
                 world.setPos(a, nx, ny);
+                appliedX = ix;
+                appliedY = iy;
             } else if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ay))) {
                 // X-only slide: the full move clips a wall, but sliding along it does not.
                 world.setPos(a, nx, ay);
+                appliedX = ix;
+                appliedY = 0f;
             } else if (grid.isWalkable((int) Math.floor(ax), (int) Math.floor(ny))) {
                 // Y-only slide, the perpendicular case.
                 world.setPos(a, ax, ny);
+                appliedX = 0f;
+                appliedY = iy;
+            } else {
+                // Every candidate cell is non-walkable — drop the impulse this tick.
+                continue;
             }
-            // Else every candidate cell is non-walkable — drop the impulse this tick.
+            foldIntoVelocity(a, appliedX / dt, appliedY / dt);
         }
     }
 
@@ -204,15 +236,55 @@ public final class SeparationSystem {
     }
 
     /**
-     * Fraction of a pair's overlap that {@code a} yields toward {@code b}.
-     * S1 placeholder: a flat 50/50 split (equal-mass). S2 replaces this with
-     * inverse-mass weighting ({@code m = radius²}) plus the immovable-structure
-     * special cases from the story doc's Algorithm section; every accumulate
-     * call already routes through this method, so that slice touches nothing
-     * else.
+     * Fraction of a pair's overlap that {@code a} yields toward {@code b}:
+     * inverse-mass weighting, {@code w = m(b) / (m(a) + m(b))} with
+     * {@code m = radius²}. A heavier {@code b} yields less push onto itself,
+     * so {@code a} absorbs more of the overlap — a mech barely moves for a
+     * marine. {@code b} immovable ⇒ infinite mass ⇒ {@code w = 1} ({@code a}
+     * yields the overlap in full); {@code a} immovable never reaches here
+     * ({@link #accumulate} skips it via {@link #isImmovable} before calling
+     * this).
      */
-    private static float weightOf(long a, long b) {
-        return 0.5f;
+    private float weightOf(long a, long b) {
+        if (isImmovable(b)) return 1f;
+        float ma = massOf(a);
+        float mb = massOf(b);
+        return mb / (ma + mb);
+    }
+
+    private float massOf(long id) {
+        float r = radiusOf(id);
+        return r * r;
+    }
+
+    /**
+     * Infinite-mass participants: emplacements ({@code UnitType.isStatic()} —
+     * turrets and drone hubs, the two types spawned without a {@code MOVEMENT}
+     * component; see {@link UnitRosterService#adopt}) push but are never
+     * pushed — they hold their emplacement anchor. {@link UnitRole#STRUCTURE}
+     * is checked too for forward compatibility with any future non-static
+     * role that wants the same treatment, but every emplacement type today is
+     * covered by {@code isStatic()} alone. Matches the immovable
+     * classification the story doc's Algorithm section specifies.
+     */
+    private boolean isImmovable(long id) {
+        return roster.identity().type(id).isStatic() || roster.role().role(id) == UnitRole.STRUCTURE;
+    }
+
+    /**
+     * Additively folds this tick's separation displacement (as a velocity,
+     * cells/sec) into the {@code MOVEMENT} component's velocity fields —
+     * the same fields {@link MovementService#setVelocity} writes — so
+     * {@code FacingSystem} (which reads "velocity applied this tick" to pick
+     * a walk/idle pose) animates a shoved unit instead of ghost-sliding it.
+     * {@code MovementService.beginTick} already zeroed these for every mover
+     * before this system runs, so this is a set-from-zero, not a stomp.
+     */
+    private void foldIntoVelocity(long id, float dvx, float dvy) {
+        float vx = entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X);
+        float vy = entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx + dvx);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy + dvy);
     }
 
     /**
