@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slices 1–4 complete; debrief and migration closure next (2026-08-12)
+**Status:** COMPLETE — named stationing lifecycle shipped (2026-08-12)
 
 ## Problem
 
@@ -165,6 +165,19 @@ battle: WIA identities are preserved, teams are released, the unengaged captain
 returns ACTIVE, and terminal contract authority is cleared. Anonymous payloads
 continue through their existing scalar loss path. Focused payload, mission
 factory, casualty, no-force, and legacy resolution tests pass; Slice 4 is closed.
+
+## Slice 5 complete
+
+`721372d8` prevents compaction from removing any terminal stationing or linked
+extraction row that still owns named bindings, anonymous cargo, or a captain.
+`a8b72598` adds daily cross-graph save reconciliation: valid named rows repair
+derived living strength and captain availability, dangling or invalid bindings
+release safely, and anonymous rows are never auto-bound or recounted.
+`496cea19` distinguishes named stationed detachments from legacy aggregate
+personnel in Results and includes bound WIA who did not consume battle seats.
+The combined Stationing, GarrisonDefense, ExtractionResolution, compaction,
+repair, payload, binding, and debrief test matrix passes. All five slices and
+every acceptance criterion below are complete.
 
 ## Acceptance
 
