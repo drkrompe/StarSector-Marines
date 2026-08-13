@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -109,6 +110,31 @@ class NamedStationingBindingTest {
 
         assertEquals(-1L, line.stationingContractId());
         assertEquals(-1L, reserve.stationingContractId());
+    }
+
+    @Test
+    void failedExtractionMarksRecoverablePersonnelMiaBeforeRelease() {
+        MarineRoster roster = roster(6);
+        MarineCaptain captain = captain(Rank.PRIVATE);
+        roster.add(captain);
+        MarineSquad squad = roster.squads().get(0);
+        MarineSoldier wounded = roster.squadMembers(squad).get(0);
+        MarineSoldier fallen = roster.squadMembers(squad).get(1);
+        roster.applySoldierOutcome(Map.of(
+                wounded.id(), MarineSoldierStatus.WIA,
+                fallen.id(), MarineSoldierStatus.KIA), 0, 10f, 7f);
+        assertTrue(roster.bindStationing(81L, captain.id(), List.of(squad.id())));
+
+        assertEquals(1, roster.failStationingExtraction(81L));
+
+        assertEquals(MarineSoldierStatus.MIA, wounded.status());
+        assertEquals(MarineSoldierStatus.KIA, fallen.status());
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            assertTrue(soldier.status() == MarineSoldierStatus.MIA
+                    || soldier.status() == MarineSoldierStatus.KIA);
+        }
+        assertFalse(squad.stationed());
+        assertEquals(0, roster.failStationingExtraction(81L));
     }
 
     private static MarineRoster roster(int personnel) {

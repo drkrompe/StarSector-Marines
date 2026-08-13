@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.marine.Status;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExtractionResolutionSystemTest {
 
@@ -57,6 +59,50 @@ class ExtractionResolutionSystemTest {
         assertEquals(-10, fixture.state.repValue[0]);
     }
 
+    @Test
+    void successfulNamedExtractionReleasesTeamsWithoutCargoOnce() {
+        Fixture fixture = fixture(ContractState.COMPLETED);
+        fixture.namedAssignment = true;
+
+        fixture.system.tick(fixture.state, 40);
+        fixture.system.tick(fixture.state, 41);
+
+        assertEquals(1, fixture.namedSettlements);
+        assertTrue(fixture.lastNamedSuccess);
+        assertEquals(0, fixture.returnedMarines);
+        assertEquals(Status.ACTIVE, fixture.captain.status());
+        assertEquals(0, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(-1, fixture.state.contractCaptainId[0]);
+    }
+
+    @Test
+    void failedNamedExtractionSettlesTeamsAsLostWithoutCargo() {
+        Fixture fixture = fixture(ContractState.FAILED);
+        fixture.namedAssignment = true;
+
+        fixture.system.tick(fixture.state, 40);
+
+        assertEquals(1, fixture.namedSettlements);
+        assertFalse(fixture.lastNamedSuccess);
+        assertEquals(0, fixture.returnedMarines);
+        assertEquals(Status.INJURED, fixture.captain.status());
+        assertEquals(0, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(-1, fixture.state.contractCaptainId[0]);
+    }
+
+    @Test
+    void failedNamedSettlementPreservesAuthorityForRetry() {
+        Fixture fixture = fixture(ContractState.COMPLETED);
+        fixture.namedAssignment = true;
+        fixture.namedSettlementSucceeds = false;
+
+        fixture.system.tick(fixture.state, 40);
+
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+        assertEquals(80, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(0, fixture.state.repCount);
+    }
+
     private static Fixture fixture(ContractState extractionState) {
         CampaignState state = new CampaignState();
         MarineCaptain captain = new MarineCaptain("Stranded", null, Rank.SERGEANT, 0f);
@@ -79,6 +125,10 @@ class ExtractionResolutionSystemTest {
         final ExtractionResolutionSystem system;
         int returnedMarines;
         boolean deliverySucceeds = true;
+        boolean namedAssignment;
+        boolean namedSettlementSucceeds = true;
+        int namedSettlements;
+        boolean lastNamedSuccess;
 
         Fixture(CampaignState state, MarineCaptain captain) {
             this.state = state;
@@ -95,6 +145,20 @@ class ExtractionResolutionSystemTest {
         public boolean addMarines(int count) {
             if (!deliverySucceeds) return false;
             returnedMarines += count;
+            return true;
+        }
+
+        @Override
+        public boolean hasNamedAssignment(long contractId) {
+            return namedAssignment;
+        }
+
+        @Override
+        public boolean settleNamedAssignment(long contractId, boolean success) {
+            if (!namedSettlementSucceeds) return false;
+            namedAssignment = false;
+            namedSettlements++;
+            lastNamedSuccess = success;
             return true;
         }
     }

@@ -22,6 +22,10 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
     interface PersonnelStore {
         MarineCaptain captain(String id);
         boolean addMarines(int count);
+        default boolean hasNamedAssignment(long contractId) { return false; }
+        default boolean settleNamedAssignment(long contractId, boolean success) {
+            return false;
+        }
     }
 
     private final PersonnelStore store;
@@ -69,12 +73,18 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
     private void resolve(CampaignState state, int parentRow, boolean success, int day) {
         int marines = state.contractMarinesCommitted[parentRow];
         int captainSlot = state.contractCaptainId[parentRow];
-        if (marines <= 0 && captainSlot < 0) return;
+        long contractId = state.contractId[parentRow];
+        boolean named = store.hasNamedAssignment(contractId);
+        if (marines <= 0 && captainSlot < 0 && !named) return;
 
         String captainId = captainSlot >= 0 ? state.captainRegistry.get(captainSlot) : null;
         MarineCaptain captain = captainId != null ? store.captain(captainId) : null;
         if (captainSlot >= 0 && captain == null) return;
-        if (success && marines > 0 && !store.addMarines(marines)) return;
+        if (named) {
+            if (!store.settleNamedAssignment(contractId, success)) return;
+        } else if (success && marines > 0 && !store.addMarines(marines)) {
+            return;
+        }
 
         if (captain != null && captain.status() == Status.GARRISONED) {
             if (success) {
@@ -109,6 +119,23 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
             if (fleet == null || fleet.getCargo() == null) return false;
             fleet.getCargo().addMarines(count);
             return true;
+        }
+
+        @Override
+        public boolean hasNamedAssignment(long contractId) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            return script != null
+                    && !script.roster().squadsStationedOn(contractId).isEmpty();
+        }
+
+        @Override
+        public boolean settleNamedAssignment(long contractId, boolean success) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            if (script == null) return false;
+            int released = success
+                    ? script.roster().releaseStationing(contractId)
+                    : script.roster().failStationingExtraction(contractId);
+            return released > 0;
         }
     }
 }
