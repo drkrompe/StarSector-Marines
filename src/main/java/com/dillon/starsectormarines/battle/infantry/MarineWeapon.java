@@ -171,6 +171,33 @@ public enum MarineWeapon {
      */
     public final float roundVelocity;
 
+    /** Fleet catalog designation shown alongside the weapon's in-universe model name. */
+    public String designation(EquipmentGrade grade) {
+        if (this == FIELD_RIFLE) return "FR-1";
+        int tier = grade != null ? grade.tier : 1;
+        return switch (this) {
+            case PULSE_RIFLE -> "PLS-" + tier;
+            case SMG -> "LMG-" + tier;
+            case DMR -> "RG-" + tier;
+            case DRONE_PULSE -> "DPLS-" + tier;
+            case FIELD_RIFLE -> "FR-1";
+        };
+    }
+
+    public String modelName() {
+        return switch (this) {
+            case FIELD_RIFLE -> "Rook";
+            case PULSE_RIFLE -> "Lancer";
+            case SMG -> "Rattler";
+            case DMR -> "Longbow";
+            case DRONE_PULSE -> "Wisp";
+        };
+    }
+
+    public String catalogName(EquipmentGrade grade) {
+        return designation(grade) + " " + modelName();
+    }
+
     MarineWeapon(String displayName, String fireSoundId, Color tracerColor,
                  float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                  ImpactProfile impactProfile,

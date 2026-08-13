@@ -502,6 +502,7 @@ public class MarineRoster implements Serializable {
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
                 || isStationed(soldierId)
                 || !armory.isPrimaryUnlocked(weapon, grade)) return false;
+        if (weapon == MarineWeapon.FIELD_RIFLE && grade == EquipmentGrade.SERVICE) return true;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
             if (other != soldier && holdsAllocatedGear(other)
@@ -559,15 +560,18 @@ public class MarineRoster implements Serializable {
     public boolean cyclePrimary(String soldierId) {
         MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null) return false;
-        MarineWeapon[] weapons = {MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE,
-                MarineWeapon.SMG, MarineWeapon.DMR};
+        MarineWeapon[] weapons = {MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG, MarineWeapon.DMR};
         EquipmentGrade[] grades = EquipmentGrade.values();
-        int start = soldier.primary().ordinal() * grades.length + soldier.primaryGrade().ordinal();
-        int total = weapons.length * grades.length;
+        int familyIndex = java.util.Arrays.asList(weapons).indexOf(soldier.primary());
+        int start = familyIndex < 0 ? 0
+                : 1 + familyIndex * grades.length + soldier.primaryGrade().ordinal();
+        int total = 1 + weapons.length * grades.length;
         for (int offset = 1; offset <= total; offset++) {
             int index = (start + offset) % total;
-            MarineWeapon weapon = weapons[index / grades.length];
-            EquipmentGrade grade = grades[index % grades.length];
+            MarineWeapon weapon = index == 0 ? MarineWeapon.FIELD_RIFLE
+                    : weapons[(index - 1) / grades.length];
+            EquipmentGrade grade = index == 0 ? EquipmentGrade.SERVICE
+                    : grades[(index - 1) % grades.length];
             if (allocatePrimary(soldierId, weapon, grade)) return true;
         }
         return false;
@@ -723,9 +727,7 @@ public class MarineRoster implements Serializable {
 
     /** Gives a new campaign a readable mixed roster before the armory UI lands. */
     private void autoIssueRecruit(MarineSoldier recruit, int number) {
-        if (number == 1) {
-            allocatePrimary(recruit.id(), MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS);
-        } else if (number % 6 == 2) {
+        if (number % 6 == 2) {
             allocatePrimary(recruit.id(), MarineWeapon.SMG, EquipmentGrade.SERVICE);
         } else if (number % 6 == 4) {
             allocatePrimary(recruit.id(), MarineWeapon.DMR, EquipmentGrade.SERVICE);
