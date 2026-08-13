@@ -8,9 +8,10 @@
 
 ## Status
 
-**Design-stage.** Nothing implemented. Design settled 2026-08-13 (session
-conversation); this doc is the record. Pick up implementation **in a
-worktree** (owner request — see `next-session.md`).
+**S1 shipped 2026-08-13** (`complete/s1-resolver-core.md` — includes the
+landed-vs-planned deviations, notably: the contact circle is the
+pre-existing `UnitType.radius`, shared with `SeparationSystem`, not a new
+stat). S2 (moving targets) is next — see `next-session.md`.
 
 ## Why
 
@@ -159,11 +160,9 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
 
 ## Stories
 
-- **S1 — resolver core (static world).** `BallisticResolver` in
-  `battle/combat`: fire-time ray vs walls (hard stop), doodad block rolls
-  (cover swap lands here, atomically), stationary unit radii, contacts
-  walked in time order, damage/hit-response relocated to the impact clock.
-  Infantry primary swaps over. Friendly-fire rule decided and implemented.
+- ~~**S1 — resolver core (static world).**~~ **SHIPPED** — see
+  [`complete/s1-resolver-core.md`](complete/s1-resolver-core.md)
+  (`85ec50e6` + `382b0ee6` on `worktree-ballistics-s1`).
 - **S2 — moving targets.** Velocity extrapolation in the contact solve +
   shooter lead. Per-weapon round velocity becomes a real stat.
 - **S3 — stylized visible rounds.** Renderer consumes per-shot
