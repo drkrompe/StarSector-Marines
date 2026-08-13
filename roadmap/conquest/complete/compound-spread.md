@@ -1,5 +1,11 @@
 # Compound spread across biome districts
 
+> **Shipped** with `56a0407f` (both slices, as designed). The forced
+> seeder went with the recommended separate-counter option;
+> `MilitaryBaseFiller.commandNodeKind` carries the biome-aware role
+> emission. Paths have since moved to `battle/world/gen/bsp/` in the
+> battle-reorg (`579db91b`).
+
 > Conquest compounds currently cluster in the fortress district.
 > Spreading them across PORT → CITY → FORTRESS creates a natural
 > progression: outer compounds fall first, inner ones last, and the
