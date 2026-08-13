@@ -19,10 +19,13 @@ import java.util.List;
  * so the patrol arrives at a crossfire angle rather than stacking behind the
  * garrison.
  *
- * <p>Members move silently (no target acquisition, no firing) — the approach
- * is the surprise. {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior#prepareForAction}
- * still handles turret-of-opportunity rockets above this action, which is
- * acceptable.
+ * <p>Members keep moving toward the flank waypoint while the infantry
+ * dispatcher fills any otherwise-empty primary fire intent with a legal shot
+ * of opportunity. The passing shot does not replace the action's waypoint or
+ * pursuit target, and normal moving-fire accuracy still applies. This keeps a
+ * mission maneuver from making the squad ignore enemies already shooting at
+ * it. {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior#prepareForAction}
+ * also handles turret-of-opportunity rockets above this action.
  *
  * <p>Returns {@link ActionStatus#SUCCESS} when the squad centroid reaches
  * {@link #ARRIVAL_RADIUS} of the waypoint. On SUCCESS the replan fires and
@@ -49,7 +52,6 @@ public final class FlankApproach implements Action {
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
-    @Override public boolean permitsOpportunityFire() { return false; }
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {

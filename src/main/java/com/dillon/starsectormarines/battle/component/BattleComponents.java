@@ -389,10 +389,11 @@ public final class BattleComponents {
      */
     public final ComponentType COMBAT;
     /**
-     * Movement state — {@code float moveProgress} (the [0,1] lerp factor toward
-     * the next path cell), {@code int[] path} (the flat path reference),
-     * {@code int pathIdx} (the cursor along it), and {@code float moveSpeed} (the
-     * per-unit cells/sec step rate — a seed-only stat). <em>Optional</em>: added at spawn
+     * Movement state — {@code float gaitPhase} (the repeating walk cycle),
+     * {@code int[] path} (the flat path reference), {@code int pathIdx} (the
+     * carrot cursor along it), {@code float moveSpeed} (the per-unit cells/sec
+     * rate — a seed-only stat), the repath-throttle stamp, and the per-tick
+     * applied velocity. <em>Optional</em>: added at spawn
      * only for mobile units, so "has MOVEMENT" defines a mover. A static
      * emplacement (a turret or drone hub;
      * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) never

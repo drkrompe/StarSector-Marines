@@ -310,7 +310,12 @@ approach; there is no automatic fallback release (`c167e2f8`). Once relieved,
 the commander retargets every live squad's `ESCORT` assignment to a moving
 representative near the active cohort's center. The mission-priority escort
 posture advances toward that rally cell, fires while moving, and then holds a
-three-cell protective ring. Civilians proceed toward the lift only while a live
+six-cell protective perimeter. Before relief, the lowest-id live marine squad
+closes to the two-cell bunker trigger while the remaining squads use the wider
+perimeter. In-flight destinations remain stable even though their cells are
+claimed in the occupancy map, preventing both large-roster saturation and
+per-tick path resets (`048be243`).
+Civilians proceed toward the lift only while a live
 marine remains within six cells of an active cohort member, and stop when their
 escort falls behind (`45c6579f`). This creates the locked loop: deploy, break
 through to the bunker, trigger evacuation, then fight off the swarm while

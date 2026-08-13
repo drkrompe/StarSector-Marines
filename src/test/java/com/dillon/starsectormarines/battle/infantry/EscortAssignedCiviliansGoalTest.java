@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EscortAssignedCiviliansGoalTest {
@@ -48,13 +49,57 @@ class EscortAssignedCiviliansGoalTest {
         int dx = Paths.destX(path) - 14;
         int dy = Paths.destY(path) - 4;
         assertTrue(dx * dx + dy * dy
-                <= EscortAssignedCivilians.STANDOFF_RADIUS
-                * EscortAssignedCivilians.STANDOFF_RADIUS);
+                <= EscortAssignedCivilians.RELIEF_RADIUS
+                * EscortAssignedCivilians.RELIEF_RADIUS);
 
         sim.world().setCellPos(marine, 12, 4);
         plan.currentStep().action.execute(marine, squad, sim);
 
         assertTrue(Paths.isEmpty(sim.movement().path(marine)));
+    }
+
+    @Test
+    void claimedEscortDestinationDoesNotResetMovementEachTick() {
+        BattleSimulation sim = simulation();
+        long marine = addMarine(sim, 2, 4);
+        Squad squad = sim.getSquad(sim.squad().squadId(marine));
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 14, 4);
+
+        EscortAssignedCivilians.INSTANCE.execute(marine, squad, sim);
+        int[] path = sim.movement().path(marine);
+        float firstX = sim.world().x(marine);
+        sim.getOccupancyMap()[sim.getGrid().index(
+                Paths.destX(path), Paths.destY(path))] = 1;
+
+        EscortAssignedCivilians.INSTANCE.execute(marine, squad, sim);
+
+        assertSame(path, sim.movement().path(marine));
+        assertTrue(sim.world().x(marine) > firstX,
+                "second execute advances the same path eastward instead of resetting it");
+    }
+
+    @Test
+    void onlyLeadSquadClosesTightlyBeforeShelterRelief() {
+        BattleSimulation sim = simulation();
+        Squad lead = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 4)));
+        Squad support = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 6)));
+
+        assertEquals(EscortAssignedCivilians.RELIEF_RADIUS,
+                EscortAssignedCivilians.standoffRadius(lead, sim));
+        assertEquals(EscortAssignedCivilians.ESCORT_RADIUS,
+                EscortAssignedCivilians.standoffRadius(support, sim));
+    }
+
+    private static long addMarine(BattleSimulation sim, int x, int y) {
+        long marine = sim.spawn(new EntitySpec(
+                "marine", Faction.MARINE, UnitType.MARINE, x, y));
+        int squadId = sim.mintSquad(Faction.MARINE, marine);
+        sim.squad().assignSquad(marine, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.centroidX = x;
+        squad.centroidY = y;
+        return marine;
     }
 
     private static BattleSimulation simulation() {

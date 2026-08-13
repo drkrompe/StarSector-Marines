@@ -188,13 +188,17 @@ public class InfantryUnitPrepTest {
     }
 
     @Test
-    public void silentDoctrineActionsOptOutOfDispatcherOpportunityFire() {
-        assertFalse(OverwatchPosture.INSTANCE.permitsOpportunityFire());
-        assertFalse(new FlankApproach(10, 10).permitsOpportunityFire());
-        assertFalse(new BreachAndAdvance(1, new int[]{1}, new int[]{1},
-                new int[]{2}, new int[]{2}).permitsOpportunityFire());
-        assertFalse(new ChokePointHold(1, 5, 5, java.util.List.of(new int[]{4, 5}))
-                .permitsOpportunityFire());
+    public void tacticalActionsRetainDispatcherOpportunityFire() {
+        assertTrue(OverwatchPosture.INSTANCE.permitsOpportunityFire(),
+                "holding ground must not mean waiting passively to be shot");
+        assertTrue(new ChokePointHold(1, 5, 5, java.util.List.of(new int[]{4, 5}))
+                .permitsOpportunityFire(),
+                "holding a choke point must not suppress legal targets outside the portal cell");
+        assertTrue(new FlankApproach(10, 10).permitsOpportunityFire(),
+                "flank movement should not make a discovered squad ignore legal shots");
+        assertTrue(new BreachAndAdvance(1, new int[]{1}, new int[]{1},
+                new int[]{2}, new int[]{2}).permitsOpportunityFire(),
+                "breach movement should not make a squad ignore legal shots");
         assertTrue(RegroupPosture.INSTANCE.permitsOpportunityFire(),
                 "ordinary movement should retain the opportunity-fire safety net");
     }
@@ -215,13 +219,58 @@ public class InfantryUnitPrepTest {
     }
 
     @Test
-    public void dispatcherPreservesSilentOverwatchDoctrine() {
+    public void flankApproachTakesOpportunityShotWithoutAbandoningMovement() {
         BattleSimulation sim = openArena(30, 10);
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
                 .squad(squadId));
-        sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        FlankApproach action = new FlankApproach(20, 5);
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.put("any", List.of(defender));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "a discovered flank should return fire while continuing toward its waypoint");
+        assertTrue(sim.world().path(defender).length > 0,
+                "taking the passing shot must not discard the flank path");
+    }
+
+    @Test
+    public void breachMovementTakesOpportunityShotWithoutAbandoningStackUp() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squadId));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        BreachAndAdvance action = new BreachAndAdvance(1,
+                new int[]{15}, new int[]{5}, new int[]{20}, new int[]{5});
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.put("breacher:0", List.of(defender));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "a squad moving to its breach stack should take a legal passing shot");
+        assertTrue(sim.world().path(defender).length > 0,
+                "taking the passing shot must not discard the stack-up path");
+    }
+
+    @Test
+    public void dispatcherFiresWhileOverwatchHoldsGround() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squadId));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
         sim.world().setAttackRange(defender, 10f);
         SquadPlan.Step step = new SquadPlan.Step(OverwatchPosture.INSTANCE);
         step.assignments.put("any", List.of(defender));
@@ -229,7 +278,33 @@ public class InfantryUnitPrepTest {
 
         GoapInfantryBehavior.INSTANCE.update(defender, sim);
 
-        assertEquals(0L, sim.combat().fireTargetId(defender),
-                "the shared safety net must not break a closed kill-zone ambush");
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "overwatch should engage a legal target while remaining planted");
+        assertTrue(sim.world().path(defender).length == 0,
+                "overwatch fire must not pull the holder off its ground");
+    }
+
+    @Test
+    public void dispatcherFiresWhileChokePointHolderKeepsItsPost() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(squadId));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        ChokePointHold action = new ChokePointHold(999, 6, 5, List.of(new int[]{5, 5}));
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.put(ChokePointHold.slotName(0), List.of(defender));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        GoapInfantryBehavior.INSTANCE.update(defender, sim);
+
+        assertEquals(marine, sim.combat().fireTargetId(defender),
+                "an empty watched portal must not stop a holder shooting another legal target");
+        assertEquals(5, sim.world().cellX(defender));
+        assertEquals(5, sim.world().cellY(defender));
+        assertTrue(sim.world().path(defender).length == 0,
+                "choke-point fire must not pull the holder off its assigned post");
     }
 }
