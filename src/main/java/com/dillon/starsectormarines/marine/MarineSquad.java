@@ -17,6 +17,8 @@ public final class MarineSquad implements Serializable {
     private boolean reserve;
     /** Durable organizational default; mission borrowing does not rewrite it. */
     private String homeCaptainId;
+    /** Active named-stationing assignment; {@code -1} while available at home. */
+    private long stationingContractId = -1L;
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -36,6 +38,8 @@ public final class MarineSquad implements Serializable {
     public String name() { return name; }
     public boolean reserve() { return reserve; }
     public String homeCaptainId() { return homeCaptainId; }
+    public long stationingContractId() { return stationingContractId; }
+    public boolean stationed() { return stationingContractId > 0L; }
     public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
 
     boolean add(String soldierId) {
@@ -51,11 +55,15 @@ public final class MarineSquad implements Serializable {
     }
 
     void setHomeCaptainId(String value) { homeCaptainId = value; }
+    void setStationingContractId(long value) {
+        stationingContractId = value > 0L ? value : -1L;
+    }
 
     private Object readResolve() {
         if (id == null) id = UUID.randomUUID().toString();
         if (name == null) name = "Fireteam";
         if (memberIds == null) memberIds = new ArrayList<>();
+        if (stationingContractId <= 0L) stationingContractId = -1L;
         return this;
     }
 }

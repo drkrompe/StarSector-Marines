@@ -22,6 +22,7 @@ public final class CaptainDeploymentPolicy {
         List<String> result = new ArrayList<>();
         for (MarineSquad squad : roster.squadsCommandedBy(captain.id())) {
             if (result.size() >= captain.rank().fireteamCap()) break;
+            if (!roster.isSquadAvailable(squad.id())) continue;
             result.add(squad.id());
         }
         return Collections.unmodifiableList(result);
@@ -45,7 +46,8 @@ public final class CaptainDeploymentPolicy {
                                  Set<String> selectedIds, String squadId) {
         if (!canLead(captain) || roster == null || squadId == null) return false;
         MarineSquad squad = roster.squadById(squadId);
-        if (squad == null || squad.reserve()) return false;
+        if (squad == null || squad.reserve()
+                || !roster.isSquadAvailable(squadId)) return false;
         if (selectedIds != null && selectedIds.contains(squadId)) return true;
         return selectedCount(roster, selectedIds) < captain.rank().fireteamCap();
     }

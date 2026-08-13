@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -151,6 +152,60 @@ public class MarineRoster implements Serializable {
             }
         }
         return Collections.unmodifiableList(result);
+    }
+
+    public boolean isSquadAvailable(String squadId) {
+        MarineSquad squad = squadById(squadId);
+        return squad != null && !squad.reserve() && !squad.stationed();
+    }
+
+    public List<MarineSquad> squadsStationedOn(long contractId) {
+        if (contractId <= 0L) return Collections.emptyList();
+        List<MarineSquad> result = new ArrayList<>();
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && squad.stationingContractId() == contractId) {
+                result.add(squad);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /** Atomically binds a rank-bounded mission formation to one stationing contract. */
+    public boolean bindStationing(long contractId, String captainId,
+                                  Iterable<String> squadIds) {
+        MarineCaptain captain = byId(captainId);
+        if (contractId <= 0L || captain == null || captain.status() != Status.ACTIVE
+                || squadIds == null || !squadsStationedOn(contractId).isEmpty()) {
+            return false;
+        }
+        Set<String> unique = new LinkedHashSet<>();
+        for (String squadId : squadIds) {
+            if (squadId != null) unique.add(squadId);
+        }
+        if (unique.isEmpty() || unique.size() > captain.rank().fireteamCap()) return false;
+        boolean hasReadyMember = false;
+        for (String squadId : unique) {
+            MarineSquad squad = squadById(squadId);
+            if (squad == null || squad.reserve() || squad.stationed()) return false;
+            if (readyCount(squad) > 0) hasReadyMember = true;
+        }
+        if (!hasReadyMember) return false;
+        for (String squadId : unique) {
+            squadById(squadId).setStationingContractId(contractId);
+        }
+        return true;
+    }
+
+    /** Clears every binding owned by the contract. Replay-safe; returns teams released. */
+    public int releaseStationing(long contractId) {
+        if (contractId <= 0L) return 0;
+        int released = 0;
+        for (MarineSquad squad : squads) {
+            if (squad.stationingContractId() != contractId) continue;
+            squad.setStationingContractId(-1L);
+            released++;
+        }
+        return released;
     }
 
     /** Assigns or atomically reassigns one line fireteam to an active captain. */
@@ -357,7 +412,7 @@ public class MarineRoster implements Serializable {
     public List<MarineSoldier> lineReadySoldiers() {
         List<MarineSoldier> result = new ArrayList<>();
         for (MarineSquad squad : squads) {
-            if (squad.reserve()) continue;
+            if (squad.reserve() || squad.stationed()) continue;
             for (MarineSoldier soldier : squadMembers(squad)) {
                 if (soldier.status() == MarineSoldierStatus.ACTIVE) result.add(soldier);
             }
