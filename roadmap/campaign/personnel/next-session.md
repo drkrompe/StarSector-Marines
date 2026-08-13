@@ -18,10 +18,10 @@ Debug-picker missions now carry explicit debug sources and selectable
 Recruit/Mixed/Veteran fixtures. They fill the current 40-drop override without
 campaign personnel and their outcomes perform no campaign writeback.
 
-## Active — captain-to-fireteam command
+## Complete — captain-to-fireteam command
 
 The contract is locked in
-[`stories/captain-fireteam-command.md`](stories/captain-fireteam-command.md):
+[`complete/captain-fireteam-command.md`](complete/captain-fireteam-command.md):
 each line fireteam may have one durable home captain; a captain commands a
 rank-scaled formation of whole fireteams; home command supplies mission defaults
 without preventing another active captain from borrowing the team. The
@@ -43,12 +43,19 @@ Debug and stationing retain their documented exceptions. Focused policy,
 readiness, deployment-freeze, and domain tests passed, followed by the complete
 isolated Gradle build once the concurrent tree settled.
 
+Slice 4 is shipped (`48471e93`): `MissionOutcome` freezes briefing-ordered
+deployed fireteam ids beside its commander snapshot, and Results uses those ids
+instead of rediscovering teams from later roster state. Legacy outcomes retain
+their disposition-based fallback. Focused compatibility tests and the complete
+isolated Gradle build passed.
+
 The deployment-reachability correction is shipped and recorded in
 [`complete/deployment-readiness.md`](complete/deployment-readiness.md).
-Resume captain-command Slice 4: freeze the selected force commander and deployed
-fireteam ids into the mission outcome so debrief/history cannot drift after
-home reassignment. Stationing keeps its existing captain plus anonymous-marine
-contract until named detachment semantics are designed as one complete lifecycle.
+The captain-command story is complete. The next personnel expansion should be
+chosen as a new contract rather than appended here. Named stationing is the
+obvious candidate, but it must define named transfer, return, casualties, and
+partial recovery as one lifecycle; until then stationing keeps its captain plus
+anonymous committed-marine count. Manual UI/balance validation remains queued.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.
@@ -71,3 +78,4 @@ session.
 - `59c4864b` — add exact readiness accounting and cargo-backed bulk enlistment.
 - `75413bfc` — route briefing shortfalls through assignment or the armory.
 - `f6247ace` — enforce captain formation defaults and whole-fireteam briefing limits.
+- `48471e93` — freeze commander/fireteam deployment context into mission outcomes.

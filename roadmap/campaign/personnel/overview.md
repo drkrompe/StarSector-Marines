@@ -38,10 +38,11 @@ return with individual experience and dispositions.
 - Casualty disposition is deterministic for a frozen mission outcome.
 - KIA and MIA open replacement billets; WIA retain their billet until recovery.
 
-## Active story
+## Completed command story
 
-[`stories/captain-fireteam-command.md`](stories/captain-fireteam-command.md)
-locks the durable command relationship: one home captain per line fireteam, a
-rank-scaled formation of whole fireteams, and the briefing-selected captain as
-the authoritative mission commander. Home command supplies defaults but does
-not strand squads when their captain is unavailable.
+[`complete/captain-fireteam-command.md`](complete/captain-fireteam-command.md)
+ships the durable command relationship: one home captain per line fireteam, a
+rank-scaled formation of whole fireteams, the briefing-selected captain as the
+authoritative mission commander, and frozen deployed-command context in
+Results. Home command supplies defaults but does not strand squads when their
+captain is unavailable.
