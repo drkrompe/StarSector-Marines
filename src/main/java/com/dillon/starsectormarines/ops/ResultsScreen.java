@@ -254,9 +254,17 @@ public class ResultsScreen implements Screen {
         }
 
         List<MarineSquad> deployed = new ArrayList<>();
-        for (MarineSquad squad : roster.squads()) {
-            for (String id : squad.memberIds()) {
-                if (dispositions.containsKey(id)) { deployed.add(squad); break; }
+        if (!outcome.deployedFireteamIds.isEmpty()) {
+            for (String squadId : outcome.deployedFireteamIds) {
+                MarineSquad squad = roster.squadById(squadId);
+                if (squad != null && !squad.reserve()) deployed.add(squad);
+            }
+        } else {
+            // Legacy outcomes predate the frozen briefing selection.
+            for (MarineSquad squad : roster.squads()) {
+                for (String id : squad.memberIds()) {
+                    if (dispositions.containsKey(id)) { deployed.add(squad); break; }
+                }
             }
         }
         int rows = 9;

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.Status;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -66,6 +67,8 @@ public final class MissionOutcome {
     public final int     salvageHighValueChancePct;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
+    /** Mission-time whole-fireteam selection, in briefing order. */
+    public final Set<String> deployedFireteamIds;
 
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
@@ -108,9 +111,10 @@ public final class MissionOutcome {
                 xpGained, injuredUntilDay, promotedTo, targetPlanetName,
                 targetIndustryId, targetFactionId, contractId, campaignEventId,
                 campaignEventMarketId, civiliansAtRisk, civiliansRescued,
-                -1, -1, salvageEntitlement, salvageRecoveryBonusPct,
+                -1, -1,
+                salvageEntitlement, salvageRecoveryBonusPct,
                 salvageHighValueChancePct, survivingSoldierIds,
-                fallenSoldierIds);
+                fallenSoldierIds, Collections.emptySet());
     }
 
     public MissionOutcome(boolean victory,
@@ -126,7 +130,8 @@ public final class MissionOutcome {
                           int civiliansRescued, int evacuationRepresentatives,
                           int representativesEvacuated, int salvageEntitlement,
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
+                          Set<String> deployedFireteamIds) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -168,11 +173,45 @@ public final class MissionOutcome {
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));
         this.survivingSoldierIds = immutableIds(survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(fallenSoldierIds);
+        this.deployedFireteamIds = immutableOrderedIds(deployedFireteamIds);
+    }
+
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
+                          String captainId, String captainName,
+                          Status priorCaptainStatus, Status newCaptainStatus,
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, int civiliansAtRisk,
+                          int civiliansRescued, int evacuationRepresentatives,
+                          int representativesEvacuated, int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
+        this(victory, missionId, missionName, missionType, risk, missionSource,
+                payoutBase, payoutEarned, marinesEngaged, marinesLost,
+                captainId, captainName, priorCaptainStatus, newCaptainStatus,
+                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
+                targetIndustryId, targetFactionId, contractId, campaignEventId,
+                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
+                evacuationRepresentatives, representativesEvacuated,
+                salvageEntitlement, salvageRecoveryBonusPct,
+                salvageHighValueChancePct, survivingSoldierIds,
+                fallenSoldierIds, Collections.emptySet());
     }
 
     private static Set<String> immutableIds(Set<String> source) {
         if (source == null || source.isEmpty()) return Collections.emptySet();
         Set<String> copy = new HashSet<>();
+        for (String id : source) if (id != null) copy.add(id);
+        return Collections.unmodifiableSet(copy);
+    }
+
+    private static Set<String> immutableOrderedIds(Set<String> source) {
+        if (source == null || source.isEmpty()) return Collections.emptySet();
+        Set<String> copy = new LinkedHashSet<>();
         for (String id : source) if (id != null) copy.add(id);
         return Collections.unmodifiableSet(copy);
     }
