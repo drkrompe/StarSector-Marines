@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
+import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -241,6 +242,16 @@ public class BattleSimulation implements BattleControl {
     private RecaptureTargetSystem recaptureSystem;
 
     /**
+     * Staged bulge counterattack state machine (progressive reinforcement's
+     * offensive inverse, {@code roadmap/conquest/stories/biome-counterattack.md}).
+     * Conquest-only; null on mission types with no biome layer. Set via
+     * {@link #setCounterattackSystem}. Ticks after {@link #recaptureSystem}
+     * (so it sees this tick's fresh contested state) and before {@link
+     * #reinforcementSystem} (so its prepaid wave posts drain this same tick).
+     */
+    private CounterattackSystem counterattackSystem;
+
+    /**
      * Per-target attacker index — wraps the {@code Entity → attacker list} map
      * that drives O(1)-lookup crowding scoring in
      * {@link com.dillon.starsectormarines.battle.decision.TacticalScoring}. Rebuilt
@@ -301,6 +312,8 @@ public class BattleSimulation implements BattleControl {
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
+    /** Post-movement soft-collision relaxation pass — pushes overlapping ground units apart. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
+    private final SeparationSystem separation;
     private boolean complete = false;
     private Faction winner;
 
@@ -404,6 +417,7 @@ public class BattleSimulation implements BattleControl {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
+        this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         this.hitResponse = new HitResponseSystem(
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
@@ -892,6 +906,21 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
+     * Installs the bulge counterattack state machine. {@code BattleSetup}
+     * calls this from {@code installReinforcementLayer} on conquest maps
+     * (biome layer present); left null elsewhere, in which case the tick
+     * loop skips it entirely.
+     */
+    public void setCounterattackSystem(CounterattackSystem system) {
+        this.counterattackSystem = system;
+    }
+
+    /** Per-faction resource pools (reinforcement tickets, airstrike tickets). {@code BattleSetup} reads this to wire up {@link CounterattackSystem}'s earmark debits. */
+    public BattleResources getBattleResources() {
+        return battleResources;
+    }
+
+    /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
      * Returns immediately once the battle is complete.
@@ -1007,6 +1036,12 @@ public class BattleSimulation implements BattleControl {
         // regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
+        // Soft-collision relaxation — nudges overlapping ground units apart.
+        // Runs here (serial, after every UPDATE_UNITS position write has
+        // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
+        // read final POSITION). See SeparationSystem class doc.
+        separation.tick(TICK_DT);
+        tickProfile.lap(TickProfile.Phase.SEPARATION);
         // Mirror queued drone-hub spawns into the units list. Only callers
         // running inside UPDATE_UNITS route through queueSpawn; AIR_SYSTEM /
         // GROUND_SYSTEM deboards keep using inline addUnit because they
@@ -1127,6 +1162,11 @@ public class BattleSimulation implements BattleControl {
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.
         if (recaptureSystem != null) recaptureSystem.tick(TICK_DT, this);
+        // Bulge counterattack must run after the recapture recompute (sees
+        // this tick's fresh contested state for its muster/resolve checks)
+        // and before the reinforcement dispatch below (its ASSAULT-phase
+        // prepaid posts drain this same tick, not next).
+        if (counterattackSystem != null) counterattackSystem.tick(TICK_DT, this);
         // Reinforcement slow-tick: poll triggers, drain the request queue, and
         // dispatch via the first feasible means provider. Dispatch debits
         // resource tickets; insufficient balance defers the request.

@@ -57,8 +57,9 @@ public class FrontLineReinforcementTriggerTest {
         throw new IllegalStateException("no target for node " + node);
     }
 
-    /** Opens {@code target} and marks its slice contested — the state {@link RecaptureTargetService#eligibleTargets()} requires. */
+    /** Mans then opens {@code target} and marks its slice contested — the state {@link RecaptureTargetService#eligibleTargets()} requires. */
     private static void makeEligible(RecaptureTargetService reg, RecaptureTarget target) {
+        target.manned = true;
         target.open = true;
         reg.setContested(target.slice, true);
     }
@@ -120,11 +121,13 @@ public class FrontLineReinforcementTriggerTest {
                 new TacticalMap(List.of(dispatched, concededSliceTarget)), biomes);
 
         RecaptureTarget dispatchedTarget = targetFor(reg, dispatched);
+        dispatchedTarget.manned = true;
         dispatchedTarget.open = true;
         dispatchedTarget.dispatched = true;
         reg.setContested(heldSlice, true);
 
         RecaptureTarget concededTarget = targetFor(reg, concededSliceTarget);
+        concededTarget.manned = true;
         concededTarget.open = true;
         // concededSlice is left un-contested (default false) — the target
         // stays filtered by RecaptureTargetService.eligibleTargets() regardless of open.

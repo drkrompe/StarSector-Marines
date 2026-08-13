@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -35,6 +37,8 @@ import java.util.Map;
  */
 public final class RecaptureTargetSystem {
 
+    private static final Logger LOG = Global.getLogger(RecaptureTargetSystem.class);
+
     /**
      * Consecutive slow-ticks a slice's presence observation must disagree with
      * its current contested state before the state flips. At the reinforcement
@@ -43,6 +47,22 @@ public final class RecaptureTargetSystem {
      * track a real advance. Tune in playtest.
      */
     public static final int PRESENCE_DEBOUNCE_TICKS = 3;
+
+    /**
+     * Recompute ticks (≈ seconds at the reinforcement cadence) a target may
+     * sit {@code open && dispatched} before the dispatch flag is presumed
+     * lost and cleared. The flag is set optimistically at post time, but the
+     * delivery pipeline has consumed-without-spawn paths — a means whose
+     * dispatch aborts after the request was consumed (convoy routing
+     * failures), a request no means could fulfill, {@code SquadFallbackSystem}
+     * re-assigning a mauled reinforcement's node — and without a timeout any
+     * of those would strand the target open-but-suppressed forever. Must
+     * comfortably exceed the slowest legitimate delivery (convoy: pending
+     * delay + cross-map drive + advance on foot); a late expiry on a live
+     * delivery merely double-books the node, which the arrival dedup absorbs.
+     * Tune in playtest.
+     */
+    public static final int DISPATCH_TIMEOUT_TICKS = 90;
 
     private static final float TICK_PERIOD = ReinforcementService.REINFORCEMENT_TICK_PERIOD;
 
@@ -130,10 +150,19 @@ public final class RecaptureTargetSystem {
             if (alive > 0) {
                 // Held — original garrison or an arrived reinforcement. Clear
                 // the dispatch flag so a future wipe re-opens the target.
+                t.manned = true;
                 t.open = false;
                 t.dispatched = false;
+                t.dispatchAgeTicks = 0;
             } else {
                 t.open = true;
+                if (t.dispatched && ++t.dispatchAgeTicks >= DISPATCH_TIMEOUT_TICKS) {
+                    t.dispatched = false;
+                    t.dispatchAgeTicks = 0;
+                    LOG.info("recapture: dispatch to " + t.node.kind
+                            + " @(" + t.node.anchorX + "," + t.node.anchorY
+                            + ") timed out with no arrival — re-opening");
+                }
             }
         }
     }

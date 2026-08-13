@@ -17,8 +17,10 @@ designed around.
   **Code-complete** (`28e512ab`) — playtest + tuning remain; see
   [`next-session.md`](next-session.md).
 - [`stories/biome-counterattack.md`](stories/biome-counterattack.md)
-  — the staged defender "bulge" counteroffensive. **Unblocked** (its
-  progressive-reinforcement prerequisites shipped); next story up.
+  — the staged defender "bulge" counteroffensive. **Core shipped**
+  (`db87ed0d`: slices 1/2/4 — decision + earmark, massed prepaid
+  dispatch, emergent resolve); telegraph UI (slice 3) and tuning
+  (slice 5) remain.
 - [`complete/`](complete/) — shipped stories:
   [`deliberate-compound-capture.md`](complete/deliberate-compound-capture.md)
   (attacker commander captures deliberately),

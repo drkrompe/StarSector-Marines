@@ -75,15 +75,16 @@ public final class RecaptureTargetService {
     }
 
     /**
-     * Open, undispatched targets sitting in contested slices — the
-     * dispatch-eligible set the front-line trigger round-robins over. Conceded
-     * slices (marines overran them) and already-dispatched targets are
-     * filtered out.
+     * Open, undispatched, once-manned targets sitting in contested slices —
+     * the dispatch-eligible set the front-line trigger round-robins over.
+     * Conceded slices (marines overran them), already-dispatched targets, and
+     * never-manned nodes (positions {@code BattleSetup} never actually
+     * garrisoned — nothing was "lost" there) are filtered out.
      */
     public List<RecaptureTarget> eligibleTargets() {
         List<RecaptureTarget> out = new ArrayList<>();
         for (RecaptureTarget t : targets) {
-            if (t.open && !t.dispatched && isContested(t.slice)) out.add(t);
+            if (t.manned && t.open && !t.dispatched && isContested(t.slice)) out.add(t);
         }
         return out;
     }
@@ -105,9 +106,17 @@ public final class RecaptureTargetService {
      * advance) the node re-opens via {@link RecaptureTargetSystem}. Skip the
      * at-deboard assignment and a squad wiped before arrival leaves the target
      * {@code open && dispatched} forever — silently un-reinforced.
+     *
+     * <p>Delivery-pipeline losses the assignment contract can't see (a means
+     * whose dispatch aborts after the request was consumed, a request no
+     * means could fulfill, {@code SquadFallbackSystem} re-assigning a mauled
+     * squad's node away from the target) are healed by the
+     * {@link RecaptureTargetSystem#DISPATCH_TIMEOUT_TICKS} safety net rather
+     * than tracked individually.
      */
     public void markDispatched(RecaptureTarget target) {
         target.dispatched = true;
+        target.dispatchAgeTicks = 0;
     }
 
     /** All recapture targets, regardless of state. */
