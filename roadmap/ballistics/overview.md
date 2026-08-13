@@ -79,6 +79,21 @@ levels 1/2/3 ≡ block chances **15% / 30% / 45%**. Hit chance against the
 covered target is unchanged at swap time; everything else (rounds splat on
 the crate, strays stopped, interposers at risk) is gained emergently.
 
+**Two interception mechanisms, no overlap** (this is how the double-count
+is structurally avoided, not just tuned away):
+
+- **Doodads block by ray crossing.** A ray that crosses a doodad cell rolls
+  block by that doodad's level. Directionality is emergent — flank the
+  crate and the ray no longer crosses it. Doodad *facing* cover is never
+  consulted at unit contact.
+- **Wall cover blocks by edge-clip at contact.** A target hugging a wall
+  corner gains nothing from ray crossing (the ray never enters the wall
+  cell — the shooter has LoS). So the grid's directional wall cover
+  (`NavigationGrid.getCoverAt`, facing toward the shooter) survives as a
+  block roll applied *at unit contact* — "the round clipped the parapet."
+  Wall cells crossed by the ray itself remain a hard stop
+  (`firstWallOnLine`).
+
 ### 5. Accuracy stack survives as the per-contact hit roll
 
 Geometry decides *who can be hit*; the roll decides *whether it connects*.
@@ -123,19 +138,24 @@ New: per-`UnitType` collision radius (infantry ~0.35 cells, mechs larger);
 segment query on the spatial index (bucket walk along the ray with an
 expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
 
-## Open questions (decide at pickup, before S1 lands)
+## Resolved questions (owner decisions, 2026-08-13)
 
-1. **Friendly-fire policy.** Rounds that fly past a failed roll can hit
-   friendlies in the lane. Options: full damage (hard-failure flavor),
-   reduced graze damage, or morale-only at first. Must be decided in S1 —
-   the moment rounds fly on, *some* rule executes.
-2. **Near-miss morale.** `SquadMoraleSystem` uses miss-endpoint proximity
-   (1.5 cells). With real paths, near-miss should become path-proximity or
-   suppression feel changes. Ship with endpoint semantics in S1, migrate in
-   the unification story?
-3. **Incidental-contact hit roll.** Intended target uses the full accuracy
-   stack. Non-target contacts: flat graze chance, or scaled by chord depth
-   through the radius? (Recommend flat to start.)
+1. **Friendly fire = partial damage.** Rounds that fly on can hit
+   friendlies in the lane at reduced damage
+   (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`). Deliberately annoying — the pain is
+   a diegetic prompt toward better training and equipment for the troops.
+   Softener: friendly contacts within `FRIENDLY_MUZZLE_CLEARANCE = 2.0`
+   cells of the shooter are skipped (you shoot *around* the squadmate at
+   your shoulder), so clustered squads don't grind themselves down at
+   point-blank.
+2. **Near-miss morale goes path-proximity in S1.** The miss ring dies with
+   the swap, so endpoint semantics would under-trigger (a missed round's
+   endpoint lands far downrange). `SquadMoraleSystem.squadHitByMiss`
+   switches from point-to-endpoint to point-to-segment distance — small
+   change, same 1.5-cell threshold.
+3. **Incidental contacts roll a flat graze chance**
+   (`INCIDENTAL_HIT_CHANCE = 0.35`); only the intended target uses the full
+   accuracy stack. Chord-depth scaling deferred until feel says otherwise.
 
 ## Stories
 
