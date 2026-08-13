@@ -48,7 +48,10 @@ public class MarineRoster implements Serializable {
 
     public boolean removeById(String id) {
         MarineCaptain captain = byId(id);
-        if (captain == null) return false;
+        if (captain == null || captain.status() == Status.GARRISONED) return false;
+        for (MarineSquad squad : squads) {
+            if (squad.stationed() && id.equals(squad.homeCaptainId())) return false;
+        }
         for (MarineSquad squad : squads) {
             if (id.equals(squad.homeCaptainId())) squad.setHomeCaptainId(null);
         }
@@ -215,6 +218,7 @@ public class MarineRoster implements Serializable {
         if (captain == null || captain.status() != Status.ACTIVE
                 || squad == null || squad.reserve()) return false;
         if (captainId.equals(squad.homeCaptainId())) return true;
+        if (squad.stationed()) return false;
         if (squadsCommandedBy(captainId).size() >= captain.rank().fireteamCap()) {
             return false;
         }
@@ -224,7 +228,8 @@ public class MarineRoster implements Serializable {
 
     public boolean clearSquadCaptain(String squadId) {
         MarineSquad squad = squadById(squadId);
-        if (squad == null || squad.reserve() || squad.homeCaptainId() == null) return false;
+        if (squad == null || squad.reserve() || squad.stationed()
+                || squad.homeCaptainId() == null) return false;
         squad.setHomeCaptainId(null);
         return true;
     }
@@ -232,7 +237,9 @@ public class MarineRoster implements Serializable {
     /** Next roster-order captain who can receive this team; excludes its current captain. */
     public MarineCaptain nextAssignableCaptain(String squadId) {
         MarineSquad squad = squadById(squadId);
-        if (squad == null || squad.reserve() || captains.isEmpty()) return null;
+        if (squad == null || squad.reserve() || squad.stationed() || captains.isEmpty()) {
+            return null;
+        }
         String currentId = squad.homeCaptainId();
         int start = -1;
         for (int i = 0; i < captains.size(); i++) {
@@ -318,7 +325,8 @@ public class MarineRoster implements Serializable {
     /** Hires one replacement into an open line-fireteam billet. */
     public MarineSoldier recruitToSquad(String squadId) {
         MarineSquad squad = squadById(squadId);
-        if (squad == null || (!squad.reserve() && vacancies(squad) <= 0)) return null;
+        if (squad == null || squad.stationed()
+                || (!squad.reserve() && vacancies(squad) <= 0)) return null;
         MarineSoldier recruit = createRecruit();
         squad.add(recruit.id());
         armory.ensureBasicIssue(activeSoldierCount());
@@ -329,7 +337,7 @@ public class MarineRoster implements Serializable {
     MarineSoldier enlistLineRecruit() {
         MarineSquad target = null;
         for (MarineSquad squad : squads) {
-            if (!squad.reserve() && vacancies(squad) > 0) {
+            if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
                 target = squad;
                 break;
             }
@@ -367,6 +375,7 @@ public class MarineRoster implements Serializable {
         MarineSquad target = squadById(targetSquadId);
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
                 || source == null || target == null || source == target) return false;
+        if (source.stationed() || target.stationed()) return false;
         if (!target.reserve() && manningCount(target) >= MarineSquad.CAPACITY) return false;
         if (!source.remove(soldierId)) return false;
         if (target.add(soldierId)) return true;
@@ -377,10 +386,11 @@ public class MarineRoster implements Serializable {
     /** UI helper: next eligible squad in roster order, with reserves as the final stop. */
     public MarineSquad nextTransferTarget(String soldierId) {
         MarineSquad source = squadForSoldier(soldierId);
-        if (source == null || squads.size() < 2) return null;
+        if (source == null || source.stationed() || squads.size() < 2) return null;
         int start = squads.indexOf(source);
         for (int offset = 1; offset < squads.size(); offset++) {
             MarineSquad candidate = squads.get((start + offset) % squads.size());
+            if (candidate.stationed()) continue;
             if (candidate.reserve() || manningCount(candidate) < MarineSquad.CAPACITY) {
                 return candidate;
             }
@@ -438,6 +448,7 @@ public class MarineRoster implements Serializable {
     public boolean allocatePrimary(String soldierId, MarineWeapon weapon, EquipmentGrade grade) {
         MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || isStationed(soldierId)
                 || !armory.isPrimaryUnlocked(weapon, grade)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
@@ -451,7 +462,8 @@ public class MarineRoster implements Serializable {
 
     public boolean allocateSecondary(String soldierId, MarineSecondary secondary) {
         MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) return false;
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || isStationed(soldierId)) return false;
         if (secondary == null) {
             soldier.setSecondary(null);
             return true;
@@ -470,6 +482,7 @@ public class MarineRoster implements Serializable {
     public boolean allocateArmor(String soldierId, MarineArmorPattern armor) {
         MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || isStationed(soldierId)
                 || !armory.isArmorUnlocked(armor)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
@@ -516,6 +529,7 @@ public class MarineRoster implements Serializable {
         if (squad == null || squad.reserve() || preset == null) {
             return SquadPresetResult.NO_READY_PERSONNEL;
         }
+        if (squad.stationed()) return SquadPresetResult.STATIONED;
         List<MarineSoldier> ready = new ArrayList<>();
         for (MarineSoldier soldier : squadMembers(squad)) {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) ready.add(soldier);
@@ -621,7 +635,8 @@ public class MarineRoster implements Serializable {
 
     private void assignToFireteam(MarineSoldier recruit) {
         for (MarineSquad squad : squads) {
-            if (!squad.reserve() && manningCount(squad) < MarineSquad.CAPACITY) {
+            if (!squad.reserve() && !squad.stationed()
+                    && manningCount(squad) < MarineSquad.CAPACITY) {
                 squad.add(recruit.id());
                 return;
             }
@@ -680,7 +695,21 @@ public class MarineRoster implements Serializable {
             if (squadForSoldier(soldier.id()) == null) assignToFireteam(soldier);
         }
         repairSquadCommands();
+        repairStationingBindings();
         return this;
+    }
+
+    private boolean isStationed(String soldierId) {
+        MarineSquad squad = squadForSoldier(soldierId);
+        return squad != null && squad.stationed();
+    }
+
+    private void repairStationingBindings() {
+        for (MarineSquad squad : squads) {
+            if (squad.reserve() && squad.stationed()) {
+                squad.setStationingContractId(-1L);
+            }
+        }
     }
 
     private void repairSquadCommands() {
