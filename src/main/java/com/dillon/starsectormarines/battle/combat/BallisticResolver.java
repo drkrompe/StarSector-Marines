@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -16,15 +17,17 @@ import java.util.Random;
 /**
  * Resolves one round's full flight in a single space-time raycast at fire
  * time — the ballistics swap's core: a ray from the shooter toward a
- * spread-jittered aim point, hard-capped at the first wall, walked against
- * doodad block rolls and unit-radius contacts in time order. Damage/FX
- * application is scheduled by the caller on the returned
+ * lead-and-spread-jittered aim point, hard-capped at the first wall, walked
+ * against doodad block rolls and time-domain unit-radius contacts in time
+ * order. Damage/FX application is scheduled by the caller on the returned
  * {@link Resolution#flightTime()}; this class only decides <em>where the
  * round physically ends up</em>.
  *
  * <p>See {@code roadmap/ballistics/overview.md} (design record) and
- * {@code roadmap/ballistics/stories/s1-resolver-core.md} (the "Resolution
- * algorithm" section this method implements step for step).
+ * {@code roadmap/ballistics/stories/s2-moving-targets.md} (the "Time-domain
+ * contact solve" and "Shooter lead" sections {@link #resolve} implements
+ * step for step; S1's static-world solve, which the {@code w = 0} case
+ * collapses to exactly, is {@code stories/s1-resolver-core.md}).
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
@@ -32,7 +35,10 @@ import java.util.Random;
  * {@link Random}, mirroring {@link ShotEndpoint}'s testability contract. No
  * mutable instance state, so a single shared resolver instance is safe to
  * call concurrently from the parallel UPDATE_UNITS dispatch — every local
- * (event list, gather buffer) is call-scoped.
+ * (event list, gather buffer) is call-scoped. The one intentionally
+ * unsynchronized read is a candidate's velocity ({@code MOVEMENT_VEL_X/Y}
+ * via {@link MovementService}), written by the same tick's movement pass —
+ * see {@link #resolve} for why a mid-tick-stale sample is fine.
  */
 public final class BallisticResolver {
 
@@ -49,13 +55,22 @@ public final class BallisticResolver {
     /** Block-roll chance by cover level, index = level (capped at 3 = {@link NavigationGrid#MAX_COVER}). Tuning-neutral anchor: today's 0.85/0.70/0.55 accuracy multipliers for levels 1/2/3. */
     public static final float[] BLOCK_CHANCE_BY_LEVEL = {0f, 0.15f, 0.30f, 0.45f};
     /**
-     * Margin (cells) passed to {@link UnitSpatialIndex#gatherAlongSegment} —
-     * max collision radius plus slack. A flat constant is fine for S1 (no
-     * mech-scale radii are wildly larger than the infantry default), per the
-     * story doc; S2's moving-target extrapolation is the natural place to
-     * derive this from the roster's actual max radius / speed instead.
+     * Base margin (cells) passed to {@link UnitSpatialIndex#gatherAlongSegment}
+     * — max collision radius plus slack for a stationary candidate. Movers
+     * add {@link #MAX_MOVER_SPEED_CELLS} scaled by flight exposure on top of
+     * this (see the margin computation in {@link #resolve}), since a mover
+     * can walk into the corridor mid-flight even when its fire-tick position
+     * sits outside this base margin.
      */
     public static final float GATHER_MARGIN_CELLS = 1.0f;
+    /**
+     * Fastest mover speed (cells/sec) assumed when scaling the gather margin
+     * by flight exposure time — a tuning-surface constant per
+     * {@link #GATHER_MARGIN_CELLS}'s precedent, not a per-call roster scan.
+     * The fastest live mover today is ALIEN at 2.2 cells/s; 4 leaves
+     * headroom for vehicles.
+     */
+    public static final float MAX_MOVER_SPEED_CELLS = 4f;
 
     /** Where a round's flight ended and what stopped it. */
     public enum StopKind { UNIT_HIT, COVER_CLIP, WALL, DOODAD_BLOCK, OVERSHOOT }
@@ -73,7 +88,15 @@ public final class BallisticResolver {
                               long victimId, boolean hitIntended,
                               boolean friendlyHit, StopKind kind) {}
 
-    /** One contact candidate along the ray, in time order. Doodad crossings roll a flat block chance; unit contacts roll cover-clip then hit. */
+    /**
+     * One contact candidate along the ray, in time order. Doodad crossings
+     * roll a flat block chance; unit contacts roll cover-clip then hit.
+     * {@code victimCellX}/{@code victimCellY} (unit events only) is the
+     * victim's OWN extrapolated cell at contact time, floor(U(t)) — the
+     * cover edge-clip lookup's cell, distinct from {@code x}/{@code y} (the
+     * round's own FX endpoint, P(t)). See the "Contact-position split" note
+     * in {@code roadmap/ballistics/stories/s2-moving-targets.md}.
+     */
     private static final class Event {
         final float t;
         final boolean doodad;
@@ -82,8 +105,11 @@ public final class BallisticResolver {
         final int doodadLevel;
         final long unitId;
         final boolean friendly;
+        final int victimCellX;
+        final int victimCellY;
 
-        private Event(float t, boolean doodad, float x, float y, int doodadLevel, long unitId, boolean friendly) {
+        private Event(float t, boolean doodad, float x, float y, int doodadLevel,
+                       long unitId, boolean friendly, int victimCellX, int victimCellY) {
             this.t = t;
             this.doodad = doodad;
             this.x = x;
@@ -91,14 +117,17 @@ public final class BallisticResolver {
             this.doodadLevel = doodadLevel;
             this.unitId = unitId;
             this.friendly = friendly;
+            this.victimCellX = victimCellX;
+            this.victimCellY = victimCellY;
         }
 
         static Event doodad(float t, float x, float y, int level) {
-            return new Event(t, true, x, y, level, 0L, false);
+            return new Event(t, true, x, y, level, 0L, false, 0, 0);
         }
 
-        static Event unit(float t, float x, float y, long unitId, boolean friendly) {
-            return new Event(t, false, x, y, 0, unitId, friendly);
+        static Event unit(float t, float x, float y, long unitId, boolean friendly,
+                           int victimCellX, int victimCellY) {
+            return new Event(t, false, x, y, 0, unitId, friendly, victimCellX, victimCellY);
         }
     }
 
@@ -118,18 +147,25 @@ public final class BallisticResolver {
     /**
      * Resolves the shooter's round against {@code target}, walking every
      * wall/doodad/unit contact along the ray in time order and returning
-     * where it stopped. {@code finalAccuracy} is the full accuracy stack
-     * with cover already removed (cover is re-expressed here as physical
-     * interception); {@code effectiveSpread} is the distance-scaled lateral
-     * jitter radius (0 for pinpoint weapons); {@code roundVelocity} is
-     * cells/sec, already resolved by the caller (see
-     * {@link #DEFAULT_ROUND_VELOCITY}). Reads only — safe to call from a
-     * parallel dispatch.
+     * where it stopped. The aim point leads the target's one-step predicted
+     * position (perfect lead — tuning-neutral, a led shot against a
+     * constant-velocity target contacts exactly as a stationary shot does),
+     * and every unit contact is solved in the TIME domain against the
+     * candidate's own extrapolated motion; a non-mover's implicit zero
+     * velocity collapses both the lead and the contact solve to S1's
+     * static-world math exactly. {@code finalAccuracy} is the full accuracy
+     * stack with cover already removed (cover is re-expressed here as
+     * physical interception); {@code effectiveSpread} is the distance-scaled
+     * lateral jitter radius (0 for pinpoint weapons), applied around the LED
+     * aim point; {@code roundVelocity} is cells/sec, already resolved by the
+     * caller (see {@link #DEFAULT_ROUND_VELOCITY}). Reads only — safe to
+     * call from a parallel dispatch.
      */
     public Resolution resolve(long shooter, long target,
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, Random rng) {
         World world = roster.world();
+        MovementService movement = roster.movement();
         Faction shooterFaction = roster.identity().faction(shooter);
 
         float fromX = world.renderX(shooter);
@@ -137,13 +173,31 @@ public final class BallisticResolver {
         float targetX = world.renderX(target);
         float targetY = world.renderY(target);
 
-        // Step 1: ray. Aim = target position plus a radius-uniform lateral
+        // Step 1: shooter lead. The aim point is the target's one-step
+        // predicted position at estimated intercept time (dist / velocity),
+        // not its fire-tick position — a lead without extrapolation and an
+        // extrapolation without lead each systematically miss a lateral
+        // mover; they only balance as a pair (see overview.md §3). wTarget
+        // = 0 for a non-mover (turret/hub target), which zeroes tLead's
+        // contribution and reproduces S1's aim point exactly.
+        float wTargetX = 0f;
+        float wTargetY = 0f;
+        if (movement.has(target)) {
+            wTargetX = movement.velX(target);
+            wTargetY = movement.velY(target);
+        }
+        float tLead = dist(fromX, fromY, targetX, targetY) / roundVelocity;
+        float leadX = targetX + wTargetX * tLead;
+        float leadY = targetY + wTargetY * tLead;
+
+        // Step 2: ray. Aim = led target position plus a radius-uniform lateral
         // offset sampled from effectiveSpread (mirrors ShotEndpoint's hit-jitter
-        // sampling; this replaces the miss ring entirely).
+        // sampling; this replaces the miss ring entirely). Jitter applies
+        // around the LED point, not the raw target position.
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float offsetR = rng.nextFloat() * effectiveSpread;
-        float aimX = targetX + (float) Math.cos(angle) * offsetR;
-        float aimY = targetY + (float) Math.sin(angle) * offsetR;
+        float aimX = leadX + (float) Math.cos(angle) * offsetR;
+        float aimY = leadY + (float) Math.sin(angle) * offsetR;
 
         float aimDx = aimX - fromX;
         float aimDy = aimY - fromY;
@@ -180,14 +234,20 @@ public final class BallisticResolver {
 
         List<Event> events = new ArrayList<>();
 
-        // Step 2: doodad crossings — Bresenham the (wall-capped) ray's cells,
-        // skipping the shooter's own cell.
+        // Step 3: doodad crossings — Bresenham the (wall-capped) ray's cells,
+        // skipping the shooter's own cell. Doodads are static, so this stays
+        // the S1 distance-domain math verbatim.
         walkDoodadCrossings(shooterCellX, shooterCellY, rayEndCellX, rayEndCellY,
                 fromX, fromY, roundVelocity, events);
 
-        // Step 3: unit contacts over the (wall-capped) ray.
+        // Step 4: unit contacts over the (wall-capped) ray, solved in the
+        // TIME domain against each candidate's own extrapolated motion. The
+        // gather margin grows with flight exposure — a slow round's corridor
+        // can be entered mid-flight by a candidate whose fire-tick position
+        // sits outside the base margin.
+        float margin = GATHER_MARGIN_CELLS + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
         LongBucket candidates = new LongBucket();
-        unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, GATHER_MARGIN_CELLS, candidates);
+        unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
             if (candidateId == shooter) continue;
@@ -200,37 +260,76 @@ public final class BallisticResolver {
             float ux = world.x(candidateId);
             float uy = world.y(candidateId);
 
-            // Ray-circle intersection: solve |from + dir*t - center| = r for
-            // the entry AND exit roots. Both roots negative means the whole
-            // circle sits behind the shooter along this ray's direction —
-            // gatherAlongSegment's margin query can still surface such a
-            // candidate (it's near the segment's start point, not
-            // necessarily ahead of it), so the exit root must be checked
-            // before treating this as a contact: skip entirely rather than
-            // false-clamping to t=0.
-            float ox = fromX - ux;
-            float oy = fromY - uy;
-            float b = 2f * (ox * dirX + oy * dirY);
-            float c = ox * ox + oy * oy - r * r;
-            float disc = b * b - 4f * c;
-            if (disc < 0f) continue; // margin match but no real intersection with the exact radius
-            float sqrtDisc = (float) Math.sqrt(disc);
-            float tEntry = (-b - sqrtDisc) / 2f;
-            float tExit = (-b + sqrtDisc) / 2f;
-            if (tExit < 0f) continue; // circle lies entirely behind the shooter
-            if (tEntry < 0f) tEntry = 0f; // shooter inside the collision radius, or the circle straddles the origin
-            if (tEntry > rayLen) continue; // beyond the wall-capped ray
+            // Velocity actually applied by this tick's movement pass; 0 for
+            // a non-mover (no MOVEMENT component). MOVEMENT_VEL_X/Y are
+            // zeroed+rewritten by MovementService and nudged by
+            // SeparationSystem during the same tick this resolver runs
+            // (parallel UPDATE_UNITS) — a mid-tick-stale read moves the
+            // contact point by at most moveSpeed * TICK_DT cells. Velocity
+            // is an extrapolation hint here, not an invariant, so this read
+            // is intentionally unsynchronized.
+            float wx = 0f;
+            float wy = 0f;
+            if (movement.has(candidateId)) {
+                wx = movement.velX(candidateId);
+                wy = movement.velY(candidateId);
+            }
+
+            // Round: P(s) = O + d*v*s (s in seconds). Candidate:
+            // U(s) = U0 + w*s. Relative: R(s) = (U0 - O) + (w - v*d)*s;
+            // contact when |R(s)| <= r. Quadratic a*s^2 + b*s + c = 0 in s.
+            // w = 0 collapses this to S1's distance-domain ray-circle solve
+            // exactly (proven by the stationary-regression test).
+            float relVelX = wx - roundVelocity * dirX;
+            float relVelY = wy - roundVelocity * dirY;
+            float r0x = ux - fromX;
+            float r0y = uy - fromY;
+            float a = relVelX * relVelX + relVelY * relVelY;
+            float b = 2f * (r0x * relVelX + r0y * relVelY);
+            float c = r0x * r0x + r0y * r0y - r * r;
+
+            float sEntry;
+            if (a < 1e-6f) {
+                // The candidate paces the round's relative closing velocity
+                // exactly (rare degenerate) — R is constant over the flight,
+                // so either it's already overlapping at fire time (contact
+                // at s=0) or it never will be. Never falls through to the
+                // sqrt below, so no NaN.
+                if (c > 0f) continue;
+                sEntry = 0f;
+            } else {
+                float disc = b * b - 4f * a * c;
+                if (disc < 0f) continue; // margin match but no real intersection with the exact radius
+                float sqrtDisc = (float) Math.sqrt(disc);
+                float sExit = (-b + sqrtDisc) / (2f * a);
+                if (sExit < 0f) continue; // circle entirely behind the shooter along this ray's timeline
+                sEntry = (-b - sqrtDisc) / (2f * a);
+                if (sEntry < 0f) sEntry = 0f; // shooter inside the collision radius, or the circle straddles s=0
+            }
+
+            // Wall cap and muzzle clearance stay DISTANCE tests — the wall
+            // is static, so distance-along-ray is the correct cap even for
+            // a moving contact.
+            float rayDistAtEntry = roundVelocity * sEntry;
+            if (rayDistAtEntry > rayLen) continue; // beyond the wall-capped ray
 
             Faction candidateFaction = roster.identity().faction(candidateId);
             boolean friendly = candidateFaction == shooterFaction;
-            if (friendly && tEntry < FRIENDLY_MUZZLE_CLEARANCE) continue;
+            if (friendly && rayDistAtEntry < FRIENDLY_MUZZLE_CLEARANCE) continue;
 
-            float contactX = fromX + dirX * tEntry;
-            float contactY = fromY + dirY * tEntry;
-            events.add(Event.unit(tEntry / roundVelocity, contactX, contactY, candidateId, friendly));
+            // Contact-position split: the FX endpoint is where the ROUND is,
+            // P(sEntry); the cover edge-clip lookup (step 5) uses the
+            // VICTIM's own extrapolated cell, floor(U(sEntry)) — a target
+            // sprinting out from behind a parapet has left the covered cell
+            // by contact time, and vice versa.
+            float contactX = fromX + dirX * rayDistAtEntry;
+            float contactY = fromY + dirY * rayDistAtEntry;
+            int victimCellX = (int) Math.floor(ux + wx * sEntry);
+            int victimCellY = (int) Math.floor(uy + wy * sEntry);
+            events.add(Event.unit(sEntry, contactX, contactY, candidateId, friendly, victimCellX, victimCellY));
         }
 
-        // Step 4: walk events sorted by t; first stop wins. A wall (when
+        // Step 5: walk events sorted by t; first stop wins. A wall (when
         // present) is never a member of this list — it necessarily sits at
         // the ray's own endpoint, so every doodad/unit event's t is <= the
         // wall's t by construction; reaching the end of the list without a
@@ -246,11 +345,9 @@ public final class BallisticResolver {
             }
 
             long victim = e.unitId;
-            int victimCellX = (int) Math.floor(world.x(victim));
-            int victimCellY = (int) Math.floor(world.y(victim));
-            int fromDx = shooterCellX - victimCellX;
-            int fromDy = shooterCellY - victimCellY;
-            int coverLevel = grid.getCoverAt(victimCellX, victimCellY, fromDx, fromDy);
+            int fromDx = shooterCellX - e.victimCellX;
+            int fromDy = shooterCellY - e.victimCellY;
+            int coverLevel = grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
             if (rng.nextFloat() < coverBlockChance) {
                 return new Resolution(e.x, e.y, e.t, 0L, false, false, StopKind.COVER_CLIP);
