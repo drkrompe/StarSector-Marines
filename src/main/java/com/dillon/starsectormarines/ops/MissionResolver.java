@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -40,6 +41,7 @@ import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
@@ -293,33 +295,9 @@ public final class MissionResolver {
             applyIndustryDisruption(outcome);
         }
 
+        MarineRoster roster = applyPersonnelOutcome(outcome);
         if (outcome.contractId != -1L) {
-            applyContractBridge(outcome);
-        }
-
-        MarineRosterScript personnelScript = MarineRosterScript.getInstance();
-        if (personnelScript != null) {
-            int survivorXp = outcome.victory ? switch (outcome.risk) {
-                case LOW -> 30;
-                case MEDIUM -> 50;
-                case HIGH -> 80;
-            } : 10;
-            float wiaDays = switch (outcome.risk) {
-                case LOW -> 7f;
-                case MEDIUM -> 12f;
-                case HIGH -> 18f;
-            };
-            personnelScript.roster().applySoldierOutcome(
-                    resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays);
-            if (outcome.victory) {
-                int materials = switch (outcome.risk) {
-                    case LOW -> 2;
-                    case MEDIUM -> 4;
-                    case HIGH -> 7;
-                };
-                personnelScript.roster().armory().recordVictory(
-                        materials, outcome.risk == RiskLevel.HIGH);
-            }
+            applyContractBridge(outcome, roster);
         }
 
         if (outcome.victory && outcome.missionSource == MissionSource.STORY
@@ -365,6 +343,33 @@ public final class MissionResolver {
                 + " xp=" + outcome.xpGained
                 + " captainStatus=" + outcome.newCaptainStatus
                 + " promotedTo=" + outcome.promotedTo);
+    }
+
+    private static MarineRoster applyPersonnelOutcome(MissionOutcome outcome) {
+        MarineRosterScript personnelScript = MarineRosterScript.getInstance();
+        if (personnelScript == null) return null;
+        MarineRoster roster = personnelScript.roster();
+        int survivorXp = outcome.victory ? switch (outcome.risk) {
+            case LOW -> 30;
+            case MEDIUM -> 50;
+            case HIGH -> 80;
+        } : 10;
+        float wiaDays = switch (outcome.risk) {
+            case LOW -> 7f;
+            case MEDIUM -> 12f;
+            case HIGH -> 18f;
+        };
+        roster.applySoldierOutcome(
+                resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays);
+        if (outcome.victory) {
+            int materials = switch (outcome.risk) {
+                case LOW -> 2;
+                case MEDIUM -> 4;
+                case HIGH -> 7;
+            };
+            roster.armory().recordVictory(materials, outcome.risk == RiskLevel.HIGH);
+        }
+        return roster;
     }
 
     /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
@@ -494,7 +499,7 @@ public final class MissionResolver {
      *   <li>First phase resolution transitions ACTIVE → IN_PROGRESS.</li>
      * </ul>
      */
-    private static void applyContractBridge(MissionOutcome outcome) {
+    private static void applyContractBridge(MissionOutcome outcome, MarineRoster roster) {
         CampaignStateScript script = CampaignStateScript.getInstance();
         if (script == null) {
             LOG.info("MarineOps: contractId=" + outcome.contractId
@@ -526,7 +531,8 @@ public final class MissionResolver {
             if (incidentKey != null) {
                 StationingIncidentResolution.Result result = StationingIncidentResolution.apply(
                         state, outcome.contractId, incidentKey.dueDay, incidentKey.type,
-                        outcome.marinesLost, captainUnavailable, day);
+                        outcome.marinesLost, captainUnavailable, outcome.victory, day,
+                        roster, outcome.deployedFireteamIds);
                 LOG.info("MarineOps: Cadre incident " + outcome.missionId + " → " + result);
                 return;
             }
@@ -535,7 +541,8 @@ public final class MissionResolver {
             GarrisonDefenseResolution.Result result = defenseKey != null
                     ? GarrisonDefenseResolution.apply(state, outcome.contractId,
                             defenseKey.eventKey, outcome.marinesLost,
-                            captainUnavailable, outcome.victory)
+                            captainUnavailable, outcome.victory,
+                            roster, outcome.deployedFireteamIds)
                     : null;
             if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
                 ContractReputation.failed(state, patronId, -1, day);
@@ -593,20 +600,30 @@ public final class MissionResolver {
         CampaignStateScript script = CampaignStateScript.getInstance();
         if (script == null) return false;
         CampaignState state = script.state();
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        MarineRoster roster = personnel != null ? personnel.roster() : null;
         StationingIncidentMissionKey incidentKey = StationingIncidentMissionKey.parse(
                 outcome.missionId);
         if (incidentKey != null && incidentKey.contractId == outcome.contractId) {
             StationingIncidentPayload payload = StationingIncidentPayload.from(
-                    state, outcome.contractId);
+                    state, outcome.contractId, roster);
             return payload != null && payload.dueDay == incidentKey.dueDay
-                    && payload.type == incidentKey.type;
+                    && payload.type == incidentKey.type
+                    && frozenFormationMatches(
+                            payload.fireteamIds, outcome.deployedFireteamIds);
         }
         GarrisonDefenseMissionKey defenseKey = GarrisonDefenseMissionKey.parse(
                 outcome.missionId);
         if (defenseKey == null || defenseKey.contractId != outcome.contractId) return false;
         GarrisonDefensePayload payload = GarrisonDefensePayload.from(
-                state, outcome.contractId);
-        return payload != null && payload.eventKey == defenseKey.eventKey;
+                state, outcome.contractId, roster);
+        return payload != null && payload.eventKey == defenseKey.eventKey
+                && frozenFormationMatches(payload.fireteamIds, outcome.deployedFireteamIds);
+    }
+
+    private static boolean frozenFormationMatches(List<String> expected, Set<String> actual) {
+        return expected != null && actual != null
+                && new HashSet<>(expected).equals(new HashSet<>(actual));
     }
 
     private static void applyPlanetaryAssaultBridge(CampaignState state, int row,

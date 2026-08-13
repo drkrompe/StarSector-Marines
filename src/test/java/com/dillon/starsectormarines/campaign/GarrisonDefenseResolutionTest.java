@@ -1,9 +1,17 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.Rank;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GarrisonDefenseResolutionTest {
 
@@ -63,6 +71,27 @@ class GarrisonDefenseResolutionTest {
         assertNull(GarrisonDefenseResolution.apply(state, state.contractId[0],
                 77L, 5, false, true));
         assertEquals(75, state.contractMarinesCommitted[0]);
+    }
+
+    @Test
+    void namedDefeatClearsBindingsAndDerivedAuthority() {
+        CampaignState state = pending(6, 77L);
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain captain = new MarineCaptain("Garrison Lead", null, Rank.PRIVATE, 0f);
+        roster.add(captain);
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+        assertTrue(roster.bindStationing(
+                state.contractId[0], captain.id(), Set.of(squad.id())));
+
+        GarrisonDefenseResolution.Result result = GarrisonDefenseResolution.apply(
+                state, state.contractId[0], 77L, 2, false, false,
+                roster, Set.of(squad.id()));
+
+        assertEquals(GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED, result);
+        assertEquals(0, state.contractMarinesCommitted[0]);
+        assertFalse(squad.stationed());
+        assertEquals(ContractState.FAILED, ContractState.fromByte(state.contractState[0]));
     }
 
     private static CampaignState pending(int marines, long eventKey) {

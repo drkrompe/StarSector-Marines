@@ -1,6 +1,14 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.Rank;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -71,6 +79,48 @@ class StationingIncidentResolutionTest {
                 StationingIncidentType.DEFECTOR_LEAD, 0, false, 45);
 
         assertEquals(Integer.MAX_VALUE, state.contractNextIncidentTick[0]);
+    }
+
+    @Test
+    void namedResolutionDerivesLivingStrengthAfterIndividualFates() {
+        CampaignState state = pending(6, 42, 200, StationingIncidentType.LIVE_FIRE_RAID);
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        roster.add(captain);
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+        assertTrue(roster.bindStationing(
+                state.contractId[0], captain.id(), Set.of(squad.id())));
+        roster.applySoldierOutcome(Map.of(
+                roster.squadMembers(squad).get(0).id(), MarineSoldierStatus.KIA,
+                roster.squadMembers(squad).get(1).id(), MarineSoldierStatus.WIA),
+                0, 45f, 12f);
+
+        StationingIncidentResolution.Result result = StationingIncidentResolution.apply(
+                state, state.contractId[0], 42, StationingIncidentType.LIVE_FIRE_RAID,
+                2, false, true, 45, roster, Set.of(squad.id()));
+
+        assertEquals(StationingIncidentResolution.Result.INCIDENT_RESOLVED, result);
+        assertEquals(5, state.contractMarinesCommitted[0]);
+        assertTrue(squad.stationed());
+    }
+
+    @Test
+    void namedResolutionRejectsMismatchedFrozenFormation() {
+        CampaignState state = pending(6, 42, 200, StationingIncidentType.LIVE_FIRE_RAID);
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        roster.add(captain);
+        roster.ensureActiveSoldiers(6);
+        MarineSquad squad = roster.squads().get(0);
+        assertTrue(roster.bindStationing(
+                state.contractId[0], captain.id(), Set.of(squad.id())));
+
+        assertNull(StationingIncidentResolution.apply(
+                state, state.contractId[0], 42, StationingIncidentType.LIVE_FIRE_RAID,
+                0, false, true, 45, roster, Set.of("unrelated-team")));
+        assertEquals(1, state.contractIncidentPending[0]);
+        assertTrue(squad.stationed());
     }
 
     private static CampaignState pending(int marines, int dueDay, int expires,
