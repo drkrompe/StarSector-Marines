@@ -1,5 +1,18 @@
 # next-session — continuous-positions
 
+## Separation steering (2026-08-13) — S1+S2 shipped, awaiting merge + playtest
+
+The first deferred follow-up is implemented on branch
+`worktree-separation-steering` (commits `f2fc6ab0`, `acda9fc7` on top of
+main's `a8adf910` design doc): `battle/sim/SeparationSystem` — post-movement
+soft-collision relaxation (radius² inverse-mass, immovable emplacements via
+`isStatic()`, wall-slide guard, velocity fold-in for facing), 8 headless
+tests incl. a production-tick-loop integration test, full suite green. See
+`stories/separation-steering.md` § Shipped for the critique-pass record.
+**Next:** merge the branch to main when the main tree is quiet, then the S3
+playtest knobs pass (pose-twitch deadband, chokepoint feel, swarm-spread
+balance) — fold it into the playtest checklist below.
+
 ## State of play (2026-08-12)
 
 **Code migration COMPLETE.** All phases landed in worktree branch
