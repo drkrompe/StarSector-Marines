@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.Trait;
 import com.dillon.starsectormarines.ui.BaseWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 
@@ -24,9 +25,9 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 /**
  * Compact captain-picker row for the briefing screen's squad section.
  *
- * <p>Shows the captain's name on the left and rank display on the right; click
- * selects the captain. Hover and selected states are background tints; selected
- * also draws an amber accent on the left edge. Pattern mirrors
+ * <p>Shows the captain's name on the left and rank/outlook display on the right;
+ * click selects the captain. Hover and selected states are background tints;
+ * selected also draws an amber accent on the left edge. Pattern mirrors
  * {@link ClientRowWidget} but slimmer — no faction crest, no rep status, no
  * lock state (only ACTIVE captains are passed in).
  */
@@ -97,9 +98,16 @@ public class CaptainRowWidget extends BaseWidget {
         float textY = y + h - 6f;
         Fonts.ORBITRON_20.drawString(captain.name(), x + 10f, textY, NAME_COLOR, alphaMult);
 
-        String rankText = captain.rank().displayName();
-        float rankWidth = Fonts.ORBITRON_20.measureWidth(rankText);
-        Fonts.ORBITRON_20.drawString(rankText, x + w - rankWidth - 10f, textY, RANK_COLOR, alphaMult);
+        String details = detailsText(captain);
+        float detailsWidth = Fonts.ORBITRON_20.measureWidth(details);
+        Fonts.ORBITRON_20.drawString(details, x + w - detailsWidth - 10f,
+                textY, RANK_COLOR, alphaMult);
+    }
+
+    static String detailsText(MarineCaptain captain) {
+        String rank = captain.rank().displayName();
+        Trait outlook = captain.moralOutlookTrait();
+        return outlook != null ? rank + " · " + outlook.displayName() : rank;
     }
 
     private static void fillRect(float rx, float ry, float rw, float rh, Color c, float alpha) {
