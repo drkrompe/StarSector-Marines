@@ -316,6 +316,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
     /** Post-movement soft-collision relaxation pass — pushes overlapping ground units apart. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
+    /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
+    private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private boolean complete = false;
     private Faction winner;
 
@@ -422,6 +424,8 @@ public class BattleSimulation implements BattleControl {
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
+                entityWorld, battleComponents);
         this.hitResponse = new HitResponseSystem(
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
@@ -1045,6 +1049,7 @@ public class BattleSimulation implements BattleControl {
         // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
         // read final POSITION). See SeparationSystem class doc.
         separation.tick(TICK_DT);
+        mechCollisionEscape.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SEPARATION);
         // Mirror queued drone-hub spawns into the units list. Only callers
         // running inside UPDATE_UNITS route through queueSpawn; AIR_SYSTEM /

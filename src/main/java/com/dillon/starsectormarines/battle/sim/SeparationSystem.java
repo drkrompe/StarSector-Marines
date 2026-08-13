@@ -151,6 +151,7 @@ public final class SeparationSystem {
             for (int k = 0, n = scratch.size; k < n; k++) {
                 long b = scratch.ids[k];
                 if (b == a || !participates(b)) continue;
+                if (allowsMechPassThrough(a, b)) continue;
                 float bx = world.x(b);
                 float by = world.y(b);
                 float rb = radiusOf(b);
@@ -233,6 +234,18 @@ public final class SeparationSystem {
 
     private float radiusOf(long id) {
         return roster.identity().type(id).radius;
+    }
+
+    /**
+     * A mech that has been unable to reduce its path distance for the escape
+     * delay ignores only another mech's soft collision impulse. This prevents
+     * face-to-face walker deadlocks without letting it clip a wall or erase
+     * normal infantry spacing.
+     */
+    private boolean allowsMechPassThrough(long a, long b) {
+        if (!world.hasMechLoadout(a) || !world.hasMechLoadout(b)) return false;
+        return world.mechLoadout(a).collisionEscapeActive
+                || world.mechLoadout(b).collisionEscapeActive;
     }
 
     /**
