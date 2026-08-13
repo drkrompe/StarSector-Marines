@@ -40,6 +40,12 @@
       "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3", "nature.rock-medium-1", "nature.rock-medium-2", "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3"]
     }
   },
+  "macroHeight": {
+    "WALL":    0.90,
+    "INDOOR":  0.65,
+    "RUBBLE":  0.30,
+    "WATER":   0.15
+  },
   "doodadPools": {
     "MIXED": [
       "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",

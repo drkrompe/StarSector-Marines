@@ -48,6 +48,15 @@ public final class GenMappingRegistry {
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
     /** {@link BlockKind} -> its code filler's tunables (pools/chances). The filler reads these instead of hardcoding them; the carve/scatter algorithm stays in the filler. */
     private final Map<BlockKind, FillerParams> fillerParams = new EnumMap<>(BlockKind.class);
+    /**
+     * Surface-relief (S2) per-{@link GroundKind} macro-height overrides, keyed by
+     * the kind's {@code name()} plus the sentinel key {@code "WALL"} (walls aren't
+     * a {@code GroundKind} — they're {@code CellTopology.isWall}, orthogonal to
+     * ground kind). Sparse: {@link #macroHeight} / {@link #wallMacroHeight} fall
+     * back to the sane code defaults below for any key absent here, so an
+     * unmapped tile is mid-height rather than unresolved.
+     */
+    private final Map<String, Float> macroHeightOverride = new LinkedHashMap<>();
 
     /** The mapping installed at application load, or {@code null} if load failed / hasn't run. */
     public static GenMappingRegistry installed() { return installed; }
@@ -79,6 +88,13 @@ public final class GenMappingRegistry {
             for (Iterator<String> it = fillers.keys(); it.hasNext(); ) {
                 String blockKindName = it.next();
                 fillerParams.put(BlockKind.valueOf(blockKindName), parseFillerParams(fillers.getJSONObject(blockKindName)));
+            }
+        }
+        JSONObject macroHeight = root.optJSONObject("macroHeight");
+        if (macroHeight != null) {
+            for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
+                String key = it.next();
+                macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
             }
         }
     }
@@ -120,6 +136,37 @@ public final class GenMappingRegistry {
     /** The code filler's data tunables for {@code kind}, or {@code null} if none authored. */
     public FillerParams fillerParams(BlockKind kind) {
         return fillerParams.get(kind);
+    }
+
+    /**
+     * Sane per-{@link GroundKind} macro-height default (surface-relief S2):
+     * walls/structures high, buildings raised, ground mid, rubble/craters low,
+     * water lowest. {@link #macroHeight(GroundKind)} / {@link #wallMacroHeight()}
+     * prefer a {@code "macroHeight"} mapping-JSON override for the same key
+     * ({@code kind.name()}, or {@code "WALL"}) over this table.
+     */
+    private static float defaultMacroHeight(GroundKind kind) {
+        switch (kind) {
+            case INDOOR: return 0.65f; // building floor — raised
+            case RUBBLE: return 0.30f; // craters/rubble — low
+            case WATER:  return 0.15f; // lowest
+            default:     return 0.50f; // ground — mid
+        }
+    }
+
+    /** Walls aren't a {@link GroundKind} ({@code CellTopology.isWall} is orthogonal) — same scale, tall extreme. */
+    public static final float DEFAULT_WALL_MACRO_HEIGHT = 0.90f;
+
+    /** {@code kind}'s macro height — mapping-JSON {@code "macroHeight"} override, else {@link #defaultMacroHeight}. */
+    public float macroHeight(GroundKind kind) {
+        Float override = macroHeightOverride.get(kind.name());
+        return override != null ? override : defaultMacroHeight(kind);
+    }
+
+    /** Wall macro height — mapping-JSON {@code "macroHeight": {"WALL": ...}} override, else {@link #DEFAULT_WALL_MACRO_HEIGHT}. */
+    public float wallMacroHeight() {
+        Float override = macroHeightOverride.get("WALL");
+        return override != null ? override : DEFAULT_WALL_MACRO_HEIGHT;
     }
 
     /** The raw doodad ids for {@code poolId} (empty if none authored). */
