@@ -70,6 +70,8 @@ public final class EntitySpec {
     public float visionRange;
     public float airLosRadius = 0f;
     public float attackCooldown;
+    public float damageTakenMult = 1f;
+    public float incomingAccuracyMult = 1f;
 
     public EntitySpec(String name, Faction faction, UnitType type, int cellX, int cellY) {
         this.name = name;
@@ -109,6 +111,18 @@ public final class EntitySpec {
     public EntitySpec visionRange(float v) { this.visionRange = v; return this; }
     public EntitySpec airLosRadius(float v) { this.airLosRadius = v; return this; }
     public EntitySpec attackCooldown(float v) { this.attackCooldown = v; return this; }
+
+    /** Applies one armor package to health, mobility and incoming-fire defenses. */
+    public EntitySpec armor(float bonusHp, float damageReduction, float moveSpeedMult,
+                            float incomingAccuracyMult) {
+        float armoredHp = Math.max(1f, this.maxHp + bonusHp);
+        this.hp = armoredHp;
+        this.maxHp = armoredHp;
+        this.moveSpeed *= Math.max(0.1f, moveSpeedMult);
+        this.damageTakenMult = Math.max(0f, 1f - damageReduction);
+        this.incomingAccuracyMult = Math.max(0f, incomingAccuracyMult);
+        return this;
+    }
 
     /** Full HP + max HP to the same value — the common "spawn at full health with this pool" case. */
     public EntitySpec health(float maxHp) { this.hp = maxHp; this.maxHp = maxHp; return this; }

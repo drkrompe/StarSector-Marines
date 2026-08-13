@@ -469,6 +469,10 @@ public final class UnitRosterService {
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
+        entityWorld.setFloat(id, components.HEALTH,
+                BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, spec.damageTakenMult);
+        entityWorld.setFloat(id, components.HEALTH,
+                BattleComponents.HEALTH_INCOMING_ACCURACY_MULT, spec.incomingAccuracyMult);
         // VISION is universal — sight stats seeded from the unit's write-only seeds
         // (a ground unit's airLosRadius just seeds to 0). Removed on death.
         entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, spec.visionRange);

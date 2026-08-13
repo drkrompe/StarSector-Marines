@@ -40,6 +40,10 @@ public final class MarineLoadout {
     public final String campaignSoldierId;
     /** Persisted modular armor allocation; null keeps the archetype default. */
     public final LayeredArmorFamily armorFamily;
+    public final float armorBonusHp;
+    public final float armorDamageReduction;
+    public final float armorMoveSpeedMult;
+    public final float armorIncomingAccuracyMult;
 
     public MarineLoadout(UnitRole role, Objective objective) {
         this(role, objective, MarineWeapon.PULSE_RIFLE, null, 0);
@@ -62,6 +66,16 @@ public final class MarineLoadout {
                          EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
                          MarineSecondary secondary, int secondaryAmmo,
                          String campaignSoldierId, LayeredArmorFamily armorFamily) {
+        this(role, objective, primary, equipmentGrade, soldierProfile, secondary,
+                secondaryAmmo, campaignSoldierId, armorFamily, 0f, 0f, 1f, 1f);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, MarineWeapon primary,
+                         EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                         MarineSecondary secondary, int secondaryAmmo,
+                         String campaignSoldierId, LayeredArmorFamily armorFamily,
+                         float armorBonusHp, float armorDamageReduction,
+                         float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
         this.role = role;
         this.objective = objective;
         this.primary = primary;
@@ -71,6 +85,10 @@ public final class MarineLoadout {
         this.secondaryAmmo = secondaryAmmo;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
+        this.armorBonusHp = armorBonusHp;
+        this.armorDamageReduction = armorDamageReduction;
+        this.armorMoveSpeedMult = armorMoveSpeedMult;
+        this.armorIncomingAccuracyMult = armorIncomingAccuracyMult;
     }
 
     /**
@@ -94,6 +112,10 @@ public final class MarineLoadout {
             marine.secondary(secondary, secondaryAmmo);
         }
         marine.campaignSoldierId(campaignSoldierId);
-        if (armorFamily != null) marine.layeredArmorFamily(armorFamily);
+        if (armorFamily != null) {
+            marine.layeredArmorFamily(armorFamily);
+            marine.armor(armorBonusHp, armorDamageReduction,
+                    armorMoveSpeedMult, armorIncomingAccuracyMult);
+        }
     }
 }

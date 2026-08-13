@@ -492,6 +492,13 @@ public class MarineRoster implements Serializable {
 
     public boolean allocatePrimary(String soldierId, MarineWeapon weapon, EquipmentGrade grade) {
         MarineSoldier soldier = soldierById(soldierId);
+        if (!canAllocatePrimary(soldierId, weapon, grade)) return false;
+        soldier.setPrimary(weapon, grade);
+        return true;
+    }
+
+    public boolean canAllocatePrimary(String soldierId, MarineWeapon weapon, EquipmentGrade grade) {
+        MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
                 || isStationed(soldierId)
                 || !armory.isPrimaryUnlocked(weapon, grade)) return false;
@@ -500,31 +507,42 @@ public class MarineRoster implements Serializable {
             if (other != soldier && holdsAllocatedGear(other)
                     && other.primary() == weapon && other.primaryGrade() == grade) allocated++;
         }
-        if (allocated >= armory.ownedPrimary(weapon, grade)) return false;
-        soldier.setPrimary(weapon, grade);
-        return true;
+        return allocated < armory.ownedPrimary(weapon, grade);
     }
 
     public boolean allocateSecondary(String soldierId, MarineSecondary secondary) {
         MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
-                || isStationed(soldierId)) return false;
+        if (!canAllocateSecondary(soldierId, secondary)) return false;
         if (secondary == null) {
             soldier.setSecondary(null);
             return true;
         }
+        soldier.setSecondary(secondary);
+        return true;
+    }
+
+    public boolean canAllocateSecondary(String soldierId, MarineSecondary secondary) {
+        MarineSoldier soldier = soldierById(soldierId);
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
+                || isStationed(soldierId)) return false;
+        if (secondary == null) return true;
         if (!armory.isSecondaryUnlocked(secondary)) return false;
         int allocated = 0;
         for (MarineSoldier other : soldiers) {
             if (other != soldier && holdsAllocatedGear(other)
                     && other.secondary() == secondary) allocated++;
         }
-        if (allocated >= armory.ownedSecondary(secondary)) return false;
-        soldier.setSecondary(secondary);
-        return true;
+        return allocated < armory.ownedSecondary(secondary);
     }
 
     public boolean allocateArmor(String soldierId, MarineArmorPattern armor) {
+        MarineSoldier soldier = soldierById(soldierId);
+        if (!canAllocateArmor(soldierId, armor)) return false;
+        soldier.setArmor(armor);
+        return true;
+    }
+
+    public boolean canAllocateArmor(String soldierId, MarineArmorPattern armor) {
         MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
                 || isStationed(soldierId)
@@ -534,9 +552,7 @@ public class MarineRoster implements Serializable {
             if (other != soldier && holdsAllocatedGear(other)
                     && other.armor() == armor) allocated++;
         }
-        if (allocated >= armory.ownedArmor(armor)) return false;
-        soldier.setArmor(armor);
-        return true;
+        return allocated < armory.ownedArmor(armor);
     }
 
     /** UI helper: walk the owned/unlocked primary catalog, wrapping at the end. */
