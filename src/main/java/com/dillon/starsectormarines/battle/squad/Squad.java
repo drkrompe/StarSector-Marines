@@ -277,13 +277,22 @@ public final class Squad {
     public float timeUnderSustainedFire = 0f;
 
     /**
-     * Per-tick transient set by {@code SquadAlertSystem}:
+     * Per-tick transient set by {@code SquadAlertSystem} for every squad:
      * true if any squadmate took a shot from an enemy with LoS to that shot's
-     * origin this tick. Drives the {@link #timeUnderSustainedFire} accumulator
-     * — read once at the end of the alert-update pass and cleared at the top
-     * of the next.
+     * origin this tick. Infantry consumes it as an immediate GOAP replan
+     * interrupt; garrisons also use it to drive the
+     * {@link #timeUnderSustainedFire} accumulator. Cleared at the top of the
+     * next alert pass.
      */
     public boolean _underFireAtLosThisTick = false;
+
+    /**
+     * Previous alert pass's under-fire value. The infantry replan gate compares
+     * this with {@link #_underFireAtLosThisTick} so the first incoming shot
+     * interrupts immediately without rebuilding the same BreakLOS plan on
+     * every tick of a tracer's visual lifetime.
+     */
+    public boolean _underFireAtLosLastTick = false;
 
     // ---- GOAP plan state ----
     // Populated by GoapInfantryBehavior.replanIfNeeded; mutated by per-unit

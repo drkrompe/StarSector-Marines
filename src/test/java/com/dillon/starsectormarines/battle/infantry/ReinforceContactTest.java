@@ -64,8 +64,8 @@ public class ReinforceContactTest {
     // ---- Relevance gates ----
 
     @Test
-    public void priorityIsMission() {
-        assertEquals(Goal.Priority.MISSION, ReinforceContact.INSTANCE.priority());
+    public void priorityIsEngagementSoSurvivalCanPreempt() {
+        assertEquals(Goal.Priority.ENGAGEMENT, ReinforceContact.INSTANCE.priority());
     }
 
     @Test

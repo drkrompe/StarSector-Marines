@@ -20,19 +20,20 @@ import java.util.List;
  * contact. Produces a visible two-angle crossfire that forces the player
  * to reposition.
  *
- * <p>{@link Priority#MISSION} — same tier as {@link RoutinePatrol}. The
- * handoff is clean: {@code RoutinePatrol} yields (returns 0) when
+ * <p>{@link Priority#ENGAGEMENT} — reinforcing a firefight is a combat
+ * maneuver, not an objective whose completion should outrank survival. The
+ * handoff remains clean: {@code RoutinePatrol} yields (returns 0) when
  * SUSPICIOUS + valid lastSeenEnemy, and this goal takes over. On arrival
  * the squad goes ENGAGED and {@link EliminateEnemiesGoal} picks up the
  * actual engagement from the flanking position.
  *
  * <p>Custom-plan: computes a flanking waypoint ~90° off the garrison's
  * engagement axis and emits a single {@link FlankApproach} step. Members
- * converge silently (no firing during approach) so the flank is a
- * surprise.
+ * continue toward the waypoint while taking legal shots of opportunity.
  *
- * <p>Yields to {@link SurviveContact} via the MORALE_BROKEN gate — a
- * mauled patrol retreats instead of pressing the flank.
+ * <p>Its engagement priority means both {@link SurviveContact} and
+ * {@link RecoverFromAmbush} preempt it. A mauled patrol retreats; an exposed
+ * patrol breaks the firing lane and resumes its mission from safety.
  */
 public final class ReinforceContact implements Goal {
 
@@ -53,7 +54,7 @@ public final class ReinforceContact implements Goal {
 
     @Override
     public Priority priority() {
-        return Priority.MISSION;
+        return Priority.ENGAGEMENT;
     }
 
     @Override

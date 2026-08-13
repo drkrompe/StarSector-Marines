@@ -153,6 +153,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>No current plan</li>
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
+     *   <li>The alert pass observed hostile incoming fire with LOS to its origin</li>
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
      * </ul>
      *
@@ -174,10 +175,18 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
+        // Incoming fire is a tactical interrupt, not something infantry should
+        // ignore until the normal two-second cadence. SquadAlertSystem computes
+        // this from the same shot/LOS contract as UNDER_FIRE_AT_LOS immediately
+        // before the replan pass. It is transient, so once the squad reaches a
+        // hidden cell the ordinary plan can resume on the next replan.
+        boolean incomingFireStarted = squad._underFireAtLosThisTick
+                && !squad._underFireAtLosLastTick;
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
                            || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
-                           || memberCountChanged;
+                           || memberCountChanged
+                           || incomingFireStarted;
 
         if (!needsReplan) {
             squad.timeSinceReplan += BattleSimulation.TICK_DT;
