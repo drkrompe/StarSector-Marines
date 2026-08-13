@@ -193,8 +193,10 @@ public final class BallisticResolver {
             if (candidateId == shooter) continue;
             if (!roster.isAliveById(candidateId)) continue;
 
+            // The same physical body circle SeparationSystem shoves apart and
+            // Detonations/WorldPicker size against — one radius concept per body.
             UnitType candidateType = roster.identity().type(candidateId);
-            float r = candidateType.collisionRadius();
+            float r = candidateType.radius;
             float ux = world.x(candidateId);
             float uy = world.y(candidateId);
 
