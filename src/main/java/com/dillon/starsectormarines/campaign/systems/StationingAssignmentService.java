@@ -12,8 +12,6 @@ import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Status;
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,23 +25,6 @@ public final class StationingAssignmentService {
     }
 
     private StationingAssignmentService() {}
-
-    public static boolean accept(CampaignState state, long contractId,
-                                 MarineCaptain captain, int marineCount,
-                                 int requestedMonths, int day) {
-        return accept(state, contractId, captain, marineCount, requestedMonths, day,
-                new MarineStore() {
-                    @Override
-                    public int available() {
-                        return availablePlayerMarines();
-                    }
-
-                    @Override
-                    public boolean remove(int count) {
-                        return removePlayerMarines(count);
-                    }
-                });
-    }
 
     /** Accepts a new named assignment without consuming anonymous marine cargo. */
     public static boolean acceptNamed(CampaignState state, long contractId,
@@ -66,10 +47,11 @@ public final class StationingAssignmentService {
         return true;
     }
 
-    static boolean accept(CampaignState state, long contractId,
-                          MarineCaptain captain, int marineCount,
-                          int requestedMonths, int day,
-                          MarineStore store) {
+    /** Retained only to prove the pre-named acceptance behavior for compatibility tests. */
+    static boolean acceptLegacy(CampaignState state, long contractId,
+                                MarineCaptain captain, int marineCount,
+                                int requestedMonths, int day,
+                                MarineStore store) {
         if (state == null || store == null || captain == null
                 || captain.status() != Status.ACTIVE) return false;
         StationingContractTerms terms = eligibleTerms(
@@ -146,21 +128,4 @@ public final class StationingAssignmentService {
         }
     }
 
-    private static int availablePlayerMarines() {
-        CampaignFleetAPI fleet = playerFleet();
-        return fleet != null && fleet.getCargo() != null ? fleet.getCargo().getMarines() : 0;
-    }
-
-    private static boolean removePlayerMarines(int count) {
-        CampaignFleetAPI fleet = playerFleet();
-        if (fleet == null || fleet.getCargo() == null || fleet.getCargo().getMarines() < count) {
-            return false;
-        }
-        fleet.getCargo().removeMarines(count);
-        return true;
-    }
-
-    private static CampaignFleetAPI playerFleet() {
-        return Global.getSector() != null ? Global.getSector().getPlayerFleet() : null;
-    }
 }

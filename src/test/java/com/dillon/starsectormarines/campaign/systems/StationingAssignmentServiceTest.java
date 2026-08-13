@@ -33,7 +33,8 @@ class StationingAssignmentServiceTest {
     void acceptsAndFreezesPersonnelAndTerms() {
         Fixture fixture = fixture(ContractType.GARRISON, HouseRank.TIER_2, 150);
 
-        boolean accepted = StationingAssignmentService.accept(fixture.state, fixture.contractId,
+        boolean accepted = StationingAssignmentService.acceptLegacy(
+                fixture.state, fixture.contractId,
                 fixture.captain, 100, 5, 40, fixture.store);
 
         int row = fixture.state.contractIndex(fixture.contractId);
@@ -65,15 +66,18 @@ class StationingAssignmentServiceTest {
     @Test
     void duplicateAndInvalidAcceptanceDoNotRemoveMarines() {
         Fixture fixture = fixture(ContractType.CADRE, HouseRank.TIER_2, 50);
-        assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+        assertFalse(StationingAssignmentService.acceptLegacy(
+                fixture.state, fixture.contractId,
                 fixture.captain, 60, 1, 10, fixture.store));
         assertEquals(50, fixture.store.available);
 
-        assertTrue(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+        assertTrue(StationingAssignmentService.acceptLegacy(
+                fixture.state, fixture.contractId,
                 fixture.captain, 40, 1, 10, fixture.store));
         int row = fixture.state.contractIndex(fixture.contractId);
         assertTrue(fixture.state.contractNextIncidentTick[row] > 10);
-        assertFalse(StationingAssignmentService.accept(fixture.state, fixture.contractId,
+        assertFalse(StationingAssignmentService.acceptLegacy(
+                fixture.state, fixture.contractId,
                 fixture.captain, 10, 1, 10, fixture.store));
         assertEquals(10, fixture.store.available);
     }
@@ -149,7 +153,7 @@ class StationingAssignmentServiceTest {
                 "Captain", null, Rank.SERGEANT, 0f);
         TestMarineStore store = new TestMarineStore(100);
 
-        assertTrue(StationingAssignmentService.accept(state, claimantOffer,
+        assertTrue(StationingAssignmentService.acceptLegacy(state, claimantOffer,
                 captain, 40, 1, 40, store));
 
         assertEquals(ContractState.ACTIVE, ContractState.fromByte(
