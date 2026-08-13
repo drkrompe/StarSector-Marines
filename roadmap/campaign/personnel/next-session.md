@@ -35,13 +35,20 @@ Slice 2 is shipped (`aa26d3ec`): formation management on the armory surface,
 including home-command identity, rank use/capacity, unavailable feedback, and
 bounded roster-order assignment.
 
+Slice 3 is shipped (`f6247ace`): ordinary briefings default to the selected
+active captain's home formation, bounded borrowing respects the captain's
+whole-fireteam rank cap, selected/max fireteams are visible, and initialized
+empty selections fail closed instead of silently loading the whole company.
+Debug and stationing retain their documented exceptions. Focused policy,
+readiness, deployment-freeze, and domain tests passed, followed by the complete
+isolated Gradle build once the concurrent tree settled.
+
 The deployment-reachability correction is shipped and recorded in
 [`complete/deployment-readiness.md`](complete/deployment-readiness.md).
-Resume captain-command Slice 3: default briefing selection to the active force
-commander's home fireteams, enforce the rank-scaled whole-fireteam cap, permit
-bounded borrowing, and display selected/max fireteams. Stationing keeps its
-existing captain plus anonymous-marine contract until named detachment semantics
-are designed as one complete lifecycle.
+Resume captain-command Slice 4: freeze the selected force commander and deployed
+fireteam ids into the mission outcome so debrief/history cannot drift after
+home reassignment. Stationing keeps its existing captain plus anonymous-marine
+contract until named detachment semantics are designed as one complete lifecycle.
 
 Keep manual UI/balance validation deferred for the current automated-only
 session.
@@ -63,3 +70,4 @@ session.
 - `605cda22` — isolate debug missions behind selectable personnel fixtures.
 - `59c4864b` — add exact readiness accounting and cargo-backed bulk enlistment.
 - `75413bfc` — route briefing shortfalls through assignment or the armory.
+- `f6247ace` — enforce captain formation defaults and whole-fireteam briefing limits.

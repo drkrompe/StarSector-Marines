@@ -88,8 +88,9 @@ universe over time, not retrofitted into intel slots.
    `822572b7`). Captain home-command persistence and armory management are also
    shipped (`9c4c4ee8`, `aa26d3ec`), as are debug personnel fixtures and the
    production shortfall/recruitment route (`605cda22`, `59c4864b`, `75413bfc`).
-   Next: make briefing selection honor the active captain's home formation and
-   rank-scaled whole-fireteam limit. See
+   Captain-scoped briefing defaults and rank-scaled whole-fireteam limits are
+   now shipped (`f6247ace`). Next: freeze commander and deployed fireteam
+   identity into mission outcomes so debrief/history cannot drift. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
