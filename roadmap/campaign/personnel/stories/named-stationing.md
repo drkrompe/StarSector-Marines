@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** IN PROGRESS — Slice 1 domain binding checkpoint shipped (2026-08-12)
+**Status:** IN PROGRESS — Slice 1 domain binding complete; Slice 2 next (2026-08-12)
 
 ## Problem
 
@@ -109,14 +109,17 @@ who returns.
 5. **Debrief and migration closure** — management/debrief presentation, save
    repair coverage, compaction guards, and full legacy/new lifecycle matrices.
 
-## Slice 1 checkpoint
+## Slice 1 complete
 
 `1432dda1` persists the fireteam-side contract id and adds atomic rank-bounded
 bind, query, availability, and replay-safe release operations. Stationed teams
 are excluded from ordinary line readiness and captain deployment selection.
-Focused binding, command-policy, and readiness tests pass. Cargo, stationing
-acceptance, and legacy contract settlement remain unchanged. Slice 1 still owes
-roster/armory mutation gates and explicit save-repair coverage before it closes.
+`379c4874` closes every home-roster mutation path: recruitment, transfer,
+command reassignment, captain removal, and individual or whole-team equipment
+changes reject stationed fireteams, with disabled armory controls and explicit
+save repair for legacy defaults and illegal reserve bindings. Focused binding,
+command-policy, armory, and readiness tests pass. Cargo, stationing acceptance,
+and legacy contract settlement remain unchanged for Slice 2.
 
 ## Acceptance
 
