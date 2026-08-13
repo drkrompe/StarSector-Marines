@@ -63,11 +63,14 @@ The active personnel story is
 [`stories/captain-trait-drift.md`](stories/captain-trait-drift.md). Slice 1
 shipped in `b9e8ffd6`: `IDEALIST` and `CYNICAL` are append-only trait identities,
 and each captain now persists a mutually exclusive, exactly-once outlook with
-conservative legacy/dev-save repair. Start Slice 2: aggregate only witnessed
-mercy, integrity, and stewardship ledger deltas, enforce the 90-day/three-choice
-gates, and wire deterministic daily evaluation. Do not add combat modifiers,
-transfers, reversals, or any numeric moral surface. Manual UI/balance validation
-remains queued, as requested for the current automated-only session.
+conservative legacy/dev-save repair. Slice 2 shipped in `ca0a6994`: daily drift
+uses only post-recruitment applied mercy, integrity, and stewardship ledger
+deltas, with the locked service/choice/classification gates and no randomness.
+Start Slice 3 by exposing readable outlook labels through the existing captain
+trait surface, then run the focused save/replay matrix and close the story. Do
+not add combat modifiers, transfers, reversals, or any numeric moral surface.
+Manual UI/balance validation remains queued, as requested for the current
+automated-only session.
 
 ## Commit chain
 

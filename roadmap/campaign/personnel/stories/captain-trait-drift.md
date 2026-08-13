@@ -1,8 +1,8 @@
 # Captain moral trait drift
 
-**Status:** SLICE 1 COMPLETE — deterministic drift system next (2026-08-12)
+**Status:** SLICES 1–2 COMPLETE — roster presentation next (2026-08-12)
 
-**Implemented:** `b9e8ffd6`
+**Implemented:** `b9e8ffd6`, `ca0a6994`
 
 ## Purpose
 
@@ -86,8 +86,11 @@ which currently affect only institutionalism, from granting either outlook.
 1. ~~**Persistent outlook authority** — append traits; persist/backfill the
    captain outlook fields; lock mutual exclusion and repair behavior.~~ Shipped
    in `b9e8ffd6` with focused exactly-once and legacy-repair coverage.
-2. **Deterministic drift system** — captain-local ledger aggregation, eligibility,
-   classification, daily-system ordering, exactly-once commendation, tests.
+2. ~~**Deterministic drift system** — captain-local ledger aggregation,
+   eligibility, classification, daily-system ordering, exactly-once
+   commendation, tests.~~ Shipped in `ca0a6994`; the focused 13-test matrix
+   passes. A concurrent battle-simulation edit prevented a clean whole-root test
+   run at this boundary.
 3. **Roster presentation and closure** — readable trait labels on the existing
    captain surface, save/replay matrices, roadmap handoff.
 
