@@ -521,6 +521,9 @@ public class BattleSimulation implements BattleControl {
     public FogOfWarService getFogOfWar() { return fogOfWar; }
     /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
+    public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
+        commandPowers.setResources(resources);
+    }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
@@ -556,6 +559,7 @@ public class BattleSimulation implements BattleControl {
     public List<float[]> getSmokePuffsThisFrame() { return effects.getSmokePuffsThisFrame(); }
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
+    public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
     public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 
@@ -787,6 +791,11 @@ public class BattleSimulation implements BattleControl {
      */
     public void detonateNow(PendingDetonation det) {
         detonations.detonateNow(det);
+    }
+
+    @Override
+    public void spawnHeavyImpact(float x, float y, float radius) {
+        effects.spawnHeavyImpact(x, y, radius);
     }
 
     /** Drains target-side reprio / fall-back enqueues from this tick's weapon hits. Delegates to {@link DamageService#flushPendingTargetMutations()}. */

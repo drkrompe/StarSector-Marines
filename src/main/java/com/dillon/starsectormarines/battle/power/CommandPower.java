@@ -38,17 +38,26 @@ public abstract class CommandPower {
     /** Maximum activations this battle; {@code 0} means unlimited. */
     public final int maxCharges;
 
+    /** Campaign supplies consumed when the activation commits. */
+    public final int supplyCost;
+
     protected CommandPower(String id, String displayName, float cpCost, float cooldownSeconds) {
         this(id, displayName, cpCost, cooldownSeconds, 0);
     }
 
     protected CommandPower(String id, String displayName, float cpCost,
                            float cooldownSeconds, int maxCharges) {
+        this(id, displayName, cpCost, cooldownSeconds, maxCharges, 0);
+    }
+
+    protected CommandPower(String id, String displayName, float cpCost,
+                           float cooldownSeconds, int maxCharges, int supplyCost) {
         this.id = id;
         this.displayName = displayName;
         this.cpCost = cpCost;
         this.cooldownSeconds = cooldownSeconds;
         this.maxCharges = Math.max(0, maxCharges);
+        this.supplyCost = Math.max(0, supplyCost);
     }
 
     /**

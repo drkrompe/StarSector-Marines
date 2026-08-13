@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -86,6 +87,7 @@ public class BattleRenderer {
     private static final Color  KIT_DROP_TINT        = new Color(0x80, 0xE8, 0xFF);
     private static final Color  RESUPPLY_TINT         = new Color(0x70, 0xD8, 0x78);
     private static final Color  RESUPPLY_CONTESTED    = new Color(0xF0, 0x70, 0x50);
+    private static final Color  ORBITAL_WARNING        = new Color(0xFF, 0x48, 0x38);
     private static final float  CHARGE_ICON_SIZE     = 1.5f;
     private static final float  KIT_DROP_SIZE        = 1.0f;
     private static final float  RESUPPLY_SIZE         = 1.25f;
@@ -688,6 +690,21 @@ public class BattleRenderer {
                     cy - cellPx * 0.85f + barH,
                     tint.getRed() / 255f, tint.getGreen() / 255f,
                     tint.getBlue() / 255f, alpha);
+        }
+
+        for (PendingDetonation mission : sim.getCommandPowerService().getActiveFireMissions()) {
+            float cx = rc.camera.cellToScreenX(mission.endpointX);
+            float cy = rc.camera.cellToScreenY(mission.endpointY);
+            float pulse = 1f + 0.18f * (float) Math.sin(now * 2.0 * Math.PI * 3.0);
+            emitIcon(out, sprites.iconDanger(), cx, cy,
+                    cellPx * 1.6f * pulse, ORBITAL_WARNING, alphaMult);
+            float progress = Math.max(0f, Math.min(1f,
+                    mission.remainingTime / com.dillon.starsectormarines.battle.power.OrbitalBarrage.WARNING_SECONDS));
+            PolyTess.appendArc(objectiveArcMesh, cx, cy,
+                    cellPx * mission.aoeRadius - 2f, cellPx * mission.aoeRadius + 2f,
+                    progress, 64,
+                    ORBITAL_WARNING.getRed() / 255f, ORBITAL_WARNING.getGreen() / 255f,
+                    ORBITAL_WARNING.getBlue() / 255f, alphaMult * 0.9f);
         }
 
         if (!objectiveArcMesh.isEmpty()) out.addPoly(RenderLayer.OBJECTIVES, objectiveArcMesh);
