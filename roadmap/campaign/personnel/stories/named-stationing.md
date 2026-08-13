@@ -1,6 +1,6 @@
 # Named stationing detachments
 
-**Status:** CONTRACT LOCKED — implementation not started (2026-08-12)
+**Status:** IN PROGRESS — Slice 1 domain binding checkpoint shipped (2026-08-12)
 
 ## Problem
 
@@ -108,6 +108,15 @@ who returns.
    and explicitly resolve no-force responses.
 5. **Debrief and migration closure** — management/debrief presentation, save
    repair coverage, compaction guards, and full legacy/new lifecycle matrices.
+
+## Slice 1 checkpoint
+
+`1432dda1` persists the fireteam-side contract id and adds atomic rank-bounded
+bind, query, availability, and replay-safe release operations. Stationed teams
+are excluded from ordinary line readiness and captain deployment selection.
+Focused binding, command-policy, and readiness tests pass. Cargo, stationing
+acceptance, and legacy contract settlement remain unchanged. Slice 1 still owes
+roster/armory mutation gates and explicit save-repair coverage before it closes.
 
 ## Acceptance
 
