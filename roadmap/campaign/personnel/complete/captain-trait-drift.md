@@ -1,8 +1,14 @@
 # Captain moral trait drift
 
-**Status:** SLICES 1–2 COMPLETE — roster presentation next (2026-08-12)
+**Status:** COMPLETE (2026-08-12)
 
-**Implemented:** `b9e8ffd6`, `ca0a6994`
+**Implemented:** `b9e8ffd6`, `ca0a6994`, `e0b12a9c`
+
+The shipped story persists and repairs a mutually exclusive captain outlook,
+evaluates witnessed ledger history deterministically after the locked tenure and
+choice gates, and presents the resulting `Idealist` or `Cynical` label beside
+rank on the shared briefing/stationing captain row. No moral arithmetic or
+combat modifier is player-facing.
 
 ## Purpose
 
@@ -91,8 +97,16 @@ which currently affect only institutionalism, from granting either outlook.
    commendation, tests.~~ Shipped in `ca0a6994`; the focused 13-test matrix
    passes. A concurrent battle-simulation edit prevented a clean whole-root test
    run at this boundary.
-3. **Roster presentation and closure** — readable trait labels on the existing
-   captain surface, save/replay matrices, roadmap handoff.
+3. ~~**Roster presentation and closure** — readable trait labels on the existing
+   captain surface, save/replay matrices, roadmap handoff.~~ Shipped in
+   `e0b12a9c`; all trait identities now own readable labels and the resolved
+   outlook appears on both existing captain-picker surfaces.
+
+## Verification
+
+- The focused persistence, drift, ordering, and presentation matrix passes.
+- `gradlew.bat :test` passes after Slice 3.
+- Manual UI/balance playtesting remains deliberately deferred for this session.
 
 ## Acceptance
 

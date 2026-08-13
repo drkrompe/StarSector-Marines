@@ -47,12 +47,13 @@ authoritative mission commander, and frozen deployed-command context in
 Results. Home command supplies defaults but does not strand squads when their
 captain is unavailable.
 
-## Active story
+## Completed moral outlook story
 
-[`stories/captain-trait-drift.md`](stories/captain-trait-drift.md) is the first
+[`complete/captain-trait-drift.md`](complete/captain-trait-drift.md) is the first
 diegetic consumer of the hidden moral compass. It gives long-serving captains
 one deterministic `IDEALIST` or `CYNICAL` outlook from choices witnessed during
-their tenure, without exposing moral scores or adding combat modifiers.
+their tenure, without exposing moral scores or adding combat modifiers. The
+outlook persists exactly once and is readable on the shared captain row.
 
 ## Complete — named stationing
 
