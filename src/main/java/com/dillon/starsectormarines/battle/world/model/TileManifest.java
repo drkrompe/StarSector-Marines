@@ -39,7 +39,7 @@ public final class TileManifest {
      * separately from {@link #SHEET} so the road art (dashed perimeter +
      * red safety stripe) can iterate independently of the indoor floor set.
      */
-    public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2-imagegen.png";
+    public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2-spaceport-apron.png";
 
     /**
      * Third sheet — outdoor surface autotiles (grass, dirt, stone, sand,

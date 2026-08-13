@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Step 2b — claim multi-leaf compounds (e.g. military bases). Each compound's
@@ -34,9 +35,12 @@ public final class CompoundClaimStage implements GenStage {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         Map<BlockLeaf, List<BlockLeaf>> adjacency =
                 LeafAdjacency.compute(partition.leaves, ctx.width, ctx.height);
-        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency,
+        List<Compound> compounds = new ArrayList<>();
+        Compound spaceport = ctx.get(BspKeys.SPACEPORT_DISTRICT);
+        if (spaceport != null) compounds.add(spaceport);
+        compounds.addAll(CompoundClaim.claim(partition.leaves, adjacency,
                 biomeMap != null ? CompoundClaim.CONQUEST_SPECS : CompoundClaim.DEFAULT_SPECS,
-                biomeMap, ctx.rng);
+                biomeMap, ctx.rng));
         ctx.put(BspKeys.COMPOUNDS, compounds);
         if (!compounds.isEmpty()) {
             LOG.info("BspCityGenerator: " + compounds.size() + " compound(s) claimed");

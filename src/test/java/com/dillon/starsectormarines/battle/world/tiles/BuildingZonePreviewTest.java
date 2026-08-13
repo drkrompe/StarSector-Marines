@@ -61,7 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class BuildingZonePreviewTest {
 
     private static final Path URBAN_SHEET  = Paths.get("mod/graphics/tilesets/urban-tileset-imagegen.png");
-    private static final Path ROAD_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-2-imagegen.png");
+    private static final Path ROAD_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-2-spaceport-apron.png");
     private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles-imagegen.png");
     private static final Path DOODAD_SHEET = Paths.get("mod/graphics/doodads/doodads.png");
     private static final Path OUT_DIR      = Paths.get("build/zone-previews");

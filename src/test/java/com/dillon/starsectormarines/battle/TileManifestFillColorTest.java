@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class TileManifestFillColorTest {
 
-    private static final Path SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-2-imagegen.png");
+    private static final Path SHEET = Paths.get("mod/graphics/tilesets/urban-tileset-2-spaceport-apron.png");
     private static final int TILE = 32;
 
     @Test

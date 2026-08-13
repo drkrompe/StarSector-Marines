@@ -71,25 +71,25 @@ public final class CompoundClaim {
     public static final List<ClaimSpec> DEFAULT_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
                     1, 3, 2, 4, 6, 7,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)));
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)));
 
     /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
                     3, 3, 2, 4, 6, 7,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)));
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)));
 
     private CompoundClaim() {}
 

@@ -9,11 +9,6 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Step 2 — label each leaf using whichever zoning overlay is active. In
@@ -44,17 +39,11 @@ public final class LabelLeavesStage implements GenStage {
         Bsp.Partition partition = ctx.get(BspKeys.PARTITION);
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         DistrictMap districtMap = ctx.get(BspKeys.DISTRICT_MAP);
-        List<BlockLeaf> civilianPortLeaves = new ArrayList<>();
         for (BlockLeaf leaf : partition.leaves) {
             MapDistrictTheme theme = (biomeMap != null)
                     ? biomeMap.themeAt(leaf.centerX(), leaf.centerY())
                     : districtMap.themeAt(leaf.centerX(), leaf.centerY());
             leaf.kind = theme.pickBlockKind(ctx.rng);
-            if (biomeMap == null && theme == MapDistrictTheme.HARBOR_PORT
-                    && leaf.width() >= LANDING_ZONE_MIN_SIDE
-                    && leaf.height() >= LANDING_ZONE_MIN_SIDE) {
-                civilianPortLeaves.add(leaf);
-            }
             if ((leaf.kind == BlockKind.LANDING_ZONE || leaf.kind == BlockKind.SPACEPORT_PAD)
                     && (leaf.width() < LANDING_ZONE_MIN_SIDE
                         || leaf.height() < LANDING_ZONE_MIN_SIDE)) {
@@ -62,21 +51,5 @@ public final class LabelLeavesStage implements GenStage {
             }
         }
 
-        // Tier 1 authors four berths: the default three-shuttle deployment plus
-        // one civilian-traffic berth. A megaport authors six, leaving up to two
-        // occupied pads after a typical deployment. Largest parcels win; tie
-        // order remains spatially deterministic. Surrounding HARBOR_PORT leaves
-        // retain their warehouse/yard/commercial rolls and complete the district.
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        if (biomeMap == null && profile != null && profile.spaceportTier() > 0) {
-            int targetPads = profile.spaceportTier() >= 2 ? 6 : 4;
-            civilianPortLeaves.sort(Comparator
-                    .comparingInt(BlockLeaf::area).reversed()
-                    .thenComparingInt(l -> l.top)
-                    .thenComparingInt(l -> l.left));
-            for (int i = 0; i < Math.min(targetPads, civilianPortLeaves.size()); i++) {
-                civilianPortLeaves.get(i).kind = BlockKind.SPACEPORT_PAD;
-            }
-        }
     }
 }

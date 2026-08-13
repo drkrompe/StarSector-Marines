@@ -47,6 +47,9 @@ public final class BspKeys {
     /** Claimed multi-leaf compounds; perimeter stampers read it for exclusion masks. */
     public static final GenKey<List<Compound>> COMPOUNDS = GenKey.of("compounds");
 
+    /** Campaign-backed civilian spaceport campus reserved before generic compound claiming. Null for neutral and conquest maps. */
+    public static final GenKey<Compound> SPACEPORT_DISTRICT = GenKey.of("spaceportDistrict");
+
     // --- pipeline intermediates (produced by one stage, consumed by later ones) ---
 
     /** Trunk skeleton (arterials + sub-rects + intersection). Produced by the trunk stage, read by BSP partition / zoning / pedestrian / road-graph stages. */
