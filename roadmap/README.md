@@ -92,9 +92,11 @@ universe over time, not retrofitted into intel slots.
    frozen Results command context are now shipped (`f6247ace`, `48471e93`),
    completing the captain-command story. Named stationing is also complete:
    whole-team binding, legacy-safe return, incident casualties, default
-   extraction, repair, compaction, and debrief all ship. The active personnel
-   story is the hidden moral compass's first diegetic reaction: deterministic
-   `IDEALIST`/`CYNICAL` outlook drift for long-serving captains. See
+   extraction, repair, compaction, and debrief all ship. The hidden moral
+   compass's first diegetic reaction now ships too: long-serving captains gain
+   one deterministic, persistent `IDEALIST`/`CYNICAL` outlook from choices they
+   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). No personnel story remains
+   active; contract a new one before expanding this characterization. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit

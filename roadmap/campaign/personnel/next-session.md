@@ -59,18 +59,18 @@ default-extraction path resolves exactly once. Anonymous saves retain their
 original scalar cargo behavior. Cross-save repair, compaction protection, and
 named/legacy Results presentation are covered by the full focused matrix.
 
-The active personnel story is
-[`stories/captain-trait-drift.md`](stories/captain-trait-drift.md). Slice 1
-shipped in `b9e8ffd6`: `IDEALIST` and `CYNICAL` are append-only trait identities,
-and each captain now persists a mutually exclusive, exactly-once outlook with
-conservative legacy/dev-save repair. Slice 2 shipped in `ca0a6994`: daily drift
-uses only post-recruitment applied mercy, integrity, and stewardship ledger
-deltas, with the locked service/choice/classification gates and no randomness.
-Start Slice 3 by exposing readable outlook labels through the existing captain
-trait surface, then run the focused save/replay matrix and close the story. Do
-not add combat modifiers, transfers, reversals, or any numeric moral surface.
-Manual UI/balance validation remains queued, as requested for the current
+Captain moral trait drift is complete in `b9e8ffd6`, `ca0a6994`, and `e0b12a9c`;
+see [`complete/captain-trait-drift.md`](complete/captain-trait-drift.md). The
+outlook authority is legacy-safe and exactly once, daily evaluation is
+captain-local and deterministic, and the shared captain row presents readable
+`Idealist`/`Cynical` labels. The focused matrix and full root automated suite
+pass. Manual UI/balance validation remains queued, as requested for the current
 automated-only session.
+
+There is no active personnel story after this closure. Select and contract a
+new story before extending outlooks into combat modifiers, reversals, transfers,
+dialog, or interpersonal conflict; those remain intentional non-goals rather
+than implied follow-up work.
 
 ## Commit chain
 
