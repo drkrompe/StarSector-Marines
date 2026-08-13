@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
+import com.dillon.starsectormarines.campaign.StationingNoForceResolution;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
 import com.dillon.starsectormarines.campaign.systems.StationingContractTerms;
 import com.dillon.starsectormarines.campaign.systems.StationingWithdrawalService;
@@ -393,6 +394,12 @@ public final class StationingScreen implements Screen {
 
     private void onRespond(StationingIncidentPayload payload) {
         if (payload == null || ctx.planet == null) return;
+        if (payload.activeSeats == 0 && !payload.fireteamIds.isEmpty()) {
+            if (StationingNoForceResolution.apply(
+                    state(), payload, roster(), currentDay()) != null) finishResponse();
+            else rebuild();
+            return;
+        }
         String factionId = ctx.market != null && ctx.market.getFaction() != null
                 ? ctx.market.getFaction().getId() : null;
         Mission mission = StationingIncidentMissionFactory.create(
@@ -409,6 +416,12 @@ public final class StationingScreen implements Screen {
 
     private void onRespond(GarrisonDefensePayload payload) {
         if (payload == null || ctx.planet == null) return;
+        if (payload.activeSeats == 0 && !payload.fireteamIds.isEmpty()) {
+            if (StationingNoForceResolution.apply(
+                    state(), payload, roster(), currentDay()) != null) finishResponse();
+            else rebuild();
+            return;
+        }
         String factionId = ctx.market != null && ctx.market.getFaction() != null
                 ? ctx.market.getFaction().getId() : null;
         Mission mission = GarrisonDefenseMissionFactory.create(
@@ -421,6 +434,18 @@ public final class StationingScreen implements Screen {
         ctx.setSelectedMission(mission);
         ctx.replaceMarineSquadSelection(payload.fireteamIds);
         ctx.goTo(ScreenId.BRIEFING);
+    }
+
+    private void finishResponse() {
+        selectedSquadIds.clear();
+        lastContractId = -1L;
+        ctx.setSelectedStationingContractId(-1L);
+        ctx.setSelectedCaptainId(null);
+        ctx.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    private static int currentDay() {
+        return Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
     }
 
     private void selectFirstActiveCaptain() {

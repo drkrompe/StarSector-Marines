@@ -55,6 +55,7 @@ public final class StationingIncidentResolution {
         if (named && failed) {
             if (roster.releaseStationing(contractId) <= 0) return null;
             survivors = 0;
+            state.contractCaptainId[row] = -1;
         }
         state.contractMarinesCommitted[row] = survivors;
         state.contractIncidentPending[row] = 0;

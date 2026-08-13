@@ -51,6 +51,7 @@ public final class GarrisonDefenseResolution {
         if (named && failed) {
             if (roster.releaseStationing(contractId) <= 0) return null;
             survivors = 0;
+            state.contractCaptainId[row] = -1;
         }
         state.contractMarinesCommitted[row] = survivors;
         clearPendingDefense(state, row);
