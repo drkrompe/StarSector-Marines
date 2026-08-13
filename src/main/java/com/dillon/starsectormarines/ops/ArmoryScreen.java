@@ -572,11 +572,8 @@ public final class ArmoryScreen implements Screen {
         MarineSoldier soldier = selectedSoldier();
         boolean unlocked = armory.isArmorUnlocked(armor);
         boolean selected = browsedArmor == armor;
-        widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked, () -> {
-            browsedArmor = armor;
-            loadoutFeedback = null;
-            rebuild();
-        }));
+        widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked,
+                () -> selectArmorRow(armor, unlocked)));
         widgets.add(new SpriteThumbWidget(armor.iconPath, x + 8f, y + 5f, 58f, h - 10f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 armor.displayName + " · Tier " + armor.tierMark(),
@@ -603,11 +600,8 @@ public final class ArmoryScreen implements Screen {
         MarineSoldier soldier = selectedSoldier();
         boolean unlocked = armory.isSecondaryUnlocked(secondary);
         boolean selected = browsedSecondary == secondary;
-        widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked, () -> {
-            browsedSecondary = secondary;
-            loadoutFeedback = null;
-            rebuild();
-        }));
+        widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked,
+                () -> selectSpecialRow(secondary, unlocked)));
         widgets.add(new SpriteThumbWidget(secondaryIcon(secondary), x + 8f, y + 5f, 58f, h - 10f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName,
                 x + 76f, y + h - 9f, unlocked ? HEADER : MUTED));
@@ -638,6 +632,32 @@ public final class ArmoryScreen implements Screen {
         if (doubleClick && unlocked && soldier != null
                 && roster.canAllocatePrimary(soldier.id(), weapon, grade)) {
             equipPrimary(soldier, weapon, grade);
+            return;
+        }
+        rebuild();
+    }
+
+    private void selectArmorRow(MarineArmorPattern armor, boolean unlocked) {
+        boolean doubleClick = recordInventoryClick("armor:" + armor.name());
+        browsedArmor = armor;
+        loadoutFeedback = null;
+        MarineSoldier soldier = selectedSoldier();
+        if (doubleClick && unlocked && soldier != null
+                && roster.canAllocateArmor(soldier.id(), armor)) {
+            equipArmor(soldier, armor);
+            return;
+        }
+        rebuild();
+    }
+
+    private void selectSpecialRow(MarineSecondary secondary, boolean unlocked) {
+        boolean doubleClick = recordInventoryClick("special:" + secondary.name());
+        browsedSecondary = secondary;
+        loadoutFeedback = null;
+        MarineSoldier soldier = selectedSoldier();
+        if (doubleClick && unlocked && soldier != null
+                && roster.canAllocateSecondary(soldier.id(), secondary)) {
+            equipSecondary(soldier, secondary);
             return;
         }
         rebuild();
@@ -1118,12 +1138,16 @@ public final class ArmoryScreen implements Screen {
                 : !canEdit(soldier) ? "MARINE UNAVAILABLE"
                 : canEquip ? "EQUIP" : "OUT OF STOCK";
         addButton(x + Math.max(0f, width - 210f), top - 330f, Math.min(200f, width), label,
-                canEquip ? () -> {
-                    loadoutSucceeded = roster.allocateArmor(soldier.id(), armor);
-                    loadoutFeedback = loadoutSucceeded ? armor.displayName + " equipped"
-                            : "No unassigned suit available";
-                    rebuild();
-                } : null, canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
+                canEquip ? () -> equipArmor(soldier, armor) : null,
+                canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
+    }
+
+    private void equipArmor(MarineSoldier soldier, MarineArmorPattern armor) {
+        loadoutSucceeded = roster.allocateArmor(soldier.id(), armor);
+        loadoutFeedback = loadoutSucceeded ? armor.displayName + " equipped"
+                : "No unassigned suit available";
+        clearDoubleClick();
+        rebuild();
     }
 
     private void addEquipSecondaryButton(float x, float top, float width, MarineSoldier soldier,
@@ -1135,12 +1159,16 @@ public final class ArmoryScreen implements Screen {
                 : !canEdit(soldier) ? "MARINE UNAVAILABLE"
                 : canEquip ? "EQUIP" : "OUT OF STOCK";
         addButton(x + Math.max(0f, width - 210f), top - 318f, Math.min(200f, width), label,
-                canEquip ? () -> {
-                    loadoutSucceeded = roster.allocateSecondary(soldier.id(), secondary);
-                    loadoutFeedback = loadoutSucceeded ? secondary.displayName + " equipped"
-                            : "No unassigned launcher available";
-                    rebuild();
-                } : null, canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
+                canEquip ? () -> equipSecondary(soldier, secondary) : null,
+                canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
+    }
+
+    private void equipSecondary(MarineSoldier soldier, MarineSecondary secondary) {
+        loadoutSucceeded = roster.allocateSecondary(soldier.id(), secondary);
+        loadoutFeedback = loadoutSucceeded ? secondary.displayName + " equipped"
+                : "No unassigned launcher available";
+        clearDoubleClick();
+        rebuild();
     }
 
     private void addWrappedText(String text, float x, float top, float width,
