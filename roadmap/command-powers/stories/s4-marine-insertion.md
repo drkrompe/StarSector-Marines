@@ -1,5 +1,7 @@
 # S4 — Marine Insertion power
 
+**Status:** SHIPPED (`88e04e15`, 2026-08-12)
+
 > Player-invoked squad drop. Ships at a *fixed safe LZ* first — the geography
 > layer (LZ choice + air defence) is deliberately deferred to S6.
 
@@ -45,3 +47,12 @@ question ("does the player ever call a friendly drop?" — yes, via this power).
 With a Valkyrie committed, the drop power is slottable; firing it sends a shuttle
 to the fixed LZ, which deboards a squad that then fights under the commander
 loop; CP is deducted and the cooldown starts.
+
+## Shipped shape
+
+- `MarineInsertion`: 3 CP, 2 supplies, one charge.
+- A physical Valkyrie delivers eight marines into one new squad.
+- The squad is registered through the ordinary roster path and begins normal
+  commander/GOAP behavior while the remaining seats are still unloading.
+- Source is deliberately Valkyrie-only. Phantom stealth insertion and liner
+  mass reinforcement remain separate future variants so carrier visuals stay honest.

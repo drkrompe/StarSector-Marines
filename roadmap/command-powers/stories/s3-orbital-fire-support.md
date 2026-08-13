@@ -1,5 +1,7 @@
 # S3 — Orbital Fire Support (first real combat power)
 
+**Status:** SHIPPED (`5ffe1e55`, 2026-08-12)
+
 > The most legible "I did something" power. A zone-targeted barrage with a
 > telegraph and delay, gated on a warship in orbit, paid for in munitions.
 
@@ -48,3 +50,10 @@ committed fleet; consumes supplies/munitions on use.
 With an Onslaught in the committed fleet, the barrage power is slottable; firing
 it on a cell shows a telegraph, and after the delay every unit in the radius
 takes damage; supplies are deducted on use; CP is spent and the cooldown starts.
+
+## Shipped shape
+
+- `OrbitalBarrage`: 4 CP, 5 supplies, one charge, three-second warning, four-cell blast.
+- Friendly fire is on; aerial roof shielding and shared structure damage apply.
+- Sources: Onslaught, Invictus, and ground-support hullmods; debug grant remains on.
+- Impact produces synchronized heavy fire/smoke, positional audio, and wall dust.

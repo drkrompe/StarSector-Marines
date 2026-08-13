@@ -4,7 +4,7 @@
 
 ## Where this is
 
-**S1 + S2 shipped (explicit-detachment arc complete).** S1 (power framework
+**S1–S4 gameplay spine shipped; S8 canonical briefing is through B-1.** S1 (power framework
 skeleton — recon ping) is built; see
 [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
 **Fork #1 is resolved — explicit detachment** (overview § "The commitment
@@ -40,6 +40,11 @@ transport nor carrier). See the Slice 3 doc § follow-ups.
 - S2 Slice 3 — `PlayerFleetWings` committed-carrier resolution (`committableCarriers`
   / `rosterFrom`) + carrier opt-in toggles in BriefingScreen + CommsConsolePanel;
   `onAccept` passes the committed-carrier roster, not the whole-fleet scan.
+- Physical support expansion — Mech Support (`21885d05`), persistent finite
+  Emergency Resupply (`5139a5f8`), Orbital Barrage (`5ffe1e55`), and Marine
+  Insertion (`88e04e15`). The latter three establish campaign supplies paid at
+  activation, reusable physical air delivery, persistent battlefield caches,
+  telegraphed friendly-fire AoE, and commander-visible called-in squads.
 
 ## Docs in this dir
 
@@ -48,8 +53,8 @@ transport nor carrier). See the Slice 3 doc § follow-ups.
   catalog that seeds the power families and the S2 mapping table.
 - [`complete/`](complete/) — shipped stories. **S1 + S2 (umbrella + 3 slice
   docs) live here now.**
-- [`stories/`](stories/) — S3–S7. S3–S4 are implementation-ready; S5–S7 are
-  design-forward stubs.
+- [`stories/`](stories/) — S3–S4 now describe shipped gameplay slices; S5–S7
+  remain design-forward follow-ups.
 
 ## Decisions locked (this session)
 
@@ -113,13 +118,16 @@ detachment UI. S8 collapses both into one screen.
    command budget (S5 does the real curve); slotted subset filters
    `PowerCatalog.resolve`.
 
-Alternatives if priorities shift: **S3 — Orbital Fire Support** (first real
-combat power, resolver + detachment plumbing is ready). In-game **feel-out** of
-the S2 arc is still pending but is largely subsumed by S8 Slice A (which reworks
-the same surface).
+Alternatives if priorities shift: **S6 — Drop Geography** now has three real
+physical deliveries to exercise (mech, resupply, marine squad). It is the next
+battlefield-mechanics seam: named/limited LZs, AA contesting, and craft-class
+risk. In-game **feel-out** of the complete power roster is still pending.
 
-S3/S6 want the parked **flyby → `AirBody` real-air-entity** promotion so
-orbital/air assets can be contested.
+The practical next step remains **S8 B-2 member-level commitment**, followed by
+S8 C command-deck slotting. Without B-2, power availability still scans the
+whole player fleet; the new roster makes that over-generosity much more visible.
+If staying in the live battle instead, take S6 and build AA/LZ counterplay on
+the shared `AirDeliveryPower` path.
 
 ## Cross-track dependencies
 
