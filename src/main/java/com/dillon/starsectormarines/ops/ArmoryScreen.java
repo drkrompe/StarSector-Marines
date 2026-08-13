@@ -210,9 +210,10 @@ public final class ArmoryScreen implements Screen {
         int vacancies = roster.vacancies(squad);
         MarineSoldier readyReserve = roster.firstReadyReserve();
         boolean cargoAvailable = MarinePersonnelLogistics.availableRecruits() > 0;
-        boolean canRecruit = (squad.reserve() || vacancies > 0)
+        boolean canRecruit = !squad.stationed() && (squad.reserve() || vacancies > 0)
                 && (cargoAvailable || (!squad.reserve() && readyReserve != null));
-        String recruitLabel = squad.reserve() ? "Enlist (1)"
+        String recruitLabel = squad.stationed() ? "Stationed Away"
+                : squad.reserve() ? "Enlist (1)"
                 : vacancies <= 0 ? "Fully Manned"
                 : readyReserve != null ? "Assign Reserve" : "Enlist (1)";
         addButton(actionX, top - 14f, 138f,
@@ -320,10 +321,11 @@ public final class ArmoryScreen implements Screen {
             roster.assignCaptainToSquad(next.id(), squad.id());
             rebuild();
         } : null, next != null ? HEADER : MUTED);
-        addButton(clearX, y, clearW, "Unassign", current != null ? () -> {
+        boolean canClear = current != null && !squad.stationed();
+        addButton(clearX, y, clearW, "Unassign", canClear ? () -> {
             roster.clearSquadCaptain(squad.id());
             rebuild();
-        } : null, current != null ? HEADER : MUTED);
+        } : null, canClear ? HEADER : MUTED);
     }
 
     private void addSoldierRow(MarineSoldier soldier, float x, float y, float w) {
@@ -347,24 +349,27 @@ public final class ArmoryScreen implements Screen {
         float armorW = 74f;
         float weaponW = 82f;
         boolean reserve = current != null && current.reserve();
+        boolean stationed = current != null && current.stationed();
         addButton(x + w - moveW, y + 4f, moveW,
-                reserve ? "Demobilize +1"
+                stationed ? "Stationed Away"
+                        : reserve ? "Demobilize +1"
                         : target != null ? "Move → " + shortSquadName(target) : "No Vacancy",
-                reserve ? () -> {
+                stationed ? null : reserve ? () -> {
                     MarinePersonnelLogistics.release(roster, soldier.id());
                     rebuild();
                 } : target != null ? () -> {
                     roster.transferSoldier(soldier.id(), target.id());
                     rebuild();
-                } : null, reserve || target != null ? HEADER : MUTED);
-        addButton(x + w - moveW - armorW - 8f, y + 4f, armorW, "Armor", () -> {
+                } : null, !stationed && (reserve || target != null) ? HEADER : MUTED);
+        addButton(x + w - moveW - armorW - 8f, y + 4f, armorW, "Armor", stationed ? null : () -> {
             roster.cycleArmor(soldier.id());
             rebuild();
-        }, HEADER);
-        addButton(x + w - moveW - armorW - weaponW - 16f, y + 4f, weaponW, "Weapon", () -> {
+        }, stationed ? MUTED : HEADER);
+        addButton(x + w - moveW - armorW - weaponW - 16f, y + 4f, weaponW, "Weapon",
+                stationed ? null : () -> {
             roster.cyclePrimary(soldier.id());
             rebuild();
-        }, HEADER);
+        }, stationed ? MUTED : HEADER);
     }
 
     private static String statusLabel(MarineSoldier soldier) {
@@ -396,6 +401,7 @@ public final class ArmoryScreen implements Screen {
     private static String presetMessage(SquadPresetResult result) {
         return switch (result) {
             case APPLIED -> "Issued to all RTD personnel";
+            case STATIONED -> "Fireteam is stationed away";
             case NO_READY_PERSONNEL -> "No RTD personnel";
             case LOCKED_RECIPE -> "Recipe locked";
             case INSUFFICIENT_WEAPONS -> "Not enough weapons";
