@@ -53,17 +53,62 @@ public class SpaceportFillerTest {
     }
 
     @Test
-    void cargoReadsAsAnEdgeBandRatherThanRandomApronScatter() {
+    void cargoCombinesEdgeServicingWithInteriorCoverIslands() {
         BlockLeaf leaf = new BlockLeaf(2, 2, 17, 12, false); // wide grammar
         GenContext ctx = fill(leaf, 21, 17, 7L);
         LandingPad pad = ctx.landingPads.get(0);
 
-        assertTrue(ctx.doodads.size() >= 2, "large apron should have an organized service presence");
+        int edgeProps = 0;
+        int interiorCover = 0;
+        boolean coverAbove = false;
+        boolean coverBelow = false;
         for (Doodad doodad : ctx.doodads) {
             boolean nearEdge = doodad.cellX <= leaf.left + 1 || doodad.cellX >= leaf.right - 1
                     || doodad.cellY <= leaf.top + 1 || doodad.cellY >= leaf.bottom - 1;
-            assertTrue(nearEdge, "spaceport prop should remain in an edge service band");
+            if (nearEdge) {
+                edgeProps++;
+            } else if (doodad.cover >= Doodad.COVER_MED) {
+                interiorCover++;
+                coverAbove |= doodad.cellY < pad.centerY;
+                coverBelow |= doodad.cellY > pad.centerY;
+            }
             assertFalse(pad.contains(doodad.cellX, doodad.cellY));
+        }
+        assertTrue(edgeProps >= 2, "apron should retain an organized edge service band");
+        assertTrue(interiorCover >= 4, "apron should add two short medium/heavy cover islands");
+        assertTrue(coverAbove && coverBelow,
+                "cover islands should flank both sides of the central vehicle aisle");
+    }
+
+    @Test
+    void coverIslandsLeaveTouchdownApproachAndCenterlineClear() {
+        BlockLeaf[] leaves = {
+                new BlockLeaf(2, 2, 17, 12, false),
+                new BlockLeaf(2, 2, 14, 21, false)
+        };
+        for (BlockLeaf leaf : leaves) {
+            for (long seed = 0; seed < 12; seed++) {
+                GenContext ctx = fill(leaf, leaf.right + 4, leaf.bottom + 4, seed);
+                LandingPad pad = ctx.landingPads.get(0);
+                boolean longX = leaf.width() >= leaf.height();
+                int heavy = 0;
+                int medium = 0;
+                for (Doodad doodad : ctx.doodads) {
+                    assertFalse(inApproachCorridor(doodad, pad),
+                            "prop entered the pad-width approach corridor");
+                    assertFalse(longX ? doodad.cellY == pad.centerY : doodad.cellX == pad.centerX,
+                            "prop blocked the berth vehicle centerline");
+                    if (isInterior(doodad, leaf)) {
+                        if (doodad.cover == Doodad.COVER_HEAVY) heavy++;
+                        if (doodad.cover == Doodad.COVER_MED) medium++;
+                    }
+                }
+                assertTrue(heavy >= 2, "each apron needs substantial cover on both flanks");
+                assertTrue(medium >= 2, "heavy cover should have plausible lower freight companions");
+                assertFalse(hasThreePropRun(ctx),
+                        "spaceport staging must remain short islands, not continuous prop walls");
+                assertTrue(pad.isClear(ctx.grid, ctx.topology));
+            }
         }
     }
 
@@ -146,5 +191,46 @@ public class SpaceportFillerTest {
             }
         }
         return count;
+    }
+
+    private static boolean isInterior(Doodad doodad, BlockLeaf leaf) {
+        return doodad.cellX > leaf.left + 1 && doodad.cellX < leaf.right - 1
+                && doodad.cellY > leaf.top + 1 && doodad.cellY < leaf.bottom - 1;
+    }
+
+    private static boolean inApproachCorridor(Doodad doodad, LandingPad pad) {
+        switch (pad.approach) {
+            case WEST:
+                return doodad.cellX < pad.left()
+                        && doodad.cellY >= pad.bottom() && doodad.cellY <= pad.top();
+            case EAST:
+                return doodad.cellX > pad.right()
+                        && doodad.cellY >= pad.bottom() && doodad.cellY <= pad.top();
+            case SOUTH:
+                return doodad.cellY < pad.bottom()
+                        && doodad.cellX >= pad.left() && doodad.cellX <= pad.right();
+            case NORTH:
+                return doodad.cellY > pad.top()
+                        && doodad.cellX >= pad.left() && doodad.cellX <= pad.right();
+            default:
+                return false;
+        }
+    }
+
+    private static boolean hasThreePropRun(GenContext ctx) {
+        for (Doodad center : ctx.doodads) {
+            boolean west = false;
+            boolean east = false;
+            boolean north = false;
+            boolean south = false;
+            for (Doodad other : ctx.doodads) {
+                west |= other.cellX == center.cellX - 1 && other.cellY == center.cellY;
+                east |= other.cellX == center.cellX + 1 && other.cellY == center.cellY;
+                north |= other.cellX == center.cellX && other.cellY == center.cellY - 1;
+                south |= other.cellX == center.cellX && other.cellY == center.cellY + 1;
+            }
+            if ((west && east) || (north && south)) return true;
+        }
+        return false;
     }
 }

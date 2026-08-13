@@ -46,6 +46,7 @@ public class HeavyWeapons {
     private final HitResponseSystem hitResponse;
     private final ShotService shots;
     private final Detonations detonations;
+    private final CoverAccuracyResolver coverAccuracy;
 
     /**
      * Reused per-tick gather of the live mechs before the continuation pass.
@@ -58,13 +59,15 @@ public class HeavyWeapons {
 
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
                         DamageService damageService, HitResponseSystem hitResponse,
-                        ShotService shots, Detonations detonations) {
+                        ShotService shots, Detonations detonations,
+                        CoverAccuracyResolver coverAccuracy) {
         this.roster = roster;
         this.grid = grid;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
         this.shots = shots;
         this.detonations = detonations;
+        this.coverAccuracy = coverAccuracy;
     }
 
     /** Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech. */
@@ -92,9 +95,17 @@ public class HeavyWeapons {
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
-        boolean hit = ThreadLocalRandom.current().nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         World world = roster.world();
+        float effectiveAccuracy = weapon.accuracy * accuracyMult;
+        // Arc weapons attack from above; cardinal ground cover only protects
+        // against the chaingun/SRM-style direct-fire tracks.
+        if (weapon.arcHeight <= 0f) {
+            effectiveAccuracy = coverAccuracy.apply(effectiveAccuracy,
+                    world.cellX(target), world.cellY(target),
+                    world.cellX(shooter), world.cellY(shooter));
+        }
+        boolean hit = ThreadLocalRandom.current().nextFloat() < effectiveAccuracy;
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;

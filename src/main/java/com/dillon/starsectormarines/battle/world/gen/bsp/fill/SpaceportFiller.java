@@ -59,6 +59,17 @@ public final class SpaceportFiller implements BlockFiller {
             "doodad.industrial-cable-reel",
             "doodad.industrial-dumpster"
     };
+    /**
+     * Two-cell apron islands: a substantial freight/support prop backed by a
+     * lower companion.  Each pair reads as ordinary port staging while giving
+     * infantry a useful short position instead of an implausible prop wall.
+     */
+    private static final String[][] COVER_ISLAND_IDS = {
+            {"doodad.industrial-crate-stack", "doodad.industrial-pallet-stack"},
+            {"doodad.industrial-generator", "doodad.industrial-cable-reel"},
+            {"doodad.industrial-dumpster", "doodad.industrial-drum-cluster"},
+            {"doodad.industrial-crate-stack", "doodad.industrial-pipe-bundle"}
+    };
 
     @Override
     public BlockKind kind() { return BlockKind.SPACEPORT_PAD; }
@@ -94,6 +105,7 @@ public final class SpaceportFiller implements BlockFiller {
             tower = carveControlOffice(leaf, pad, longX, approachLow, ctx);
         }
         placeServiceBand(leaf, pad, tower, longX, approachLow, ctx);
+        placeCoverIslands(leaf, pad, tower, longX, approachLow, ctx);
     }
 
     private static void paintApron(BlockLeaf leaf, NavigationGrid grid, CellTopology topology) {
@@ -239,6 +251,8 @@ public final class SpaceportFiller implements BlockFiller {
         int placed = 0;
         for (int[] cell : cargo) {
             if (placed >= budget) break;
+            if (onVehicleCenterline(cell[0], cell[1], pad, longX)
+                    || inApproachCorridor(cell[0], cell[1], pad)) continue;
             if (!canPlaceProp(cell[0], cell[1], pad, tower, ctx.grid)) continue;
             DoodadDef def = resolve(CARGO_IDS[(placed + ctx.rng.nextInt(CARGO_IDS.length)) % CARGO_IDS.length]);
             if (def == null) break;
@@ -255,6 +269,8 @@ public final class SpaceportFiller implements BlockFiller {
             for (int[] cell : neighbors) {
                 if (servicePlaced >= 2) break;
                 if (!leaf.contains(cell[0], cell[1])) continue;
+                if (onVehicleCenterline(cell[0], cell[1], pad, longX)
+                        || inApproachCorridor(cell[0], cell[1], pad)) continue;
                 if (!canPlaceProp(cell[0], cell[1], pad, tower, ctx.grid)) continue;
                 DoodadDef def = resolve(SERVICE_IDS[servicePlaced % SERVICE_IDS.length]);
                 if (def == null) break;
@@ -262,6 +278,76 @@ public final class SpaceportFiller implements BlockFiller {
                 servicePlaced++;
             }
         }
+    }
+
+    /**
+     * Places two separated work islands between the touchdown pad and its
+     * service edge.  They flank, rather than occupy, the vehicle centerline;
+     * the whole pad-width approach corridor remains empty.  The companion of
+     * each island extends toward the service side, producing a two-cell cargo
+     * or machinery cluster with open apron between it and the other island.
+     */
+    private static void placeCoverIslands(BlockLeaf leaf, LandingPad pad, int[] tower,
+                                          boolean longX, boolean approachLow,
+                                          GenContext ctx) {
+        int serviceDx = longX ? (approachLow ? 1 : -1) : 0;
+        int serviceDy = longX ? 0 : (approachLow ? 1 : -1);
+        int crossDx = longX ? 0 : 1;
+        int crossDy = longX ? 1 : 0;
+        int stagingDistance = PAD_HALF + 2;
+        int flankDistance = PAD_HALF + 1;
+        int variant = ctx.rng.nextInt(COVER_ISLAND_IDS.length);
+
+        for (int island = 0; island < 2; island++) {
+            int side = island == 0 ? -1 : 1;
+            int anchorX = pad.centerX + serviceDx * stagingDistance
+                    + crossDx * side * flankDistance;
+            int anchorY = pad.centerY + serviceDy * stagingDistance
+                    + crossDy * side * flankDistance;
+            String[] ids = COVER_ISLAND_IDS[(variant + island) % COVER_ISLAND_IDS.length];
+            placeIslandProp(ids[0], anchorX, anchorY, leaf, pad, tower, longX, ctx);
+            placeIslandProp(ids[1], anchorX + serviceDx, anchorY + serviceDy,
+                    leaf, pad, tower, longX, ctx);
+        }
+    }
+
+    private static void placeIslandProp(String id, int x, int y, BlockLeaf leaf,
+                                        LandingPad pad, int[] tower, boolean longX,
+                                        GenContext ctx) {
+        // Keep the cluster off the parcel rim and away from the office so its
+        // open cells remain believable working and circulation space.
+        if (x <= leaf.left || x >= leaf.right || y <= leaf.top || y >= leaf.bottom) return;
+        if (onVehicleCenterline(x, y, pad, longX) || inApproachCorridor(x, y, pad)) return;
+        if (withinMargin(x, y, tower, 1) || doodadAt(x, y, ctx.doodads)) return;
+        if (!canPlaceProp(x, y, pad, tower, ctx.grid)) return;
+        DoodadDef def = resolve(id);
+        if (def != null) ctx.doodads.add(new Doodad(x, y, def));
+    }
+
+    private static boolean onVehicleCenterline(int x, int y, LandingPad pad, boolean longX) {
+        return longX ? y == pad.centerY : x == pad.centerX;
+    }
+
+    private static boolean inApproachCorridor(int x, int y, LandingPad pad) {
+        switch (pad.approach) {
+            case WEST:
+                return x < pad.left() && y >= pad.bottom() && y <= pad.top();
+            case EAST:
+                return x > pad.right() && y >= pad.bottom() && y <= pad.top();
+            case SOUTH:
+                return y < pad.bottom() && x >= pad.left() && x <= pad.right();
+            case NORTH:
+                return y > pad.top() && x >= pad.left() && x <= pad.right();
+            default:
+                return false;
+        }
+    }
+
+    private static boolean doodadAt(int x, int y, List<Doodad> doodads) {
+        for (Doodad doodad : doodads) {
+            if (doodad.cellX == x && doodad.cellY == y) return true;
+        }
+        return false;
     }
 
     private static DoodadDef resolve(String id) {
