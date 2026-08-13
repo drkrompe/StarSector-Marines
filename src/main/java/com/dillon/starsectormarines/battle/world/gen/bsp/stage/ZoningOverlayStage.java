@@ -57,7 +57,14 @@ public final class ZoningOverlayStage implements GenStage {
             // at the launch boundary for non-conquest missions, leaving its
             // spaceport tier unused.
             if (profile != null && profile.spaceportTier() > 0) {
-                districtMap.forceThemeAt(ctx.width / 4, ctx.height / 2,
+                int portX = ctx.width / 4;
+                int portY = ctx.height / 2;
+                districtMap.forceThemeAt(portX, portY, MapDistrictTheme.HARBOR_PORT);
+                // A civilian port needs more than one coarse district to hold
+                // default deployment berths plus local traffic. Extend toward
+                // the marine-side lower quarter, away from the civic core.
+                districtMap.forceThemeAt(portX,
+                        portY - districtMap.districtCellHeight(),
                         MapDistrictTheme.HARBOR_PORT);
             }
             ctx.put(BspKeys.DISTRICT_MAP, districtMap);

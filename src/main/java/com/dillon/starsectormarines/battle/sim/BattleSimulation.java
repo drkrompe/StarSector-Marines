@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -188,6 +189,7 @@ public class BattleSimulation implements BattleControl {
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     private final List<MapVehicle> vehicles = new ArrayList<>();
+    private final List<ParkedAircraft> parkedAircraft = new ArrayList<>();
     /**
      * Transient visual side-effects — persistent ground decals, smoking wrecks,
      * HE smoke plumes, per-frame puff / fire-burst / wall-dust event queues.
@@ -532,6 +534,8 @@ public class BattleSimulation implements BattleControl {
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
+    public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
+    public void addParkedAircraft(ParkedAircraft aircraft) { parkedAircraft.add(aircraft); }
     /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. */
     public java.util.Collection<Decal> getDecals() { return effects.getDecals(); }
     /** Monotonic count of decals ever added. Read by the render layer's accumulator to drive incremental stamping that survives FIFO eviction at the cap. */

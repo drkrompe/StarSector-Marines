@@ -21,7 +21,8 @@ class SpaceportDistrictGenerationTest {
 
         MapResult map = new BspCityGenerator().generate(80, 80, 42L, null, profile);
 
-        assertFalse(map.landingPads.isEmpty(), "spaceport tier should reserve authored berths");
+        assertTrue(map.landingPads.size() >= 4,
+                "tier-one spaceport should provide deployment plus a civilian berth");
         for (LandingPad pad : map.landingPads) {
             assertTrue(pad.isClear(map.grid, map.topology));
         }
@@ -32,7 +33,7 @@ class SpaceportDistrictGenerationTest {
         MapResult map = new BspCityGenerator().generate(
                 80, 80, 42L, null, TargetProfile.NEUTRAL);
         // Random civic pads remain allowed. What matters is that the neutral
-        // profile doesn't receive the guaranteed three-berth port contract.
+        // profile doesn't receive the guaranteed four-berth port contract.
         assertTrue(map.landingPads.size() < 3);
     }
 }

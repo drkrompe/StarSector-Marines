@@ -62,13 +62,14 @@ public final class LabelLeavesStage implements GenStage {
             }
         }
 
-        // Tier 1 reserves up to three berths (the default deployment), while a
-        // megaport can reserve five. Largest parcels win; tie order remains
-        // spatially deterministic. Surrounding HARBOR_PORT leaves retain their
-        // warehouse/yard/commercial rolls and complete the district.
+        // Tier 1 authors four berths: the default three-shuttle deployment plus
+        // one civilian-traffic berth. A megaport authors six, leaving up to two
+        // occupied pads after a typical deployment. Largest parcels win; tie
+        // order remains spatially deterministic. Surrounding HARBOR_PORT leaves
+        // retain their warehouse/yard/commercial rolls and complete the district.
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         if (biomeMap == null && profile != null && profile.spaceportTier() > 0) {
-            int targetPads = profile.spaceportTier() >= 2 ? 5 : 3;
+            int targetPads = profile.spaceportTier() >= 2 ? 6 : 4;
             civilianPortLeaves.sort(Comparator
                     .comparingInt(BlockLeaf::area).reversed()
                     .thenComparingInt(l -> l.top)
