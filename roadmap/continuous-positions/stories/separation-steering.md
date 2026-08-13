@@ -166,6 +166,45 @@ Dead units never participate (`gather` already skips `!isAliveById`).
    chokepoint/oscillation eyeballing, swarm note handed to the tuning
    backlog. (Manual; may ship as "no change needed".)
 
+## Shipped (2026-08-13, branch `worktree-separation-steering`)
+
+**S1 + S2 are implemented, critiqued, and green** (1441-test full suite):
+
+- `f2fc6ab0` — S1: `SeparationSystem` (two-phase accumulate/apply, id-hash
+  coincident tiebreak, wall-slide walkability guard), `TickProfile.SEPARATION`,
+  tick wiring, tests 1/2/5/6.
+- `acda9fc7` — S2: radius² inverse-mass weighting, immovable emplacements,
+  velocity fold-in (via `entityWorld` — `MovementService.setVelocity` is
+  private), tests 3/4 — **plus fixes for all 8 findings of a 3-lens
+  adversarial critique pass**, notably:
+  - **Immovability keys on `UnitType.isStatic()`**, not the story's literal
+    "`UnitRole.STRUCTURE` + turrets": nothing ever stamps the STRUCTURE
+    role, so drone hubs (role `DRONE_HUB`, static type, spawned **without**
+    a MOVEMENT component) would have been movable — shoved off their anchor
+    and then crashing the tick in the velocity fold-in. The role check stays
+    for forward-compat; a hub regression test now exists.
+  - The wall-slide test's original 4-marine stack relaxed without ever
+    reaching the wall (verified by bit-exact replication) — the guard was
+    unexercised; now 8 marines + a pressed-against-the-wall assertion.
+  - Added a production-tick-loop integration test (drives
+    `BattleSimulation.advance()`, not `separation.tick()` directly) and
+    velocity fold-in assertions; reworded a false tick-slot Javadoc
+    invariant.
+
+**Deviations from plan:** none in the algorithm/constants; participant
+predicate uses `!world.hasKinematics(id)` to exclude drones (they ARE dense-
+roster ground units, contrary to this doc's assumption that they'd need a
+role check — their position is slaved to an `AirBody` each tick).
+
+**Test-authoring gotcha discovered:** a bare `EntitySpec(UnitType.TURRET, …)`
+spawns with hp=0 (placeholder stat block `MapTurret#create` normally
+overwrites) — `isAliveById` false, silently participates in nothing. Headless
+tests must set `.health(…)` explicitly on TURRET/hub specs.
+
+**Remaining: S3** — in-game playtest knobs pass (pose-twitch deadband,
+chokepoint/oscillation eyeballing, swarm-spread balance note). Move this doc
+to `complete/` once S3 resolves.
+
 ## Cross-refs
 
 - `overview.md` — coordinate convention, radius provenance.
