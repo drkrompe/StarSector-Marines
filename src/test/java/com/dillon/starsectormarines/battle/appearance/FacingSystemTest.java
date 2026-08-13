@@ -160,6 +160,29 @@ public class FacingSystemTest {
     }
 
     @Test
+    public void subThresholdVelocityReadsAsStanding() {
+        BattleSimulation sim = openArena(40, 40);
+        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
+        EntityWorld world = sim.getEntityWorld();
+        BattleComponents c = sim.getBattleComponents();
+
+        // Residual separation jostle: nonzero applied velocity well under the
+        // travel deadband, pointing east. Must NOT turn the body.
+        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X,
+                FacingSystem.MIN_TRAVEL_SPEED * 0.4f);
+        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, 0f);
+        systemFor(sim).tick();
+        assertEquals(3, spriteIndex(sim, marine),
+                "sub-threshold velocity reads as standing — stays south idle");
+
+        // The same direction above the deadband is genuine travel.
+        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X,
+                FacingSystem.MIN_TRAVEL_SPEED * 2f);
+        systemFor(sim).tick();
+        assertEquals(2, spriteIndex(sim, marine), "above-threshold velocity faces east");
+    }
+
+    @Test
     public void deadTargetFallsBackToSouthIdle() {
         BattleSimulation sim = openArena(40, 40);
         long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));

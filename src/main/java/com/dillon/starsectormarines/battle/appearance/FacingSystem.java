@@ -35,6 +35,21 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  */
 public final class FacingSystem {
 
+    /**
+     * Minimum applied speed, in cells/sec, for velocity to count as travel
+     * when deriving facing/gait. Below it a unit reads as standing (no travel
+     * delta — same rendering as a zeroed velocity). This is the deadband that
+     * keeps residual {@code SeparationSystem} jostle on settled units from
+     * vibrating body rotation and pulsing the walk pose: separation nudges on
+     * a near-relaxed crowd are tiny and alternate direction tick to tick,
+     * while the slowest genuine mover (mech, 1.15 cells/sec) and any real
+     * shove (up to {@code SeparationSystem.MAX_PUSH_SPEED}, 1.5) sit well
+     * above it. The only genuine motion below it is the final sub-step of an
+     * arrival pin, where idling one tick early is invisible.
+     */
+    public static final float MIN_TRAVEL_SPEED = 0.5f;
+    private static final float MIN_TRAVEL_SPEED_SQ = MIN_TRAVEL_SPEED * MIN_TRAVEL_SPEED;
+
     private final EntityWorld world;
     private final BattleComponents components;
     private final UnitRosterService roster;
@@ -181,7 +196,8 @@ public final class FacingSystem {
                 int travelDx = 0;
                 int travelDy = 0;
                 boolean haveTravelDelta = false;
-                if (hasMovement) {
+                if (hasMovement
+                        && velX[r] * velX[r] + velY[r] * velY[r] >= MIN_TRAVEL_SPEED_SQ) {
                     travelDx = octantComponent(velX[r], velY[r]);
                     travelDy = octantComponent(velY[r], velX[r]);
                     haveTravelDelta = travelDx != 0 || travelDy != 0;

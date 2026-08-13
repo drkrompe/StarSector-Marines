@@ -201,9 +201,14 @@ spawns with hp=0 (placeholder stat block `MapTurret#create` normally
 overwrites) — `isAliveById` false, silently participates in nothing. Headless
 tests must set `.health(…)` explicitly on TURRET/hub specs.
 
-**Remaining: S3** — in-game playtest knobs pass (pose-twitch deadband,
-chokepoint/oscillation eyeballing, swarm-spread balance note). Move this doc
-to `complete/` once S3 resolves.
+**S3 progress (2026-08-13):** playtest confirmed the predicted pose twitch —
+settled units vibrated body rotation from residual jostle. Fixed with the
+planned deadband, placed on the *consumer* side:
+`FacingSystem.MIN_TRAVEL_SPEED = 0.5` cells/sec — applied velocity below it
+derives no travel delta (unit reads as standing), catching any small-velocity
+source, not just separation, while staying under the slowest genuine mover
+(mech, 1.15). **Remaining in S3:** chokepoint/oscillation eyeballing,
+swarm-spread balance note. Move this doc to `complete/` once those resolve.
 
 ## Cross-refs
 
