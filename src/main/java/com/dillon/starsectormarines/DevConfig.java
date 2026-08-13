@@ -164,6 +164,10 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean DEBUG_GRANT_MECH_SUPPORT = true;
 
+    /** Expose Emergency Resupply without requiring a Tarsus or Atlas source. */
+    @DebugOnly
+    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = true;
+
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
      * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real

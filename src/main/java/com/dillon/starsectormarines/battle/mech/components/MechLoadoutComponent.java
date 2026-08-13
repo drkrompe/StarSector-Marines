@@ -25,6 +25,9 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
  */
 public final class MechLoadoutComponent {
 
+    public static final int DEFAULT_SRM_AMMO_SALVOS = 6;
+    public static final int DEFAULT_LRM_AMMO_SALVOS = 3;
+
     public final MechWeapon chaingun;
     public final MechWeapon srmPod;
     public final MechWeapon lrmArtillery;
@@ -149,6 +152,6 @@ public final class MechLoadoutComponent {
                 MechWeapon.CHAINGUN,
                 MechWeapon.SRM_POD,
                 MechWeapon.LRM_ARTILLERY,
-                6, 3, role);
+                DEFAULT_SRM_AMMO_SALVOS, DEFAULT_LRM_AMMO_SALVOS, role);
     }
 }

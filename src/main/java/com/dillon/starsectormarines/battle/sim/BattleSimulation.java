@@ -198,6 +198,10 @@ public class BattleSimulation implements BattleControl {
      * {@link #rng} is available.
      */
     private final EffectsService effects;
+    /** Persistent physical supply caches and their finite transfer state. */
+    private final com.dillon.starsectormarines.battle.logistics.ResupplyService resupply =
+            new com.dillon.starsectormarines.battle.logistics.ResupplyService();
+    private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
 
@@ -321,6 +325,8 @@ public class BattleSimulation implements BattleControl {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
+        this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
+                resupply, rosterService);
         // The entity world + component registrations are owned by the roster
         // service (allocate is the spawn seam that adopts ids into the world); the
         // sim aliases them for its tick barrier + getters.
@@ -398,7 +404,8 @@ public class BattleSimulation implements BattleControl {
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
                 shots, detonations);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn, effects);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
+                rng, this::spawn, effects, resupply);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -502,6 +509,9 @@ public class BattleSimulation implements BattleControl {
         return civilianEvacuationSystem.isEvacuationTriggered();
     }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
+    public List<com.dillon.starsectormarines.battle.logistics.ResupplyCache> getResupplyCaches() {
+        return resupply.caches();
+    }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
     public com.dillon.starsectormarines.battle.world.model.Buildings getBuildings() { return fogOfWar.getBuildings(); }
@@ -1098,6 +1108,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
+        resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
