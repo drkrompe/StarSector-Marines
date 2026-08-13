@@ -16,6 +16,8 @@ public final class StationingWithdrawalService {
     interface PersonnelStore {
         MarineCaptain captain(String id);
         boolean addMarines(int count);
+        default boolean hasNamedAssignment(long contractId) { return false; }
+        default boolean releaseNamedAssignment(long contractId) { return false; }
     }
 
     private StationingWithdrawalService() {}
@@ -36,11 +38,16 @@ public final class StationingWithdrawalService {
 
         int marines = state.contractMarinesCommitted[row];
         int captainSlot = state.contractCaptainId[row];
-        if (marines <= 0 && captainSlot < 0) return false;
+        boolean named = store.hasNamedAssignment(contractId);
+        if (marines <= 0 && captainSlot < 0 && !named) return false;
         String captainId = captainSlot >= 0 ? state.captainRegistry.get(captainSlot) : null;
         MarineCaptain captain = captainId != null ? store.captain(captainId) : null;
         if (captainSlot >= 0 && captain == null) return false;
-        if (marines > 0 && !store.addMarines(marines)) return false;
+        if (named) {
+            if (!store.releaseNamedAssignment(contractId)) return false;
+        } else if (marines > 0 && !store.addMarines(marines)) {
+            return false;
+        }
 
         ContractType type = ContractType.fromByte(state.contractType[row]);
         if (captain != null && captain.status() == Status.GARRISONED) {
@@ -69,6 +76,19 @@ public final class StationingWithdrawalService {
             if (fleet == null || fleet.getCargo() == null) return false;
             fleet.getCargo().addMarines(count);
             return true;
+        }
+
+        @Override
+        public boolean hasNamedAssignment(long contractId) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            return script != null
+                    && !script.roster().squadsStationedOn(contractId).isEmpty();
+        }
+
+        @Override
+        public boolean releaseNamedAssignment(long contractId) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            return script != null && script.roster().releaseStationing(contractId) > 0;
         }
     }
 }
