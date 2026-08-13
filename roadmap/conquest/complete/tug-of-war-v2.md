@@ -1,5 +1,15 @@
 # Territory tug-of-war — V2 compound capture
 
+> **Shipped** with `3bbbcb12` (slice 1 `CompoundGarrisonSystem` +
+> slice 2 commander hold pass), refined by `08ef31e6`: the garrison
+> squad is now *born holding* via `ShuttleMission.garrisonNode`
+> (stamps a HOLD_NODE objective at squad mint), so the commander
+> stops pinning whichever assault squad captured the compound —
+> superseding the doc's original "assign at most 1 squad in-zone"
+> pass. The what's-NOT-in-this-cut list (defender positive win
+> condition, marine-side compound supply, incoming-garrison marker)
+> remains open.
+
 > When marines capture a compound, a friendly garrison shuttle drops
 > troops to hold it while the assault force pushes on. Existing defender
 > reinforcement naturally counter-attacks. If the garrison falls, the

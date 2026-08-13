@@ -11,14 +11,22 @@ designed around.
   compound-as-supply model. **V1 complete** (all 6 slices shipped):
   compound state machine, world/HUD markers, reinforcement gating,
   ConquestObjective, BSP compound generation, multi-chamber keep.
-- [`tug-of-war-v2.md`](tug-of-war-v2.md) — v2 territory tug-of-war.
-  Marine garrison drops on capture + commander hold assignment.
-  **In progress.**
-- [`complete/deliberate-compound-capture.md`](complete/deliberate-compound-capture.md)
-  — smarter attacker commander: deliberate, capped, uncontested-aware
-  compound capture (replaces the strip-local "ripe" heuristic that left
-  objectives uncaptured while squads swarmed search-and-destroy).
-  **Shipped.**
+- [`stories/progressive-reinforcement.md`](stories/progressive-reinforcement.md)
+  — defender reinforcement contests the frontline: recapture targets,
+  biome-slice round-robin dispatch, delivery/objective split.
+  **In progress** — slices 1/2/3a + means retrofit shipped; the
+  front-line trigger, post-deboard assignment, and wiring are the
+  active work.
+- [`stories/biome-counterattack.md`](stories/biome-counterattack.md)
+  — the staged defender "bulge" counteroffensive. **Blocked on
+  progressive reinforcement.**
+- [`complete/`](complete/) — shipped stories:
+  [`deliberate-compound-capture.md`](complete/deliberate-compound-capture.md)
+  (attacker commander captures deliberately),
+  [`compound-spread.md`](complete/compound-spread.md) (one compound
+  per biome band, PORT → CITY → FORTRESS),
+  [`tug-of-war-v2.md`](complete/tug-of-war-v2.md) (marine garrison
+  drop on capture; reverse compound flips).
 
 ## Related
 
