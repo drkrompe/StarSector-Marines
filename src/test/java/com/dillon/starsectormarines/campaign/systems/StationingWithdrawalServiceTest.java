@@ -52,6 +52,38 @@ class StationingWithdrawalServiceTest {
     }
 
     @Test
+    void namedWithdrawalReleasesTeamsWithoutCreatingCargo() {
+        Fixture fixture = fixture(ContractState.ACTIVE);
+        fixture.store.namedAssignment = true;
+
+        assertTrue(StationingWithdrawalService.withdraw(
+                fixture.state, fixture.contractId, 40, fixture.store));
+
+        assertEquals(1, fixture.store.namedReleases);
+        assertEquals(0, fixture.store.returnedMarines);
+        assertEquals(0, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(-1, fixture.state.contractCaptainId[0]);
+        assertEquals(Status.ACTIVE, fixture.captain.status());
+    }
+
+    @Test
+    void failedNamedReleaseLeavesAssignmentUntouched() {
+        Fixture fixture = fixture(ContractState.ACTIVE);
+        fixture.store.namedAssignment = true;
+        fixture.store.namedReleaseSucceeds = false;
+
+        assertFalse(StationingWithdrawalService.withdraw(
+                fixture.state, fixture.contractId, 40, fixture.store));
+
+        assertEquals(0, fixture.store.returnedMarines);
+        assertEquals(80, fixture.state.contractMarinesCommitted[0]);
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+        assertEquals(ContractState.ACTIVE,
+                ContractState.fromByte(fixture.state.contractState[0]));
+        assertEquals(0, fixture.state.repCount);
+    }
+
+    @Test
     void terminalAndInProgressAssignmentsCannotWithdraw() {
         Fixture defaulted = fixture(ContractState.DEFAULTED);
         Fixture inProgress = fixture(ContractState.IN_PROGRESS);
@@ -93,6 +125,9 @@ class StationingWithdrawalServiceTest {
         final MarineCaptain captain;
         int returnedMarines;
         boolean deliverySucceeds = true;
+        boolean namedAssignment;
+        boolean namedReleaseSucceeds = true;
+        int namedReleases;
 
         TestPersonnelStore(MarineCaptain captain) {
             this.captain = captain;
@@ -107,6 +142,19 @@ class StationingWithdrawalServiceTest {
         public boolean addMarines(int count) {
             if (!deliverySucceeds) return false;
             returnedMarines += count;
+            return true;
+        }
+
+        @Override
+        public boolean hasNamedAssignment(long contractId) {
+            return namedAssignment;
+        }
+
+        @Override
+        public boolean releaseNamedAssignment(long contractId) {
+            if (!namedReleaseSucceeds) return false;
+            namedReleases++;
+            namedAssignment = false;
             return true;
         }
     }
