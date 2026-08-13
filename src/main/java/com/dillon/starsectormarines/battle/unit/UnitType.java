@@ -110,6 +110,15 @@ public enum UnitType {
     public boolean isMech() { return this == HEAVY_MECH; }
 
     /**
+     * Collision radius in cells for {@code BallisticResolver}'s unit-contact
+     * test — distinct from {@link #radius}, which sizes AoE/pick footprints.
+     * Infantry-class archetypes and everything else default to {@code 0.35f};
+     * mech/large chassis ({@link #isMech}) use {@code 0.6f}. No per-instance
+     * override in S1.
+     */
+    public float collisionRadius() { return isMech() ? 0.6f : 0.35f; }
+
+    /**
      * Whether this archetype is a static emplacement — a {@link #TURRET} or a
      * {@link #DRONE_HUB_STRUCTURE}. These are combatants (targetable, damageable)
      * but immobile and mindless: they neither path nor run a decision cadence, so

@@ -32,10 +32,15 @@ import java.util.Arrays;
  * is zero. Callers passing an output {@link LongBucket} to {@link #gather} pay
  * nothing per call past clearing the buffer.
  *
- * <p><b>Threading.</b> Single-threaded against the sim today. The squad-GOAP
- * replan loop is the next likely parallel surface — when that lands, this
- * class's reads are safe (no mutation), but each parallel worker needs its
- * own output buffer for {@link #gather}.
+ * <p><b>Threading.</b> {@link #rebuild} and {@link #add} run single-threaded
+ * (the per-tick setup phase). {@link #gather} and {@link #gatherAlongSegment}
+ * are read-only against the post-rebuild bucket state and safe to call
+ * concurrently — {@link #gatherAlongSegment} is already called this way, from
+ * {@link com.dillon.starsectormarines.battle.combat.BallisticResolver#resolve}
+ * on the parallel UPDATE_UNITS dispatch (turret/drone/infantry fire).
+ * Both methods mutate nothing on the instance; each caller must still pass
+ * its own output {@link LongBucket} — a shared buffer across concurrent
+ * callers would race on the buffer itself, not the index.
  */
 public final class UnitSpatialIndex {
 
@@ -221,6 +226,96 @@ public final class UnitSpatialIndex {
                     if (dx * dx + dy * dy <= r2) out.add(id);
                 }
             }
+        }
+    }
+
+    /**
+     * Appends every alive unit whose snapshot position lies within
+     * {@code margin} cells (point-to-segment Euclidean distance) of segment
+     * ({@code x0}, {@code y0})–({@code x1}, {@code y1}) into {@code out}.
+     * Same output-buffer contract as {@link #gather} (clears {@code out}
+     * first; no-op no-alloc past buffer growth).
+     *
+     * <p>A ballistic ray is long and narrow, so scanning its full bounding
+     * box (as {@link #gather} does for a circle) would touch every bucket
+     * between the endpoints even when the ray only grazes a thin sliver of
+     * each. Instead this walks the segment in bucket-sized steps and, at
+     * each sampled point, visits that point's bucket plus every neighbor
+     * within {@code margin}. The +1-bucket pad on the neighbor search
+     * (beyond {@code ceil(margin / BUCKET)}) absorbs the along-segment gap
+     * between samples (up to {@code BUCKET} cells apart) so no unit within
+     * {@code margin} of the true segment is skipped.
+     *
+     * <p><b>Dedupe without shared state.</b> The sample point advances
+     * monotonically along the segment, so each sample's bucket-neighborhood
+     * rectangle moves monotonically in bucket space, independently per axis.
+     * That means a bucket appearing in sample {@code i}'s rectangle that also
+     * appeared in any <em>earlier</em> sample's rectangle must appear in
+     * sample {@code i-1}'s rectangle too — the visited set never "skips
+     * backward" between one sample and the next. So dedup only needs the
+     * immediately preceding sample's rectangle bounds, kept in locals; no
+     * per-instance visited-stamp array, no shared mutable state. This makes
+     * the method safe for concurrent callers (each has its own locals and
+     * output buffer) — see the class Javadoc's Threading note.
+     */
+    public void gatherAlongSegment(float x0, float y0, float x1, float y1, float margin, LongBucket out) {
+        out.clear();
+        if (margin <= 0f) return;
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        int marginBuckets = (int) Math.ceil(margin / BUCKET) + 1;
+        int steps = Math.max(1, (int) Math.ceil(len / BUCKET));
+        // Previous sample's visited rectangle. Starts empty (bx1 < bx0) so
+        // the first sample's whole rectangle is visited.
+        int prevBx0 = 0, prevBx1 = -1, prevBy0 = 0, prevBy1 = -1;
+        for (int s = 0; s <= steps; s++) {
+            float t = (float) s / steps;
+            float px = x0 + dx * t;
+            float py = y0 + dy * t;
+            int cbx = Math.floorDiv((int) Math.floor(px), BUCKET);
+            int cby = Math.floorDiv((int) Math.floor(py), BUCKET);
+            int bx0 = Math.max(0, cbx - marginBuckets);
+            int bx1 = Math.min(bucketsX - 1, cbx + marginBuckets);
+            int by0 = Math.max(0, cby - marginBuckets);
+            int by1 = Math.min(bucketsY - 1, cby + marginBuckets);
+            for (int by = by0; by <= by1; by++) {
+                for (int bx = bx0; bx <= bx1; bx++) {
+                    // Already covered by the previous sample's rectangle ⟹
+                    // already covered by every earlier sample too (see the
+                    // monotonicity invariant above) — skip re-testing it.
+                    if (bx >= prevBx0 && bx <= prevBx1 && by >= prevBy0 && by <= prevBy1) continue;
+                    gatherBucketAlongSegment(buckets[by * bucketsX + bx], x0, y0, dx, dy, len, margin, out);
+                }
+            }
+            prevBx0 = bx0; prevBx1 = bx1; prevBy0 = by0; prevBy1 = by1;
+        }
+    }
+
+    /**
+     * Point-to-segment distance filter for one bucket's contents, shared by
+     * every bucket {@link #gatherAlongSegment} visits. The segment is given
+     * as origin ({@code x0}, {@code y0}) + direction ({@code dx}, {@code dy}),
+     * {@code len} = the direction vector's magnitude.
+     */
+    private void gatherBucketAlongSegment(Bucket bucket, float x0, float y0, float dx, float dy,
+                                           float len, float margin, LongBucket out) {
+        if (bucket == null) return;
+        long[] ids = bucket.ids;
+        float[] bpx = bucket.posX;
+        float[] bpy = bucket.posY;
+        float len2 = len * len;
+        float m2 = margin * margin;
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = ids[i];
+            if (!roster.isAliveById(id)) continue;
+            float px = bpx[i] - x0;
+            float py = bpy[i] - y0;
+            float t = len2 > 0f ? (px * dx + py * dy) / len2 : 0f;
+            t = t < 0f ? 0f : (t > 1f ? 1f : t);
+            float ex = px - dx * t;
+            float ey = py - dy * t;
+            if (ex * ex + ey * ey <= m2) out.add(id);
         }
     }
 }

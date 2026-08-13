@@ -10,30 +10,34 @@ import java.util.List;
  * Owner of every in-flight bullet, tracer, and projectile the battle has
  * spawned: the {@link ShotEvent} list driving renderer tracers and audio,
  * the {@link Projectile} list driving simulated-flight rockets / missiles,
- * and the per-frame event drains the renderer pulls each frame.
+ * the {@link PendingImpact} list driving delayed ballistic-round damage, and
+ * the per-frame event drains the renderer pulls each frame.
  *
  * <p>Sibling slice to
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService} and
  * {@link FogOfWarService}.
  * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} owns one
  * instance and delegates the {@code postShot} / {@code queueProjectile} /
- * accessor surface here; the SHOTS and PROJECTILES tick phases call
- * {@link #tickShots(float)} and
+ * {@code queueImpact} / accessor surface here; the SHOTS and PROJECTILES tick
+ * phases call {@link #tickShots(float)} /
+ * {@link #tickImpacts(float, ImpactSink)} and
  * {@link #tickProjectiles(float, ProjectileArrivalSink)}.
  *
- * <p>The projectile-arrival → detonation hand-off goes through the
- * {@link ProjectileArrivalSink} callback rather than a direct reference to
- * the weapons subsystem, so this class doesn't import the (deprecation-bound)
- * {@code WeaponSimContext} interface or take {@code Detonations} as a
- * dependency. {@code BattleSimulation} provides the sink as a lambda that
- * routes back to {@code detonations.detonateNow}.
+ * <p>The projectile-arrival → detonation and impact-arrival → damage hand-offs
+ * both go through callback interfaces ({@link ProjectileArrivalSink},
+ * {@link ImpactSink}) rather than a direct reference to the weapons
+ * subsystem, so this class doesn't import the (deprecation-bound)
+ * {@code WeaponSimContext} interface or take {@code Detonations} /
+ * {@code DamageService} as a dependency. {@code BattleSimulation} provides
+ * each sink as a lambda that routes back to {@code detonations.detonateNow}
+ * / {@code damageService.applyDamage} + {@code HitResponseSystem}.
  *
- * <p>Concurrency: {@link #postShot} and {@link #queueProjectile} are called
- * from the parallel UPDATE_UNITS dispatch. Both synchronize on
- * {@link #activeShots} (the same monitor covers the paired
- * {@link #shotsThisFrame} append in {@code postShot}) and
- * {@link #activeProjectiles} respectively. {@link #snapshotActiveShots} grabs
- * the same monitor so concurrent readers see a consistent list.
+ * <p>Concurrency: {@link #postShot}, {@link #queueProjectile}, and
+ * {@link #queueImpact} are called from the parallel UPDATE_UNITS dispatch.
+ * Each synchronizes on its own list monitor ({@link #activeShots} — which
+ * also covers the paired {@link #shotsThisFrame} append in {@code postShot} —
+ * {@link #activeProjectiles}, {@link #activeImpacts}). {@link #snapshotActiveShots}
+ * grabs the same monitor so concurrent readers see a consistent list.
  */
 public final class ShotService {
 
@@ -43,6 +47,49 @@ public final class ShotService {
         void detonate(PendingDetonation det);
     }
 
+    /** Callback the impact-arrival path uses to hand an expired {@link PendingImpact} to the weapons subsystem for damage + hit-response application. Functional interface so the BattleSimulation site is a lambda. */
+    @FunctionalInterface
+    public interface ImpactSink {
+        void apply(PendingImpact impact);
+    }
+
+    /**
+     * A ballistic round's damage/hit-response payload, scheduled to apply
+     * when its flight clock ({@link #remainingTime}) reaches zero — the
+     * {@link BallisticResolver} sibling to {@link PendingDetonation}. Queued
+     * by {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireShot}
+     * at fire time (parallel-safe via {@link #queueImpact}) and drained by
+     * {@link #tickImpacts(float, ImpactSink)} in the serial SHOTS phase. The
+     * sink re-guards {@code roster.isAliveById(victimId)} before applying —
+     * a victim who died mid-flight (e.g. to a faster round, or a detonation)
+     * takes no further damage, mirroring {@code DamageResolver}'s released-
+     * target guard pattern.
+     */
+    public static final class PendingImpact {
+        public final long victimId;
+        public final long shooterId;
+        /** Sim-seconds until the round's flight completes and damage applies. Decremented per tick by {@link #tickImpacts(float, ImpactSink)}. */
+        public float remainingTime;
+        /** Pre-multiplied by {@code BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT} at queue time when {@link #friendly} — the queue carries the final applied damage, not a raw base value. */
+        public final float damage;
+        public final float vsTurretMult;
+        public final float moraleImpact;
+        /** True when the victim shares the shooter's faction. Damage is already reduced accordingly; kept for FX/log — hit-response rolls still apply, since being shot by your own side is still getting shot. */
+        public final boolean friendly;
+
+        public PendingImpact(long victimId, long shooterId, float remainingTime,
+                             float damage, float vsTurretMult, float moraleImpact,
+                             boolean friendly) {
+            this.victimId = victimId;
+            this.shooterId = shooterId;
+            this.remainingTime = remainingTime;
+            this.damage = damage;
+            this.vsTurretMult = vsTurretMult;
+            this.moraleImpact = moraleImpact;
+            this.friendly = friendly;
+        }
+    }
+
     private final List<ShotEvent> activeShots = new ArrayList<>();
     /** Shots fired during the last advance. Cleared at the top of each advance, populated per tick. Drives one-shot audio in the renderer. */
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
@@ -50,6 +97,8 @@ public final class ShotService {
     private final List<ShotEvent> shotsExpiredThisFrame = new ArrayList<>();
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Advanced + detonated by {@link #tickProjectiles(float, ProjectileArrivalSink)} each tick. */
     private final List<Projectile> activeProjectiles = new ArrayList<>();
+    /** In-flight {@link PendingImpact}s — one per resolved ballistic round with a victim, queued at fire time by {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireShot}. Advanced + applied by {@link #tickImpacts(float, ImpactSink)} each tick. */
+    private final List<PendingImpact> activeImpacts = new ArrayList<>();
     /** Projectiles that arrived this tick — parallel to {@link #shotsExpiredThisFrame} for the impact-FX dispatch in the renderer. Cleared each tick. */
     private final List<Projectile> projectilesArrivedThisFrame = new ArrayList<>();
 
@@ -74,6 +123,18 @@ public final class ShotService {
     public void queueProjectile(Projectile p) {
         synchronized (activeProjectiles) {
             activeProjectiles.add(p);
+        }
+    }
+
+    /**
+     * Queues a resolved round's damage/hit-response payload for delayed
+     * application at {@link PendingImpact#remainingTime}. Called from the
+     * parallel UPDATE_UNITS dispatch — same monitor-per-list discipline as
+     * {@link #postShot} / {@link #queueProjectile}.
+     */
+    public void queueImpact(PendingImpact p) {
+        synchronized (activeImpacts) {
+            activeImpacts.add(p);
         }
     }
 
@@ -160,6 +221,26 @@ public final class ShotService {
                 sink.detonate(p.onArrival);
                 projectilesArrivedThisFrame.add(p);
                 activeProjectiles.remove(i);
+            }
+        }
+    }
+
+    /**
+     * Advances every in-flight {@link PendingImpact} by {@code dt}; expired
+     * impacts fire through {@code sink} (damage + hit-response application —
+     * see {@link ImpactSink}) and are removed. Called from the serial SHOTS
+     * phase, right alongside {@link #tickShots(float)} — outside the
+     * parallel UPDATE_UNITS dispatch and the FIRING deferral window, so the
+     * sink's {@code DamageService.applyDamage} call resolves inline rather
+     * than re-queuing. Reverse iteration for in-place removal.
+     */
+    public void tickImpacts(float dt, ImpactSink sink) {
+        for (int i = activeImpacts.size() - 1; i >= 0; i--) {
+            PendingImpact impact = activeImpacts.get(i);
+            impact.remainingTime -= dt;
+            if (impact.remainingTime <= 0f) {
+                sink.apply(impact);
+                activeImpacts.remove(i);
             }
         }
     }

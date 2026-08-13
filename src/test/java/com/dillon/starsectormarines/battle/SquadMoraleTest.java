@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -486,5 +489,71 @@ public class SquadMoraleTest {
 
         assertEquals(before, sq.morale, 1e-6f,
                 "killing a non-squad unit must not drain any squad's morale");
+    }
+
+    // ---- near-miss morale keys on path proximity (segment), not endpoint proximity ----
+    //
+    // These drive SquadMoraleSystem directly against a throwaway ShotService
+    // rather than through sim.advance/postShot: squadHitByMiss only needs
+    // shots.getShotsThisFrame() and the roster, so posting straight to a
+    // fresh ShotService and ticking one SquadMoraleSystem instance isolates
+    // the near-miss math from the tick-ordering / beginFrame() interplay
+    // between fire and the morale pass in the real per-tick loop.
+    //
+    // squadHitByMiss gates on Squad#aliveMembers, which is normally
+    // recomputed each tick by SquadAlertSystem (part of the full
+    // sim.advance loop these tests deliberately bypass) — so it's stamped
+    // directly here to match marineSquad's originalSize, mirroring what a
+    // real tick would have already computed.
+
+    @Test
+    public void nearMissDrainsWhenSegmentPassesCloseButEndpointIsFarDownrange() {
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        sq.aliveMembers = 4;
+        long member = sim.liveUnitAt(0);
+        World world = sim.world();
+        float mx = world.x(member);
+        float my = world.y(member);
+
+        // Segment runs horizontally 1 cell off the member's row — within the
+        // 1.5-cell near-miss radius — but its endpoint sits ~5.1 cells from
+        // the member (well past the "4+ cells downrange" under-trigger
+        // case). Point-to-endpoint distance would miss this entirely; the
+        // fix requires point-to-segment distance to still catch it.
+        float fromX = mx - 5f;
+        float fromY = my + 1f;
+        float toX = mx + 5f;
+        float toY = my + 1f;
+
+        ShotService shots = new ShotService();
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, false, Faction.DEFENDER, 1f));
+        SquadMoraleSystem morale = new SquadMoraleSystem(sim.getRoster(), shots);
+
+        float before = sq.morale;
+        morale.tick(BattleSimulation.TICK_DT);
+
+        assertTrue(sq.morale < before,
+                "a segment passing 1 cell from a squadmate must drain near-miss morale even though its endpoint is far downrange");
+    }
+
+    @Test
+    public void shotWhoseWholeSegmentStaysFarFromEveryMemberDrainsNothing() {
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        sq.aliveMembers = 4;
+
+        // marineSquad places all 4 members along y=1, x in [1, 4]. This
+        // segment sits far away from that whole span — every point on it is
+        // well outside the 1.5-cell near-miss radius of every member.
+        ShotService shots = new ShotService();
+        shots.postShot(new ShotEvent(20f, 20f, 25f, 20f, false, Faction.DEFENDER, 1f));
+        SquadMoraleSystem morale = new SquadMoraleSystem(sim.getRoster(), shots);
+
+        float before = sq.morale;
+        morale.tick(BattleSimulation.TICK_DT);
+
+        assertEquals(before, sq.morale, 1e-6f,
+                "a shot whose segment never comes within range of any member must not drain morale");
     }
 }

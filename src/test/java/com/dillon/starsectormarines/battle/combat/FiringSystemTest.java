@@ -320,23 +320,26 @@ public class FiringSystemTest {
     /**
      * Overkill / focus-fire — pins the restored "both shooters fire" semantics
      * (critique-fix 1b). Two independent shooters author intent at the same
-     * lethally-fragile target this tick; because FIRING now defers damage to
-     * the same {@code APPLY_DAMAGE} barrier the old parallel UPDATE_UNITS path
-     * used (see {@link com.dillon.starsectormarines.battle.combat.DamageService}),
-     * neither shooter's row sees the target as dead — both fire and reset
-     * their cooldown — and the target only actually dies once both queued
-     * hits flush, after FIRING has finished for the tick.
+     * lethally-fragile target this tick; neither shooter's row sees the
+     * target as dead when it fires (the {@code BallisticResolver}/{@code
+     * ShotService.PendingImpact} damage is scheduled on the round's
+     * flight-time clock, not applied inline — see
+     * {@code roadmap/ballistics/overview.md}), so both fire and reset their
+     * cooldown. The target actually dies once the queued impacts' flight
+     * time elapses, a few ticks later; the later-arriving impact resolves
+     * against an already-dead target and is a no-op ({@code PendingImpact}'s
+     * {@code isAliveById} guard).
      *
      * <p>Driven through the real {@link BattleSimulation#advance} (not the
      * direct-tick shortcut the gate tests above use) so it exercises the
-     * production deferral bracket + same-tick flush exactly as
-     * {@code BattleSimulation.tick} wires it. Both shooters are squadless —
+     * production FIRING deferral bracket exactly as {@code
+     * BattleSimulation.tick} wires it. Both shooters are squadless —
      * like the cadence golden test's defender, {@code GoapInfantryBehavior}
      * no-ops for them, so the hand-written fire intents survive UPDATE_UNITS
      * untouched into FIRING.
      */
     @Test
-    public void overkillBothShootersFireAtSharedFragileTargetDeferredDamageKillsAtFlush() {
+    public void overkillBothShootersFireAtSharedFragileTargetDeferredDamageKillsOnFlightClock() {
         BattleSimulation sim = openArena(30, 10);
         long shooterA = combatant(sim, Faction.MARINE, 5, 5);
         long shooterB = combatant(sim, Faction.MARINE, 6, 5);
@@ -362,8 +365,25 @@ public class FiringSystemTest {
                 "second shooter ALSO fires at the same nominally-still-alive target — the restored overkill semantics; "
                         + "the pre-fix inline-during-FIRING behavior would have left this cooldown untouched because "
                         + "the first shooter's damage had already (wrongly) resolved the target dead");
+        // Ballistics swap: damage no longer applies at APPLY_DAMAGE the same
+        // tick it's fired — it's deferred onto the resolved round's
+        // flight-time clock (BallisticResolver.Resolution#flightTime /
+        // ShotService.PendingImpact), drained in the SHOTS phase. Both
+        // shooters are unarmed (no MarineWeapon), so their rounds travel at
+        // BallisticResolver.DEFAULT_ROUND_VELOCITY; at 5 cells range that's
+        // several ticks of flight, so the target is still alive right after
+        // the firing tick.
+        assertTrue(sim.world().isAlive(target),
+                "damage is deferred onto the round's flight-time clock — the target outlives the tick both shots fired in");
+
+        // Advance until both queued impacts' flight time has elapsed. The
+        // second shooter's impact resolves against an already-dead target
+        // and is a no-op (PendingImpact's isAliveById guard).
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.advance(BattleSimulation.TICK_DT);
+
         assertFalse(sim.world().isAlive(target),
-                "the target dies once both shots' queued damage flushes at APPLY_DAMAGE, after FIRING finished this tick");
+                "the target dies once the queued impacts' flight-time clock elapses");
     }
 
     // Not covered: the doomed-unit-gets-a-final-action semantic (1a) as it

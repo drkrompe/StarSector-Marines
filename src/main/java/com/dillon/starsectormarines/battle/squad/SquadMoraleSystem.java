@@ -52,9 +52,9 @@ public final class SquadMoraleSystem {
     public static final float MORALE_RECOVERY_RATE = 0.20f;
     /** Cooldown between morale-drain events on a single squad (sim seconds). A burst of incoming bullets in one tick still counts as one drain — prevents a hail of fire from insta-breaking a full squad. At 0.2s a full squad endures sustained fire for ~2.8s before breaking (5 hits/sec × 0.05/hit = 0.25/sec, 0.7 margin). Doesn't shield mauled squads: their per-hit drain (0.05/cap) is large enough that a single hit folds them on the first cooldown window. */
     public static final float MORALE_DRAIN_COOLDOWN = 0.2f;
-    /** Near-miss morale drain — applied when a hostile shot's endpoint lands near a squad member but no damage is taken. Cap-scaled like hit drain. Suppressing fire that doesn't connect still rattles them, just less than a landed hit. */
+    /** Near-miss morale drain — applied when a hostile shot's flight path passes near a squad member but no damage is taken. Cap-scaled like hit drain. Suppressing fire that doesn't connect still rattles them, just less than a landed hit. */
     public static final float MORALE_DROP_ON_NEAR_MISS = 0.01f;
-    /** Squared cell-distance from a shot's endpoint to a squad member that counts as a "near miss." 2.25 = 1.5 cells radius. */
+    /** Squared cell-distance from a shot's flight path (point-to-segment, not endpoint — see {@link #squadHitByMiss}) to a squad member that counts as a "near miss." 2.25 = 1.5 cells radius. */
     public static final float NEAR_MISS_RADIUS_SQ = 2.25f;
     /** Hysteresis broken threshold, as a <em>fraction of cap</em>. Squad flips to broken when {@code morale < MORALE_BROKEN_THRESHOLD * cap}. Scaling by cap keeps the model coherent for mauled squads: a lone survivor (cap = 0.25) breaks below 0.075 absolute morale, a fresh squad (cap = 1.0) breaks below 0.30. */
     public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
@@ -112,7 +112,13 @@ public final class SquadMoraleSystem {
         List<ShotEvent> shotsThisFrame = shots.getShotsThisFrame();
         if (!shotsThisFrame.isEmpty()) {
             for (ShotEvent shot : shotsThisFrame) {
-                if (shot.hit) continue;
+                // shot.hit = connected with the locked target; shot.struckUnit =
+                // connected with ANYONE (incidental contacts included). Either
+                // means this round already drains morale through the hit path
+                // (DamageResolver.resolve) at its (later) flight-time impact —
+                // counting it here too would double-drain via the cooldown the
+                // near-miss roll arms at the earlier fire tick.
+                if (shot.hit || shot.struckUnit) continue;
                 Squad target = squadHitByMiss(shot, dense, roster, liveCount);
                 if (target == null) continue;
                 // Mech squads don't take near-miss morale — their drain model
@@ -258,11 +264,15 @@ public final class SquadMoraleSystem {
     /**
      * Returns the friendly squad most affected by {@code shot} as a near
      * miss — first squad whose member is within {@link #NEAR_MISS_RADIUS_SQ}
-     * cells of the shot's endpoint. Returns null when the shot is a self-
-     * faction shot, no squad member is in range, or the shooter's faction
-     * matches the candidate. One assignment per shot — a stray that grazes
-     * two squad members only rattles one of them (the first found), which
-     * matches the "single drain event per shot" intent.
+     * cells of the shot's flight path (point-to-segment distance,
+     * {@code shot.fromX/fromY} to {@code shot.toX/toY} — a missed ballistic
+     * round's endpoint lands far downrange under the S1 resolver, so
+     * distance-to-endpoint alone under-triggers; the path it actually flew
+     * still passes close by a squadmate). Returns null when the shot is a
+     * self-faction shot, no squad member is in range, or the shooter's
+     * faction matches the candidate. One assignment per shot — a stray that
+     * grazes two squad members only rattles one of them (the first found),
+     * which matches the "single drain event per shot" intent.
      */
     private Squad squadHitByMiss(ShotEvent shot, long[] dense, UnitRosterService roster, int liveCount) {
         World world = roster.world();
@@ -273,11 +283,22 @@ public final class SquadMoraleSystem {
                 long member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
                 if (!roster.squad().hasSquad(member) || roster.squad().squadId(member) != sq.id) continue;
-                float dx = shot.toX - world.x(member);
-                float dy = shot.toY - world.y(member);
-                if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;
+                if (distanceToSegmentSq(world.x(member), world.y(member),
+                        shot.fromX, shot.fromY, shot.toX, shot.toY) <= NEAR_MISS_RADIUS_SQ) return sq;
             }
         }
         return null;
+    }
+
+    /** Squared Euclidean distance from ({@code px}, {@code py}) to the closest point on segment ({@code x0}, {@code y0})–({@code x1}, {@code y1}), clamped to the segment's endpoints. */
+    private static float distanceToSegmentSq(float px, float py, float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float len2 = dx * dx + dy * dy;
+        float t = len2 > 0f ? ((px - x0) * dx + (py - y0) * dy) / len2 : 0f;
+        t = t < 0f ? 0f : (t > 1f ? 1f : t);
+        float ex = px - (x0 + dx * t);
+        float ey = py - (y0 + dy * t);
+        return ex * ex + ey * ey;
     }
 }
