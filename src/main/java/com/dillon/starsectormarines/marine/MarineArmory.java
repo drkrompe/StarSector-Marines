@@ -103,7 +103,7 @@ public final class MarineArmory implements Serializable {
 
     /** Standard issue is replenished freely; interesting upgrades consume fabrication stock. */
     public void ensureBasicIssue(int soldierCount) {
-        putAtLeast(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), soldierCount);
+        putAtLeast(primaryKey(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE), soldierCount);
         putAtLeast(armorKey(MarineArmorPattern.ARMORLESS), soldierCount);
     }
 
@@ -115,6 +115,8 @@ public final class MarineArmory implements Serializable {
     }
 
     private void seedStarterIssue() {
+        unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
+        unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS);
         unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS);
         unlockPrimary(MarineWeapon.SMG, EquipmentGrade.SERVICE);
@@ -123,6 +125,8 @@ public final class MarineArmory implements Serializable {
         unlockArmor(MarineArmorPattern.ARMORLESS);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
+        printedGear.put(primaryKey(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE), 12);
+        printedGear.put(primaryKey(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS), 1);
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 12);
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS), 1);
         printedGear.put(primaryKey(MarineWeapon.SMG, EquipmentGrade.SERVICE), 3);
@@ -161,6 +165,9 @@ public final class MarineArmory implements Serializable {
         if (printedGear == null) printedGear = new HashMap<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (unlockedRecipes.isEmpty()) seedStarterIssue();
+        // Existing saves predate the recruit-grade field rifle recipe.
+        unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
+        unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS);
         fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);

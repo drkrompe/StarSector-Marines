@@ -11,6 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class InfantryCombatStatsTest {
 
     @Test
+    public void fieldRifleIsARealDowngradeFromPulseIssue() {
+        assertTrue(MarineWeapon.FIELD_RIFLE.cooldown > MarineWeapon.PULSE_RIFLE.cooldown);
+        assertTrue(MarineWeapon.FIELD_RIFLE.accuracy < MarineWeapon.PULSE_RIFLE.accuracy);
+        assertTrue(MarineWeapon.FIELD_RIFLE.damage < MarineWeapon.PULSE_RIFLE.damage);
+        assertEquals(1, MarineWeapon.FIELD_RIFLE.burstCount);
+    }
+
+    @Test
     public void serviceRegularIsTheFamilyBaseline() {
         MarineWeapon family = MarineWeapon.PULSE_RIFLE;
         SoldierProfile regular = SoldierProfile.REGULAR;

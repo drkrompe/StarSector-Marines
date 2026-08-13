@@ -98,6 +98,7 @@ public final class SquadOverviewPanel implements HudPanel {
             MarineWeapon weapon = sim.combat().primaryWeapon(u);
             if (weapon != null) {
                 switch (weapon) {
+                    case FIELD_RIFLE:
                     case PULSE_RIFLE: counts[0]++; break;
                     case SMG:         counts[1]++; break;
                     case DMR:         counts[2]++; break;

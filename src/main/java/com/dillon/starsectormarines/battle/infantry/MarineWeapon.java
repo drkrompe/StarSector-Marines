@@ -30,7 +30,20 @@ import java.awt.Color;
  */
 public enum MarineWeapon {
     /**
-     * Default marine primary — vanilla pulse laser flavor, 3-round burst
+     * Cheap recruit issue — a slow, unremarkable ballistic rifle whose single
+     * shots reward closing distance and taking a stable firing posture. It is
+     * deliberately worse than the pulse rifle in cadence, accuracy and burst
+     * pressure so the first energy-weapon upgrade is immediately meaningful.
+     */
+    FIELD_RIFLE("Field Rifle",
+                "light_autocannon_fire",
+                new Color(0xFF, 0xD0, 0x88),
+                22f, 0.85f, 0.28f, 1.45f, 0.25f,
+                ImpactProfile.RIFLE,
+                1, 0f, "graphics/missiles/shell_small_yellow.png", 0.18f,
+                0.42f, 0.75f, 48f),
+    /**
+     * Standard upgraded marine primary — vanilla pulse laser flavor, 3-round burst
      * (Halo BR-style tap-tap-tap). Sits between the single-shot DMR and the
      * full-auto SMG to form a clean DMR / BR / AR triad.
      *

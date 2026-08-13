@@ -12,6 +12,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class MarineArmoryTest {
 
     @Test
+    void newRecruitStartsWithBasicFieldRifle() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(1);
+
+        MarineSoldier recruit = roster.activeSoldiers().get(0);
+        assertEquals(MarineWeapon.FIELD_RIFLE, recruit.primary());
+        assertEquals(EquipmentGrade.SURPLUS, recruit.primaryGrade());
+    }
+
+    @Test
     void highRiskProgressionUnlocksAndPrintsMasterworkDmr() {
         MarineArmory armory = new MarineArmory();
         assertFalse(armory.isPrimaryUnlocked(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
