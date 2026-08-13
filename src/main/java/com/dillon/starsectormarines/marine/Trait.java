@@ -22,5 +22,9 @@ public enum Trait {
     /** Larger effective squad cap (works around rank ceiling). */
     LOGISTICS_CHIEF,
     /** Improves post-battle recovery and adds a high-value salvage roll. */
-    SALVAGE_EXPERT
+    SALVAGE_EXPERT,
+    /** Retains faith in the company's purpose after sustained humane conduct. */
+    IDEALIST,
+    /** Develops a hardened view of the company's work after sustained ruthless conduct. */
+    CYNICAL
 }
