@@ -52,7 +52,9 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -866,7 +868,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim != null && sim.isComplete()) {
             // Compute + apply outcome once, then hand off to RESULTS.
             Mission mission = ctx.getSelectedMission();
-            MissionOutcome outcome = MissionResolver.compute(sim, mission, ctx.getSelectedCaptain());
+            Set<String> deployedFireteams = mission.source.isDebug()
+                    || mission.source == MissionSource.STATIONING
+                    ? Collections.emptySet()
+                    : ctx.getSelectedMarineSquadIds();
+            MissionOutcome outcome = MissionResolver.compute(sim, mission,
+                    ctx.getSelectedCaptain(), deployedFireteams);
             MissionResolver.apply(outcome);
             ctx.setLastOutcome(outcome);
             ctx.setLootManifest(LootGenerator.generate(outcome));

@@ -39,6 +39,7 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
@@ -120,6 +121,12 @@ public final class MissionResolver {
     private MissionResolver() {}
 
     public static MissionOutcome compute(BattleSimulation sim, Mission mission, MarineCaptain captain) {
+        return compute(sim, mission, captain, Collections.emptySet());
+    }
+
+    public static MissionOutcome compute(BattleSimulation sim, Mission mission,
+                                         MarineCaptain captain,
+                                         Set<String> deployedFireteamIds) {
         boolean victory = sim.getWinner() == Faction.MARINE;
 
         // Casualty tally without the legacy units list: survivors come from the
@@ -241,7 +248,7 @@ public final class MissionResolver {
                 evacuationRepresentatives, representativesEvacuated,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
-                survivingSoldierIds, fallenSoldierIds);
+                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
     }
 
     public static void apply(MissionOutcome outcome) {
