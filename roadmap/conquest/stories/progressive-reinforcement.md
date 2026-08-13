@@ -249,7 +249,7 @@ water, defender-side — scored by openness + clearance + proximity to
 the hint. Candidate generation stays per-means; this owns validation
 and ranking. Standalone unit-testable.
 
-### Slice 3: FrontLineReinforcementTrigger
+### Slice 3: FrontLineReinforcementTrigger — ✓ shipped `28e512ab`
 
 New trigger (replaces or wraps `GarrisonDepletedTrigger`) that:
 - Reads `RecaptureTargetService` for eligible targets (open,
@@ -274,8 +274,12 @@ in a building or on impassable ground (shuttle/walk-in had real
 ad-hoc scans; convoy gets a viability guard since it deboards at road
 junctions).
 
-Post-deboard assignment — **pending** (lands with slice 3's trigger,
-which carries the objective). After deboard the dispatch layer reads
+Post-deboard assignment — ✓ shipped `28e512ab`. `ObjectiveNodes.resolve`
+maps the request's objective coords back to the tactical node at dispatch
+time; `ShuttleMission.assignNode` / `VehicleMission.assignNode` carry it
+to the deboard path, which stamps `Squad.assignedNode` at squad mint
+(walk-in resolves inline, preferring the objective over the legacy
+nearest-compound anchor). After deboard the dispatch layer reads
 the request's objective coordinates and assigns the squad:
 - If objective is set: HOLD_NODE at the recapture target's
   tactical node. Squad advances from delivery LZ to the position.
@@ -292,14 +296,20 @@ zero and clears the dispatch suppression. If `assignedNode` were only
 set on physical arrival, a squad killed crossing the front would leave
 the target `open && dispatched` forever — silently un-reinforced.
 
-### Slice 5: Wire + tune
+### Slice 5: Wire + tune — wiring ✓ shipped `28e512ab`; playtest pending
 
-- Register `FrontLineReinforcementTrigger` + `RecaptureTargetService`
-  in `installReinforcementLayer`
-- Retire or gate old `GarrisonDepletedTrigger` (compound-only
-  variant) so requests don't duplicate
-- Tune fire cadence and delivery-zone selection
-- Playtest reinforcement spread across biome bands
+- ~~Register `FrontLineReinforcementTrigger` + `RecaptureTargetService`
+  in `installReinforcementLayer`~~ — done; `MapResult` now carries the
+  `BiomeMap` from the BSP pipeline, and conquest maps (biome layer +
+  non-empty tactical map) install the recapture service/system and the
+  front-line trigger.
+- ~~Retire or gate old `GarrisonDepletedTrigger` (compound-only
+  variant) so requests don't duplicate~~ — done; conquest maps register
+  `FrontLineReinforcementTrigger` *instead of* `GarrisonDepletedTrigger`
+  (which stays for non-conquest maps). `ObjectiveLostTrigger` and the
+  three means remain unconditional.
+- Tune fire cadence and delivery-zone selection — **pending playtest**
+- Playtest reinforcement spread across biome bands — **pending**
 
 ## Decisions (resolved open questions)
 

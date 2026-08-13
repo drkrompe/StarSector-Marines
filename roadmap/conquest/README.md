@@ -14,12 +14,11 @@ designed around.
 - [`stories/progressive-reinforcement.md`](stories/progressive-reinforcement.md)
   — defender reinforcement contests the frontline: recapture targets,
   biome-slice round-robin dispatch, delivery/objective split.
-  **In progress** — slices 1/2/3a + means retrofit shipped; the
-  front-line trigger, post-deboard assignment, and wiring are the
-  active work.
+  **Code-complete** (`28e512ab`) — playtest + tuning remain; see
+  [`next-session.md`](next-session.md).
 - [`stories/biome-counterattack.md`](stories/biome-counterattack.md)
-  — the staged defender "bulge" counteroffensive. **Blocked on
-  progressive reinforcement.**
+  — the staged defender "bulge" counteroffensive. **Unblocked** (its
+  progressive-reinforcement prerequisites shipped); next story up.
 - [`complete/`](complete/) — shipped stories:
   [`deliberate-compound-capture.md`](complete/deliberate-compound-capture.md)
   (attacker commander captures deliberately),
