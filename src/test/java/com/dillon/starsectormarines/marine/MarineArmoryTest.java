@@ -18,7 +18,34 @@ class MarineArmoryTest {
 
         MarineSoldier recruit = roster.activeSoldiers().get(0);
         assertEquals(MarineWeapon.FIELD_RIFLE, recruit.primary());
-        assertEquals(EquipmentGrade.SURPLUS, recruit.primaryGrade());
+        assertEquals(EquipmentGrade.SERVICE, recruit.primaryGrade());
+        assertTrue(roster.canAllocatePrimary(recruit.id(), MarineWeapon.FIELD_RIFLE,
+                EquipmentGrade.SERVICE), "fallback issue is unlimited");
+    }
+
+    @Test
+    void fallbackRifleIsUnlimitedAndCannotConsumeFabricationMaterials() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(20);
+        for (MarineSoldier soldier : roster.activeSoldiers()) {
+            assertTrue(roster.allocatePrimary(soldier.id(), MarineWeapon.FIELD_RIFLE,
+                    EquipmentGrade.SERVICE));
+        }
+
+        MarineArmory armory = roster.armory();
+        armory.addFabricationMaterials(100);
+        assertFalse(armory.canPrintPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE));
+        assertFalse(armory.printPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE));
+        assertFalse(armory.isPrimaryUnlocked(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SURPLUS));
+        assertEquals(100, armory.fabricationMaterials());
+    }
+
+    @Test
+    void weaponCatalogNamesCombineDesignationTierAndModel() {
+        assertEquals("FR-1 Rook", MarineWeapon.FIELD_RIFLE.catalogName(EquipmentGrade.MASTERWORK));
+        assertEquals("PLS-3 Lancer", MarineWeapon.PULSE_RIFLE.catalogName(EquipmentGrade.MILSPEC));
+        assertEquals("LMG-2 Rattler", MarineWeapon.SMG.catalogName(EquipmentGrade.SERVICE));
+        assertEquals("RG-4 Longbow", MarineWeapon.DMR.catalogName(EquipmentGrade.MASTERWORK));
     }
 
     @Test

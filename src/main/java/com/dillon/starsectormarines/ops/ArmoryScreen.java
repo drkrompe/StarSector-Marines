@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -30,7 +31,9 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /** Fabrication plus squad-centric persistent personnel management. */
@@ -38,6 +41,21 @@ public final class ArmoryScreen implements Screen {
 
     private enum Tab { PERSONNEL, LOADOUTS }
     private enum InventoryTab { WEAPONS, ARMOR, SPECIAL }
+    private enum InventoryState { AVAILABLE, OUT_OF_STOCK, LOCKED, INSTALLED, MARINE_UNAVAILABLE }
+    private enum WeaponTab {
+        RIFLE("Rifle", MarineWeapon.FIELD_RIFLE),
+        PULSE("Pulse", MarineWeapon.PULSE_RIFLE),
+        MACHINE_GUN("LMG", MarineWeapon.SMG),
+        RAILGUN("Railgun", MarineWeapon.DMR);
+
+        final String label;
+        final MarineWeapon weapon;
+
+        WeaponTab(String label, MarineWeapon weapon) {
+            this.label = label;
+            this.weapon = weapon;
+        }
+    }
 
     private static final float PAD = 16f;
     private static final float GAP = 10f;
@@ -70,11 +88,14 @@ public final class ArmoryScreen implements Screen {
     private String loadoutFeedback;
     private boolean loadoutSucceeded;
     private InventoryTab inventoryTab = InventoryTab.WEAPONS;
+    private WeaponTab weaponTab = WeaponTab.RIFLE;
     private MarineWeapon browsedWeapon = MarineWeapon.FIELD_RIFLE;
-    private EquipmentGrade browsedGrade = EquipmentGrade.SURPLUS;
+    private EquipmentGrade browsedGrade = EquipmentGrade.SERVICE;
     private MarineArmorPattern browsedArmor = MarineArmorPattern.ARMORLESS;
     private MarineSecondary browsedSecondary = MarineSecondary.ROCKET_LAUNCHER;
     private int inventoryScroll;
+    private String lastInventoryClickKey;
+    private long lastInventoryClickNanos;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -164,7 +185,7 @@ public final class ArmoryScreen implements Screen {
                 "Parts & materials: " + armory.fabricationMaterials()
                         + "    Victories: " + armory.victories()
                         + "    High-risk: " + armory.highRiskVictories()
-                        + "    Select to equip · + fabricates one",
+                        + "    Select to inspect · double-click AVAILABLE to equip · + fabricates",
                 left, top + 24f, VALUE));
 
         float rosterW = 236f;
@@ -223,6 +244,7 @@ public final class ArmoryScreen implements Screen {
                 selectedSoldierId = null;
                 selectFirstSoldierIfNeeded();
                 loadoutFeedback = null;
+                clearDoubleClick();
                 rebuild();
             }, selected ? VALUE : HEADER);
             y -= 38f;
@@ -240,6 +262,7 @@ public final class ArmoryScreen implements Screen {
                         + " · " + statusLabel(soldier), () -> {
                     selectedSoldierId = soldier.id();
                     loadoutFeedback = null;
+                    clearDoubleClick();
                     rebuild();
                 }, selected ? VALUE : soldier.status() == MarineSoldierStatus.ACTIVE
                         ? HEADER : MUTED);
@@ -297,11 +320,13 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "PRIMARY",
                 x + 96f, primaryY + primaryH - 10f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                soldier.primary().displayName + " · " + soldier.primaryGrade().displayName
-                        + " [" + soldier.primaryGrade().tierMark() + "]",
+                soldier.primary().catalogName(soldier.primaryGrade()) + " · "
+                        + soldier.primaryGrade().displayName,
                 x + 96f, primaryY + primaryH - 40f, GOOD));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Mandatory field issue", x + 96f, primaryY + 30f, MUTED));
+                soldier.primary() == MarineWeapon.FIELD_RIFLE
+                        ? "Unlimited fleet issue" : soldier.primary().displayName,
+                x + 96f, primaryY + 30f, MUTED));
         boolean primaryCanReset = editable && (soldier.primary() != MarineWeapon.FIELD_RIFLE
                 || soldier.primaryGrade() != EquipmentGrade.SERVICE);
         addButton(x + width - 31f, primaryY + primaryH - 31f, 24f, 24f, "X",
@@ -338,10 +363,60 @@ public final class ArmoryScreen implements Screen {
                 secondaryCanRemove ? () -> removeSecondary(soldier) : null,
                 secondaryCanRemove ? BAD : MUTED);
 
+        buildMarineReadout(x, secondaryY - 36f, width, soldier);
+
         if (loadoutFeedback != null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, loadoutFeedback,
                     x, position.getY() + 58f, loadoutSucceeded ? GOOD : BAD));
         }
+    }
+
+    /** Persistent whole-kit summary; baseline is an FR-1 Rook in fatigues. */
+    private void buildMarineReadout(float x, float top, float width, MarineSoldier soldier) {
+        MarineWeapon baseWeapon = MarineWeapon.FIELD_RIFLE;
+        EquipmentGrade baseGrade = EquipmentGrade.SERVICE;
+        MarineArmorPattern baseArmor = MarineArmorPattern.ARMORLESS;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "MARINE PERFORMANCE", x, top, HEADER));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "FR-1 BASE  →  CURRENT KIT", x, top - 25f, MUTED));
+
+        float y = top - 52f;
+        addReadoutLine("DPS", fmt(InfantryCombatStats.estimatedDps(baseWeapon, baseGrade, soldier.profile())),
+                fmt(InfantryCombatStats.estimatedDps(soldier.primary(), soldier.primaryGrade(), soldier.profile())),
+                x, y);
+        y -= 23f;
+        addReadoutLine("RANGE", Integer.toString(Math.round(InfantryCombatStats.range(baseWeapon, baseGrade))),
+                Integer.toString(Math.round(InfantryCombatStats.range(soldier.primary(), soldier.primaryGrade()))),
+                x, y);
+        float[] accuracyBands = { 0.20f, 0.60f, 1.00f };
+        String[] accuracyLabels = { "ACC NEAR", "ACC MED", "ACC FAR" };
+        for (int i = 0; i < accuracyBands.length; i++) {
+            y -= 23f;
+            addReadoutLine(accuracyLabels[i],
+                    pct(InfantryCombatStats.accuracyAtRangeFraction(
+                            baseWeapon, baseGrade, soldier.profile(), accuracyBands[i])),
+                    pct(InfantryCombatStats.accuracyAtRangeFraction(
+                            soldier.primary(), soldier.primaryGrade(), soldier.profile(), accuracyBands[i])),
+                    x, y);
+        }
+        y -= 23f;
+        addReadoutLine("HEALTH", Integer.toString(Math.round(UnitType.MARINE.maxHp + baseArmor.bonusHp)),
+                Integer.toString(Math.round(UnitType.MARINE.maxHp + soldier.armor().bonusHp)), x, y);
+        y -= 23f;
+        addReadoutLine("BLOCK", pct(baseArmor.damageReduction), pct(soldier.armor().damageReduction), x, y);
+        y -= 23f;
+        addReadoutLine("MOVE", fmt(UnitType.MARINE.moveSpeed * baseArmor.moveSpeedMult),
+                fmt(UnitType.MARINE.moveSpeed * soldier.armor().moveSpeedMult), x, y);
+        y -= 23f;
+        addReadoutLine("EVASION", pct(1f - baseArmor.incomingAccuracyMult),
+                pct(1f - soldier.armor().incomingAccuracyMult), x, y);
+    }
+
+    private void addReadoutLine(String label, String baseline, String current, float x, float y) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, x, y, MUTED));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                baseline + "  →  " + current, x + 116f, y, VALUE));
     }
 
     private void buildInventoryBrowser(float x, float top, float width) {
@@ -352,19 +427,39 @@ public final class ArmoryScreen implements Screen {
         addInventoryTab(x + tabW + 4f, tabY, tabW, InventoryTab.ARMOR, "Armor");
         addInventoryTab(x + 2f * (tabW + 4f), tabY, tabW, InventoryTab.SPECIAL, "Special");
 
+        float listTop = top - 116f;
+        float counterY = top - 88f;
+        if (inventoryTab == InventoryTab.WEAPONS) {
+            float familyY = top - 116f;
+            float familyW = (width - 12f) / WeaponTab.values().length;
+            for (int i = 0; i < WeaponTab.values().length; i++) {
+                WeaponTab family = WeaponTab.values()[i];
+                addWeaponTab(x + i * (familyW + 4f), familyY, familyW, family);
+            }
+            listTop = top - 164f;
+            counterY = top - 136f;
+        }
+
         int itemCount = inventoryItemCount();
         float rowH = 64f;
         float rowGap = 6f;
-        float listTop = top - 116f;
         float listBottom = position.getY() + 72f;
         int visibleRows = Math.max(1, (int) ((listTop - listBottom) / (rowH + rowGap)));
         int maxScroll = Math.max(0, itemCount - visibleRows);
         inventoryScroll = Math.max(0, Math.min(inventoryScroll, maxScroll));
         int end = Math.min(itemCount, inventoryScroll + visibleRows);
+        String section = inventoryTab == InventoryTab.WEAPONS ? weaponTab.label.toUpperCase()
+                : inventoryTab.name();
+        String count = itemCount > 0
+                ? "  " + (inventoryScroll + 1) + "-" + end + " / " + itemCount
+                : "  · STANDARD ISSUE";
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                inventoryTab.name() + "  " + (inventoryScroll + 1) + "-" + end + " / " + itemCount
-                        + (maxScroll > 0 ? "  · wheel to scroll" : ""),
-                x, top - 88f, MUTED));
+                section + count + (maxScroll > 0 ? "  · wheel to scroll" : ""),
+                x, counterY, MUTED));
+        if (itemCount == 0) {
+            buildServiceRifleBay(x, listTop - 116f, width);
+            return;
+        }
         widgets.add(new ScrollRegionWidget(x, listBottom, width, listTop - listBottom,
                 delta -> scrollInventory(delta, visibleRows)));
 
@@ -383,13 +478,39 @@ public final class ArmoryScreen implements Screen {
         addButton(x, y, w, label, () -> {
             inventoryTab = target;
             inventoryScroll = 0;
+            clearDoubleClick();
             rebuild();
         }, inventoryTab == target ? VALUE : HEADER);
     }
 
+    private void addWeaponTab(float x, float y, float w, WeaponTab target) {
+        addButton(x, y, w, target.label, () -> {
+            weaponTab = target;
+            browsedWeapon = target.weapon;
+            browsedGrade = target == WeaponTab.RIFLE
+                    ? EquipmentGrade.SERVICE : browsedGrade;
+            inventoryScroll = 0;
+            clearDoubleClick();
+            rebuild();
+        }, weaponTab == target ? VALUE : HEADER);
+    }
+
+    private void buildServiceRifleBay(float x, float y, float width) {
+        widgets.add(new PanelWidget(x, y, width, 104f));
+        widgets.add(new SpriteThumbWidget(weaponIcon(MarineWeapon.FIELD_RIFLE),
+                x + 10f, y + 10f, 78f, 84f));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                MarineWeapon.FIELD_RIFLE.catalogName(EquipmentGrade.SERVICE),
+                x + 100f, y + 78f, GOOD));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "UNLIMITED · FLEET STANDARD", x + 100f, y + 50f, VALUE));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Primary-slot X restores it.", x + 100f, y + 24f, MUTED));
+    }
+
     private int inventoryItemCount() {
         return switch (inventoryTab) {
-            case WEAPONS -> playerWeapons().length * EquipmentGrade.values().length;
+            case WEAPONS -> weaponTab == WeaponTab.RIFLE ? 0 : EquipmentGrade.values().length;
             case ARMOR -> MarineArmorPattern.values().length;
             case SPECIAL -> MarineSecondary.values().length;
         };
@@ -405,39 +526,39 @@ public final class ArmoryScreen implements Screen {
     }
 
     private void addWeaponInventoryRow(float x, float y, float w, float h, int index) {
-        MarineWeapon weapon = playerWeapons()[index / EquipmentGrade.values().length];
-        EquipmentGrade grade = EquipmentGrade.values()[index % EquipmentGrade.values().length];
+        MarineWeapon weapon = weaponTab.weapon;
+        EquipmentGrade grade = EquipmentGrade.values()[index];
         MarineArmory armory = roster.armory();
         MarineSoldier soldier = selectedSoldier();
         boolean unlocked = armory.isPrimaryUnlocked(weapon, grade);
         boolean selected = browsedWeapon == weapon && browsedGrade == grade;
         widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked, () -> {
-            browsedWeapon = weapon;
-            browsedGrade = grade;
-            loadoutFeedback = null;
-            rebuild();
+            selectWeaponRow(weapon, grade, unlocked);
         }));
         widgets.add(new SpriteThumbWidget(weaponIcon(weapon), x + 8f, y + 6f, 54f, h - 12f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                weapon.displayName + " · " + grade.displayName + " [" + grade.tierMark() + "]",
+                weapon.catalogName(grade) + " · " + grade.displayName,
                 x + 72f, y + h - 9f, unlocked ? weapon.tracerColor : MUTED));
         boolean installed = soldier != null && soldier.primary() == weapon
                 && soldier.primaryGrade() == grade;
+        boolean canEquip = !installed && soldier != null
+                && roster.canAllocatePrimary(soldier.id(), weapon, grade);
+        InventoryState state = inventoryState(unlocked, installed, soldier, canEquip);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                unlocked ? "Owned " + armory.ownedPrimary(weapon, grade)
-                        + (installed ? "  · INSTALLED" : "") : "RECIPE LOCKED",
-                x + 72f, y + 27f, unlocked ? VALUE : MUTED));
+                inventoryStateLabel(state) + (unlocked
+                        ? "  · FLEET " + armory.ownedPrimary(weapon, grade) : ""),
+                x + 72f, y + 27f, inventoryStateColor(state)));
         boolean canPrint = armory.canPrintPrimary(weapon, grade);
         addButton(x + w - 31f, y + 5f, 24f, 24f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printPrimary(weapon, grade);
-            loadoutFeedback = loadoutSucceeded ? weapon.displayName + " fabricated"
+            loadoutFeedback = loadoutSucceeded ? weapon.catalogName(grade) + " fabricated"
                     : "Insufficient materials";
             rebuild();
         } : null, canPrint ? VALUE : MUTED);
     }
 
     private void addArmorInventoryRow(float x, float y, float w, float h, int index) {
-        MarineArmorPattern armor = MarineArmorPattern.values()[index];
+        MarineArmorPattern armor = sortedArmors()[index];
         MarineArmory armory = roster.armory();
         MarineSoldier soldier = selectedSoldier();
         boolean unlocked = armory.isArmorUnlocked(armor);
@@ -452,10 +573,12 @@ public final class ArmoryScreen implements Screen {
                 armor.displayName + " · Tier " + armor.tierMark(),
                 x + 76f, y + h - 9f, unlocked ? HEADER : MUTED));
         boolean installed = soldier != null && soldier.armor() == armor;
+        boolean canEquip = !installed && soldier != null && roster.canAllocateArmor(soldier.id(), armor);
+        InventoryState state = inventoryState(unlocked, installed, soldier, canEquip);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                unlocked ? "Owned " + armory.ownedArmor(armor)
-                        + (installed ? "  · INSTALLED" : "") : "RECIPE LOCKED",
-                x + 76f, y + 27f, unlocked ? VALUE : MUTED));
+                inventoryStateLabel(state) + (unlocked
+                        ? "  · FLEET " + armory.ownedArmor(armor) : ""),
+                x + 76f, y + 27f, inventoryStateColor(state)));
         boolean canPrint = armory.canPrintArmor(armor);
         addButton(x + w - 31f, y + 5f, 24f, 24f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printArmor(armor);
@@ -480,10 +603,13 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName,
                 x + 76f, y + h - 9f, unlocked ? HEADER : MUTED));
         boolean installed = soldier != null && soldier.secondary() == secondary;
+        boolean canEquip = !installed && soldier != null
+                && roster.canAllocateSecondary(soldier.id(), secondary);
+        InventoryState state = inventoryState(unlocked, installed, soldier, canEquip);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                unlocked ? "Owned " + armory.ownedSecondary(secondary)
-                        + (installed ? "  · INSTALLED" : "") : "RECIPE LOCKED",
-                x + 76f, y + 27f, unlocked ? VALUE : MUTED));
+                inventoryStateLabel(state) + (unlocked
+                        ? "  · FLEET " + armory.ownedSecondary(secondary) : ""),
+                x + 76f, y + 27f, inventoryStateColor(state)));
         boolean canPrint = armory.canPrintSecondary(secondary);
         addButton(x + w - 31f, y + 5f, 24f, 24f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printSecondary(secondary);
@@ -491,6 +617,69 @@ public final class ArmoryScreen implements Screen {
                     : "Insufficient materials";
             rebuild();
         } : null, canPrint ? VALUE : MUTED);
+    }
+
+    private void selectWeaponRow(MarineWeapon weapon, EquipmentGrade grade, boolean unlocked) {
+        String key = weapon.name() + ":" + grade.name();
+        boolean doubleClick = recordInventoryClick(key);
+        browsedWeapon = weapon;
+        browsedGrade = grade;
+        loadoutFeedback = null;
+        MarineSoldier soldier = selectedSoldier();
+        if (doubleClick && unlocked && soldier != null
+                && roster.canAllocatePrimary(soldier.id(), weapon, grade)) {
+            equipPrimary(soldier, weapon, grade);
+            return;
+        }
+        rebuild();
+    }
+
+    private boolean recordInventoryClick(String key) {
+        long now = System.nanoTime();
+        boolean doubleClick = key.equals(lastInventoryClickKey)
+                && now - lastInventoryClickNanos <= 450_000_000L;
+        lastInventoryClickKey = key;
+        lastInventoryClickNanos = now;
+        return doubleClick;
+    }
+
+    private void clearDoubleClick() {
+        lastInventoryClickKey = null;
+        lastInventoryClickNanos = 0L;
+    }
+
+    private InventoryState inventoryState(boolean unlocked, boolean installed,
+                                          MarineSoldier soldier, boolean canEquip) {
+        if (!unlocked) return InventoryState.LOCKED;
+        if (installed) return InventoryState.INSTALLED;
+        if (!canEdit(soldier)) return InventoryState.MARINE_UNAVAILABLE;
+        return canEquip ? InventoryState.AVAILABLE : InventoryState.OUT_OF_STOCK;
+    }
+
+    private static String inventoryStateLabel(InventoryState state) {
+        return switch (state) {
+            case AVAILABLE -> "AVAILABLE";
+            case OUT_OF_STOCK -> "OUT OF STOCK";
+            case LOCKED -> "LOCKED";
+            case INSTALLED -> "INSTALLED";
+            case MARINE_UNAVAILABLE -> "UNAVAILABLE";
+        };
+    }
+
+    private static Color inventoryStateColor(InventoryState state) {
+        return switch (state) {
+            case AVAILABLE -> GOOD;
+            case OUT_OF_STOCK -> BAD;
+            case INSTALLED -> VALUE;
+            case LOCKED, MARINE_UNAVAILABLE -> MUTED;
+        };
+    }
+
+    private static MarineArmorPattern[] sortedArmors() {
+        return Arrays.stream(MarineArmorPattern.values())
+                .sorted(Comparator.comparingInt((MarineArmorPattern armor) -> armor.tier)
+                        .thenComparing(armor -> armor.displayName))
+                .toArray(MarineArmorPattern[]::new);
     }
 
     private void buildItemDossier(float x, float top, float width) {
@@ -507,10 +696,11 @@ public final class ArmoryScreen implements Screen {
         MarineWeapon weapon = browsedWeapon;
         EquipmentGrade grade = browsedGrade;
         boolean unlocked = roster.armory().isPrimaryUnlocked(weapon, grade);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, weapon.displayName,
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, weapon.catalogName(grade),
                 x + 170f, top - 48f, weapon.tracerColor));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                grade.displayName + " pattern · Tier " + grade.tierMark(),
+                weapon == MarineWeapon.FIELD_RIFLE ? "Unlimited fleet service issue"
+                        : grade.displayName + " pattern · Tier " + grade.tierMark(),
                 x + 170f, top - 76f, VALUE));
         widgets.add(new SpriteThumbWidget(weaponIcon(weapon), x, top - 260f, 150f, 150f));
         addWrappedText(weaponFlavor(weapon), x + 170f, top - 112f,
@@ -524,7 +714,7 @@ public final class ArmoryScreen implements Screen {
         float labelX = x;
         float barX = x + 112f;
         float barW = Math.max(70f, Math.min(330f, width - 180f));
-        float y = top - 306f;
+        float y = top - 368f;
         addStatRow("DAMAGE", fmt(volley), volley / maxVolleyDamage(), labelX, barX, y, barW, DAMAGE_BAR);
         y -= 28f;
         addStatRow("EST. DPS", fmt(dps), dps / maxEstimatedDps(soldier), labelX, barX, y, barW, DPS_BAR);
@@ -559,7 +749,7 @@ public final class ArmoryScreen implements Screen {
         float labelX = x;
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
-        float y = top - 326f;
+        float y = top - 380f;
         addStatRow("DAMAGE BLOCK", pct(armor.damageReduction), armor.damageReduction / 0.20f,
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
@@ -590,7 +780,7 @@ public final class ArmoryScreen implements Screen {
         float labelX = x;
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
-        float y = top - 306f;
+        float y = top - 368f;
         addStatRow("DAMAGE", fmt(secondary.damage), secondary.damage / 18f,
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
@@ -770,7 +960,7 @@ public final class ArmoryScreen implements Screen {
 
     private void addSoldierRow(MarineSoldier soldier, float x, float y, float w) {
         boolean ready = soldier.status() == MarineSoldierStatus.ACTIVE;
-        String kit = soldier.primary().displayName + "-" + soldier.primaryGrade().tierMark()
+        String kit = soldier.primary().catalogName(soldier.primaryGrade())
                 + " / " + soldier.armor().displayName
                 + (soldier.secondary() != null ? " / Rockets" : "");
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
@@ -893,16 +1083,21 @@ public final class ArmoryScreen implements Screen {
                 && soldier.primaryGrade() == grade;
         boolean canEquip = !installed && unlocked && soldier != null
                 && roster.canAllocatePrimary(soldier.id(), weapon, grade);
-        String label = installed ? "INSTALLED" : !unlocked ? "RECIPE LOCKED"
+        String label = installed ? "INSTALLED" : !unlocked ? "LOCKED"
                 : !canEdit(soldier) ? "MARINE UNAVAILABLE"
-                : canEquip ? "EQUIP" : "NO AVAILABLE COPY";
-        addButton(x + Math.max(0f, width - 210f), top - 98f, Math.min(200f, width), label,
-                canEquip ? () -> {
-                    loadoutSucceeded = roster.allocatePrimary(soldier.id(), weapon, grade);
-                    loadoutFeedback = loadoutSucceeded ? weapon.displayName + " equipped"
-                            : "No unassigned copy available";
-                    rebuild();
-                } : null, canEquip ? GOOD : MUTED);
+                : canEquip ? weapon == MarineWeapon.FIELD_RIFLE ? "RESTORE ISSUE" : "EQUIP"
+                        : "OUT OF STOCK";
+        addButton(x + Math.max(0f, width - 210f), top - 318f, Math.min(200f, width), label,
+                canEquip ? () -> equipPrimary(soldier, weapon, grade) : null,
+                canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
+    }
+
+    private void equipPrimary(MarineSoldier soldier, MarineWeapon weapon, EquipmentGrade grade) {
+        loadoutSucceeded = roster.allocatePrimary(soldier.id(), weapon, grade);
+        loadoutFeedback = loadoutSucceeded ? weapon.catalogName(grade) + " equipped"
+                : "No unassigned copy available";
+        clearDoubleClick();
+        rebuild();
     }
 
     private void addEquipArmorButton(float x, float top, float width, MarineSoldier soldier,
@@ -910,16 +1105,16 @@ public final class ArmoryScreen implements Screen {
         boolean installed = soldier != null && soldier.armor() == armor;
         boolean canEquip = !installed && unlocked && soldier != null
                 && roster.canAllocateArmor(soldier.id(), armor);
-        String label = installed ? "INSTALLED" : !unlocked ? "RECIPE LOCKED"
+        String label = installed ? "INSTALLED" : !unlocked ? "LOCKED"
                 : !canEdit(soldier) ? "MARINE UNAVAILABLE"
-                : canEquip ? "EQUIP" : "NO AVAILABLE SUIT";
-        addButton(x + Math.max(0f, width - 210f), top - 98f, Math.min(200f, width), label,
+                : canEquip ? "EQUIP" : "OUT OF STOCK";
+        addButton(x + Math.max(0f, width - 210f), top - 330f, Math.min(200f, width), label,
                 canEquip ? () -> {
                     loadoutSucceeded = roster.allocateArmor(soldier.id(), armor);
                     loadoutFeedback = loadoutSucceeded ? armor.displayName + " equipped"
                             : "No unassigned suit available";
                     rebuild();
-                } : null, canEquip ? GOOD : MUTED);
+                } : null, canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
     }
 
     private void addEquipSecondaryButton(float x, float top, float width, MarineSoldier soldier,
@@ -927,16 +1122,16 @@ public final class ArmoryScreen implements Screen {
         boolean installed = soldier != null && soldier.secondary() == secondary;
         boolean canEquip = !installed && unlocked && soldier != null
                 && roster.canAllocateSecondary(soldier.id(), secondary);
-        String label = installed ? "INSTALLED" : !unlocked ? "RECIPE LOCKED"
+        String label = installed ? "INSTALLED" : !unlocked ? "LOCKED"
                 : !canEdit(soldier) ? "MARINE UNAVAILABLE"
-                : canEquip ? "EQUIP" : "NO AVAILABLE COPY";
-        addButton(x + Math.max(0f, width - 210f), top - 98f, Math.min(200f, width), label,
+                : canEquip ? "EQUIP" : "OUT OF STOCK";
+        addButton(x + Math.max(0f, width - 210f), top - 318f, Math.min(200f, width), label,
                 canEquip ? () -> {
                     loadoutSucceeded = roster.allocateSecondary(soldier.id(), secondary);
                     loadoutFeedback = loadoutSucceeded ? secondary.displayName + " equipped"
                             : "No unassigned launcher available";
                     rebuild();
-                } : null, canEquip ? GOOD : MUTED);
+                } : null, canEquip ? GOOD : label.equals("OUT OF STOCK") ? BAD : MUTED);
     }
 
     private void addWrappedText(String text, float x, float top, float width,
@@ -1008,13 +1203,13 @@ public final class ArmoryScreen implements Screen {
 
     private static String weaponFlavor(MarineWeapon weapon) {
         return switch (weapon) {
-            case FIELD_RIFLE -> "The Rook Pattern 7 is built for colonial stores, not parade decks. "
+            case FIELD_RIFLE -> "The FR-1 Rook is built for colonial stores, not parade decks. "
                     + "Its long action and indifferent barrel reward patient, close-range fire.";
-            case PULSE_RIFLE -> "Fleet boarding doctrine in one rugged energy arm: a controlled "
+            case PULSE_RIFLE -> "The PLS-series Lancer is fleet boarding doctrine in one rugged energy arm: a controlled "
                     + "three-pulse burst, forgiving handling, and enough reach for most compartments.";
-            case SMG -> "A compact saturation weapon for door teams and maintenance corridors. "
+            case SMG -> "The LMG-series Rattler is a compact saturation weapon for door teams and maintenance corridors. "
                     + "It owns the near room, but its grouping dissolves rapidly across open ground.";
-            case DMR -> "A magnetic marksman's rifle tuned for deliberate shots through long lanes. "
+            case DMR -> "The RG-series Longbow is a magnetic marksman's rifle tuned for deliberate shots through long lanes. "
                     + "Slow cycling is the price of exceptional reach and punishing impact.";
             case DRONE_PULSE -> "A lightweight autonomous pulse package not issued to line marines.";
         };
