@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -51,7 +52,11 @@ public final class FacingSystem {
      * arrival pin, where idling one tick early is invisible.
      */
     public static final float MIN_TRAVEL_SPEED = 0.5f;
+    /** Civilian body/look rotation is visual state, smoothed across path changes. */
+    public static final float CIVILIAN_TURN_RATE_DEGREES_PER_SECOND = 180f;
     private static final float MIN_TRAVEL_SPEED_SQ = MIN_TRAVEL_SPEED * MIN_TRAVEL_SPEED;
+    private static final float CIVILIAN_TURN_STEP =
+            CIVILIAN_TURN_RATE_DEGREES_PER_SECOND * BattleSimulation.TICK_DT;
 
     private final EntityWorld world;
     private final BattleComponents components;
@@ -366,6 +371,15 @@ public final class FacingSystem {
             torsoDy = targetDy;
         }
         float torsoFacing = LayeredAppearance.facingDegrees(torsoDx, torsoDy);
+        if (!type.combatant) {
+            // A held civilian keeps the last authored look instead of snapping
+            // to the generic south-idle fallback between movement substeps.
+            // New travel bearings rotate on a shortest-arc turn rate so rapid
+            // screen/path changes cannot flip the actor every simulation tick.
+            float desiredFacing = haveTravelDelta ? torsoFacing : facing[row];
+            torsoFacing = LayeredAppearance.approachFacing(
+                    facing[row], desiredFacing, CIVILIAN_TURN_STEP);
+        }
         facing[row] = torsoFacing;
         locomotion[row] = LayeredAppearance.locomotionPhase(
                 moving ? gaitPhase[row] : 0f);
