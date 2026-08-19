@@ -109,16 +109,26 @@ public final class GroundParallaxPipeline {
 
     // ---- shader tuning (playtest-tunable; see overview.md "Risks") -----------
 
-    /** UV-space offset per unit of (biased height × eye.xy). Keeps peak offset in the few-screen-pixel range the paper calls for. */
+    /** UV-space structural offset per unit of centered macro height and eye direction. */
     public static final float MIN_STRENGTH = 0f;
     public static final float MAX_STRENGTH = 5.0f;
     public static final float DEFAULT_STRENGTH = 0.006f;
+    /** Surface relief retains the same broad experiment range but has an independent live control. */
+    public static final float MIN_SURFACE_STRENGTH = 0f;
+    public static final float MAX_SURFACE_STRENGTH = 5.0f;
+    public static final float DEFAULT_SURFACE_STRENGTH = 0.006f;
+    /** Animated water displacement, expressed as a fraction of one world cell. */
+    public static final float MIN_WATER_WAVE_AMPLITUDE = 0f;
+    public static final float MAX_WATER_WAVE_AMPLITUDE = 0.5f;
+    public static final float DEFAULT_WATER_WAVE_AMPLITUDE = 0.08f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
     static final float EYE_HEIGHT = 1.2f;
-    /** height*scale+bias centers macro/micro height (nominally in [0,1], ~0.5 = "ground level") on zero before it's applied as an offset. */
-    static final float HEIGHT_SCALE = 1.0f;
-    static final float HEIGHT_BIAS = -0.5f;
+    static final float MACRO_CENTER = 0.5f;
+    static final float WATER_MACRO_SCALE = 0.2f;
+    static final float WATER_MICRO_SCALE = 0.35f;
+    static final float WATER_INTERIOR_WAVE_SCALE = 0.25f;
+    static final float WATER_FOAM_AMOUNT = 0.10f;
 
     private static final String VERTEX_SRC = ""
             + "#version 120\n"
@@ -135,14 +145,28 @@ public final class GroundParallaxPipeline {
             + "uniform sampler2D heightTex;\n"
             + "uniform vec2 screenCenter;\n"
             + "uniform float eyeHeight;\n"
-            + "uniform float strength;\n"
-            + "uniform float heightScale;\n"
-            + "uniform float heightBias;\n"
+            + "uniform float structureStrength;\n"
+            + "uniform float surfaceStrength;\n"
+            + "uniform float microScale;\n"
+            + "uniform float waterWaveAmplitude;\n"
+            + "uniform float waterMacroScale;\n"
+            + "uniform float waterMicroScale;\n"
+            + "uniform float waterInteriorWaveScale;\n"
+            + "uniform float waterFoamAmount;\n"
+            + "uniform float waveTime;\n"
+            + "uniform vec2 worldCenter;\n"
+            + "uniform vec2 visibleCells;\n"
+            + "uniform vec2 cellUv;\n"
             + "uniform float aspect;\n"
             + "varying vec2 vUv;\n"
             + "void main() {\n"
-            + "    float h = texture2D(heightTex, vUv).r;\n"
-            + "    float hsb = h * heightScale + heightBias;\n"
+            + "    vec4 meta = texture2D(heightTex, vUv);\n"
+            + "    float water = meta.b;\n"
+            + "    float shore = meta.a;\n"
+            + "    float macroMaterial = mix(1.0, waterMacroScale, water);\n"
+            + "    float microMaterial = mix(1.0, waterMicroScale, water);\n"
+            + "    float relief = (meta.r - 0.5) * structureStrength * macroMaterial\n"
+            + "            + (meta.g - 0.5) * microScale * surfaceStrength * microMaterial;\n"
             // Eye vector in an isotropic (aspect-corrected) space, so equal
             // screen-pixel distances from center pull equally hard on both axes;
             // the offset converts back to UV space before sampling.
@@ -150,16 +174,38 @@ public final class GroundParallaxPipeline {
             + "    vec3 eye = normalize(vec3(d, eyeHeight));\n"
             // Offset-limited form (Welsh 2004) -- no divide by eye.z, so shallow
             // eye vectors at screen edges can't explode into shimmer.
-            + "    vec2 off = hsb * eye.xy * strength * vec2(1.0 / aspect, 1.0);\n"
-            + "    vec2 offsetUv = clamp(vUv + off, 0.0, 1.0);\n"
-            + "    gl_FragColor = texture2D(colorTex, offsetUv) * gl_Color;\n"
+            + "    vec2 baseOff = relief * eye.xy * vec2(1.0 / aspect, 1.0);\n"
+            + "    vec2 worldCell = worldCenter + (vUv - vec2(0.5)) * visibleCells;\n"
+            + "    vec2 waves = vec2(\n"
+            + "            sin(dot(worldCell, vec2(2.15, 0.65)) + waveTime * 1.35),\n"
+            + "            cos(dot(worldCell, vec2(-0.45, 2.40)) - waveTime * 1.10));\n"
+            + "    float shoreWaveScale = mix(waterInteriorWaveScale, 1.0, shore);\n"
+            + "    vec2 waterOff = waves * cellUv * waterWaveAmplitude * shoreWaveScale;\n"
+            + "    vec2 totalOff = baseOff + waterOff * water;\n"
+            + "    vec2 offsetUv = clamp(vUv + totalOff, 0.0, 1.0);\n"
+            // Water samples may move within water, but never borrow a land
+            // texel. Backtracking makes the shoreline stable rather than
+            // allowing tiles to vanish as the camera or wave phase moves.
+            + "    if (water > 0.5 && texture2D(heightTex, offsetUv).b < 0.5) {\n"
+            + "        vec2 halfUv = clamp(vUv + totalOff * 0.5, 0.0, 1.0);\n"
+            + "        offsetUv = texture2D(heightTex, halfUv).b >= 0.5 ? halfUv : vUv;\n"
+            + "    }\n"
+            + "    vec4 color = texture2D(colorTex, offsetUv);\n"
+            + "    float crest = sin(dot(worldCell, vec2(1.70, 0.80)) - waveTime * 2.20) * 0.5 + 0.5;\n"
+            + "    float foam = water * shore * smoothstep(0.72, 1.0, crest)\n"
+            + "            * waterFoamAmount * step(0.0001, waterWaveAmplitude);\n"
+            + "    color.rgb = mix(color.rgb, vec3(0.76, 0.90, 1.0), foam);\n"
+            + "    gl_FragColor = color * gl_Color;\n"
             + "}\n";
 
     private final ShaderProgram shader = new ShaderProgram("GroundParallax", VERTEX_SRC, FRAGMENT_SRC);
     private final GroundHeightPass heightPass;
 
     /** Runtime-tunable through the battle debug panel; read every composite. */
-    private float strength = DEFAULT_STRENGTH;
+    private float structureStrength = DEFAULT_STRENGTH;
+    private float surfaceStrength = DEFAULT_SURFACE_STRENGTH;
+    private float waterWaveAmplitude = DEFAULT_WATER_WAVE_AMPLITUDE;
+    private float waveTimeSeconds;
 
     private boolean broken;
 
@@ -183,12 +229,29 @@ public final class GroundParallaxPipeline {
         this.heightPass = new GroundHeightPass(new GroundMicroHeightSampler(sprites));
     }
 
-    public float parallaxStrength() { return strength; }
+    public float parallaxStrength() { return structureStrength; }
+
+    public float surfaceStrength() { return surfaceStrength; }
+
+    public float waterWaveAmplitude() { return waterWaveAmplitude; }
 
     /** Applies immediately to the next rendered frame. */
     public void setParallaxStrength(float strength) {
         if (Float.isNaN(strength)) return;
-        this.strength = Math.max(MIN_STRENGTH, Math.min(MAX_STRENGTH, strength));
+        this.structureStrength = clamp(strength, MIN_STRENGTH, MAX_STRENGTH);
+    }
+
+    /** Applies immediately to the next rendered frame. */
+    public void setSurfaceStrength(float strength) {
+        if (Float.isNaN(strength)) return;
+        this.surfaceStrength = clamp(strength, MIN_SURFACE_STRENGTH, MAX_SURFACE_STRENGTH);
+    }
+
+    /** Applies immediately to the next rendered frame. */
+    public void setWaterWaveAmplitude(float amplitude) {
+        if (Float.isNaN(amplitude)) return;
+        this.waterWaveAmplitude = clamp(amplitude,
+                MIN_WATER_WAVE_AMPLITUDE, MAX_WATER_WAVE_AMPLITUDE);
     }
 
     /**
@@ -228,7 +291,8 @@ public final class GroundParallaxPipeline {
             drainColor.run();
             return;
         }
-        if (!composite(rc.alphaMult)) {
+        waveTimeSeconds = (waveTimeSeconds + Math.max(0f, rc.realDt)) % 4096f;
+        if (!composite(rc)) {
             drainColor.run();
         }
     }
@@ -267,13 +331,13 @@ public final class GroundParallaxPipeline {
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         return withFboBound(heightFbo, () -> {
             glColorMask(true, true, true, true);
-            glClearColor(0.5f, 0.5f, 0.5f, 1f);
+            glClearColor(0.5f, 0.5f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
             heightPass.render(rc.camera, grid, topology, mapping);
         });
     }
 
-    private boolean composite(float alphaMult) {
+    private boolean composite(RenderContext rc) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         try {
             // Bind AFTER the push so glPopAttrib restores the caller's texture
@@ -289,15 +353,24 @@ public final class GroundParallaxPipeline {
             shader.set1i("heightTex", 1);
             shader.set2f("screenCenter", 0.5f, 0.5f);
             shader.set1f("eyeHeight", EYE_HEIGHT);
-            shader.set1f("strength", strength);
-            shader.set1f("heightScale", HEIGHT_SCALE);
-            shader.set1f("heightBias", HEIGHT_BIAS);
+            shader.set1f("structureStrength", structureStrength);
+            shader.set1f("surfaceStrength", surfaceStrength);
+            shader.set1f("microScale", GroundHeightPass.MICRO_SCALE);
+            shader.set1f("waterWaveAmplitude", waterWaveAmplitude);
+            shader.set1f("waterMacroScale", WATER_MACRO_SCALE);
+            shader.set1f("waterMicroScale", WATER_MICRO_SCALE);
+            shader.set1f("waterInteriorWaveScale", WATER_INTERIOR_WAVE_SCALE);
+            shader.set1f("waterFoamAmount", WATER_FOAM_AMOUNT);
+            shader.set1f("waveTime", waveTimeSeconds);
+            shader.set2f("worldCenter", rc.camera.panCellX(), rc.camera.panCellY());
+            shader.set2f("visibleCells", vpW / rc.camera.cellPxSize(), vpH / rc.camera.cellPxSize());
+            shader.set2f("cellUv", rc.camera.cellPxSize() / vpW, rc.camera.cellPxSize() / vpH);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glColor4f(1f, 1f, 1f, alphaMult);
+            glColor4f(1f, 1f, 1f, rc.alphaMult);
 
             float x0 = vpX, y0 = vpY, x1 = vpX + vpW, y1 = vpY + vpH;
             glBegin(GL_QUADS);
@@ -456,5 +529,9 @@ public final class GroundParallaxPipeline {
         if (err != GL_NO_ERROR) {
             LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
         }
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 }

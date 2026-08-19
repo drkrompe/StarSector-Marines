@@ -14,16 +14,22 @@
   being collapsed to one average per cell. Asset-backed tests cover sliced
   selection, implicit sidewalk/corner selection, fallback behavior, and
   terrain mutation.
-- **Live strength tuning is in the battle DEBUG panel:** the `Parallax` dial
-  applies immediately over a clamped `0.0000–5.0000` range; the default remains
-  `0.0060`. Its cubic response and widened track preserve fine control near zero
-  while still exposing the full user-requested experimental ceiling.
+- **Material channels are now separate:** the RGBA metadata target carries
+  macro, micro, water identity, and a three-cell shore ramp. The composite no
+  longer forces walls, floors, and water through one baked height scalar.
+- **Live tuning is in the battle DEBUG panel:** `Structure relief` and
+  `Surface relief` each expose the clamped `0.0000–5.0000` experiment range;
+  `Water waves` exposes `0.0000–0.5000` cell fractions. Their defaults are
+  `0.0060`, `0.0060`, and `0.0800` respectively.
+- **Water is animated and boundary-safe:** two world-anchored waves refract
+  water, shore proximity boosts the motion and crest highlight, and proposed
+  samples backtrack rather than cross onto land.
 - **Headless pixel oracle added:** `GroundParallaxPixelComparisonTest` builds a
   1024×576 battle-like scene from the real color/derived-height sheets, mirrors
   both shader formulas plus bilinear sampling, and writes
   `build/surface-relief/parallax-pixel-comparison.png`. Current measurements:
-  default `0.0060` = **0.840 px max displacement / 0.990 mean RGB-channel
-  delta**; dial max `5.0000` = **700.171 px / 32.164** (an intentionally
+  current material-aware defaults = **3.702 px max displacement / 1.427 mean
+  RGB-channel delta**; dial max = **700.171 px / 22.015** (an intentionally
   extreme ceiling, not a recommended target). Default remains difficult to
   perceive despite 45.81% of pixels changing numerically.
 - Commit chain (developed on `worktree-surface-relief`, MERGED to main
@@ -40,8 +46,8 @@
   rect the GROUND quads already emit into (zero coordinate translation),
   fullscreen offset-limited composite. Every failure path falls back to
   draining GROUND straight to the backbuffer.
-- `GroundHeightPass` composes macro height with per-texel derived height in a
-  batched GLSL pass. `GroundMicroHeightSampler` resolves and caches the exact
+- `GroundHeightPass` writes macro, per-texel micro, water, and shore channels in
+  a batched GLSL pass. `GroundMicroHeightSampler` resolves and caches the exact
   color-pass atlas rectangle; unsupported/missing derived sheets stay
   macro-only.
 - Macro heights: `GenMappingRegistry.macroHeight` code defaults +
@@ -54,15 +60,14 @@
 ## Next up (in order)
 
 1. **In-game smoke test** — load a battle: do both shaders compile live,
-   does per-texel relief read, does dragging the DEBUG-panel `Parallax` dial
+   does per-texel relief read, do the three DEBUG-panel relief/water dials
    update the next frame, and is the flag-off path pixel-identical? GL runtime
    behavior is structurally mirrored from shipped precedents but UNVERIFIED live.
    Run `gradlew :test --tests "*GroundParallaxPixelComparisonTest*"` for the
    headless reference image + pixel metrics when changing the shader.
-2. **Tune** strength live with the dial, then promote the preferred value to
-   `DEFAULT_STRENGTH`. Tune `EYE_HEIGHT` / `HEIGHT_SCALE` / `HEIGHT_BIAS` in
-   `GroundParallaxPipeline` only if the projection itself needs adjustment.
-   Water is the first target per overview.
+2. **Tune** structure, surface, and water strength live, then promote preferred
+   values to their defaults. Tune `EYE_HEIGHT` only if the projection itself
+   needs adjustment. Watch coastlines specifically for any remaining mask seam.
 3. Then S3 (bump lighting), S4 (unit relief) per their story docs.
 
 ## Known edges

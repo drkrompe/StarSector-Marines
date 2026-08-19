@@ -43,8 +43,9 @@ Instead:
 
 1. Ground/terrain passes render to an FBO **color** target exactly as today
    (QuadBatch under GlStateBracket, painter pass list unchanged).
-2. A parallel **height** target renders the same quads sampling derived
-   height sheets, tinted by per-tile macro height.
+2. A parallel RGBA **material-height** target renders the same quads. Its
+   channels preserve macro height, derived micro height, water identity, and
+   shoreline proximity instead of prematurely collapsing them to grayscale.
 3. One fullscreen quad + small GLSL fragment shader applies the
    offset-limited parallax against the composed color image.
 4. Units, shots, FX, UI draw on top, un-warped.
@@ -52,7 +53,7 @@ Instead:
 In the composed screen image, offset samples DO hit spatial neighbors —
 atlas bleed is structurally impossible.
 
-### Macro × micro height
+### Material-aware height channels
 
 - **Macro** (per tile id): wall = high, building = raised, ground = mid,
   crater = low, water = lowest. Data lives with `TileRegistry` /
@@ -60,8 +61,15 @@ atlas bleed is structurally impossible.
   structurally tall (luminance ≠ elevation at that scale).
 - **Micro** (per texel): derived from albedo by the vendored MoonLight
   kernel — individual bricks, cracks, rock lumps.
-- Compose in the height pass: macro as per-quad tint/bias, micro from the
-  derived sheet sampled with the color pass's UVs.
+- The height pass stores macro and micro separately. The composite has live,
+  independent structure and surface-strength controls, so tall authored cells
+  can move strongly while floor texture remains restrained.
+- Water identity is semantic (`GroundKind.WATER`), not inferred from color.
+  Its macro/micro relief is damped, while a world-anchored wave field refracts
+  it by a tunable fraction of one cell. A three-cell shore-distance channel
+  boosts motion and moving crest highlights near land.
+- Water lookups backtrack when their displaced UV would sample a non-water
+  texel. This keeps coast cells from disappearing during camera or wave motion.
 
 ## Auto-generated height/normal data
 
@@ -107,6 +115,9 @@ Two adaptations needed (see S1):
 - **Steep height steps** — binary ground→wall edges are the paper's own
   worst case. Mitigate with blurred height target or ramped perimeter
   heights; offset limiting caps the damage.
+- **Material boundaries** — water has a hard semantic boundary even when the
+  metadata texture is bilinear filtered. The composite validates the proposed
+  sample against the water channel and falls back to a half or zero offset.
 - **First shader in the mod** — GLSL 1.20 / GL 2.1 via LWJGL 2 `GL20`.
   Proven feasible in this environment (GraphicsLib precedent), but
   compile/link infra + GL-state bracket discipline is new ground.
