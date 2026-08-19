@@ -64,7 +64,9 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
-- `gradlew.bat deployMod` → syncs `mod/` into `<starsectorDir>/mods/StarsectorMarines/`.
+- `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
+  (requires `ffmpeg` on `PATH`) and syncs `mod/` into
+  `<starsectorDir>/mods/StarsectorMarines/`.
 - `gradlew.bat runStarsector` → deploys then launches via `starsector-core/starsector.bat`.
 
 ## Mod layout

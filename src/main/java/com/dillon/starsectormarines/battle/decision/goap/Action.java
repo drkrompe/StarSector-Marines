@@ -97,12 +97,13 @@ public interface Action {
     }
 
     /**
-     * Whether the infantry dispatcher may fill an otherwise-empty fire intent
-     * with a legal shot of opportunity after this action executes. Most
-     * movement and posture actions permit it. Mission movement and defensive
-     * holds should retain this safety net: a passing shot does not replace an
-     * action's movement objective or assigned position. An override is reserved
-     * for an explicit scripted ceasefire, not ordinary tactical doctrine.
+     * Whether the infantry dispatcher may initiate an opportunity rocket
+     * before this action or fill an otherwise-empty primary fire intent after
+     * it executes. Most movement and posture actions permit both. Mission
+     * movement and defensive holds should retain this safety net: a passing
+     * shot does not replace an action's movement objective or assigned
+     * position. An override is reserved for an explicit scripted ceasefire or
+     * a move-only coordinated role, not ordinary tactical doctrine.
      */
     default boolean permitsOpportunityFire() {
         return true;

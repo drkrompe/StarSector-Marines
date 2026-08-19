@@ -30,6 +30,37 @@ public final class ContractReputation {
                 false, false);
     }
 
+    public static void completedForContract(CampaignState state,
+                                            long contractId,
+                                            int houseDelta, int day) {
+        long patronId = patronId(state, contractId);
+        applyForContract(state, contractId, patronId, houseDelta,
+                completionMrbDelta(state, patronId), day, true, false,
+                PatronEngagementOutcome.COMPLETED);
+    }
+
+    public static void failedForContract(CampaignState state, long contractId,
+                                         int houseDelta, int day) {
+        applyForContract(state, contractId, patronId(state, contractId),
+                houseDelta, FAILED_MRB_DELTA, day, false, true,
+                PatronEngagementOutcome.FAILED);
+    }
+
+    public static void abandonedForContract(CampaignState state,
+                                            long contractId, int day) {
+        applyForContract(state, contractId, patronId(state, contractId),
+                ABANDONED_HOUSE_DELTA, ABANDONED_MRB_DELTA, day,
+                false, true, PatronEngagementOutcome.WITHDREW);
+    }
+
+    public static void employerBreachedForContract(CampaignState state,
+                                                   long contractId,
+                                                   int day) {
+        applyForContract(state, contractId, patronId(state, contractId),
+                EMPLOYER_BREACH_HOUSE_DELTA, 0, day, false, false,
+                PatronEngagementOutcome.EMPLOYER_BREACHED);
+    }
+
     static int completionMrbDelta(CampaignState state, long patronId) {
         int patronRow = state != null ? state.houseIndex(patronId) : -1;
         HouseRank rank = patronRow >= 0
@@ -60,6 +91,24 @@ public final class ContractReputation {
         long mrb = (long) state.playerMrbRep + mrbDelta;
         state.playerMrbRep = (int) Math.max(Integer.MIN_VALUE,
                 Math.min(Integer.MAX_VALUE, mrb));
+    }
+
+    private static void applyForContract(CampaignState state, long contractId,
+                                         long patronId, int houseDelta,
+                                         int mrbDelta, int day,
+                                         boolean completed, boolean failed,
+                                         PatronEngagementOutcome outcome) {
+        if (patronId <= 0L
+                || PatronEngagementMemory.hasSource(state, contractId)) {
+            return;
+        }
+        apply(state, patronId, houseDelta, mrbDelta, day, completed, failed);
+        PatronEngagementMemory.record(state, contractId, outcome, day);
+    }
+
+    private static long patronId(CampaignState state, long contractId) {
+        int row = state != null ? state.contractIndex(contractId) : -1;
+        return row >= 0 ? state.contractPatronHouseId[row] : -1L;
     }
 
     private static short increment(short value) {

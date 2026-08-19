@@ -60,6 +60,18 @@ public final class BriefingComposer {
                                  String target,
                                  String payoutFormatted,
                                  int salvagePct) {
+        return compose(archetype, mood, contractId, null, patron, target,
+                payoutFormatted, salvagePct);
+    }
+
+    public static String compose(PatronArchetype archetype,
+                                 OfficerMood mood,
+                                 long contractId,
+                                 String patronMemory,
+                                 String patron,
+                                 String target,
+                                 String payoutFormatted,
+                                 int salvagePct) {
         if (archetype == null) archetype = PatronArchetype.TIME_RUSHED;
         if (mood == null)      mood      = OfficerMood.STEADY;
 
@@ -68,8 +80,13 @@ public final class BriefingComposer {
         String body   = PatronBriefingFlavor.render(archetype, contractId,
                 patron, target, payoutFormatted, salvagePct);
 
-        StringBuilder out = new StringBuilder(prefix.length() + body.length() + 64);
-        out.append(prefix).append(' ').append(body);
+        StringBuilder out = new StringBuilder(prefix.length() + body.length()
+                + (patronMemory != null ? patronMemory.length() : 0) + 64);
+        out.append(prefix).append(' ');
+        if (patronMemory != null && !patronMemory.trim().isEmpty()) {
+            out.append(patronMemory).append(' ');
+        }
+        out.append(body);
         if (shouldIncludeSuffix(contractId)) {
             String suffix = pick(frame.suffix, contractId, SEED_SUFFIX);
             out.append(' ').append(suffix);
