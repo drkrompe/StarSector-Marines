@@ -109,10 +109,13 @@ universe over time, not retrofitted into intel slots.
   anti-armor cannon. That cannon and the Heavy Mortar turret now share a
   gun-launched HE pass (`39aefccb`): visible ballistic shells, timed splash,
   cannon muzzle/impact lighting and particles, vanilla explosion/ring art,
-  structural damage, decals, and positional audio. Bulwark's racks are exposed above the hull and its
-  chainguns are narrower. Production encounters remain
-  Bulwark-only pending manual tuning; a scout follows only when recon behavior
-  can make it meaningful. See [`mechs/`](mechs/overview.md).
+  structural damage, decals, and positional audio. Bulwark's racks are exposed
+  above the hull and its chainguns are narrower. Production defender rosters
+  now scale deterministically by risk (`1ef74f23`): LOW has no mechs, MEDIUM
+  introduces one Bulwark, and HIGH fields budget-preserving mixed
+  Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
+  a scout follows only when recon behavior can make it meaningful. See
+  [`mechs/`](mechs/overview.md).
 
 ## Immediate next-up
 
