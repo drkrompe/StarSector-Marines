@@ -182,7 +182,7 @@ abstract class AbstractZoneAction implements Action {
      * is member-independent, so whichever member arrives first may author the
      * cache without making behavior order-dependent.
      */
-    private static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
+    protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
         synchronized (squad.lock) {
