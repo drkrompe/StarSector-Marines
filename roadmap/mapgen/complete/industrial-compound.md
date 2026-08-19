@@ -58,7 +58,8 @@ paths are recorded in `mod/graphics/doodads/IMAGEGEN-PROMPTS.md`.
   site preview: factory, utility building, fenced tank/service yard, striped
   apron, and protected centerline read as one facility.
 - `python mod/graphics/doodads/test_stitch_atlas.py` passes.
-- The full 1,634-test root suite and the asset-pipeline suite pass.
+- The full 1,665-test root suite and the asset-pipeline suite pass after
+  integrating the concurrent mainline changes.
 
 ## Deliberate next boundary
 
