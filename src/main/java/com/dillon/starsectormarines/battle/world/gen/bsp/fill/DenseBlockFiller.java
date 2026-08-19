@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -20,10 +21,10 @@ import java.util.Random;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#DENSE_BLOCK} leaves — dense urban
- * infill that subdivides the leaf into a 2×2 grid of small hollow shells
- * separated by a 1-cell cross-shaped alley. The leaf still has the BSP road
- * frame around it; this filler just packs the interior tighter than a single
- * building would.
+ * infill. Qualifying large lots become a mixed-use pair of elongated row
+ * buildings flanking a cover-shaped service alley. Smaller lots retain the
+ * established 2×2 compact-shell pattern so the kind remains visible on the
+ * common small BSP leaves.
  *
  * <p>Visual + gameplay shape:
  * <ul>
@@ -51,6 +52,13 @@ import java.util.Random;
  */
 public final class DenseBlockFiller implements BlockFiller {
 
+    /** Large-lot threshold for two useful row interiors plus the service alley. */
+    static final int TACTICAL_MIN_LONG_DIM = 13;
+    static final int TACTICAL_MIN_SHORT_DIM = 10;
+    /** Three total alley cells leave two open cells beside each one-cell cover pocket. */
+    static final int TACTICAL_ALLEY_WIDTH = 3;
+    static final int TACTICAL_CLEAR_WIDTH = 2;
+
     /**
      * Minimum leaf dim (per axis) to qualify for 2×2 subdivision. Geometric
      * minimum is 3 + 1 (cross alley) + 3 = 7: each sub-building is a 3×3
@@ -76,6 +84,26 @@ public final class DenseBlockFiller implements BlockFiller {
             BuildingLayouts.LayoutRecipe.HOME,
             BuildingKind.RESIDENTIAL);
 
+    static final BuildingShellCore.BuildingConfig TENEMENT_CONFIG =
+            new BuildingShellCore.BuildingConfig(
+                    GroundKind.INDOOR,
+                    "RESIDENTIAL",
+                    PointOfInterest.Kind.RESIDENTIAL,
+                    BuildingLayouts.LayoutRecipe.DENSE_TENEMENT,
+                    BuildingKind.RESIDENTIAL,
+                    null,
+                    DenseRowPartitionStrategy.TENEMENT);
+
+    static final BuildingShellCore.BuildingConfig MARKET_CONFIG =
+            new BuildingShellCore.BuildingConfig(
+                    GroundKind.TILE,
+                    "COMMERCIAL",
+                    PointOfInterest.Kind.RESIDENTIAL,
+                    BuildingLayouts.LayoutRecipe.DENSE_MARKET,
+                    BuildingKind.COMMERCIAL,
+                    null,
+                    DenseRowPartitionStrategy.MARKET);
+
     @Override
     public BlockKind kind() { return BlockKind.DENSE_BLOCK; }
 
@@ -88,6 +116,10 @@ public final class DenseBlockFiller implements BlockFiller {
         Random rng = ctx.rng;
         int w = leaf.width();
         int h = leaf.height();
+        if (qualifiesForTacticalRows(leaf)) {
+            fillTacticalRows(leaf, ctx);
+            return;
+        }
         if (w < MIN_DENSE_DIM || h < MIN_DENSE_DIM) {
             PointOfInterest poi = BuildingShellCore.carve(leaf, grid, topology, doodads, rng, FALLBACK_CONFIG);
             if (poi != null) pois.add(poi);
@@ -135,6 +167,154 @@ public final class DenseBlockFiller implements BlockFiller {
                 PointOfInterest.Kind.RESIDENTIAL,
                 leaf.left, leaf.top, leaf.right, leaf.bottom,
                 midX, midY, interiorX, interiorY));
+    }
+
+    static boolean qualifiesForTacticalRows(BlockLeaf leaf) {
+        return Math.max(leaf.width(), leaf.height()) >= TACTICAL_MIN_LONG_DIM
+                && Math.min(leaf.width(), leaf.height()) >= TACTICAL_MIN_SHORT_DIM;
+    }
+
+    private static void fillTacticalRows(BlockLeaf leaf, GenContext ctx) {
+        boolean verticalAlley = leaf.width() >= leaf.height();
+        boolean tenementFirst = ctx.rng.nextBoolean();
+        if (verticalAlley) {
+            int alleyLeft = leaf.left + (leaf.width() - TACTICAL_ALLEY_WIDTH) / 2;
+            int alleyRight = alleyLeft + TACTICAL_ALLEY_WIDTH - 1;
+            paintAlley(ctx, alleyLeft, leaf.top, alleyRight, leaf.bottom);
+            carveRow(new BlockLeaf(leaf.left, leaf.top, alleyLeft - 1, leaf.bottom, false),
+                    BuildingPlacement.Side.RIGHT,
+                    tenementFirst ? TENEMENT_CONFIG : MARKET_CONFIG, ctx);
+            carveRow(new BlockLeaf(alleyRight + 1, leaf.top, leaf.right, leaf.bottom, false),
+                    BuildingPlacement.Side.LEFT,
+                    tenementFirst ? MARKET_CONFIG : TENEMENT_CONFIG, ctx);
+            furnishAlley(ctx, alleyLeft, leaf.top, alleyRight, leaf.bottom, true);
+            return;
+        }
+
+        int alleyTop = leaf.top + (leaf.height() - TACTICAL_ALLEY_WIDTH) / 2;
+        int alleyBottom = alleyTop + TACTICAL_ALLEY_WIDTH - 1;
+        paintAlley(ctx, leaf.left, alleyTop, leaf.right, alleyBottom);
+        carveRow(new BlockLeaf(leaf.left, leaf.top, leaf.right, alleyTop - 1, false),
+                BuildingPlacement.Side.BOTTOM,
+                tenementFirst ? TENEMENT_CONFIG : MARKET_CONFIG, ctx);
+        carveRow(new BlockLeaf(leaf.left, alleyBottom + 1, leaf.right, leaf.bottom, false),
+                BuildingPlacement.Side.TOP,
+                tenementFirst ? MARKET_CONFIG : TENEMENT_CONFIG, ctx);
+        furnishAlley(ctx, leaf.left, alleyTop, leaf.right, alleyBottom, false);
+    }
+
+    private static void carveRow(BlockLeaf row,
+                                 BuildingPlacement.Side frontage,
+                                 BuildingShellCore.BuildingConfig config,
+                                 GenContext ctx) {
+        PointOfInterest poi = BuildingShellCore.carve(
+                row, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, config,
+                new BuildingPlacement(frontage, true));
+        if (poi != null) ctx.pois.add(poi);
+    }
+
+    private static void paintAlley(GenContext ctx,
+                                   int left, int top, int right, int bottom) {
+        for (int y = top; y <= bottom; y++) {
+            for (int x = left; x <= right; x++) {
+                ctx.grid.setWalkableFloor(x, y);
+                ctx.grid.setSeeThrough(x, y, true);
+                ctx.topology.setGroundKind(x, y, GroundKind.STREET);
+                ctx.topology.setWall(x, y, false);
+                ctx.topology.setFixture(x, y, false);
+            }
+        }
+    }
+
+    /**
+     * Staggers at most two low cover fixtures against alternating alley edges.
+     * Each fixture occupies one of three cross-alley cells, leaving a full
+     * two-cell lane at that station; doorway-adjacent candidates are skipped.
+     */
+    private static void furnishAlley(GenContext ctx,
+                                     int left, int top, int right, int bottom,
+                                     boolean vertical) {
+        DoodadDef[] props = {
+                TileRegistry.installed().doodad("doodad.box"),
+                TileRegistry.installed().doodad("doodad.industrial-cable-reel")
+        };
+        int longMin = vertical ? top + 2 : left + 2;
+        int longMax = vertical ? bottom - 2 : right - 2;
+        if (longMax < longMin) return;
+
+        int[] targets = {
+                longMin + (longMax - longMin) / 3,
+                longMin + 2 * (longMax - longMin) / 3
+        };
+        for (int i = 0; i < targets.length; i++) {
+            int fixed = i == 0 ? (vertical ? left : top) : (vertical ? right : bottom);
+            int[] cell = nearestClearAlleyCell(
+                    ctx, left, top, right, bottom, vertical, fixed, targets[i]);
+            if (cell == null) continue;
+            stampAlleyCover(ctx, cell[0], cell[1], props[i]);
+        }
+    }
+
+    private static int[] nearestClearAlleyCell(GenContext ctx,
+                                                int left, int top, int right, int bottom,
+                                                boolean vertical, int fixed, int target) {
+        int min = vertical ? top + 2 : left + 2;
+        int max = vertical ? bottom - 2 : right - 2;
+        for (int distance = 0; distance <= max - min; distance++) {
+            for (int sign : new int[]{-1, 1}) {
+                if (distance == 0 && sign == 1) continue;
+                int along = target + distance * sign;
+                if (along < min || along > max) continue;
+                int x = vertical ? fixed : along;
+                int y = vertical ? along : fixed;
+                if (!nearDoorway(ctx.grid, x, y)
+                        && !occupied(ctx.doodads, x, y)
+                        && !alleyStationOccupied(ctx, left, top, right, bottom,
+                        vertical, along)) {
+                    return new int[]{x, y};
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean alleyStationOccupied(GenContext ctx,
+                                                 int left, int top, int right, int bottom,
+                                                 boolean vertical, int along) {
+        int crossMin = vertical ? left : top;
+        int crossMax = vertical ? right : bottom;
+        for (int cross = crossMin; cross <= crossMax; cross++) {
+            int x = vertical ? cross : along;
+            int y = vertical ? along : cross;
+            if (ctx.topology.isFixture(x, y) || occupied(ctx.doodads, x, y)) return true;
+        }
+        return false;
+    }
+
+    private static boolean nearDoorway(NavigationGrid grid, int x, int y) {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (grid.inBounds(x + dx, y + dy) && grid.isDoorway(x + dx, y + dy)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean occupied(List<Doodad> doodads, int x, int y) {
+        for (Doodad doodad : doodads) {
+            if (doodad.occupiesCell(x, y)) return true;
+        }
+        return false;
+    }
+
+    private static void stampAlleyCover(GenContext ctx, int x, int y, DoodadDef prop) {
+        ctx.grid.setWalkable(x, y, false);
+        ctx.grid.setSeeThrough(x, y, true);
+        ctx.topology.setWall(x, y, false);
+        ctx.topology.setFixture(x, y, true);
+        ctx.doodads.add(new Doodad(x, y, prop));
     }
 
     /**
