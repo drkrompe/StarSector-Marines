@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ChronicleBand;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
@@ -94,6 +95,19 @@ class CampaignDebugIntelChronicleTest {
         assertEquals("[INTIMATE/CONFIRMED] TESTAMENT #7 — House Drennar"
                         + " addressed the kingmaker after House Korvath's accession"
                         + " — jangala — happened day 20, learned day 23",
+                CampaignDebugIntel.chronicleSummary(state, 0));
+    }
+
+    @Test
+    void silentColonySummaryStatesOnlyMeasuredTerminalFacts() {
+        CampaignState state = new CampaignState();
+        int market = state.marketRegistry.intern("hesperus_ruins");
+        state.addChronicleSilentColony(7L, market, 8, 3,
+                AbandonedColonyArchiveOutcome.RECOVERED, 20, 20);
+
+        assertEquals("[INTIMATE/CONFIRMED] SILENT COLONY — 3 of 8 survivors"
+                        + " — archive RECOVERED — hesperus_ruins"
+                        + " — happened day 20, learned day 20",
                 CampaignDebugIntel.chronicleSummary(state, 0));
     }
 

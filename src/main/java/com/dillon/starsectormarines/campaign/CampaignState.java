@@ -192,6 +192,14 @@ public final class CampaignState implements Serializable {
     public int[] chronicleResultFactionId = filledInts(INITIAL_CAPACITY, -1);
     /** Kingmaker testament linked by this dispatch; -1 for other event types. */
     public long[] chronicleTestamentId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Black-swan event linked by this dispatch; -1 for other event types. */
+    public long[] chronicleSourceEventId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Frozen survivor cohort for Silent Colony dispatches; -1 otherwise. */
+    public int[] chronicleSurvivorsAtRisk = filledInts(INITIAL_CAPACITY, -1);
+    /** Measured survivors for Silent Colony dispatches; -1 otherwise. */
+    public int[] chronicleSurvivorsRescued = filledInts(INITIAL_CAPACITY, -1);
+    /** Explicit archive result for Silent Colony dispatches. */
+    public byte[] chronicleColonyArchiveOutcome = new byte[INITIAL_CAPACITY];
     public int[] chronicleHappenedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
     public int chronicleCount = 0;
@@ -507,6 +515,7 @@ public final class CampaignState implements Serializable {
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
         chronicleTestamentId[i] = -1L;
+        initializeChronicleEventSnapshot(i);
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -533,6 +542,7 @@ public final class CampaignState implements Serializable {
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
         chronicleTestamentId[i] = -1L;
+        initializeChronicleEventSnapshot(i);
         chronicleHappenedTick[i] = initiatedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -558,6 +568,7 @@ public final class CampaignState implements Serializable {
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
         chronicleTestamentId[i] = -1L;
+        initializeChronicleEventSnapshot(i);
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -589,6 +600,7 @@ public final class CampaignState implements Serializable {
         chronicleSourceFactionId[i] = sourceFactionId;
         chronicleResultFactionId[i] = resultFactionId;
         chronicleTestamentId[i] = -1L;
+        initializeChronicleEventSnapshot(i);
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -625,9 +637,63 @@ public final class CampaignState implements Serializable {
         chronicleSourceFactionId[i] = sourceFactionId;
         chronicleResultFactionId[i] = resultFactionId;
         chronicleTestamentId[i] = testamentId;
+        initializeChronicleEventSnapshot(i);
         chronicleHappenedTick[i] = sealedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
+    }
+
+    /** Appends one immutable, source-event-unique Silent Colony report. */
+    public long addChronicleSilentColony(long sourceEventId, int marketId,
+                                          int survivorsAtRisk,
+                                          int survivorsRescued,
+                                          AbandonedColonyArchiveOutcome archive,
+                                          int happenedTick,
+                                          int learnedTick) {
+        if (sourceEventId <= 0L || marketRegistry.get(marketId) == null
+                || survivorsAtRisk <= 0 || survivorsRescued < 0
+                || survivorsRescued > survivorsAtRisk
+                || (archive != AbandonedColonyArchiveOutcome.LOST
+                    && archive != AbandonedColonyArchiveOutcome.RECOVERED)
+                || happenedTick < 0 || learnedTick < happenedTick) {
+            return -1L;
+        }
+        for (int row = 0; row < chronicleCount; row++) {
+            if (chronicleSourceEventId[row] == sourceEventId) {
+                return chronicleId[row];
+            }
+        }
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.SILENT_COLONY.toByte();
+        chronicleSourceChainId[i] = -1L;
+        chronicleChainOutcome[i] = ChainState.RESOLVED.toByte();
+        chronicleBand[i] = ChronicleBand.INTIMATE.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
+        chronicleActorHouseId[i] = -1L;
+        chronicleTargetHouseId[i] = -1L;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = -1;
+        chronicleSourceFactionId[i] = -1;
+        chronicleResultFactionId[i] = -1;
+        chronicleTestamentId[i] = -1L;
+        chronicleSourceEventId[i] = sourceEventId;
+        chronicleSurvivorsAtRisk[i] = survivorsAtRisk;
+        chronicleSurvivorsRescued[i] = survivorsRescued;
+        chronicleColonyArchiveOutcome[i] = archive.toByte();
+        chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
+    private void initializeChronicleEventSnapshot(int row) {
+        chronicleSourceEventId[row] = -1L;
+        chronicleSurvivorsAtRisk[row] = -1;
+        chronicleSurvivorsRescued[row] = -1;
+        chronicleColonyArchiveOutcome[row] =
+                AbandonedColonyArchiveOutcome.NONE.toByte();
     }
 
     /** Prepares one idempotent Tier-3 handoff row per source chain. */
@@ -1006,6 +1072,16 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleResultFactionId, oldLength, n, -1);
         chronicleTestamentId = Arrays.copyOf(chronicleTestamentId, n);
         Arrays.fill(chronicleTestamentId, oldLength, n, -1L);
+        chronicleSourceEventId = Arrays.copyOf(chronicleSourceEventId, n);
+        Arrays.fill(chronicleSourceEventId, oldLength, n, -1L);
+        chronicleSurvivorsAtRisk = Arrays.copyOf(
+                chronicleSurvivorsAtRisk, n);
+        Arrays.fill(chronicleSurvivorsAtRisk, oldLength, n, -1);
+        chronicleSurvivorsRescued = Arrays.copyOf(
+                chronicleSurvivorsRescued, n);
+        Arrays.fill(chronicleSurvivorsRescued, oldLength, n, -1);
+        chronicleColonyArchiveOutcome = Arrays.copyOf(
+                chronicleColonyArchiveOutcome, n);
         chronicleHappenedTick = Arrays.copyOf(chronicleHappenedTick, n);
         Arrays.fill(chronicleHappenedTick, oldLength, n, -1);
         chronicleLearnedTick = Arrays.copyOf(chronicleLearnedTick, n);
@@ -1273,6 +1349,18 @@ public final class CampaignState implements Serializable {
         }
         if (chronicleTestamentId == null) {
             chronicleTestamentId = filledLongs(chronicleCapacity, -1L);
+        }
+        if (chronicleSourceEventId == null) {
+            chronicleSourceEventId = filledLongs(chronicleCapacity, -1L);
+        }
+        if (chronicleSurvivorsAtRisk == null) {
+            chronicleSurvivorsAtRisk = filledInts(chronicleCapacity, -1);
+        }
+        if (chronicleSurvivorsRescued == null) {
+            chronicleSurvivorsRescued = filledInts(chronicleCapacity, -1);
+        }
+        if (chronicleColonyArchiveOutcome == null) {
+            chronicleColonyArchiveOutcome = new byte[chronicleCapacity];
         }
         if (chronicleHappenedTick == null) {
             chronicleHappenedTick = filledInts(chronicleCapacity, -1);

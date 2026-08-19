@@ -52,6 +52,8 @@ public final class MissionOutcome {
     public final long    campaignEventId;
     /** Frozen event market registry slot; {@code -1} for non-event outcomes. */
     public final int     campaignEventMarketId;
+    /** Frozen Silent Colony threat lineage; {@code -1} when absent. */
+    public final long    campaignEventThreatSeed;
     /** Frozen civilian stakes from mission creation; zero otherwise. */
     public final int     civiliansAtRisk;
     /** Explicit battle evacuation report; {@code -1} means no valid report. */
@@ -164,6 +166,36 @@ public final class MissionOutcome {
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct,
                           Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
                           Set<String> deployedFireteamIds) {
+        this(victory, missionId, missionName, missionType, risk, missionSource,
+                payoutBase, payoutEarned, marinesEngaged, marinesLost,
+                captainId, captainName, priorCaptainStatus, newCaptainStatus,
+                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
+                targetIndustryId, targetFactionId, contractId, campaignEventId,
+                campaignEventMarketId, -1L, civiliansAtRisk, civiliansRescued,
+                evacuationRepresentatives, representativesEvacuated,
+                colonyArchiveOutcome, salvageEntitlement,
+                salvageRecoveryBonusPct, salvageHighValueChancePct,
+                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
+    }
+
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
+                          String captainId, String captainName,
+                          Status priorCaptainStatus, Status newCaptainStatus,
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, long campaignEventThreatSeed,
+                          int civiliansAtRisk, int civiliansRescued,
+                          int evacuationRepresentatives,
+                          int representativesEvacuated,
+                          AbandonedColonyArchiveOutcome colonyArchiveOutcome,
+                          int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
+                          Set<String> deployedFireteamIds) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -188,6 +220,9 @@ public final class MissionOutcome {
         this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
                 ? Math.max(-1, campaignEventMarketId) : -1;
+        this.campaignEventThreatSeed = this.campaignEventId > 0L
+                && campaignEventThreatSeed >= 0L
+                ? campaignEventThreatSeed : -1L;
         this.civiliansAtRisk = this.missionSource.isCivilianRescue()
                 ? Math.max(0, civiliansAtRisk) : 0;
         this.civiliansRescued = this.missionSource.isCivilianRescue()
