@@ -85,11 +85,11 @@ universe over time, not retrofitted into intel slots.
   (mod-merge: load order, id-override, validation) is deferred until a real
   submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
   [`moddable-tilesets/`](moddable-tilesets/overview.md).
-- **Surface relief** *(new, active)* — parallax mapping with offset limiting
-  (Welsh 2004) adapted to the top-down battlefield via a screen-space
-  composite, plus per-texel dynamic lighting later; height/normal sheets
-  auto-derived at build time from tile albedos by a kernel vendored from
-  MoonLightEngine. See [`surface-relief/`](surface-relief/overview.md).
+- **Surface relief** *(active)* — S1 derivation and the manually accepted S2
+  material-aware parallax/water pass are shipped. S3 dynamic ground bump
+  lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
+  pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
+  burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
 
 ## Immediate next-up
 
@@ -116,13 +116,17 @@ universe over time, not retrofitted into intel slots.
    Net dispatch. The second archetype is also complete: a discovered political
    chain can produce a costly defector-asylum promise followed by a delayed
    protect-or-betray choice, with source-frozen plot/reputation reaction and
-   hidden moral meaning consumed exactly once. No living-world story remains
-   active. The kingmaker capstone is now complete too: decisive claimant victories
+   hidden moral meaning consumed exactly once. The kingmaker capstone is now
+   complete too: decisive claimant victories
    seal a deterministic Last Testament, deliver it through persistent intel and
    Chronicle history, and have production-shaped debug/replay coverage
-   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). Contract the next event
-   archetype before extending the generic event surface. Keep swarm tuning deferred
-   until manual playtesting resumes. See
+   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). G9 **Silent Colony** is now
+   active: its first two slices persist the blind expedition and select one-shot
+   dead/ruined sites behind the shared event gate, with a reconstructible Dead
+   Letter choice surface (`4d50805d`, `33b073bd`). Next is the dedicated
+   expedition mission lineage, survivor/archive objectives, and automated-threat
+   reveal.
+   Keep swarm tuning deferred until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
