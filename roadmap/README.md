@@ -122,7 +122,10 @@ universe over time, not retrofitted into intel slots.
   [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
   it follows behind the live chassis, fans to fire on contact, and receives
-  real protection from physical direct-fire interception.
+  real protection from physical direct-fire interception. Generic infantry
+  pursuit now also rejects clustered runners (`43c619ff`, `8888e6f8`), settles
+  exposed holders laterally/backward into real cover, and hard-clips ordinary
+  Engage/Approach paths to squad cohesion without constraining mission moves.
 
 ## Immediate next-up
 
