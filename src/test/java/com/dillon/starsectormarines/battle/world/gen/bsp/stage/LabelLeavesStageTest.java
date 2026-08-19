@@ -42,4 +42,16 @@ class LabelLeavesStageTest {
         assertEquals(BlockKind.BUILDING_RESIDENTIAL,
                 LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 14, 11));
     }
+
+    @Test
+    void medicalCampusSeedsRequireFullClinicDimensions() {
+        assertEquals(BlockKind.MEDICAL_CAMPUS,
+                LabelLeavesStage.constrainKindForSize(BlockKind.MEDICAL_CAMPUS, 15, 12));
+        assertEquals(BlockKind.MEDICAL_CAMPUS,
+                LabelLeavesStage.constrainKindForSize(BlockKind.MEDICAL_CAMPUS, 12, 15));
+        assertEquals(BlockKind.BUILDING_COMMERCIAL,
+                LabelLeavesStage.constrainKindForSize(BlockKind.MEDICAL_CAMPUS, 14, 12));
+        assertEquals(BlockKind.BUILDING_COMMERCIAL,
+                LabelLeavesStage.constrainKindForSize(BlockKind.MEDICAL_CAMPUS, 15, 11));
+    }
 }

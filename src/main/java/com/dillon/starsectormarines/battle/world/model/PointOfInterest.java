@@ -32,7 +32,8 @@ public final class PointOfInterest {
         COMMS,
         DEPOT,
         RESIDENTIAL,
-        ADMINISTRATIVE
+        ADMINISTRATIVE,
+        MEDICAL
     }
 
     public final Kind kind;
