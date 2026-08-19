@@ -35,7 +35,7 @@ bypass the civic headquarters' own size guard.
 
 ## Validation
 
-- `gradlew.bat :test` — 1,789 tests green.
+- `gradlew.bat :test` — 1,795-test merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — green.
 - `MedicalCampusFillerTest` covers all four clinic frontages, room purposes,
   medical fixtures, opposed entrances, windows/cover/LoS, exact three-parcel
