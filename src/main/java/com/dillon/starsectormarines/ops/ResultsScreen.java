@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -126,6 +127,16 @@ public class ResultsScreen implements Screen {
                         cardX + INNER_PAD, rowY, LABEL_COLOR));
                 widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                         formatEvacuation(outcome),
+                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
+                rowY -= ROW_GAP;
+            }
+            if (outcome.colonyArchiveOutcome
+                    != AbandonedColonyArchiveOutcome.NONE) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        Strings.get("resultsColonyArchiveLabel"),
+                        cardX + INNER_PAD, rowY, LABEL_COLOR));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        formatColonyArchive(outcome),
                         cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
                 rowY -= ROW_GAP;
             }
@@ -356,6 +367,15 @@ public class ResultsScreen implements Screen {
         return MessageFormat.format(Strings.get("resultsEvacuationFmt"),
                 outcome.representativesEvacuated,
                 outcome.evacuationRepresentatives);
+    }
+
+    static String formatColonyArchive(MissionOutcome outcome) {
+        if (outcome == null) return "—";
+        return switch (outcome.colonyArchiveOutcome) {
+            case RECOVERED -> Strings.get("resultsColonyArchiveRecovered");
+            case LOST -> Strings.get("resultsColonyArchiveLost");
+            case NONE -> "—";
+        };
     }
 
     private void returnToMissions() {
