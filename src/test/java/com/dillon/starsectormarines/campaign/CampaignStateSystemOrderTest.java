@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.DefectorAsylumSpawnSystem;
+import com.dillon.starsectormarines.campaign.systems.DefectorAsylumConsequenceSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
+import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -51,6 +53,8 @@ class CampaignStateSystemOrderTest {
                 com.dillon.starsectormarines.campaign.systems.ContractGenerator.class);
         int discovery = indexOf(systems, DiscoveryPropagationSystem.class);
         int defectorAsylum = indexOf(systems, DefectorAsylumSpawnSystem.class);
+        int defectorConsequences = indexOf(systems,
+                DefectorAsylumConsequenceSystem.class);
         int interventionOffers = indexOf(systems, ThreatInterventionOfferSystem.class);
         int civilWarOffers = indexOf(systems, CivilWarParticipationOfferSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
@@ -62,6 +66,7 @@ class CampaignStateSystemOrderTest {
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
         int moralCompass = indexOf(systems, MoralCompassSystem.class);
+        int kingmakerTestament = indexOf(systems, KingmakerTestamentSystem.class);
         int captainDrift = indexOf(systems, CaptainTraitDriftSystem.class);
         int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
         int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
@@ -72,6 +77,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
         assertTrue(chainCreation < chainAdvancement);
+        assertTrue(eventLifecycle < defectorConsequences);
+        assertTrue(defectorConsequences < chainAdvancement);
         assertTrue(chainAdvancement < throneResolution);
         assertTrue(throneResolution < consolidation);
         assertTrue(chainAdvancement < consolidation);
@@ -93,6 +100,9 @@ class CampaignStateSystemOrderTest {
         assertTrue(eventLifecycle < moralCompass);
         assertTrue(eventLifecycle < rescueSpawn);
         assertTrue(rescueSpawn < moralCompass);
+        assertTrue(moralCompass < kingmakerTestament);
+        assertTrue(kingmakerTestament < discovery);
+        assertTrue(kingmakerTestament < captainDrift);
         assertTrue(moralCompass < captainDrift);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);

@@ -16,6 +16,7 @@ public enum CampaignTable {
     CHAINS,
     CHRONICLE,
     THRONE_CLAIMS,
+    KINGMAKER_TESTAMENTS,
     PLAYER_REP,
     MORAL_COMPASS,
     EVENTS,
