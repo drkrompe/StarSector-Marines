@@ -70,29 +70,25 @@ final class LayeredMechComposer {
                     0.37f, 0.39f - cgKick, 0f, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
-            emitPodFlash(out, assets, leftShoulder, LayeredMechAppearance.POD_SRM,
+            emitPodFlash(out, assets, leftShoulder, true,
                     actorX, actorY, hullWidth, torsoFacingDeg, -0.23f, 0.11f, alpha);
-            emitPodFlash(out, assets, rightShoulder, LayeredMechAppearance.POD_SRM,
+            emitPodFlash(out, assets, rightShoulder, true,
                     actorX, actorY, hullWidth, torsoFacingDeg, 0.23f, 0.11f, alpha);
-            emitPodFlash(out, assets, leftShoulder, LayeredMechAppearance.POD_HEAVY_SRM,
-                    actorX, actorY, hullWidth, torsoFacingDeg, -0.23f, 0.12f, alpha);
-            emitPodFlash(out, assets, rightShoulder, LayeredMechAppearance.POD_HEAVY_SRM,
-                    actorX, actorY, hullWidth, torsoFacingDeg, 0.23f, 0.12f, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
-            emitPodFlash(out, assets, leftShoulder, LayeredMechAppearance.POD_LRM,
+            emitPodFlash(out, assets, leftShoulder, false,
                     actorX, actorY, hullWidth, torsoFacingDeg, -0.23f, 0.12f, alpha);
-            emitPodFlash(out, assets, rightShoulder, LayeredMechAppearance.POD_LRM,
+            emitPodFlash(out, assets, rightShoulder, false,
                     actorX, actorY, hullWidth, torsoFacingDeg, 0.23f, 0.12f, alpha);
         }
     }
 
     private static void emitPodFlash(DrawList out, LayeredMechAssets assets,
-                                     int installedPod, int firingPod,
+                                     int installedPod, boolean srm,
                                      float actorX, float actorY, float hullWidth,
                                      float facingDeg, float localX, float localY,
                                      float alpha) {
-        if (installedPod == firingPod) {
+        if (srm ? isSrmPod(installedPod) : isLrmPod(installedPod)) {
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                     localX, localY, 0f, alpha);
         }
@@ -102,16 +98,33 @@ final class LayeredMechComposer {
                                 float actorX, float actorY, float hullWidth,
                                 float facingDeg, float localX,
                                 float srmKick, float lrmKick, float alpha) {
-        if (pod == LayeredMechAppearance.POD_SRM) {
+        if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.38f - srmKick, 0f, alpha);
-        } else if (pod == LayeredMechAppearance.POD_HEAVY_SRM) {
+                    localX, -0.38f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
+        } else if (isLargePod(pod)) {
             emitFromRearPivot(out, assets.lrmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.38f - srmKick, 0f, alpha);
-        } else if (pod == LayeredMechAppearance.POD_LRM) {
-            emitFromRearPivot(out, assets.lrmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.38f - lrmKick, 0f, alpha);
+                    localX, -0.38f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
         }
+    }
+
+    private static boolean isSmallPod(int pod) {
+        return pod == LayeredMechAppearance.POD_SMALL_SRM
+                || pod == LayeredMechAppearance.POD_SMALL_LRM;
+    }
+
+    private static boolean isLargePod(int pod) {
+        return pod == LayeredMechAppearance.POD_LARGE_SRM
+                || pod == LayeredMechAppearance.POD_LARGE_LRM;
+    }
+
+    private static boolean isSrmPod(int pod) {
+        return pod == LayeredMechAppearance.POD_SMALL_SRM
+                || pod == LayeredMechAppearance.POD_LARGE_SRM;
+    }
+
+    private static boolean isLrmPod(int pod) {
+        return pod == LayeredMechAppearance.POD_SMALL_LRM
+                || pod == LayeredMechAppearance.POD_LARGE_LRM;
     }
 
     private static void emitCentered(DrawList out, LayeredSpriteCache sprite,

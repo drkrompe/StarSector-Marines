@@ -285,13 +285,19 @@ the all-or-nothing load fallback and corpse source (`bccbbe16`).
 
 A dedicated `SWARM_PRESSURE` role owns its behavior:
 
-- choose the nearest registered `ACTIVE` mission evacuee only after it enters
-  the runner's bounded vision and line of sight;
-- remember a discovered evacuee after line of sight breaks, but never receive
+- rank sensed marines and registered `ACTIVE` mission evacuees in one
+  distance-based candidate pool, so category never overrides a clearly closer
+  target;
+- keep the current victim while it remains within 25% of the best candidate,
+  preventing oscillation while allowing a substantially closer marine to peel
+  pressure away from a colonist;
+- remember valid discovered prey after line of sight breaks, but never receive
   the cohort's position before first contact;
 - never choose an ambient civilian merely because it shares `Faction.CIVILIAN`;
-- before civilian discovery—or after no active evacuee remains—pressure the
-  nearest live marine;
+- when no local target is sensed, continue toward remembered prey or pressure
+  the nearest live marine as a strategic fallback;
+- reroute immediately when aggro changes instead of waiting for the ordinary
+  movement repath throttle;
 - path directly toward the chosen target and apply contact damage only from an
   adjacent cell; and
 - idle if neither a registered evacuee nor marine exists.
