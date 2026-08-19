@@ -13,6 +13,14 @@ public final class PatronMemoryComposer {
     public static String compose(CampaignState state, long patronHouseId,
                                  long currentContractId,
                                  String patronDisplayName) {
+        return compose(state, patronHouseId, currentContractId,
+                patronDisplayName, null);
+    }
+
+    public static String compose(CampaignState state, long patronHouseId,
+                                 long currentContractId,
+                                 String patronDisplayName,
+                                 PatronTargetNameResolver targetNames) {
         PatronEngagementMemory.History history =
                 PatronEngagementMemory.history(state, patronHouseId);
         if (history == null
@@ -27,11 +35,12 @@ public final class PatronMemoryComposer {
                 long seed = currentContractId * 0x9E3779B97F4A7C15L
                         + history.latest.id * 31L + history.previous.id
                         + SEED_MIXER;
-                return render(pick(continuityPool, seed),
-                        patronDisplayName, history);
+                return render(pick(continuityPool, seed), patronDisplayName,
+                        history, targetNames);
             }
         }
-        return composeLatest(history, currentContractId, patronDisplayName);
+        return composeLatest(history, currentContractId,
+                patronDisplayName, targetNames);
     }
 
     static PatronRelationshipPattern classify(
@@ -60,13 +69,15 @@ public final class PatronMemoryComposer {
 
     private static String composeLatest(PatronEngagementMemory.History history,
                                         long currentContractId,
-                                        String patronDisplayName) {
+                                        String patronDisplayName,
+                                        PatronTargetNameResolver targetNames) {
         PatronEngagementMemory.Snapshot memory = history.latest;
         String[] pool = PatronMemoryVoice.forOutcome(memory.outcome);
         if (pool.length == 0) return null;
         long seed = currentContractId * 0x9E3779B97F4A7C15L
                 + memory.id + SEED_MIXER;
-        return render(pick(pool, seed), patronDisplayName, history);
+        return render(pick(pool, seed), patronDisplayName, history,
+                targetNames);
     }
 
     private static String pick(String[] pool, long seed) {
@@ -75,7 +86,8 @@ public final class PatronMemoryComposer {
     }
 
     private static String render(String template, String patronDisplayName,
-                                 PatronEngagementMemory.History history) {
+                                 PatronEngagementMemory.History history,
+                                 PatronTargetNameResolver targetNames) {
         PatronEngagementMemory.Snapshot latest = history.latest;
         PatronEngagementMemory.Snapshot previous = history.previous;
         String patron = patronDisplayName != null
@@ -91,6 +103,13 @@ public final class PatronMemoryComposer {
                         ? contractLabel(previous.contractType) : "")
                 .replace("{previousOutcome}", previous != null
                         ? outcomeLabel(previous.outcome) : "")
+                .replace("{target}", targetLabel(targetNames,
+                        latest.targetMarketId, "the last operation site"))
+                .replace("{latestTarget}", targetLabel(targetNames,
+                        latest.targetMarketId, "the latest operation site"))
+                .replace("{previousTarget}", targetLabel(targetNames,
+                        previous != null ? previous.targetMarketId : -1,
+                        "the earlier operation site"))
                 .replace("{priorCount}",
                         String.valueOf(history.engagementCount))
                 .replace("{engagementNumber}",
@@ -109,5 +128,18 @@ public final class PatronMemoryComposer {
             case EMPLOYER_BREACHED: return "employer breach";
             default: return "unknown result";
         }
+    }
+
+    private static String targetLabel(PatronTargetNameResolver targetNames,
+                                      int marketId, String fallback) {
+        if (targetNames != null && marketId >= 0) {
+            try {
+                String target = targetNames.displayName(marketId);
+                if (target != null && !target.trim().isEmpty()) return target;
+            } catch (RuntimeException ignored) {
+                // A missing live economy row must not suppress patron memory.
+            }
+        }
+        return fallback;
     }
 }

@@ -133,6 +133,9 @@ public final class CampaignState implements Serializable {
             filledLongs(INITIAL_CAPACITY, -1L);
     public byte[] patronEngagementContractType = new byte[INITIAL_CAPACITY];
     public int[] patronEngagementMarketId = filledInts(INITIAL_CAPACITY, -1);
+    /** Frozen operation target market; -1 for legacy or unknown targets. */
+    public int[] patronEngagementTargetMarketId =
+            filledInts(INITIAL_CAPACITY, -1);
     public byte[] patronEngagementOutcome = new byte[INITIAL_CAPACITY];
     public int[] patronEngagementHappenedTick =
             filledInts(INITIAL_CAPACITY, -1);
@@ -838,6 +841,7 @@ public final class CampaignState implements Serializable {
     /** Appends one already-validated immutable patron-engagement snapshot. */
     long appendPatronEngagement(long sourceContractId, long houseId,
                                 ContractType contractType, int marketId,
+                                int targetMarketId,
                                 PatronEngagementOutcome outcome,
                                 int happenedTick) {
         ensurePatronEngagementCapacity(patronEngagementCount + 1);
@@ -848,6 +852,7 @@ public final class CampaignState implements Serializable {
         patronEngagementHouseId[i] = houseId;
         patronEngagementContractType[i] = contractType.toByte();
         patronEngagementMarketId[i] = marketId;
+        patronEngagementTargetMarketId[i] = targetMarketId;
         patronEngagementOutcome[i] = outcome.toByte();
         patronEngagementHappenedTick[i] = happenedTick;
         return id;
@@ -1225,6 +1230,9 @@ public final class CampaignState implements Serializable {
         patronEngagementMarketId = Arrays.copyOf(
                 patronEngagementMarketId, n);
         Arrays.fill(patronEngagementMarketId, oldLength, n, -1);
+        patronEngagementTargetMarketId = Arrays.copyOf(
+                patronEngagementTargetMarketId, n);
+        Arrays.fill(patronEngagementTargetMarketId, oldLength, n, -1);
         patronEngagementOutcome = Arrays.copyOf(
                 patronEngagementOutcome, n);
         patronEngagementHappenedTick = Arrays.copyOf(
@@ -1565,6 +1573,10 @@ public final class CampaignState implements Serializable {
         }
         if (patronEngagementMarketId == null) {
             patronEngagementMarketId =
+                    filledInts(patronEngagementCapacity, -1);
+        }
+        if (patronEngagementTargetMarketId == null) {
+            patronEngagementTargetMarketId =
                     filledInts(patronEngagementCapacity, -1);
         }
         if (patronEngagementOutcome == null) {

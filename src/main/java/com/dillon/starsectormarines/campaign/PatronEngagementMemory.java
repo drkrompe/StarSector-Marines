@@ -22,12 +22,14 @@ public final class PatronEngagementMemory {
         public final long houseId;
         public final ContractType contractType;
         public final int marketId;
+        public final int targetMarketId;
         public final PatronEngagementOutcome outcome;
         public final int happenedTick;
         public final int priorEngagementCount;
 
         private Snapshot(long id, long sourceContractId, long houseId,
                          ContractType contractType, int marketId,
+                         int targetMarketId,
                          PatronEngagementOutcome outcome, int happenedTick,
                          int priorEngagementCount) {
             this.id = id;
@@ -35,6 +37,7 @@ public final class PatronEngagementMemory {
             this.houseId = houseId;
             this.contractType = contractType;
             this.marketId = marketId;
+            this.targetMarketId = targetMarketId;
             this.outcome = outcome;
             this.happenedTick = happenedTick;
             this.priorEngagementCount = priorEngagementCount;
@@ -66,8 +69,9 @@ public final class PatronEngagementMemory {
                 || state.marketRegistry.get(marketId) == null) {
             return -1L;
         }
+        int targetMarketId = targetMarket(state, contractRow, type);
         return state.appendPatronEngagement(sourceContractId, patronId, type,
-                marketId, outcome, day);
+                marketId, targetMarketId, outcome, day);
     }
 
     static boolean hasSource(CampaignState state, long sourceContractId) {
@@ -158,11 +162,16 @@ public final class PatronEngagementMemory {
     }
 
     private static Snapshot snapshot(CampaignState state, int row, int count) {
+        int targetMarketId = state.patronEngagementTargetMarketId[row];
+        if (state.marketRegistry.get(targetMarketId) == null) {
+            targetMarketId = -1;
+        }
         return new Snapshot(state.patronEngagementId[row],
                 state.patronEngagementSourceContractId[row],
                 state.patronEngagementHouseId[row],
                 safeContractType(state.patronEngagementContractType[row]),
                 state.patronEngagementMarketId[row],
+                targetMarketId,
                 safeOutcome(state.patronEngagementOutcome[row]),
                 state.patronEngagementHappenedTick[row], count);
     }
@@ -199,6 +208,18 @@ public final class PatronEngagementMemory {
             case EMPLOYER_BREACHED: return ContractState.DEFAULTED;
             default: return null;
         }
+    }
+
+    private static int targetMarket(CampaignState state, int contractRow,
+                                    ContractType type) {
+        if (type.isStationing() || type == ContractType.EXTRACTION) {
+            return state.contractMarketId[contractRow];
+        }
+        long targetHouseId = state.contractTargetHouseId[contractRow];
+        int targetHouseRow = state.houseIndex(targetHouseId);
+        if (targetHouseRow < 0) return -1;
+        int marketId = state.houseMarketId[targetHouseRow];
+        return state.marketRegistry.get(marketId) != null ? marketId : -1;
     }
 
     private static ContractState safeContractState(byte value) {
