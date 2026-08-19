@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.DefectorAsylumSpawnSystem;
+import com.dillon.starsectormarines.campaign.systems.DefectorAsylumConsequenceSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
@@ -51,6 +52,8 @@ class CampaignStateSystemOrderTest {
                 com.dillon.starsectormarines.campaign.systems.ContractGenerator.class);
         int discovery = indexOf(systems, DiscoveryPropagationSystem.class);
         int defectorAsylum = indexOf(systems, DefectorAsylumSpawnSystem.class);
+        int defectorConsequences = indexOf(systems,
+                DefectorAsylumConsequenceSystem.class);
         int interventionOffers = indexOf(systems, ThreatInterventionOfferSystem.class);
         int civilWarOffers = indexOf(systems, CivilWarParticipationOfferSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
@@ -72,6 +75,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(ambitions < drift);
         assertTrue(drift < promotions);
         assertTrue(chainCreation < chainAdvancement);
+        assertTrue(eventLifecycle < defectorConsequences);
+        assertTrue(defectorConsequences < chainAdvancement);
         assertTrue(chainAdvancement < throneResolution);
         assertTrue(throneResolution < consolidation);
         assertTrue(chainAdvancement < consolidation);

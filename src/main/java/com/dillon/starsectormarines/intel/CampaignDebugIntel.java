@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
+import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
@@ -68,6 +69,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
     private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
+    private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
+    private static final String BTN_ADVANCE_DEFECTOR = "advance-defector-followup";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
@@ -185,6 +188,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
         ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
+        ui.addButton("Spawn discovered-chain defector", BTN_SPAWN_DEFECTOR,
+                320f, 24f, 8f);
+        ui.addButton("Advance committed defector to follow-up",
+                BTN_ADVANCE_DEFECTOR, 320f, 24f, 8f);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
@@ -443,6 +450,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
         } else if (BTN_SPAWN_RESCUE.equals(buttonId)) {
             spawnLocalRescue(s);
+        } else if (BTN_SPAWN_DEFECTOR.equals(buttonId)) {
+            spawnDefector(s);
+        } else if (BTN_ADVANCE_DEFECTOR.equals(buttonId)) {
+            advanceDefector(s);
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
             clearTerminalContracts(s);
         } else if (buttonId instanceof String) {
@@ -538,6 +549,20 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int day = (int) Global.getSector().getClock().getDay();
         DebugCivilianRescueSpawner.spawn(
                 state, selectedSlot, selectedMarket.getSize(), day);
+    }
+
+    private static void spawnDefector(CampaignState state) {
+        int day = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay()
+                : Math.max(0, state.lastTickDay);
+        DebugDefectorAsylumSpawner.spawn(state, day);
+    }
+
+    private static void advanceDefector(CampaignState state) {
+        int day = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay()
+                : Math.max(0, state.lastTickDay);
+        DebugDefectorAsylumSpawner.advanceCommitted(state, day);
     }
 
     /** Compact terminal contracts out of the table to keep the list browsable. */

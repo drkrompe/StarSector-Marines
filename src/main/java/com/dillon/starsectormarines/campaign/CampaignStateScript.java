@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
 import com.dillon.starsectormarines.campaign.systems.DefectorAsylumSpawnSystem;
+import com.dillon.starsectormarines.campaign.systems.DefectorAsylumConsequenceSystem;
 import com.dillon.starsectormarines.campaign.systems.ExtractionResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
@@ -82,6 +83,8 @@ public class CampaignStateScript implements EveryFrameScript {
                 new AutonomousPromotionSystem(),
                 new RelationshipInteractionSystem(),
                 new AutonomousChainCreationSystem(),
+                new CampaignEventLifecycleSystem(),
+                new DefectorAsylumConsequenceSystem(),
                 new ChainAdvancementSystem(),
                 new ThroneClaimResolutionSystem(),
                 new HouseConsolidationSystem(),
@@ -95,7 +98,6 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ContractLifecycleSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
-                new CampaignEventLifecycleSystem(),
                 new CivilianRescueSpawnSystem(),
                 new MoralCompassSystem(),
                 new CaptainTraitDriftSystem(),
