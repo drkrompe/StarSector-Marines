@@ -1,7 +1,7 @@
 # Conquest — next-session handoff
 
-_Last updated: 2026-08-13, after shipping the front-line reinforcement
-trigger + wiring (`28e512ab`)._
+_Last updated: 2026-08-19, after shipping the bulge counterattack's
+player-facing telegraph surface (`f0c766a3`)._
 
 ## State of play
 
@@ -23,6 +23,12 @@ trigger + wiring (`28e512ab`)._
   re-opens targets whose dispatch died in the delivery pipeline:
   convoy routing aborts after the request is consumed, no-means drops,
   `SquadFallbackSystem` stealing a mauled squad's `assignedNode`).
+- **biome-counterattack** — code-complete, playtest pending. Core phase /
+  economy / dispatch / resolve shipped in `db87ed0d`; player-facing slice 3
+  shipped in `f0c766a3`: a reusable newest-dispatch battle comms feed,
+  warning → inbound → success/failure/abort officer reads, an explicit
+  resolution contract retained through cooldown, and a pulsing world marker
+  at the threatened target centroid with the telegraph countdown.
 
 ## Immediate next-up
 
@@ -37,14 +43,13 @@ trigger + wiring (`28e512ab`)._
      `ABORT_COOLDOWN_SEC` (30), `MAX_BULGES_PER_BATTLE` (2). The
      loss-then-reclaim rhythm must threaten without the map refusing
      to stay taken.
-2. **Bulge slice 3 — telegraph surface**: the comms-officer warning /
-   threatened-slice signpost. `CounterattackSystem` exposes
-   `getPhase()`/`getBulgeSlice()` and logs at TELEGRAPH entry and
-   RESOLVE outcome as the hooks; needs a real battle comms/notification
-   surface (none exists — new story, player-POV per the
-   comms-officer-as-narrator model).
+   - Telegraph surface (`f0c766a3`): check the comms plate against the
+     compound-progress strip at common resolutions; confirm the marker is
+     readable at fit-map and close zoom, the 20-second sim-time countdown
+     feels honest at 1×/2×/4×, and warning/inbound/outcome copy lands without
+     overstaying its real-time notice windows.
 
-## Bulge counterattack — shipped core (`db87ed0d`)
+## Bulge counterattack — code-complete (`db87ed0d`, `f0c766a3`)
 
 Slices 1, 2, 4 of `stories/biome-counterattack.md`:
 `CounterattackSystem` phase machine (IDLE → TELEGRAPH → ASSAULT →
@@ -60,6 +65,14 @@ success latch, assault-tick re-contest race ×2, abort churn,
 frontline double-dispatch, undeliverable-wave muster, stale snapshot),
 1 skipped as a recorded design decision (overflow gate counts
 in-flight dispatches as plugged — revisit only if playtest shows it).
+
+Slice 3 (`f0c766a3`) adds the real battle notification surface instead of a
+counterattack-only pop-up. `CounterattackCommsPresenter` translates sim state
+into player-POV dispatches; `BattleCommsPanel` owns the transient plate and
+world-anchored threatened-district signpost. `CounterattackSystem` now exposes
+the phase timer, target centroid, and explicit SUCCESS / FAILURE / ABORTED
+resolution retained throughout cooldown, so presentation never guesses from a
+phase transition or misses a one-tick result.
 
 ## Known deferred / follow-ups
 
