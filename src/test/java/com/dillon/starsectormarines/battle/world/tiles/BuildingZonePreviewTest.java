@@ -83,14 +83,15 @@ public class BuildingZonePreviewTest {
      *       hollow threshold; eligible for a single doorway but not interior partitions.</li>
      *   <li>{@code 9x6}: width &ge; multi-room threshold — eligible for a vertical partition wall.</li>
      *   <li>{@code 6x9}: height &ge; multi-room threshold — eligible for a horizontal partition wall.</li>
-     *   <li>{@code 12x8}: both axes large — two-doorway likely + partition + densest doodad scatter.</li>
+     *   <li>{@code 15x11}: both axes large — opposed doorways, room generation,
+     *       and tactical commercial aisles (other fillers exercise their densest layout).</li>
      * </ul>
      */
     private static final BuildingVariant[] VARIANTS = {
             new BuildingVariant("tiny 5x5",    5, 5,   1L),
             new BuildingVariant("wide 9x6",    9, 6,  42L),
             new BuildingVariant("tall 6x9",    6, 9, 100L),
-            new BuildingVariant("large 12x8", 12, 8, 777L),
+            new BuildingVariant("large 15x11", 15, 11, 777L),
     };
 
     /**
