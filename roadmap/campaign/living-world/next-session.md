@@ -186,8 +186,11 @@ slots move immediately with the escort screen. A playtest dump also caught the
 pickup Sirocco abandoning the LZ for a 91-cell `OverwatchKillZone` path. Pickup
 mechs now keep their center/five-point patrol during contact, fire installed
 weapons from that route, and reject generic overwatch/backstop goals (`bdfd5bf8`).
-Pickup timing, militia cadence, mech mix, through-fire strength, and engaged
-bounds remain manual.
+The latest correction gives every mobile squad its own contact-bound route cell
+and five-second timer, so pressure within twelve cells slows only that squad.
+Lift placement also rejects any candidate whose 5x5 trigger footprint crosses a
+wall, doorway, or building interior (`5a0da48d`). Pickup timing, militia cadence,
+mech mix, through-fire strength, and engaged bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -419,6 +422,8 @@ swarm tuning remain in the shared deferred queue.
   local settle radii plus attacker-proximity-gated timed advance (`f2159d82`).
 - G5/G6 unit-dispersion/LZ-mech correction — distinct member arrival cells and
   a contact-safe, firing-capable pickup-mech perimeter patrol (`bdfd5bf8`).
+- G5/G6 squad-local-bound/LZ-footprint correction — independent timed advance
+  per pressured squad plus clear outdoor 5x5 lift objectives (`5a0da48d`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

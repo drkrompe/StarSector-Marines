@@ -250,8 +250,11 @@ mobile squads separated line-and-depth anchors, gate their slower contact advanc
 on a live alien within twelve cells, and bind squadmates to distinct local arrival
 cells (`f2159d82`, `bdfd5bf8`). The pickup mech's center/five-point patrol now
 remains mission-authoritative during contact and fires without taking unrestricted
-field-mech movement goals (`bdfd5bf8`). Manual reinforcement cadence, swipe
-readability, and post-rebalance feel validation remain queued.
+field-mech movement goals (`bdfd5bf8`). Timed contact advance now owns one
+route/timer state per squad, preventing a nearby alien from slowing unrelated
+formations, and lift selection requires a clear outdoor, non-doorway 5x5 trigger
+footprint (`5a0da48d`). Manual reinforcement cadence, swipe readability, and
+post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free
 
