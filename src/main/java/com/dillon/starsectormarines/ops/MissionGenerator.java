@@ -299,7 +299,8 @@ public final class MissionGenerator {
         String patronMemory = PatronBriefingContextComposer.compose(state,
                 state.contractPatronHouseId[row],
                 state.contractMarketId[row], contractId,
-                state.contractAcceptedTick[row], client.displayName);
+                state.contractAcceptedTick[row], client.displayName,
+                marketSlot -> marketDisplayName(state, marketSlot));
         String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
                 contractId, patronMemory, client.displayName, targetPlanetName,
                 payoutFormatted, negotiatedPct);
@@ -342,6 +343,21 @@ public final class MissionGenerator {
         if (targetHouseId < 0L) return -1;
         int targetHouseRow = state.houseIndex(targetHouseId);
         return targetHouseRow >= 0 ? state.houseMarketId[targetHouseRow] : -1;
+    }
+
+    private static String marketDisplayName(CampaignState state,
+                                            int marketSlot) {
+        String marketId = state != null
+                ? state.marketRegistry.get(marketSlot) : null;
+        if (marketId == null || Global.getSector() == null) return null;
+        MarketAPI market = Global.getSector().getEconomy().getMarket(marketId);
+        if (market == null) return null;
+        if (market.getPrimaryEntity() != null
+                && market.getPrimaryEntity().getName() != null
+                && !market.getPrimaryEntity().getName().trim().isEmpty()) {
+            return market.getPrimaryEntity().getName();
+        }
+        return market.getName();
     }
 
     private static String pickFirstNonDisruptedIndustry(MarketAPI market) {
