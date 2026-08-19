@@ -14,9 +14,10 @@ import java.awt.Color;
  * {@link UnitType#HEAVY_MECH}). Distinct from {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon} +
  * {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} because the lore concept is different — these are
  * armored-vehicle hardpoints, not handheld squad gear — and the firing model
- * differs too: a mech runs all three weapon tracks concurrently, each on its
- * own cooldown and engagement band, rather than the marine's primary-or-
- * secondary dispatch.
+ * differs too: a mech runs every installed hardpoint concurrently, each on its
+ * own cooldown and engagement band. Rack size and ammunition live in
+ * {@link MechWeaponComponent}; this enum describes the projectile/firing
+ * family shared by those components.
  *
  * <p>The catalog is intentionally small and opinionated:
  * <ul>
@@ -29,11 +30,9 @@ import java.awt.Color;
  *       to chaingun range.</li>
  * </ul>
  *
- * <p>The "swappable chassis weapons" design pivot the user described — a
- * future {@code MechLoadout} picker — falls out of this naturally: the unit
- * holds its three slots in {@link MechLoadoutComponent}, so swapping in
- * different {@code MechWeapon} entries (e.g. AC/20-style heavy autocannon
- * over chainguns) is just a different state-bag at spawn time.
+ * <p>{@link MechLoadoutComponent} installs component entries into physical arm
+ * and shoulder slots, so authored variants and future refit UI share the same
+ * construction model.
  */
 public enum MechWeapon {
 
@@ -69,6 +68,21 @@ public enum MechWeapon {
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
              0f, 1.2f, false,
              0.6f, 3, /*wallDmgRadius*/ 0f),
+
+    /**
+     * Twin light linear cannons. A short two-round pulse gives a support or
+     * scout chassis a credible direct-fire fallback without reproducing the
+     * chaingun's close-range saturation.
+     */
+    LINEAR_CANNON("Linear Cannon",
+                  "needler_fire",
+                  new Color(0xB8, 0xE8, 0xFF),
+                  32f, 3.0f, 0.68f, 2.80f, 0.6f,
+                  ImpactProfile.KINETIC,
+                  2, 0.12f,
+                  "graphics/missiles/shell_large_blue.png", 0.20f, 0.14f,
+                  0f, 0.35f, false,
+                  0.35f, 4, /*wallDmgRadius*/ 0f),
 
     /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
