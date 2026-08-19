@@ -527,7 +527,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
                         !BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
-        debugPanel.addDial("Parallax",
+        debugPanel.addDial("Structure relief",
                 () -> renderer.getGroundParallax().parallaxStrength(),
                 value -> renderer.getGroundParallax().setParallaxStrength((float) value),
                 GroundParallaxPipeline.MIN_STRENGTH,
@@ -535,6 +535,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // Cubic response keeps sub-0.1 tuning usable despite the
                 // intentionally unconstrained high-end experiment range.
                 3.0);
+        debugPanel.addDial("Surface relief",
+                () -> renderer.getGroundParallax().surfaceStrength(),
+                value -> renderer.getGroundParallax().setSurfaceStrength((float) value),
+                GroundParallaxPipeline.MIN_SURFACE_STRENGTH,
+                GroundParallaxPipeline.MAX_SURFACE_STRENGTH,
+                3.0);
+        debugPanel.addDial("Water waves",
+                () -> renderer.getGroundParallax().waterWaveAmplitude(),
+                value -> renderer.getGroundParallax().setWaterWaveAmplitude((float) value),
+                GroundParallaxPipeline.MIN_WATER_WAVE_AMPLITUDE,
+                GroundParallaxPipeline.MAX_WATER_WAVE_AMPLITUDE,
+                2.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
