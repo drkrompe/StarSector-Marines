@@ -145,7 +145,10 @@ universe over time, not retrofitted into intel slots.
    with generated fore-claws that alternate a foreground contact swipe
    (`20d3bcb0`). Runners now choose opportunistically between nearby marines
    and exposed evacuees, allowing soldiers to peel pressure from the objective
-   (`4fedb34a`); manual roster and post-rebalance feel validation remain queued. See
+   (`4fedb34a`). Depleted rescue swarms now receive bounded perimeter waves,
+   while civilians independently leash to and shelter behind their nearest
+   marine (`ad11debf`); manual cadence and post-rebalance feel validation remain
+   queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
@@ -156,8 +159,8 @@ universe over time, not retrofitted into intel slots.
    identities, then approve budgeted production defender composition. See
    [`mechs/next-session.md`](mechs/next-session.md).
 5. **Manual verification queue (deferred this session)** — the loot loop's
-   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster plus
-   post-rebalance combat feel remain pending. See
+   visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
+   plus post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 6. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
