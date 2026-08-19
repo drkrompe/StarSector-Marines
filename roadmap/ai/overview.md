@@ -135,7 +135,8 @@ rush under fire), G (cover-aware reposition), I (engagement discipline), J
 (sabotage cordon), K (room-clear sweep), L (choke-point ambush), M (room
 breach).
 
-**Remaining stories:** E (mech-screened advance) and H (last-stand camper).
+**Remaining story:** E (mech-screened advance). H (last-stand camper) shipped
+in Story 21.
 See `stories/10-tactical-stories.md` for the full slicing.
 
 ### Squad-of-squads commander tier (active)
@@ -171,7 +172,7 @@ threat-scored objective-advance leash now ships on that tactical seam too
 (`14d646a`; [story 19](complete/19-threat-scored-engagement-leash.md)). Full
 squad belief + commander influence remain parked.
 
-### Mech GOAP tree (Stage 1 complete, Stage 2 future)
+### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 
 Mechs promoted from `MechCombatantBehavior` (retired) to a planner-driven
 role-aware tree via `GoapMechBehavior`. Stage 1 shipped two roles
@@ -183,8 +184,11 @@ role-aware tree via `GoapMechBehavior`. Stage 1 shipped two roles
 - [Mech GOAP Stage 1](complete/14-mech-stage1.md) — MechRole, GoapMechBehavior,
   OverwatchKillZone, BackstopAssignedSquad, EngageAtCurrentBand, mech morale.
 
-**Stage 2 (future):** Recon + Assault roles, dynamic re-assignment from
-commander tier. High-level design in [`13-mech-goap.md`](stories/13-mech-goap.md).
+**Stage 2:** ASSAULT shipped in
+[Story 22](complete/22-assault-mech-and-difficulty-roster.md), including
+faction-neutral assigned-zone/local-contact movement and risk-scaled production
+profiles. Recon and broad dynamic re-assignment remain future work. High-level
+design in [`13-mech-goap.md`](stories/13-mech-goap.md).
 
 ### Stage 3 — Mission-specific goals (future)
 

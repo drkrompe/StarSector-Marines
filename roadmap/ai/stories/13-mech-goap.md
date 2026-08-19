@@ -204,9 +204,10 @@ Implementation ordering:
 
 **Active — Stage 1 unparked 2026-05-19.** Implementation slice in
 [`14-mech-stage1.md`](../complete/14-mech-stage1.md). Stage 1 covers two roles
-(LR Support + Armored Support) via spawn-time assignment; Stage 2
-adds Recon + Assault and any dynamic re-assignment the commander
-tier hands down.
+(LR Support + Armored Support) via spawn-time assignment. Stage 2A's
+faction-neutral Assault role and risk-scaled production roster shipped in
+[`22-assault-mech-and-difficulty-roster.md`](../complete/22-assault-mech-and-difficulty-roster.md).
+Recon and broad dynamic re-assignment remain.
 
 ## Cross-references
 
