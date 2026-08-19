@@ -253,8 +253,11 @@ remains mission-authoritative during contact and fires without taking unrestrict
 field-mech movement goals (`bdfd5bf8`). Timed contact advance now owns one
 route/timer state per squad, preventing a nearby alien from slowing unrelated
 formations, and lift selection requires a clear outdoor, non-doorway 5x5 trigger
-footprint (`5a0da48d`). Manual reinforcement cadence, swipe readability, and
-post-rebalance feel validation remain queued.
+footprint (`5a0da48d`). Both pickup guards and post-relief mobile escorts now
+choose distinct member cells from stable per-squad 5x5 pockets, weighting local
+wall/doodad cover before spacing and deterministic variation (`ba42612b`). Manual
+reinforcement cadence, swipe readability, and post-rebalance feel validation
+remain queued.
 
 ## Two payoffs that fall out for free
 
