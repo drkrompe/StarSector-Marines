@@ -85,7 +85,11 @@ class StitchAtlasTest(unittest.TestCase):
                     {
                         "assets": {
                             "wide.png": {"order": 1, "footprintCells": [2, 1]},
-                            "tall.png": {"order": 2, "footprintCells": [1, 2]},
+                            "tall.png": {
+                                "order": 2,
+                                "footprintCells": [1, 2],
+                                "preferredWallSide": "w",
+                            },
                         }
                     }
                 ),
@@ -112,6 +116,31 @@ class StitchAtlasTest(unittest.TestCase):
             self.assertEqual([2, 1], manifest["doodads"][0]["footprintCells"])
             self.assertEqual([0, 1], [manifest["doodads"][1]["col"], manifest["doodads"][1]["row"]])
             self.assertEqual([1, 2], manifest["doodads"][1]["footprintCells"])
+            self.assertEqual("W", manifest["doodads"][1]["preferredWallSide"])
+
+    def test_rejects_unknown_preferred_wall_side(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "sources"
+            source.mkdir()
+            self._cutout(source / "sofa.png", (40, 18), (255, 0, 0, 255))
+            (source / "_atlas.json").write_text(
+                json.dumps(
+                    {"assets": {"sofa.png": {"preferredWallSide": "ceiling"}}}
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "preferredWallSide"):
+                build_atlas(
+                    BuildOptions(
+                        input_dir=source,
+                        output_image=root / "atlas.png",
+                        output_manifest=root / "atlas.json",
+                        sheet_path="graphics/test/atlas.png",
+                        metadata_path=source / "_atlas.json",
+                    )
+                )
 
     @staticmethod
     def _cutout(path: Path, size: tuple[int, int], color: tuple[int, int, int, int]):

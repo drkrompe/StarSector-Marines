@@ -52,6 +52,8 @@ An asset can set:
 - `offset`: final `[x, y]` pixel adjustment
 - `footprintCells`: rendered and tactical `[width, height]` cell span; defaults
   to `[1, 1]`
+- `preferredWallSide`: optional authored edge (`N`, `S`, `E`, or `W`) that
+  naturally belongs against a wall, such as a sofa back or bed head
 - `enabled`: set to `false` to leave a source out of the atlas
 
 Example:
@@ -64,6 +66,7 @@ Example:
       "id": "doodad.residential-sofa-h",
       "cover": "med",
       "footprintCells": [2, 1],
+      "preferredWallSide": "N",
       "order": 72,
       "offset": [0, 0]
     }
@@ -78,3 +81,5 @@ the complete command line.
 The emitted JSON already matches the `TileRegistry` doodad schema. Adding a new
 standalone sheet to runtime still requires registering the generated tileset and
 loading its texture; the atlas coordinates themselves require no hand editing.
+Layouts may use `preferredWallSide` to select a matching cardinal variant; it
+does not force generic scatterers to wall-mount the prop.

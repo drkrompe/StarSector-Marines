@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 
 /**
  * Prop placed on one or more battle-map cells — chairs, crates, beds, etc.
@@ -56,6 +57,8 @@ public final class Doodad {
     /** Rendered, navigational, cover, and ballistic footprint from the anchor cell. */
     public final int footprintCellsX;
     public final int footprintCellsY;
+    /** Optional authored edge intended to sit against a wall. */
+    public final WallSide preferredWallSide;
 
     /**
      * Builds a doodad from its data-driven {@link DoodadDef} (moddable-tilesets
@@ -66,7 +69,7 @@ public final class Doodad {
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
                 def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
-                def.footprintCellsX, def.footprintCellsY);
+                def.footprintCellsX, def.footprintCellsY, def.preferredWallSide);
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -95,6 +98,14 @@ public final class Doodad {
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
                   String sheetPath, int cover, float ballisticHalfHeight,
                   int footprintCellsX, int footprintCellsY) {
+        this(cellX, cellY, tile, sheetPath, cover, ballisticHalfHeight,
+                footprintCellsX, footprintCellsY, null);
+    }
+
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                  String sheetPath, int cover, float ballisticHalfHeight,
+                  int footprintCellsX, int footprintCellsY,
+                  WallSide preferredWallSide) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
@@ -109,6 +120,7 @@ public final class Doodad {
                 : 0f;
         this.footprintCellsX = footprintCellsX;
         this.footprintCellsY = footprintCellsY;
+        this.preferredWallSide = preferredWallSide;
     }
 
     public boolean occupiesCell(int x, int y) {

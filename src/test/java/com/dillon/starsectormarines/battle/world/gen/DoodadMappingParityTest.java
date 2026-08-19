@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Frozen-golden regression guard for the data-driven doodad system
@@ -97,11 +99,22 @@ public class DoodadMappingParityTest {
     @Test
     void residentialFurniturePublishesOrientedTwoCellFootprints() {
         TileRegistry reg = TileRegistry.installed();
-        assertFootprint(reg, "doodad.residential-bed-h", 2, 1);
-        assertFootprint(reg, "doodad.residential-bed-v", 1, 2);
-        assertFootprint(reg, "doodad.residential-sofa-h", 2, 1);
-        assertFootprint(reg, "doodad.residential-sofa-v", 1, 2);
+        assertOrientedFootprint(reg, "doodad.residential-bed-h", 2, 1, WallSide.W);
+        assertOrientedFootprint(reg, "doodad.residential-bed-head-e", 2, 1, WallSide.E);
+        assertOrientedFootprint(reg, "doodad.residential-bed-v", 1, 2, WallSide.S);
+        assertOrientedFootprint(reg, "doodad.residential-bed-head-n", 1, 2, WallSide.N);
+        assertOrientedFootprint(reg, "doodad.residential-sofa-h", 2, 1, WallSide.N);
+        assertOrientedFootprint(reg, "doodad.residential-sofa-back-s", 2, 1, WallSide.S);
+        assertOrientedFootprint(reg, "doodad.residential-sofa-v", 1, 2, WallSide.W);
+        assertOrientedFootprint(reg, "doodad.residential-sofa-back-e", 1, 2, WallSide.E);
         assertFootprint(reg, "doodad.residential-planter-h", 1, 1);
+        assertNull(reg.doodad("doodad.residential-planter-h").preferredWallSide);
+    }
+
+    private static void assertOrientedFootprint(TileRegistry registry, String id,
+                                                int width, int height, WallSide side) {
+        assertFootprint(registry, id, width, height);
+        assertEquals(side, registry.doodad(id).preferredWallSide, "wall side for " + id);
     }
 
     private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {

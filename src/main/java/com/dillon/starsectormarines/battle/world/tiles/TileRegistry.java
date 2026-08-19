@@ -180,9 +180,17 @@ public final class TileRegistry {
                             + "' footprintCells values must be positive");
                 }
             }
+            DoodadDef.WallSide preferredWallSide;
+            try {
+                preferredWallSide = DoodadDef.WallSide.fromJson(
+                        o.optString("preferredWallSide", null));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException("TileRegistry: doodad '" + id
+                        + "' has invalid preferredWallSide", e);
+            }
             doodadsById.put(id, new DoodadDef(
                     id, sheet, col, row, cover, ballisticHalfHeight,
-                    footprintCellsX, footprintCellsY));
+                    footprintCellsX, footprintCellsY, preferredWallSide));
         }
     }
 

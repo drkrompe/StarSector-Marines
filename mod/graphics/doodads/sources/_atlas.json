@@ -275,43 +275,91 @@
     },
     "residential-bed-h.png": {
       "id": "doodad.residential-bed-h",
-      "name": "Residential bed horizontal",
-      "description": "Low civilian bed aligned east-west.",
+      "name": "Residential bed head west",
+      "description": "Low civilian bed with its head against the west wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [2, 1],
+      "preferredWallSide": "W",
       "scale": 0.96,
       "order": 70
     },
-    "residential-bed-v.png": {
-      "id": "doodad.residential-bed-v",
-      "name": "Residential bed vertical",
-      "description": "Low civilian bed aligned north-south.",
+    "residential-bed-head-e.png": {
+      "id": "doodad.residential-bed-head-e",
+      "name": "Residential bed head east",
+      "description": "Low civilian bed with its head against the east wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
-      "footprintCells": [1, 2],
+      "footprintCells": [2, 1],
+      "preferredWallSide": "E",
       "scale": 0.96,
       "order": 71
     },
+    "residential-bed-v.png": {
+      "id": "doodad.residential-bed-v",
+      "name": "Residential bed head south",
+      "description": "Low civilian bed with its head against the south wall.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [1, 2],
+      "preferredWallSide": "S",
+      "scale": 0.96,
+      "order": 72
+    },
+    "residential-bed-head-n.png": {
+      "id": "doodad.residential-bed-head-n",
+      "name": "Residential bed head north",
+      "description": "Low civilian bed with its head against the north wall.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [1, 2],
+      "preferredWallSide": "N",
+      "scale": 0.96,
+      "order": 73
+    },
     "residential-sofa-h.png": {
       "id": "doodad.residential-sofa-h",
-      "name": "Residential sofa horizontal",
-      "description": "Low two-seat civilian sofa aligned east-west.",
+      "name": "Residential sofa back north",
+      "description": "Low two-seat civilian sofa facing south into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [2, 1],
+      "preferredWallSide": "N",
       "scale": 0.94,
-      "order": 72
+      "order": 74
+    },
+    "residential-sofa-back-s.png": {
+      "id": "doodad.residential-sofa-back-s",
+      "name": "Residential sofa back south",
+      "description": "Low two-seat civilian sofa facing north into the room.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [2, 1],
+      "preferredWallSide": "S",
+      "scale": 0.94,
+      "order": 75
     },
     "residential-sofa-v.png": {
       "id": "doodad.residential-sofa-v",
-      "name": "Residential sofa vertical",
-      "description": "Low two-seat civilian sofa aligned north-south.",
+      "name": "Residential sofa back west",
+      "description": "Low two-seat civilian sofa facing east into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [1, 2],
+      "preferredWallSide": "W",
       "scale": 0.94,
-      "order": 73
+      "order": 76
+    },
+    "residential-sofa-back-e.png": {
+      "id": "doodad.residential-sofa-back-e",
+      "name": "Residential sofa back east",
+      "description": "Low two-seat civilian sofa facing west into the room.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [1, 2],
+      "preferredWallSide": "E",
+      "scale": 0.94,
+      "order": 77
     },
     "residential-planter-h.png": {
       "id": "doodad.residential-planter-h",
@@ -320,7 +368,7 @@
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "scale": 0.96,
-      "order": 74
+      "order": 78
     },
     "residential-planter-v.png": {
       "id": "doodad.residential-planter-v",
@@ -329,7 +377,7 @@
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "scale": 0.96,
-      "order": 75
+      "order": 79
     },
     "example-disabled.png": {
       "enabled": false,
