@@ -5,7 +5,7 @@
 > and ground Vulcan/Heavy-MG bursts now author their high/low/wide path through
 > `BallisticResolver`; contact payloads arrive on real distance/velocity clocks,
 > while free-flight explosive overshoots carry no phantom detonation or impact
-> FX. Pre-integration full suite: 1595 tests green.
+> FX. Post-integration full suite: 1619 tests green.
 >
 > **Landed vs. planned deviations:** none. The shared ground-turret sink also
 > carries vehicle entity ids, so mounted ground bursts gain shooter exclusion

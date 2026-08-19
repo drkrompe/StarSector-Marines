@@ -52,7 +52,7 @@
   direct-fire flags/callers are retired; `ShotEndpoint` remains only for LRM
   artillery scatter. Full record:
   [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
-  Pre-integration full suite: 1595 tests green.
+  Post-integration full suite: 1619 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
