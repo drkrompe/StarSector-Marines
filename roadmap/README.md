@@ -167,13 +167,13 @@ universe over time, not retrofitted into intel slots.
    remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Campaign narrative follow-through** — S1 patron engagement memory, S2
-   relationship-pattern callbacks, S3 local cross-patron echoes, and S4
-   patron-linked Chronicle references are shipped (`1b950e48`, `cbfebaef`,
-   `53cda364`, `03d8a24e`). The comms officer now prioritizes direct history,
-   then a confirmed recent Chronicle fact naming that patron, then a measured
-   same-market engagement. Contract the next narrative story before adding
-   patron evolution, captain observations, target name-checks, or longer-form
+3. **Campaign narrative follow-through** — S1 patron engagement memory through
+   S5 remembered target locations are shipped (`1b950e48`, `cbfebaef`,
+   `53cda364`, `03d8a24e`, `7b5367d4`). The comms officer prioritizes direct
+   history, then a confirmed recent Chronicle fact naming that patron, then a
+   measured same-market engagement; selected history variants can now name the
+   prior operation's frozen target location. Contract the next narrative story
+   before adding patron evolution, captain observations, or longer-form
    continuity. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
 4. **Command Powers S8 B-2** — add member-level commitment for power-source
