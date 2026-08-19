@@ -1,8 +1,8 @@
 # G8 — defector asylum
 
-**Status:** SLICES 1–2 COMPLETE — Encrypted Channel choices next (2026-08-12)
+**Status:** SLICES 1–3 COMPLETE — world reaction and closure next (2026-08-19)
 
-**Implemented:** `94a3f2f1`, `7591dd86`
+**Implemented:** `94a3f2f1`, `7591dd86`, `0235ff29`
 
 ## Purpose
 
@@ -120,8 +120,11 @@ historical facts.
    snapshots, common open-event gating, system ordering, tests.~~ Shipped in
    `7591dd86`; row-order, cadence, source replay, cross-archetype blocking, and
    frozen-term coverage pass.
-3. **Encrypted Channel choices** — resource/credit adapters, reconstruction on
-   load, two-stage copy and input routing.
+3. ~~**Encrypted Channel choices** — resource/credit adapters, reconstruction
+   on load, two-stage copy and input routing.~~ Shipped in `0235ff29`; the
+   global intel reconstructs every open stage, routes all four explicit choices
+   through the lifecycle authority, presents frozen identities/terms without
+   previewing hidden consequences, and fails closed on malformed resolutions.
 4. **World reaction and closure** — chain/reputation consequences, moral source
    rows, terminal dispatch, debug reachability, full save/replay matrix.
 
