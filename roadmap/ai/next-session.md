@@ -41,7 +41,7 @@ longer treats contact as a binary halt. A per-tick route threat score combines
 local force, retreat posture, and distance from the advance axis; hysteresis
 selects press versus commit, committed members prosecute inside a bounded
 off-axis leash, and falling threat releases the squad back onto its objective
-route automatically. Dump schema v6 exposes the full decision. See
+route automatically. The squad debug dump exposes the full decision. See
 `complete/19-threat-scored-engagement-leash.md`.
 
 Story 20 / Slice 4 shipped (2026-08-19, `b72819fc`): committed `EnterZone`
@@ -54,9 +54,10 @@ planter/portal-holder cordon (`c54991d4`). See
 
 Story 21 / Slice 5 shipped (2026-08-19, `ef76c7ba`): fortress command posts
 carry an explicit `mustHold` node flag. Their lone survivor selects the
-MISSION-tier `HoldPosition` goal over `SurviveContact`, returns to its authored
-post, holds and fires until killed, and ignores structural fallback links.
-Ordinary broken garrisons now yield cleanly to survival. See
+MISSION-tier `HoldPosition` goal over `SurviveContact`, claims nearby
+threat-facing cover inside the objective leash, holds and fires until killed,
+and ignores structural fallback links. Ordinary broken garrisons now yield
+cleanly to survival. See
 `complete/21-last-stand-objective-camper.md`.
 
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
@@ -100,7 +101,7 @@ gate. The full squad-belief + commander-influence layer remains parked.
   Story 19's committed `EnterZone` branch (`b72819fc`); also records Story F's
   prior closure in the sabotage cordon (`c54991d4`)
 - `complete/21-last-stand-objective-camper.md` — shipped explicit must-hold
-  node authoring and the lone-survivor `HoldPosition` mission override
-  (`ef76c7ba`)
+  node authoring, the lone-survivor `HoldPosition` mission override, and its
+  cover-aware hold refinement (`ef76c7ba`, `780ea91f`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

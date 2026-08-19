@@ -1,6 +1,8 @@
 # Story 21 — Last-stand objective camper ✅ SHIPPED
 
 Shipped 2026-08-19 in `ef76c7ba`.
+Cover-aware hold refinement and unversioned squad debug contract shipped in
+`780ea91f`.
 
 ## Slice contract
 
@@ -37,13 +39,19 @@ node that is not explicitly marked must-hold.
 
 The plan is one perpetual `LastStandHold` action:
 
-- the survivor returns to its authored home/post cell if displaced;
-- at the post it clears movement and remains planted;
-- it never investigates, pursues, searches for a firing position, or follows
-  a fallback link; and
+- an exposed survivor searches within five cells of the must-hold node for
+  the strongest reachable grid or doodad cover;
+- when a threat is known, directional cover must face that threat; line of
+  sight breaks otherwise-equal cover ties so the survivor can still fight;
+- once behind cover it clears movement and remains planted, relocating only
+  when the threat changes sides and invalidates that protection;
+- it never investigates, pursues outside the objective leash, or follows a
+  fallback link;
+- when no reachable cover exists inside the leash, it returns to the authored
+  home/post cell as the deterministic fallback; and
 - the normal infantry opportunity-fire pass supplies legal primary/rocket
-  fire, producing stanced fire while planted and moving fire only while the
-  unit is returning to the post.
+  fire, producing stanced fire while covered and moving fire while claiming
+  cover or returning to the post.
 
 The action never succeeds. Death removes the final member and the normal
 squad replan cleanup drops the plan.
@@ -57,8 +65,9 @@ reaches 1/4.
 
 The existing goal/plan debug surfaces show `HoldPosition` and
 `LastStandHold`. `NODE_IS_MUST_HOLD` is present in the dumped world state, and
-the squad block exposes `assignedNodeMustHold`; the dump schema advances to
-v8.
+the squad block exposes `assignedNodeMustHold`. The dump is an internal debug
+contract with no released compatibility consumers, so it carries no synthetic
+schema version.
 
 ## Acceptance
 
@@ -67,8 +76,10 @@ v8.
 - The same squad on an ordinary node selects `SurviveContact`.
 - A must-hold squad never consumes its node's structural fallback link.
 - An intact must-hold squad retains ordinary garrison behavior.
-- The survivor paths back to its home cell rather than toward an enemy and,
-  once home, holds still while authoring legal stanced fire.
+- An exposed survivor claims reachable cover inside the objective leash and
+  holds still there while authoring legal stanced fire.
+- With no cover in the leash, the survivor paths back to its authored home
+  cell rather than pursuing an enemy.
 - Generated fortress `COMMAND_POST` nodes are must-hold; other generated
   military-compound nodes are not.
 
@@ -82,8 +93,9 @@ v8.
 ## Verification
 
 `HoldPositionTest` covers must-hold versus ordinary goal selection, commander
-hold-node resolution, the intact-squad gate, perpetual plan shape, planted
-stanced fire, and return-to-post movement. `TacticalNodeMustHoldTest` covers
+hold-node resolution, the intact-squad gate, perpetual plan shape, exposed
+doodad-cover acquisition, planted stanced fire behind directional cover, and
+the no-cover return-to-post fallback. `TacticalNodeMustHoldTest` covers
 the default-false constructor and both sides of structural fallback.
 `GarrisonAmbushTest`, `GarrisonCompoundTest`, and
 `MilitaryCompoundLayoutTest` pin ordinary morale yielding and generator
