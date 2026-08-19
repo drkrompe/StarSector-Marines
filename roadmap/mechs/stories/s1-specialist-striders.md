@@ -1,7 +1,8 @@
 # S1 — Specialist striders
 
-**Status:** Slice A shipped (`2d3f044b`, 2026-08-19). Manual comparison/tuning
-and production-roster integration remain.
+**Status:** Slice A shipped (`2d3f044b`, 2026-08-19); heavy-cannon FX tuning
+shipped (`39aefccb`, 2026-08-19). Manual comparison/tuning and
+production-roster integration remain.
 
 ## Shipped slice A
 
@@ -36,6 +37,23 @@ either shoulder component, and appearance follows the installed hardware.
 
 Production defender allocation and the player's Mech Support power deliberately
 remain Bulwark-only until the comparison is manually accepted.
+
+## Shipped heavy-cannon FX tuning
+
+`39aefccb` turns Sirocco's cannon and the existing Heavy Mortar turret into one
+readable gun-launched HE family without making their shells missiles:
+
+- each travels as a resolved ballistic `ShotEvent` and detonates at its physical
+  unit/cover/wall stop after the visible flight time;
+- Sirocco uses a larger vanilla Hellbore shell, Hellbore report, 1-cell splash,
+  and modest structural damage; Heavy Mortar uses a 1.35-cell version;
+- `CANNON_HE` drives a forward muzzle flash/fire/smoke burst, stronger muzzle
+  and impact lights, a random vanilla explosion frame, vanilla shock ring,
+  existing fire/smoke particles, a larger crater/rubble recipe, and a louder
+  positional explosion clip;
+- the standalone and vanilla-combat bridge presentation paths share the same
+  profile and focused tests pin physical stopping, timed AoE payloads, and the
+  distinction between ballistic shells and boost-ramping rocket entities.
 
 ## Player-facing outcome
 
@@ -85,10 +103,10 @@ backup and carries paired compact LRM-5 shoulders. It has neither the heavy's he
 panic button. Its `LR_SUPPORT` doctrine should keep it behind friendly bodies,
 while flanking or overrunning it meaningfully shuts down its advantage.
 
-Its `HEAVY_CANNON` fires one accurate kinetic shell for modest infantry damage
-and triple damage against hardened targets. Its 26-cell band keeps the paired
-LRMs primary at standoff range and avoids erasing the weakness created by
-removing close missiles.
+Its `HEAVY_CANNON` fires one accurate gun-launched HE shell for modest infantry
+damage, limited 1-cell splash, and triple damage against hardened targets. Its
+26-cell band keeps the paired LRMs primary at standoff range and avoids erasing
+the weakness created by removing close missiles.
 
 ## Architecture decision
 
@@ -201,6 +219,8 @@ The player Mech Support payload remains Bulwark-only in S1.
   ammunition, cadence, appearance, and accepted GOAP behavior.
 - Hound has no LRM track; no planner or firing path can select or continue one.
 - Sirocco has no SRM track and cannot substitute an SRM-like close salvo.
+- Sirocco's heavy cannon renders a ballistic shell, schedules its AoE at the
+  physical stop, and does not create a boost-ramping missile entity.
 - Empty shoulders render empty and optional tracks never produce null failures.
 - Profile render scale, picking, separation, ballistic hits, and AoE queries
   agree on the light body's dimensions.

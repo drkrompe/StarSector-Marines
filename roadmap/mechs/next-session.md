@@ -6,6 +6,15 @@ The modular hardpoint substrate and first specialist family shipped in
 `2d3f044b`. Production encounters and the player's Mech Support power still use
 Bulwark exclusively.
 
+The heavy-cannon FX pass shipped in `39aefccb`. Sirocco's backup gun now fires
+a larger visible Hellbore-style ballistic shell with a true 1-cell timed HE
+blast, modest wall damage, a forward-offset muzzle flash/fire/smoke burst, a
+larger dynamic light, and a cannon-specific impact made from vanilla explosion
+frames plus the vanilla shock ring, existing fire/smoke particles, a heavier
+crater, and positional explosion audio. The Heavy Mortar turret shares that
+visual language with a 1.35-cell blast; ordinary rockets retain their softer HE
+recipe. Standalone battles and the vanilla-combat bridge use the same profile.
+
 The battle debug panel now exposes **Spawn mech family**, which creates:
 
 - Bulwark: unchanged heavy, with SRM-15 and LRM-15 racks;
@@ -36,7 +45,10 @@ Review the revised static contact sheet, then run an ordinary debug battle,
 expand the battle debug panel, and click **Spawn mech family**. Confirm the new
 hulls and external racks remain readable while moving and turning; then compare
 range behavior, time-to-kill, missile density, and whether Sirocco's heavy
-cannon remains an anti-armor fallback rather than a second primary role.
+cannon remains an anti-armor fallback rather than a second primary role. Also
+check that its shell remains visible at normal zoom, the muzzle/impact reads as
+a gun rather than a missile, and the 1-cell splash does not erase Sirocco's
+close-range weakness.
 
 ## What shipped
 
@@ -51,6 +63,10 @@ cannon remains an anti-armor fallback rather than a second primary role.
    passed before integration.
 6. Dedicated Hound/Sirocco hull silhouettes, per-chassis rack layering, a
    centerline weapon mounting mode, and a generated heavy-cannon module.
+7. Shared gun-launched heavy-HE profile for Sirocco and the Heavy Mortar:
+   visible ballistic shells, timed splash/structure damage, cannon muzzle and
+   impact particles, vanilla explosion/ring sprites, decals, lighting, and
+   positional audio (`39aefccb`).
 
 After the comparison is accepted, tune the profile/component numbers and then
 adopt the budgeted mixed-lance rules in S1.
@@ -80,5 +96,7 @@ adopt the budgeted mixed-lance rules in S1.
   is higher.
 - Do not make the Sirocco's backup cannon strong enough to erase its close-range
   weakness.
+- Do not turn gun-launched HE into a boost-ramping missile entity. Its visual
+  body is the resolved ballistic `ShotEvent`; the timed detonation owns splash.
 - Bulwark's rockets are retained for comparison; removing them for a pure
   frontline-tank identity remains an explicit playtest decision.
