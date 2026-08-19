@@ -6,8 +6,6 @@ import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
-import com.dillon.starsectormarines.tools.tilesets.TilesetDebugScreen;
-
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -63,8 +61,6 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.BATTLE,         new BattleScreen());
         screens.put(ScreenId.RESULTS,        new ResultsScreen());
         screens.put(ScreenId.LOOT,           new LootScreen());
-        screens.put(ScreenId.TILESET_DEBUG,  new TilesetDebugScreen());
-        screens.put(ScreenId.UNIT_DEBUG,     new UnitSliceDebugScreen());
     }
 
     public void setOnBack(Runnable dismissDialog) {

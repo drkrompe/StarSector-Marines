@@ -94,6 +94,10 @@ final class BuildingLayouts {
         CIVIC_HEADQUARTERS,
         /** Medical clinic. Reception and clinical/support rooms flank a clear circulation spine. */
         MEDICAL_CLINIC,
+        /** Narrow dense-block tenement row with a common room and private bedroom. */
+        DENSE_TENEMENT,
+        /** Narrow dense-block market row with a shop floor and rear stockroom. */
+        DENSE_MARKET,
     }
 
     // ---- Public API ----
@@ -114,7 +118,9 @@ final class BuildingLayouts {
                             Random rng) {
         int interiorW = br - bl - 1;
         int interiorH = bb - bt - 1;
-        if (interiorW < TINY_INTERIOR_DIM || interiorH < TINY_INTERIOR_DIM) {
+        boolean denseRowRecipe = recipe == LayoutRecipe.DENSE_TENEMENT
+                || recipe == LayoutRecipe.DENSE_MARKET;
+        if (!denseRowRecipe && (interiorW < TINY_INTERIOR_DIM || interiorH < TINY_INTERIOR_DIM)) {
             sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ true);
             return;
         }
@@ -133,6 +139,10 @@ final class BuildingLayouts {
             case CIVIC_HEADQUARTERS: applyCivicHeadquarters(
                     grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case MEDICAL_CLINIC: applyMedicalClinic(
+                    grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case DENSE_TENEMENT: applyDenseTenement(
+                    grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case DENSE_MARKET: applyDenseMarket(
                     grid, topology, bl, bt, br, bb, doodads, rng); break;
             case SHED:
             default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
@@ -421,6 +431,7 @@ final class BuildingLayouts {
             for (int x = bl + 1; x <= br - 1; x++) {
                 if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
                 if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
+                if (footprintTouchesWindow(topology, x, y, prop)) continue;
                 free.add(new int[]{x, y});
             }
         }
@@ -640,6 +651,67 @@ final class BuildingLayouts {
                 RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
+    }
+
+    /** Furnishes both rooms of a narrow tenement without obstructing the shared alley doors. */
+    private static void applyDenseTenement(NavigationGrid grid, CellTopology topology,
+                                           int bl, int bt, int br, int bb,
+                                           List<Doodad> doodads, Random rng) {
+        DoodadDef[] beds = {
+                TileRegistry.installed().doodad("doodad.residential-bed-head-n"),
+                TileRegistry.installed().doodad("doodad.residential-bed-v"),
+                TileRegistry.installed().doodad("doodad.residential-bed-head-e"),
+                TileRegistry.installed().doodad("doodad.residential-bed-h"),
+        };
+        DoodadDef[] sofas = {
+                TileRegistry.installed().doodad("doodad.residential-sofa-h"),
+                TileRegistry.installed().doodad("doodad.residential-sofa-back-s"),
+                TileRegistry.installed().doodad("doodad.residential-sofa-back-e"),
+                TileRegistry.installed().doodad("doodad.residential-sofa-v"),
+        };
+        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.BEDROOM, beds, doodads, rng, true);
+        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.APARTMENT_LIVING, sofas, doodads, rng, true);
+        if (!purposeHasFixture(topology, bl, bt, br, bb, RoomPurpose.BEDROOM)) {
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.BEDROOM,
+                    TileRegistry.installed().doodad("doodad.chest-1"),
+                    doodads, rng, true);
+        }
+        if (!purposeHasFixture(topology, bl, bt, br, bb, RoomPurpose.APARTMENT_LIVING)) {
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.APARTMENT_LIVING,
+                    TileRegistry.installed().doodad("doodad.chair-south-yellow"),
+                    doodads, rng, true);
+        }
+    }
+
+    /** Gives the compact alley market one blocking rack and loose stockroom cover. */
+    private static void applyDenseMarket(NavigationGrid grid, CellTopology topology,
+                                         int bl, int bt, int br, int bb,
+                                         List<Doodad> doodads, Random rng) {
+        DoodadDef shelf = TileRegistry.installed().doodad("doodad.shelf-2");
+        DoodadDef crate = TileRegistry.installed().doodad("doodad.crate");
+        DoodadDef counter = TileRegistry.installed().doodad("doodad.desk-1");
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.SHOP_FLOOR, shelf, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.SHOP_FLOOR, counter, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.STOCKROOM, crate, doodads, rng, true);
+    }
+
+    private static boolean purposeHasFixture(CellTopology topology,
+                                             int bl, int bt, int br, int bb,
+                                             RoomPurpose purpose) {
+        for (int y = bt + 1; y < bb; y++) {
+            for (int x = bl + 1; x < br; x++) {
+                if (topology.getRoomPurpose(x, y) == purpose
+                        && topology.isFixture(x, y)) return true;
+            }
+        }
+        return false;
     }
 
     /** Stamps one fixture into each disconnected region carrying {@code purpose}. */
