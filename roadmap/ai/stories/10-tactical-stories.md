@@ -404,7 +404,7 @@ the charge site while plant is in progress.
 
 ---
 
-### I. Engagement discipline
+### I. Engagement discipline ✅ SHIPPED (2026-08-19)
 
 > A marine is firing on an enemy. The enemy takes hits, breaks LOS, and
 > sprints away — toward its squadmates. The marine *does not follow*.
@@ -668,7 +668,7 @@ What each story needs, so we can spot the shared dependencies.
 | E. Mech-screened advance ✅ | (action-scoped geometry) | `MechScreenAdvance` (`EnterZone` branch) | — | Physical unit-body interception; threat-direction vector |
 | F. Objective rush under fire | (mission predicates) | `PlantCharge` | `CompleteObjective` | **Per-member goal override**; retires `PlanterBehavior` |
 | G. Cover-aware reposition ✅ | `CAN_REPOSITION` | `RepositionToCover` | — | Per-facing cover (4-way N/E/S/W) on doodads; per-unit `repositionCooldown` (1.5s) |
-| I. Engagement discipline | `THREAT_DENSITY_AT_TARGET` | (target picker rewrite, no new action) | — | **Threat-density-aware target scoring**; pursuit gating; squad cohesion as hard constraint |
+| I. Engagement discipline ✅ | `THREAT_DENSITY_AT_TARGET` | `OverwatchPosture` (cover-settle hold branch) | `HoldEngagementLine` | **Threat-density-aware target scoring**; pursuit gating; squad cohesion as hard constraint |
 | H. Last-stand camper | `NODE_IS_MUST_HOLD` | — | `HoldPosition` | `MUST_HOLD` flag on `TacticalNode`; goal priority |
 | J. Sabotage cordon ✅ | (mission predicates) | `HoldPortalCordon` (planter + portal slots) | `CordonForPlant` | `ZoneGraph` queries; per-member assignment; cordon discipline via positioning |
 | K. Room-clear sweep ✅ | (custom-plan) | `EnterZone`, `ClearZone` | `SecureObjectiveZone` | Zone-path planning (BFS at room level, A* at cell level inside) |
@@ -710,7 +710,8 @@ How existing stories sharpen with cornerstone 4:
 
 Recommended slicing:
 - **Slice 1 ✅ (immediate playtest win):** Story I — engagement
-  discipline. Target picker + cohesion clamp. Shipped.
+  discipline. Density-gated pursuit, cover-settle hold, and hard generic
+  pursuit leash shipped 2026-08-19 (`43c619ff`, `8888e6f8`).
 - **Slice 2 ✅ (sabotage signature):** Stories J + K — zone/portal-aware
   cordon + room sweep. Shipped 2026-05-18 along with the FireStance
   accuracy modifier and the retirement of `PlanterBehavior` into a

@@ -77,6 +77,15 @@ moving unit rather than a terrain anchor and drops immediately back to normal
 unit-body interception supplies mechanical moving cover. Squad dumps expose
 the full unversioned screen state. See `complete/23-mech-screened-advance.md`.
 
+Story 24 / Story I shipped (2026-08-19, `43c619ff`, `8888e6f8`): generic
+infantry pursuit now rejects targets that require movement into a two-plus
+hostile cluster, switches to a visible isolated alternative when possible,
+and otherwise latches a faction-neutral `HoldEngagementLine` goal rendered as
+`Overwatch`. Covered members plant; exposed members settle laterally/backward
+into wall or doodad cover. `Approach` and out-of-range `Engage` paths are hard
+clipped to the squad-cohesion radius, while mission-authored movement keeps its
+own leashes. See `complete/24-engagement-discipline.md`.
+
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
@@ -84,10 +93,15 @@ gate. The full squad-belief + commander-influence layer remains parked.
 
 ## Immediate next
 
-1. **Story I (engagement discipline)** — stop a squad from pursuing one
-   retreating target into a known hostile cluster. Contract the target-density
-   score and pursuit-release boundary before implementation; keep the cheap
-   ground-truth query as an explicit future belief-map swap site.
+1. **Tactical playtest pass** — exercise Stories 19–24 together: objective
+   press/commit, bounding, last stands, difficulty-scaled assault mechs,
+   mech-screen formations, and clustered-runner release into covered
+   overwatch. Tune the density threshold, three-cell cover-settle radius, and
+   twelve-cell cohesion leash only from visible battle results.
+2. **Next implementation slice: squad belief substrate** — contract the first
+   vertical from `stories/15-perception-and-influence.md` before coding. Replace
+   Story 24's named ground-truth density swap site and the existing last-seen
+   contact stamp without attempting the full commander influence map at once.
 
 ## Parked but design-complete
 
@@ -128,5 +142,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/23-mech-screened-advance.md` — shipped faction-neutral infantry
   follow/fan geometry around a moving ASSAULT mech plus physical chassis
   interception (`0daf058e`)
+- `complete/24-engagement-discipline.md` — shipped density-gated pursuit,
+  covered Overwatch hold, release triggers, hard generic pursuit cohesion, and
+  unversioned diagnostics (`43c619ff`, `8888e6f8`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

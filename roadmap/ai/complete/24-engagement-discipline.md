@@ -1,4 +1,6 @@
-# Story 24 — Engagement discipline
+# 24 — Engagement discipline
+
+**Shipped 2026-08-19 in `43c619ff` and `8888e6f8`.**
 
 ## Player-visible contract
 
@@ -11,7 +13,7 @@ The squad debug state must make the decision legible: the rejected target and
 its nearby-hostile count are recorded, the goal remains an engagement goal,
 and the current action reads `Overwatch` while the hold is active.
 
-## Decision boundary
+## Shipped decision boundary
 
 - Threat density is the count of other hostile combatants within four cells of
   a candidate. Two or more neighbors make movement toward that candidate
@@ -82,6 +84,15 @@ This slice preserves the useful scoring substrate and closes those boundaries.
 - Held members already in threat-facing cover plant, while exposed members
   settle into nearby lateral/backward wall or doodad cover without closing on
   the rejected formation.
+
+## Verification
+
+- `EngagementDisciplineTest` covers marine and defender pursuit release,
+  visible and hidden clusters, isolated retargeting, held opportunity fire,
+  cover settling, death/dispersal release, GOAP selection, and both generic
+  posture leash call sites.
+- Existing tactical-scoring and Overwatch posture tests passed.
+- Full `gradlew.bat build` passed before integration.
 
 ## Out of scope
 
