@@ -189,8 +189,12 @@ weapons from that route, and reject generic overwatch/backstop goals (`bdfd5bf8`
 The latest correction gives every mobile squad its own contact-bound route cell
 and five-second timer, so pressure within twelve cells slows only that squad.
 Lift placement also rejects any candidate whose 5x5 trigger footprint crosses a
-wall, doorway, or building interior (`5a0da48d`). Pickup timing, militia cadence,
-mech mix, through-fire strength, and engaged bounds remain manual.
+wall, doorway, or building interior (`5a0da48d`). Pickup and moving escort squads
+now spread members across a 5x5 pocket around each authored squad anchor. Cell
+selection prefers local wall/doodad cover, then separation, with stable
+per-squad variation that does not reshuffle as the screen moves (`ba42612b`).
+Pickup timing, militia cadence, mech mix, through-fire strength, and engaged
+bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -424,6 +428,8 @@ swarm tuning remain in the shared deferred queue.
   a contact-safe, firing-capable pickup-mech perimeter patrol (`bdfd5bf8`).
 - G5/G6 squad-local-bound/LZ-footprint correction — independent timed advance
   per pressured squad plus clear outdoor 5x5 lift objectives (`5a0da48d`).
+- G5/G6 tactical-pocket follow-up — cover-aware, stably varied 5x5 member
+  formations for pickup guards and moving escorts (`ba42612b`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
