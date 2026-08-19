@@ -67,6 +67,10 @@ class EngagementDisciplineTest {
                 UnitType.MARINE, 25, 6));
         long buddyB = sim.spawn(new EntitySpec("buddy-b", targetFaction,
                 UnitType.MARINE, 26, 5));
+        // Let the squad directly observe the whole formation before the
+        // runner disappears behind cover. Story 25 density is belief-backed.
+        sim.advance(BattleSimulation.TICK_DT);
+        squad.clearEngagementDisciplineHold();
         if (hideRunner) {
             for (int y = 0; y < sim.getGrid().getHeight(); y++) {
                 sim.getGrid().setWalkable(15, y, false);
@@ -128,6 +132,34 @@ class EngagementDisciplineTest {
     }
 
     @Test
+    void hiddenEnemiesNeverObservedDoNotCreateOmniscientDensity() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("pursuer", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.world().setAttackRange(member, 8f);
+        long runner = sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                UnitType.MARINE, 25, 5));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        sim.spawn(new EntitySpec("unknown-a", Faction.DEFENDER,
+                UnitType.MARINE, 25, 6));
+        sim.spawn(new EntitySpec("unknown-b", Faction.DEFENDER,
+                UnitType.MARINE, 26, 5));
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            sim.getGrid().setWalkable(15, y, false);
+        }
+        sim.world().setTargetId(member, runner);
+
+        assertEquals(runner,
+                EngagementDiscipline.targetForPursuit(member, squad, sim));
+        assertFalse(squad.engagementDisciplineHold);
+        assertEquals(0, sim.getTacticalScoring().threatDensityAt(runner, squad),
+                "unobserved live buddies must not leak into squad belief");
+    }
+
+    @Test
     void holdSelectsOverwatchAndStillPermitsFireFromCurrentLine() {
         Fixture f = clusteredRunner(Faction.MARINE, true);
         EngagementDiscipline.targetForPursuit(f.member, f.squad, f.sim);
@@ -182,7 +214,7 @@ class EngagementDisciplineTest {
     }
 
     @Test
-    void clusterDispersalAndRejectedTargetDeathReleaseHold() {
+    void rememberedClusterDecaysAndRejectedTargetDeathReleasesHold() {
         Fixture dispersed = clusteredRunner(Faction.MARINE, true);
         EngagementDiscipline.targetForPursuit(
                 dispersed.member, dispersed.squad, dispersed.sim);
@@ -190,8 +222,12 @@ class EngagementDisciplineTest {
         TestUnits.kill(dispersed.sim, dispersed.buddyB);
         dispersed.sim.getUnitIndex().rebuild(dispersed.sim.getRoster());
 
-        assertEquals(ActionStatus.FAILURE, OverwatchPosture.INSTANCE.execute(
-                dispersed.member, dispersed.squad, dispersed.sim));
+        assertEquals(ActionStatus.RUNNING, OverwatchPosture.INSTANCE.execute(
+                dispersed.member, dispersed.squad, dispersed.sim),
+                "live-world deaths do not erase contacts the squad did not witness");
+        dispersed.sim.advance(Squad.BELIEF_LIFETIME_SECONDS
+                + BattleSimulation.TICK_DT);
+        assertTrue(dispersed.squad.believedContacts().isEmpty());
         assertFalse(dispersed.squad.engagementDisciplineHold);
 
         Fixture dead = clusteredRunner(Faction.DEFENDER, true);
