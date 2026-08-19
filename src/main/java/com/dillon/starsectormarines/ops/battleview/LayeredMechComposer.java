@@ -31,10 +31,11 @@ final class LayeredMechComposer {
         // body exposes a wider stance so its alternating gait remains legible;
         // the broader chassis retain the mostly-hidden heavy-mech treatment.
         float footX = LayeredMechAppearance.footLateralOffset(chassis);
+        float footY = LayeredMechAppearance.footRearOffset(chassis);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                -footX, -0.28f - 0.055f * leftStep, 0f, alpha);
+                -footX, footY - 0.055f * leftStep, 0f, alpha);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                footX, -0.28f - 0.055f * rightStep, 0f, alpha);
+                footX, footY - 0.055f * rightStep, 0f, alpha);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
         emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
