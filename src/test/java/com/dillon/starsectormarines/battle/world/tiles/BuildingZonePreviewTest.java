@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrial
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -537,6 +538,60 @@ public class BuildingZonePreviewTest {
                 ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
                 "industrial compound · factory + fenced yard + utility · seed=83");
         Path output = OUT_DIR.resolve("industrial-compound.png");
+        ImageIO.write(image, "PNG", output.toFile());
+        System.out.println("  wrote " + output.toAbsolutePath());
+    }
+
+    @Test
+    void renderMedicalCampus() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        int width = 48;
+        int height = 40;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.STREET);
+            }
+        }
+
+        BlockLeaf clinic = new BlockLeaf(5, 5, 19, 16, false);
+        BlockLeaf support = new BlockLeaf(23, 5, 36, 18, false);
+        BlockLeaf court = new BlockLeaf(23, 22, 34, 31, false);
+        boolean[][] roads = new boolean[width][height];
+        boolean[][] reserved = new boolean[width][height];
+        for (int y = 3; y <= 20; y++) {
+            for (int x = 20; x <= 22; x++) roads[x][y] = true;
+            reserved[21][y] = true;
+        }
+        for (int x = 21; x <= 38; x++) {
+            for (int y = 19; y <= 21; y++) roads[x][y] = true;
+            reserved[x][20] = true;
+        }
+
+        List<BlockLeaf> members = new ArrayList<>(List.of(clinic, support, court));
+        Map<BlockLeaf, Compound.Role> roles = new IdentityHashMap<>();
+        roles.put(clinic, Compound.Role.COMMAND);
+        roles.put(support, Compound.Role.BARRACKS);
+        roles.put(court, Compound.Role.ARMORY);
+        Compound compound = new Compound(
+                com.dillon.starsectormarines.battle.world.gen.BlockKind.MEDICAL_CAMPUS,
+                clinic, members, roles, null);
+        GenContext ctx = new GenContext(grid, topology, new Random(83L), width, height, 83L);
+        ctx.put(BspKeys.ROAD_CELLS, roads);
+        ctx.put(BspKeys.ROAD_RESERVATION, reserved);
+        new MedicalCampusFiller().fill(compound, ctx);
+        topology.tagDefaultWalls(grid);
+
+        BufferedImage image = renderScene(
+                grid, topology, ctx.doodads,
+                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
+                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
+                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
+                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                "medical campus · clinic + support wing + ambulance court · seed=83");
+        Path output = OUT_DIR.resolve("medical-campus.png");
         ImageIO.write(image, "PNG", output.toFile());
         System.out.println("  wrote " + output.toAbsolutePath());
     }

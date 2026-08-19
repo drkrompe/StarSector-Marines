@@ -228,12 +228,13 @@ final class BuildingShellCore {
         // lookup instead of zone-graph inference.
         labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
 
-        // Apartment rooms that touch the facade receive deliberate firing
-        // apertures. They remain structural, non-walkable wall cells; only LoS
-        // and projectile rays pass through. Purpose labels keep windows out of
-        // the shared lobby/hall and align them with private living space.
-        if (config.layoutRecipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK) {
-            stampApartmentWindows(grid, topology, bl, bt, br, bb);
+        // Purpose-bearing rooms that touch the facade receive deliberate
+        // firing apertures. They remain structural, non-walkable wall cells;
+        // only LoS and projectile rays pass through. Shared circulation and
+        // public thresholds stay protected by the purpose filter.
+        if (config.layoutRecipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK
+                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC) {
+            stampPurposeWindows(grid, topology, bl, bt, br, bb, config.layoutRecipe);
         }
 
         // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
@@ -246,22 +247,24 @@ final class BuildingShellCore {
                 anchor[0], anchor[1], interior[0], interior[1]);
     }
 
-    private static void stampApartmentWindows(NavigationGrid grid, CellTopology topology,
-                                              int bl, int bt, int br, int bb) {
+    private static void stampPurposeWindows(NavigationGrid grid, CellTopology topology,
+                                            int bl, int bt, int br, int bb,
+                                            BuildingLayouts.LayoutRecipe recipe) {
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.TOP);
+                BuildingPlacement.Side.TOP, recipe);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.BOTTOM);
+                BuildingPlacement.Side.BOTTOM, recipe);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.LEFT);
+                BuildingPlacement.Side.LEFT, recipe);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.RIGHT);
+                BuildingPlacement.Side.RIGHT, recipe);
     }
 
     /** Stamps one centered aperture per contiguous living/bedroom run on a facade. */
     private static void stampWindowRuns(NavigationGrid grid, CellTopology topology,
                                         int bl, int bt, int br, int bb,
-                                        BuildingPlacement.Side side) {
+                                        BuildingPlacement.Side side,
+                                        BuildingLayouts.LayoutRecipe recipe) {
         boolean horizontal = side == BuildingPlacement.Side.TOP
                 || side == BuildingPlacement.Side.BOTTOM;
         int min = horizontal ? bl + 1 : bt + 1;
@@ -271,8 +274,7 @@ final class BuildingShellCore {
         for (int along = min; along <= max + 1; along++) {
             RoomPurpose purpose = along <= max
                     ? inwardPurpose(topology, bl, bt, br, bb, side, along) : null;
-            boolean eligible = purpose == RoomPurpose.APARTMENT_LIVING
-                    || purpose == RoomPurpose.BEDROOM;
+            boolean eligible = supportsWindow(recipe, purpose);
             if (eligible && purpose == runPurpose) continue;
             if (runStart >= 0) {
                 stampWindow(grid, topology, bl, bt, br, bb, side,
@@ -281,6 +283,17 @@ final class BuildingShellCore {
             runStart = eligible ? along : -1;
             runPurpose = eligible ? purpose : null;
         }
+    }
+
+    private static boolean supportsWindow(BuildingLayouts.LayoutRecipe recipe,
+                                          RoomPurpose purpose) {
+        if (recipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK) {
+            return purpose == RoomPurpose.APARTMENT_LIVING
+                    || purpose == RoomPurpose.BEDROOM;
+        }
+        return recipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC
+                && (purpose == RoomPurpose.TREATMENT_ROOM
+                    || purpose == RoomPurpose.PATIENT_WARD);
     }
 
     private static RoomPurpose inwardPurpose(CellTopology topology,

@@ -24,7 +24,8 @@ import java.util.Set;
  * handles them as a group.
  *
  * <p>Driven by a list of {@link ClaimSpec} so multiple compound kinds
- * (MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND) can run in one pass with
+ * (MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND,
+ * MEDICAL_CAMPUS) can run in one pass with
  * different size budgets / per-map caps / demotion targets. Specs are
  * processed in the order given; once a leaf is claimed (by any spec) it
  * can't seed another compound.
@@ -82,7 +83,12 @@ public final class CompoundClaim {
                     1, 3, 3, 3, 12, 7,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
                             BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
-                            BlockKind.NATURE_BEACH)));
+                            BlockKind.NATURE_BEACH)),
+            new ClaimSpec(BlockKind.MEDICAL_CAMPUS, BlockKind.BUILDING_CIVIC,
+                    1, 3, 3, 3, 12, 8,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
+                            BlockKind.FORTIFIED_POST, BlockKind.MILITARY_BASE,
+                            BlockKind.NATURE_WETLAND, BlockKind.NATURE_BEACH)));
 
     /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
@@ -99,7 +105,12 @@ public final class CompoundClaim {
                     1, 3, 3, 3, 12, 7,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
                             BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
-                            BlockKind.NATURE_BEACH)));
+                            BlockKind.NATURE_BEACH)),
+            new ClaimSpec(BlockKind.MEDICAL_CAMPUS, BlockKind.BUILDING_CIVIC,
+                    1, 3, 3, 3, 12, 8,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
+                            BlockKind.FORTIFIED_POST, BlockKind.MILITARY_BASE,
+                            BlockKind.NATURE_WETLAND, BlockKind.NATURE_BEACH)));
 
     private CompoundClaim() {}
 
