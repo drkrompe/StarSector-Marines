@@ -249,8 +249,8 @@ public class BattleRenderer {
                 new ShuttleRenderSystem(sprites),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its
                 // trail lifecycle is ticked from BattleScreen.advance), then the
-                // ShotRenderService body sweeps (tracers → projectile sprites). Listed
-                // contrails-first so submission order stays contrails → tracers → sprites.
+                // ShotRenderService body sweeps (tracers → bolts → projectile sprites).
+                // Listed contrails-first so submission order stays stable.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         contrailFx.collect(out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
