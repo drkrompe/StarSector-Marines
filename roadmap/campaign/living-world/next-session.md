@@ -122,6 +122,10 @@ instead of fighting the fixed production 12/24/40 roster or counting later
 sortie cycles at time zero. LOW/MEDIUM/HIGH use 2:1, 3:1, and 4:1 pressure, with
 a 24-cell shelter approach band so the first landing can establish a defense
 (`8b2af722`, `e0d29078`). Production remains unchanged.
+Separation's interaction with that pressure is now regression-locked too:
+eight coincident runners all retain the shared target and sustain repeated
+melee attacks after the crowd fans out (`4973fc91`). This closes the movement
+primitive risk only; the existing manual queue still owns roster/stat feel.
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both

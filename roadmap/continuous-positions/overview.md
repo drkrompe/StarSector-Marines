@@ -75,8 +75,8 @@ Danger points (all catalogued in the phase stories):
 
 Deferred (follow-up stories, not this migration): Theta*/string-pulled path
 smoothing, surface-to-surface range (subtract radii), geometric hit
-resolution. Unit-unit separation steering is now **active** — see
-[`stories/separation-steering.md`](stories/separation-steering.md).
+resolution. Unit-unit separation steering is **shipped** — see
+[`complete/separation-steering.md`](complete/separation-steering.md).
 
 ## Cross-refs
 
