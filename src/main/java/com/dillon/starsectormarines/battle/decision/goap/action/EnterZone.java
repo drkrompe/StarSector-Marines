@@ -93,11 +93,16 @@ public final class EnterZone extends AbstractZoneAction {
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         if (memberInZone(member, sim)) {
+            squad.clearMechScreen();
             clearBounding(squad);
             return ActionStatus.SUCCESS;
         }
 
         updateAdvanceThreat(squad, sim, destX, destY);
+        if (MechScreenAdvance.execute(member, squad, targetZoneId, destX, destY, sim)) {
+            clearBounding(squad);
+            return ActionStatus.RUNNING;
+        }
         if (!squad.advanceEngageCommitted || sim.resolveUnit(squad.advanceThreatId) == 0L) {
             clearBounding(squad);
         } else if (executeBounding(member, squad, sim)) {
@@ -110,6 +115,14 @@ public final class EnterZone extends AbstractZoneAction {
 
     @Override
     public List<int[]> highlightCells(Squad squad, BattleView sim) {
+        if (squad.screeningMechId != 0L) {
+            int[] xs = squad.mechScreenTargetXs;
+            int[] ys = squad.mechScreenTargetYs;
+            int count = Math.min(xs.length, ys.length);
+            List<int[]> cells = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) cells.add(new int[]{xs[i], ys[i]});
+            return cells;
+        }
         if (!squad.boundingActive) return List.of();
         int[] xs = squad.boundingTargetXs;
         int[] ys = squad.boundingTargetYs;

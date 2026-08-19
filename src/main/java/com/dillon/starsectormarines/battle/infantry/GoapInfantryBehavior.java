@@ -151,6 +151,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                     if (plan == squad.currentPlan && !plan.isComplete()
                             && plan.currentStep() == step) {
                         plan.advance();
+                        if (step.action instanceof EnterZone) squad.clearMechScreen();
                     }
                 }
             }
@@ -191,6 +192,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentPlan = null;
             squad.currentGoal = null;
             squad.aliveMembersAtLastPlan = 0;
+            squad.clearMechScreen();
             return;
         }
         if (protectedShelterGuard(squad, sim)) {
@@ -198,6 +200,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            squad.clearMechScreen();
             return;
         }
 
@@ -228,6 +231,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            squad.clearMechScreen();
             return;
         }
 
@@ -270,6 +274,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         if (squad.boundingActive && !continuesBoundingAdvance(plan, squad)) {
             squad.clearBoundingOverwatch();
         }
+        if (continuesMechScreenAdvance(plan)) squad.mechScreenTick = -1;
+        else squad.clearMechScreen();
         squad.currentPlan = plan;
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
@@ -288,5 +294,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         return enter.targetZoneId() == squad.boundingTargetZoneId
                 && enter.destX() == squad.boundingDestX
                 && enter.destY() == squad.boundingDestY;
+    }
+
+    private static boolean continuesMechScreenAdvance(SquadPlan plan) {
+        if (plan == null || plan.isComplete()) return false;
+        SquadPlan.Step step = plan.currentStep();
+        return step != null && step.action instanceof EnterZone;
     }
 }

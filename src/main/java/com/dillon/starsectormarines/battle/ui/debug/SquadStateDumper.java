@@ -148,6 +148,29 @@ public final class SquadStateDumper {
             boundingTargets.put(target);
         }
         o.put("boundingTargets", boundingTargets);
+        long screeningMech = sim.resolveUnit(squad.screeningMechId);
+        o.put("screeningMechId", screeningMech != 0L
+                ? sim.identity().name(screeningMech) : null);
+        o.put("mechScreenMode", squad.mechScreenMode.name());
+        long screenThreat = sim.resolveUnit(squad.mechScreenThreatId);
+        o.put("mechScreenThreatId", screenThreat != 0L
+                ? sim.identity().name(screenThreat) : null);
+        JSONArray screenTargets = new JSONArray();
+        long[] screenMembers = squad.mechScreenMemberIds;
+        int[] screenXs = squad.mechScreenTargetXs;
+        int[] screenYs = squad.mechScreenTargetYs;
+        int screenCount = Math.min(screenMembers.length,
+                Math.min(screenXs.length, screenYs.length));
+        for (int i = 0; i < screenCount; i++) {
+            JSONObject target = new JSONObject();
+            long screenMember = sim.resolveUnit(screenMembers[i]);
+            target.put("memberId", screenMember != 0L
+                    ? sim.identity().name(screenMember) : null);
+            target.put("x", screenXs[i]);
+            target.put("y", screenYs[i]);
+            screenTargets.put(target);
+        }
+        o.put("mechScreenTargets", screenTargets);
         return o;
     }
 
