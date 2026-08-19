@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+
+import java.util.List;
 
 /**
  * Defender composition for one battle, derived from {@link MissionType} +
@@ -20,9 +23,10 @@ import com.dillon.starsectormarines.ops.RiskLevel;
  *       two coordinated lances).</li>
  * </ul>
  *
- * <p>Composition holds across mission types and shifts with risk: LOW skews
- * conscript-heavy (70% militia / 30% regulars), MEDIUM tightens (60/35 + 1
- * mech if applicable), HIGH stiffens further (50/40 + mech lance).
+ * <p>Composition shifts with risk: LOW has no mechs, MEDIUM introduces one
+ * Bulwark when heavy armor is available, and HIGH replaces the old flat mech
+ * count with complementary Bulwark/Hound/Sirocco groups. Infantry ratios also
+ * tighten from 70/30 at LOW to 50/40 at HIGH.
  */
 public final class DefenderRoster {
 
@@ -33,8 +37,10 @@ public final class DefenderRoster {
     public final int totalCount;
     /** MARINE_RED stiffening regulars. The rest of non-mech defenders are MILITIA. */
     public final int eliteCount;
-    /** HEAVY_MECH count. Always a multiple of {@link #MECH_LANCE_SIZE} when {@code lanceCount > 0}, otherwise 0 or 1. */
+    /** Number of concrete profiles in {@link #mechVariants}. */
     public final int mechCount;
+    /** Concrete, deterministic chassis composition consumed by defender spawn. */
+    public final List<MechVariant> mechVariants;
     /** MILITIA filler — the bulk of the force. {@code totalCount = eliteCount + mechCount + militiaCount}. */
     public final int militiaCount;
     /** Members per non-garrison patrol squad. Scales with risk so 200-defender HIGH maps don't end up with 60+ three-member patrols. */
@@ -42,11 +48,12 @@ public final class DefenderRoster {
     /** Mission pressure used to roll individual gear quality and experience. */
     public final RiskLevel risk;
 
-    private DefenderRoster(int totalCount, int eliteCount, int mechCount,
+    private DefenderRoster(int totalCount, int eliteCount, List<MechVariant> mechVariants,
                            int militiaCount, int patrolSquadSize, RiskLevel risk) {
         this.totalCount = totalCount;
         this.eliteCount = eliteCount;
-        this.mechCount = mechCount;
+        this.mechVariants = List.copyOf(mechVariants);
+        this.mechCount = mechVariants.size();
         this.militiaCount = militiaCount;
         this.patrolSquadSize = patrolSquadSize;
         this.risk = risk != null ? risk : RiskLevel.LOW;
@@ -59,14 +66,15 @@ public final class DefenderRoster {
      */
     public static DefenderRoster forMission(MissionType type, RiskLevel risk, boolean hasHeavyArmor) {
         int total = totalFor(type, risk);
-        int mechs = mechCountFor(type, risk, hasHeavyArmor);
+        List<MechVariant> mechVariants = mechVariantsFor(type, risk, hasHeavyArmor);
+        int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
         // the rest fills with militia.
         int nonMech = Math.max(0, total - mechs);
         int elites = Math.round(nonMech * eliteRatioFor(risk));
         if (elites > nonMech) elites = nonMech;
         int militia = nonMech - elites;
-        return new DefenderRoster(total, elites, mechs, militia, patrolSizeFor(risk), risk);
+        return new DefenderRoster(total, elites, mechVariants, militia, patrolSizeFor(risk), risk);
     }
 
     private static int totalFor(MissionType type, RiskLevel risk) {
@@ -111,20 +119,25 @@ public final class DefenderRoster {
     }
 
     /**
-     * Mech count breakdown:
+     * Mech profile breakdown:
      * <ul>
      *   <li>{@code !hasHeavyArmor} or {@code LOW} risk: 0.</li>
-     *   <li>{@code MEDIUM}: 1 lone mech (no lance).</li>
-     *   <li>{@code HIGH}: lance(s) of {@link #MECH_LANCE_SIZE}. CONQUEST gets 2 lances (6),
-     *       SABOTAGE stays at 1 lone mech for covert flavor, everything else 1 lance (3).</li>
+     *   <li>{@code MEDIUM}: one Bulwark.</li>
+     *   <li>{@code HIGH}: a complementary Bulwark/Hound/Sirocco group.
+     *       CONQUEST gets two groups; SABOTAGE stays at one Hound for covert
+     *       flavor.</li>
      * </ul>
      */
-    private static int mechCountFor(MissionType type, RiskLevel risk, boolean hasHeavyArmor) {
-        if (!hasHeavyArmor || risk == RiskLevel.LOW) return 0;
-        if (risk == RiskLevel.MEDIUM) return 1;
-        // HIGH risk
-        if (type == MissionType.CONQUEST) return MECH_LANCE_SIZE * 2;
-        if (type == MissionType.SABOTAGE) return 1;
-        return MECH_LANCE_SIZE;
+    private static List<MechVariant> mechVariantsFor(MissionType type, RiskLevel risk,
+                                                     boolean hasHeavyArmor) {
+        if (!hasHeavyArmor || risk == null || risk == RiskLevel.LOW) return List.of();
+        if (risk == RiskLevel.MEDIUM) return List.of(MechVariant.BULWARK);
+        if (type == MissionType.SABOTAGE) return List.of(MechVariant.HOUND);
+        if (type == MissionType.CONQUEST) {
+            return List.of(
+                    MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
+                    MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+        }
+        return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
     }
 }

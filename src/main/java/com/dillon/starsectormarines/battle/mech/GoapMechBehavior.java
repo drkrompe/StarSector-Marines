@@ -37,9 +37,10 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Assault precedes the Stage 1 role goals so a mixed group with a Hound runs one shared step in which each member delegates to its own doctrine. */
     public static final List<Goal> MECH_GOALS = List.of(
             PatrolRescueFormationGoal.INSTANCE,
+            AssaultAssignedObjectiveGoal.INSTANCE,
             OverwatchKillZoneGoal.INSTANCE,
             BackstopAssignedSquadGoal.INSTANCE,
             MechSurviveContact.INSTANCE,
@@ -49,6 +50,7 @@ public final class GoapMechBehavior implements UnitBehavior {
     /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
             PatrolRescueFormation.INSTANCE,
+            BreachAndAssault.INSTANCE,
             EngageAtCurrentBand.INSTANCE,
             OverwatchKillZone.INSTANCE,
             BackstopAssignedSquad.INSTANCE,
