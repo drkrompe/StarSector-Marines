@@ -133,8 +133,11 @@ universe over time, not retrofitted into intel slots.
    extraction, repair, compaction, and debrief all ship. The hidden moral
    compass's first diegetic reaction now ships too: long-serving captains gain
    one deterministic, persistent `IDEALIST`/`CYNICAL` outlook from choices they
-   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). No personnel story remains
-   active; contract a new one before expanding this characterization. See
+   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). Captain discovery is complete
+   too: eligible derelict salvage now produces deterministic, persistent
+   cryo-pod survivors with replay-safe commission/referral/defer resolution and
+   deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`). No personnel
+   story remains active; contract a new one before expanding this work. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
