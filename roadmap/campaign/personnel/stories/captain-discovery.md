@@ -59,6 +59,25 @@ transition; salvage owns detection and the interaction that presents it.
 - Candidate discovery does not alter normal salvage rewards, captain promotion,
   injury recovery, stationing, moral-outlook drift, or battle balance.
 
+### Slice 2 salvage seam
+
+- A transient `ShowLootListener` observes the interaction target immediately
+  before vanilla opens its loot panel. It does not mutate the cargo, replace the
+  interaction plugin, or own salvage completion.
+- Only salvageable entities backed by vanilla's `DerelictShipEntityPlugin` are
+  considered. Wrecks tagged as mission items, mission locations, or protected
+  mission targets are excluded.
+- Eligibility is a stable one-in-eight roll over `derelict:<entity id>`. The
+  result cannot change with save/reload, fleet composition, or repeated loot
+  callbacks.
+- An eligible source deterministically selects a frozen name, vanilla mercenary
+  portrait, `PRIVATE`/`CORPORAL`/`SERGEANT` starting rank, and either no trait or
+  one already-wired professional trait (`FIELD_MEDIC`, `NATURAL_LEADER`, or
+  `SALVAGE_EXPERT`).
+- The listener is re-registered defensively on game load. `MarineRoster` remains
+  the exactly-once authority if another listener callback reaches the same
+  wreck.
+
 ## Slices
 
 1. **Persistent intake domain** — source-keyed candidate discovery, durable
