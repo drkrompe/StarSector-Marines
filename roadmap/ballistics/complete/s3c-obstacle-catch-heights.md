@@ -4,7 +4,7 @@
 > implementation commit `139fcb3b`. Probabilistic doodad crossings and
 > directional wall-edge cover now test the round's Z against a data-driven
 > catch band before rolling their unchanged block chance. Structural walls
-> remain full-height hard stops. Post-integration full suite: 1590 tests green.
+> remain full-height hard stops. Post-integration full suite: 1593 tests green.
 >
 > **Landed vs. planned deviations:** none. Level-zero and vertically cleared
 > cover contacts no longer consume a random value, which is the specified

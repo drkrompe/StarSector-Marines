@@ -43,7 +43,7 @@
   obstacle only after vertical overlap while structural walls stay full-height.
   Full record:
   [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
-  Post-integration: 1590 tests green.
+  Post-integration: 1593 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
