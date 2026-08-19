@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -12,7 +14,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Cycles the rescue mech through the five militia anchors while no contact is active. */
+/** Cycles the rescue mech through the LZ center and five militia anchors. */
 public final class PatrolRescueFormation implements Action {
 
     public static final PatrolRescueFormation INSTANCE =
@@ -31,8 +33,10 @@ public final class PatrolRescueFormation implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        return PatrolMotion.advance(member, squad, sim,
+        ActionStatus status = PatrolMotion.advance(member, squad, sim,
                 waypointSource, false);
+        fireFromPatrol(member, sim);
+        return status;
     }
 
     @Override
@@ -68,5 +72,24 @@ public final class PatrolRescueFormation implements Action {
         int index = Math.floorMod(squad.rescuePatrolIndex, count);
         squad.rescuePatrolIndex = (index + 1) % count;
         return new int[]{cells[index * 2], cells[index * 2 + 1]};
+    }
+
+    /** Fires every installed track without replacing the authored LZ route. */
+    private static void fireFromPatrol(long member, BattleControl sim) {
+        long target = sim.getTacticalScoring()
+                .refreshTargetIfNotShootable(member);
+        sim.world().setTargetId(member, target);
+        if (target == 0L) return;
+        MechLoadoutComponent loadout = sim.world().mechLoadout(member);
+        if (loadout == null) return;
+        float distance = TacticalScoring.cellDistance(
+                sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target));
+        if (distance > sim.world().attackRange(member)) return;
+        boolean visible = sim.getGrid().hasLineOfSight(
+                sim.world().cellX(member), sim.world().cellY(member),
+                sim.world().cellX(target), sim.world().cellY(target));
+        MechCombatantBehavior.tryFireMechWeapons(member, loadout, target,
+                distance, sim, visible);
     }
 }

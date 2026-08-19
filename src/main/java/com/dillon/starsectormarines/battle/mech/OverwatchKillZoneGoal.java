@@ -48,6 +48,10 @@ public final class OverwatchKillZoneGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
+        // Pickup mechs own a bounded LZ-defense mission. Their patrol action
+        // fires the same installed weapons without allowing an LR-support
+        // overwatch cell to pull them dozens of cells off the perimeter.
+        if (squad.rescuePickupMech) return 0f;
         // Yield to SurviveContact when the squad is morale-broken. Same
         // carve-out shape as {@link ClearAssignedZoneGoal} — a role-driven
         // hold is a tactical hint, not a unit-level objective, and a broken
