@@ -3,6 +3,19 @@ package com.dillon.starsectormarines.campaign;
 /** Records and queries immutable, contract-backed player/patron history. */
 public final class PatronEngagementMemory {
 
+    public static final class History {
+        public final Snapshot latest;
+        public final Snapshot previous;
+        public final int engagementCount;
+
+        private History(Snapshot latest, Snapshot previous,
+                        int engagementCount) {
+            this.latest = latest;
+            this.previous = previous;
+            this.engagementCount = engagementCount;
+        }
+    }
+
     public static final class Snapshot {
         public final long id;
         public final long sourceContractId;
@@ -74,8 +87,15 @@ public final class PatronEngagementMemory {
 
     /** Returns the newest valid snapshot for a patron, or {@code null}. */
     public static Snapshot latest(CampaignState state, long houseId) {
+        History history = history(state, houseId);
+        return history != null ? history.latest : null;
+    }
+
+    /** Returns the newest two valid snapshots, ordered newest first. */
+    public static History history(CampaignState state, long houseId) {
         if (state == null || houseId <= 0L) return null;
         int latestRow = -1;
+        int previousRow = -1;
         int count = 0;
         for (int row = 0; row < state.patronEngagementCount; row++) {
             if (state.patronEngagementHouseId[row] != houseId
@@ -83,24 +103,38 @@ public final class PatronEngagementMemory {
                 continue;
             }
             count++;
-            if (latestRow < 0
-                    || state.patronEngagementHappenedTick[row]
-                        > state.patronEngagementHappenedTick[latestRow]
-                    || (state.patronEngagementHappenedTick[row]
-                            == state.patronEngagementHappenedTick[latestRow]
-                        && state.patronEngagementId[row]
-                            > state.patronEngagementId[latestRow])) {
+            if (latestRow < 0 || newer(state, row, latestRow)) {
+                previousRow = latestRow;
                 latestRow = row;
+            } else if (previousRow < 0
+                    || newer(state, row, previousRow)) {
+                previousRow = row;
             }
         }
         if (latestRow < 0) return null;
-        return new Snapshot(state.patronEngagementId[latestRow],
-                state.patronEngagementSourceContractId[latestRow],
-                state.patronEngagementHouseId[latestRow],
-                safeContractType(state.patronEngagementContractType[latestRow]),
-                state.patronEngagementMarketId[latestRow],
-                safeOutcome(state.patronEngagementOutcome[latestRow]),
-                state.patronEngagementHappenedTick[latestRow], count);
+        return new History(snapshot(state, latestRow, count),
+                previousRow >= 0 ? snapshot(state, previousRow, count) : null,
+                count);
+    }
+
+    private static Snapshot snapshot(CampaignState state, int row, int count) {
+        return new Snapshot(state.patronEngagementId[row],
+                state.patronEngagementSourceContractId[row],
+                state.patronEngagementHouseId[row],
+                safeContractType(state.patronEngagementContractType[row]),
+                state.patronEngagementMarketId[row],
+                safeOutcome(state.patronEngagementOutcome[row]),
+                state.patronEngagementHappenedTick[row], count);
+    }
+
+    private static boolean newer(CampaignState state, int candidate,
+                                 int reference) {
+        return state.patronEngagementHappenedTick[candidate]
+                    > state.patronEngagementHappenedTick[reference]
+                || (state.patronEngagementHappenedTick[candidate]
+                        == state.patronEngagementHappenedTick[reference]
+                    && state.patronEngagementId[candidate]
+                        > state.patronEngagementId[reference]);
     }
 
     private static boolean validSnapshotRow(CampaignState state, int row) {
