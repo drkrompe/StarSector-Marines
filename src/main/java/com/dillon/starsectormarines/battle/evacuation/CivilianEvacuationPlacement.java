@@ -50,6 +50,14 @@ public final class CivilianEvacuationPlacement {
     public static CivilianEvacuationPlacement find(
             NavigationGrid grid, List<PointOfInterest> pointsOfInterest,
             long seed) {
+        return find(grid, pointsOfInterest, seed,
+                CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT);
+    }
+
+    public static CivilianEvacuationPlacement find(
+            NavigationGrid grid, List<PointOfInterest> pointsOfInterest,
+            long seed, int representativeCount) {
+        if (representativeCount <= 0) return null;
         if (grid == null || pointsOfInterest == null) return null;
         List<PointOfInterest> shelters = new ArrayList<>();
         for (PointOfInterest poi : pointsOfInterest) {
@@ -71,7 +79,7 @@ public final class CivilianEvacuationPlacement {
             PointOfInterest shelter = shelters.get(
                     (start + offset) % shelters.size());
             CivilianEvacuationPlacement placement =
-                    forShelter(grid, shelter);
+                    forShelter(grid, shelter, representativeCount);
             if (placement != null) return placement;
         }
         return null;
@@ -92,13 +100,15 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static CivilianEvacuationPlacement forShelter(
-            NavigationGrid grid, PointOfInterest shelter) {
+            NavigationGrid grid, PointOfInterest shelter,
+            int representativeCount) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
         int[] lift = farthestReachableLift(grid, sx, sy);
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
-                grid, shelter, sx, sy, lift[0], lift[1]);
+                grid, shelter, sx, sy, lift[0], lift[1],
+                representativeCount);
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
                 sx, sy, shelter.anchorCellX, shelter.anchorCellY,
@@ -133,7 +143,8 @@ public final class CivilianEvacuationPlacement {
     private static int[] reachableSpawnCells(NavigationGrid grid,
                                               PointOfInterest shelter,
                                               int sx, int sy,
-                                              int liftX, int liftY) {
+                                              int liftX, int liftY,
+                                              int representativeCount) {
         List<int[]> candidates = new ArrayList<>();
         for (int y = Math.max(0, sy - SHELTER_ZONE_RADIUS);
              y <= Math.min(grid.getHeight() - 1, sy + SHELTER_ZONE_RADIUS);
@@ -161,7 +172,7 @@ public final class CivilianEvacuationPlacement {
                         Math.abs(c[0] - sx) + Math.abs(c[1] - sy))
                 .thenComparingInt(c -> c[1])
                 .thenComparingInt(c -> c[0]));
-        int count = CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT;
+        int count = representativeCount;
         if (candidates.size() < count) return null;
         int[] result = new int[count * 2];
         for (int i = 0; i < count; i++) {

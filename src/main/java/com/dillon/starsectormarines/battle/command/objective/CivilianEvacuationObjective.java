@@ -21,11 +21,18 @@ public final class CivilianEvacuationObjective implements Objective {
     private final int cellX;
     private final int cellY;
     private final int radius;
+    private final boolean requireAnyEvacuated;
     private boolean complete;
     private boolean failed;
 
     public CivilianEvacuationObjective(CivilianEvacuationTracker tracker,
                                        int cellX, int cellY, int radius) {
+        this(tracker, cellX, cellY, radius, true);
+    }
+
+    public CivilianEvacuationObjective(CivilianEvacuationTracker tracker,
+                                       int cellX, int cellY, int radius,
+                                       boolean requireAnyEvacuated) {
         if (tracker == null) {
             throw new IllegalArgumentException("tracker is required");
         }
@@ -36,6 +43,7 @@ public final class CivilianEvacuationObjective implements Objective {
         this.cellX = cellX;
         this.cellY = cellY;
         this.radius = radius;
+        this.requireAnyEvacuated = requireAnyEvacuated;
     }
 
     @Override
@@ -62,7 +70,7 @@ public final class CivilianEvacuationObjective implements Objective {
             }
         }
         if (tracker.activeCount() != 0 || !tracker.seal()) return;
-        if (tracker.evacuatedCount() > 0) {
+        if (tracker.evacuatedCount() > 0 || !requireAnyEvacuated) {
             complete = true;
         } else {
             failed = true;

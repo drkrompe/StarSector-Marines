@@ -2,12 +2,15 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
+import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionResolution;
 import com.dillon.starsectormarines.campaign.ChainIntervention;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -21,6 +24,8 @@ import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.StakeLedger;
+import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
+import com.dillon.starsectormarines.campaign.SilentColonyMissionResolution;
 import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
@@ -199,6 +204,30 @@ public final class MissionResolver {
             }
         }
 
+        AbandonedColonyArchiveOutcome colonyArchiveOutcome =
+                AbandonedColonyArchiveOutcome.NONE;
+        SilentColonyMissionKey colonyKey =
+                SilentColonyMissionKey.parse(mission.id);
+        if (sim.isComplete() && colonyKey != null
+                && mission.source == MissionSource.CAMPAIGN_EVENT
+                && colonyKey.eventId == mission.campaignEventId
+                && mission.campaignEventThreatSeed >= 0L) {
+            ColonyArchiveObjective archive = null;
+            boolean duplicate = false;
+            for (Objective objective : sim.getObjectives()) {
+                if (!(objective instanceof ColonyArchiveObjective candidate)) {
+                    continue;
+                }
+                if (archive != null) duplicate = true;
+                archive = candidate;
+            }
+            if (archive != null && !duplicate) {
+                colonyArchiveOutcome = archive.isRecovered()
+                        ? AbandonedColonyArchiveOutcome.RECOVERED
+                        : AbandonedColonyArchiveOutcome.LOST;
+            }
+        }
+
         Status priorStatus = captain != null ? captain.status() : null;
         Status newStatus   = priorStatus;
         int   xpGained        = 0;
@@ -245,9 +274,11 @@ public final class MissionResolver {
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
                 mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
                 mission.contractId, mission.campaignEventId,
-                mission.campaignEventMarketId, mission.civiliansAtRisk,
+                mission.campaignEventMarketId, mission.campaignEventThreatSeed,
+                mission.civiliansAtRisk,
                 civiliansRescued,
                 evacuationRepresentatives, representativesEvacuated,
+                colonyArchiveOutcome,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
                 survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
@@ -268,14 +299,27 @@ public final class MissionResolver {
         }
         if (outcome.missionSource == MissionSource.CAMPAIGN_EVENT) {
             CampaignStateScript script = CampaignStateScript.getInstance();
-            CivilianRescueMissionResolution.Result result =
-                    CivilianRescueMissionResolution.apply(
-                            script != null ? script.state() : null,
-                            outcome, currentDayInt());
-            LOG.info("MarineOps: campaign event " + outcome.missionId
-                    + " → " + result);
-            if (result != CivilianRescueMissionResolution.Result.RESOLVED) {
-                return;
+            if (SilentColonyMissionKey.parse(outcome.missionId) != null) {
+                SilentColonyMissionResolution.Result result =
+                        SilentColonyMissionResolution.apply(
+                                script != null ? script.state() : null,
+                                outcome, currentDayInt());
+                LOG.info("MarineOps: Silent Colony " + outcome.missionId
+                        + " → " + result);
+                if (result != SilentColonyMissionResolution.Result.RESOLVED) {
+                    return;
+                }
+            } else {
+                CivilianRescueMissionResolution.Result result =
+                        CivilianRescueMissionResolution.apply(
+                                script != null ? script.state() : null,
+                                outcome, currentDayInt());
+                LOG.info("MarineOps: campaign event " + outcome.missionId
+                        + " → " + result);
+                if (result
+                        != CivilianRescueMissionResolution.Result.RESOLVED) {
+                    return;
+                }
             }
         }
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null

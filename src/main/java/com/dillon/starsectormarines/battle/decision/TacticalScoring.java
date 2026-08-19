@@ -137,6 +137,19 @@ public final class TacticalScoring {
     /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
 
+    /** How far ahead of the squad centroid the advance-leash threat read looks. Longer routes are clipped to this local window. */
+    public static final float ADVANCE_THREAT_LOOKAHEAD = 36f;
+    /** Contacts inside this distance of the advance axis contribute their full force to the threat score. */
+    public static final float ADVANCE_THREAT_ROUTE_INNER = 4f;
+    /** Contacts at or beyond this distance from the advance axis do not pull the squad off mission. */
+    public static final float ADVANCE_THREAT_ROUTE_OUTER = 12f;
+    /** A contact whose active path ends farther from the squad by this margin is treated as retreating. */
+    public static final float ADVANCE_THREAT_RETREAT_MARGIN = 2f;
+    /** Force contribution retained by a retreating contact — enough to avoid treating it as vanished, too little to stop a healthy fireteam alone. */
+    public static final float ADVANCE_THREAT_RETREAT_MULT = 0.2f;
+    /** Enemy force equal to half the nearby friendly force saturates the advance threat score at 1. */
+    public static final float ADVANCE_THREAT_PARITY_FRACTION = 0.5f;
+
     /**
      * Penalty added to a no-LoS target's score when {@code allowNoLos} is set
      * on the {@link #findBestTarget} call (indirect-fire callers — artillery
@@ -955,6 +968,131 @@ public final class TacticalScoring {
         }
         return count;
     }
+
+    /**
+     * Cheap, local commit-vs-press read for a squad advancing toward
+     * {@code (destX, destY)}. Enemy combatants contribute according to their
+     * distance from the near-term advance segment; a contact on the route is
+     * full weight, a flank contact fades to zero by
+     * {@link #ADVANCE_THREAT_ROUTE_OUTER}. A contact whose current path ends
+     * materially farther from the squad is discounted as retreating.
+     * Weighted hostile force is normalized against nearby friendly combatants,
+     * saturating when enemies reach half the friendly force.
+     *
+     * <p>The result intentionally carries the perception debt documented in
+     * AI stories 15 and 19: the enemy gather reads ground truth. The method is
+     * the localized swap seam for the future {@code hostile_believed} field;
+     * friendly positions are legitimate faction knowledge and stay unchanged.
+     *
+     * <p>The returned primary threat is the highest-contributing contact, with
+     * nearer contacts winning ties. {@code axisAnchorX/Y} is the closest point
+     * on the advance segment to that contact; the zone action centers its
+     * off-axis firing-position leash there.
+     */
+    public AdvanceThreat assessAdvanceThreat(Squad squad, int destX, int destY) {
+        float startX = squad.centroidX;
+        float startY = squad.centroidY;
+        float fullDx = destX + 0.5f - startX;
+        float fullDy = destY + 0.5f - startY;
+        float fullLen = (float) Math.sqrt(fullDx * fullDx + fullDy * fullDy);
+        if (fullLen < 1e-4f) return AdvanceThreat.NONE;
+
+        float segmentLen = Math.min(fullLen, ADVANCE_THREAT_LOOKAHEAD);
+        float endX = startX + fullDx / fullLen * segmentLen;
+        float endY = startY + fullDy / fullLen * segmentLen;
+
+        LongBucket nearby = new LongBucket();
+        unitIndex.gatherAlongSegment(startX, startY, endX, endY,
+                ADVANCE_THREAT_ROUTE_OUTER, nearby);
+
+        World world = roster.world();
+        Faction enemyFaction = squad.faction == Faction.MARINE
+                ? Faction.DEFENDER : Faction.MARINE;
+        float weightedFoes = 0f;
+        int rawFoes = 0;
+        long primary = 0L;
+        float primaryContribution = 0f;
+        float primaryDistance = Float.MAX_VALUE;
+        float primaryAnchorX = startX;
+        float primaryAnchorY = startY;
+        boolean primaryRetreating = false;
+
+        for (int i = 0, n = nearby.size; i < n; i++) {
+            long contact = nearby.ids[i];
+            if (roster.identity().faction(contact) != enemyFaction) continue;
+            if (!roster.identity().type(contact).combatant) continue;
+
+            float contactX = world.x(contact);
+            float contactY = world.y(contact);
+            SegmentProjection projection = projectOntoSegment(
+                    contactX, contactY, startX, startY, endX, endY);
+            if (projection.distance >= ADVANCE_THREAT_ROUTE_OUTER) continue;
+
+            float routeWeight = projection.distance <= ADVANCE_THREAT_ROUTE_INNER
+                    ? 1f
+                    : 1f - (projection.distance - ADVANCE_THREAT_ROUTE_INNER)
+                    / (ADVANCE_THREAT_ROUTE_OUTER - ADVANCE_THREAT_ROUTE_INNER);
+            boolean retreating = isRetreatingFrom(contact, startX, startY, world);
+            float contribution = routeWeight * (retreating ? ADVANCE_THREAT_RETREAT_MULT : 1f);
+            weightedFoes += contribution;
+            rawFoes++;
+
+            float contactDistance = cellDistance(startX, startY, contactX, contactY);
+            if (contribution > primaryContribution
+                    || (contribution == primaryContribution && contactDistance < primaryDistance)) {
+                primary = contact;
+                primaryContribution = contribution;
+                primaryDistance = contactDistance;
+                primaryAnchorX = projection.x;
+                primaryAnchorY = projection.y;
+                primaryRetreating = retreating;
+            }
+        }
+
+        if (primary == 0L || weightedFoes <= 0f) return AdvanceThreat.NONE;
+
+        int friends = countCombatantsWithin(squad.faction,
+                Math.round(startX - 0.5f), Math.round(startY - 0.5f),
+                ADVANCE_THREAT_LOOKAHEAD);
+        float parityForce = Math.max(1f, friends * ADVANCE_THREAT_PARITY_FRACTION);
+        float weight = Math.min(1f, weightedFoes / parityForce);
+        return new AdvanceThreat(weight, primary, rawFoes, friends,
+                Math.round(primaryAnchorX - 0.5f), Math.round(primaryAnchorY - 0.5f),
+                primaryRetreating);
+    }
+
+    private boolean isRetreatingFrom(long contact, float squadX, float squadY, World world) {
+        if (!roster.movement().has(contact)) return false;
+        int[] path = roster.movement().path(contact);
+        if (Paths.isEmpty(path) || roster.movement().settled(contact)) return false;
+        float currentDistance = cellDistance(squadX, squadY, world.x(contact), world.y(contact));
+        float destinationDistance = cellDistance(squadX, squadY,
+                Paths.destX(path) + 0.5f, Paths.destY(path) + 0.5f);
+        return destinationDistance >= currentDistance + ADVANCE_THREAT_RETREAT_MARGIN;
+    }
+
+    private static SegmentProjection projectOntoSegment(float px, float py,
+                                                         float x0, float y0,
+                                                         float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float len2 = dx * dx + dy * dy;
+        float t = len2 > 0f ? ((px - x0) * dx + (py - y0) * dy) / len2 : 0f;
+        t = Math.max(0f, Math.min(1f, t));
+        float x = x0 + dx * t;
+        float y = y0 + dy * t;
+        return new SegmentProjection(x, y, cellDistance(px, py, x, y));
+    }
+
+    /** Value result of {@link #assessAdvanceThreat}; immutable and safe to share across the parallel unit-update readers. */
+    public record AdvanceThreat(float weight, long primaryThreatId,
+                                int foes, int friends,
+                                int axisAnchorX, int axisAnchorY,
+                                boolean primaryRetreating) {
+        public static final AdvanceThreat NONE = new AdvanceThreat(0f, 0L, 0, 0, -1, -1, false);
+    }
+
+    private record SegmentProjection(float x, float y, float distance) {}
 
     public int[] findFiringPositionWithin(long self, long target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
