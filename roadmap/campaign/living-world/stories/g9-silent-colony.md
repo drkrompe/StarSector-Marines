@@ -1,8 +1,8 @@
 # G9 — Silent Colony
 
-**Status:** SLICE 2 CODE COMPLETE (2026-08-19)
+**Status:** SLICE 3 CODE COMPLETE (2026-08-19)
 
-**Implemented:** `4d50805d`, `33b073bd`
+**Implemented:** `4d50805d`, `33b073bd`, `9a87c85b`
 
 ## Purpose
 
@@ -133,9 +133,15 @@ consequence code.
    interned, and the registered hidden-until-authenticated Dead Letter routes
    funding/refusal through the Slice 1 authority while withholding survivor,
    archive, threat, reward, and moral facts.
-3. **Expedition mission lineage** — event mission key/factory, deterministic
+3. ~~**Expedition mission lineage** — event mission key/factory, deterministic
    automated threat reveal, survivor cohort, physical archive objective, and
-   explicit dual outcome report.
+   explicit dual outcome report.~~ Shipped in `9a87c85b`; committed rows emit a
+   stable zero-economy local mission carrying the frozen threat seed and exact
+   6–12-member cohort. The hidden seed freezes one of three autonomous
+   turret/drone defense profiles and its placement without biological swarm or
+   conventional infantry. A separate five-second archive-room recovery and
+   terminal survivor accounting produce independent debrief facts; unfinished
+   battles retain archive `NONE` rather than inferring loss from victory.
 4. **Closure and reachability** — strict outcome bridge, terminal Dead Letter,
    Chronicle report, debug setup, full save/replay matrix, and documented moral
    decision only if the mission adds an explicit player priority.
@@ -162,9 +168,12 @@ consequence code.
 - No mission, intel UI, producer, automated enemy, Chronicle dispatch, or cargo
   reward in Slice 1.
 
-## Slice 1 verification
+## Slice verification
 
 Focused Silent Colony, shared event-column, civilian-rescue, defector-asylum,
 lifecycle, producer-order, and Dead Letter reconstruction tests pass. The
-complete root `:test` suite also passes on 2026-08-19. Manual Dead Letter UI
-validation remains deferred with the shared campaign verification queue.
+Slice 3 factory additionally locks maximum cohort placement, autonomous-only
+defenders, battle-seed-independent threat placement, and independent survivor /
+archive reports. The complete root `:test` suite also passes on 2026-08-19.
+Manual Dead Letter, mission, battle, and debrief UI validation remains deferred
+with the shared campaign verification queue.

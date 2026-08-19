@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
+import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
@@ -94,7 +96,11 @@ public final class MissionLaunch {
 
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
-        if (isCivilianRescueBattle(m)) {
+        if (isSilentColonyBattle(m)) {
+            sim = BattleSetup.createSilentColony(seed,
+                    m.campaignEventThreatSeed, m.civiliansAtRisk,
+                    det.shuttleManifest, m.risk);
+        } else if (isCivilianRescueBattle(m)) {
             int firstWaveMarineSeats = firstWaveSeats(det.shuttleManifest);
             int swarmCount = m.source.isDebug()
                     ? SwarmDefenseRoster.debugCountFor(
@@ -150,7 +156,16 @@ public final class MissionLaunch {
     }
 
     static boolean isCivilianRescueBattle(Mission mission) {
-        return mission != null && mission.source.isCivilianRescue();
+        if (mission == null) return false;
+        return mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE
+                || CivilianRescueMissionKey.parse(mission.id) != null;
+    }
+
+    static boolean isSilentColonyBattle(Mission mission) {
+        return mission != null
+                && mission.source == MissionSource.CAMPAIGN_EVENT
+                && SilentColonyMissionKey.parse(mission.id) != null
+                && mission.campaignEventThreatSeed >= 0L;
     }
 
     private static int firstWaveSeats(List<ShuttleAssignment> manifest) {
