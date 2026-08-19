@@ -7,11 +7,16 @@
   in-game.** Full build green (jar produced, tests pass). Gated behind
   `DevConfig.SURFACE_RELIEF_PARALLAX`, **default true** (flipped for
   playtesting; off path is pixel-identical to pre-S2 rendering).
-- **Sliced-sheet micro height is now wired** on `codex/surface-relief`:
-  nature grass/dirt and urban-3 street/sidewalk cells sample the exact frame
-  selected by the color pass. Fixed-grid fallbacks remain aligned when a
-  sliced color sheet fails to load. Asset-backed tests cover both baked sheets,
-  implicit sidewalk/corner selection, fallback behavior, and terrain mutation.
+- **Per-texel micro height is now wired:** nature grass/dirt,
+  urban-3 street/sidewalk, and fixed-grid terrain draw the exact source rect
+  selected by the color pass from the corresponding derived height atlas.
+  Brick, crack, and ripple detail therefore reaches the height FBO instead of
+  being collapsed to one average per cell. Asset-backed tests cover sliced
+  selection, implicit sidewalk/corner selection, fallback behavior, and
+  terrain mutation.
+- **Live strength tuning is in the battle DEBUG panel:** the `Parallax` dial
+  applies immediately over a clamped `0.0000–0.0200` range; the default remains
+  `0.0060`.
 - Commit chain (developed on `worktree-surface-relief`, MERGED to main
   2026-08-13): `cf2e4db1` S1 → `80aac9e2` S2 → `9bd7491f` flag on →
   `6e36fe6d` critique fixes.
@@ -26,9 +31,10 @@
   rect the GROUND quads already emit into (zero coordinate translation),
   fullscreen offset-limited composite. Every failure path falls back to
   draining GROUND straight to the backbuffer.
-- `GroundHeightPass` (macro per-cell quads) + `HeightSource` seam +
-  `GroundMicroHeightSampler`/`HeightSheetTexture` (per-cell micro height
-  from all S1 terrain sheets, cached per battle).
+- `GroundHeightPass` composes macro height with per-texel derived height in a
+  batched GLSL pass. `GroundMicroHeightSampler` resolves and caches the exact
+  color-pass atlas rectangle; unsupported/missing derived sheets stay
+  macro-only.
 - Macro heights: `GenMappingRegistry.macroHeight` code defaults +
   `"macroHeight"` override block in `urban.mapping.json`
   (WALL 0.90 / INDOOR 0.65 / RUBBLE 0.30 / WATER 0.15, else 0.50).
@@ -38,12 +44,13 @@
 
 ## Next up (in order)
 
-1. **In-game smoke test** — flip `DevConfig.SURFACE_RELIEF_PARALLAX`,
-   load a battle: does the shader compile live, does parallax read, is
-   toggle-off pixel-identical? GL runtime behavior is structurally
-   mirrored from shipped precedents but UNVERIFIED live.
-2. **Tune** `STRENGTH` / `EYE_HEIGHT` / `HEIGHT_SCALE` / `HEIGHT_BIAS`
-   in `GroundParallaxPipeline` — reasoned guesses, not calibrated.
+1. **In-game smoke test** — load a battle: do both shaders compile live,
+   does per-texel relief read, does dragging the DEBUG-panel `Parallax` dial
+   update the next frame, and is the flag-off path pixel-identical? GL runtime
+   behavior is structurally mirrored from shipped precedents but UNVERIFIED live.
+2. **Tune** strength live with the dial, then promote the preferred value to
+   `DEFAULT_STRENGTH`. Tune `EYE_HEIGHT` / `HEIGHT_SCALE` / `HEIGHT_BIAS` in
+   `GroundParallaxPipeline` only if the projection itself needs adjustment.
    Water is the first target per overview.
 3. Then S3 (bump lighting), S4 (unit relief) per their story docs.
 
@@ -62,7 +69,7 @@
   double-draw GROUND (draw list is read non-destructively). Accepted:
   the raw fallback `drainColor.run()` can rethrow a draw-list exception
   — same crash the flag-off path would produce, kept loud on purpose.
-- Sliced micro-height uses the color loader's already-validated frame tables;
+- Per-texel micro-height uses the color loader's already-validated frame tables;
   missing/corrupt derived data stays macro-only instead of sampling unrelated
   fixed-grid art. Cache entries fingerprint nearby terrain so wall demolition
   re-resolves implicit sidewalk and autotile source rectangles.

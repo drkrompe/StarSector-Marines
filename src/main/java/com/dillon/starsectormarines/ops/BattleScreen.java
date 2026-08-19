@@ -39,7 +39,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -202,7 +204,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
-    private final com.dillon.starsectormarines.ops.battleview.BattleRenderer renderer = new com.dillon.starsectormarines.ops.battleview.BattleRenderer(sprites);
+    private final BattleRenderer renderer = new BattleRenderer(sprites);
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -522,9 +524,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         // render ordering match the rest of the debug panels.
         DebugTogglesPanel debugPanel = new DebugTogglesPanel(this);
         debugPanel.addToggle("Docking paths",
-                () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
-                () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
-                        !com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
+                () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
+                () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
+                        !BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
+        debugPanel.addDial("Parallax",
+                () -> renderer.getGroundParallax().parallaxStrength(),
+                value -> renderer.getGroundParallax().setParallaxStrength((float) value),
+                GroundParallaxPipeline.MIN_STRENGTH,
+                GroundParallaxPipeline.MAX_STRENGTH);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",

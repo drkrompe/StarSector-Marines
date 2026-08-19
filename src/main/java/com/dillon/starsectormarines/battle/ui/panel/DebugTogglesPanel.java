@@ -11,7 +11,10 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINES;
@@ -31,7 +34,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
  * Top-of-screen debug panel — collapsible list of boolean toggles and
- * one-shot action rows. Replaces the prior {@code DebugTogglesWidget}
+ * one-shot action rows, and live numeric dials. Replaces the prior {@code DebugTogglesWidget}
  * (which was a screen-level {@code BaseWidget} registered on the
  * {@code WidgetRoot}; it now joins the rest of the HUD via
  * {@link HudPanel}'s lifecycle, which makes input + render ordering
@@ -47,6 +50,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  *       as a clickable button. A trailing glyph signals it's an action,
  *       not state. Used for "force reinforcement"-style on-demand
  *       triggers.</li>
+ *   <li><b>Dial</b> ({@link #addDial}) — draggable horizontal track with a
+ *       live numeric value. Changes apply on every drag event.</li>
  * </ul>
  *
  * <p>Anchor is top-center, just below the top controls strip. Visibility
@@ -56,24 +61,48 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 @DebugOnly
 public final class DebugTogglesPanel implements HudPanel {
 
-    /** One row in the panel. {@code checkboxState == null} marks an action row (no checkbox, action glyph). */
+    /** One row in the panel. Exactly one of checkbox, action, or dial is populated. */
     private static final class Row {
         final String label;
         final BooleanSupplier checkboxState;
         final Runnable onClick;
+        final DoubleSupplier dialValue;
+        final DoubleConsumer dialSetter;
+        final double dialMin;
+        final double dialMax;
 
         Row(String label, BooleanSupplier checkboxState, Runnable onClick) {
             this.label = label;
             this.checkboxState = checkboxState;
             this.onClick = onClick;
+            this.dialValue = null;
+            this.dialSetter = null;
+            this.dialMin = 0;
+            this.dialMax = 0;
         }
+
+        Row(String label, DoubleSupplier dialValue, DoubleConsumer dialSetter,
+            double dialMin, double dialMax) {
+            this.label = label;
+            this.checkboxState = null;
+            this.onClick = null;
+            this.dialValue = dialValue;
+            this.dialSetter = dialSetter;
+            this.dialMin = dialMin;
+            this.dialMax = dialMax;
+        }
+
+        boolean isDial() { return dialValue != null; }
+        boolean isAction() { return checkboxState == null && !isDial(); }
     }
 
-    private static final float PANEL_W   = 220f;
+    private static final float PANEL_W   = 280f;
     private static final float HEADER_H  = 24f;
     private static final float ROW_H     = 22f;
     private static final float CHECK_W   = 14f;
     private static final float PADDING   = 8f;
+    private static final float DIAL_TRACK_FROM_RIGHT = 118f;
+    private static final float DIAL_TRACK_TO_RIGHT   = 62f;
 
     private static final Color HEADER_TEXT = new Color(230, 230, 230);
     private static final Color ROW_TEXT    = new Color(200, 210, 220);
@@ -86,6 +115,8 @@ public final class DebugTogglesPanel implements HudPanel {
     private boolean expanded;
     /** -1 = header hovered; ≥0 = row index hovered; -2 = nothing hovered. */
     private int hoverIdx = -2;
+    /** Row being live-dragged, or -1. */
+    private int draggingDial = -1;
 
     /** Cached this-frame button hotspots — set by {@link #render} so the same-frame input pass reads fresh geometry. */
     private float curX, curY;
@@ -104,6 +135,14 @@ public final class DebugTogglesPanel implements HudPanel {
     /** Register a one-shot action row — runs {@code action} on click. No checkbox; rendered as a button-style row. */
     public DebugTogglesPanel addAction(String label, Runnable action) {
         rows.add(new Row(label, null, action));
+        return this;
+    }
+
+    /** Register a draggable live numeric value. */
+    public DebugTogglesPanel addDial(String label, DoubleSupplier getter, DoubleConsumer setter,
+                                     double min, double max) {
+        if (!(max > min)) throw new IllegalArgumentException("dial max must be greater than min");
+        rows.add(new Row(label, getter, setter, min, max));
         return this;
     }
 
@@ -169,6 +208,8 @@ public final class DebugTogglesPanel implements HudPanel {
                     drawCheckbox(x + PANEL_W - CHECK_W - PADDING,
                             ry + (ROW_H - CHECK_W) / 2f,
                             r.checkboxState.getAsBoolean(), alphaMult);
+                } else if (r.isDial()) {
+                    drawDial(r, x, ry, alphaMult);
                 }
             }
         }
@@ -198,17 +239,46 @@ public final class DebugTogglesPanel implements HudPanel {
             for (int i = 0; i < rows.size(); i++) {
                 Row r = rows.get(i);
                 float ry = y + totalH - HEADER_H - (i + 1) * ROW_H;
-                Color textColor = (r.checkboxState != null) ? ROW_TEXT : ACTION_TEXT;
+                Color textColor = r.isAction() ? ACTION_TEXT : ROW_TEXT;
                 font.drawString(r.label, x + PADDING, ry + ROW_H - 4f, textColor, alphaMult);
-                if (r.checkboxState == null) {
+                if (r.isAction()) {
                     // Trailing chevron for action rows — distinguishes them
                     // from toggle rows at a glance and stands in for the
                     // missing checkbox.
                     font.drawString(">>", x + PANEL_W - CHECK_W - PADDING + 1f,
                             ry + ROW_H - 4f, textColor, alphaMult);
+                } else if (r.isDial()) {
+                    String value = String.format(Locale.ROOT, "%.4f", r.dialValue.getAsDouble());
+                    font.drawString(value, x + PANEL_W - 56f,
+                            ry + ROW_H - 4f, ROW_TEXT, alphaMult);
                 }
             }
         }
+    }
+
+    private void drawDial(Row row, float x, float rowY, float alphaMult) {
+        float x0 = dialTrackX0(x);
+        float x1 = dialTrackX1(x);
+        float cy = rowY + ROW_H * 0.5f;
+        double value = clamp(row.dialValue.getAsDouble(), row.dialMin, row.dialMax);
+        float t = (float) ((value - row.dialMin) / (row.dialMax - row.dialMin));
+        float knobX = x0 + (x1 - x0) * t;
+
+        glLineWidth(3f);
+        glColor4f(0.12f, 0.15f, 0.20f, 0.95f * alphaMult);
+        glBegin(GL_LINES);
+        glVertex2f(x0, cy); glVertex2f(x1, cy);
+        glEnd();
+        glColor4f(0.30f, 0.72f, 0.95f, 0.95f * alphaMult);
+        glBegin(GL_LINES);
+        glVertex2f(x0, cy); glVertex2f(knobX, cy);
+        glEnd();
+        glBegin(GL_QUADS);
+        glVertex2f(knobX - 3f, cy - 6f);
+        glVertex2f(knobX + 3f, cy - 6f);
+        glVertex2f(knobX + 3f, cy + 6f);
+        glVertex2f(knobX - 3f, cy + 6f);
+        glEnd();
     }
 
     private void drawCheckbox(float cx, float cy, boolean on, float alphaMult) {
@@ -243,7 +313,19 @@ public final class DebugTogglesPanel implements HudPanel {
             boolean inside = px >= curX && px < curX + PANEL_W
                     && py >= curY && py < curY + totalH;
 
+            if (e.isLMBUpEvent() && draggingDial >= 0) {
+                setDialFromPointer(rows.get(draggingDial), px);
+                draggingDial = -1;
+                e.consume();
+                continue;
+            }
+
             if (e.isMouseMoveEvent()) {
+                if (draggingDial >= 0) {
+                    setDialFromPointer(rows.get(draggingDial), px);
+                    e.consume();
+                    continue;
+                }
                 if (!inside) {
                     hoverIdx = -2;
                     continue;
@@ -262,11 +344,35 @@ public final class DebugTogglesPanel implements HudPanel {
                 continue;
             }
             if (rowIdx >= 0 && expanded) {
-                rows.get(rowIdx).onClick.run();
+                Row row = rows.get(rowIdx);
+                if (row.isDial()) {
+                    draggingDial = rowIdx;
+                    setDialFromPointer(row, px);
+                } else {
+                    row.onClick.run();
+                }
                 e.consume();
             }
         }
     }
+
+    private void setDialFromPointer(Row row, float pointerX) {
+        row.dialSetter.accept(dialValueAt(pointerX, dialTrackX0(curX), dialTrackX1(curX),
+                row.dialMin, row.dialMax));
+    }
+
+    static double dialValueAt(float pointerX, float trackX0, float trackX1, double min, double max) {
+        float t = trackX1 <= trackX0 ? 0f : (pointerX - trackX0) / (trackX1 - trackX0);
+        t = Math.max(0f, Math.min(1f, t));
+        return min + (max - min) * t;
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static float dialTrackX0(float panelX) { return panelX + PANEL_W - DIAL_TRACK_FROM_RIGHT; }
+    private static float dialTrackX1(float panelX) { return panelX + PANEL_W - DIAL_TRACK_TO_RIGHT; }
 
     /** {@code -1} = header band; {@code [0, rows.size())} = expanded row index; {@code -2} = body but no row (impossible when expanded). */
     private int rowAt(int py, float totalH) {
