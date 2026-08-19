@@ -80,6 +80,8 @@ final class BuildingLayouts {
         SHOP,
         /** Industrial warehouse. Crates on both long walls + a desk at one doorway. Reads as cargo bay. */
         WAREHOUSE,
+        /** Large factory with loading, production, control, parts, and service-spine zones. */
+        INDUSTRIAL_FACILITY,
         /** Military command post. C2 consoles flank a central tactical planning table. */
         COMMAND_CENTER,
         /** Military barracks. Paired bunk rows leave a broad central fire lane. */
@@ -118,6 +120,8 @@ final class BuildingLayouts {
             case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
             case SHOP:      applyShop(grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
+            case INDUSTRIAL_FACILITY: applyIndustrialFacility(
+                    grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case COMMAND_CENTER: applyCommandCenter(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case BARRACKS:       applyBarracks(grid, topology, bl, bt, br, bb, doodads); break;
             case ARMORY:         applyArmory(grid, topology, bl, bt, br, bb, doodads, rng); break;
@@ -398,6 +402,80 @@ final class BuildingLayouts {
 
         DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-2");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
+    }
+
+    /**
+     * Furnishes a qualifying factory without obstructing its service spine.
+     * Opaque machinery hugs the production-side exterior wall at three-cell
+     * intervals, creating a broad longitudinal lane plus two-cell cross gaps.
+     * Support-room and loading props remain low enough to shoot across.
+     */
+    private static void applyIndustrialFacility(NavigationGrid grid, CellTopology topology,
+                                                 PartitionLayout partition,
+                                                 int bl, int bt, int br, int bb,
+                                                 List<Doodad> doodads, Random rng) {
+        if (!partition.tacticalIndustrial) {
+            applyWarehouse(grid, bl, bt, br, bb, doodads, rng);
+            return;
+        }
+
+        DoodadDef machine = TileRegistry.installed().doodad("doodad.industrial-machine-tool");
+        DoodadDef tank = TileRegistry.installed().doodad("doodad.industrial-fluid-tank");
+        DoodadDef console = TileRegistry.installed().doodad("doodad.industrial-control-console");
+        DoodadDef parts = TileRegistry.installed().doodad("doodad.industrial-crate-stack");
+        DoodadDef pallet = TileRegistry.installed().doodad("doodad.industrial-pallet-stack");
+
+        stampIndustrialProductionLine(grid, topology, partition,
+                bl, bt, br, bb, new DoodadDef[]{machine, tank}, doodads);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.LOADING_BAY, pallet, doodads, rng, true);
+    }
+
+    private static void stampIndustrialProductionLine(NavigationGrid grid,
+                                                        CellTopology topology,
+                                                        PartitionLayout partition,
+                                                        int bl, int bt, int br, int bb,
+                                                        DoodadDef[] machinery,
+                                                        List<Doodad> doodads) {
+        int minX = br;
+        int minY = bb;
+        int maxX = bl;
+        int maxY = bt;
+        for (int y = bt + 1; y < bb; y++) {
+            for (int x = bl + 1; x < br; x++) {
+                if (topology.getRoomPurpose(x, y) != RoomPurpose.PRODUCTION_FLOOR) continue;
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+        if (maxX < minX || maxY < minY) return;
+
+        int placed = 0;
+        if (partition.orient == PartitionLayout.Orient.VERTICAL) {
+            int x = maxX < partition.preferredPerimeterDoorAlong ? minX : maxX;
+            for (int y = minY; y <= maxY && placed < 5; y += 3) {
+                int before = doodads.size();
+                stampFixture(grid, topology, x, y,
+                        machinery[placed % machinery.length], doodads, false);
+                if (doodads.size() > before) placed++;
+            }
+        } else {
+            int y = maxY < partition.preferredPerimeterDoorAlong ? minY : maxY;
+            for (int x = minX; x <= maxX && placed < 5; x += 3) {
+                int before = doodads.size();
+                stampFixture(grid, topology, x, y,
+                        machinery[placed % machinery.length], doodads, false);
+                if (doodads.size() > before) placed++;
+            }
+        }
     }
 
     /** Furnishes the deepest command chambers with hard C2 silhouettes while preserving circulation. */

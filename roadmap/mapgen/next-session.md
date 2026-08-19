@@ -154,16 +154,20 @@ reused verbatim. Candidate next tracks (priority order):
 1. **Ground tactical-structure track** — tactical commercial interiors
    (`d14ce6a8`), coherent commercial compounds (`7bb9b4f2`), tactical military
    compounds (`fa0533ee`), and multi-room civic headquarters (`4d929309`) are
-   shipped. Next: apply the same frontage/room-purpose discipline to large
-   industrial buildings: loading/service spine, production floor,
-   supervisor/control room, parts cage, and opaque machinery/tank fixtures.
-   A true fused multi-lot structure remains gated on
+   shipped. **Large industrial facilities are now shipped (`e8ad9c4b`)**:
+   15x12+ lots gain an aligned loading/service spine, production floor,
+   supervisor/control room, parts cage, and opaque machinery/tank firing lanes;
+   smaller lots retain legacy warehouses. Next: compound-scale industrial
+   identity pairing a large factory with an adjacent fenced service yard, tank
+   farm, or utility shed around shared circulation. A true fused multi-lot
+   structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
    [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md),
    [`complete/commercial-compound.md`](complete/commercial-compound.md),
-   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md), and
-   [`complete/civic-headquarters.md`](complete/civic-headquarters.md).
+   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md),
+   [`complete/civic-headquarters.md`](complete/civic-headquarters.md), and
+   [`complete/industrial-facilities.md`](complete/industrial-facilities.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
