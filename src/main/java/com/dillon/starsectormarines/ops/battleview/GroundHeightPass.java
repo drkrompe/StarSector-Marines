@@ -112,7 +112,6 @@ final class GroundHeightPass {
     void dispose() {
         shader.dispose();
         atlases.clear();
-        resolver.invalidate();
     }
 
     static float microRelief(float micro) {
