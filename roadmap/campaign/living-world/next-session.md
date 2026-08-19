@@ -149,8 +149,14 @@ playtesting then exposed a six-cell marine hold radius fighting the civilian's
 two-cell forward leash. Marine squads now rally five reachable route cells ahead
 of the cohort and retain moving fire while advancing; layered civilians turn on
 a 180-degree-per-second shortest arc and keep their last idle facing instead of
-snapping between headings (`bc29cb26`). Wave cadence and post-rebalance feel
-validation remain queued.
+snapping between headings (`bc29cb26`). The follow-up physicalizes the pickup
+with an unarmed civilian Valkyrie that must land before boarding, holds eight
+local militia in a fixed perimeter, and dispatches capped four-person
+Aeroshuttle replacements when fewer than five remain. Mobile escorts preserve
+the clear-contact five-cell screen but, while engaged, ratchet it forward two
+cells every five seconds instead of either pushing at full speed or stopping
+(`2395397f`). The combined pickup spacing, militia cadence, and engaged-bound
+feel remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -361,6 +367,9 @@ swarm tuning remain in the shared deferred queue.
   independent civilian escort leashes and threat screening (`ad11debf`).
 - G5/G6 advance/facing correction — forward marine screen under fire plus
   rate-limited persistent civilian facing (`bc29cb26`).
+- G5/G6 physical-pickup follow-up — landed-before-boarding Valkyrie, fixed
+  local-militia perimeter with capped shuttle replacements, and timed engaged
+  escort bounds (`2395397f`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
