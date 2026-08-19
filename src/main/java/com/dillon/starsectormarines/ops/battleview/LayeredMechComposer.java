@@ -47,21 +47,21 @@ final class LayeredMechComposer {
                     0.37f, -0.15f, 0f, alpha);
         }
 
-        LayeredSpriteCache chassisSprite = chassis == LayeredMechAppearance.CHASSIS_SOCKETED
-                ? assets.socketedChassis : assets.chassis;
-        emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
-                0f, 0f, 0f, alpha);
-
-        // Shoulder pods sit above the hull, but most rear casing stays occluded
-        // because their centers remain well inside the chassis silhouette.
+        // Shoulder racks are external equipment beneath the body layer. Their
+        // inboard casing is buried by the chassis while their outboard edge
+        // changes the silhouette instead of being pasted across the torso.
         float srmKick = ((flags & LayeredMechAppearance.FLAG_SRM_ACTIVE) != 0)
                 ? 0.018f * LayeredMechAppearance.recoil(srmPhase) : 0f;
         float lrmKick = ((flags & LayeredMechAppearance.FLAG_LRM_ACTIVE) != 0)
                 ? 0.024f * LayeredMechAppearance.recoil(lrmPhase) : 0f;
         emitPod(out, assets, leftShoulder, actorX, actorY, hullWidth, torsoFacingDeg,
-                -0.23f, srmKick, lrmKick, alpha);
+                -0.40f, srmKick, lrmKick, alpha);
         emitPod(out, assets, rightShoulder, actorX, actorY, hullWidth, torsoFacingDeg,
-                0.23f, srmKick, lrmKick, alpha);
+                0.40f, srmKick, lrmKick, alpha);
+
+        LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
+        emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
+                0f, 0f, 0f, alpha);
 
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, torsoFacingDeg,
@@ -71,24 +71,31 @@ final class LayeredMechComposer {
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
             emitPodFlash(out, assets, leftShoulder, true,
-                    actorX, actorY, hullWidth, torsoFacingDeg, -0.23f, 0.11f, alpha);
+                    actorX, actorY, hullWidth, torsoFacingDeg, -0.40f, alpha);
             emitPodFlash(out, assets, rightShoulder, true,
-                    actorX, actorY, hullWidth, torsoFacingDeg, 0.23f, 0.11f, alpha);
+                    actorX, actorY, hullWidth, torsoFacingDeg, 0.40f, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
             emitPodFlash(out, assets, leftShoulder, false,
-                    actorX, actorY, hullWidth, torsoFacingDeg, -0.23f, 0.12f, alpha);
+                    actorX, actorY, hullWidth, torsoFacingDeg, -0.40f, alpha);
             emitPodFlash(out, assets, rightShoulder, false,
-                    actorX, actorY, hullWidth, torsoFacingDeg, 0.23f, 0.12f, alpha);
+                    actorX, actorY, hullWidth, torsoFacingDeg, 0.40f, alpha);
         }
+    }
+
+    private static LayeredSpriteCache selectChassis(LayeredMechAssets assets, int chassis) {
+        if (chassis == LayeredMechAppearance.CHASSIS_SOCKETED) return assets.socketedChassis;
+        if (chassis == LayeredMechAppearance.CHASSIS_HOUND) return assets.houndChassis;
+        if (chassis == LayeredMechAppearance.CHASSIS_SIROCCO) return assets.siroccoChassis;
+        return assets.chassis;
     }
 
     private static void emitPodFlash(DrawList out, LayeredMechAssets assets,
                                      int installedPod, boolean srm,
                                      float actorX, float actorY, float hullWidth,
-                                     float facingDeg, float localX, float localY,
-                                     float alpha) {
+                                     float facingDeg, float localX, float alpha) {
         if (srm ? isSrmPod(installedPod) : isLrmPod(installedPod)) {
+            float localY = isSmallPod(installedPod) ? 0.12f : 0.16f;
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                     localX, localY, 0f, alpha);
         }
@@ -100,10 +107,10 @@ final class LayeredMechComposer {
                                 float srmKick, float lrmKick, float alpha) {
         if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.38f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
+                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
         } else if (isLargePod(pod)) {
             emitFromRearPivot(out, assets.lrmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.38f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
+                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
         }
     }
 

@@ -45,6 +45,9 @@ class CivilianRescueBattleFactoryTest {
         }
         assertEquals(SwarmDefenseRoster.LOW_COUNT, defenders);
         assertTrue(sim.getReinforcementService().isEmpty());
+        assertTrue(sim.isSwarmReinforcementConfigured());
+        assertEquals(SwarmDefenseRoster.LOW_COUNT,
+                sim.swarmTargetPopulation());
         assertTrue(sim.getCommander(Faction.MARINE)
                 instanceof RescueEscortCommand);
     }

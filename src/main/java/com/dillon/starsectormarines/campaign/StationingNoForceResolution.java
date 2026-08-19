@@ -37,14 +37,13 @@ public final class StationingNoForceResolution {
                 payload != null ? payload.fireteamIds : null,
                 payload != null ? payload.activeSeats : -1, roster)) return null;
         MarineCaptain captain = assignedCaptain(state, payload.contractId, roster);
-        int row = state.contractIndex(payload.contractId);
-        long patronId = row >= 0 ? state.contractPatronHouseId[row] : -1L;
         GarrisonDefenseResolution.Result result = GarrisonDefenseResolution.apply(
                 state, payload.contractId, payload.eventKey, 0,
                 false, false, roster, new LinkedHashSet<>(payload.fireteamIds));
         if (result != GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) return null;
         restoreUnengagedCaptain(captain, day);
-        ContractReputation.failed(state, patronId, -1, day);
+        ContractReputation.failedForContract(
+                state, payload.contractId, -1, day);
         return Result.DEFENSE_FAILED;
     }
 

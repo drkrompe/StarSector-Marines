@@ -189,3 +189,43 @@ Per-master primary requests:
 - `industrial-fence-corner-nw.png`: one compact L-shaped northwest corner with
   equal arms extending east and south from a reinforced post, matching mesh,
   posts, and hazard rail; aligned for deterministic mirroring into four corners.
+
+## Residential-compound additions
+
+The apartment/courtyard set used the built-in ImageGen tool in
+`stylized-concept` mode. Each prompt requested genuine alpha. Untouched outputs
+are preserved in `imagegen-raw/`, copied masters live in `imagegen-masters/`,
+and `derive_residential_frames.py` crops and rotates them into six runtime
+sources.
+
+Shared rendering contract:
+
+```text
+Use case: stylized-concept
+Asset type: top-down tactical game doodad master for a 32x32 atlas cell
+Scene/backdrop: genuinely transparent background, isolated object only
+Style/medium: polished hand-painted sci-fi strategy-game sprite, grounded
+industrial realism, matching Starsector-like top-down environment props
+Composition/framing: strict orthographic top-down view, centered, long axis
+horizontal, generous transparent padding, strong readable silhouette at tiny
+scale
+Lighting/mood: soft neutral overhead light with restrained highlights and
+ambient shadow contained to the object
+Constraints: actual alpha transparency; exactly one object; no room,
+courtyard, floor tile, people, text, logo, watermark, border, or UI frame; no
+perspective camera; no clipped edges
+```
+
+Per-master primary requests and material details:
+
+- `residential-bed.png`: a compact civilian single bed for a modest futuristic
+  apartment; narrow overhead bed, simple metal frame, muted teal blanket,
+  off-white pillow, tiny folded personal item at the foot; painted metal, worn
+  fabric, warm-gray and small rust accents.
+- `residential-sofa.png`: a compact two-seat civilian sofa for a modest
+  futuristic apartment; low overhead sofa, worn olive upholstery, squared
+  arms, subtle seam divisions, charcoal/warm-gray compact metal frame.
+- `residential-planter.png`: a waist-high rectangular concrete courtyard
+  planter usable as low cover; dark soil, dense hardy shrubs, chipped
+  weathered-gray concrete, muted green foliage, leaves contained inside the
+  transparent padding.

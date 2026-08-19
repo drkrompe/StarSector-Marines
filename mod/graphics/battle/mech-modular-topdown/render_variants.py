@@ -43,7 +43,7 @@ VARIANTS = (
     Variant(
         "HOUND",
         "FAST CLOSE-ASSAULT STRIDER",
-        "chassis-socketed-variant.png",
+        "chassis-hound.png",
         "chaingun-arm.png",
         "srm-pod.png",
         "srm-pod.png",
@@ -53,7 +53,7 @@ VARIANTS = (
     Variant(
         "SIROCCO",
         "MOBILE LONG-RANGE SUPPORT",
-        "chassis-socketed-variant.png",
+        "chassis-sirocco.png",
         "linear-cannon-variant.png",
         "srm-pod.png",
         "srm-pod.png",
@@ -111,9 +111,11 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
     centered(canvas, foot, origin, hull_width, 0.17, -0.28)
     rear_pivot(canvas, arms, origin, hull_width, -0.37, -0.15)
     rear_pivot(canvas, arms, origin, hull_width, 0.37, -0.15)
+    # Racks are external shoulder equipment beneath the body layer. Their
+    # inboard casing is buried; only the outboard rack changes the silhouette.
+    rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
+    rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
     centered(canvas, chassis, origin, hull_width, 0.0, 0.0)
-    rear_pivot(canvas, left_pod, origin, hull_width, -0.23, -0.38)
-    rear_pivot(canvas, right_pod, origin, hull_width, 0.23, -0.38)
     return canvas
 
 

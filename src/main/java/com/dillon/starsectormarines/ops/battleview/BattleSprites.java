@@ -504,6 +504,8 @@ public class BattleSprites {
         String root = "graphics/battle/mech-modular-topdown/";
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
+        LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
+        LayeredSpriteCache siroccoChassis = loadLayeredSprite(root + "chassis-sirocco.png");
         LayeredSpriteCache foot = loadLayeredSprite(root + "foot.png");
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
         LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
@@ -511,13 +513,14 @@ public class BattleSprites {
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
-        if (chassis == null || socketedChassis == null || foot == null || arm == null
+        if (chassis == null || socketedChassis == null || houndChassis == null
+                || siroccoChassis == null || foot == null || arm == null
                 || linearCannon == null || srm == null || lrm == null || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
             return;
         }
-        layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis, foot,
-                arm, linearCannon, srm, lrm, flash);
+        layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
+                houndChassis, siroccoChassis, foot, arm, linearCannon, srm, lrm, flash);
     }
 
     private void loadLayeredFamily(LayeredArmorFamily familyId, String family,

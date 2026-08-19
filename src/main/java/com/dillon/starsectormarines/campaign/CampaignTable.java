@@ -20,5 +20,6 @@ public enum CampaignTable {
     PLAYER_REP,
     MORAL_COMPASS,
     EVENTS,
-    CONTRACTS
+    CONTRACTS,
+    PATRON_MEMORY
 }

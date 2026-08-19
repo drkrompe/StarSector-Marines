@@ -122,7 +122,7 @@ public final class SwarmDefenseRoster {
         return entityIds[index];
     }
 
-    private static boolean[] reachableFromShelter(
+    static boolean[] reachableFromShelter(
             NavigationGrid grid, CivilianEvacuationPlacement placement) {
         boolean[] reachable = new boolean[
                 grid.getWidth() * grid.getHeight()];
@@ -165,7 +165,7 @@ public final class SwarmDefenseRoster {
         return occupied;
     }
 
-    private static boolean insideShelterZone(
+    static boolean insideShelterZone(
             int x, int y, CivilianEvacuationPlacement placement) {
         return shelterDistance(x, y, placement)
                 <= CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
@@ -177,7 +177,7 @@ public final class SwarmDefenseRoster {
                 + Math.abs(y - placement.shelterY);
     }
 
-    private static boolean insideLiftZone(
+    static boolean insideLiftZone(
             int x, int y, CivilianEvacuationPlacement placement) {
         return Math.abs(x - placement.liftX)
                 <= CivilianEvacuationPlacement.LIFT_ZONE_RADIUS

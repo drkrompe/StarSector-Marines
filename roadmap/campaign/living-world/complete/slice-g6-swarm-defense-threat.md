@@ -78,3 +78,12 @@ leeway to prevent oscillation. A substantially closer marine can peel a runner
 off a colonist, and the resulting aggro change replaces the old path
 immediately. Civilian discovery, ambient exclusion, strategic marine fallback,
 and implacable contact pressure remain intact.
+
+## Roving-reinforcement follow-up
+
+`ad11debf` adds mission-local perimeter waves to rescue battles. Below 70% of
+the opening runner population, a six-second cadence restores up to 25% without
+exceeding the opening cap. Reachable entry cells remain outside protected zones,
+at least 14 cells from active civilians and eight from marines; waves cease when
+the rescue cohort is resolved. See
+[`swarm-reinforcement-civilian-screen.md`](swarm-reinforcement-civilian-screen.md).
