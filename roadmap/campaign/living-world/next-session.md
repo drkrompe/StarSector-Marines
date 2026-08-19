@@ -179,8 +179,15 @@ receive distinct line-and-depth rally slots before relief and around the moving
 escort screen. Terrain repair preserves at least four cells between anchors,
 each squad closes to a local two-cell radius, and the two-cell/five-second
 engaged bound applies only while a live defender is within twelve cells of an
-engaged squad member (`f2159d82`). Pickup timing, militia cadence, mech mix,
-through-fire strength, and engaged bounds remain manual.
+engaged squad member (`f2159d82`). Each squad now assigns its members distinct
+walkable arrival cells around that squad rally; common four- and eight-person
+squads occupy the one-cell ring before center/two-cell fallbacks, and relative
+slots move immediately with the escort screen. A playtest dump also caught the
+pickup Sirocco abandoning the LZ for a 91-cell `OverwatchKillZone` path. Pickup
+mechs now keep their center/five-point patrol during contact, fire installed
+weapons from that route, and reject generic overwatch/backstop goals (`bdfd5bf8`).
+Pickup timing, militia cadence, mech mix, through-fire strength, and engaged
+bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -410,6 +417,8 @@ swarm tuning remain in the shared deferred queue.
   posts (`bf6fdd64`).
 - G5/G6 escort-dispersion correction — distinct mobile squad rally slots with
   local settle radii plus attacker-proximity-gated timed advance (`f2159d82`).
+- G5/G6 unit-dispersion/LZ-mech correction — distinct member arrival cells and
+  a contact-safe, firing-capable pickup-mech perimeter patrol (`bdfd5bf8`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

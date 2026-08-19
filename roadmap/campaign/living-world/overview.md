@@ -245,7 +245,12 @@ nearest marine and seeks the screened side of that escort near visible threats
 (`ad11debf`). The escort rally now stays five reachable route cells ahead of the
 cohort so continuous contact cannot deadlock the two-cell civilian leash against
 the former six-cell marine hold; civilian facing also turns at a finite rate and
-persists through idle substeps (`bc29cb26`). Manual reinforcement cadence, swipe
+persists through idle substeps (`bc29cb26`). Subsequent playtest corrections give
+mobile squads separated line-and-depth anchors, gate their slower contact advance
+on a live alien within twelve cells, and bind squadmates to distinct local arrival
+cells (`f2159d82`, `bdfd5bf8`). The pickup mech's center/five-point patrol now
+remains mission-authoritative during contact and fires without taking unrestricted
+field-mech movement goals (`bdfd5bf8`). Manual reinforcement cadence, swipe
 readability, and post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free
