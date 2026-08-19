@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link BallisticResolver#resolve} against the "Resolution
- * algorithm" section of {@code roadmap/ballistics/stories/s1-resolver-core.md}.
+ * algorithm" section of {@code roadmap/ballistics/complete/s1-resolver-core.md}.
  * Every scenario drives a {@link QueueRandom} stub so the exact roll each
  * event consumes is pinned — the geometry is chosen so a wrong walk order or
  * a mis-wired cover source changes the observable outcome, not just the
@@ -234,14 +234,14 @@ class BallisticResolverTest {
         assertTrue(caught.endZ() < 0.65f);
     }
 
-    // ---- muzzle-clearance: skips the adjacent friendly, not an adjacent enemy ----
+    // ---- proximity catch: protects nearby friendlies, never nearby enemies ----
 
     @Test
     void muzzleClearanceSkipsAnAdjacentFriendlyAndTheRoundReachesTheRealTarget() {
         BattleSimulation sim = openArena();
         DoodadService doodads = new DoodadService(sim.getGrid());
         long shooter = spawn(sim, Faction.MARINE, 2);
-        spawn(sim, Faction.MARINE, 3); // adjacent squadmate, well inside FRIENDLY_MUZZLE_CLEARANCE
+        spawn(sim, Faction.MARINE, 3); // adjacent squadmate, inside the zero-catch distance
         long farTarget = spawn(sim, Faction.DEFENDER, 12);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
@@ -270,6 +270,63 @@ class BallisticResolverTest {
         assertEquals(closeEnemy, res.victimId(), "an enemy at the same range as the exempted friendly must still be considered");
         assertFalse(res.hitIntended(), "closeEnemy is not the locked target");
         assertFalse(res.friendlyHit());
+    }
+
+    @Test
+    void transitionDistanceAttenuatesFriendlyButNotEnemyIncidentalContacts() {
+        BattleSimulation friendlySim = openArena();
+        DoodadService friendlyDoodads = new DoodadService(friendlySim.getGrid());
+        long friendlyShooter = spawn(friendlySim, Faction.MARINE, 2);
+        spawn(friendlySim, Faction.MARINE, 5);
+        long friendlyTarget = spawn(friendlySim, Faction.DEFENDER, 12);
+        BallisticResolver friendlyResolver = new BallisticResolver(
+                friendlySim.getGrid(), friendlyDoodads,
+                friendlySim.getUnitIndex(), friendlySim.getRoster());
+
+        BallisticResolver.Resolution friendlyResult = friendlyResolver.resolve(
+                friendlyShooter, friendlyTarget, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+
+        assertEquals(friendlyTarget, friendlyResult.victimId(),
+                "the 2.7-cell friendly contact scales below a 0.02 roll");
+        assertTrue(friendlyResult.hitIntended());
+
+        BattleSimulation enemySim = openArena();
+        DoodadService enemyDoodads = new DoodadService(enemySim.getGrid());
+        long enemyShooter = spawn(enemySim, Faction.MARINE, 2);
+        long closeEnemy = spawn(enemySim, Faction.DEFENDER, 5);
+        long enemyTarget = spawn(enemySim, Faction.DEFENDER, 12);
+        BallisticResolver enemyResolver = new BallisticResolver(
+                enemySim.getGrid(), enemyDoodads,
+                enemySim.getUnitIndex(), enemySim.getRoster());
+
+        BallisticResolver.Resolution enemyResult = enemyResolver.resolve(
+                enemyShooter, enemyTarget, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+
+        assertEquals(closeEnemy, enemyResult.victimId(),
+                "the same nearby enemy retains the full incidental chance");
+        assertFalse(enemyResult.hitIntended());
+        assertFalse(enemyResult.friendlyHit());
+    }
+
+    @Test
+    void distantFriendlyRetainsTheFullIncidentalChance() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long distantFriendly = spawn(sim, Faction.MARINE, 11);
+        long target = spawn(sim, Faction.DEFENDER, 15);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.34f));
+
+        assertEquals(distantFriendly, result.victimId());
+        assertTrue(result.friendlyHit());
+        assertFalse(result.hitIntended());
     }
 
     // ---- a unit entirely behind the shooter (both ray-circle roots negative) never contacts ----
@@ -393,12 +450,12 @@ class BallisticResolverTest {
     }
 
     @Test
-    void oneLevelTwoCrateOnTheRayConsumesExactlyOneCrossingRollAtTheTuningAnchor() {
+    void oneFullDistanceLevelTwoCrateConsumesExactlyOneRollAtTheTuningAnchor() {
         BattleSimulation sim = openArena();
         DoodadService doodads = new DoodadService(sim.getGrid());
-        doodads.addDoodad(new Doodad(5, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
+        doodads.addDoodad(new Doodad(10, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
         long shooter = spawn(sim, Faction.MARINE, 2);
-        long target = spawn(sim, Faction.DEFENDER, 10);
+        long target = spawn(sim, Faction.DEFENDER, 14);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         // On-target commit + centered axes, single crossing roll pinned just below
@@ -408,7 +465,7 @@ class BallisticResolverTest {
         QueueRandom blockRng = new QueueRandom(0f, 0.5f, 0.5f, 0.2999f);
         BallisticResolver.Resolution blocked = resolver.resolve(shooter, target, 1f, 0f, VEL, blockRng);
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
-        assertEquals(cellCenter(5), blocked.endX(), EPS);
+        assertEquals(cellCenter(10), blocked.endX(), EPS);
 
         // A roll landing exactly at the anchor must NOT block — pins 0.30 as
         // the exact boundary. Round then reaches the target normally.
@@ -481,8 +538,102 @@ class BallisticResolverTest {
         assertArrayEquals(new float[]{0f, 0.15f, 0.30f, 0.45f}, BallisticResolver.BLOCK_CHANCE_BY_LEVEL, EPS);
     }
 
+    @Test
+    void proximityCatchScaleUsesTheContractedSmoothstepCurve() {
+        assertEquals(0f, BallisticResolver.proximityCatchScale(-1f), EPS);
+        assertEquals(0f, BallisticResolver.proximityCatchScale(2f), EPS);
+        assertEquals(0.074074f, BallisticResolver.proximityCatchScale(3f), EPS);
+        assertEquals(0.5f, BallisticResolver.proximityCatchScale(5f), EPS);
+        assertEquals(0.925926f, BallisticResolver.proximityCatchScale(7f), EPS);
+        assertEquals(1f, BallisticResolver.proximityCatchScale(8f), EPS);
+        assertEquals(1f, BallisticResolver.proximityCatchScale(20f), EPS);
+    }
+
+    @Test
+    void nearbyDoodadHasZeroCatchWhileTheSameCoverLevelIsFullDownrange() {
+        BattleSimulation nearSim = openArena();
+        DoodadService nearDoodads = new DoodadService(nearSim.getGrid());
+        nearDoodads.addDoodad(new Doodad(
+                3, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
+        long nearShooter = spawn(nearSim, Faction.MARINE, 2);
+        long nearTarget = spawn(nearSim, Faction.DEFENDER, 10);
+        BallisticResolver nearResolver = new BallisticResolver(
+                nearSim.getGrid(), nearDoodads,
+                nearSim.getUnitIndex(), nearSim.getRoster());
+
+        BallisticResolver.Resolution nearResult = nearResolver.resolve(
+                nearShooter, nearTarget, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(nearTarget, nearResult.victimId(),
+                "zero-scaled muzzle cover consumes no block roll");
+
+        BattleSimulation farSim = openArena();
+        DoodadService farDoodads = new DoodadService(farSim.getGrid());
+        farDoodads.addDoodad(new Doodad(
+                10, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
+        long farShooter = spawn(farSim, Faction.MARINE, 2);
+        long farTarget = spawn(farSim, Faction.DEFENDER, 14);
+        BallisticResolver farResolver = new BallisticResolver(
+                farSim.getGrid(), farDoodads,
+                farSim.getUnitIndex(), farSim.getRoster());
+
+        BallisticResolver.Resolution farResult = farResolver.resolve(
+                farShooter, farTarget, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.29f));
+
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, farResult.kind(),
+                "at eight cells the medium doodad retains its full 30% chance");
+    }
+
+    @Test
+    void transitionDoodadUsesItsDistanceScaledBlockChance() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        doodads.addDoodad(new Doodad(
+                5, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution blocked = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+        BallisticResolver.Resolution cleared = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.03f));
+
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
+        assertEquals(target, cleared.victimId(),
+                "at three cells medium cover scales from 30% to about 2.22%");
+    }
+
+    @Test
+    void transitionDirectionalCoverUsesTheSameDistanceScale() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 5);
+        grid.setCoverAtFacing(5, ROW, NavigationGrid.FACING_W, 3, 1f);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution blocked = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.01f));
+        BallisticResolver.Resolution cleared = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+
+        assertEquals(BallisticResolver.StopKind.COVER_CLIP, blocked.kind());
+        assertEquals(target, cleared.victimId(),
+                "the 2.7-cell contact scales level-three cover below a 0.02 roll");
+    }
+
     // ---- S2: time-domain contact solve + shooter lead ----
-    // roadmap/ballistics/stories/s2-moving-targets.md, "Tests" section.
+    // roadmap/ballistics/complete/s2-moving-targets.md, "Tests" section.
 
     // ---- stationary regression: w = 0 collapses to S1's math exactly ----
 
@@ -693,7 +844,7 @@ class BallisticResolverTest {
         assertTrue(sim.getRoster().isAliveById(behindEnemy), "sanity: behindEnemy exists and is alive, just never contacted");
     }
 
-    // ---- muzzle clearance and wall cap stay DISTANCE tests, evaluated at contact time, even for a moving contact ----
+    // ---- proximity scale and wall cap stay DISTANCE tests, evaluated at contact time, even for a moving contact ----
 
     @Test
     void friendlyMuzzleClearanceUsesContactTimeDistanceEvenWhileMoving() {
@@ -702,7 +853,7 @@ class BallisticResolverTest {
         long shooter = spawn(sim, Faction.MARINE, 2); // (2.5, 5.5)
         long farTarget = spawn(sim, Faction.DEFENDER, 10);
         // Friendly at fire-tick distance 3.0 cells (outside the 2.0-cell
-        // FRIENDLY_MUZZLE_CLEARANCE), but closing on the shooter at 5 c/s:
+        // PROXIMITY_CATCH_ZERO_DISTANCE), but closing on the shooter at 5 c/s:
         // by contact time it has closed to 1.8 cells (v*sEntry), inside the
         // clearance. A naive fire-tick-distance check would have let this
         // contact through; the correct v*sEntry check must skip it.

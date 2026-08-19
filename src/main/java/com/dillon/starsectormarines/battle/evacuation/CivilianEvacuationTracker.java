@@ -24,8 +24,8 @@ public final class CivilianEvacuationTracker {
     private static final byte EVACUATED = 1;
     private static final byte LOST = 2;
 
-    private final long[] entityIds;
-    private final byte[] states;
+    private long[] entityIds;
+    private byte[] states;
     private int registered;
     private int active;
     private int evacuated;
@@ -44,6 +44,19 @@ public final class CivilianEvacuationTracker {
         entityIds = new long[expectedCount];
         states = new byte[expectedCount];
         Arrays.fill(entityIds, -1L);
+    }
+
+    /**
+     * Re-sizes an untouched tracker for a mission-authored representative
+     * cohort. Once registration starts, its identity boundary is immutable.
+     */
+    public boolean prepareExpectedCount(int expectedCount) {
+        if (expectedCount <= 0 || registered != 0 || sealed) return false;
+        if (entityIds.length == expectedCount) return true;
+        entityIds = new long[expectedCount];
+        states = new byte[expectedCount];
+        Arrays.fill(entityIds, -1L);
+        return true;
     }
 
     /**

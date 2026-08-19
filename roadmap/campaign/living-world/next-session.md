@@ -201,10 +201,23 @@ valid row exists, reconstructs pending/committed/terminal state after load, and
 routes funding/refusal without revealing survivors, archive, threat, reward, or
 moral meaning. Focused compatibility/replay tests and the full root suite pass.
 
-Next is Slice 3: define event mission identity and build a dedicated expedition
-factory with an explicit survivor cohort, physical archive objective, and
-deterministic automated-threat reveal. Do not treat generic victory as an event
-outcome or grant archive cargo directly from the intel surface.
+Slice 3 is shipped in `9a87c85b`. A committed row now emits one stable local
+zero-economy expedition mission with frozen event/site/threat lineage. Its
+dedicated factory installs the exact 6–12-member survivor cohort, a separate
+timed archive-room objective, and a hidden-seed-selected autonomous defense
+profile made only from turrets and drone hubs. The seed freezes threat profile,
+map, and placement independently of the ordinary battle seed. Results reports
+survivor and archive facts separately, and an unfinished battle cannot invent
+archive loss. Existing civilian rescue remains on its biological-swarm path.
+
+Next is Slice 4: add a strict Silent Colony outcome resolver and dispatch it
+separately from `CivilianRescueMissionResolution`; atomically close the matching
+committed row exactly once from the explicit survivor/archive report; retain a
+terminal Dead Letter; emit the Chronicle report; and add production-shaped
+debug/replay/save-load reachability. Until that bridge lands, the mission report
+is intentionally battle-local and the campaign event remains committed. Do not
+grant archive cargo or infer moral intent from victory, casualties, or archive
+loss.
 
 ## Open forks still unresolved (design)
 
@@ -327,3 +340,5 @@ outcome or grant archive cargo directly from the intel surface.
   (`4d50805d`).
 - G9 Slice 2 — deterministic dead-site producer and reconstructible Dead Letter
   (`33b073bd`).
+- G9 Slice 3 — dedicated expedition mission, autonomous threat, survivor cohort,
+  physical archive, and dual debrief report (`9a87c85b`).
