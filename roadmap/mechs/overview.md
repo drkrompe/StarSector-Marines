@@ -29,10 +29,11 @@ and a chaingun, SRM pod, and LRM artillery pod. Its weapon tracks operate
 independently, so it threatens every range band. `LR_SUPPORT` and
 `ARMORED_SUPPORT` change how it uses that equipment, not what it carries.
 
-The renderer is already more modular than the roster. It can compose clean or
-socketed chassis, chaingun or twin-linear-cannon arms, and empty, SRM, LRM, or
-heavy-SRM shoulder slots. This is enough to make the first family visually
-distinct without commissioning new raster art.
+The renderer composes distinct Bulwark, Hound, and Sirocco chassis, chaingun or
+twin-linear-cannon arms, and empty, SRM, LRM, or heavy-SRM shoulder slots. The
+first shared-hull comparison proved too samey, so Hound and Sirocco now have
+dedicated raster silhouettes. External racks render beneath the body layer and
+extend its flanks rather than covering the torso.
 
 ## Proposed family
 
@@ -83,7 +84,7 @@ and a corresponding GOAP role.
 ## Boundaries
 
 This track does not yet include procedural hardpoint construction, player mech
-ownership, salvage/refit UI, multi-cell occupancy, or new raster assets. It
-also does not replace the AI role work documented in
+ownership, salvage/refit UI, or multi-cell occupancy. It also does not replace
+the AI role work documented in
 [`../ai/overview.md`](../ai/overview.md); it supplies distinct hardware for
 that planner to command.

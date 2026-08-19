@@ -20,6 +20,8 @@ public final class LayeredMechAppearance {
     public static final int ARMS_LINEAR_CANNON = 1;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
+    public static final int CHASSIS_HOUND = 2;
+    public static final int CHASSIS_SIROCCO = 3;
     public static final int POD_NONE = 0;
     public static final int POD_SMALL_SRM = 1;
     public static final int POD_SMALL_LRM = 2;

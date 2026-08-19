@@ -141,11 +141,17 @@ creates its loadout after spawn. Initial layered selectors come from the
 profile, and loadout attachment reauthors arms/shoulders from the actual
 installed components so custom authored configurations render correctly.
 
-Use existing assets for S1:
+The first comparison used existing assets, but the shared socketed hull failed
+the immediate-recognition criterion. The revised visual contract is:
 
 - Bulwark: current clean chassis and full heavy pods;
-- Hound: socketed chassis, chaingun arms, compact SRM treatment, no LRM pod;
-- Sirocco: socketed chassis, linear-cannon arms, LRM treatment, no SRM pod.
+- Hound: dedicated compact wedge chassis, chaingun arms, compact SRM treatment,
+  no LRM pod;
+- Sirocco: dedicated narrow long-spine chassis, linear-cannon arms, compact LRM
+  treatment, no SRM pod.
+
+Shoulder racks are external silhouette layers drawn beneath the chassis. Their
+inboard casing is occluded by the body rather than pasted over the torso art.
 
 Exact left/right pod symmetry can be chosen during the comparison-fixture pass.
 The criterion is immediate visual recognition, not adherence to a fixed socket
@@ -222,7 +228,7 @@ The player Mech Support payload remains Bulwark-only in S1.
 - An `ASSAULT` doctrine tuned specifically for Hound.
 - Player variant selection, ownership, salvage, refit, and hardpoint UI.
 - Procedural/custom hardpoint combinations.
-- New raster assets, animation sets, or multi-cell bodies.
+- Additional animation sets or multi-cell bodies.
 - Final balance values outside representative playtest encounters.
 
 ## Decisions to confirm
