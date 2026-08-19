@@ -149,8 +149,10 @@ universe over time, not retrofitted into intel slots.
    and exposed evacuees, allowing soldiers to peel pressure from the objective
    (`4fedb34a`). Depleted rescue swarms now receive bounded perimeter waves,
    while civilians independently leash to and shelter behind their nearest
-   marine (`ad11debf`); manual cadence and post-rebalance feel validation remain
-   queued. See
+   marine (`ad11debf`). The marine screen now rallies ahead of the cohort under
+   fire, and civilian facing turns smoothly instead of snapping on path changes
+   (`bc29cb26`); manual cadence and post-rebalance feel validation remain queued.
+   See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory and S2
    relationship-pattern callbacks are shipped (`1b950e48`, `cbfebaef`): real
