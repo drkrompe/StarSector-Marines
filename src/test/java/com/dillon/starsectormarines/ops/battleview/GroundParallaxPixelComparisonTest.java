@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Pure-CPU pixel oracle for {@link GroundParallaxPipeline}'s GLSL 1.20
  * composite. It creates a representative 16:9 battle-ground FBO from the real
- * terrain assets, composes the matching macro + derived micro-height target,
+ * terrain assets, builds the matching macro/micro/water/shore metadata target,
  * and evaluates the shader equations with bilinear texture sampling.
  *
  * <p>The diagnostic contact sheet is written to
@@ -45,17 +45,26 @@ class GroundParallaxPixelComparisonTest {
     private static final int GRID_W = VIEW_W / CELL_PX;
     private static final int GRID_H = VIEW_H / CELL_PX;
     private static final int BACKDROP_RGB = 0x182230;
+    private static final float WAVE_TIME = 1.75f;
     private static final Path OUT_DIR = Paths.get("build", "surface-relief");
 
     @Test
     void rendersHeadlessShaderComparisonFromRealTerrainAssets() throws Exception {
         Scene scene = buildScene();
-        Warp baseline = warp(scene, 0f);
-        Warp atDefault = warp(scene, GroundParallaxPipeline.DEFAULT_STRENGTH);
-        Warp atMax = warp(scene, GroundParallaxPipeline.MAX_STRENGTH);
+        Warp baseline = warp(scene, 0f, 0f, 0f, WAVE_TIME);
+        Warp atDefault = warp(scene, GroundParallaxPipeline.DEFAULT_STRENGTH,
+                GroundParallaxPipeline.DEFAULT_SURFACE_STRENGTH,
+                GroundParallaxPipeline.DEFAULT_WATER_WAVE_AMPLITUDE, WAVE_TIME);
+        Warp atNextWave = warp(scene, GroundParallaxPipeline.DEFAULT_STRENGTH,
+                GroundParallaxPipeline.DEFAULT_SURFACE_STRENGTH,
+                GroundParallaxPipeline.DEFAULT_WATER_WAVE_AMPLITUDE, WAVE_TIME + 0.5f);
+        Warp atMax = warp(scene, GroundParallaxPipeline.MAX_STRENGTH,
+                GroundParallaxPipeline.MAX_SURFACE_STRENGTH,
+                GroundParallaxPipeline.MAX_WATER_WAVE_AMPLITUDE, WAVE_TIME);
 
         Metrics zeroMetrics = compare(scene.color, baseline.image);
         Metrics defaultMetrics = compare(scene.color, atDefault.image);
+        Metrics animationMetrics = compare(atDefault.image, atNextWave.image);
         Metrics maxMetrics = compare(scene.color, atMax.image);
 
         assertEquals(0, zeroMetrics.changedPixels,
@@ -68,11 +77,15 @@ class GroundParallaxPixelComparisonTest {
                 "maximum dial strength should be materially stronger than default");
         assertTrue(atMax.maxDisplacementPx > atDefault.maxDisplacementPx * 3.0,
                 "screen-pixel displacement should scale with the strength uniform");
+        assertTrue(animationMetrics.changedPixels > VIEW_W * VIEW_H / 100,
+                "advancing wave time should visibly animate the water surface");
+        assertEquals(0, atDefault.waterLandCrossings,
+                "water displacement must backtrack before sampling a land texel");
 
         Files.createDirectories(OUT_DIR);
         BufferedImage defaultDiff = difference(scene.color, atDefault.image, 16);
         BufferedImage maxDiff = difference(scene.color, atMax.image, 8);
-        BufferedImage heightImage = heightImage(scene.height);
+        BufferedImage heightImage = metadataImage(scene);
         BufferedImage contact = contactSheet(scene.color, atDefault.image, atMax.image,
                 defaultDiff, maxDiff, heightImage, defaultMetrics, maxMetrics,
                 atDefault.maxDisplacementPx, atMax.maxDisplacementPx);
@@ -95,18 +108,27 @@ class GroundParallaxPixelComparisonTest {
     }
 
     /** Mirrors the fragment shader from normalized UV through its final bilinear color lookup. */
-    private static Warp warp(Scene scene, float strength) {
+    private static Warp warp(Scene scene, float structureStrength, float surfaceStrength,
+                             float waterWaveAmplitude, float waveTime) {
         BufferedImage output = new BufferedImage(VIEW_W, VIEW_H, BufferedImage.TYPE_INT_ARGB);
         float aspect = VIEW_W / (float) VIEW_H;
         double maxDisplacementSq = 0.0;
+        int waterLandCrossings = 0;
 
         for (int y = 0; y < VIEW_H; y++) {
             float v = 1f - (y + 0.5f) / VIEW_H;
             for (int x = 0; x < VIEW_W; x++) {
                 float u = (x + 0.5f) / VIEW_W;
-                float h = scene.height[y * VIEW_W + x];
-                float hsb = h * GroundParallaxPipeline.HEIGHT_SCALE
-                        + GroundParallaxPipeline.HEIGHT_BIAS;
+                int index = y * VIEW_W + x;
+                float macro = scene.macro[index];
+                float micro = scene.micro[index];
+                float water = scene.water[index];
+                float shore = scene.shore[index];
+                float macroMaterial = lerp(1f, GroundParallaxPipeline.WATER_MACRO_SCALE, water);
+                float microMaterial = lerp(1f, GroundParallaxPipeline.WATER_MICRO_SCALE, water);
+                float relief = (macro - GroundParallaxPipeline.MACRO_CENTER)
+                        * structureStrength * macroMaterial
+                        + GroundHeightPass.microRelief(micro) * surfaceStrength * microMaterial;
 
                 float dx = (0.5f - u) * aspect;
                 float dy = 0.5f - v;
@@ -114,10 +136,36 @@ class GroundParallaxPixelComparisonTest {
                         + GroundParallaxPipeline.EYE_HEIGHT * GroundParallaxPipeline.EYE_HEIGHT);
                 float eyeX = dx * invLength;
                 float eyeY = dy * invLength;
-                float offU = hsb * eyeX * strength / aspect;
-                float offV = hsb * eyeY * strength;
-                float sampleU = clamp01(u + offU);
-                float sampleV = clamp01(v + offV);
+                float baseU = relief * eyeX / aspect;
+                float baseV = relief * eyeY;
+                float worldX = GRID_W * 0.5f + (u - 0.5f) * GRID_W;
+                float worldY = GRID_H * 0.5f + (v - 0.5f) * GRID_H;
+                float waveX = (float) Math.sin(worldX * 2.15f + worldY * 0.65f
+                        + waveTime * 1.35f);
+                float waveY = (float) Math.cos(worldX * -0.45f + worldY * 2.40f
+                        - waveTime * 1.10f);
+                float shoreWaveScale = lerp(GroundParallaxPipeline.WATER_INTERIOR_WAVE_SCALE,
+                        1f, shore);
+                float totalU = baseU + waveX * (CELL_PX / (float) VIEW_W)
+                        * waterWaveAmplitude * shoreWaveScale * water;
+                float totalV = baseV + waveY * (CELL_PX / (float) VIEW_H)
+                        * waterWaveAmplitude * shoreWaveScale * water;
+                float sampleU = clamp01(u + totalU);
+                float sampleV = clamp01(v + totalV);
+                if (water > 0.5f && sampleBilinearUv(scene.water, sampleU, sampleV) < 0.5f) {
+                    float halfU = clamp01(u + totalU * 0.5f);
+                    float halfV = clamp01(v + totalV * 0.5f);
+                    if (sampleBilinearUv(scene.water, halfU, halfV) >= 0.5f) {
+                        sampleU = halfU;
+                        sampleV = halfV;
+                    } else {
+                        sampleU = u;
+                        sampleV = v;
+                    }
+                }
+                if (water > 0.5f && sampleBilinearUv(scene.water, sampleU, sampleV) < 0.5f) {
+                    waterLandCrossings++;
+                }
 
                 // Measure the post-clamp displacement the color lookup really
                 // receives; raw offU/offV can overstate motion at FBO edges.
@@ -125,10 +173,16 @@ class GroundParallaxPixelComparisonTest {
                 double pixelDy = (sampleV - v) * VIEW_H;
                 maxDisplacementSq = Math.max(maxDisplacementSq,
                         pixelDx * pixelDx + pixelDy * pixelDy);
-                output.setRGB(x, y, sampleBilinearUv(scene.color, sampleU, sampleV));
+                int color = sampleBilinearUv(scene.color, sampleU, sampleV);
+                float crest = (float) Math.sin(worldX * 1.70f + worldY * 0.80f
+                        - waveTime * 2.20f) * 0.5f + 0.5f;
+                float foam = water * shore * smoothstep(0.72f, 1f, crest)
+                        * GroundParallaxPipeline.WATER_FOAM_AMOUNT
+                        * (waterWaveAmplitude >= 0.0001f ? 1f : 0f);
+                output.setRGB(x, y, mixRgb(color, 0xFFC2E6FF, foam));
             }
         }
-        return new Warp(output, Math.sqrt(maxDisplacementSq));
+        return new Warp(output, Math.sqrt(maxDisplacementSq), waterLandCrossings);
     }
 
     private static Scene buildScene() throws IOException {
@@ -143,31 +197,36 @@ class GroundParallaxPixelComparisonTest {
         clear.setColor(new Color(BACKDROP_RGB));
         clear.fillRect(0, 0, VIEW_W, VIEW_H);
         clear.dispose();
-        float[] height = new float[VIEW_W * VIEW_H];
+        float[] macro = filledChannel(0.5f);
+        float[] micro = filledChannel(0.5f);
+        float[] water = new float[VIEW_W * VIEW_H];
+        float[] shore = new float[VIEW_W * VIEW_H];
         Map<String, BufferedImage> sheets = new HashMap<>();
 
         for (int gy = 0; gy < GRID_H; gy++) {
             for (int gx = 0; gx < GRID_W; gx++) {
                 if (isBuildingWall(gx, gy)) {
-                    stampWall(color, height, sheets, mapping, gx, gy);
+                    stampWall(color, macro, micro, water, shore, sheets, mapping, gx, gy);
                 } else if (isBuildingInterior(gx, gy)) {
-                    stampBlock(color, height, sheets, registry.block("urban.floor"),
-                            mapping.macroHeight(CellTopology.GroundKind.INDOOR), gx, gy, false);
-                } else if (isWater(gx, gy)) {
-                    stampBlock(color, height, sheets, registry.block("water.water"),
-                            mapping.macroHeight(CellTopology.GroundKind.WATER), gx, gy, true);
+                    stampBlock(color, macro, micro, water, shore, sheets, registry.block("urban.floor"),
+                            mapping.macroHeight(CellTopology.GroundKind.INDOOR), gx, gy, false, false);
+                } else if (isSceneWater(gx, gy)) {
+                    stampBlock(color, macro, micro, water, shore, sheets, registry.block("water.water"),
+                            mapping.macroHeight(CellTopology.GroundKind.WATER), gx, gy, true, true);
                 } else {
                     String blockId;
                     if (gy < GRID_H / 2) blockId = gx < GRID_W / 2 ? "floors.grass" : "floors.dirt";
                     else blockId = gx < GRID_W / 2 ? "floors.sand" : "floors.stone";
-                    stampBlock(color, height, sheets, registry.block(blockId), 0.5f, gx, gy, true);
+                    stampBlock(color, macro, micro, water, shore, sheets, registry.block(blockId),
+                            0.5f, gx, gy, true, false);
                 }
             }
         }
-        return new Scene(color, height);
+        return new Scene(color, macro, micro, water, shore);
     }
 
-    private static void stampWall(BufferedImage color, float[] height,
+    private static void stampWall(BufferedImage color, float[] macro, float[] micro,
+                                  float[] water, float[] shore,
                                   Map<String, BufferedImage> sheets,
                                   GenMappingRegistry mapping, int gx, int gy) throws IOException {
         boolean north = isBuildingWall(gx, gy - 1);
@@ -181,15 +240,21 @@ class GroundParallaxPixelComparisonTest {
                     frame.row * TileManifest.TILE_SIZE,
                     TileManifest.TILE_SIZE, TileManifest.TILE_SIZE, gx, gy);
         }
-        fillHeight(height, mapping.wallMacroHeight(), gx, gy);
+        fillChannels(macro, micro, water, shore,
+                mapping.wallMacroHeight(), 0.5f, 0f, 0f, gx, gy);
     }
 
-    private static void stampBlock(BufferedImage color, float[] height,
+    private static void stampBlock(BufferedImage color, float[] macro, float[] micro,
+                                   float[] water, float[] shore,
                                    Map<String, BufferedImage> sheets, GridBlockDef block,
-                                   float macro, int gx, int gy, boolean derived) throws IOException {
+                                   float macroHeight, int gx, int gy,
+                                   boolean derived, boolean waterSurface) throws IOException {
+        float waterValue = waterSurface ? 1f : 0f;
+        float shoreValue = waterSurface ? sceneShoreFactor(gx, gy) : 0f;
         int[] frame = block.resolve(false, false, false, false, gx, gy);
         if (frame == null) {
-            fillHeight(height, macro, gx, gy);
+            fillChannels(macro, micro, water, shore,
+                    macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
             return;
         }
         int inset = block.cellPx >= TileManifest.TILE_SIZE
@@ -201,12 +266,15 @@ class GroundParallaxPixelComparisonTest {
         int srcH = block.cellPx - inset * 2;
         stampColor(color, sheet(sheets, block.sheetPath), srcX, srcY, srcW, srcH, gx, gy);
         if (!derived) {
-            fillHeight(height, macro, gx, gy);
+            fillChannels(macro, micro, water, shore,
+                    macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
             return;
         }
         BufferedImage heightSheet = sheet(sheets,
                 GroundMicroHeightSampler.derivedHeightPath(block.sheetPath));
-        stampDerivedHeight(height, heightSheet, srcX, srcY, srcW, srcH, macro, gx, gy);
+        fillChannels(macro, micro, water, shore,
+                macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
+        stampDerivedHeight(micro, heightSheet, srcX, srcY, srcW, srcH, gx, gy);
     }
 
     private static void stampColor(BufferedImage target, BufferedImage source,
@@ -227,7 +295,7 @@ class GroundParallaxPixelComparisonTest {
 
     private static void stampDerivedHeight(float[] target, BufferedImage source,
                                            int srcX, int srcY, int srcW, int srcH,
-                                           float macro, int gx, int gy) {
+                                           int gx, int gy) {
         int dstX = gx * CELL_PX;
         int dstY = gy * CELL_PX;
         for (int py = 0; py < CELL_PX; py++) {
@@ -235,18 +303,32 @@ class GroundParallaxPixelComparisonTest {
             for (int px = 0; px < CELL_PX; px++) {
                 double sx = srcX + (px + 0.5) * srcW / CELL_PX - 0.5;
                 float micro = ((sampleBilinear(source, sx, sy) >>> 16) & 0xFF) / 255f;
-                target[(dstY + py) * VIEW_W + dstX + px] = GroundHeightPass.compose(macro, micro);
+                target[(dstY + py) * VIEW_W + dstX + px] = micro;
             }
         }
     }
 
-    private static void fillHeight(float[] target, float value, int gx, int gy) {
+    private static void fillChannels(float[] macro, float[] micro, float[] water, float[] shore,
+                                     float macroValue, float microValue,
+                                     float waterValue, float shoreValue, int gx, int gy) {
         int dstX = gx * CELL_PX;
         int dstY = gy * CELL_PX;
         for (int py = 0; py < CELL_PX; py++) {
             int row = (dstY + py) * VIEW_W + dstX;
-            for (int px = 0; px < CELL_PX; px++) target[row + px] = value;
+            for (int px = 0; px < CELL_PX; px++) {
+                int index = row + px;
+                macro[index] = macroValue;
+                micro[index] = microValue;
+                water[index] = waterValue;
+                shore[index] = shoreValue;
+            }
         }
+    }
+
+    private static float[] filledChannel(float value) {
+        float[] channel = new float[VIEW_W * VIEW_H];
+        java.util.Arrays.fill(channel, value);
+        return channel;
     }
 
     private static boolean isBuildingWall(int x, int y) {
@@ -262,6 +344,24 @@ class GroundParallaxPixelComparisonTest {
         double dx = (x - 5.5) / 5.0;
         double dy = (y - 8.5) / 6.0;
         return dx * dx + dy * dy < 1.0;
+    }
+
+    private static boolean isSceneWater(int x, int y) {
+        return x >= 0 && x < GRID_W && y >= 0 && y < GRID_H
+                && !isBuildingWall(x, y) && !isBuildingInterior(x, y) && isWater(x, y);
+    }
+
+    private static float sceneShoreFactor(int x, int y) {
+        int radius = GroundHeightPass.SHORE_RADIUS_CELLS;
+        int nearest = radius + 1;
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                int distance = Math.abs(dx) + Math.abs(dy);
+                if (distance == 0 || distance > radius) continue;
+                if (!isSceneWater(x + dx, y + dy)) nearest = Math.min(nearest, distance);
+            }
+        }
+        return nearest <= radius ? (radius - nearest + 1f) / radius : 0f;
     }
 
     private static BufferedImage sheet(Map<String, BufferedImage> sheets, String path) throws IOException {
@@ -309,12 +409,15 @@ class GroundParallaxPixelComparisonTest {
         return diff;
     }
 
-    private static BufferedImage heightImage(float[] height) {
+    private static BufferedImage metadataImage(Scene scene) {
         BufferedImage image = new BufferedImage(VIEW_W, VIEW_H, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < VIEW_H; y++) {
             for (int x = 0; x < VIEW_W; x++) {
-                int gray = Math.round(clamp01(height[y * VIEW_W + x]) * 255f);
-                image.setRGB(x, y, 0xFF000000 | gray << 16 | gray << 8 | gray);
+                int index = y * VIEW_W + x;
+                int r = Math.round(clamp01(scene.macro[index]) * 255f);
+                int g = Math.round(clamp01(scene.micro[index]) * 255f);
+                int b = Math.round(clamp01(Math.max(scene.water[index], scene.shore[index])) * 255f);
+                image.setRGB(x, y, 0xFF000000 | r << 16 | g << 8 | b);
             }
         }
         return image;
@@ -351,7 +454,8 @@ class GroundParallaxPixelComparisonTest {
         drawPanel(g, maxDiff, 1, 1, panelW, panelH, labelH,
                 String.format(Locale.ROOT, "max abs diff x8 | %.2f%% changed",
                         maxMetrics.changedPercent()));
-        drawPanel(g, height, 2, 1, panelW, panelH, labelH, "composed macro + micro height");
+        drawPanel(g, height, 2, 1, panelW, panelH, labelH,
+                "metadata: R macro / G micro / B water+shore");
         g.dispose();
         return contact;
     }
@@ -368,6 +472,22 @@ class GroundParallaxPixelComparisonTest {
     private static int sampleBilinearUv(BufferedImage image, float u, float v) {
         return sampleBilinear(image, u * image.getWidth() - 0.5,
                 (1.0 - v) * image.getHeight() - 0.5);
+    }
+
+    private static float sampleBilinearUv(float[] channel, float u, float v) {
+        double x = u * VIEW_W - 0.5;
+        double y = (1.0 - v) * VIEW_H - 0.5;
+        int rawX0 = (int) Math.floor(x);
+        int rawY0 = (int) Math.floor(y);
+        int x0 = clamp(rawX0, 0, VIEW_W - 1);
+        int y0 = clamp(rawY0, 0, VIEW_H - 1);
+        int x1 = clamp(rawX0 + 1, 0, VIEW_W - 1);
+        int y1 = clamp(rawY0 + 1, 0, VIEW_H - 1);
+        float tx = (float) (x - Math.floor(x));
+        float ty = (float) (y - Math.floor(y));
+        float top = lerp(channel[y0 * VIEW_W + x0], channel[y0 * VIEW_W + x1], tx);
+        float bottom = lerp(channel[y1 * VIEW_W + x0], channel[y1 * VIEW_W + x1], tx);
+        return lerp(top, bottom, ty);
     }
 
     private static int sampleBilinear(BufferedImage image, double x, double y) {
@@ -409,27 +529,51 @@ class GroundParallaxPixelComparisonTest {
         return 0xFF000000 | r << 16 | g << 8 | b;
     }
 
+    private static int mixRgb(int source, int target, float amount) {
+        amount = clamp01(amount);
+        int a = source >>> 24;
+        int r = Math.round(lerp((source >>> 16) & 0xFF, (target >>> 16) & 0xFF, amount));
+        int g = Math.round(lerp((source >>> 8) & 0xFF, (target >>> 8) & 0xFF, amount));
+        int b = Math.round(lerp(source & 0xFF, target & 0xFF, amount));
+        return a << 24 | r << 16 | g << 8 | b;
+    }
+
+    private static float smoothstep(float edge0, float edge1, float value) {
+        float t = clamp01((value - edge0) / (edge1 - edge0));
+        return t * t * (3f - 2f * t);
+    }
+
+    private static float lerp(float a, float b, float t) { return a + (b - a) * t; }
+
     private static float invSqrt(float value) { return 1f / (float) Math.sqrt(value); }
     private static float clamp01(float value) { return Math.max(0f, Math.min(1f, value)); }
     private static int clamp(int value, int min, int max) { return Math.max(min, Math.min(max, value)); }
 
     private static final class Scene {
         final BufferedImage color;
-        final float[] height;
+        final float[] macro;
+        final float[] micro;
+        final float[] water;
+        final float[] shore;
 
-        Scene(BufferedImage color, float[] height) {
+        Scene(BufferedImage color, float[] macro, float[] micro, float[] water, float[] shore) {
             this.color = color;
-            this.height = height;
+            this.macro = macro;
+            this.micro = micro;
+            this.water = water;
+            this.shore = shore;
         }
     }
 
     private static final class Warp {
         final BufferedImage image;
         final double maxDisplacementPx;
+        final int waterLandCrossings;
 
-        Warp(BufferedImage image, double maxDisplacementPx) {
+        Warp(BufferedImage image, double maxDisplacementPx, int waterLandCrossings) {
             this.image = image;
             this.maxDisplacementPx = maxDisplacementPx;
+            this.waterLandCrossings = waterLandCrossings;
         }
     }
 

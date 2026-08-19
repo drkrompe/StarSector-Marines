@@ -121,10 +121,9 @@ class GroundMicroHeightSamplerTest {
 
     @Test
     void macroAndMicroCompositionMatchesShaderFormulaAndClamps() {
-        assertEquals(0.5f, GroundHeightPass.compose(0.5f, 0.5f), 1e-6f);
-        assertEquals(0.625f, GroundHeightPass.compose(0.5f, 1f), 1e-6f);
-        assertEquals(0f, GroundHeightPass.compose(0.05f, 0f), 1e-6f);
-        assertEquals(1f, GroundHeightPass.compose(0.95f, 1f), 1e-6f);
+        assertEquals(0f, GroundHeightPass.microRelief(0.5f), 1e-6f);
+        assertEquals(0.125f, GroundHeightPass.microRelief(1f), 1e-6f);
+        assertEquals(-0.125f, GroundHeightPass.microRelief(0f), 1e-6f);
     }
 
     private static GroundMicroHeightSampler resolver(SpriteSheetFrames nature, SpriteSheetFrames urban3) {
