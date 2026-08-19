@@ -181,6 +181,10 @@ public class CounterattackSystemTest {
 
         assertEquals(CounterattackSystem.Phase.TELEGRAPH, h.sys.getPhase());
         assertEquals(h.citySlice, h.sys.getBulgeSlice(), "reclaims the conceded (not the contested) slice");
+        assertEquals(CounterattackSystem.Resolution.NONE, h.sys.getResolution());
+        assertEquals(h.city.anchorX + 0.5f, h.sys.getBulgeCenterX(), 0.0001f);
+        assertEquals(h.city.anchorY + 0.5f, h.sys.getBulgeCenterY(), 0.0001f);
+        assertEquals(CounterattackSystem.TELEGRAPH_SEC, h.sys.getPhaseTimeRemaining(), 0.0001f);
         assertEquals(before - CounterattackSystem.BURST_TICKETS * h.resources.reinforcementCost(),
                 h.resources.getBalance(Faction.DEFENDER, ResourceType.REINFORCEMENT), 0.0001f,
                 "muster debits exactly the lump");
@@ -317,6 +321,7 @@ public class CounterattackSystemTest {
 
         assertEquals(CounterattackSystem.Phase.COOLDOWN, h.sys.getPhase(),
                 "abort spaces the next muster via a short cooldown, not an immediate return to IDLE");
+        assertEquals(CounterattackSystem.Resolution.ABORTED, h.sys.getResolution());
         assertEquals(afterMuster + CounterattackSystem.BURST_TICKETS * h.resources.reinforcementCost(),
                 h.resources.getBalance(Faction.DEFENDER, ResourceType.REINFORCEMENT), 0.0001f,
                 "full lump refunded on natural abort");
@@ -337,6 +342,9 @@ public class CounterattackSystemTest {
         int abortCooldownTicks = Math.round(CounterattackSystem.ABORT_COOLDOWN_SEC / TICK);
         runUntil(h.sys, h.sim, CounterattackSystem.Phase.IDLE, abortCooldownTicks);
         assertNull(h.sys.getBulgeSlice());
+        assertEquals(CounterattackSystem.Resolution.NONE, h.sys.getResolution());
+        assertTrue(Float.isNaN(h.sys.getBulgeCenterX()));
+        assertTrue(Float.isNaN(h.sys.getBulgeCenterY()));
 
         h.sys.tick(TICK, h.sim);
         assertEquals(CounterattackSystem.Phase.TELEGRAPH, h.sys.getPhase(),
@@ -363,6 +371,7 @@ public class CounterattackSystemTest {
 
         assertEquals(CounterattackSystem.Phase.COOLDOWN, h.sys.getPhase(),
                 "assault-launch abort — refunded, short cooldown, not counted against the cap");
+        assertEquals(CounterattackSystem.Resolution.ABORTED, h.sys.getResolution());
         assertEquals(duringAssault + CounterattackSystem.BURST_TICKETS * h.resources.reinforcementCost(),
                 h.resources.getBalance(Faction.DEFENDER, ResourceType.REINFORCEMENT), 0.0001f,
                 "full lump refunded — no wave was actually launched");
@@ -496,6 +505,7 @@ public class CounterattackSystemTest {
         h.sys.tick(TICK, h.sim);
 
         assertEquals(CounterattackSystem.Phase.COOLDOWN, h.sys.getPhase(), "sustained hold moves to cooldown");
+        assertEquals(CounterattackSystem.Resolution.SUCCESS, h.sys.getResolution());
     }
 
     @Test
@@ -542,6 +552,7 @@ public class CounterattackSystemTest {
         }
 
         assertEquals(CounterattackSystem.Phase.COOLDOWN, h.sys.getPhase(), "unresolved wave times out to cooldown");
+        assertEquals(CounterattackSystem.Resolution.FAILURE, h.sys.getResolution());
     }
 
     @Test

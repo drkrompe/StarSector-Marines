@@ -923,6 +923,11 @@ public class BattleSimulation implements BattleControl {
         this.counterattackSystem = system;
     }
 
+    /** Player-facing read seam for the conquest counterattack HUD; null on missions without the system installed. */
+    public CounterattackSystem getCounterattackSystem() {
+        return counterattackSystem;
+    }
+
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). {@code BattleSetup} reads this to wire up {@link CounterattackSystem}'s earmark debits. */
     public BattleResources getBattleResources() {
         return battleResources;
