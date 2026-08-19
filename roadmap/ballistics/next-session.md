@@ -60,7 +60,7 @@
   unchanged. Full record:
   [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
   Post-integration: all 35 focused ballistics/direct-fire tests pass; full
-  suite 1635 tests green.
+  suite 1643 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
