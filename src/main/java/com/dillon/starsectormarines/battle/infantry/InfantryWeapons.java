@@ -204,7 +204,7 @@ public class InfantryWeapons {
         shots.postShot(new ShotEvent(fromX, fromY, 0f,
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, lifetime,
-                tk, weapon, null, null, moraleImpact, struckUnit, res.kind()));
+                tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
     }
 
     /**
@@ -273,6 +273,6 @@ public class InfantryWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 null, null, sec, null, 1f,
-                res.victimId() != 0L, res.kind()));
+                res.victimId() != 0L, res.kind(), shooter));
     }
 }

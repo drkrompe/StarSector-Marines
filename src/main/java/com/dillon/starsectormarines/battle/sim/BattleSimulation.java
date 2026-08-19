@@ -64,6 +64,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSy
 import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -279,7 +280,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
 
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #fogOfWar}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
-    private final ShotService shots = new ShotService();
+    private final NoiseEventBus noiseEvents;
+    private final ShotService shots;
     /** Turret-kind fire procedure — modeled ground rounds plus legacy aerial/indirect fire, payload queuing, and shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
@@ -349,6 +351,8 @@ public class BattleSimulation implements BattleControl {
             new TacticalContextService();
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
+        this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
+        this.shots = new ShotService(noiseEvents);
         this.commandPowerSystem = new com.dillon.starsectormarines.battle.power.CommandPowerSystem(
                 commandPowers, this);
         this.navigation = new NavigationService(grid, topology);
@@ -427,7 +431,7 @@ public class BattleSimulation implements BattleControl {
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
-                navigation, rosterService, shots);
+                navigation, rosterService, shots, noiseEvents);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
@@ -445,7 +449,7 @@ public class BattleSimulation implements BattleControl {
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
-                mapEditor, effects);
+                mapEditor, effects, noiseEvents);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,

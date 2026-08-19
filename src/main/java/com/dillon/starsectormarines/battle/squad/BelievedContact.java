@@ -2,13 +2,15 @@ package com.dillon.starsectormarines.battle.squad;
 
 /**
  * One hostile contact remembered by a squad. The cell is where the unit was
- * last directly observed, not a live projection of its current position.
+ * last directly observed or localized by sound, not a live projection of its
+ * current position.
  */
 public record BelievedContact(long unitId,
                               int lastSeenCellX,
                               int lastSeenCellY,
                               int lastSeenTick,
-                              float confidence) {
+                              float confidence,
+                              BeliefSource source) {
 
     /** True when the serial alert pass refreshed this contact on {@code tick}. */
     public boolean observedOnTick(int tick) {

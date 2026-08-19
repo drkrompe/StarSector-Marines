@@ -39,6 +39,8 @@ public class ShotEvent {
     public final float toZ;
     public final boolean hit;
     public final Faction shooterFaction;
+    /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */
+    public final long shooterId;
     /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. */
     public final TurretKind turretKind;
     /** Non-null when a marine fired their primary — drives tracer color + per-weapon fire sound. Mutually exclusive with {@link #turretKind} and {@link #marineSecondary}. */
@@ -72,9 +74,22 @@ public class ShotEvent {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, null, null, null, null, 1.0f);
     }
 
+    public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime) {
+        this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
+                null, null, null, null, 1f, false, null, shooterId);
+    }
+
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime, TurretKind turretKind) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretKind, null, null, null, 1.0f);
+    }
+
+    public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind) {
+        this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
+                turretKind, null, null, null, 1f, false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
@@ -82,6 +97,15 @@ public class ShotEvent {
                      TurretKind turretKind, MarineWeapon marineWeapon, MarineSecondary marineSecondary) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
                 turretKind, marineWeapon, marineSecondary, null, 1.0f);
+    }
+
+    public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary) {
+        this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, null, 1f,
+                false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
@@ -101,6 +125,16 @@ public class ShotEvent {
                 turretKind, marineWeapon, marineSecondary, mechWeapon, moraleImpact, false);
     }
 
+    public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     float moraleImpact) {
+        this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                moraleImpact, false, null, shooterId);
+    }
+
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
                      TurretKind turretKind, MarineWeapon marineWeapon,
@@ -118,6 +152,18 @@ public class ShotEvent {
                      MarineSecondary marineSecondary, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind) {
+        this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                moraleImpact, struckUnit, stopKind, 0L);
+    }
+
+    public ShotEvent(float fromX, float fromY, float fromZ,
+                     float toX, float toY, float toZ,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     float moraleImpact, boolean struckUnit,
+                     BallisticResolver.StopKind stopKind, long shooterId) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.fromZ = fromZ;
@@ -126,6 +172,7 @@ public class ShotEvent {
         this.toZ = toZ;
         this.hit = hit;
         this.shooterFaction = shooterFaction;
+        this.shooterId = shooterId;
         this.lifetime = lifetime;
         this.lifetimeMax = lifetime;
         this.turretKind = turretKind;
@@ -135,6 +182,28 @@ public class ShotEvent {
         this.moraleImpact = moraleImpact;
         this.struckUnit = struckUnit;
         this.stopKind = stopKind;
+    }
+
+    /** Source link safe to expose to hearing; indirect launches stay anonymous. */
+    public long audibleSourceUnitId() {
+        return isIndirectFire() ? 0L : shooterId;
+    }
+
+    public boolean isIndirectFire() {
+        if (mechWeapon != null && mechWeapon.arcHeight > 0f) return true;
+        return turretKind != null
+                && (turretKind.indirectFire || turretKind.arcHeight > 0f);
+    }
+
+    /** Coarse ground-combat loudness used by the squad hearing model. */
+    public float noiseMagnitude() {
+        if (marineSecondary != null) return 2.5f;
+        if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
+        if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius);
+        if (marineWeapon != null && marineWeapon.impactProfile == ImpactProfile.KINETIC) {
+            return 1.4f;
+        }
+        return 1f;
     }
 
     /** Screen-space map Y after applying the lightweight elevation offset. */

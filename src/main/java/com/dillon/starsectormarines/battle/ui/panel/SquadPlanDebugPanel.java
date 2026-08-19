@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.AudibleBearing;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -192,6 +194,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
         BattleSimulation sim = ctx.getSim();
         ctx.getHighlights().clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
+        ctx.getHighlights().clear(HighlightOverlay.SRC_HEARD_NOISE);
         if (sim == null) return;
 
         Selection sel = ctx.getSelection();
@@ -233,6 +236,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         overlay.clear(HighlightOverlay.SRC_ACTION_CELLS);
         overlay.clear(HighlightOverlay.SRC_CAPTAIN);
         overlay.clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
+        overlay.clear(HighlightOverlay.SRC_HEARD_NOISE);
         // SRC_SELECTED_SQUAD is owned by SelectionHighlightPublisher (production)
         // now — it clears itself when the selection drops, so the panel no longer
         // touches it.
@@ -697,8 +701,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
     /** Draws the selected squad's remembered hostile cells as fading ghosts. */
     private void publishBeliefHighlights(Squad squad) {
         List<CellHighlight> cells = new ArrayList<>();
-        Color base = HighlightOverlay.COLOR_BELIEVED_CONTACT;
         for (BelievedContact contact : squad.believedContacts()) {
+            Color base = contact.source() == BeliefSource.AUDIO
+                    ? HighlightOverlay.COLOR_AUDIO_CONTACT
+                    : HighlightOverlay.COLOR_BELIEVED_CONTACT;
             int alpha = Math.round(64f + 191f * contact.confidence());
             alpha = Math.max(0, Math.min(255, alpha));
             Color faded = new Color(base.getRed(), base.getGreen(),
@@ -707,6 +713,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
                     contact.lastSeenCellY(), faded));
         }
         ctx.getHighlights().put(HighlightOverlay.SRC_BELIEVED_CONTACTS, cells);
+        AudibleBearing bearing = squad.audibleBearing();
+        ctx.getHighlights().put(HighlightOverlay.SRC_HEARD_NOISE,
+                bearing == null ? List.of() : List.of(new CellHighlight(
+                        bearing.cellX(), bearing.cellY(), HighlightOverlay.COLOR_HEARD_NOISE)));
     }
 
     /**

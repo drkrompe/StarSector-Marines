@@ -88,7 +88,7 @@ public final class TurretFireSystem implements TurretFireSink {
         }
 
         if (kind.cellsPerSec() > 0f) {
-            spawnProjectile(fromX, fromY, shooterFaction, kind, tcx, tcy, aerialShooter,
+            spawnProjectile(shooterId, fromX, fromY, shooterFaction, kind, tcx, tcy, aerialShooter,
                     distToTarget, effectiveAccuracy);
             return;
         }
@@ -132,7 +132,7 @@ public final class TurretFireSystem implements TurretFireSink {
                     kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
         }
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
+        shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 lifetime, kind, null, null));
     }
 
@@ -169,10 +169,10 @@ public final class TurretFireSystem implements TurretFireSink {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 kind, null, null, null, /*moraleImpact*/ 1f,
-                res.victimId() != 0L, res.kind()));
+                res.victimId() != 0L, res.kind(), shooterId));
     }
 
-    private void spawnProjectile(float fromX, float fromY, Faction shooterFaction,
+    private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
                                  TurretKind kind, int tcx, int tcy, boolean aerialShooter,
                                  float distToTarget, float effectiveAccuracy) {
         boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
@@ -203,7 +203,7 @@ public final class TurretFireSystem implements TurretFireSink {
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 kind.hasBoostRamp(), kind.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival));
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
+        shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 flightTime, kind, null, null));
     }
 }

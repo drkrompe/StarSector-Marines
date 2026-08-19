@@ -149,7 +149,7 @@ public class HeavyWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 null, null, null, weapon, moraleImpact,
-                res.victimId() != 0L, res.kind()));
+                res.victimId() != 0L, res.kind(), shooter));
     }
 
     /** Legacy indirect scatter/projectile procedure retained for LRM artillery. */
@@ -180,7 +180,7 @@ public class HeavyWeapons {
                 shooterFaction, /*aerialDelivery*/ true,
                 weapon.flightSec, onArrival));
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
-        shots.postShot(new ShotEvent(fromX, fromY, ep.x(), ep.y(), hit,
+        shots.postShot(new ShotEvent(shooter, fromX, fromY, ep.x(), ep.y(), hit,
                 shooterFaction, lifetime, null, null, null, weapon, moraleImpact));
     }
 

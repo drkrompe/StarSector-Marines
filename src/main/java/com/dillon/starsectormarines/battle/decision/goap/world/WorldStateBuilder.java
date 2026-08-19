@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -103,7 +104,8 @@ public final class WorldStateBuilder {
     private static boolean evalHasLosToTarget(Squad squad, BattleView sim) {
         int tick = sim.getSimTickIndex();
         for (BelievedContact contact : squad.believedContacts()) {
-            if (contact.observedOnTick(tick)) return true;
+            if (contact.source() == BeliefSource.DIRECT
+                    && contact.observedOnTick(tick)) return true;
         }
         return false;
     }

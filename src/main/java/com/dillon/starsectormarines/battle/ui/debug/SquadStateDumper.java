@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -116,11 +117,29 @@ public final class SquadStateDumper {
             believed.put("ageTicks", Math.max(0,
                     sim.simTickIndex - contact.lastSeenTick()));
             believed.put("confidence", contact.confidence());
+            believed.put("source", contact.source().name());
             believed.put("observedThisTick",
                     contact.observedOnTick(sim.simTickIndex));
             contacts.put(believed);
         }
         o.put("believedContacts", contacts);
+        AudibleBearing bearing = squad.audibleBearing();
+        if (bearing == null) {
+            o.put("audibleBearing", (Object) null);
+        } else {
+            JSONObject audible = new JSONObject();
+            audible.put("cellX", bearing.cellX());
+            audible.put("cellY", bearing.cellY());
+            audible.put("heardTick", bearing.heardTick());
+            audible.put("ageTicks", Math.max(0, sim.simTickIndex - bearing.heardTick()));
+            audible.put("confidence", bearing.confidence());
+            audible.put("sourceUnitId", bearing.sourceUnitId());
+            long liveSource = sim.resolveUnit(bearing.sourceUnitId());
+            audible.put("sourceName", liveSource != 0L
+                    ? sim.identity().name(liveSource) : null);
+            audible.put("kind", bearing.kind().name());
+            o.put("audibleBearing", audible);
+        }
         long leaderUnit = sim.resolveUnit(squad.leaderId);
         o.put("leaderId", leaderUnit != 0L ? sim.identity().name(leaderUnit) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);

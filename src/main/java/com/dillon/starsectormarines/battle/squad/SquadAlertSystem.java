@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.perception.NoiseDetection;
+import com.dillon.starsectormarines.battle.perception.NoiseEvent;
+import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
@@ -20,9 +23,9 @@ import java.util.List;
  *       combatant. {@code timeSinceContact} resets to zero and every visible
  *       hostile refreshes the squad's identified contact belief.</li>
  *   <li><b>SUSPICIOUS</b> — no current LOS, but a squadmate is in a
- *       fall-back (recently hit). The squad converges on the last known
- *       enemy cell so a patrol that gets sniped doesn't keep walking its
- *       route obliviously.</li>
+ *       fall-back (recently hit) or the squad detected hostile noise. The
+ *       squad converges on the last known or localized enemy cell so a patrol
+ *       does not keep walking its route obliviously.</li>
  *   <li><b>UNAWARE</b> — neither of the above. After
  *       {@link Squad#ENGAGED_DECAY_SECONDS} of no contact an ENGAGED squad
  *       drops to SUSPICIOUS, and after another
@@ -43,17 +46,14 @@ import java.util.List;
  * increments the alive count, accumulates centroid, notes if any member is
  * in fall-back, and records every hostile combatant visible to any member.
  *
- * <p>The audible-gunfire promotion only runs for squads that finished the
- * first pass still un-engaged. Final state transitions are applied once
- * per squad at the end.
+ * <p>Hostile noises are heard through a one-tick mailbox, independent of
+ * line of sight. They create imperfect localized bearings and may refresh an
+ * identified contact only when the producer safely exposes a direct source.
  *
  * <p>Sibling to other {@code *System} tick consumers — single {@link #tick}
  * entry point, all dependencies constructor-injected.
  */
 public final class SquadAlertSystem {
-
-    /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
-    public static final float GUNFIRE_ALERT_RADIUS = 18f;
 
     /**
      * Story A: cell range within which an enemy is considered "in the kill
@@ -89,16 +89,20 @@ public final class SquadAlertSystem {
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final ShotService shots;
+    private final NoiseEventBus noiseEvents;
 
     public SquadAlertSystem(NavigationService navigation,
                             UnitRosterService roster,
-                            ShotService shots) {
+                            ShotService shots,
+                            NoiseEventBus noiseEvents) {
         this.navigation = navigation;
         this.roster = roster;
         this.shots = shots;
+        this.noiseEvents = noiseEvents;
     }
 
     public void tick(float dt, int simTick) {
+        List<NoiseEvent> pendingNoises = noiseEvents.drain();
         NavigationGrid grid = navigation.getGrid();
         World world = roster.world();
         VisionService vision = roster.vision();
@@ -181,29 +185,22 @@ public final class SquadAlertSystem {
             }
         }
 
-        // Audible-gunfire promotion runs only for not-yet-engaged squads.
-        // Iterate units once more, but only do the shot scan for squads that
-        // still need promoting — the early-skip means engaged squads pay
-        // nothing here.
         List<ShotEvent> activeShots = shots.getActiveShots();
-        if (!activeShots.isEmpty()) {
-            for (int i = 0; i < liveCount; i++) {
-                long u = dense[i];
-                if (!roster.squad().hasSquad(u)) continue;
-                Squad squad = roster.getSquad(roster.squad().squadId(u));
-                if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
-                for (ShotEvent shot : activeShots) {
-                    if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.fromX - world.x(u);
-                    float dy = shot.fromY - world.y(u);
-                    if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
-                        squad._suspiciousThisTick = true;
-                        // fromX/Y are center-based, so the containing cell is
-                        // the floor — round biases +1 for an on-center shooter.
-                        squad.observeAudibleBearing((int) Math.floor(shot.fromX),
-                                (int) Math.floor(shot.fromY));
-                        break;
-                    }
+        for (Squad squad : roster.getSquads()) {
+            if (squad.aliveMembers <= 0) continue;
+            float listenerX = squad.centroidX / squad.aliveMembers;
+            float listenerY = squad.centroidY / squad.aliveMembers;
+            for (NoiseEvent event : pendingNoises) {
+                if (event.sourceFaction() == squad.faction) continue;
+                NoiseDetection.Detection detection = NoiseDetection.detect(
+                        event, squad.id, listenerX, listenerY, grid);
+                if (detection == null) continue;
+                squad._suspiciousThisTick = true;
+                squad.observeAudibleBearing(detection.cellX(), detection.cellY(),
+                        simTick, detection.confidence(), event.sourceUnitId(), event.kind());
+                if (event.hasIdentifiedSource()) {
+                    squad.observeAudioContact(event.sourceUnitId(), detection.cellX(),
+                            detection.cellY(), simTick, detection.confidence());
                 }
             }
         }
@@ -297,6 +294,7 @@ public final class SquadAlertSystem {
                 } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                         && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
                     squad.alertLevel = SquadAlertLevel.UNAWARE;
+                    squad.clearAudibleBearing();
                     squad.lastSeenEnemyX = -1;
                     squad.lastSeenEnemyY = -1;
                     // Belt-and-braces: any target re-acquired during

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.perception.NoiseKind;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -113,6 +114,8 @@ public final class Squad {
     private volatile List<BelievedContact> believedContacts = List.of();
     /** Distinguishes the compatibility projection from an anonymous audio bearing. */
     private boolean lastSeenFromBelief;
+    /** Latest localized hostile noise, retained until the squad returns UNAWARE. */
+    private volatile AudibleBearing audibleBearing;
 
     /**
      * Tactical node this squad is anchored to. For GARRISON it's the position
@@ -511,7 +514,8 @@ public final class Squad {
                 iterator.remove();
             } else {
                 entry.setValue(new BelievedContact(old.unitId(), old.lastSeenCellX(),
-                        old.lastSeenCellY(), old.lastSeenTick(), confidence));
+                        old.lastSeenCellY(), old.lastSeenTick(), confidence,
+                        old.source()));
             }
         }
     }
@@ -519,7 +523,8 @@ public final class Squad {
     /** Records one authoritative direct-LOS observation at full confidence. */
     void observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
         contactMemory.put(unitId,
-                new BelievedContact(unitId, cellX, cellY, simTick, 1f));
+                new BelievedContact(unitId, cellX, cellY, simTick, 1f,
+                        BeliefSource.DIRECT));
     }
 
     /** True when another member already established this contact this tick. */
@@ -528,11 +533,37 @@ public final class Squad {
         return contact != null && contact.observedOnTick(simTick);
     }
 
-    /** Records the existing anonymous gunfire investigation bearing. */
-    void observeAudibleBearing(int cellX, int cellY) {
+    /** Records a localized, source-linked audio contact below direct confidence. */
+    void observeAudioContact(long unitId, int cellX, int cellY,
+                             int simTick, float confidence) {
+        BelievedContact old = contactMemory.get(unitId);
+        if (old != null && old.lastSeenTick() == simTick
+                && old.source() == BeliefSource.DIRECT) return;
+        contactMemory.put(unitId, new BelievedContact(unitId, cellX, cellY,
+                simTick, confidence, BeliefSource.AUDIO));
+    }
+
+    /** Records the strongest localized hostile noise heard on the newest tick. */
+    void observeAudibleBearing(int cellX, int cellY, int simTick,
+                               float confidence, long sourceUnitId,
+                               NoiseKind kind) {
+        AudibleBearing old = audibleBearing;
+        if (old != null && old.heardTick() > simTick) return;
+        if (old != null && old.heardTick() == simTick
+                && old.confidence() > confidence) return;
+        audibleBearing = new AudibleBearing(cellX, cellY, simTick,
+                confidence, sourceUnitId, kind);
         lastSeenEnemyX = cellX;
         lastSeenEnemyY = cellY;
         lastSeenFromBelief = false;
+    }
+
+    public AudibleBearing audibleBearing() {
+        return audibleBearing;
+    }
+
+    void clearAudibleBearing() {
+        audibleBearing = null;
     }
 
     /**
@@ -550,10 +581,16 @@ public final class Squad {
                 freshest = contact;
             }
         }
-        if (freshest != null) {
+        AudibleBearing heard = audibleBearing;
+        if (freshest != null
+                && (heard == null || freshest.lastSeenTick() >= heard.heardTick())) {
             lastSeenEnemyX = freshest.lastSeenCellX();
             lastSeenEnemyY = freshest.lastSeenCellY();
             lastSeenFromBelief = true;
+        } else if (heard != null) {
+            lastSeenEnemyX = heard.cellX();
+            lastSeenEnemyY = heard.cellY();
+            lastSeenFromBelief = false;
         } else if (lastSeenFromBelief) {
             lastSeenEnemyX = -1;
             lastSeenEnemyY = -1;
