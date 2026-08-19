@@ -383,6 +383,13 @@ produces a costly asylum request and a delayed buyout, forcing the player to
 keep or explicitly break a promise. This adds an honest integrity source and a
 two-stage event lifecycle without cloning the rescue battle.
 
+The third archetype is active as **Silent Colony** in
+[`living-world/stories/g9-silent-colony.md`](living-world/stories/g9-silent-colony.md).
+Its first slice persists the blind expedition promise: exact resource cost,
+representative survivor stakes, a hidden deterministic threat seed, and an
+explicit archive outcome. Production site selection, Dead Letter presentation,
+and the dedicated automated-threat mission remain later slices.
+
 ## Open questions (parked)
 
 - **Cadence** — probably balanced to ~1 event per 30–60 in-game days,
