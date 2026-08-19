@@ -27,10 +27,10 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
  * class. A future "infantry rocket launcher" would still live in infantry;
  * a hypothetical mech-mounted rifle would live here.
  *
- * <p>Three concurrent firing tracks per mech: chaingun (kinetic, instant
- * damage, fall-back roll), SRM pod (HE, queues detonation), LRM artillery
- * (HE, queues detonation, indirect-fire-capable). Continuation pumps the
- * queued bursts / salvos at per-weapon spacing in {@link #tick}.
+ * <p>Three concurrent firing tracks per mech: chaingun and SRM pod resolve as
+ * modeled ground-level rounds, while LRM artillery retains its indirect
+ * scatter/projectile procedure. Continuation pumps all queued bursts / salvos
+ * at per-weapon spacing in {@link #tick}.
  *
  * <p>Smoking-wreck spawn for dead mechs is no longer here — it moved to the
  * {@code MechWreckSystem} death-event handler, so it reacts to the one death
@@ -42,11 +42,9 @@ public class HeavyWeapons {
 
     private final UnitRosterService roster;
     private final NavigationGrid grid;
-    private final DamageService damageService;
-    private final HitResponseSystem hitResponse;
+    private final BallisticResolver resolver;
     private final ShotService shots;
     private final Detonations detonations;
-    private final CoverAccuracyResolver coverAccuracy;
 
     /**
      * Reused per-tick gather of the live mechs before the continuation pass.
@@ -58,16 +56,13 @@ public class HeavyWeapons {
     private final LongArrayList mechScratch = new LongArrayList();
 
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
-                        DamageService damageService, HitResponseSystem hitResponse,
-                        ShotService shots, Detonations detonations,
-                        CoverAccuracyResolver coverAccuracy) {
+                        BallisticResolver resolver,
+                        ShotService shots, Detonations detonations) {
         this.roster = roster;
         this.grid = grid;
-        this.damageService = damageService;
-        this.hitResponse = hitResponse;
+        this.resolver = resolver;
         this.shots = shots;
         this.detonations = detonations;
-        this.coverAccuracy = coverAccuracy;
     }
 
     /** Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech. */
@@ -95,102 +90,98 @@ public class HeavyWeapons {
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
-        boolean isAoe = weapon.aoeRadius > 0f;
+        if (weapon.arcHeight <= 0f) {
+            fireDirectRound(shooter, target, weapon, accuracyMult);
+            return;
+        }
+
+        fireIndirectRound(shooter, target, weapon, accuracyMult);
+    }
+
+    /** Modeled ground-level round for chaingun and SRM tracks. */
+    private void fireDirectRound(long shooter, long target, MechWeapon weapon,
+                                 float accuracyMult) {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
-        // Arc weapons attack from above; cardinal ground cover only protects
-        // against the chaingun/SRM-style direct-fire tracks.
-        if (weapon.arcHeight <= 0f) {
-            effectiveAccuracy = coverAccuracy.apply(effectiveAccuracy,
-                    world.cellX(target), world.cellY(target),
-                    world.cellX(shooter), world.cellY(shooter));
-        }
-        boolean hit = ThreadLocalRandom.current().nextFloat() < effectiveAccuracy;
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
-
-        // Muzzle origin tracks the SHOOTER'S CURRENT RENDER POSITION so a
-        // chaingun burst follows the walking mech instead of pinning the
-        // muzzle flash to the cell where the burst started. Mirrors the
-        // infantry-side fix in InfantryWeapons.fireShot.
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
-        // Distance-scaled spread — see RangeFalloff for the physical model.
-        // Shared with the infantry-side primaries so chaingun saturation and
-        // SMG burst-spread use the same math, just with different per-weapon
-        // hitSpread numbers.
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target,
+                effectiveAccuracy, effectiveSpread, weapon.roundVelocity(),
+                ThreadLocalRandom.current());
 
-        // Endpoint resolves through ShotEndpoint — same hit-jitter +
-        // miss-ring rules as the infantry primaries. effectiveSpread carries
-        // the chaingun/LRM saturation widening; AoE weapons get their splash
-        // center scattered through the same machinery so a salvo sprays the
-        // impact zone instead of stacking on one cell.
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target), world.renderY(target),
-                hit, effectiveSpread, ThreadLocalRandom.current());
-        float toX = ep.x();
-        float toY = ep.y();
-
-        // Wall raycast — for ground-deployed area-spread weapons (chaingun's
-        // dual-MG saturation), a scattered round that would fly past a wall
-        // splatters on it instead. Shared with the turret-side raycast via
-        // ShotRaycast so both sides see the same wall-snap convention.
-        ShotRaycast.Result snapped = ShotRaycast.resolve(
-                grid, weapon.raycastShots, fromX, fromY, toX, toY, hit);
-        toX = snapped.toX();
-        toY = snapped.toY();
-        hit = snapped.hit();
-
-        // KINETIC PATH — chaingun direct-fire. Applied AFTER raycast so a
-        // wall-blocked round correctly counts as a miss. AoE-kind shots skip
-        // this and resolve at endpoint via the Detonations pipeline below.
-        if (!isAoe && hit) {
-            damageService.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
-            hitResponse.rollFallbackOnHit(target);
-            hitResponse.rollReprioritizeOnHit(target, shooter);
+        if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
+            float appliedDamage = res.friendlyHit()
+                    ? weapon.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : weapon.damage;
+            shots.queueImpact(new ShotService.PendingImpact(
+                    res.victimId(), shooter, res.flightTime(), appliedDamage,
+                    weapon.vsTurretMult, moraleImpact, res.friendlyHit()));
         }
 
-        // AOE PATH — queue a detonation at the (possibly wall-snapped)
-        // endpoint. Damage resolves on arrival via the Detonations pipeline.
-        // Hit-vs-miss only affects WHERE the rocket lands; AoE math at impact
-        // decides who's close enough to feel it.
-        if (isAoe) {
-            // Aerial delivery if the weapon visually arcs (LRM). SRM line-fires
-            // even from a mech and explodes at endpoint cell; roofs don't shield
-            // it if the rocket reached the interior through a doorway.
-            boolean aerial = weapon.arcHeight > 0f;
-            PendingDetonation onArrival = new PendingDetonation(
-                    toX, toY, weapon.flightSec,
-                    weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
-                    weapon.wallDamage, shooterFaction, aerial,
-                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
+        if (weapon.aoeRadius > 0f) {
+            PendingDetonation onArrival = res.impacts()
+                    ? new PendingDetonation(
+                            res.endX(), res.endY(), res.flightTime(),
+                            weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
+                            weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
+                            weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                            /*friendlyFireImmune*/ false)
+                    : null;
             if (weapon.impactProfile == ImpactProfile.HE) {
-                // HE rockets (SRM_POD, LRM_ARTILLERY) ride the modeled Projectile
-                // entity, same as marine handheld rockets (ad53835) and locust
-                // turrets. The Projectile owns the arrival payload directly —
-                // queryable mid-flight (point-defense future) and visible to
-                // TacticalScoring.shouldCommitRocket's volley coordination so a
-                // marine rocketeer no longer ignores an inbound mech SRM volley
-                // against the same turret.
                 shots.queueProjectile(new Projectile(
-                        fromX, fromY, toX, toY,
-                        /*hasBoostRamp*/ true, weapon.arcHeight,
-                        shooterFaction, aerial, weapon.flightSec, onArrival));
-            } else {
-                // Kinetic-splash kinds (chaingun) keep the legacy AoE-tracer
-                // path — no in-flight queryable entity is useful for a bullet,
-                // and the boost-curve visual would read wrong.
+                        fromX, fromY, res.endX(), res.endY(),
+                        /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
+                        shooterFaction, /*aerialDelivery*/ false,
+                        res.flightTime(), onArrival));
+            } else if (onArrival != null) {
                 detonations.queue(onArrival);
             }
         }
 
+        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                res.endX(), res.endY(), res.endZ(),
+                res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
+                null, null, null, weapon, moraleImpact,
+                res.victimId() != 0L, res.kind()));
+    }
+
+    /** Legacy indirect scatter/projectile procedure retained for LRM artillery. */
+    private void fireIndirectRound(long shooter, long target, MechWeapon weapon,
+                                   float accuracyMult) {
+        World world = roster.world();
+        Faction shooterFaction = roster.identity().faction(shooter);
+        UnitType shooterType = roster.identity().type(shooter);
+        float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
+        float fromX = world.renderX(shooter);
+        float fromY = world.renderY(shooter);
+        float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
+                world.x(target), world.y(target));
+        float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
+        boolean hit = ThreadLocalRandom.current().nextFloat() < weapon.accuracy * accuracyMult;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
+                world.renderX(target), world.renderY(target),
+                hit, effectiveSpread, ThreadLocalRandom.current());
+
+        PendingDetonation onArrival = new PendingDetonation(
+                ep.x(), ep.y(), weapon.flightSec,
+                weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
+                weapon.wallDamage, shooterFaction, /*aerialDelivery*/ true,
+                weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                /*friendlyFireImmune*/ false);
+        shots.queueProjectile(new Projectile(
+                fromX, fromY, ep.x(), ep.y(),
+                /*hasBoostRamp*/ true, weapon.arcHeight,
+                shooterFaction, /*aerialDelivery*/ true,
+                weapon.flightSec, onArrival));
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                null, null, null, weapon, moraleImpact));
+        shots.postShot(new ShotEvent(fromX, fromY, ep.x(), ep.y(), hit,
+                shooterFaction, lifetime, null, null, null, weapon, moraleImpact));
     }
 
     /**
@@ -209,11 +200,11 @@ public class HeavyWeapons {
     private void advanceMechWeapons() {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
-        // continuation pass over the snapshot. fireMechWeapon resolves damage
-        // inline in this serial phase, so a kill releases its target and
-        // swap-and-pops the registry; iterating a snapshot keeps that from
-        // corrupting the pass. The query excludes CORPSE (live mechs only), and
-        // isLive still guards an entity released earlier this same drain.
+        // continuation pass over the snapshot. Other arrivals in this phase
+        // can release a target and swap-and-pop the registry; iterating a
+        // snapshot keeps that from corrupting the pass. The query excludes
+        // CORPSE (live mechs only), and isLive still guards an entity released
+        // earlier this same drain.
         mechScratch.clear();
         EntityWorld entityWorld = roster.entityWorld();
         BattleComponents components = roster.components();

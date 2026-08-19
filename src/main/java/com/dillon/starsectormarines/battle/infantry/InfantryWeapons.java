@@ -8,8 +8,6 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
-import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
-import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -41,7 +39,6 @@ public class InfantryWeapons {
     private final UnitRosterService roster;
     private final BallisticResolver resolver;
     private final ShotService shots;
-    private final CoverAccuracyResolver coverAccuracy;
 
     /**
      * Reused per-tick gather of the units with an active burst before the
@@ -56,11 +53,10 @@ public class InfantryWeapons {
     private final LongArrayList burstScratch = new LongArrayList();
 
     public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
-                           ShotService shots, CoverAccuracyResolver coverAccuracy) {
+                           ShotService shots) {
         this.roster = roster;
         this.resolver = resolver;
         this.shots = shots;
-        this.coverAccuracy = coverAccuracy;
     }
 
     /**
@@ -170,12 +166,15 @@ public class InfantryWeapons {
         }
         accuracy *= stance.accuracyMult;
 
-        // Round velocity: per-weapon MarineWeapon.roundVelocity when set;
-        // the null-weapon militia/alien/turret callers use the resolver's
-        // flat default.
+        TurretKind tk = shooterType.isTurret() ? roster.turretState().kind(shooter) : null;
+        // Round velocity: weapon-owned where available; null-weapon militia /
+        // alien callers use the shared default, while static turrets resolve
+        // through their kind's direct-fire timing.
         float roundVelocity = weapon != null && weapon.roundVelocity > 0f
                 ? weapon.roundVelocity
-                : BallisticResolver.DEFAULT_ROUND_VELOCITY;
+                : tk != null
+                        ? tk.directRoundVelocity()
+                        : BallisticResolver.DEFAULT_ROUND_VELOCITY;
 
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 accuracy, effectiveSpread, roundVelocity, ThreadLocalRandom.current());
@@ -196,7 +195,6 @@ public class InfantryWeapons {
         // the resolver's round physically stopped.
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
-        TurretKind tk = shooterType.isTurret() ? roster.turretState().kind(shooter) : null;
         float lifetime = Math.max(res.flightTime(), 0.05f);
         // struckUnit: true whenever the round physically damaged someone
         // (victimId != 0 only on StopKind.UNIT_HIT), independent of whether
@@ -210,20 +208,19 @@ public class InfantryWeapons {
     }
 
     /**
-     * Fires the shooter's secondary (rocket launcher today). Rolls accuracy
-     * to determine the impact endpoint, decrements ammo, and spawns a
-     * simulated-flight {@link Projectile} owning the AoE
-     * {@link PendingDetonation} that fires on arrival. A marine who moves
-     * between launch and impact escapes the splash.
+     * Fires the shooter's secondary (rocket launcher today). Resolves a
+     * modeled direct round, decrements ammo, and spawns a simulated-flight
+     * {@link Projectile}. Physical contacts carry the AoE
+     * {@link PendingDetonation}; an overshoot carries no payload. A marine who
+     * moves between launch and impact escapes the splash.
      *
      * <p>Same Projectile shape that locust turrets use — the rocket is a
      * real in-flight entity, queryable by squad-coordination scorers
      * ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#shouldCommitRocket})
      * via {@code sim.getActiveProjectiles()} and (eventually) interceptable
-     * by point defense. Flight time is the per-weapon
-     * {@link MarineSecondary#flightSec} constant — marines fire over a
-     * tighter range envelope than turrets, so the locust's
-     * distance-scaled-velocity model doesn't earn its complexity here.
+     * by point defense. {@link MarineSecondary#roundVelocity()} derives a
+     * cells/sec speed from the former maximum-range timing, so closer physical
+     * stops arrive sooner.
      *
      * <p>The paired {@link ShotEvent} stays — it's what the renderer reads
      * for sprite + contrail + audio + impact-FX dispatch (unchanged from
@@ -245,41 +242,37 @@ public class InfantryWeapons {
         float secondaryAccuracy = Math.min(1f, sec.accuracy
                 * InfantryCombatStats.shooterAccuracyMult(
                         roster.combat().soldierProfile(shooter)));
-        // Handheld rockets are direct-fire, so a target correctly tucked
-        // behind cover is harder to center in the impact pattern too.
-        secondaryAccuracy = coverAccuracy.apply(secondaryAccuracy,
-                world.cellX(target), world.cellY(target),
-                world.cellX(shooter), world.cellY(shooter));
-        boolean hit = ThreadLocalRandom.current().nextFloat() < secondaryAccuracy;
         // Rocket launches from the marine's current sprite position so the
-        // launch FX glue to the sprite if the marine is mid-step. Endpoint
-        // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
-        // don't carry their own hitSpread today, so the universal hit-jitter
-        // + miss-ring still apply but no weapon-specific scatter.
+        // launch FX glue to the sprite if the marine is mid-step. The same
+        // modeled round as primaries now authors its endpoint, Z, obstacle
+        // contacts, interveners, and real flight time. Secondaries carry no
+        // additional miss-spread tuning today.
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
-                world.renderX(target), world.renderY(target),
-                hit, 0f, ThreadLocalRandom.current());
-        float toX = ep.x();
-        float toY = ep.y();
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target,
+                secondaryAccuracy, 0f, sec.roundVelocity(), ThreadLocalRandom.current());
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever
-        // the round lands. Reaches a roofed interior only via a doorway, in
-        // which case the splash should damage the inside normally, not be
-        // intercepted by the roof above.
-        PendingDetonation onArrival = new PendingDetonation(
-                toX, toY, sec.flightSec,
-                sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                sec.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                sec.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
+        // it physically contacts. A free-flight overshoot keeps its visible
+        // projectile entity but carries no phantom ground detonation.
+        PendingDetonation onArrival = res.impacts()
+                ? new PendingDetonation(
+                        res.endX(), res.endY(), res.flightTime(),
+                        sec.aoeRadius, sec.damage, sec.vsTurretMult,
+                        sec.wallDamage, shooterFaction, /*aerialDelivery*/ false,
+                        sec.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                        /*friendlyFireImmune*/ false)
+                : null;
         // hasBoostRamp=true: marine rocket is a launched missile with a
         // booster, matches locust's accelerate-from-rest visual curve.
         // arcHeight=0: direct-fire, no parabolic lob.
-        shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
+        shots.queueProjectile(new Projectile(fromX, fromY, res.endX(), res.endY(),
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
                 shooterFaction, /*aerialDelivery*/ false,
-                sec.flightSec, onArrival));
-        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction, sec.flightSec,
-                null, null, sec));
+                res.flightTime(), onArrival));
+        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                res.endX(), res.endY(), res.endZ(),
+                res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
+                null, null, sec, null, 1f,
+                res.victimId() != 0L, res.kind()));
     }
 }

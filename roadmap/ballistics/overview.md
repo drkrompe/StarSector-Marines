@@ -20,8 +20,9 @@ rail, and drone projectile silhouettes). **S3b shipped 2026-08-19**
 (`complete/s3b-target-plane-accuracy.md` — one target-plane accuracy commit,
 visible lateral/high/low flight, vertical silhouettes). **S3c shipped
 2026-08-19** (`complete/s3c-obstacle-catch-heights.md` — data-driven doodad
-silhouettes and height-gated directional edge cover). S4 (direct-fire
-unification) is next; see `next-session.md`.
+silhouettes and height-gated directional edge cover). **S4 shipped 2026-08-19**
+(`complete/s4-direct-fire-unification.md` — shared source seam and modeled
+direct fire for mech, handheld rocket, and ground burst-turret paths).
 
 ## Why
 
@@ -196,16 +197,18 @@ movers can enter the corridor before contact.
   wall-edge block rolls require vertical overlap; structural walls remain
   full-height. See
   [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
-- **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
-  adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
-  near-miss morale goes path-proximity.
+- ~~**S4 — direct-fire unification.**~~ **SHIPPED** — mech chaingun/SRM,
+  handheld rockets, and ground burst-turret spray now adopt the resolver;
+  abstract cover and direct-fire wall-snap/miss-ring paths are retired. See
+  [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
 
 Future hooks (post-S4, backlog): doodad HP / cover erosion; lead error by
-aptitude; point defense generalization (`Projectile.intercepted` reserved).
+aptitude; point defense generalization (`Projectile.intercepted` reserved);
+fighter high/low/wide fire once fighter attacks compose the air-entity pipeline.
 
 ## Cross-refs
 
 - `battle/combat/package-info.java` — pipeline charter this slots into.
-- `Projectile.java` header — the "no hit/miss, velocity is real" precedent.
+- `Projectile.java` header — the in-flight payload and real-velocity precedent.
 - Battles are transient (no mid-battle save/load) — pending impacts never
   serialize.

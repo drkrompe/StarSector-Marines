@@ -42,7 +42,6 @@ import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -270,7 +269,7 @@ public class BattleSimulation implements BattleControl {
 
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #fogOfWar}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
-    /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
+    /** Turret-kind fire procedure — modeled ground rounds plus legacy aerial/indirect fire, payload queuing, and shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
@@ -350,7 +349,6 @@ public class BattleSimulation implements BattleControl {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
-        CoverAccuracyResolver coverAccuracy = new CoverAccuracyResolver(grid, doodadService);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
         // which we build right after. We construct the service second and
@@ -431,15 +429,14 @@ public class BattleSimulation implements BattleControl {
                 () -> simTickIndex);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects);
-        this.turretFire = new TurretFireSystem(
-                rng, grid, topology, shots, damageService,
-                det -> { synchronized (detonations) { detonations.queue(det); } },
-                hitResponse, world, coverAccuracy);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
-        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, coverAccuracy);
+        this.turretFire = new TurretFireSystem(
+                rng, topology, shots, damageService,
+                det -> { synchronized (detonations) { detonations.queue(det); } },
+                hitResponse, world, ballisticResolver);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots);
         this.firingSystem = new FiringSystem(grid, rosterService);
-        this.heavy = new HeavyWeapons(rosterService, grid, damageService, hitResponse,
-                shots, detonations, coverAccuracy);
+        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);
@@ -1393,6 +1390,14 @@ public class BattleSimulation implements BattleControl {
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);
+    }
+
+    /** Ground-entity turret overload that preserves the shooter id for resolver exclusion and hit response. */
+    public void fireShotFrom(long shooterId, float fromX, float fromY,
+                             Faction shooterFaction, TurretKind kind, long target,
+                             boolean aerialShooter, boolean hasLos) {
+        turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+                kind, target, aerialShooter, hasLos);
     }
 
     /**

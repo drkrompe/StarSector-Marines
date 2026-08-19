@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
  *       briefly after each shot to read as a muzzle flash.</li>
  *   <li>{@code projectileSpritePath} — the {@code bulletSprite} from each
  *       weapon's {@code .proj} file in {@code data/weapons/proj/}. Rendered as
- *       a rotated sprite traveling from→to over {@code SHOT_LIFETIME}.</li>
+ *       a rotated sprite traveling from→to over the authored shot lifetime.</li>
  *   <li>{@code fireSoundId} — the {@code fireSoundTwo} id from each weapon's
  *       {@code .wpn} file. These ids are pre-registered in the core install's
  *       {@code sounds.json}; we can play them directly without our own
@@ -35,9 +35,9 @@ public enum TurretKind {
     /**
      * Light rapid-fire — anti-personnel area suppression. Rips a 6-round
      * burst at the locked target with wide scatter; each round detonates
-     * with a small AoE at its landing cell. Ground-deployed only — rounds
-     * raycast against walls so a stray spread can't reach marines behind
-     * cover. Same shape as the shuttle-mounted {@link #HEAVY_MG} but tighter
+     * with a small AoE at its physical stop. Ground-deployed rounds use the
+     * shared resolver, so wide/high/low fire interacts with cover and walls.
+     * Same shape as the shuttle-mounted {@link #HEAVY_MG} but tighter
      * spread, smaller burst, faster cycle.
      */
     VULCAN       ("graphics/weapons/vulcan_cannon_turret_base.png",
@@ -48,7 +48,7 @@ public enum TurretKind {
                   22f, 1.2f, 0.45f,  1.40f, 50f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120,
                   /*burst*/ 6, 0.08f, /*aoe*/ 0.6f, /*wallDmg*/ 3, /*wallDmgRadius*/ 0f,
                   /*arc*/ 0f, /*flightSec*/ 0.14f, /*hitSpread*/ 1.3f,
-                  /*minRange*/ 0f, /*smokeTrail*/ false, /*raycastShots*/ true),
+                  /*minRange*/ 0f, /*smokeTrail*/ false),
     /** Mid-range autocannon — balanced workhorse. */
     ARBALEST     ("graphics/weapons/arbalest_turret_base.png",
                   "graphics/weapons/arbalest_turret_recoil.png",
@@ -123,7 +123,6 @@ public enum TurretKind {
                   /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20, /*wallDmgRadius*/ 1.4f,
                   /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 8.0f,
                   /*minRange*/ 30f, /*smokeTrail*/ true,
-                  /*raycastShots*/ false,
                   /*indirectFire*/ true, /*noLosAccuracyMult*/ 0.55f),
     /**
      * Heavy MG — wide-spread suppression. Each trigger pull rips a long
@@ -219,33 +218,21 @@ public enum TurretKind {
      */
     public final float arcHeight;
     /**
-     * Sim-seconds the projectile is visible in flight. Drives both the
-     * {@link com.dillon.starsectormarines.battle.combat.ShotEvent} lifetime and the
-     * paired {@link com.dillon.starsectormarines.battle.combat.PendingDetonation}
-     * timer so the explosion lines up with the projectile arriving. {@code 0}
-     * falls back to the legacy {@code SHOT_LIFETIME} tracer flash.
+     * Maximum-range presentation timing. Legacy aerial/indirect paths use it
+     * directly; modeled ground direct fire derives {@link #directRoundVelocity()}
+     * so a nearer stop arrives sooner. {@code 0} uses the tracer/resolver default.
      */
     public final float flightSec;
     /**
-     * Endpoint scatter on a hit, in cells. The hit/miss roll still resolves
-     * against the locked target; this just nudges WHERE the impact lands so a
-     * burst of grenades sprays the cell cluster instead of stacking on one.
-     * A miss expands beyond this nominal impact pattern.
+     * Nominal spread in cells. Modeled direct fire feeds it into target-plane
+     * lateral/elevation sampling; legacy aerial/indirect fire uses it as
+     * endpoint scatter. Misses expand beyond this nominal pattern.
      */
     public final float hitSpread;
     /** Minimum engagement range in cells. Targets closer than this aren't acquired or kept locked — keeps lobbed-AoE weapons from dropping on top of friendlies. {@code 0} = no minimum. */
     public final float minRange;
     /** When true, projectiles in flight emit a small gray smoke puff per render frame at their tail. Used by the grenade launcher; reads as "smokes its way to the target." */
     public final boolean smokeTrail;
-    /**
-     * When {@code true}, each scattered round raycasts from origin to endpoint
-     * through the nav grid; if a wall sits in the path, the endpoint snaps to
-     * that wall cell (the round "hits" the wall instead of passing through).
-     * Used by ground-deployed area-spread weapons so wide scatter can't pepper
-     * units behind cover. Air-mounted variants leave this off — they're
-     * elevated above the buildings they fire over.
-     */
-    public final boolean raycastShots;
     /**
      * When {@code true}, this kind can engage targets it has no direct line of
      * sight to — artillery / indirect-fire weapons. The aim loop keeps the
@@ -276,7 +263,7 @@ public enum TurretKind {
                 role, startingAmmo,
                 /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0, /*wallDamageRadius*/ 0f,
                 /*arcHeight*/ 0f, /*flightSec*/ 0f, /*hitSpread*/ 0f, /*minRange*/ 0f,
-                /*smokeTrail*/ false, /*raycastShots*/ false,
+                /*smokeTrail*/ false,
                 /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
     }
 
@@ -293,7 +280,6 @@ public enum TurretKind {
                 role, startingAmmo,
                 burstCount, burstSpacing, aoeRadius, wallDamage, wallDamageRadius,
                 arcHeight, flightSec, hitSpread, minRange, smokeTrail,
-                /*raycastShots*/ false,
                 /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
     }
 
@@ -304,24 +290,7 @@ public enum TurretKind {
                TurretRole role, int startingAmmo,
                int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
-               boolean smokeTrail, boolean raycastShots) {
-        this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
-                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
-                role, startingAmmo,
-                burstCount, burstSpacing, aoeRadius, wallDamage, wallDamageRadius,
-                arcHeight, flightSec, hitSpread, minRange, smokeTrail, raycastShots,
-                /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
-    }
-
-    TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
-               String displayName,
-               float range, float damage, float accuracy, float cooldown,
-               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
-               TurretRole role, int startingAmmo,
-               int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
-               float arcHeight, float flightSec, float hitSpread, float minRange,
-               boolean smokeTrail, boolean raycastShots,
-               boolean indirectFire, float noLosAccuracyMult) {
+               boolean smokeTrail, boolean indirectFire, float noLosAccuracyMult) {
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
         this.projectileSpritePath = projectileSpritePath;
@@ -347,7 +316,6 @@ public enum TurretKind {
         this.hitSpread = hitSpread;
         this.minRange = minRange;
         this.smokeTrail = smokeTrail;
-        this.raycastShots = raycastShots;
         this.indirectFire = indirectFire;
         this.noLosAccuracyMult = noLosAccuracyMult;
     }
@@ -358,9 +326,9 @@ public enum TurretKind {
      * path — flight time becomes {@code dist / cellsPerSec} (close shots arrive
      * sooner than far ones, matching real rockets), and the shot is a real
      * entity in {@code BattleSimulation.activeProjectiles} that point defense
-     * can later target. {@code 0} keeps the legacy ShotEvent + PendingDetonation
-     * pair with a per-kind {@link #flightSec} constant — every direct-fire
-     * tracer kind (VULCAN, ARBALEST, HEPHAESTUS, etc.) stays on this path.
+     * can later target. {@code 0} means the shot remains a tracer/event rather
+     * than an independent projectile entity; ground direct-fire callers may
+     * still derive their resolver velocity from {@link #flightSec}.
      *
      * <p>Tuning: LOCUST 70 (1.4s at max range 100; close shots arrive fast).
      * GRENADE_LAUNCHER 45 (lobbed shells, similar to legacy 0.65s @ 28-cell range).
@@ -371,6 +339,16 @@ public enum TurretKind {
             case GRENADE_LAUNCHER: return 45f;
             default:               return 0f;
         }
+    }
+
+    /**
+     * Modeled ground direct-fire velocity in cells/sec. Burst kinds retain
+     * their pre-S4 maximum-range visual timing; zero-timing single-shot kinds
+     * use the shared resolver default.
+     */
+    public float directRoundVelocity() {
+        if (!(flightSec > 0f)) return 60f;
+        return range / flightSec;
     }
 
     /**

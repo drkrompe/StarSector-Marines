@@ -12,6 +12,8 @@ final class TargetPlaneAim {
     /** Extra clearance beyond the target silhouette for an authored miss. */
     static final float MISS_CLEARANCE_MIN = 0.20f;
     static final float MISS_CLEARANCE_MAX = 0.80f;
+    /** Organic near-center variance for an intended hit, before weapon spread. */
+    private static final float HIT_JITTER_BASELINE = 0.20f;
     private static final float AXIS_EPSILON = 1e-6f;
 
     record Sample(boolean onTarget, float lateral, float elevation) {}
@@ -27,7 +29,7 @@ final class TargetPlaneAim {
         float vertical = Math.max(AXIS_EPSILON, verticalHalfHeight);
 
         if (onTarget) {
-            float jitter = ShotEndpoint.HIT_JITTER_BASELINE + Math.max(0f, effectiveSpread);
+            float jitter = HIT_JITTER_BASELINE + Math.max(0f, effectiveSpread);
             float lateralMax = Math.min(horizontal * 0.90f, jitter);
             float elevationMax = Math.min(vertical * 0.90f, jitter);
             float lateral = signed(rng.nextFloat()) * lateralMax;

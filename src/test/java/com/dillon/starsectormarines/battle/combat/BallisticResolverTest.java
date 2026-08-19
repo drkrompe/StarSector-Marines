@@ -75,6 +75,27 @@ class BallisticResolverTest {
                 "a 75% roll misses when target armor halves an otherwise certain hit");
     }
 
+    @Test
+    void explicitSourceUsesItsFloatOriginAndExcludesItsEntityId() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long sourceBody = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.MARINE, 8);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+        BallisticResolver.Source source = new BallisticResolver.Source(
+                sourceBody, cellCenter(2), rowCenter(), 0f, Faction.DEFENDER);
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                source, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(target, result.victimId(),
+                "the source entity is excluded even when its roster faction differs from the explicit source");
+        assertTrue(result.impacts());
+    }
+
     /** Directly stamps {@code MOVEMENT_VEL_X/Y} — the columns {@code MovementService.velX/velY} read — bypassing a real movement-pass tick so a scene can pin an exact applied velocity for the time-domain solve. */
     private static void setVelocity(BattleSimulation sim, long id, float vx, float vy) {
         BattleComponents c = sim.getBattleComponents();
@@ -311,7 +332,7 @@ class BallisticResolverTest {
         DoodadService doodads = new DoodadService(grid);
         // Sits directly on the shooter-target line, one cell short of the target — the
         // target's west neighbor, so it contributes DoodadService west-facing cover to
-        // the target's own cell (same shape as CoverAccuracyResolverTest's directional case).
+        // the target's own cell (the former directional-cover regression shape).
         doodads.addDoodad(new Doodad(9, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
         long shooter = spawn(sim, Faction.MARINE, 2);
         long target = spawn(sim, Faction.DEFENDER, 10);

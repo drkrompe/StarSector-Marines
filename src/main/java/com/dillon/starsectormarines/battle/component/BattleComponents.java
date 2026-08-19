@@ -691,7 +691,8 @@ public final class BattleComponents {
      * {@code COMBAT.burstRemaining(id) > 0} and continues its burst via the
      * infantry {@code fireShot} path; turrets fire their burst rounds through
      * {@code TurretBehavior} using the turret {@code fireShotFrom} pipeline
-     * (scatter/AoE/raycast per {@code TurretKind}). If turrets wrote the COMBAT
+     * (modeled direct round or legacy aerial/indirect procedure per kind).
+     * If turrets wrote the COMBAT
      * burst columns, {@code InfantryWeapons.tick} would ALSO process them —
      * double-fire, and through the wrong pipeline — so the turret burst rides
      * here instead and {@code InfantryWeapons} never reads/writes it.

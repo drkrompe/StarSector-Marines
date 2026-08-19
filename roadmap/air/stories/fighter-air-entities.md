@@ -130,6 +130,12 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
   `AirBody`.
 - **(Future) 4e — Fighters take fire / get shot down.** Wire `hp` + the AA path
   through the same death seam; land at bases. Gated on the AA work.
+- **(Future) 4f — Modeled fighter fire.** Once fighter attacks live on the
+  composed air entity, adopt ballistics' target-plane high/low/wide aim and
+  resolved traveling FX. Define airborne source Z, roof/wall clearance, and
+  air-to-air silhouettes before enabling damage; keep `FighterProfile` /
+  `WeaponClass` as the FX/loadout authority. See ballistics S4's fighter
+  follow-up rather than folding this into the ground direct-fire migration.
 
 ## Lifecycle — cycling SHIPPED `d63d03f`
 
