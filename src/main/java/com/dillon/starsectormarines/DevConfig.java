@@ -11,26 +11,6 @@ package com.dillon.starsectormarines;
 public final class DevConfig {
 
     /**
-     * When {@code > 0}: seed the player's available-transport list on
-     * <em>debug missions only</em>
-     * ({@code PlayerFleetShuttles.queryAvailable}) with this many Valkyries,
-     * as if the player fielded them. Unlike the old transport-gate bypass,
-     * this feeds the <em>real</em> resolver path: the seeded ships show up as
-     * committable rows in the pre-battle UI, the transport-sufficiency gate
-     * passes because the player genuinely has lift, and the manifest is built
-     * from the committed subset via the normal cycling math. Lets us exercise
-     * armed-Valkyrie / A2G behavior and the commitment UI without curating a
-     * real fleet — and crucially without disabling the UI it's meant to test.
-     *
-     * <p>{@code 0} disables the seed and only the player's actual fleet hulls
-     * field transports (production behavior). The seeded type is Valkyrie
-     * (full A2G turret kit); edit {@code PlayerFleetShuttles} if another hull
-     * is wanted.
-     */
-    @DebugOnly
-    public static final int DEBUG_SEED_PLAYER_VALKYRIES = 0;
-
-    /**
      * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
      * for every <em>debug-generated</em> mission to this value. Clamps both the mission's
      * authored drop count and the employer's coverage roll, so the briefing

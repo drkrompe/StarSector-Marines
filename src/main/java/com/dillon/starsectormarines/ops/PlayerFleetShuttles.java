@@ -55,15 +55,6 @@ public final class PlayerFleetShuttles {
      * fleet has no matching hulls.
      */
     public static List<ShuttleType> queryAvailable() {
-        return queryAvailable(false);
-    }
-
-    /**
-     * Returns fleet transports, optionally appending the dev fixture for a
-     * debug mission. Production briefings must pass {@code false} so test lift
-     * never leaks into normal contract manifests.
-     */
-    public static List<ShuttleType> queryAvailable(boolean includeDebugSeed) {
         if (Global.getSector() == null) return Collections.emptyList();
         CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
         if (fleet == null || fleet.getFleetData() == null) return Collections.emptyList();
@@ -80,14 +71,6 @@ public final class PlayerFleetShuttles {
                     + " baseHullId=" + baseId
                     + " → " + (t != null ? t.name() : "(not a transport)"));
             if (t != null) out.add(t);
-        }
-        if (includeDebugSeed) {
-            // Dev seed — pretend the player fields N Valkyries so the debug
-            // commitment UI + gate + manifest exercise the real path without a
-            // curated fleet. Never applied to production contracts.
-            for (int i = 0; i < com.dillon.starsectormarines.DevConfig.DEBUG_SEED_PLAYER_VALKYRIES; i++) {
-                out.add(ShuttleType.VALKYRIE);
-            }
         }
         out.sort((a, b) -> Integer.compare(priorityIndex(a), priorityIndex(b)));
         return out;

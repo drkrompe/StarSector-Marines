@@ -549,9 +549,8 @@ public final class MissionGenerator {
      * Rolls how many dropships the employer covers. Higher-risk missions tend
      * to come with more transport support (the client has more skin in the
      * game), but never more than {@link #employerCoverageCap}. The player
-     * supplies the bulk of any non-trivial mission's lift; for playtesting
-     * without a curated fleet, seed player transports via
-     * {@link com.dillon.starsectormarines.DevConfig#DEBUG_SEED_PLAYER_VALKYRIES}.
+     * supplies the bulk of any non-trivial mission's lift. Debug missions use
+     * the briefing's exact transport type/count picker instead of this roll.
      */
     private static int rollEmployerShuttles(Random r, RiskLevel risk, int required) {
         int cap = Math.min(required, employerCoverageCap(risk));

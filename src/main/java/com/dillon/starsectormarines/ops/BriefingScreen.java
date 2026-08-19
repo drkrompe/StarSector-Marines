@@ -42,6 +42,7 @@ import org.apache.log4j.Logger;
 import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -129,6 +130,15 @@ public class BriefingScreen implements Screen {
     private List<ShuttleType> cachedAvailable = java.util.Collections.emptyList();
 
     /**
+     * Synthetic transport configuration used only by debug missions. Unlike the
+     * production fleet rows, this is an exact roster: every selected transport
+     * has this type, and the count is capped to the mission's drop count so each
+     * configured hull appears in the battle manifest.
+     */
+    private ShuttleType debugTransportType = ShuttleType.VALKYRIE;
+    private int debugTransportCount = 1;
+
+    /**
      * Indices into {@link #cachedCarriers} the player has deselected for the
      * current mission's fighter cover. Default empty = all carriers committed.
      * Reset alongside {@link #deselectedTransports} when the mission changes.
@@ -193,7 +203,11 @@ public class BriefingScreen implements Screen {
             commandDeckInitialized = false;
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
-        cachedAvailable = PlayerFleetShuttles.queryAvailable(m != null && m.source.isDebug());
+        // Debug missions use an exact synthetic roster controlled by the picker;
+        // production missions continue to reflect only the real player fleet.
+        cachedAvailable = m != null && m.source.isDebug()
+                ? debugTransportRoster(m)
+                : PlayerFleetShuttles.queryAvailable();
         cachedCarriers = PlayerFleetWings.committableCarriers();
         cachedPowerSources = PlayerFleetPowerSources.committableShips();
         cachedAvailablePowers = availablePowers(m);
@@ -364,8 +378,8 @@ public class BriefingScreen implements Screen {
         float rowW = layout.rightCol.w - 2 * INNER_PAD;
         // Bottom band reserved for the Deploy/Back row (see buildButtons). Rows
         // stop here rather than overdrawing the buttons — under a tall list
-        // (e.g. a big DEBUG_SEED_PLAYER_VALKYRIES) the lowest sections (employer
-        // readout) truncate first; transports + the gate, which come first, win.
+        // (e.g. a large real fleet) the lowest sections (employer readout)
+        // truncate first; transports + the gate, which come first, win.
         float floor = layout.rightCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
         if (m.source == MissionSource.STATIONING) {
@@ -459,33 +473,39 @@ public class BriefingScreen implements Screen {
             y -= SECTION_GAP;
         }
 
-        // Transport — one toggle row per available shuttle, with sortie-cycle annotation.
+        // Transport — debug missions get an exact type/count picker; production
+        // missions retain one commitment toggle per real fleet transport.
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
         y -= ROW_GAP;
-        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(m, effectivePlayerShuttles());
-        java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
-        for (int i = 0; i < cachedAvailable.size(); i++) {
-            if (y < floor) return;
-            final int idx = i;
-            ShuttleType type = cachedAvailable.get(i);
-            boolean selected = !deselectedTransports.contains(idx);
-            String marker = selected ? "[x]" : "[ ]";
-            int cycles = playerCyclesByIndex.getOrDefault(idx, 0);
-            StringBuilder rowLabel = new StringBuilder();
-            rowLabel.append(marker).append(' ').append(shuttleDisplayName(type));
-            if (selected && cycles > 1) rowLabel.append(" (").append(cycles).append(" sorties)");
-            else if (!selected) rowLabel.append(" — held back");
-            Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
-            ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
-                    () -> {
-                        if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
-                        else deselectedTransports.add(idx);
-                        rebuild();
-                    });
-            widgets.add(toggle);
-            widgets.add(new SpriteThumbWidget(type.spritePath, x, y - 20f, THUMB, THUMB));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(), x + THUMB + 10f, y, rowColor));
-            y -= ROW_GAP;
+        if (m.source.isDebug()) {
+            y = buildDebugTransportPicker(m, x, y, rowW, floor);
+        } else {
+            List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
+                    m, effectivePlayerShuttles());
+            java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
+            for (int i = 0; i < cachedAvailable.size(); i++) {
+                if (y < floor) return;
+                final int idx = i;
+                ShuttleType type = cachedAvailable.get(i);
+                boolean selected = !deselectedTransports.contains(idx);
+                String marker = selected ? "[x]" : "[ ]";
+                int cycles = playerCyclesByIndex.getOrDefault(idx, 0);
+                StringBuilder rowLabel = new StringBuilder();
+                rowLabel.append(marker).append(' ').append(shuttleDisplayName(type));
+                if (selected && cycles > 1) rowLabel.append(" (").append(cycles).append(" sorties)");
+                else if (!selected) rowLabel.append(" — held back");
+                Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
+                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
+                        () -> {
+                            if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
+                            else deselectedTransports.add(idx);
+                            rebuild();
+                        });
+                widgets.add(toggle);
+                widgets.add(new SpriteThumbWidget(type.spritePath, x, y - 20f, THUMB, THUMB));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(), x + THUMB + 10f, y, rowColor));
+                y -= ROW_GAP;
+            }
         }
         boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
         if (!transportOk && y >= floor) {
@@ -530,7 +550,11 @@ public class BriefingScreen implements Screen {
         if (y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    m.employerShuttles > 0 ? m.employerShuttles + "× Aeroshuttle" : Strings.get("briefingAirNone"),
+                    m.source.isDebug()
+                            ? "Overridden by debug picker"
+                            : m.employerShuttles > 0
+                                    ? m.employerShuttles + "× Aeroshuttle"
+                                    : Strings.get("briefingAirNone"),
                     valueX, y, VALUE_COLOR));
             y -= ROW_GAP;
         }
@@ -731,6 +755,82 @@ public class BriefingScreen implements Screen {
         return out;
     }
 
+    // ---- debug-only pickers ----
+
+    /** Exact debug-only transport type/count controls. */
+    private float buildDebugTransportPicker(Mission mission, float x, float y,
+                                            float rowW, float floor) {
+        if (y < floor) return y;
+        float labelW = 70f;
+        float arrowW = 34f;
+        float typeW = Math.min(170f, rowW - labelW - 2f * arrowW - 12f);
+        float controlX = x + labelW;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Type", x, y, LABEL_COLOR));
+        addDebugTransportButton(controlX, y, arrowW, "<", this::previousDebugTransportType);
+        addDebugTransportButton(controlX + arrowW + 4f, y, typeW,
+                shuttleDisplayName(debugTransportType), this::nextDebugTransportType);
+        addDebugTransportButton(controlX + arrowW + typeW + 8f, y, arrowW,
+                ">", this::nextDebugTransportType);
+        y -= ROW_GAP;
+
+        if (y < floor) return y;
+        int maxCount = Math.max(0, mission.requiredDrops);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Count", x, y, LABEL_COLOR));
+        addDebugTransportButton(controlX, y, arrowW, "-",
+                debugTransportCount > 0 ? () -> adjustDebugTransportCount(-1, maxCount) : null);
+        float countW = 56f;
+        widgets.add(new ButtonWidget(controlX + arrowW + 4f, y - BTN_H + 6f,
+                countW, BTN_H, null));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                Integer.toString(debugTransportCount),
+                controlX + arrowW + 22f, y,
+                debugTransportCount > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
+        addDebugTransportButton(controlX + arrowW + countW + 8f, y, arrowW, "+",
+                debugTransportCount < maxCount
+                        ? () -> adjustDebugTransportCount(1, maxCount) : null);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                debugTransportType.capacity + " seats each · "
+                        + mission.requiredDrops + " drops",
+                controlX + 2f * arrowW + countW + 22f, y, LABEL_COLOR));
+        return y - ROW_GAP;
+    }
+
+    private void addDebugTransportButton(float x, float y, float w,
+                                         String label, Runnable action) {
+        widgets.add(new ButtonWidget(x, y - BTN_H + 6f, w, BTN_H, action));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label,
+                x + (w <= 40f ? 11f : 7f), y,
+                action != null ? VALUE_COLOR : LABEL_COLOR));
+    }
+
+    private void previousDebugTransportType() {
+        ShuttleType[] types = ShuttleType.values();
+        int index = (debugTransportType.ordinal() - 1 + types.length) % types.length;
+        debugTransportType = types[index];
+        rebuild();
+    }
+
+    private void nextDebugTransportType() {
+        ShuttleType[] types = ShuttleType.values();
+        debugTransportType = types[(debugTransportType.ordinal() + 1) % types.length];
+        rebuild();
+    }
+
+    private void adjustDebugTransportCount(int delta, int maxCount) {
+        debugTransportCount = Math.max(0,
+                Math.min(maxCount, debugTransportCount + delta));
+        rebuild();
+    }
+
+    private List<ShuttleType> debugTransportRoster(Mission mission) {
+        int count = Math.max(0, Math.min(mission.requiredDrops, debugTransportCount));
+        if (count != debugTransportCount) debugTransportCount = count;
+        List<ShuttleType> roster = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) roster.add(debugTransportType);
+        return roster;
+    }
+
     // ---- debug air picker (DevConfig.DEBUG_AIRCRAFT_PICKER) ----
 
     /**
@@ -847,7 +947,9 @@ public class BriefingScreen implements Screen {
      * transports cycle to fill any remaining gap.
      */
     private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {
-        return m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
+        return m.source.isDebug()
+                ? !selectedShuttles.isEmpty()
+                : m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
     }
 
     /** Title-cased shuttle name for display (VALKYRIE → "Valkyrie"). */
