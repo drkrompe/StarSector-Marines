@@ -32,6 +32,13 @@ final class HeightSheetTexture {
         this.path = path;
     }
 
+    /** In-memory seam for unit tests; production always loads by mod-relative path. */
+    HeightSheetTexture(BufferedImage img) {
+        this.path = "<memory>";
+        this.img = img;
+        this.loadAttempted = true;
+    }
+
     /**
      * Average red-channel value (height sheets are grayscale, R=G=B) over the
      * given source rect, normalized to {@code [0,1]}; {@code -1} if the sheet

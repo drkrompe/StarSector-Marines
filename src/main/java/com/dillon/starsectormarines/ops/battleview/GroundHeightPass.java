@@ -31,7 +31,7 @@ final class GroundHeightPass {
             for (int x = 0; x < grid.getWidth(); x++) {
                 float macro = topology.isWall(x, y) ? wallHeight
                         : (mapping != null ? mapping.macroHeight(topology.getGroundKind(x, y)) : 0.5f);
-                float h = clamp01(micro.combine(macro, topology, x, y));
+                float h = clamp01(micro.combine(macro, grid, topology, x, y));
 
                 float x0 = cam.cellToScreenX(x);
                 float y0 = cam.cellToScreenY(y);
