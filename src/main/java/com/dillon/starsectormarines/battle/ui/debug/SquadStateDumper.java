@@ -113,6 +113,12 @@ public final class SquadStateDumper {
         o.put("chokePointPortalId", squad.chokePointPortalId);
         o.put("fallbackTriggered", squad.fallbackTriggered);
         o.put("fallbackInProgress", squad.fallbackInProgress);
+        o.put("engagementDisciplineHold", squad.engagementDisciplineHold);
+        long rejectedTarget = sim.resolveUnit(squad.engagementDisciplineTargetId);
+        o.put("engagementDisciplineTargetId", rejectedTarget != 0L
+                ? sim.identity().name(rejectedTarget) : null);
+        o.put("engagementDisciplineThreatDensity",
+                squad.engagementDisciplineThreatDensity);
         o.put("advanceEngageWeight", squad.advanceEngageWeight);
         o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
         o.put("advanceEngageLeash", squad.advanceEngageLeash);

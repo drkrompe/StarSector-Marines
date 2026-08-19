@@ -61,6 +61,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             SurviveContact.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
+            HoldEngagementLineGoal.INSTANCE,
             EliminateEnemiesGoal.INSTANCE
     );
 
@@ -193,6 +194,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.aliveMembersAtLastPlan = 0;
             squad.clearMechScreen();
+            squad.clearEngagementDisciplineHold();
             return;
         }
         if (protectedShelterGuard(squad, sim)) {
