@@ -90,11 +90,18 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
-- **Mech roster** *(design stage)* — preserve the current all-range heavy as an
-  apex chassis, then add lighter specialists with readable hardware weaknesses:
-  a fast chaingun/SRM breacher and a fragile linear-cannon/LRM support strider
-  first, followed by a scout only when recon behavior can make it meaningful.
-  See [`mechs/`](mechs/overview.md).
+- **Battle radio** *(v1 shipped)* — marine infantry squads now emit quiet,
+  positional visual-contact and fallback calls from real squad-state
+  transitions, plus globally throttled acknowledgements during sustained
+  engagements. The standalone battle and vanilla-combat bridge share one
+  presentation-only cue policy, so audio never perturbs sim determinism. An
+  in-game mix/content feel pass remains queued. See
+  [`battle-radio/`](battle-radio/overview.md).
+- **Mech roster** *(active)* — the modular arm/shoulder component substrate and
+  Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
+  -5 and -15 rack classes and profile-aware physical geometry. Production
+  encounters remain Bulwark-only pending manual tuning; a scout follows only
+  when recon behavior can make it meaningful. See [`mechs/`](mechs/overview.md).
 
 ## Immediate next-up
 
@@ -136,20 +143,30 @@ universe over time, not retrofitted into intel slots.
    The first swarm-feel correction now quarters alien HP and prefers a
    marine-style layered top-down actor over the fallback sheet (`bccbbe16`),
    with generated fore-claws that alternate a foreground contact swipe
-   (`20d3bcb0`); manual roster and post-rebalance feel validation remain queued. See
+   (`20d3bcb0`). Runners now choose opportunistically between nearby marines
+   and exposed evacuees, allowing soldiers to peel pressure from the objective
+   (`4fedb34a`); manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Command Powers S8 B-2** — add member-level commitment for power-source
+3. **Campaign narrative follow-through** — S1 patron engagement memory is
+   shipped (`1b950e48`): real terminal contract outcomes now persist exactly
+   once beyond compaction and the comms officer can acknowledge the newest
+   valid shared history in a returning patron's briefing. Contract the next
+   narrative story before adding richer callbacks, patron evolution, or
+   cross-patron references. See
+   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+4. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
-4. **Specialist mech review** — confirm the provisional roster and names, then
-   build the Hound/Sirocco comparison slice before changing production defender
-   composition. See [`mechs/next-session.md`](mechs/next-session.md).
-5. **Manual verification queue (deferred this session)** — the loot loop's
+5. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
+   panel to compare Hound/Sirocco against the unchanged Bulwark, tune their
+   identities, then approve budgeted production defender composition. See
+   [`mechs/next-session.md`](mechs/next-session.md).
+6. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster plus
    post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-6. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+7. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See

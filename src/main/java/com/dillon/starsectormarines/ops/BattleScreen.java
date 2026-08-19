@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
@@ -33,6 +34,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
+import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -228,6 +230,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float distantBoomTimer;
     /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
     private final java.util.Random audioRng = new java.util.Random();
+    /** Shared squad-event policy for sparse positional marine radio calls. */
+    private final BattleRadioChatter radioChatter = new BattleRadioChatter();
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -278,6 +282,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         pickAmbient(gridW, gridH);
         distantBoomTimer = nextDistantBoomGap();
+        radioChatter.reset();
     }
 
     /**
@@ -471,6 +476,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
+        if (speedMultiplier > 0f) playRadioChatter(sim, dt);
         // Rebuild widgets when the sim transitions to complete so the bottom
         // action button swaps from Back to Continue.
         if (sim.isComplete() != lastSimComplete) {
@@ -558,6 +564,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
                 2.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
+        debugPanel.addAction("Spawn mech family", () -> MechFamilyDebugSpawner.spawn(getSim()));
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
                 () -> turretAuthor.active,
@@ -902,6 +909,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                 break;  // one voice per frame
             }
         }
+    }
+
+    /** Plays at most one quiet radio cue at the speaking squad's current centroid. */
+    private void playRadioChatter(BattleSimulation sim, float dt) {
+        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim.getSquads());
+        if (emission == null) return;
+        Vector2f loc = new Vector2f(
+                emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
+        Global.getSoundPlayer().playSound(
+                emission.cue().soundId(), 1f, emission.cue().volume(), loc,
+                new Vector2f(0f, 0f));
     }
 
     private void onBackOrContinue() {

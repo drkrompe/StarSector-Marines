@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -81,14 +82,16 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * Lifecycle prep called once before {@link Action#execute} each tick:
      * advance the rocket-aim animation if mid-aim (short-circuits the action
      * for this tick), tick cooldowns, then opportunistically commit a rocket
-     * if a turret-of-opportunity sits in range with LOS. Returns {@code false}
-     * when the unit is locked in aim (existing or freshly initiated) — caller
-     * should skip {@code action.execute} this frame.
+     * if the current action permits opportunity fire and a turret-of-opportunity
+     * sits in range with LOS. Returns {@code false} when the unit is locked in
+     * aim (existing or freshly initiated) — caller should skip
+     * {@code action.execute} this frame.
      */
-    public static boolean prepareForAction(long unit, BattleControl sim) {
+    public static boolean prepareForAction(long unit, BattleControl sim,
+                                           boolean permitsOpportunityFire) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
-        if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
+        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
         return true;
     }
 
@@ -97,7 +100,18 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         Squad squad = sim.squadOf(unit);
         if (squad == null) return;
 
-        if (!prepareForAction(unit, sim)) return;
+        // Consult the assigned action before the preparation hook so a
+        // move-only role cannot initiate an opportunity rocket and then skip
+        // the action that was supposed to keep it moving. An already-started
+        // aim still completes — tickAimAndShortCircuit is a committed-shot
+        // lifecycle, not a fresh tactical choice.
+        SquadPlan prepPlan = squad.currentPlan;
+        SquadPlan.Step prepStep = prepPlan != null && !prepPlan.isComplete()
+                ? prepPlan.currentStep() : null;
+        boolean permitsPreparationFire = prepStep == null
+                || prepStep.slotOf(unit) == null
+                || prepStep.action.permitsOpportunityFire();
+        if (!prepareForAction(unit, sim, permitsPreparationFire)) return;
 
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) {
@@ -240,9 +254,21 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 step.assignments.putAll(assignment);
             }
         }
+        if (squad.boundingActive && !continuesBoundingAdvance(plan, squad)) {
+            squad.clearBoundingOverwatch();
+        }
         squad.currentPlan = plan;
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
+    }
+
+    private static boolean continuesBoundingAdvance(SquadPlan plan, Squad squad) {
+        if (plan == null || plan.isComplete()) return false;
+        SquadPlan.Step step = plan.currentStep();
+        if (step == null || !(step.action instanceof EnterZone enter)) return false;
+        return enter.targetZoneId() == squad.boundingTargetZoneId
+                && enter.destX() == squad.boundingDestX
+                && enter.destY() == squad.boundingDestY;
     }
 }

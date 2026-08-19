@@ -21,10 +21,14 @@ public final class LayeredMechAppearance {
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int POD_NONE = 0;
-    public static final int POD_SRM = 1;
-    public static final int POD_LRM = 2;
-    /** Uses the heavy pod shell while retaining the slot's underlying weapon identity. */
-    public static final int POD_HEAVY_SRM = 3;
+    public static final int POD_SMALL_SRM = 1;
+    public static final int POD_SMALL_LRM = 2;
+    public static final int POD_LARGE_SRM = 3;
+    public static final int POD_LARGE_LRM = 4;
+    /** Compatibility names retained for authored tests and older call sites. */
+    public static final int POD_SRM = POD_SMALL_SRM;
+    public static final int POD_LRM = POD_LARGE_LRM;
+    public static final int POD_HEAVY_SRM = POD_LARGE_SRM;
 
     private LayeredMechAppearance() {}
 

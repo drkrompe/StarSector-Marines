@@ -1,38 +1,34 @@
 package com.dillon.starsectormarines.battle.mech.components;
 
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 /**
- * Per-unit mutable state for the three-weapon mech loadout. Held in the world's
+ * Per-unit mutable state for a component-built mech loadout. Held in the world's
  * {@code MECH_LOADOUT} OBJECT column (an optional archetype-presence component)
  * when a mech-class unit spawns; absent on every other unit — a mech is an entity
  * that <em>has</em> this component, not one with a non-null {@code mech} field.
  * (Was a {@code ComponentStore<MechLoadoutComponent>} before that transitional
  * store was folded into the archetype world and deleted.)
- * Holds the three {@link MechWeapon} slot references plus per-slot
- * ammo / cooldown / salvo trackers — concurrent fire across all three tracks
- * is the whole point of the mech, so each weapon's state is independent.
- *
- * <p>Each weapon track keeps its own cooldown + burst/salvo trackers on this
- * class ({@link #chaingunCooldown} / {@link #chaingunBurstRemaining} /
- * {@link #chaingunBurstTimer} / {@link #chaingunBurstTargetId}, and the SRM
- * salvo equivalents below) rather than borrowing the {@code Entity}-level
- * primary-weapon cooldown/burst state — the three tracks fire concurrently,
- * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
- * either, so there's no marine fire path to reuse.
+ * Each physical hardpoint carries an optional {@link MechWeaponMount}; the
+ * installed {@link MechWeaponComponent} is immutable while cooldown, ammunition
+ * and burst continuation remain per-mount. Independent mounts may fire on the
+ * same tick. Mechs do not borrow the infantry primary-weapon state.
  */
 public final class MechLoadoutComponent {
 
-    public static final int DEFAULT_SRM_AMMO_SALVOS = 6;
-    public static final int DEFAULT_LRM_AMMO_SALVOS = 3;
+    public static final int DEFAULT_SRM_AMMO_SALVOS = MechWeaponComponent.SRM_15.ammoCapacity;
+    public static final int DEFAULT_LRM_AMMO_SALVOS = MechWeaponComponent.LRM_15.ammoCapacity;
     /** Default upper-torso traverse speed, in sprite degrees per sim-second. */
     public static final float DEFAULT_TORSO_TURN_RATE_DEGREES = 120f;
 
-    public final MechWeapon chaingun;
-    public final MechWeapon srmPod;
-    public final MechWeapon lrmArtillery;
+    public final MechVariant variant;
+    private final MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
 
     /** Current upper-torso bearing in sprite degrees; independent of the hips. */
     public float torsoFacingDegrees = 180f;
@@ -68,44 +64,6 @@ public final class MechLoadoutComponent {
      * loadout state.
      */
     public MechRole role;
-
-    /** Sim-seconds until CHAINGUN can fire another burst. */
-    public float chaingunCooldown = 0f;
-    /** Rounds left in the current chaingun burst. 0 = no active burst. */
-    public int chaingunBurstRemaining = 0;
-    /** Sim-seconds until the next chaingun round emits. Ignored when {@link #chaingunBurstRemaining} == 0. */
-    public float chaingunBurstTimer = 0f;
-    /**
-     * Entity id of the target locked at burst start — burst keeps firing here
-     * even if the mech's primary target drifts mid-stream. {@code 0L} = no
-     * locked target. Held as an id (not an object handle) so a target killed
-     * mid-burst resolves cleanly via {@code registry.isLive} / {@code sim.resolveUnit}
-     * (→ {@code 0L}) instead of dangling — see {@code entity-id-handle} story. Resolved in the
-     * {@code HeavyWeapons} continuation pass; written by {@code MechCombatantBehavior}.
-     */
-    public long chaingunBurstTargetId;
-
-    /** Sim-seconds until SRM_POD can launch another salvo. Decremented in the per-tick mech-fire pass. */
-    public float srmCooldown = 0f;
-    /** Salvos remaining for the SRM_POD. One salvo emits {@link MechWeapon#burstCount} rockets. */
-    public int srmAmmoSalvos;
-    /** Rockets left to emit in the current SRM salvo. 0 = no active salvo. */
-    public int srmSalvoRemaining = 0;
-    /** Sim-seconds until the next rocket in the current salvo launches. Ignored when {@link #srmSalvoRemaining} == 0. */
-    public float srmSalvoTimer = 0f;
-    /** Entity id of the target locked at salvo start, held until the salvo is exhausted so it doesn't smear across enemies. {@code 0L} = none; resolved via {@code registry.isLive} (dangling-safe). */
-    public long srmSalvoTargetId;
-
-    /** Sim-seconds until LRM_ARTILLERY can fire another salvo. */
-    public float lrmCooldown = 0f;
-    /** Salvos remaining for LRM_ARTILLERY. One salvo emits {@link MechWeapon#burstCount} rockets. */
-    public int lrmAmmoSalvos;
-    /** Rockets left in the current LRM salvo. 0 = no active salvo. */
-    public int lrmSalvoRemaining = 0;
-    /** Sim-seconds until the next rocket in the current LRM salvo launches. Ignored when {@link #lrmSalvoRemaining} == 0. */
-    public float lrmSalvoTimer = 0f;
-    /** Entity id of the target locked at salvo start. {@code 0L} = none; resolved via {@code registry.isLive} (dangling-safe). */
-    public long lrmSalvoTargetId;
 
     /** Latched true once the sim has emitted a smoking-wreck for this mech's death. Prevents re-spawn across ticks if the death-scan pass runs again with the mech still in the units list. */
     public boolean wreckSpawned = false;
@@ -163,22 +121,84 @@ public final class MechLoadoutComponent {
     /** Number of HP thresholds in {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_HP_DRAIN_THRESHOLDS} this mech has already drained at. Monotonic — a healed mech doesn't refund drains. */
     public int hpThresholdsCrossed = 0;
 
-    public MechLoadoutComponent(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
-                                int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
-        this.chaingun = chaingun;
-        this.srmPod = srmPod;
-        this.lrmArtillery = lrmArtillery;
-        this.srmAmmoSalvos = srmAmmoSalvos;
-        this.lrmAmmoSalvos = lrmAmmoSalvos;
-        this.role = role;
+    public MechLoadoutComponent(MechVariant variant, MechRole role) {
+        this(variant, variant != null ? variant.arms : null,
+                variant != null ? variant.leftShoulder : null,
+                variant != null ? variant.rightShoulder : null, role);
     }
 
-    /** Default chassis loadout for a stock HEAVY_MECH — chainguns + SRM pod (6 salvos) + LRM artillery (3 salvos × 5 rockets = 15 rockets). Role is the doctrine slot the planner reads to pick mech goals. */
+    /** Builds an authored/custom loadout from independently swappable hardpoint components. */
+    public MechLoadoutComponent(MechVariant variant, MechWeaponComponent arms,
+                                MechWeaponComponent leftShoulder,
+                                MechWeaponComponent rightShoulder, MechRole role) {
+        if (variant == null) throw new IllegalArgumentException("Mech variant is required");
+        this.variant = variant;
+        this.role = role;
+        install(MechMountSlot.ARMS, arms);
+        install(MechMountSlot.LEFT_SHOULDER, leftShoulder);
+        install(MechMountSlot.RIGHT_SHOULDER, rightShoulder);
+    }
+
+    private void install(MechMountSlot slot, MechWeaponComponent component) {
+        if (component != null) mounts[slot.ordinal()] = new MechWeaponMount(slot, component);
+    }
+
+    public MechWeaponMount mount(MechMountSlot slot) {
+        return mounts[slot.ordinal()];
+    }
+
+    public int appearanceSelector(MechMountSlot slot) {
+        MechWeaponMount mount = mount(slot);
+        return mount != null ? mount.component.appearanceSelector : 0;
+    }
+
+    public MechWeaponMount[] mounts() {
+        return mounts;
+    }
+
+    public boolean hasWeapon(MechWeapon weapon) {
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.weapon() == weapon) return true;
+        }
+        return false;
+    }
+
+    /** Supplied SRM band when present, otherwise the longest direct-fire band. */
+    public float preferredDirectRange() {
+        float missileRange = 0f;
+        float range = 0f;
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.hasAmmo() && mount.weapon() != MechWeapon.LRM_ARTILLERY) {
+                range = Math.max(range, mount.weapon().range);
+                if (mount.weapon() == MechWeapon.SRM_POD) {
+                    missileRange = Math.max(missileRange, mount.weapon().range);
+                }
+            }
+        }
+        return missileRange > 0f ? missileRange : range;
+    }
+
+    public boolean needsSupply() {
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.needsSupply()) return true;
+        }
+        return false;
+    }
+
+    /** Supplies long-range racks first, then the remaining physical slot order. */
+    public boolean resupplyOne() {
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY
+                    && mount.resupplyOne()) return true;
+        }
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.resupplyOne()) return true;
+        }
+        return false;
+    }
+
+    /** Default stock-heavy compatibility loadout. */
     public static MechLoadoutComponent defaultLoadout(MechRole role) {
-        return new MechLoadoutComponent(
-                MechWeapon.CHAINGUN,
-                MechWeapon.SRM_POD,
-                MechWeapon.LRM_ARTILLERY,
-                DEFAULT_SRM_AMMO_SALVOS, DEFAULT_LRM_AMMO_SALVOS, role);
+        return MechVariant.BULWARK.createLoadout(role);
     }
 }
