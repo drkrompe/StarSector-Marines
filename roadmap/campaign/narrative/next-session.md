@@ -5,11 +5,14 @@
 - S1 patron engagement memory is shipped in `1b950e48`; S2 relationship-pattern
   callbacks are shipped in `cbfebaef`; S3 local cross-patron echoes are shipped
   in `53cda364`; S4 patron-linked Chronicle references are shipped in
-  `03d8a24e`.
+  `03d8a24e`; S5 remembered target locations are shipped in `7b5367d4`.
 - Completion, failure, voluntary withdrawal, and employer breach append one
   immutable source-contract snapshot through their production authorities.
 - Memory survives terminal contract compaction and save/load, and replay is a
   no-op for both memory and reputation.
+- New engagement rows also freeze their operation target market. Target-aware
+  S1, S2, and S3 variants resolve that identity to player-facing location prose;
+  legacy, targetless, and missing-economy cases use neutral wording.
 - Returning-client briefings insert one deterministic, data-authored comms
   officer callback between the officer prefix and current patron body. One
   valid prior engagement uses the S1 outcome line; two or more use the newest
@@ -27,9 +30,9 @@
 ## Next boundary
 
 No narrative story is active. Contract the next slice before implementation.
-Good candidates from the overview are captain observations, contract target
-name-checks, or carefully bounded longer-form patron continuity; each should
-remain grounded in persisted player-visible facts rather than inferred motives.
+Good candidates from the overview are captain observations, carefully bounded
+longer-form patron continuity, or rare anomaly events; each should remain
+grounded in persisted player-visible facts rather than inferred motives.
 
 ## Shipped stories
 
@@ -37,3 +40,4 @@ remain grounded in persisted player-visible facts rather than inferred motives.
 - [x] [S2 — Relationship Pattern Callbacks](complete/s2-relationship-pattern-callbacks.md)
 - [x] [S3 — Local Cross-Patron Echoes](complete/s3-local-cross-patron-echoes.md)
 - [x] [S4 — Patron-Linked Chronicle References](complete/s4-patron-linked-chronicle-references.md)
+- [x] [S5 — Remembered Target Locations](complete/s5-remembered-target-locations.md)

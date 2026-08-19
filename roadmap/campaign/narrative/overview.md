@@ -63,11 +63,14 @@ touches one bank only.
    political reputation are deliberately excluded. The callback is stable per
    current contract and composes between the officer prefix and patron body.
    With two valid prior engagements, S2 recognizes one of seven exhaustive
-   relationship patterns; with one, the S1 newest-outcome callback remains.
+   relationship patterns; with one, the S1 newest-outcome callback remains. S5
+   freezes each new engagement's target market so selected variants can name
+   the recognizable place where that history happened.
 2d. **Local echo** (first-time-client callback) uses the newest engagement for
    a different house at the same market when it happened within the prior 180
    days. Direct patron history always wins. The echo states only the measured
-   other-patron outcome and never claims a political relationship.
+   other-patron outcome and never claims a political relationship. S5 may also
+   name that prior operation's frozen target location.
 2e. **Chronicle reference** (patron-linked callback) uses the newest confirmed
    learned fact in which the current patron is the actor or target. S4 supports
    terminal chain outcomes, applied throne claims, and kingmaker testaments
@@ -121,7 +124,9 @@ success, failure, voluntary withdrawal, and employer breach. S2 reads the two
 newest valid facts and recognizes success streaks, recovery, setbacks, repeated
 player-side trouble, breach after success, repeated patron breach, and mixed
 responsibility. Neither slice infers changing motives or personality. Deeper
-per-patron idiom and state evolution remain later stories.
+per-patron idiom and state evolution remain later stories. S5 (`7b5367d4`)
+grounds those measured outcomes in frozen target markets for direct,
+two-engagement, and local callbacks, with neutral wording for legacy rows.
 
 ## After-action reports as observation
 
@@ -239,15 +244,16 @@ content pipeline can be designed in dialogue with them.
    A time-rushed Capo who promotes shifts to established underworld
    Boss. The same `houseId` reads differently over months.
 4. **History-aware briefings.** *(S1 `1b950e48`; S2 `cbfebaef`; S3
-   `53cda364`; S4 `03d8a24e`.)*
+   `53cda364`; S4 `03d8a24e`; S5 `7b5367d4`.)*
    Late-game contracts from a patron reference *your* shared past with them,
    not just archetype-generic flavor. The voice stays consistent; the content
    draws from real campaign events (target name-checks, prior mission outcomes).
    The shipped slices store a per-house engagement feed from all real terminal
    contract authorities and render either the newest valid fact, a factual
    two-engagement pattern, one bounded confirmed patron-linked Chronicle fact,
-   or one same-market echo for a first-time patron. Target name-checks and
-   longer sequences remain future expansion.
+   or one same-market echo for a first-time patron. New engagement facts also
+   retain their target market for optional player-facing location name-checks.
+   Longer sequences remain future expansion.
 5. **Rare anomaly events.** Periodic departures from pattern —
    fallen-noble has a moment of triumph, time-rushed Capo writes one
    weirdly composed brief. Signals "this is a person, not a slot

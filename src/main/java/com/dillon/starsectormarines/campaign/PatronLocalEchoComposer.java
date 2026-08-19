@@ -15,6 +15,14 @@ public final class PatronLocalEchoComposer {
     public static String compose(CampaignState state, long currentPatronId,
                                  int marketId, long currentContractId,
                                  int currentOfferDay) {
+        return compose(state, currentPatronId, marketId, currentContractId,
+                currentOfferDay, null);
+    }
+
+    public static String compose(CampaignState state, long currentPatronId,
+                                 int marketId, long currentContractId,
+                                 int currentOfferDay,
+                                 PatronTargetNameResolver targetNames) {
         if (state == null || currentContractId <= 0L
                 || state.houseIndex(currentPatronId) < 0
                 || PatronEngagementMemory.history(
@@ -39,6 +47,8 @@ public final class PatronLocalEchoComposer {
                 .replace("{otherContract}",
                         contractLabel(echo.contractType))
                 .replace("{otherOutcome}", outcomeLabel(echo.outcome))
+                .replace("{otherTarget}", targetLabel(targetNames,
+                        echo.targetMarketId))
                 .replace("{daysAgo}", String.valueOf(
                         currentOfferDay - echo.happenedTick))
                 .replace("{age}", ageLabel(
@@ -63,5 +73,18 @@ public final class PatronLocalEchoComposer {
         if (daysAgo <= 0) return "today";
         if (daysAgo == 1) return "1 day ago";
         return daysAgo + " days ago";
+    }
+
+    private static String targetLabel(PatronTargetNameResolver targetNames,
+                                      int marketId) {
+        if (targetNames != null && marketId >= 0) {
+            try {
+                String target = targetNames.displayName(marketId);
+                if (target != null && !target.trim().isEmpty()) return target;
+            } catch (RuntimeException ignored) {
+                // Preserve the local echo when live economy data is missing.
+            }
+        }
+        return "the prior operation site";
     }
 }
