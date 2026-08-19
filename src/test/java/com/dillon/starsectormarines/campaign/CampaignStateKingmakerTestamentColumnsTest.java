@@ -22,6 +22,7 @@ class CampaignStateKingmakerTestamentColumnsTest {
         assertEquals(first, repeated);
         assertEquals(1, state.kingmakerTestamentCount);
         int row = state.kingmakerTestamentIndexForClaim(7L);
+        assertEquals(row, state.kingmakerTestamentIndex(first));
         assertEquals(1L, state.kingmakerTestamentId[row]);
         assertEquals(70L, state.kingmakerTestamentSourceChainId[row]);
         assertEquals(3L, state.kingmakerTestamentClaimantHouseId[row]);

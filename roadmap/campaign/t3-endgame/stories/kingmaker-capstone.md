@@ -127,6 +127,25 @@ entry reconstructs from every sealed row after load and moves the independent
 delivery lifecycle to `REVEALED` when the player reads it. The entry remains as
 historical correspondence afterward.
 
+### Intel delivery — locked v1
+
+One sector-wide `Last Testament` intel plugin is registered on load and remains
+hidden while no `SEALED` or `REVEALED` rows exist. It needs no duplicated plugin
+payload: every opening reconstructs authenticated drafts from campaign state and
+orders them newest sealed day first, then higher testament id. A valid historical
+entry remains visible after reveal.
+
+The presentation resolves houses through their stable campaign rows and markets
+through the persisted registry slot plus the live economy display name. If the
+testament's identities, frozen boundary, source facts, or required display names
+cannot be resolved, that row produces no prose and remains sealed. Opening the
+intel moves only successfully rendered `SEALED` rows to `REVEALED`; repeated
+opens and save/load reconstruction are no-ops for already revealed rows.
+
+The entry has no choice buttons, reward claim, date/count display, moral tooltip,
+or consequence callback. It may point at the newest rendered testament's market
+on the sector map, but it never mutates that market or any other campaign table.
+
 Delivery is not a second consequence pass. Opening, dismissing, reconstructing,
 or reloading the intel cannot change reputation, moral axes, campaign events,
 contracts, houses, chains, markets, or factions.
