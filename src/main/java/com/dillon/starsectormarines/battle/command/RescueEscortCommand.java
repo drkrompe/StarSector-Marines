@@ -23,7 +23,7 @@ import java.util.Set;
  * entrance, then continuously retarget it to the moving cohort. Mobile squads
  * occupy distinct line-and-depth slots around that moving screen instead of
  * converging on one shared stop circle. Each squad slows independently while
- * locally pressured; pickup guards retain their authored perimeter posts.
+ * locally pressured; pickup and shelter guards retain their authored posts.
  */
 public final class RescueEscortCommand implements MissionCommand {
 
@@ -111,7 +111,8 @@ public final class RescueEscortCommand implements MissionCommand {
         List<Squad> result = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction == Faction.MARINE && squad.aliveMembers > 0
-                    && !squad.rescuePickupGuard) {
+                    && !squad.rescuePickupGuard
+                    && !squad.rescueShelterGuard) {
                 result.add(squad);
             }
         }
@@ -316,6 +317,7 @@ public final class RescueEscortCommand implements MissionCommand {
     private static boolean squadUnderPressure(Squad squad, BattleView sim) {
         if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0
                 || squad.rescuePickupGuard
+                || squad.rescueShelterGuard
                 || squad.alertLevel != SquadAlertLevel.ENGAGED) return false;
         LongBucket nearby = new LongBucket();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
