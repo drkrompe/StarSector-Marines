@@ -144,6 +144,73 @@ class BallisticResolverTest {
         assertEquals(cellCenter(6), res.endX(), EPS, "wall stop point is the wall cell's center");
         assertEquals(rowCenter(), res.endY(), EPS);
         assertEquals((cellCenter(6) - cellCenter(2)) / VEL, res.flightTime(), EPS);
+
+        BallisticResolver.Resolution elevated = resolver.resolve(
+                shooter, target, 0f, 0f, VEL,
+                new QueueRandom(0.5f, 0.25f, 0f));
+        assertEquals(BallisticResolver.StopKind.WALL, elevated.kind(),
+                "structural walls remain full-height hard stops");
+        assertTrue(elevated.endZ() > 0f);
+    }
+
+    @Test
+    void elevatedRoundClearsLowDoodadButTallDoodadCatchesTheSamePath() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(7, ROW, false);
+        DoodadService doodads = new DoodadService(grid);
+        TileManifest.TileFrame frame = new TileManifest.TileFrame(0, 0);
+        doodads.addDoodad(new Doodad(5, ROW, frame, false,
+                Doodad.COVER_MED, 0.20f));
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution cleared = resolver.resolve(
+                shooter, target, 0f, 0f, VEL,
+                new QueueRandom(0.5f, 0.25f, 0f));
+        assertEquals(BallisticResolver.StopKind.WALL, cleared.kind(),
+                "the three-value queue proves the cleared doodad consumed no block roll");
+        assertTrue(cleared.endZ() > 0.20f);
+
+        doodads.addDoodad(new Doodad(5, ROW, frame, false,
+                Doodad.COVER_MED, 0.30f));
+        BallisticResolver.Resolution caught = resolver.resolve(
+                shooter, target, 0f, 0f, VEL,
+                new QueueRandom(0.5f, 0.25f, 0f, 0f));
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
+        assertTrue(caught.endZ() > 0.20f);
+        assertTrue(caught.endZ() < 0.30f);
+    }
+
+    @Test
+    void directionalCoverOnlyRollsWhenTheRoundIntersectsItsCatchBand() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = sim.spawn(new EntitySpec(
+                "mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 10, ROW));
+        grid.setCoverAtFacing(10, ROW, NavigationGrid.FACING_W,
+                3, 0.25f);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution cleared = resolver.resolve(
+                shooter, target, 1f, 1f, VEL,
+                new QueueRandom(0f, 0.5f, 0.9166667f));
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, cleared.kind(),
+                "an elevated on-target round clears low edge cover without consuming a roll");
+        assertTrue(cleared.endZ() > 0.25f);
+
+        grid.setCoverAtFacing(10, ROW, NavigationGrid.FACING_W,
+                3, 0.65f);
+        BallisticResolver.Resolution caught = resolver.resolve(
+                shooter, target, 1f, 1f, VEL,
+                new QueueRandom(0f, 0.5f, 0.9166667f, 0f));
+        assertEquals(BallisticResolver.StopKind.COVER_CLIP, caught.kind());
+        assertTrue(caught.endZ() < 0.65f);
     }
 
     // ---- muzzle-clearance: skips the adjacent friendly, not an adjacent enemy ----
@@ -174,8 +241,8 @@ class BallisticResolverTest {
         long farTarget = spawn(sim, Faction.DEFENDER, 12);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // cover roll (never blocks, level 0), incidental hit roll (0 < INCIDENTAL_HIT_CHANCE).
-        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0f);
+        // No cover roll at level 0; incidental hit roll (0 < INCIDENTAL_HIT_CHANCE).
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -375,9 +442,7 @@ class BallisticResolverTest {
         // Miss the runner straight upward at minimum clearance. At the
         // runner plane Z=0.5 clears its 0.3 half-height; farther downrange
         // the same ray is still inside the mech's 0.8 half-height.
-        QueueRandom rng = new QueueRandom(
-                0.5f, 0.25f, 0f,
-                0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0.5f, 0.25f, 0f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(
                 shooter, shortTarget, 0f, 0f, VEL, rng);
 
@@ -504,7 +569,7 @@ class BallisticResolverTest {
         // it is not the locked target). The candidate's contact time (~1.0s)
         // is well before the far target's (~3.5s), so the round never
         // reaches the far target's event — no rolls queued for it.
-        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());

@@ -19,7 +19,8 @@ shipped 2026-08-19** (`complete/s3a-weapon-fx-families.md` — reuse-first pulse
 rail, and drone projectile silhouettes). **S3b shipped 2026-08-19**
 (`complete/s3b-target-plane-accuracy.md` — one target-plane accuracy commit,
 visible lateral/high/low flight, vertical silhouettes). S4 (direct-fire
-unification) is next; see `next-session.md`.
+unification) follows the active S3c obstacle-height pass; see
+`next-session.md`.
 
 ## Why
 
@@ -189,6 +190,10 @@ movers can enter the corridor before contact.
   committed once into lateral/elevation aim, contacts use lightweight vertical
   silhouettes, and visible rounds project high/low flight. See
   [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
+- **S3c — obstacle catch heights.** Active follow-up: gate doodad and
+  directional wall-edge block rolls on vertical overlap while structural walls
+  remain full-height. Story:
+  [`stories/s3c-obstacle-catch-heights.md`](stories/s3c-obstacle-catch-heights.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.

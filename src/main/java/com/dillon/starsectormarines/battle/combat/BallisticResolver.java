@@ -18,8 +18,8 @@ import java.util.Random;
  * Resolves one round's full flight in a single space-time raycast at fire
  * time — the ballistics swap's core: a ray from the shooter toward a
  * lead-and-target-plane-sampled aim point, hard-capped at the first wall, walked
- * against doodad block rolls and time-domain unit-radius contacts in time
- * order. Damage/FX application is scheduled by the caller on the returned
+ * against height-gated doodad block rolls and time-domain unit-radius contacts
+ * in time order. Damage/FX application is scheduled by the caller on the returned
  * {@link Resolution#flightTime()}; this class only decides <em>where the
  * round physically ends up</em>.
  *
@@ -29,7 +29,9 @@ import java.util.Random;
  * step for step; S1's static-world solve, which the {@code w = 0} case
  * collapses to exactly, is {@code stories/s1-resolver-core.md}).
  * Target-plane aim and the lightweight vertical silhouette are specified in
- * {@code roadmap/ballistics/stories/s3b-target-plane-accuracy.md}.
+ * {@code roadmap/ballistics/complete/s3b-target-plane-accuracy.md}; obstacle
+ * catch bands are specified in
+ * {@code roadmap/ballistics/stories/s3c-obstacle-catch-heights.md}.
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
@@ -328,8 +330,9 @@ public final class BallisticResolver {
             if (rayDistAtEntry > rayLen) continue; // beyond the wall-capped ray
 
             // The ground ray may cross a body circle while the round passes
-            // over its head or below its feet. This light Z gate is the only
-            // vertical collision volume; walls/doodads remain full-height.
+            // over its head or below its feet. Doodads and target-edge cover
+            // apply their own Z gates at their respective event sites;
+            // structural walls alone remain full-height.
             float contactZ = zSlope * rayDistAtEntry;
             if (Math.abs(contactZ) > candidateType.hitHalfHeight) continue;
 
@@ -369,8 +372,11 @@ public final class BallisticResolver {
             int fromDx = shooterCellX - e.victimCellX;
             int fromDy = shooterCellY - e.victimCellY;
             int coverLevel = grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
+            float coverCatchHalfHeight = grid.getCoverCatchHalfHeight(
+                    e.victimCellX, e.victimCellY, fromDx, fromDy);
+            if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
-            if (rng.nextFloat() < coverBlockChance) {
+            if (coverLevel > 0 && rng.nextFloat() < coverBlockChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.COVER_CLIP);
             }
 
@@ -391,7 +397,7 @@ public final class BallisticResolver {
                 0L, false, false, finalKind);
     }
 
-    /** Bresenham cell walk from the shooter's cell to the ray-end cell, emitting a doodad-crossing {@link Event} for every non-start cell with direction-agnostic doodad cover &gt; 0. */
+    /** Bresenham cell walk from the shooter's cell to the ray-end cell, emitting a doodad-crossing {@link Event} for every non-start cell whose physical doodad silhouette contains the round's Z. */
     private void walkDoodadCrossings(int x0, int y0, int x1, int y1,
                                       float fromX, float fromY, float roundVelocity, float zSlope,
                                       List<Event> out) {
@@ -405,12 +411,13 @@ public final class BallisticResolver {
         boolean first = true;
         while (true) {
             if (!first) {
-                int level = doodads.getDoodadLevelOnCell(x, y);
+                float cx = x + 0.5f;
+                float cy = y + 0.5f;
+                float t = dist(fromX, fromY, cx, cy) / roundVelocity;
+                float z = zSlope * roundVelocity * t;
+                int level = doodads.getDoodadLevelOnCell(x, y, z);
                 if (level > 0) {
-                    float cx = x + 0.5f;
-                    float cy = y + 0.5f;
-                    float t = dist(fromX, fromY, cx, cy) / roundVelocity;
-                    out.add(Event.doodad(t, cx, cy, zSlope * roundVelocity * t, level));
+                    out.add(Event.doodad(t, cx, cy, z, level));
                 }
             }
             first = false;
@@ -425,5 +432,9 @@ public final class BallisticResolver {
         float dx = x1 - x0;
         float dy = y1 - y0;
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private static boolean intersectsCatchBand(float z, float catchHalfHeight) {
+        return catchHalfHeight > 0f && Math.abs(z) <= catchHalfHeight;
     }
 }

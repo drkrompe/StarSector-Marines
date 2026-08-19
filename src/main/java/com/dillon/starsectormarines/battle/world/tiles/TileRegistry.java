@@ -157,7 +157,16 @@ public final class TileRegistry {
             int col = o.getInt("col");
             int row = o.getInt("row");
             DoodadCover cover = DoodadCover.fromJson(o.optString("cover", "none"));
-            doodadsById.put(id, new DoodadDef(id, sheet, col, row, cover));
+            float ballisticHalfHeight = cover.defaultBallisticHalfHeight();
+            if (o.has("ballisticHalfHeight")) {
+                ballisticHalfHeight = (float) o.getDouble("ballisticHalfHeight");
+                if (!Float.isFinite(ballisticHalfHeight) || ballisticHalfHeight < 0f) {
+                    throw new IllegalStateException("TileRegistry: doodad '" + id
+                            + "' has invalid ballisticHalfHeight " + ballisticHalfHeight);
+                }
+            }
+            doodadsById.put(id, new DoodadDef(
+                    id, sheet, col, row, cover, ballisticHalfHeight));
         }
     }
 
