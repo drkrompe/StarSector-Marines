@@ -1,5 +1,32 @@
 # S3 — stylized visible rounds
 
+> **Shipped 2026-08-19** on `codex/ballistics-s3`, commit `ebc3023d`.
+> Tracer-colored primaries now derive `ShotFx.Bolt`; `ShotRenderService`
+> grows a tinted streak from the muzzle on the real shot clock; the shared
+> white-base texture loads through `BattleSprites`; focused kinematics,
+> collection, derivation, and asset-contract tests are green. Full suite:
+> 1507 tests.
+>
+> **Landed vs. planned deviations:**
+> - `FIELD_RIFLE` was added after this contract and already carries the same
+>   explicit shell sprite as the SMG, so both stay on `ShotFx.Sprite`; pulse
+>   rifle, DMR, and drone pulse use the new bolt body.
+> - A critique pass found impact timing was inferred independently from
+>   `projectileSpritePath` in both `BattleScreen` and the hybrid-combat
+>   `GroundSimPresentation`. Bolts would have traveled while their impact FX
+>   spawned at launch. `ShotFx.travels()` is now the shared presentation
+>   semantic: `Sprite` and `Bolt` defer impacts to arrival; full-line `Tracer`
+>   impacts remain immediate.
+> - The asset used Codex's built-in image-generation workflow rather than the
+>   originally named CLI/model. A targeted grayscale correction plus
+>   deterministic crop/downscale/desaturation produced the final 64×256 PNG;
+>   its dimensions, alpha, non-empty content, and exact grayscale neutrality
+>   are regression-tested.
+
+Original contract below, kept for the record.
+
+---
+
 > Primaries stop rendering as full static tracer lines and become traveling
 > bolts: a short, bright, weapon-colored streak that flies from muzzle to
 > the resolved endpoint on the round's real flight clock. The sim side is

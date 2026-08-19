@@ -12,10 +12,9 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
  * Visual record of a single shot fired by a unit in {@link BattleSimulation}.
- * Emitted on every fire — hit or miss — so the renderer can draw a tracer
- * even when no damage lands. The endpoint is the target's cell on a hit and
- * a randomized near-miss offset on a miss, so the visual reads as a real
- * stray round rather than a dud.
+ * Emitted on every fire — hit or miss — so the renderer can draw the resolved
+ * round body even when no damage lands. The endpoint is the physical stop
+ * selected by the ballistic resolver (unit, cover, wall, or overshoot).
  *
  * <p>{@link #turretKind} is the bridge between the sim's faction-only
  * abstraction and the renderer's per-weapon FX. When the shooter is a
@@ -35,7 +34,7 @@ public class ShotEvent {
     public final float toY;
     public final boolean hit;
     public final Faction shooterFaction;
-    /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. Null = unit rifle fire (rendered as a line, played as a rifle clip). */
+    /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. */
     public final TurretKind turretKind;
     /** Non-null when a marine fired their primary — drives tracer color + per-weapon fire sound. Mutually exclusive with {@link #turretKind} and {@link #marineSecondary}. */
     public final MarineWeapon marineWeapon;

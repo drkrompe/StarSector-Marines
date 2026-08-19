@@ -13,7 +13,9 @@ landed-vs-planned deviations, notably: the contact circle is the
 pre-existing `UnitType.radius`, shared with `SeparationSystem`, not a new
 stat). **S2 shipped 2026-08-13** (`complete/s2-moving-targets.md` — time-domain
 contact solve, shooter lead, per-weapon `roundVelocity`; landed as specced).
-S3 (visible rounds) is next — see `next-session.md`.
+**S3 shipped 2026-08-19** (`complete/s3-visible-rounds.md` — traveling tinted
+bolts on the real flight clock, shared arrival-timed impact semantics). S4
+(direct-fire unification) is next — see `next-session.md`.
 
 ## Why
 
@@ -168,9 +170,10 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
 - ~~**S2 — moving targets.**~~ **SHIPPED** — velocity extrapolation in the
   contact solve + shooter lead; per-weapon round velocity is now a real
   stat. See [`complete/s2-moving-targets.md`](complete/s2-moving-targets.md).
-- **S3 — stylized visible rounds.** Primaries render as traveling tinted
-  bolts on the flight clock (new `ShotFx.Bolt` body + generated bolt
-  sprite). Story: [`stories/s3-visible-rounds.md`](stories/s3-visible-rounds.md).
+- ~~**S3 — stylized visible rounds.**~~ **SHIPPED** — primaries render as
+  traveling tinted bolts on the flight clock (`ShotFx.Bolt` + generated
+  white-base sprite). See
+  [`complete/s3-visible-rounds.md`](complete/s3-visible-rounds.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.
