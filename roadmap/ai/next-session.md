@@ -68,6 +68,15 @@ doctrine: it enters commander-assigned zones or advances on locally known
 contact, fires while moving, stays inside an ordered zone, and still yields to
 mech survival. See `complete/22-assault-mech-and-difficulty-roster.md`.
 
+Story 23 / Story E shipped (2026-08-19, `0daf058e`): objective-advancing
+infantry now selects a compatible same-faction ASSAULT mech, occupies distinct
+threat-relative FOLLOW cells behind its live chassis, and switches to a short
+two-sided firing FAN when the mech can engage. The formation follows the
+moving unit rather than a terrain anchor and drops immediately back to normal
+`EnterZone`/bounding behavior if the screen is lost. Existing direct-fire
+unit-body interception supplies mechanical moving cover. Squad dumps expose
+the full unversioned screen state. See `complete/23-mech-screened-advance.md`.
+
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
@@ -75,10 +84,10 @@ gate. The full squad-belief + commander-influence layer remains parked.
 
 ## Immediate next
 
-1. **Story E (mech-screened advance)** — remaining piece of Slice 6.
-   The moving point unit is now available through Story 22's ASSAULT Hound.
-   Next add infantry-side friendly-mech selection, threat-relative follow/fan
-   positions, and explicit mech-body soft cover.
+1. **Story I (engagement discipline)** — stop a squad from pursuing one
+   retreating target into a known hostile cluster. Contract the target-density
+   score and pursuit-release boundary before implementation; keep the cheap
+   ground-truth query as an explicit future belief-map swap site.
 
 ## Parked but design-complete
 
@@ -116,5 +125,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/22-assault-mech-and-difficulty-roster.md` — shipped deterministic
   risk-scaled mech profiles plus the faction-neutral ASSAULT point doctrine
   (`1ef74f23`)
+- `complete/23-mech-screened-advance.md` — shipped faction-neutral infantry
+  follow/fan geometry around a moving ASSAULT mech plus physical chassis
+  interception (`0daf058e`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
