@@ -110,8 +110,12 @@ universe over time, not retrofitted into intel slots.
    chain can produce a costly defector-asylum promise followed by a delayed
    protect-or-betray choice, with source-frozen plot/reputation reaction and
    hidden moral meaning consumed exactly once. No living-world story remains
-   active; contract the next archetype or capstone before extending the generic
-   event surface. Keep swarm tuning deferred until manual playtesting resumes. See
+   active. The kingmaker capstone is now complete too: decisive claimant victories
+   seal a deterministic Last Testament, deliver it through persistent intel and
+   Chronicle history, and have production-shaped debug/replay coverage
+   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). Contract the next event
+   archetype before extending the generic event surface. Keep swarm tuning deferred
+   until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
