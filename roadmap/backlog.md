@@ -21,7 +21,8 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   outcomes. Hooks into `MarineRosterScript`.
 - **Captain discovery system — ACTIVE** — cryo-pod recovery from salvageable
   derelicts as the canonical in-universe acquisition path. Persistent candidate
-  intake is shipped in `055abb97`; the next slice hooks vanilla salvage events.
+  intake and the vanilla derelict publication hook are shipped in `055abb97`
+  and `d780e345`; interaction presentation and resolution are next.
 - **Roster cap scaling** — replace hardcoded 10 with `f(playerLevel)`.
 - **Trait mechanics** — currently placeholder enums (`SIEGE_SPECIALIST`,
   `SAPPER`, etc). Wire to mission resolution modifiers.

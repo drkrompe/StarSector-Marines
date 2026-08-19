@@ -60,9 +60,11 @@ outlook persists exactly once and is readable on the shared captain row.
 [`stories/captain-discovery.md`](stories/captain-discovery.md) establishes the
 canonical path for finding new captains as cryo-pod survivors aboard eligible
 derelicts. Slice 1 is shipped: personnel now owns persistent source-keyed
-candidates and admits them atomically, with full-roster and replay safety. The
-next slice connects that authority to vanilla salvage without changing ordinary
-salvage rewards.
+candidates and admits them atomically, with full-roster and replay safety.
+Slice 2 observes vanilla's pre-loot callback, filters ordinary non-mission
+wrecks through a stable rarity/profile policy, and publishes without touching
+salvage cargo or completion. Slice 3 will present and resolve the survivor in
+the interaction.
 
 ## Complete — named stationing
 

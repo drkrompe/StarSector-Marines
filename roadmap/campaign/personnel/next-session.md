@@ -69,7 +69,7 @@ automated-only session.
 
 ## Active — captain discovery
 
-The contract is locked in
+The contract is active in
 [`stories/captain-discovery.md`](stories/captain-discovery.md). Slice 1 is
 shipped (`ecf70b58`, `055abb97`): `MarineRoster` now persists one immutable
 candidate per normalized namespaced campaign source and resolves offers through
@@ -79,12 +79,19 @@ or duplicate rows, adopts an already-present matching captain, and never
 recreates a dangling accepted one. Focused intake tests and the full root
 automated suite pass.
 
-Slice 2 is the next bounded task: locate and hook the canonical vanilla salvage
-completion seam, define eligible salvageable derelicts, and publish one
-deterministic cryo-pod candidate per source without replacing or duplicating
-normal salvage rewards. Presentation and player accept/decline choices remain
-Slice 3. Outlook combat modifiers, reversals, transfers, dialog, and
-interpersonal conflict remain intentional non-goals.
+Slice 2 is shipped (`3b70fcc4`, `d780e345`): a transient `ShowLootListener`
+observes vanilla loot presentation without touching cargo, selects ordinary
+non-mission wrecks with a stable one-in-eight roll, deterministically freezes a
+bounded captain profile, and publishes it through the roster authority. Replay,
+mission-tag exclusion, profile stability, cargo isolation, the full root test
+suite, and the complete Gradle build pass.
+
+Slice 3 is the next bounded task: retain the salvage interaction only when a
+new available candidate is published, present the cryo-pod survivor after the
+vanilla loot panel closes, and route accept/decline/full-roster outcomes through
+the existing candidate operations. Outlook combat modifiers, reversals,
+transfers, unrelated dialog, and interpersonal conflict remain intentional
+non-goals.
 
 ## Commit chain
 
@@ -115,3 +122,5 @@ interpersonal conflict remain intentional non-goals.
 - `721372d8` / `a8b72598` / `496cea19` — close compaction, repair, and debrief.
 - `ecf70b58` — lock the captain-discovery acquisition contract.
 - `055abb97` — persist source-keyed candidates and exactly-once roster intake.
+- `3b70fcc4` — lock the non-invasive derelict-salvage seam.
+- `d780e345` — publish deterministic candidates from eligible vanilla wrecks.

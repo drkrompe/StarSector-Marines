@@ -1,6 +1,6 @@
 # Captain discovery
 
-**Status:** ACTIVE — Slice 1 shipped (2026-08-19)
+**Status:** ACTIVE — Slices 1–2 shipped (2026-08-19)
 
 ## Problem
 
@@ -99,9 +99,20 @@ empty candidate collection; repair removes invalid/duplicate rows, adopts an
 already-present matching captain, and never invents one for a dangling accepted
 offer. Focused intake coverage and the full root automated suite pass.
 
-Slice 2 is next: identify the canonical vanilla salvage seam and prove that one
-eligible derelict can publish one candidate without replacing or duplicating
-normal salvage settlement.
+## Slice 2 complete
+
+`3b70fcc4` locks the non-invasive vanilla seam and deterministic eligibility
+policy. `d780e345` registers a transient `ShowLootListener`, filters to ordinary
+salvageable wrecks outside mission authority, performs a stable one-in-eight
+source roll, freezes a bounded profile from existing portraits and wired
+professional traits, and publishes through the Slice 1 roster authority. The
+listener never reads or mutates the displayed cargo and repeated callbacks
+cannot duplicate the offer. Focused eligibility/profile/replay/cargo-isolation
+coverage and the full root automated suite pass.
+
+Slice 3 is next: keep the salvage dialog open only for a newly available
+candidate, present the recovered survivor after vanilla loot closes, and route
+accept/decline/full-roster outcomes through the existing candidate authority.
 
 ## Non-goals
 
