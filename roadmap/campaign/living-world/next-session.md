@@ -170,9 +170,35 @@ Channel copy remains durable; and debug intel can force both stages through the
 production lifecycle. Focused replay/load coverage and the full root automated
 suite pass. Manual UI validation and swarm tuning remain deferred as requested.
 
-There is no active living-world story after G8. Contract the next archetype or
-capstone before adding another event, reactive moral surface, or generic event
-framework; those remain intentional non-goals rather than implied follow-up.
+## Active — G9 Silent Colony
+
+The third black-swan archetype is now contracted in
+[`stories/g9-silent-colony.md`](stories/g9-silent-colony.md). A dead colony's
+automated burst asks the company to fund a blind expedition; a later dedicated
+mission will reveal stranded survivors, a sealed archive, and the colony's own
+dormant automated threat only after commitment.
+
+Slice 1 is shipped in `4d50805d`. `SILENT_COLONY` is append-only event identity;
+the event row freezes exact expedition cost, representative survivor stakes, and
+a hidden deterministic threat seed. Funding is atomic, refusal/expiry reveal
+nothing, and only an explicit later mission report can resolve survivor count
+plus archive `LOST`/`RECOVERED`. Legacy saves backfill safe sentinels and replay
+cannot charge or resolve twice.
+
+Slice 2 is shipped in `33b073bd`. Starting on day 90, one unused dead site per
+90-day epoch is selected from live decivilized, abandoned-station, or
+condition-only ruins identities behind the common open-event gate. Only the
+chosen site is interned. Severity freezes exact expedition stores and survivor
+stakes, while selection and the hidden threat seed remain stable across source
+enumeration order. The globally registered Dead Letter stays hidden until a
+valid row exists, reconstructs pending/committed/terminal state after load, and
+routes funding/refusal without revealing survivors, archive, threat, reward, or
+moral meaning. Focused compatibility/replay tests and the full root suite pass.
+
+Next is Slice 3: define event mission identity and build a dedicated expedition
+factory with an explicit survivor cohort, physical archive objective, and
+deterministic automated-threat reveal. Do not treat generic victory as an event
+outcome or grant archive cargo directly from the intel surface.
 
 ## Open forks still unresolved (design)
 
@@ -289,3 +315,7 @@ framework; those remain intentional non-goals rather than implied follow-up.
 - G8 Slice 2 — deterministic discovered-chain producer (`7591dd86`).
 - G8 Slice 3 — reconstructible Encrypted Channel choices (`0235ff29`).
 - G8 Slice 4 — world reaction and terminal closure (`d2c4c01b`).
+- G9 contract + Slice 1 — Silent Colony persisted expedition authority
+  (`4d50805d`).
+- G9 Slice 2 — deterministic dead-site producer and reconstructible Dead Letter
+  (`33b073bd`).

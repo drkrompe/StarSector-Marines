@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtraction
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
+import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
@@ -108,6 +109,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StationingReleaseSystem(),
                 new DiscoveryPropagationSystem(),
                 new DefectorAsylumSpawnSystem(),
+                new SilentColonySpawnSystem(),
                 new CivilWarParticipationOfferSystem(),
                 new ThreatInterventionOfferSystem()
         ));

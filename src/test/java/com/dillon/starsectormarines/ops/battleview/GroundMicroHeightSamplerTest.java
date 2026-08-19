@@ -154,6 +154,7 @@ class GroundMicroHeightSamplerTest {
     private static void assertSample(GroundMicroHeightSampler.Sample expected,
                                      GroundMicroHeightSampler.Sample actual) {
         assertEquals(expected.heightSheetPath, actual.heightSheetPath);
+        assertEquals(expected.normalSheetPath, actual.normalSheetPath);
         assertEquals(expected.srcX, actual.srcX);
         assertEquals(expected.srcY, actual.srcY);
         assertEquals(expected.srcW, actual.srcW);

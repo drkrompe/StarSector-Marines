@@ -63,6 +63,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
@@ -79,14 +80,13 @@ import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 
 /**
- * S2 (screen-space ground parallax) orchestrator: redirects the
- * {@code RenderLayer#GROUND} drain into a color+height FBO pair instead of the
- * backbuffer, then composites them onto the backbuffer through a fullscreen
- * offset-limited-parallax fragment shader (Welsh 2004) before the rest of the
- * frame draws on top. See {@code roadmap/surface-relief/overview.md} and
- * {@code stories/s2-screenspace-parallax.md}.
+ * S2/S3 ground-relief orchestrator: redirects the
+ * {@code RenderLayer#GROUND} drain into color, material-height, and normal FBOs instead of the
+ * backbuffer, then composites them through a fullscreen offset-limited
+ * parallax + event-light bump shader before the rest of the frame draws on
+ * top. See {@code roadmap/surface-relief/overview.md}.
  *
- * <p>FBO pair is sized to the battle grid VIEWPORT (framebuffer px), not the
+ * <p>The FBO set is sized to the battle grid VIEWPORT (framebuffer px), not the
  * whole screen — {@link BattleCamera}'s {@code vpX/vpY/vpW/vpH} are already
  * the UI-space rect {@link GroundRenderSystem} and {@link GroundHeightPass}
  * emit their quads into (via {@code cellToScreenX/Y}), so the FBO's ortho is
@@ -121,6 +121,10 @@ public final class GroundParallaxPipeline {
     public static final float MIN_WATER_WAVE_AMPLITUDE = 0f;
     public static final float MAX_WATER_WAVE_AMPLITUDE = 0.5f;
     public static final float DEFAULT_WATER_WAVE_AMPLITUDE = 0.08f;
+    /** Additive S3 bump-light multiplier. Zero disables event lighting without disabling S2. */
+    public static final float MIN_LIGHTING_STRENGTH = 0f;
+    public static final float MAX_LIGHTING_STRENGTH = 2f;
+    public static final float DEFAULT_LIGHTING_STRENGTH = 1f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
     static final float EYE_HEIGHT = 1.2f;
@@ -129,6 +133,10 @@ public final class GroundParallaxPipeline {
     static final float WATER_MICRO_SCALE = 0.35f;
     static final float WATER_INTERIOR_WAVE_SCALE = 0.25f;
     static final float WATER_FOAM_AMOUNT = 0.10f;
+    private static final String[] LIGHT_POSITION_UNIFORMS =
+            indexedUniformNames("lightPosRadius");
+    private static final String[] LIGHT_COLOR_UNIFORMS =
+            indexedUniformNames("lightColorIntensity");
 
     private static final String VERTEX_SRC = ""
             + "#version 120\n"
@@ -143,6 +151,7 @@ public final class GroundParallaxPipeline {
             + "#version 120\n"
             + "uniform sampler2D colorTex;\n"
             + "uniform sampler2D heightTex;\n"
+            + "uniform sampler2D normalTex;\n"
             + "uniform vec2 screenCenter;\n"
             + "uniform float eyeHeight;\n"
             + "uniform float structureStrength;\n"
@@ -158,6 +167,9 @@ public final class GroundParallaxPipeline {
             + "uniform vec2 visibleCells;\n"
             + "uniform vec2 cellUv;\n"
             + "uniform float aspect;\n"
+            + "uniform float lightingStrength;\n"
+            + "uniform vec4 lightPosRadius[" + GroundLightService.MAX_SHADER_LIGHTS + "];\n"
+            + "uniform vec4 lightColorIntensity[" + GroundLightService.MAX_SHADER_LIGHTS + "];\n"
             + "varying vec2 vUv;\n"
             + "void main() {\n"
             + "    vec4 meta = texture2D(heightTex, vUv);\n"
@@ -195,22 +207,42 @@ public final class GroundParallaxPipeline {
             + "    float foam = water * shore * smoothstep(0.72, 1.0, crest)\n"
             + "            * waterFoamAmount * step(0.0001, waterWaveAmplitude);\n"
             + "    color.rgb = mix(color.rgb, vec3(0.76, 0.90, 1.0), foam);\n"
+            + "    vec3 normal = texture2D(normalTex, offsetUv).rgb * 2.0 - 1.0;\n"
+            // Derived maps use image-space +Y down; the composed ground uses
+            // world/screen +Y up, so invert the decoded green component.
+            + "    normal = normalize(vec3(normal.x, -normal.y, normal.z));\n"
+            + "    vec3 addedLight = vec3(0.0);\n"
+            + "    for (int i = 0; i < " + GroundLightService.MAX_SHADER_LIGHTS + "; i++) {\n"
+            + "        vec4 pr = lightPosRadius[i];\n"
+            + "        vec4 ci = lightColorIntensity[i];\n"
+            + "        vec2 toLight = pr.xy - worldCell;\n"
+            + "        float radial = clamp(1.0 - length(toLight) / max(pr.w, 0.001), 0.0, 1.0);\n"
+            + "        vec3 lightDir = normalize(vec3(toLight, pr.z));\n"
+            + "        float lambert = max(dot(normal, lightDir), 0.0);\n"
+            + "        addedLight += ci.rgb * ci.a * radial * radial * lambert;\n"
+            + "    }\n"
+            + "    color.rgb += addedLight * (vec3(0.18) + color.rgb * 0.82) * lightingStrength;\n"
             + "    gl_FragColor = color * gl_Color;\n"
             + "}\n";
 
     private final ShaderProgram shader = new ShaderProgram("GroundParallax", VERTEX_SRC, FRAGMENT_SRC);
+    private final GroundMicroHeightSampler materialSampler;
     private final GroundHeightPass heightPass;
+    private final GroundNormalPass normalPass;
+    private final GroundLightService lights;
 
     /** Runtime-tunable through the battle debug panel; read every composite. */
     private float structureStrength = DEFAULT_STRENGTH;
     private float surfaceStrength = DEFAULT_SURFACE_STRENGTH;
     private float waterWaveAmplitude = DEFAULT_WATER_WAVE_AMPLITUDE;
+    private float lightingStrength = DEFAULT_LIGHTING_STRENGTH;
     private float waveTimeSeconds;
 
     private boolean broken;
 
     private int colorFbo, colorTex;
     private int heightFbo, heightTex;
+    private int normalFbo, normalTex;
     private int fboPxW, fboPxH;
 
     /** UI-space rect the FBOs' ortho + the composite quad are drawn against — cached from the camera each call. */
@@ -222,11 +254,23 @@ public final class GroundParallaxPipeline {
 
     /** Compatibility constructor; without a sprite registry sliced sheets remain macro-only/fallback. */
     public GroundParallaxPipeline() {
-        this.heightPass = new GroundHeightPass(new GroundMicroHeightSampler(() -> null, () -> null));
+        this(new GroundMicroHeightSampler(() -> null, () -> null), new GroundLightService());
     }
 
     public GroundParallaxPipeline(BattleSprites sprites) {
-        this.heightPass = new GroundHeightPass(new GroundMicroHeightSampler(sprites));
+        this(new GroundMicroHeightSampler(sprites), new GroundLightService());
+    }
+
+    GroundParallaxPipeline(BattleSprites sprites, GroundLightService lights) {
+        this(new GroundMicroHeightSampler(sprites), lights);
+    }
+
+    private GroundParallaxPipeline(GroundMicroHeightSampler materialSampler,
+                                   GroundLightService lights) {
+        this.materialSampler = materialSampler;
+        this.heightPass = new GroundHeightPass(materialSampler);
+        this.normalPass = new GroundNormalPass(materialSampler);
+        this.lights = lights;
     }
 
     public float parallaxStrength() { return structureStrength; }
@@ -234,6 +278,8 @@ public final class GroundParallaxPipeline {
     public float surfaceStrength() { return surfaceStrength; }
 
     public float waterWaveAmplitude() { return waterWaveAmplitude; }
+
+    public float lightingStrength() { return lightingStrength; }
 
     /** Applies immediately to the next rendered frame. */
     public void setParallaxStrength(float strength) {
@@ -254,9 +300,15 @@ public final class GroundParallaxPipeline {
                 MIN_WATER_WAVE_AMPLITUDE, MAX_WATER_WAVE_AMPLITUDE);
     }
 
+    /** Applies immediately to the next rendered frame. */
+    public void setLightingStrength(float strength) {
+        if (Float.isNaN(strength)) return;
+        this.lightingStrength = clamp(strength, MIN_LIGHTING_STRENGTH, MAX_LIGHTING_STRENGTH);
+    }
+
     /**
      * Renders {@code RenderLayer#GROUND} through the parallax pipeline:
-     * color+height FBO pair, then the composite blit. {@code drainColor} is the
+     * color, metadata-height, and normal FBOs, then the composite blit. {@code drainColor} is the
      * caller's {@code BattleRenderer.drainLayer(GROUND)} — invoked inside the
      * color FBO bracket on the happy path, or directly against the backbuffer
      * (its normal target) on ANY failure, so the layer always ends up drawn
@@ -291,6 +343,10 @@ public final class GroundParallaxPipeline {
             drainColor.run();
             return;
         }
+        if (!renderNormalFbo(rc)) {
+            drainColor.run();
+            return;
+        }
         waveTimeSeconds = (waveTimeSeconds + Math.max(0f, rc.realDt)) % 4096f;
         if (!composite(rc)) {
             drainColor.run();
@@ -302,6 +358,8 @@ public final class GroundParallaxPipeline {
         releaseFbos();
         shader.dispose();
         heightPass.dispose();
+        normalPass.dispose();
+        materialSampler.invalidate();
     }
 
     private void releaseFbos() {
@@ -309,6 +367,8 @@ public final class GroundParallaxPipeline {
         if (colorTex != 0) { glDeleteTextures(colorTex); colorTex = 0; }
         if (heightFbo != 0) { glDeleteFramebuffers(heightFbo); heightFbo = 0; }
         if (heightTex != 0) { glDeleteTextures(heightTex); heightTex = 0; }
+        if (normalFbo != 0) { glDeleteFramebuffers(normalFbo); normalFbo = 0; }
+        if (normalTex != 0) { glDeleteTextures(normalTex); normalTex = 0; }
         fboPxW = 0;
         fboPxH = 0;
     }
@@ -337,12 +397,26 @@ public final class GroundParallaxPipeline {
         });
     }
 
+    private boolean renderNormalFbo(RenderContext rc) {
+        BattleSimulation sim = rc.sim;
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        return withFboBound(normalFbo, () -> {
+            glColorMask(true, true, true, true);
+            glClearColor(0.5f, 0.5f, 1f, 1f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            normalPass.render(rc.camera, grid, topology);
+        });
+    }
+
     private boolean composite(RenderContext rc) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         try {
             // Bind AFTER the push so glPopAttrib restores the caller's texture
             // bindings/active unit (GL_TEXTURE_BIT covers both) -- same order as
             // DecalAccumulator.blit.
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, normalTex);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, heightTex);
             glActiveTexture(GL_TEXTURE0);
@@ -351,6 +425,7 @@ public final class GroundParallaxPipeline {
             shader.use();
             shader.set1i("colorTex", 0);
             shader.set1i("heightTex", 1);
+            shader.set1i("normalTex", 2);
             shader.set2f("screenCenter", 0.5f, 0.5f);
             shader.set1f("eyeHeight", EYE_HEIGHT);
             shader.set1f("structureStrength", structureStrength);
@@ -366,6 +441,8 @@ public final class GroundParallaxPipeline {
             shader.set2f("visibleCells", vpW / rc.camera.cellPxSize(), vpH / rc.camera.cellPxSize());
             shader.set2f("cellUv", rc.camera.cellPxSize() / vpW, rc.camera.cellPxSize() / vpH);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
+            shader.set1f("lightingStrength", lightingStrength);
+            uploadLights(rc.camera);
 
             glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
@@ -489,8 +566,16 @@ public final class GroundParallaxPipeline {
         heightFbo = height[0];
         heightTex = height[1];
 
-        LOG.info("GroundParallaxPipeline FBOs (" + colorFbo + "/" + heightFbo + ") complete at "
-                + fboPxW + "x" + fboPxH);
+        int[] normal = buildFbo();
+        if (broken) {
+            releaseFbos();
+            return;
+        }
+        normalFbo = normal[0];
+        normalTex = normal[1];
+
+        LOG.info("GroundParallaxPipeline FBOs (" + colorFbo + "/" + heightFbo + "/"
+                + normalFbo + ") complete at " + fboPxW + "x" + fboPxH);
     }
 
     /** Builds one RGBA8 FBO + color-attachment texture at the current {@link #fboPxW}/{@link #fboPxH}. {@code {fbo, tex}}. */
@@ -529,6 +614,31 @@ public final class GroundParallaxPipeline {
         if (err != GL_NO_ERROR) {
             LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
         }
+    }
+
+    private void uploadLights(BattleCamera camera) {
+        int count = lightingStrength > 0f ? lights.selectNearest(camera) : 0;
+        for (int i = 0; i < GroundLightService.MAX_SHADER_LIGHTS; i++) {
+            GroundLightService.Light light = i < count ? lights.selected(i) : null;
+            if (light == null) {
+                shader.set4f(LIGHT_POSITION_UNIFORMS[i], 0f, 0f, 1f, 1f);
+                shader.set4f(LIGHT_COLOR_UNIFORMS[i], 0f, 0f, 0f, 0f);
+                continue;
+            }
+            shader.set4f(LIGHT_POSITION_UNIFORMS[i],
+                    light.x, light.y, light.height, light.radius);
+            shader.set4f(LIGHT_COLOR_UNIFORMS[i],
+                    light.color.getRed() / 255f,
+                    light.color.getGreen() / 255f,
+                    light.color.getBlue() / 255f,
+                    light.effectiveIntensity());
+        }
+    }
+
+    private static String[] indexedUniformNames(String base) {
+        String[] names = new String[GroundLightService.MAX_SHADER_LIGHTS];
+        for (int i = 0; i < names.length; i++) names[i] = base + "[" + i + "]";
+        return names;
     }
 
     private static float clamp(float value, float min, float max) {
