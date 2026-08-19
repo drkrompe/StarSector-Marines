@@ -87,6 +87,16 @@ public class LayeredAppearanceTest {
     }
 
     @Test
+    public void houndUsesAWiderFootStanceThanBroadChassis() {
+        assertEquals(0.25f, LayeredMechAppearance.footLateralOffset(
+                LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
+        assertEquals(0.17f, LayeredMechAppearance.footLateralOffset(
+                LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
+        assertEquals(0.17f, LayeredMechAppearance.footLateralOffset(
+                LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+    }
+
+    @Test
     public void infantryPrimaryWeaponsMapToDistinctLayerFamilies() {
         assertEquals(LayeredWeaponFamily.RIFLE, LayeredWeaponFamily.fromPrimary(null));
         assertEquals(LayeredWeaponFamily.LASER_GUN,

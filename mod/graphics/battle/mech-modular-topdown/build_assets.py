@@ -23,8 +23,11 @@ def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:
     return rgba.crop(bbox)
 
 
-def normalize(source: str, output: str, size: tuple[int, int]) -> Image.Image:
+def normalize(source: str, output: str, size: tuple[int, int],
+              flip_top_bottom: bool = False) -> Image.Image:
     image = content_crop(Image.open(SOURCES / source))
+    if flip_top_bottom:
+        image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     image.thumbnail(size, Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", size)
     canvas.alpha_composite(image, ((size[0] - image.width) // 2,
@@ -64,23 +67,23 @@ def preview(name: str, moving: bool, firing: bool,
     hull = Image.open(ROOT / "chassis.png").convert("RGBA")
     foot = Image.open(ROOT / "foot.png").convert("RGBA")
     arm = Image.open(ROOT / arm_name).convert("RGBA")
+    arm = arm.resize((max(1, arm.width // 2), arm.height), Image.Resampling.LANCZOS)
     srm = Image.open(ROOT / "srm-pod.png").convert("RGBA")
     lrm = Image.open(ROOT / "lrm-pod.png").convert("RGBA")
 
-    # Feet, arm roots, and rack roots are deliberately under the hull. Movement
-    # reveals no more than the toe; firing pulls both barrels back a few pixels.
+    # Feet and arm roots are deliberately under the hull. Movement reveals no
+    # more than the toe; firing pulls both narrow barrels back a few pixels.
     foot_y = 262 if moving else 250
     paste_centered(canvas, foot, 157, foot_y)
     paste_centered(canvas, foot, 227, 250)
     paste_pivot(canvas, arm, 115, 223 - (4 if firing else 0))
     paste_pivot(canvas, arm, 269, 223, mirror=True)
 
-    # Racks extend the sides but their inboard casing is occluded by the hull.
-    # Stock chassis uses the larger pod box on both shoulders. Weapon identity
-    # remains per-slot runtime data; this is only the installed visual shell.
+    canvas.alpha_composite(hull, (192 - hull.width // 2, 192 - hull.height // 2))
+    # Bulwark's exposed racks sit above the hull layer, preserving their boxy
+    # silhouette instead of losing most of each rack beneath the armor.
     paste_pivot(canvas, lrm, 109, 254)
     paste_pivot(canvas, lrm, 275, 254, mirror=True)
-    canvas.alpha_composite(hull, (192 - hull.width // 2, 192 - hull.height // 2))
     canvas.save(PREVIEWS / name)
 
 
@@ -88,13 +91,18 @@ def main() -> None:
     PREVIEWS.mkdir(parents=True, exist_ok=True)
     normalize("hull-clean-v2.png", "chassis.png", (208, 208))
     normalize("hull.png", "chassis-socketed-variant.png", (208, 208))
-    normalize("hound-hull.png", "chassis-hound.png", (208, 208))
-    normalize("sirocco-hull.png", "chassis-sirocco.png", (208, 208))
+    # The generated narrow hull reads as Hound once its pointed end faces
+    # forward; the broader wedge carries Sirocco's heavier support loadout.
+    normalize("sirocco-hull.png", "chassis-hound.png", (208, 208),
+              flip_top_bottom=True)
+    normalize("hound-hull.png", "chassis-sirocco.png", (208, 208),
+              flip_top_bottom=True)
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.
     normalize("chaingun-arm-v2.png", "chaingun-arm.png", (62, 112))
     normalize("linear-cannon-concept.png", "linear-cannon-variant.png", (58, 138))
+    normalize("heavy-cannon.png", "heavy-cannon.png", (64, 128))
     normalize("srm-pod.png", "srm-pod.png", (62, 88))
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
     preview("idle.png", moving=False, firing=False)

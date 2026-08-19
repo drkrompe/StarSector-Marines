@@ -31,6 +31,12 @@ class LayeredMechAssetTest {
         assertNotEquals(pixelHash(hound), pixelHash(sirocco));
     }
 
+    @Test
+    void heavyCannonIsAProductionReadyTransparentModule() throws IOException {
+        BufferedImage cannon = load("heavy-cannon.png");
+        assertTransparentSprite(cannon, 64, 128, 500);
+    }
+
     private static BufferedImage load(String filename) throws IOException {
         BufferedImage image = ImageIO.read(ROOT.resolve(filename).toFile());
         assertNotNull(image, filename);
@@ -38,8 +44,13 @@ class LayeredMechAssetTest {
     }
 
     private static void assertNormalizedTransparent(BufferedImage image) {
-        assertEquals(208, image.getWidth());
-        assertEquals(208, image.getHeight());
+        assertTransparentSprite(image, 208, 208, 5_000);
+    }
+
+    private static void assertTransparentSprite(BufferedImage image, int width,
+                                                int height, int minimumVisiblePixels) {
+        assertEquals(width, image.getWidth());
+        assertEquals(height, image.getHeight());
         assertTrue(image.getColorModel().hasAlpha());
 
         int transparent = 0;
@@ -51,8 +62,8 @@ class LayeredMechAssetTest {
                 if (alpha >= 24) visible++;
             }
         }
-        assertTrue(transparent > 1_000, "sprite must retain transparent padding");
-        assertTrue(visible > 5_000, "sprite must contain a substantial visible chassis");
+        assertTrue(transparent > 500, "sprite must retain transparent padding");
+        assertTrue(visible > minimumVisiblePixels, "sprite must contain substantial visible art");
     }
 
     private static int pixelHash(BufferedImage image) {

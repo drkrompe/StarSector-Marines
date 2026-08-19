@@ -913,7 +913,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Plays at most one quiet radio cue at the speaking squad's current centroid. */
     private void playRadioChatter(BattleSimulation sim, float dt) {
-        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim.getSquads());
+        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim);
         if (emission == null) return;
         Vector2f loc = new Vector2f(
                 emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
