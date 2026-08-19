@@ -90,6 +90,11 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Mech roster** *(design stage)* — preserve the current all-range heavy as an
+  apex chassis, then add lighter specialists with readable hardware weaknesses:
+  a fast chaingun/SRM breacher and a fragile linear-cannon/LRM support strider
+  first, followed by a scout only when recon behavior can make it meaningful.
+  See [`mechs/`](mechs/overview.md).
 
 ## Immediate next-up
 
@@ -121,24 +126,29 @@ universe over time, not retrofitted into intel slots.
    seal a deterministic Last Testament, deliver it through persistent intel and
    Chronicle history, and have production-shaped debug/replay coverage
    (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). G9 **Silent Colony** is now
-   active: its first three slices persist the blind expedition, select one-shot
-   dead/ruined sites behind the shared event gate, with a reconstructible Dead
-   Letter choice surface, then emit a dedicated mission with the exact survivor
-   cohort, physical archive recovery, and hidden-seed autonomous turret/drone
-   defense (`4d50805d`, `33b073bd`, `9a87c85b`). Next is strict outcome
-   writeback, durable Dead Letter/Chronicle closure, and debug/save/replay
-   reachability.
-   Keep swarm tuning deferred until manual playtesting resumes. See
+   complete: a one-shot dead/ruined site can fund a blind expedition, emit a
+   dedicated exact-cohort mission against hidden-seed autonomous defenses, and
+   close only from its lineage-bound survivor/archive report. Dead Letter and
+   Chronicle preserve measured terminal facts exactly once across save/replay,
+   with production-shaped debug reachability and no inferred moral or cargo
+   reward (`4d50805d`, `33b073bd`, `9a87c85b`, `43bd3693`). Contract the next
+   living-world story before implementation.
+   The first swarm-feel correction now quarters alien HP and prefers a
+   marine-style layered top-down actor over the fallback sheet (`bccbbe16`);
+   manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
-4. **Manual verification queue (deferred this session)** — the loot loop's
-   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster/stat
-   tuning remain pending. See
+4. **Specialist mech review** — confirm the provisional roster and names, then
+   build the Hound/Sirocco comparison slice before changing production defender
+   composition. See [`mechs/next-session.md`](mechs/next-session.md).
+5. **Manual verification queue (deferred this session)** — the loot loop's
+   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster plus
+   post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-5. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+6. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See

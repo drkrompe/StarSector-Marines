@@ -56,6 +56,10 @@ public class LayeredFacingSystemTest {
                 UnitType.ENGINEER, 11, 5));
         long scientist = sim.spawn(new EntitySpec("scientist", Faction.CIVILIAN,
                 UnitType.SCIENTIST, 13, 5));
+        long alien = sim.spawn(new EntitySpec("alien", Faction.DEFENDER,
+                UnitType.ALIEN, 15, 5));
+        long runner = sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 17, 5));
 
         assertEquals(LayeredArmorFamily.BLUE_SCOUT.ordinal(),
                 i(sim, blue, BattleComponents.LAYERED_BODY_FAMILY));
@@ -69,6 +73,10 @@ public class LayeredFacingSystemTest {
                 i(sim, engineer, BattleComponents.LAYERED_BODY_FAMILY));
         assertEquals(LayeredArmorFamily.SCIENTIST.ordinal(),
                 i(sim, scientist, BattleComponents.LAYERED_BODY_FAMILY));
+        assertEquals(LayeredArmorFamily.XENO.ordinal(),
+                i(sim, alien, BattleComponents.LAYERED_BODY_FAMILY));
+        assertEquals(LayeredArmorFamily.XENO.ordinal(),
+                i(sim, runner, BattleComponents.LAYERED_HEAD_FAMILY));
 
         sim.world().setLayeredHeadFamily(blue, LayeredArmorFamily.RED_ELITE);
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, sim.world().layeredBodyFamily(blue));
@@ -82,6 +90,7 @@ public class LayeredFacingSystemTest {
         assertEquals(7, LayeredArmorFamily.CIVILIAN_COLONIST.ordinal());
         assertEquals(8, LayeredArmorFamily.ENGINEER.ordinal());
         assertEquals(9, LayeredArmorFamily.SCIENTIST.ordinal());
+        assertEquals(10, LayeredArmorFamily.XENO.ordinal());
     }
 
     @Test
