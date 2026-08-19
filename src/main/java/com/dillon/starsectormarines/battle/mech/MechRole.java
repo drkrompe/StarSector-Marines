@@ -10,8 +10,8 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  * planner positions the mech and which weapons it's willing to fire from a
  * given posture, not which weapons are mounted.
  *
- * <p>Stage 1 ships two roles ({@link #LR_SUPPORT}, {@link #ARMORED_SUPPORT}).
- * {@code RECON} and {@code ASSAULT} live in the parked Stage 2 design (see
+ * <p>Stage 1 shipped {@link #LR_SUPPORT} and {@link #ARMORED_SUPPORT}.
+ * Stage 2 adds {@link #ASSAULT}; {@code RECON} remains parked (see
  * {@code roadmap/ai/13-mech-goap.md}).
  *
  * <p>Assigned at spawn time by {@link BattleSetup}'s defender cluster mint.
@@ -35,5 +35,11 @@ public enum MechRole {
      * rifles, fires whichever weapon has an in-band target with LoS, no
      * withholding. Movement anchors to the squad's centroid.
      */
-    ARMORED_SUPPORT
+    ARMORED_SUPPORT,
+    /**
+     * Point doctrine. Advances into an assigned objective zone or closes on
+     * a live contact while firing on the move. Used by either faction; the
+     * squad's faction determines friend and foe at runtime.
+     */
+    ASSAULT
 }

@@ -58,7 +58,7 @@ Defined at `BspCityGenerator.java:87-107`:
 | `IndustrialYardFiller` | INDUSTRIAL_YARD | dirt floor, crate clusters |
 | `WastelandRubbleFiller` | WASTELAND_RUBBLE | damaged floor + walls, rubble |
 | `WaterfrontFiller` | WATERFRONT | non-walkable water + walkable shore |
-| `DenseBlockFiller` | DENSE_BLOCK | 2×2 sub-buildings + 1-cell alleys |
+| `DenseBlockFiller` | DENSE_BLOCK | 13x10+ lots: purpose-roomed tenement + market rows around a 3-cell tactical alley; smaller lots: legacy 2x2 shells + 1-cell cross alley |
 | `NatureZoneFiller` | NATURE_GRASSLAND/WETLAND/BEACH | grass/dirt + water pools + overlays |
 
 ## Fill catalog (compound)

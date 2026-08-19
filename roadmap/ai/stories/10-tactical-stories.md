@@ -733,8 +733,9 @@ Recommended slicing:
 - **Slice 6 ✅ partial (cross-squad emergence):** Story D shipped
   2026-05-27 — `ReinforceContact` goal + `FlankApproach` action with
   flanking waypoint algorithm (90° off garrison axis). Story E (mech
-  screening) remains; depends on the parked mech GOAP work
-  ([13-mech-goap.md](13-mech-goap.md)).
+  screening) remains. Story 22's ASSAULT Hound now supplies its moving point
+  unit; the remaining work is infantry follow/fan geometry and mech-body soft
+  cover ([13-mech-goap.md](13-mech-goap.md)).
 
 ## What this doc is for
 

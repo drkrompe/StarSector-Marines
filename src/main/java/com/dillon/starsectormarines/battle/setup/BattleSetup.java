@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
@@ -27,7 +28,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
@@ -644,6 +645,10 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            if (RescueShelterGarrison.install(sim, map,
+                    payload.placement, risk, battleSeed) == null) {
+                continue;
+            }
             installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
                     risk, scale.width, scale.height);
             SwarmDefenseRoster swarm = stressTest
@@ -1363,36 +1368,32 @@ public final class BattleSetup {
         UnitType mechType = defRoster.mech();
         UnitType eliteType = defRoster.elite();
         UnitType infantryType = defRoster.infantry();
-        java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
-        java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++) mechQueue.add(mechType);
+        Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
+        Deque<UnitType> infQueue = new ArrayDeque<>();
         for (int i = 0; i < roster.eliteCount; i++) infQueue.add(eliteType);
         for (int i = 0; i < roster.militiaCount; i++) infQueue.add(infantryType);
 
         int defenderIdx = 0;
-        // Battle-wide counter, shared by Pass 1 + Pass 2. Round-robins
-        // LR/Armored across the whole defender mech roster so the doctrine
-        // mix is balanced regardless of which pass each mech lands in.
-        int mechSpawnIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
 
         // Pass 1 — garrison the highest-priority nodes. Each garrison draws
         // from a single source queue (mechs first while available, then
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
-            if (source.isEmpty()) { patrolAnchors.add(node); continue; }
-            int want = Math.min(node.garrisonSize, source.size());
+            boolean spawningMechs = !mechQueue.isEmpty();
+            int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
+            if (sourceSize == 0) { patrolAnchors.add(node); continue; }
+            int want = Math.min(node.garrisonSize, sourceSize);
             List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if (source.isEmpty()) break;
-                UnitType type = source.poll();
-                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
+                if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
+                MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : infQueue.poll();
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng);
+                        roster.risk, rng, mechVariant);
                 unit.role(UnitRole.GARRISON);
                 unit.home(cell[0], cell[1]);
                 if (squad == null) {
@@ -1404,11 +1405,11 @@ public final class BattleSetup {
                     // overwatch discipline lives in their planner-side
                     // doctrine (LR Support withholds short-range weapons),
                     // not in a fire-suppression flag on the squad.
-                    squad.holdsFireUntilKillZone = (mechRole == null);
+                    squad.holdsFireUntilKillZone = (mechVariant == null);
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member, mechVariant);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1425,10 +1426,11 @@ public final class BattleSetup {
         int anchorIdx = 0;
         while (!mechQueue.isEmpty() || !infQueue.isEmpty()) {
             if (anchorPool.isEmpty()) break;
-            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
+            boolean spawningMechs = !mechQueue.isEmpty();
             TacticalNode anchor = anchorPool.get(anchorIdx % anchorPool.size());
             anchorIdx++;
-            int want = Math.min(roster.patrolSquadSize, source.size());
+            int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
+            int want = Math.min(roster.patrolSquadSize, sourceSize);
             List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
                 // Couldn't spawn here — drop this anchor from the pool so we
@@ -1443,11 +1445,11 @@ public final class BattleSetup {
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if (source.isEmpty()) break;
-                UnitType type = source.poll();
-                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
+                if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
+                MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : infQueue.poll();
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng);
+                        roster.risk, rng, mechVariant);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1456,7 +1458,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member, mechVariant);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1484,27 +1486,26 @@ public final class BattleSetup {
         // share membership.
         FactionUnitRoster defRoster = FactionUnitRoster.forFaction(Faction.DEFENDER);
         UnitType mechType = defRoster.mech();
-        java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
-        java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++)    mechQueue.add(mechType);
+        Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
+        Deque<UnitType> infQueue = new ArrayDeque<>();
         for (int i = 0; i < roster.eliteCount; i++)   infQueue.add(defRoster.elite());
         for (int i = 0; i < roster.militiaCount; i++) infQueue.add(defRoster.infantry());
 
         int defenderIdx = 0;
         int cellIdx = 0;
-        int mechSpawnIdx = 0;
         while ((!mechQueue.isEmpty() || !infQueue.isEmpty()) && cellIdx < cells.size()) {
-            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
+            boolean spawningMechs = !mechQueue.isEmpty();
+            int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             int squadSize = Math.min(roster.patrolSquadSize,
-                    Math.min(source.size(), cells.size() - cellIdx));
+                    Math.min(sourceSize, cells.size() - cellIdx));
             Squad squad = null;
             int spawned = 0;
             for (int s = 0; s < squadSize; s++) {
                 int[] cell = cells.get(cellIdx++);
-                UnitType type = source.poll();
-                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
+                MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : infQueue.poll();
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng);
+                        roster.risk, rng, mechVariant);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1514,7 +1515,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechRole);
+                attachMechLoadout(sim, member, mechVariant);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1526,8 +1527,9 @@ public final class BattleSetup {
      * see {@link #attachMechLoadout} — because the loadout store is keyed by the
      * entity id, which isn't assigned until {@code addUnit}. */
     private static EntitySpec makeDefender(String id, UnitType type, int x, int y,
-                                           RiskLevel risk, Random rng) {
+                                           RiskLevel risk, Random rng, MechVariant mechVariant) {
         EntitySpec unit = new EntitySpec(id, Faction.DEFENDER, type, x, y);
+        if (mechVariant != null) return mechVariant.applyTo(unit);
         if (!type.drawnAsLayers()) return unit;
         MarineWeapon family = InfantryLoadoutRolls.defenderPrimary(type, rng);
         EquipmentGrade grade = InfantryLoadoutRolls.defenderEquipmentGrade(type, risk, rng);
@@ -1537,27 +1539,17 @@ public final class BattleSetup {
 
     /**
      * Attaches a {@link MechLoadoutComponent} (the world's {@code MECH_LOADOUT}
-     * component) to a just-added unit that spawned as a mech ({@code mechRole !=
+     * component) to a just-added unit that spawned as a mech ({@code mechVariant !=
      * null} — the caller already decided mech-ness from the source queue). No-op
      * for infantry. <b>Must run after {@code sim.addUnit}</b>: the attach is an
      * {@code addComponent} row-move keyed by {@code entityId}, which the registry
      * assigns at allocate time.
      */
-    private static void attachMechLoadout(BattleSimulation sim, long unit, MechRole mechRole) {
-        if (mechRole != null) {
-            sim.world().attachMechLoadout(unit, MechLoadoutComponent.defaultLoadout(mechRole));
+    private static void attachMechLoadout(BattleSimulation sim, long unit, MechVariant mechVariant) {
+        if (mechVariant != null) {
+            sim.world().attachMechLoadout(unit,
+                    mechVariant.createLoadout(mechVariant.defaultRole));
         }
-    }
-
-    /**
-     * Picks the next mech doctrine slot in spawn order. Round-robin so a
-     * battle with N≥2 mechs always has at least one of each role; with a
-     * single mech, that mech is LR Support (the more visually distinct
-     * doctrine — sits back and lobs LRMs). The commander tier (future)
-     * overwrites this stub via {@code ObjectiveAssignment}.
-     */
-    private static MechRole nextMechRole(int spawnIdx) {
-        return (spawnIdx % 2 == 0) ? MechRole.LR_SUPPORT : MechRole.ARMORED_SUPPORT;
     }
 
     /**

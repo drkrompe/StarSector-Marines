@@ -60,6 +60,14 @@ and ignores structural fallback links. Ordinary broken garrisons now yield
 cleanly to survival. See
 `complete/21-last-stand-objective-camper.md`.
 
+Story 22 / mech Stage 2A shipped (2026-08-19, `1ef74f23`): LOW defender
+rosters contain no mechs, MEDIUM introduces one Bulwark, and HIGH uses
+deterministic mission-scaled Bulwark/Hound/Sirocco groups without increasing
+the old body-count ceiling. Hound now defaults to the faction-neutral ASSAULT
+doctrine: it enters commander-assigned zones or advances on locally known
+contact, fires while moving, stays inside an ordered zone, and still yields to
+mech survival. See `complete/22-assault-mech-and-difficulty-roster.md`.
+
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
@@ -68,7 +76,9 @@ gate. The full squad-belief + commander-influence layer remains parked.
 ## Immediate next
 
 1. **Story E (mech-screened advance)** — remaining piece of Slice 6.
-   Blocked on mech GOAP Stage 2 work (`stories/13-mech-goap.md`).
+   The moving point unit is now available through Story 22's ASSAULT Hound.
+   Next add infantry-side friendly-mech selection, threat-relative follow/fan
+   positions, and explicit mech-body soft cover.
 
 ## Parked but design-complete
 
@@ -79,8 +89,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - **Commander improvements** (`stories/12-squad-of-squads.md` §
   Improvement path) — contour-aware target picking, cross-strip
   reallocation, defender-side commanders. All gated on doc 15.
-- **Mech GOAP Stage 2** (`stories/13-mech-goap.md`) — Recon + Assault
-  roles, dynamic re-assignment from commander tier.
+- **Mech GOAP Stage 2 remainder** (`stories/13-mech-goap.md`) — Recon and
+  broad dynamic role re-assignment. Assault shipped in Story 22.
 
 ## Key files
 
@@ -103,5 +113,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/21-last-stand-objective-camper.md` — shipped explicit must-hold
   node authoring, the lone-survivor `HoldPosition` mission override, and its
   cover-aware hold refinement (`ef76c7ba`, `780ea91f`)
+- `complete/22-assault-mech-and-difficulty-roster.md` — shipped deterministic
+  risk-scaled mech profiles plus the faction-neutral ASSAULT point doctrine
+  (`1ef74f23`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
