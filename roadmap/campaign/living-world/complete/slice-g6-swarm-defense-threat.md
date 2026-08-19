@@ -69,3 +69,12 @@ large-roster tests and the full build pass. Production remains unchanged.
 Close the player-facing outcome loop with a controlled zero/partial/full
 battle-to-campaign fixture and explicit result presentation. Balance tuning
 remains deferred until manual playtesting resumes.
+
+## Opportunistic-targeting follow-up
+
+`4fedb34a` supersedes v1's evacuee-first priority. Sensed marines and active
+registered evacuees now share one distance-ranked pool, with 25% current-target
+leeway to prevent oscillation. A substantially closer marine can peel a runner
+off a colonist, and the resulting aggro change replaces the old path
+immediately. Civilian discovery, ambient exclusion, strategic marine fallback,
+and implacable contact pressure remain intact.

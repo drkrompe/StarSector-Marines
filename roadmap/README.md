@@ -90,6 +90,13 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Battle radio** *(v1 shipped)* — marine infantry squads now emit quiet,
+  positional visual-contact and fallback calls from real squad-state
+  transitions, plus globally throttled acknowledgements during sustained
+  engagements. The standalone battle and vanilla-combat bridge share one
+  presentation-only cue policy, so audio never perturbs sim determinism. An
+  in-game mix/content feel pass remains queued. See
+  [`battle-radio/`](battle-radio/overview.md).
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
   -5 and -15 rack classes and profile-aware physical geometry. Production
@@ -136,7 +143,9 @@ universe over time, not retrofitted into intel slots.
    The first swarm-feel correction now quarters alien HP and prefers a
    marine-style layered top-down actor over the fallback sheet (`bccbbe16`),
    with generated fore-claws that alternate a foreground contact swipe
-   (`20d3bcb0`); manual roster and post-rebalance feel validation remain queued. See
+   (`20d3bcb0`). Runners now choose opportunistically between nearby marines
+   and exposed evacuees, allowing soldiers to peel pressure from the objective
+   (`4fedb34a`); manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory is
    shipped (`1b950e48`): real terminal contract outcomes now persist exactly
