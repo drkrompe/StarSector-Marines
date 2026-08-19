@@ -363,6 +363,15 @@ The composed actor now reuses one generated forearm/claw layer twice: both arms
 sit beneath the torso at rest, while contact fire alternates a forward claw
 above the body and retracts it over the existing firing pose (`20d3bcb0`).
 
+Rescue battles now sustain that pressure with mission-local roving waves
+(`ad11debf`). Once live runners fall below 70% of the opening roster, a
+six-second cadence restores up to 25% from deterministic reachable perimeter
+cells without exceeding the opening cap. Entries avoid protected zones and keep
+safe reveal distance from civilians and marines; reinforcement stops when the
+cohort resolves. Civilians now evaluate a five-cell marine leash independently,
+stop if they lead their nearest escort by more than two cells toward the lift,
+and seek the screened side of that marine when a visible enemy is nearby.
+
 ### Outcome closure — first checkpoint
 
 The debug mission client now exposes direct LOW/MEDIUM/HIGH **SWARM RESCUE**
