@@ -90,6 +90,11 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Mech roster** *(design stage)* — preserve the current all-range heavy as an
+  apex chassis, then add lighter specialists with readable hardware weaknesses:
+  a fast chaingun/SRM breacher and a fragile linear-cannon/LRM support strider
+  first, followed by a scout only when recon behavior can make it meaningful.
+  See [`mechs/`](mechs/overview.md).
 
 ## Immediate next-up
 
@@ -132,11 +137,14 @@ universe over time, not retrofitted into intel slots.
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
-4. **Manual verification queue (deferred this session)** — the loot loop's
+4. **Specialist mech review** — confirm the provisional roster and names, then
+   build the Hound/Sirocco comparison slice before changing production defender
+   composition. See [`mechs/next-session.md`](mechs/next-session.md).
+5. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster/stat
    tuning remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-5. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+6. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See
