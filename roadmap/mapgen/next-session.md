@@ -29,7 +29,8 @@ aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
 c447104  mapgen: concentric "onion" station layout — defensive rings around a core
 f04c2d5  mapgen: diamond defense station — cardinal ports converging inward
 d14ce6a8  mapgen: tactical commercial interiors
-7bb9b4f2  mapgen: orient coherent commercial compounds  ← latest mapgen work
+7bb9b4f2  mapgen: orient coherent commercial compounds
+fa0533ee  mapgen: tactical military compound interiors  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -79,6 +80,14 @@ findings) in
   opposed rear facade, and leaves reserved STREET centerlines untouched for the
   vehicle graph. See
   [`complete/commercial-compound.md`](complete/commercial-compound.md).
+- **Ground tactical structures — military compound slice shipped (`fa0533ee`).**
+  COMMAND, BARRACKS, ARMORY, and VEHICLE_BAY now use distinct purpose-labeled
+  fixture recipes, primary doors face the shared parade ground, and an outdoor
+  radar dish supplies a recognizable command-site silhouette without touching
+  doorway clearance or convoy-reserved roads. Two-cell lanes are sized around
+  the 0.3-cell marine radius; vehicle bays retain a 3x3 open service floor. Four
+  new transparent ImageGen doodads landed in the generated atlas. See
+  [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md).
 
 ## Next up (priority order)
 
@@ -136,13 +145,16 @@ reused verbatim. Candidate next tracks (priority order):
   See the section below for what each resolution was.
 
 1. **Ground tactical-structure track** — tactical commercial interiors
-   (`d14ce6a8`) and coherent commercial compounds (`7bb9b4f2`) are shipped.
-   Next: generalize the placement-aware floor-plan artifact to offices,
-   warehouses, and larger multi-room civic buildings. A true fused multi-lot
-   structure remains gated on an earlier footprint-plan stage that can safely
-   suppress/replan road-graph edges. See
-   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md)
-   and [`complete/commercial-compound.md`](complete/commercial-compound.md).
+   (`d14ce6a8`), coherent commercial compounds (`7bb9b4f2`), and tactical
+   military compounds (`fa0533ee`) are shipped. Next: generalize the
+   placement-aware floor-plan artifact to offices and larger multi-room civic
+   buildings, or deepen armories/vehicle bays with dedicated weapon-rack and
+   vehicle-maintenance art. A true fused multi-lot structure remains gated on
+   an earlier footprint-plan stage that can safely suppress/replan road-graph
+   edges. See
+   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md),
+   [`complete/commercial-compound.md`](complete/commercial-compound.md), and
+   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`

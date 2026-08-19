@@ -4,7 +4,7 @@
 > implementation commit `139fcb3b`. Probabilistic doodad crossings and
 > directional wall-edge cover now test the round's Z against a data-driven
 > catch band before rolling their unchanged block chance. Structural walls
-> remain full-height hard stops. Full suite: 1541 tests green.
+> remain full-height hard stops. Post-integration full suite: 1590 tests green.
 >
 > **Landed vs. planned deviations:** none. Level-zero and vertically cleared
 > cover contacts no longer consume a random value, which is the specified
@@ -79,13 +79,14 @@ Registered doodads gain a JSON `ballisticHalfHeight` field carried through
 |---|---:|
 | rubble/debris decals | 0.16 |
 | damaged chairs/boxes | 0.22 |
+| military bunks | 0.25 |
 | boxes/pallets/sandbags | 0.28–0.30 |
 | chests/pipes | 0.32 |
 | crates/desks/reels | 0.38–0.40 |
 | drums/scrap | 0.45 |
-| dumpsters/generators | 0.50–0.55 |
+| dumpsters/generators/command consoles | 0.50–0.55 |
 | crate stacks/damaged shelves | 0.60/0.55 |
-| full shelves/closed doors | 0.75 |
+| full shelves/closed doors/radar dishes | 0.75 |
 
 The JSON field is optional for submod/backward compatibility. Missing values
 fall back by cover level: light `0.18`, medium `0.38`, heavy `0.60`, none `0`.

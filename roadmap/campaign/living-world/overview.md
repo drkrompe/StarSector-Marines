@@ -206,8 +206,8 @@ now include a separately persisted, replay-safe mutual-hostility rupture between
 claimant and former ruler (`ad6ff5fd`, `527535fb`). Autonomous success stays
 player-reputation-neutral; explicit participation is attributed before any
 player consequence. The dedicated faction-flip snapshot and debug dispatch are
-also shipped (`d7be2649`, `31be86ed`). The kingmaker capstone remains a
-follow-up slice.
+also shipped (`d7be2649`, `31be86ed`). The kingmaker capstone built on that
+handoff and is now complete (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`).
 
 Those player choices now have a complete persistence and resolution foundation:
 civil-war contracts reuse parent/opposed lineage for side identity, snapshot one
@@ -221,8 +221,8 @@ stationing acceptance through shared contradictory-work/withdrawal rules
 supported/opposed house-reputation changes exactly once after an applied
 claimant handoff or a same-day decisive incumbent failure; autonomous and stale
 terminal outcomes remain neutral (`753f3969`, `0ef347d3`, `03422b15`). The
-earned kingmaker capstone remains. Its hidden foundation is now shipped: four
-bounded axes sit behind an append-
+earned kingmaker capstone is now shipped. Its hidden foundation began with four
+bounded axes behind an append-
 only source-unique choice ledger, and attributed claimant/incumbent outcomes
 move institutionalism exactly once without exposing numbers or inventing meaning
 on the other axes (`facfa007`, `6765eac6`, `2a1924e7`). The second real source

@@ -39,3 +39,44 @@ The corner and straight outputs are preserved in `imagegen-masters/` and turned
 into the eight exact ring frames by `derive_sandbag_frames.py`. Raw chroma-key
 outputs are preserved under `imagegen-raw/`; cleaned production cutouts live in
 `sources/`.
+
+## Military-compound additions
+
+The military set was generated with the built-in ImageGen tool in
+`stylized-concept` mode. These outputs supplied clean alpha directly, so the
+untouched RGBA files are preserved under `imagegen-raw/` and copied to
+`sources/` without chroma-key cleanup. The atlas builder still crops and
+normalizes them to the 32x32 runtime grid.
+
+Shared suffix used for all four prompts:
+
+```text
+Scene/backdrop: genuinely transparent background with clean alpha.
+Style/medium: pixelated-realistic strict top-down game sprite, crisp clustered
+pixels, restrained detail that survives reduction to 32x32, matching a gritty
+blue-gray and olive sci-fi military tileset.
+Composition: orthographic 90-degree top-down, centered, generous even padding,
+full object visible.
+Lighting: subtle overhead upper-left object-local highlights only.
+Constraints: exactly one isolated asset; no floor, base tile, cast shadow,
+people, text, logo, watermark, scenery, or magenta; no isometric or perspective
+view.
+```
+
+Per-asset primary requests:
+
+- `military-radar-dish.png`: one compact military radar dish on a squat armored
+  rotating pedestal, olive drab and dark gunmetal, with the concave dish and
+  support yoke unmistakably legible from directly above; chipped armor panels,
+  dark pivots, tiny amber status lamps, compact field-deployable silhouette.
+- `military-command-console.png`: one compact military command-and-control
+  computer console station, a low angular operator desk with three embedded
+  cyan-blue tactical screens, olive armor and gunmetal housing; console only,
+  no chair and no operator.
+- `military-tactical-table.png`: one square tactical planning table, a recessed
+  cyan-and-amber illuminated battlefield map display inside a reinforced olive
+  and gunmetal rim, clearly distinct from an operator console; simple grid and
+  unit markers with no readable text.
+- `military-bunk.png`: one compact military barracks bunk or field cot seen
+  directly from above, dark metal frame, neatly rolled olive blanket, muted tan
+  pillow, and a small folded kit at the foot; long axis vertical and no person.

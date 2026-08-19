@@ -3,8 +3,8 @@
 This folder turns individually generated transparent PNG cutouts into one
 runtime-sized atlas and its matching tileset JSON.
 
-The first generated asset family's shared prompt recipe and references are
-recorded in `IMAGEGEN-PROMPTS.md`.
+The generated asset families' shared prompt recipes, including the transparent
+military-compound set, are recorded in `IMAGEGEN-PROMPTS.md`.
 
 ## Basic use
 
