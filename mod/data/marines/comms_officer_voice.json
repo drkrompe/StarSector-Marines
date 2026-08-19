@@ -257,5 +257,35 @@
 			"The recent record with {patron} includes one employer breach and one player-side miss.",
 			"This would be engagement {engagementNumber} with {patron}. The last two had problems on both sides."
 		]
+	},
+
+	# First-time-patron local context, sourced from one recent engagement with
+	# a different house at the same market. Supported tokens are {otherPatron},
+	# {otherContract}, {otherOutcome}, {daysAgo}, and the formatted {age}.
+	"localEcho": {
+		"COMPLETED": [
+			"Local context: our last file here was {otherPatron}'s {otherContract}. It ended in completion.",
+			"We've worked another local account recently: {otherPatron}, {otherContract}, clean result.",
+			"The recent local ledger includes a completed {otherContract} for {otherPatron}.",
+			"Different client, same market: we closed a {otherContract} for {otherPatron} {age}."
+		],
+		"FAILED": [
+			"Local context: our last file here was {otherPatron}'s {otherContract}. It ended in failure.",
+			"We've worked another local account recently: {otherPatron}, {otherContract}, failed result.",
+			"The recent local ledger includes a failed {otherContract} for {otherPatron}.",
+			"Different client, same market: our {otherContract} for {otherPatron} failed {age}."
+		],
+		"WITHDREW": [
+			"Local context: our last file here was {otherPatron}'s {otherContract}. We withdrew.",
+			"We've worked another local account recently: {otherPatron}. We withdrew from their {otherContract}.",
+			"The recent local ledger records our withdrawal from a {otherContract} for {otherPatron}.",
+			"Different client, same market: we left {otherPatron}'s {otherContract} {age}."
+		],
+		"EMPLOYER_BREACHED": [
+			"Local context: our last file here was {otherPatron}'s {otherContract}. Their side broke terms.",
+			"We've worked another local account recently: {otherPatron}. Their {otherContract} ended in employer breach.",
+			"The recent local ledger records broken terms on {otherPatron}'s side of a {otherContract}.",
+			"Different client, same market: {otherPatron} broke terms on a {otherContract} {age}."
+		]
 	}
 }
