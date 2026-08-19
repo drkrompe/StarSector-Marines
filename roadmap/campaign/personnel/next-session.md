@@ -67,10 +67,10 @@ captain-local and deterministic, and the shared captain row presents readable
 pass. Manual UI/balance validation remains queued, as requested for the current
 automated-only session.
 
-## Active — captain discovery
+## Complete — captain discovery
 
-The contract is active in
-[`stories/captain-discovery.md`](stories/captain-discovery.md). Slice 1 is
+The shipped contract is recorded in
+[`complete/captain-discovery.md`](complete/captain-discovery.md). Slice 1 is
 shipped (`ecf70b58`, `055abb97`): `MarineRoster` now persists one immutable
 candidate per normalized namespaced campaign source and resolves offers through
 capacity-safe accept/decline operations. Acceptance freezes the future captain
@@ -86,12 +86,18 @@ bounded captain profile, and publishes it through the roster authority. Replay,
 mission-tag exclusion, profile stability, cargo isolation, the full root test
 suite, and the complete Gradle build pass.
 
-Slice 3 is the next bounded task: retain the salvage interaction only when a
-new available candidate is published, present the cryo-pod survivor after the
-vanilla loot panel closes, and route accept/decline/full-roster outcomes through
-the existing candidate operations. Outlook combat modifiers, reversals,
-transfers, unrelated dialog, and interpersonal conflict remain intentional
-non-goals.
+Slice 3 is shipped (`7a32e771`): Captain Discovery retains only its own salvage
+continuation, presents the survivor after vanilla loot closes, and resolves
+commission/referral/defer choices through the candidate authority. Full-roster
+offers remain available and actionable in Personnel, which shows frozen rank,
+trait, source, and discovery day. Another salvage flow's continuation is never
+taken over. The focused interaction matrix and merged full root automated suite
+pass; manual in-game layout validation remains deferred as requested.
+
+There is no active personnel story. Contract a new one before extending captain
+discovery into tavern hiring, markets, wages, dismissal, or trading, or moral
+outlooks into combat modifiers, reversals, transfers, dialog, or interpersonal
+conflict. Those remain intentional non-goals.
 
 ## Commit chain
 
@@ -124,3 +130,4 @@ non-goals.
 - `055abb97` — persist source-keyed candidates and exactly-once roster intake.
 - `3b70fcc4` — lock the non-invasive derelict-salvage seam.
 - `d780e345` — publish deterministic candidates from eligible vanilla wrecks.
+- `7a32e771` — present and resolve recovered captains after vanilla salvage.

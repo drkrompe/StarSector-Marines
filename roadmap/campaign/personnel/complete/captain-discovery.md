@@ -1,6 +1,6 @@
 # Captain discovery
 
-**Status:** ACTIVE — Slices 1–2 shipped (2026-08-19)
+**Status:** COMPLETE — all three slices shipped (2026-08-19)
 
 ## Problem
 
@@ -110,9 +110,30 @@ listener never reads or mutates the displayed cargo and repeated callbacks
 cannot duplicate the offer. Focused eligibility/profile/replay/cargo-isolation
 coverage and the full root automated suite pass.
 
-Slice 3 is next: keep the salvage dialog open only for a newly available
-candidate, present the recovered survivor after vanilla loot closes, and route
-accept/decline/full-roster outcomes through the existing candidate authority.
+## Slice 3 complete
+
+`7a32e771` retains the vanilla salvage interaction only when Captain Discovery
+owns the continuation, presents the recovered survivor after the untouched loot
+panel closes, and routes commission, rescue-service referral, and decide-later
+choices through the persisted candidate authority. Full rosters disable the
+commission and preserve the offer. Available survivors remain readable and
+actionable in Personnel with frozen rank, trait, provenance, and discovery day.
+The listener will not take over a continuation already owned by another salvage
+flow. Focused interaction/full-roster/decline/replay/ownership coverage and the
+merged full root automated suite pass. Manual in-game layout validation remains
+deferred per session direction.
+
+## Acceptance criteria
+
+- Ordinary eligible wreck salvage can publish and present no more than one
+  deterministic survivor without changing vanilla cargo or reward completion.
+- Acceptance adds exactly one frozen captain and cannot exceed roster capacity.
+- Decline is irreversible; decide-later and full-roster outcomes preserve an
+  available candidate for Personnel review.
+- Mission-tagged wrecks and salvage interactions with another continuation
+  owner remain untouched.
+- Legacy saves, repeated callbacks, stale options, and save repair cannot create
+  duplicate captains or resurrect a resolved offer.
 
 ## Non-goals
 
