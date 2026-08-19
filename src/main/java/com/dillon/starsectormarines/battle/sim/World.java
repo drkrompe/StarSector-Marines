@@ -246,6 +246,11 @@ public final class World {
                 ? (MechLoadoutComponent) entityWorld.getObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE)
                 : null;
     }
+    /** Current planted-hip bearing for a live mech. Fail-loud on a non-mech. */
+    public float mechHipFacingDegrees(long id) {
+        return entityWorld.getFloat(id, components.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+    }
     /** Grant the mech-loadout capability at spawn (archetype row-move). Serial-only — never mid-{@code Query} walk. */
     public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
         entityWorld.addComponent(id, components.MECH_LOADOUT);

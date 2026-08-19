@@ -55,6 +55,21 @@ readable gun-launched HE family without making their shells missiles:
   profile and focused tests pin physical stopping, timed AoE payloads, and the
   distinction between ballistic shells and boost-ramping rocket entities.
 
+## Shipped moving-fire target control
+
+The family now uses one target-refresh policy across parity engagement, rescue
+patrol, overwatch, infantry backstop, and break-contact fire. Upper chassis
+traverse widened from 70 to 145 degrees on either side of the planted hips.
+Targets within 10 cells act as close threats and interrupt farther engagements;
+otherwise, a visible target outside the current traverse yields to the nearest
+visible in-arc contact. Existing close targets remain sticky, and the 70-degree
+rear blind wedge preserves a reason for the chassis to turn.
+
+Focused regressions pin the traverse clamp, rear-to-flank retarget, close-threat
+override, and close-target stickiness. This is shared behavioral infrastructure,
+not a new doctrine or a variant-specific stat, so Hound, Sirocco, and Bulwark
+currently use the same envelope.
+
 ## Player-facing outcome
 
 A defender mech contact no longer always means the same enormous all-range

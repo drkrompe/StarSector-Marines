@@ -49,7 +49,7 @@ public final class EngageAtCurrentBand implements Action {
 
     @Override
     public ActionStatus execute(long u, Squad squad, BattleControl sim) {
-        long target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        long target = MechTargeting.refreshTarget(u, sim);
         sim.world().setTargetId(u, target);
         if (target == 0L) return ActionStatus.RUNNING;
 

@@ -76,8 +76,7 @@ public final class PatrolRescueFormation implements Action {
 
     /** Fires every installed track without replacing the authored LZ route. */
     private static void fireFromPatrol(long member, BattleControl sim) {
-        long target = sim.getTacticalScoring()
-                .refreshTargetIfNotShootable(member);
+        long target = MechTargeting.refreshTarget(member, sim);
         sim.world().setTargetId(member, target);
         if (target == 0L) return;
         MechLoadoutComponent loadout = sim.world().mechLoadout(member);

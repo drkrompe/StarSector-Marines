@@ -40,6 +40,14 @@ Heavy Mortar turret. Vanilla explosion frames and shock-ring art layer over the
 existing fire, smoke, decal, sound, and dynamic-ground-light systems.
 Bulwark's racks sit above its body layer and its chainguns are visually narrower.
 
+All mech postures now share the same movement-aware target refresh. The upper
+chassis can twist 145 degrees to either side of its planted hips, leaving only a
+70-degree rear blind wedge. A visible enemy inside 10 cells interrupts a more
+distant engagement, and a target stranded outside the current traverse is
+replaced by a visible in-arc contact when one exists. This applies to ordinary
+engagement, rescue patrol, overwatch, backstop, and withdrawal fire rather than
+being special-cased to one mission behavior.
+
 ## Proposed family
 
 Names and numbers are provisional. The battlefield identities are the part to

@@ -29,7 +29,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(long u, BattleSimulation sim) {
-        long target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        long target = MechTargeting.refreshTarget(u, sim);
         sim.world().setTargetId(u, target);
         if (target == 0L) return;
 
