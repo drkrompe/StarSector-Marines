@@ -328,6 +328,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
     /** Post-movement soft-collision relaxation pass — pushes overlapping ground units apart. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
+    /** Short-range allied-infantry steer away from hostile alien bodies. */
+    private final SwarmAvoidanceSystem swarmAvoidance;
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private boolean complete = false;
@@ -434,6 +436,8 @@ public class BattleSimulation implements BattleControl {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
+        this.swarmAvoidance = new SwarmAvoidanceSystem(
+                rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
                 entityWorld, battleComponents);
@@ -1094,10 +1098,13 @@ public class BattleSimulation implements BattleControl {
         // regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
-        // Soft-collision relaxation — nudges overlapping ground units apart.
+        // Threat steer then soft-collision relaxation. The first bends allied
+        // infantry away from nearby aliens without replacing authored paths;
+        // the second nudges any remaining body overlaps apart.
         // Runs here (serial, after every UPDATE_UNITS position write has
         // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
         // read final POSITION). See SeparationSystem class doc.
+        swarmAvoidance.tick(TICK_DT);
         separation.tick(TICK_DT);
         mechCollisionEscape.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SEPARATION);
