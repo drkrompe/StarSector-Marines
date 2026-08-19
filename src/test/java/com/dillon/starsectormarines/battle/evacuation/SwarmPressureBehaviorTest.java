@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.SeparationSystem;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -140,6 +141,53 @@ class SwarmPressureBehaviorTest {
 
         assertTrue(damaged,
                 "an unobstructed runner must close the full distance and land contact damage");
+    }
+
+    /**
+     * S3 swarm-spread balance guard: separation may fan a converged pack out,
+     * but it must not strand outer runners just beyond contact range. Drive a
+     * full eight-runner pack through behavior, movement and separation for 12
+     * seconds and count actual cooldown resets. Every runner must establish
+     * contact and sustain several attacks rather than merely touch the target
+     * once before being excluded by the crowd.
+     */
+    @Test
+    void separatedSwarmPackSustainsMeleePressureFromEveryRunner() {
+        BattleSimulation sim = simulation();
+        long target = sim.spawn(new EntitySpec("durable target", Faction.MARINE,
+                UnitType.MARINE, 12, 6).health(100_000f));
+        long[] runners = new long[8];
+        int[] attacks = new int[runners.length];
+        for (int i = 0; i < runners.length; i++) {
+            runners[i] = runner(sim, 2, 6);
+        }
+        SeparationSystem separation = new SeparationSystem(
+                sim.getRoster(), sim.getUnitIndex(), sim.getGrid());
+
+        int ticks = Math.round(12f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            sim.movement().beginTick(BattleSimulation.TICK_DT);
+            sim.getUnitIndex().rebuild(sim.getRoster());
+            for (int i = 0; i < runners.length; i++) {
+                float cooldownBefore = sim.combat().cooldownTimer(runners[i]);
+                SwarmPressureBehavior.INSTANCE.update(runners[i], sim);
+                float expectedWithoutAttack = Math.max(0f,
+                        cooldownBefore - BattleSimulation.TICK_DT);
+                if (sim.combat().cooldownTimer(runners[i])
+                        > expectedWithoutAttack + 1e-5f) {
+                    attacks[i]++;
+                }
+            }
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        for (int i = 0; i < runners.length; i++) {
+            assertTrue(attacks[i] >= 6,
+                    "runner " + i + " landed only " + attacks[i]
+                            + " attacks after the pack spread around its target");
+            assertEquals(target, sim.combat().targetId(runners[i]),
+                    "runner " + i + " lost the shared pressure target");
+        }
     }
 
     private static BattleSimulation simulation() {

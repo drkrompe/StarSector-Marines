@@ -147,6 +147,89 @@ public class SeparationSystemTest {
     }
 
     /**
+     * S3 chokepoint regression: an eight-unit crowd converges from a room into a
+     * one-cell-wide passage, traverses it, and fans back out into the room on
+     * the far side. This drives movement and separation in their production
+     * order while rebuilding the unit-index snapshot once per tick. Every
+     * mover must make forward progress through both mouths and finish its
+     * route on walkable ground; a separation/path tug that oscillates at a
+     * doorway leaves at least one path unexhausted within the generous
+     * 20-second budget.
+     */
+    @Test
+    public void fireteamFlowsThroughOneCellChokepointWithoutOscillation() {
+        int w = 24, h = 9;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 1; y < h - 1; y++) {
+            for (int x = 1; x <= 7; x++) grid.setWalkableFloor(x, y);
+            for (int x = 16; x < w - 1; x++) grid.setWalkableFloor(x, y);
+        }
+        for (int x = 8; x <= 15; x++) grid.setWalkableFloor(x, 4);
+
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(w, h));
+        SeparationSystem separation = separationFor(sim);
+        long[] marines = new long[8];
+        for (int i = 0; i < marines.length; i++) {
+            int startX = 2 + i % 3;
+            int startY = 2 + i / 3;
+            int destX = 18 + i % 3;
+            int destY = 2 + i / 3;
+            marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, startX, startY));
+            sim.setPath(marines[i], new int[]{
+                    startX, startY,
+                    7, 4,
+                    8, 4,
+                    15, 4,
+                    16, 4,
+                    destX, destY
+            });
+        }
+
+        boolean[] enteredChoke = new boolean[marines.length];
+        boolean[] exitedChoke = new boolean[marines.length];
+        int[] entryRetreats = new int[marines.length];
+        int[] exitRetreats = new int[marines.length];
+        float[] previousX = new float[marines.length];
+        for (int i = 0; i < marines.length; i++) {
+            previousX[i] = sim.world().x(marines[i]);
+        }
+        int ticks = Math.round(20f / BattleSimulation.TICK_DT);
+        for (int t = 0; t < ticks; t++) {
+            sim.movement().beginTick(BattleSimulation.TICK_DT);
+            sim.getUnitIndex().rebuild(sim.getRoster());
+            for (long marine : marines) sim.advanceMovement(marine);
+            separation.tick(BattleSimulation.TICK_DT);
+
+            for (int i = 0; i < marines.length; i++) {
+                int cx = sim.world().cellX(marines[i]);
+                int cy = sim.world().cellY(marines[i]);
+                assertTrue(grid.isWalkable(cx, cy),
+                        "tick " + t + " unit " + i + " entered blocked cell (" + cx + "," + cy + ")");
+                float x = sim.world().x(marines[i]);
+                if (x >= 8.5f) enteredChoke[i] = true;
+                if (x >= 16.5f) exitedChoke[i] = true;
+                if (previousX[i] >= 8.5f && x < 8.5f) entryRetreats[i]++;
+                if (previousX[i] >= 16.5f && x < 16.5f) exitRetreats[i]++;
+                previousX[i] = x;
+            }
+        }
+
+        for (int i = 0; i < marines.length; i++) {
+            assertTrue(enteredChoke[i], "unit " + i + " never entered the chokepoint");
+            assertTrue(exitedChoke[i], "unit " + i + " never exited the chokepoint");
+            assertTrue(sim.movement().settled(marines[i]),
+                    "unit " + i + " remained in a movement/separation tug after 20 seconds");
+            assertTrue(sim.world().x(marines[i]) >= 17f,
+                    "unit " + i + " was pushed back through the exit after finishing");
+            assertTrue(entryRetreats[i] <= 1,
+                    "unit " + i + " oscillated across the choke entrance " + entryRetreats[i] + " times");
+            assertTrue(exitRetreats[i] <= 1,
+                    "unit " + i + " oscillated across the choke exit " + exitRetreats[i] + " times");
+        }
+    }
+
+    /**
      * Test 3 — mass asymmetry: a mech (radius 0.6, mass 0.36) and a marine
      * (radius 0.3, mass 0.09) overlap by 0.1 cells along the x-axis. The
      * inverse-mass weighting ({@code w = m(other) / (m(self) + m(other))})
