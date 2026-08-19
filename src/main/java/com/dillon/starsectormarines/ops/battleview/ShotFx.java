@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -29,7 +31,7 @@ import java.util.function.Function;
  *
  * <p>The {@code ShotRenderService} sweeps consume this composition directly;
  * the path-keyed projectile-sprite cache {@link Sprite#spritePath} enables is
- * shared by ordinary sprites and the generated {@link Bolt} texture.
+ * shared by ordinary sprites and each {@link Bolt} style texture.
  *
  * @param body       projectile sprite vs. hitscan tracer
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
@@ -41,8 +43,12 @@ import java.util.function.Function;
 public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                      boolean engineTrail, boolean smokeTrail, ContrailStyle contrail) {
 
-    /** Shared white-base bolt texture; {@link Bolt#color} supplies the weapon hue at draw time. */
-    public static final String BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
+    /** S3's soft white-base energy bolt, retained for the pulse-rifle family. */
+    public static final String PULSE_BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
+    /** Vanilla railgun projectile reused as the DMR's stretched blue-white needle. */
+    public static final String RAIL_NEEDLE_SPRITE_PATH = "graphics/missiles/shell_gauss_cannon.png";
+    /** Nearly neutral vanilla flechette reused as the drone's compact cyan dart. */
+    public static final String DRONE_DART_SPRITE_PATH = "graphics/missiles/flechette_sml.png";
 
     /** A shot's body: a traveling projectile sprite, traveling bolt, or hitscan tracer line. */
     public sealed interface Body permits Sprite, Bolt, Tracer {}
@@ -55,10 +61,13 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     public record Sprite(String spritePath, float visualCells) implements Body {}
 
     /**
-     * Traveling tinted streak. {@code lengthCells} is the maximum head-to-tail
-     * length; the render sweep grows it out of the muzzle during early flight.
+     * Traveling tinted streak. The path selects a reusable silhouette while
+     * explicit length/width keep its ground-scale proportions independent of
+     * source-texture dimensions. The sweep grows it out of the muzzle during
+     * early flight.
      */
-    public record Bolt(Color color, float lengthCells) implements Body {}
+    public record Bolt(String spritePath, Color color,
+                       float lengthCells, float widthCells) implements Body {}
 
     /**
      * Hitscan tracer line. {@code color} {@code null} → the sweep resolves the
@@ -119,18 +128,30 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     private static ShotFx derivePrimary(MarineWeapon w) {
         Body body = w.projectileSpritePath != null
                 ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)
-                : new Bolt(w.tracerColor, boltLength(w));
+                : bolt(w);
         return new ShotFx(body, 0f, false, false, false, null);
     }
 
-    private static float boltLength(MarineWeapon w) {
+    private static Bolt bolt(MarineWeapon w) {
         return switch (w) {
-            case PULSE_RIFLE -> 1.0f;
-            case DMR -> 1.8f;
-            case DRONE_PULSE -> 0.8f;
+            case PULSE_RIFLE -> new Bolt(PULSE_BOLT_SPRITE_PATH,
+                    w.tracerColor, 1.0f, 0.25f);
+            case DMR -> new Bolt(RAIL_NEEDLE_SPRITE_PATH,
+                    w.tracerColor, 1.8f, 0.16f);
+            case DRONE_PULSE -> new Bolt(DRONE_DART_SPRITE_PATH,
+                    w.tracerColor, 0.65f, 0.16f);
             case FIELD_RIFLE, SMG -> throw new IllegalArgumentException(
-                    "sprite-backed primary cannot derive a bolt length: " + w);
+                    "sprite-backed primary cannot derive a bolt: " + w);
         };
+    }
+
+    /** Distinct traveling-bolt textures for cache loading; derived from effects, not carriers. */
+    static Set<String> boltSpritePaths() {
+        Set<String> paths = new HashSet<>();
+        for (ShotFx fx : PRIMARY.values()) {
+            if (fx.body() instanceof Bolt bolt) paths.add(bolt.spritePath());
+        }
+        return Set.copyOf(paths);
     }
 
     private static ShotFx deriveSecondary(MarineSecondary w) {

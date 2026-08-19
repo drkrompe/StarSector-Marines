@@ -30,7 +30,16 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Next up: contract S4 — direct-fire unification
+## Active: S3a — weapon FX families
+
+Contract: [`stories/s3a-weapon-fx-families.md`](stories/s3a-weapon-fx-families.md).
+Reuse the vanilla railgun shell and small flechette sprites to give the DMR and
+drone pulse distinct silhouettes while the pulse rifle keeps S3's custom
+white-base bolt. Generalize `ShotFx.Bolt` with sprite path + explicit width;
+load the derived path set through the shared projectile cache. No sim or balance
+changes.
+
+## After S3a: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-

@@ -14,8 +14,10 @@ pre-existing `UnitType.radius`, shared with `SeparationSystem`, not a new
 stat). **S2 shipped 2026-08-13** (`complete/s2-moving-targets.md` — time-domain
 contact solve, shooter lead, per-weapon `roundVelocity`; landed as specced).
 **S3 shipped 2026-08-19** (`complete/s3-visible-rounds.md` — traveling tinted
-bolts on the real flight clock, shared arrival-timed impact semantics). S4
-(direct-fire unification) is next — see `next-session.md`.
+bolts on the real flight clock, shared arrival-timed impact semantics). **S3a
+is active** (`stories/s3a-weapon-fx-families.md` — reuse-first pulse, rail, and
+drone projectile silhouettes). S4 (direct-fire unification) follows — see
+`next-session.md`.
 
 ## Why
 
@@ -174,6 +176,10 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
   traveling tinted bolts on the flight clock (`ShotFx.Bolt` + generated
   white-base sprite). See
   [`complete/s3-visible-rounds.md`](complete/s3-visible-rounds.md).
+- **S3a — weapon FX families.** Active follow-up: retain the shared traveling
+  body pipeline while pulse, rail, and drone fire gain distinct silhouettes;
+  audit and reference vanilla assets before generating new art. Story:
+  [`stories/s3a-weapon-fx-families.md`](stories/s3a-weapon-fx-families.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.

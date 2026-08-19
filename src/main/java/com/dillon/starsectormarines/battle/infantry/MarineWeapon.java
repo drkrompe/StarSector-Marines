@@ -19,10 +19,11 @@ import java.awt.Color;
  * or require different layered sprites. Loadout is per-marine, assigned at
  * deboard time via {@link MarineLoadout#primary}.
  *
- * <p>Primaries render as either weapon-colored traveling bolts or explicit
- * projectile sprites. The white-base bolt texture is tinted from
- * {@link #tracerColor}; shell-backed weapons use {@link #projectileSpritePath}.
- * Per-weapon fire sound supplies the matching audio identity.
+ * <p>Primaries render as either weapon-colored traveling bolt-family bodies or
+ * explicit projectile sprites. The render-side effect recipe selects a pulse,
+ * rail, or drone silhouette and tints it from {@link #tracerColor}; shell-backed
+ * weapons use {@link #projectileSpritePath}. Per-weapon fire sound supplies the
+ * matching audio identity.
  *
  * <p>The {@link #vsTurretMult} multiplier is applied in
  * {@link BattleSimulation#fireShot} when the target is a {@link MapTurret} —
@@ -124,7 +125,7 @@ public enum MarineWeapon {
     public final String displayName;
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
     public final String fireSoundId;
-    /** Traveling-bolt tint (and legacy tracer tint). Distinct per weapon so the player can identify fire at a glance. */
+    /** Traveling-body tint (and legacy tracer tint). Distinct per weapon so the player can identify fire at a glance. */
     public final Color tracerColor;
     public final float range;
     public final float damage;
