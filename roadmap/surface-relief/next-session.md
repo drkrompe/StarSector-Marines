@@ -15,15 +15,17 @@
   selection, implicit sidewalk/corner selection, fallback behavior, and
   terrain mutation.
 - **Live strength tuning is in the battle DEBUG panel:** the `Parallax` dial
-  applies immediately over a clamped `0.0000–0.0200` range; the default remains
-  `0.0060`.
+  applies immediately over a clamped `0.0000–5.0000` range; the default remains
+  `0.0060`. Its cubic response and widened track preserve fine control near zero
+  while still exposing the full user-requested experimental ceiling.
 - **Headless pixel oracle added:** `GroundParallaxPixelComparisonTest` builds a
   1024×576 battle-like scene from the real color/derived-height sheets, mirrors
   both shader formulas plus bilinear sampling, and writes
   `build/surface-relief/parallax-pixel-comparison.png`. Current measurements:
   default `0.0060` = **0.840 px max displacement / 0.990 mean RGB-channel
-  delta**; dial max `0.0200` = **2.801 px / 2.900**. That confirms why default
-  is difficult to perceive despite 45.81% of pixels changing numerically.
+  delta**; dial max `5.0000` = **700.171 px / 32.164** (an intentionally
+  extreme ceiling, not a recommended target). Default remains difficult to
+  perceive despite 45.81% of pixels changing numerically.
 - Commit chain (developed on `worktree-surface-relief`, MERGED to main
   2026-08-13): `cf2e4db1` S1 → `80aac9e2` S2 → `9bd7491f` flag on →
   `6e36fe6d` critique fixes.
