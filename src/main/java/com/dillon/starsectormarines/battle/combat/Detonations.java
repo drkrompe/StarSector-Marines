@@ -138,8 +138,7 @@ public class Detonations {
                 float uy = world.y(u);
                 float dx = ux - det.endpointX;
                 float dy = uy - det.endpointY;
-                UnitType type = roster.identity().type(u);
-                float hitR = det.aoeRadius + type.radius;
+                float hitR = det.aoeRadius + roster.radius(u);
                 if (dx * dx + dy * dy > hitR * hitR) continue;
                 int ucx = (int) Math.floor(ux);
                 int ucy = (int) Math.floor(uy);
