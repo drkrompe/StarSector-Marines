@@ -187,8 +187,9 @@ public final class DevConfig {
      * decides whether the pipeline is attempted at all.
      *
      * <p>On by default for playtesting; visuals are still uncalibrated (see
-     * the overview's "Pixel-art aesthetic" risk) — the tuning constants live
-     * at the top of {@code GroundParallaxPipeline}.
+     * the overview's "Pixel-art aesthetic" risk). Effect strength is tunable
+     * live from the battle DEBUG panel; the remaining projection constants
+     * live at the top of {@code GroundParallaxPipeline}.
      */
     @DebugOnly
     public static final boolean SURFACE_RELIEF_PARALLAX = true;
