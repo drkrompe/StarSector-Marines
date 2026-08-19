@@ -41,7 +41,8 @@ public final class ContractLifecycleSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> writes() {
-        return EnumSet.of(CampaignTable.CONTRACTS, CampaignTable.PLAYER_REP);
+        return EnumSet.of(CampaignTable.CONTRACTS, CampaignTable.PLAYER_REP,
+                CampaignTable.PATRON_MEMORY);
     }
 
     @Override
@@ -63,17 +64,18 @@ public final class ContractLifecycleSystem implements CampaignSystem {
                 continue;
             }
 
-            long patronId = state.contractPatronHouseId[i];
             int expires = state.contractExpiresTick[i];
             if (expires != -1 && day >= expires) {
                 int phasesDone  = state.contractPhasesDone[i] & 0xFF;
                 int phasesTotal = state.contractPhasesTotal[i] & 0xFF;
                 if (phasesDone >= phasesTotal) {
                     state.contractState[i] = ContractState.COMPLETED.toByte();
-                    ContractReputation.completed(state, patronId, +1, day);
+                    ContractReputation.completedForContract(
+                            state, state.contractId[i], +1, day);
                 } else {
                     state.contractState[i] = ContractState.FAILED.toByte();
-                    ContractReputation.failed(state, patronId, -1, day);
+                    ContractReputation.failedForContract(
+                            state, state.contractId[i], -1, day);
                 }
             }
         }
