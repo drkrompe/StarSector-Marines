@@ -55,9 +55,8 @@ silently replacing low sandbags/bunks with cover-bucket defaults.
   reachability, representative prevalence, and the marine-radius sizing rule
 - `build/zone-previews/buildings-civic-headquarters.png` was inspected at four
   qualifying footprint sizes
-- full `gradlew.bat :test`: all mapgen, preview, validation, and atlas tests pass;
-  one unrelated suite-order-dependent `SwarmEvacuationOutcomeBridgeTest` fails
-  in the full 1,598-test run but passes in isolation
+- full `gradlew.bat :test` passes after integrating the latest `main`, including
+  all mapgen previews, connectivity/deployability scans, and atlas goldens
 
 ## Deliberate next boundary
 
