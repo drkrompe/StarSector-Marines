@@ -18,9 +18,10 @@ bolts on the real flight clock, shared arrival-timed impact semantics). **S3a
 shipped 2026-08-19** (`complete/s3a-weapon-fx-families.md` — reuse-first pulse,
 rail, and drone projectile silhouettes). **S3b shipped 2026-08-19**
 (`complete/s3b-target-plane-accuracy.md` — one target-plane accuracy commit,
-visible lateral/high/low flight, vertical silhouettes). S4 (direct-fire
-unification) follows the active S3c obstacle-height pass; see
-`next-session.md`.
+visible lateral/high/low flight, vertical silhouettes). **S3c shipped
+2026-08-19** (`complete/s3c-obstacle-catch-heights.md` — data-driven doodad
+silhouettes and height-gated directional edge cover). S4 (direct-fire
+unification) is next; see `next-session.md`.
 
 ## Why
 
@@ -93,15 +94,16 @@ the crate, strays stopped, interposers at risk) is gained emergently.
 is structurally avoided, not just tuned away):
 
 - **Doodads block by ray crossing.** A ray that crosses a doodad cell rolls
-  block by that doodad's level. Directionality is emergent — flank the
-  crate and the ray no longer crosses it. Doodad *facing* cover is never
-  consulted at unit contact.
+  block by that doodad's level only when its target-plane Z intersects the
+  prop's authored ballistic half-height. Directionality is emergent — flank
+  the crate and the ray no longer crosses it; fire high/low and a short prop
+  may be cleared. Doodad *facing* cover is never consulted at unit contact.
 - **Wall cover blocks by edge-clip at contact.** A target hugging a wall
   corner gains nothing from ray crossing (the ray never enters the wall
   cell — the shooter has LoS). So the grid's directional wall cover
   (`NavigationGrid.getCoverAt`, facing toward the shooter) survives as a
-  block roll applied *at unit contact* — "the round clipped the parapet."
-  Wall cells crossed by the ray itself remain a hard stop
+  height-gated block roll applied *at unit contact* — "the round clipped the
+  parapet." Wall cells crossed by the ray itself remain a full-height hard stop
   (`firstWallOnLine`).
 
 ### 5. Accuracy stack authors the intended trajectory once
@@ -140,7 +142,7 @@ rounds renderable as visible stylized projectiles (SMG already has
 | Need | Already exists |
 |---|---|
 | Wall collision | `NavigationGrid.firstWallOnLine` (Bresenham) |
-| Doodad block data | `DoodadService` per-cell/per-facing cover bytes |
+| Doodad block data | `DoodadDef.ballisticHalfHeight`; `DoodadService` per-cell/per-level height profiles |
 | Unit proximity | `UnitSpatialIndex` (needs a segment/ray gather) |
 | Target velocity | `MOVEMENT_VEL_X/Y` columns |
 | Delayed damage safety | `DamageResolver` released-target guards; arrival-sink pattern |
@@ -190,10 +192,10 @@ movers can enter the corridor before contact.
   committed once into lateral/elevation aim, contacts use lightweight vertical
   silhouettes, and visible rounds project high/low flight. See
   [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
-- **S3c — obstacle catch heights.** Active follow-up: gate doodad and
-  directional wall-edge block rolls on vertical overlap while structural walls
-  remain full-height. Story:
-  [`stories/s3c-obstacle-catch-heights.md`](stories/s3c-obstacle-catch-heights.md).
+- ~~**S3c — obstacle catch heights.**~~ **SHIPPED** — doodad and directional
+  wall-edge block rolls require vertical overlap; structural walls remain
+  full-height. See
+  [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.

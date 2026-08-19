@@ -31,7 +31,7 @@ import java.util.Random;
  * Target-plane aim and the lightweight vertical silhouette are specified in
  * {@code roadmap/ballistics/complete/s3b-target-plane-accuracy.md}; obstacle
  * catch bands are specified in
- * {@code roadmap/ballistics/stories/s3c-obstacle-catch-heights.md}.
+ * {@code roadmap/ballistics/complete/s3c-obstacle-catch-heights.md}.
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
