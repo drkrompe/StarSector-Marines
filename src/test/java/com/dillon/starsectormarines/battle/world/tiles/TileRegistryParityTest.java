@@ -13,6 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -203,6 +204,25 @@ public class TileRegistryParityTest {
                 "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
                 + " { \"id\": \"x.bad\", \"col\": 0, \"row\": 0, \"cover\": \"med\","
                 + "   \"footprintCells\": [0, 2] } ] }");
+        assertThrows(IllegalStateException.class, () -> new TileRegistry().ingestSheet(invalid));
+    }
+
+    @Test
+    void doodadPreferredWallSideIsOptionalAndCardinal() throws Exception {
+        JSONObject root = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.free\", \"col\": 0, \"row\": 0, \"cover\": \"light\" },"
+                + " { \"id\": \"x.sofa\", \"col\": 1, \"row\": 0, \"cover\": \"med\","
+                + "   \"preferredWallSide\": \"w\" } ] }");
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(root);
+        assertNull(registry.doodad("x.free").preferredWallSide);
+        assertEquals(DoodadDef.WallSide.W, registry.doodad("x.sofa").preferredWallSide);
+
+        JSONObject invalid = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.bad\", \"col\": 0, \"row\": 0, \"cover\": \"med\","
+                + "   \"preferredWallSide\": \"ceiling\" } ] }");
         assertThrows(IllegalStateException.class, () -> new TileRegistry().ingestSheet(invalid));
     }
 

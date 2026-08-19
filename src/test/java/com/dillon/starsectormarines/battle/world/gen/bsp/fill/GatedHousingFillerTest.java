@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -23,6 +24,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GatedHousingFillerTest {
@@ -60,10 +62,14 @@ class GatedHousingFillerTest {
                     RoomPurpose.APARTMENT_LIVING) > 0);
             assertTrue(countPurpose(fixture.topology, apartment,
                     RoomPurpose.BEDROOM) > 0);
-            assertTrue(countFixtures(fixture.topology, apartment,
-                    RoomPurpose.APARTMENT_LIVING) >= 2);
-            assertTrue(countFixtures(fixture.topology, apartment,
-                    RoomPurpose.BEDROOM) >= 2);
+            int livingFixtures = countFixtures(
+                    fixture.topology, apartment, RoomPurpose.APARTMENT_LIVING);
+            int bedroomFixtures = countFixtures(
+                    fixture.topology, apartment, RoomPurpose.BEDROOM);
+            assertTrue(livingFixtures >= 2,
+                    "living room receives a two-cell sofa; fixture cells=" + livingFixtures);
+            assertTrue(bedroomFixtures >= 2,
+                    "bedroom receives a two-cell bed; fixture cells=" + bedroomFixtures);
             assertPurposeIsClear(fixture, apartment, RoomPurpose.RESIDENTIAL_HALL);
             assertMulticellResidentialFixtures(fixture, apartment);
         }
@@ -246,6 +252,9 @@ class GatedHousingFillerTest {
             furniture++;
             assertEquals(2, doodad.footprintCellsX * doodad.footprintCellsY,
                     "beds and sofas occupy two cells");
+            assertNotNull(doodad.preferredWallSide,
+                    "apartment furniture declares its natural wall edge");
+            assertFurnitureBackedByWallAndFacingRoom(fixture, doodad, purpose);
             for (int dy = 0; dy < doodad.footprintCellsY; dy++) {
                 for (int dx = 0; dx < doodad.footprintCellsX; dx++) {
                     int x = doodad.cellX + dx;
@@ -259,6 +268,49 @@ class GatedHousingFillerTest {
             }
         }
         assertEquals(4, furniture, "each apartment receives two beds and two sofas");
+    }
+
+    private static void assertFurnitureBackedByWallAndFacingRoom(
+            Fixture fixture, Doodad doodad, RoomPurpose purpose) {
+        WallSide back = doodad.preferredWallSide;
+        for (int offset = 0; offset < edgeLength(doodad, back); offset++) {
+            int[] cell = edgeNeighbor(doodad, back, offset);
+            assertTrue(fixture.grid.inBounds(cell[0], cell[1]));
+            assertFalse(fixture.grid.isWalkable(cell[0], cell[1]),
+                    "authored back/head edge must touch a physical wall");
+            assertFalse(fixture.topology.isFixture(cell[0], cell[1]),
+                    "other furniture cannot masquerade as wall support");
+        }
+        WallSide front = back.opposite();
+        for (int offset = 0; offset < edgeLength(doodad, front); offset++) {
+            int[] cell = edgeNeighbor(doodad, front, offset);
+            assertTrue(fixture.grid.isWalkable(cell[0], cell[1]),
+                    "sofa seat or bed foot must face open room floor");
+            assertEquals(purpose, fixture.topology.getRoomPurpose(cell[0], cell[1]),
+                    "furniture front clearance stays inside its owning room");
+        }
+    }
+
+    private static int edgeLength(Doodad doodad, WallSide side) {
+        return side == WallSide.N || side == WallSide.S
+                ? doodad.footprintCellsX : doodad.footprintCellsY;
+    }
+
+    private static int[] edgeNeighbor(Doodad doodad, WallSide side, int offset) {
+        switch (side) {
+            case N:
+                return new int[]{doodad.cellX + offset,
+                        doodad.cellY + doodad.footprintCellsY};
+            case S:
+                return new int[]{doodad.cellX + offset, doodad.cellY - 1};
+            case E:
+                return new int[]{doodad.cellX + doodad.footprintCellsX,
+                        doodad.cellY + offset};
+            case W:
+                return new int[]{doodad.cellX - 1, doodad.cellY + offset};
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     private static void assertAllWalkableCellsConnected(NavigationGrid grid) {

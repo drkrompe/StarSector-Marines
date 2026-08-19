@@ -27,6 +27,7 @@ DEFAULT_IMAGE = HERE / "doodads.png"
 DEFAULT_MANIFEST = MOD_ROOT / "data" / "tilesets" / "doodads.tileset.json"
 DEFAULT_SHEET_PATH = "graphics/doodads/doodads.png"
 VALID_COVER = {"none", "light", "med", "heavy"}
+VALID_WALL_SIDES = {"N", "S", "E", "W"}
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ class AssetSpec:
     offset_y: int
     footprint_x: int
     footprint_y: int
+    preferred_wall_side: str | None
 
 
 @dataclass(frozen=True)
@@ -155,6 +157,14 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
             raise ValueError(f"{path.name}: scale must be greater than 0 and at most 1")
         offset_x, offset_y = _parse_offset(item.get("offset"), path)
         footprint_x, footprint_y = _parse_footprint(item.get("footprintCells"), path)
+        preferred_wall_side = item.get("preferredWallSide")
+        if preferred_wall_side is not None:
+            preferred_wall_side = str(preferred_wall_side).upper()
+            if preferred_wall_side not in VALID_WALL_SIDES:
+                raise ValueError(
+                    f"{path.name}: preferredWallSide must be one of "
+                    f"{sorted(VALID_WALL_SIDES)}"
+                )
         specs.append(
             AssetSpec(
                 source=path,
@@ -170,6 +180,7 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 offset_y=offset_y,
                 footprint_x=footprint_x,
                 footprint_y=footprint_y,
+                preferred_wall_side=preferred_wall_side,
             )
         )
 
@@ -298,6 +309,8 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
             doodad["ballisticHalfHeight"] = spec.ballistic_half_height
         if spec.footprint_x != 1 or spec.footprint_y != 1:
             doodad["footprintCells"] = [spec.footprint_x, spec.footprint_y]
+        if spec.preferred_wall_side is not None:
+            doodad["preferredWallSide"] = spec.preferred_wall_side
         doodads.append(doodad)
         cell: dict[str, Any] = {"col": col, "row": row, "name": spec.name}
         if spec.description:

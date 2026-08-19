@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import java.util.Locale;
+
 /**
  * One decorative prop's authoritative definition, loaded from a
  * {@code *.tileset.json} {@code "doodads"} array into the {@link TileRegistry}
@@ -20,6 +22,34 @@ package com.dillon.starsectormarines.battle.world.tiles;
  */
 public final class DoodadDef {
 
+    /**
+     * Authored edge that should sit against a wall when a layout can honor it.
+     * Coordinates are math-y-up: N is the high-y edge and S the low-y edge.
+     */
+    public enum WallSide {
+        N, S, E, W;
+
+        public static WallSide fromJson(String value) {
+            if (value == null || value.isBlank()) return null;
+            try {
+                return valueOf(value.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                        "Unknown doodad preferredWallSide '" + value + "'", e);
+            }
+        }
+
+        public WallSide opposite() {
+            switch (this) {
+                case N: return S;
+                case S: return N;
+                case E: return W;
+                case W: return E;
+                default: throw new IllegalStateException();
+            }
+        }
+    }
+
     public final String id;
     public final String sheetPath;
     public final int col;
@@ -29,20 +59,31 @@ public final class DoodadDef {
     public final float ballisticHalfHeight;
     public final int footprintCellsX;
     public final int footprintCellsY;
+    /** Optional authored edge that naturally backs onto a wall (sofa back, bed head). */
+    public final WallSide preferredWallSide;
 
     public DoodadDef(String id, String sheetPath, int col, int row, DoodadCover cover) {
         this(id, sheetPath, col, row, cover,
-                (cover == null ? DoodadCover.NONE : cover).defaultBallisticHalfHeight(), 1, 1);
+                (cover == null ? DoodadCover.NONE : cover).defaultBallisticHalfHeight(),
+                1, 1, null);
     }
 
     public DoodadDef(String id, String sheetPath, int col, int row,
                      DoodadCover cover, float ballisticHalfHeight) {
-        this(id, sheetPath, col, row, cover, ballisticHalfHeight, 1, 1);
+        this(id, sheetPath, col, row, cover, ballisticHalfHeight, 1, 1, null);
     }
 
     public DoodadDef(String id, String sheetPath, int col, int row,
                      DoodadCover cover, float ballisticHalfHeight,
                      int footprintCellsX, int footprintCellsY) {
+        this(id, sheetPath, col, row, cover, ballisticHalfHeight,
+                footprintCellsX, footprintCellsY, null);
+    }
+
+    public DoodadDef(String id, String sheetPath, int col, int row,
+                     DoodadCover cover, float ballisticHalfHeight,
+                     int footprintCellsX, int footprintCellsY,
+                     WallSide preferredWallSide) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
@@ -56,5 +97,6 @@ public final class DoodadDef {
                 : 0f;
         this.footprintCellsX = footprintCellsX;
         this.footprintCellsY = footprintCellsY;
+        this.preferredWallSide = preferredWallSide;
     }
 }
