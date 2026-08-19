@@ -114,10 +114,11 @@ public final class GroundParallaxPipeline {
     public static final float MAX_STRENGTH = 0.020f;
     public static final float DEFAULT_STRENGTH = 0.006f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
-    private static final float EYE_HEIGHT = 1.2f;
+    /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
+    static final float EYE_HEIGHT = 1.2f;
     /** height*scale+bias centers macro/micro height (nominally in [0,1], ~0.5 = "ground level") on zero before it's applied as an offset. */
-    private static final float HEIGHT_SCALE = 1.0f;
-    private static final float HEIGHT_BIAS = -0.5f;
+    static final float HEIGHT_SCALE = 1.0f;
+    static final float HEIGHT_BIAS = -0.5f;
 
     private static final String VERTEX_SRC = ""
             + "#version 120\n"
