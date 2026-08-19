@@ -63,11 +63,21 @@ public final class FixedGridTileDrawer {
     public void draw(TileSink sink, TileManifest.TileFrame frame,
                      float dstCx, float dstCy, float dstW, float dstH,
                      float alphaMult, int srcEdgeInsetPx) {
+        drawSpan(sink, frame, 1, 1, dstCx, dstCy, dstW, dstH,
+                alphaMult, srcEdgeInsetPx);
+    }
+
+    /** Draws a contiguous multi-cell source rectangle beginning at {@code frame}. */
+    public void drawSpan(TileSink sink, TileManifest.TileFrame frame,
+                         int sourceCellsX, int sourceCellsY,
+                         float dstCx, float dstCy, float dstW, float dstH,
+                         float alphaMult, int srcEdgeInsetPx) {
         if (sink == null || frame == null) return;
+        if (sourceCellsX <= 0 || sourceCellsY <= 0) return;
         int srcX = frame.col * tileSize + srcEdgeInsetPx;
         int srcY = frame.row * tileSize + srcEdgeInsetPx;
-        int srcW = Math.max(1, tileSize - 2 * srcEdgeInsetPx);
-        int srcH = Math.max(1, tileSize - 2 * srcEdgeInsetPx);
+        int srcW = Math.max(1, tileSize * sourceCellsX - 2 * srcEdgeInsetPx);
+        int srcH = Math.max(1, tileSize * sourceCellsY - 2 * srcEdgeInsetPx);
         sink.drawSlice(srcX, srcY, srcW, srcH, dstCx, dstCy, dstW, dstH, alphaMult);
     }
 }

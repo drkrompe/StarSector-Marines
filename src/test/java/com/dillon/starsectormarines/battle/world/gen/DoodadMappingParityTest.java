@@ -94,6 +94,16 @@ public class DoodadMappingParityTest {
         assertEquals(0.55f, reg.doodad("doodad.residential-planter-h").ballisticHalfHeight, 1e-6f);
     }
 
+    @Test
+    void residentialFurniturePublishesOrientedTwoCellFootprints() {
+        TileRegistry reg = TileRegistry.installed();
+        assertFootprint(reg, "doodad.residential-bed-h", 2, 1);
+        assertFootprint(reg, "doodad.residential-bed-v", 1, 2);
+        assertFootprint(reg, "doodad.residential-sofa-h", 2, 1);
+        assertFootprint(reg, "doodad.residential-sofa-v", 1, 2);
+        assertFootprint(reg, "doodad.residential-planter-h", 1, 1);
+    }
+
     private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {
         List<DoodadDef> got = mapping.doodadPool(poolId);
         assertEquals(expected.length, got.size(), "pool size for " + poolId);
@@ -107,5 +117,12 @@ public class DoodadMappingParityTest {
         DoodadDef def = reg.doodad(id);
         assertNotNull(def, "missing doodad " + id);
         assertEquals(want, def.cover, "cover for " + id);
+    }
+
+    private static void assertFootprint(TileRegistry reg, String id, int width, int height) {
+        DoodadDef def = reg.doodad(id);
+        assertNotNull(def, "missing doodad " + id);
+        assertEquals(width, def.footprintCellsX, "footprint width for " + id);
+        assertEquals(height, def.footprintCellsY, "footprint height for " + id);
     }
 }

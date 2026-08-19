@@ -1,9 +1,10 @@
-"""Build a fixed-cell doodad atlas from individual transparent PNG assets.
+"""Build a fixed-grid doodad atlas from individual transparent PNG assets.
 
 Drop PNG cutouts into ``sources/`` and run this file. Each image is trimmed to
-its alpha bounds, scaled to fit one cell, centered, and written to a deterministic
-grid. The companion ``*.tileset.json`` is regenerated with matching doodad ids
-and frame coordinates, so source ordering never has to be maintained by hand.
+its alpha bounds, scaled to fit its authored cell footprint, centered, and
+written to a deterministic grid. The companion ``*.tileset.json`` is regenerated
+with matching doodad ids, frame coordinates, and footprints, so source ordering
+never has to be maintained by hand.
 """
 
 from __future__ import annotations
@@ -41,6 +42,8 @@ class AssetSpec:
     scale: float
     offset_x: int
     offset_y: int
+    footprint_x: int
+    footprint_y: int
 
 
 @dataclass(frozen=True)
@@ -95,6 +98,17 @@ def _parse_offset(value: Any, source: Path) -> tuple[int, int]:
     return int(value[0]), int(value[1])
 
 
+def _parse_footprint(value: Any, source: Path) -> tuple[int, int]:
+    if value is None:
+        return 1, 1
+    if not isinstance(value, list) or len(value) != 2:
+        raise ValueError(f"{source.name}: footprintCells must be [width, height]")
+    width, height = int(value[0]), int(value[1])
+    if width <= 0 or height <= 0:
+        raise ValueError(f"{source.name}: footprintCells values must be positive")
+    return width, height
+
+
 def discover_assets(options: BuildOptions) -> list[AssetSpec]:
     if not options.input_dir.is_dir():
         raise ValueError(f"Input directory does not exist: {options.input_dir}")
@@ -140,6 +154,7 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
         if not 0 < scale <= 1:
             raise ValueError(f"{path.name}: scale must be greater than 0 and at most 1")
         offset_x, offset_y = _parse_offset(item.get("offset"), path)
+        footprint_x, footprint_y = _parse_footprint(item.get("footprintCells"), path)
         specs.append(
             AssetSpec(
                 source=path,
@@ -153,6 +168,8 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 scale=scale,
                 offset_x=offset_x,
                 offset_y=offset_y,
+                footprint_x=footprint_x,
+                footprint_y=footprint_y,
             )
         )
 
@@ -194,23 +211,60 @@ def normalize_asset(spec: AssetSpec, options: BuildOptions) -> Image.Image:
         raise ValueError(f"{spec.source.name}: image has no visible alpha bounds")
     sprite = source.crop(bounds)
 
-    available = options.cell_size - spec.padding * 2
-    target = max(1, round(available * spec.scale))
-    ratio = min(target / sprite.width, target / sprite.height)
+    canvas_width = options.cell_size * spec.footprint_x
+    canvas_height = options.cell_size * spec.footprint_y
+    available_width = canvas_width - spec.padding * 2
+    available_height = canvas_height - spec.padding * 2
+    target_width = max(1, round(available_width * spec.scale))
+    target_height = max(1, round(available_height * spec.scale))
+    ratio = min(target_width / sprite.width, target_height / sprite.height)
     width = max(1, round(sprite.width * ratio))
     height = max(1, round(sprite.height * ratio))
     sprite = sprite.resize((width, height), _resampling(options.resample))
 
-    x = (options.cell_size - width) // 2 + spec.offset_x
-    y = (options.cell_size - height) // 2 + spec.offset_y
-    if x < 0 or y < 0 or x + width > options.cell_size or y + height > options.cell_size:
+    x = (canvas_width - width) // 2 + spec.offset_x
+    y = (canvas_height - height) // 2 + spec.offset_y
+    if x < 0 or y < 0 or x + width > canvas_width or y + height > canvas_height:
         raise ValueError(
             f"{spec.source.name}: normalized sprite plus offset does not fit "
-            f"inside its {options.cell_size}px cell"
+            f"inside its {spec.footprint_x}x{spec.footprint_y} footprint"
         )
-    cell = Image.new("RGBA", (options.cell_size, options.cell_size), (0, 0, 0, 0))
+    cell = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
     cell.alpha_composite(sprite, (x, y))
     return cell
+
+
+def pack_assets(specs: list[AssetSpec], columns: int) -> tuple[list[tuple[int, int]], int]:
+    """First-fit row-major packing on the atlas cell grid."""
+    occupied: set[tuple[int, int]] = set()
+    placements: list[tuple[int, int]] = []
+    max_row = -1
+    for spec in specs:
+        if spec.footprint_x > columns:
+            raise ValueError(
+                f"{spec.source.name}: footprint width {spec.footprint_x} exceeds "
+                f"atlas width {columns}"
+            )
+        row = 0
+        while True:
+            placed = False
+            for col in range(columns - spec.footprint_x + 1):
+                cells = [
+                    (col + dx, row + dy)
+                    for dy in range(spec.footprint_y)
+                    for dx in range(spec.footprint_x)
+                ]
+                if any(cell in occupied for cell in cells):
+                    continue
+                occupied.update(cells)
+                placements.append((col, row))
+                max_row = max(max_row, row + spec.footprint_y - 1)
+                placed = True
+                break
+            if placed:
+                break
+            row += 1
+    return placements, max_row + 1
 
 
 def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
@@ -220,7 +274,7 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
         raise ValueError("alpha-threshold must be between 0 and 254")
 
     specs = discover_assets(options)
-    rows = math.ceil(len(specs) / options.columns)
+    placements, rows = pack_assets(specs, options.columns)
     atlas = Image.new(
         "RGBA",
         (options.columns * options.cell_size, rows * options.cell_size),
@@ -229,9 +283,7 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
     doodads: list[dict[str, Any]] = []
     cells: list[dict[str, Any]] = []
 
-    for index, spec in enumerate(specs):
-        col = index % options.columns
-        row = index // options.columns
+    for spec, (col, row) in zip(specs, placements):
         atlas.alpha_composite(
             normalize_asset(spec, options),
             (col * options.cell_size, row * options.cell_size),
@@ -244,6 +296,8 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
         }
         if spec.ballistic_half_height is not None:
             doodad["ballisticHalfHeight"] = spec.ballistic_half_height
+        if spec.footprint_x != 1 or spec.footprint_y != 1:
+            doodad["footprintCells"] = [spec.footprint_x, spec.footprint_y]
         doodads.append(doodad)
         cell: dict[str, Any] = {"col": col, "row": row, "name": spec.name}
         if spec.description:

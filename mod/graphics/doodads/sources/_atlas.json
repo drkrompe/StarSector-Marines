@@ -279,6 +279,7 @@
       "description": "Low civilian bed aligned east-west.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
+      "footprintCells": [2, 1],
       "scale": 0.96,
       "order": 70
     },
@@ -288,6 +289,7 @@
       "description": "Low civilian bed aligned north-south.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
+      "footprintCells": [1, 2],
       "scale": 0.96,
       "order": 71
     },
@@ -297,6 +299,7 @@
       "description": "Low two-seat civilian sofa aligned east-west.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
+      "footprintCells": [2, 1],
       "scale": 0.94,
       "order": 72
     },
@@ -306,6 +309,7 @@
       "description": "Low two-seat civilian sofa aligned north-south.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
+      "footprintCells": [1, 2],
       "scale": 0.94,
       "order": 73
     },

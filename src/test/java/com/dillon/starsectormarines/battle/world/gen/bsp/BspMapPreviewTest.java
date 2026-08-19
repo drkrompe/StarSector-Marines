@@ -635,9 +635,11 @@ public class BspMapPreviewTest {
         // Pass 5 — doodads (white pixels).
         g.setColor(Color.WHITE);
         for (Doodad d : map.doodads) {
-            int cx = d.cellX * cellPx + cellPx / 2;
-            int cy = (h - 1 - d.cellY) * cellPx + cellPx / 2;
-            g.fillRect(cx - 1, cy - 1, 2, 2);
+            int x = d.cellX * cellPx;
+            int y = (h - d.cellY - d.footprintCellsY) * cellPx;
+            g.fillRect(x, y,
+                    Math.max(2, d.footprintCellsX * cellPx),
+                    Math.max(2, d.footprintCellsY * cellPx));
         }
 
         // Pass 6 — POI outlines (magenta).

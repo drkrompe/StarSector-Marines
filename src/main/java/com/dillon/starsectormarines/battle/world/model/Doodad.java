@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 
 /**
- * Prop placed on a battle-map cell — chairs, crates, chests, shelves, etc.
+ * Prop placed on one or more battle-map cells — chairs, crates, beds, etc.
  * Drawn by {@link com.dillon.starsectormarines.ops.BattleScreen} above the floor
  * pass and below units. Does not affect navigation or line of sight.
  *
@@ -53,6 +53,9 @@ public final class Doodad {
     public final int cover;
     /** Symmetric target-plane catch band around Z=0, in cells. */
     public final float ballisticHalfHeight;
+    /** Rendered, navigational, cover, and ballistic footprint from the anchor cell. */
+    public final int footprintCellsX;
+    public final int footprintCellsY;
 
     /**
      * Builds a doodad from its data-driven {@link DoodadDef} (moddable-tilesets
@@ -62,7 +65,8 @@ public final class Doodad {
      */
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
-                def.sheetPath, def.cover.level(), def.ballisticHalfHeight);
+                def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
+                def.footprintCellsX, def.footprintCellsY);
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -85,6 +89,15 @@ public final class Doodad {
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
                   String sheetPath, int cover, float ballisticHalfHeight) {
+        this(cellX, cellY, tile, sheetPath, cover, ballisticHalfHeight, 1, 1);
+    }
+
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                  String sheetPath, int cover, float ballisticHalfHeight,
+                  int footprintCellsX, int footprintCellsY) {
+        if (footprintCellsX <= 0 || footprintCellsY <= 0) {
+            throw new IllegalArgumentException("Doodad footprint must be positive");
+        }
         this.cellX = cellX;
         this.cellY = cellY;
         this.tile = tile;
@@ -94,6 +107,13 @@ public final class Doodad {
         this.ballisticHalfHeight = Float.isFinite(ballisticHalfHeight)
                 ? Math.max(0f, ballisticHalfHeight)
                 : 0f;
+        this.footprintCellsX = footprintCellsX;
+        this.footprintCellsY = footprintCellsY;
+    }
+
+    public boolean occupiesCell(int x, int y) {
+        return x >= cellX && x < cellX + footprintCellsX
+                && y >= cellY && y < cellY + footprintCellsY;
     }
 
     private static int clamp(int v) {
