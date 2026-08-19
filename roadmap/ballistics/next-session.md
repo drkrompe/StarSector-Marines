@@ -44,6 +44,15 @@
   Full record:
   [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
   Post-integration: 1593 tests green.
+- **S4 SHIPPED** on `session/ballistics-direct-fire-unification`, implementation
+  commit `b8c7e3e6`. Mech chaingun/SRM, handheld rockets, and ground
+  Vulcan/Heavy-MG bursts use the shared resolver/source seam; contact-fused
+  rounds detonate only at physical stops, while overshoots leave no phantom
+  payload or impact FX. `CoverAccuracyResolver`, `ShotRaycast`, and their
+  direct-fire flags/callers are retired; `ShotEndpoint` remains only for LRM
+  artillery scatter. Full record:
+  [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
+  Pre-integration full suite: 1595 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -51,24 +60,26 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active: S4 — direct-fire unification
+## Active work
 
-Contract: [`stories/s4-direct-fire-unification.md`](stories/s4-direct-fire-unification.md).
-Migrate mech chaingun/SRM, handheld rockets, and ground Vulcan/Heavy-MG bursts
-onto `BallisticResolver`. Single-shot static turrets are already modeled through
-`sim.fireShot`; LRM/grenade/LOCUST arcs and aerial mounts stay on their existing
-paths. Retire abstract cover and direct-fire wall-snap callers. Fighter
-high/low/wide fire is an explicit follow-up coordinated with the air-entity
-rewrite.
+The contracted ballistics queue through S4 is complete. No implementation story
+is active. The next useful ballistics work is an in-game feel pass before adding
+new structure: friendly-fire and suppression tuning, visibility of lead and
+high/low/wide trajectories, and whether each weapon family reads clearly at its
+derived velocity.
 
-Manual playtest remains useful before tuning S4: friendly-fire feel
+Fighter high/low/wide fire remains an explicit follow-up in air story 4f, after
+fighter attacks compose the real air entity and airborne Z/roof/wall policy is
+defined. Do not route current flyby-overlay attacks through the ground resolver.
+
+Manual playtest remains useful before post-S4 tuning: friendly-fire feel
 (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, `FRIENDLY_MUZZLE_CLEARANCE = 2.0`),
 suppression feel under path-proximity near-miss, and how visible the S2
 lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
 completed S3 structure.
 
-## Where things live (post-S3c)
+## Where things live (post-S4)
 
 - `battle/combat/BallisticResolver.java` — the fire-time ray walk,
   solved in the time domain against each candidate's extrapolated
@@ -81,6 +92,13 @@ completed S3 structure.
 - `battle/infantry/MarineWeapon.java` — `roundVelocity` is the real
   per-weapon cells/sec stat now (`flightSec` retired); tracer-colored
   primaries derive their bolt tint from the same declaration.
+- `BallisticResolver.Source` — explicit entity id, float XYZ origin, and
+  faction for static/mounted callers. Ground sources use Z=0; the field is a
+  deliberate future seam, not an airborne collision policy.
+- `MarineSecondary.roundVelocity`, `MechWeapon.roundVelocity`, and
+  `TurretKind.directRoundVelocity` derive direct-fire speeds from the former
+  maximum-range presentation timings. LRM/grenade/LOCUST and aerial mounts
+  retain their legacy scatter/projectile procedures.
 - `ShotService.PendingImpact` / `tickImpacts` — flight-clock damage,
   drained in `BattleSimulation`'s serial SHOTS phase (sink guards
   `isAliveById`).
@@ -89,8 +107,6 @@ completed S3 structure.
   silhouette; `DoodadService.getDoodadLevelOnCell(x, y, z)` resolves stacked
   own-cell profiles for crossings. `NavigationGrid` pairs directional cover
   levels with edge-clip catch half-heights.
-- `CoverAccuracyResolver` still lives — mech (`HeavyWeapons`) and
-  infantry `fireSecondary` paths use it until S4 unifies direct fire.
 - `ops/battleview/ShotFx.java` — `Bolt` texture/length/width recipes + shared
   `travels()` arrival semantic. `ShotRenderService` owns bolt kinematics and
   projects ShotEvent Z through tracers, bolts, and sprites; `BattleSprites`
