@@ -92,6 +92,8 @@ final class BuildingLayouts {
         VEHICLE_BAY,
         /** Civic headquarters. Purpose-labeled offices flank a public-to-service circulation spine. */
         CIVIC_HEADQUARTERS,
+        /** Medical clinic. Reception and clinical/support rooms flank a clear circulation spine. */
+        MEDICAL_CLINIC,
     }
 
     // ---- Public API ----
@@ -130,6 +132,8 @@ final class BuildingLayouts {
             case VEHICLE_BAY:    applyVehicleBay(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case CIVIC_HEADQUARTERS: applyCivicHeadquarters(
                     grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
+            case MEDICAL_CLINIC: applyMedicalClinic(
+                    grid, topology, bl, bt, br, bb, doodads, rng); break;
             case SHED:
             default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
         }
@@ -600,6 +604,42 @@ final class BuildingLayouts {
                 RoomPurpose.CONFERENCE_ROOM, conference, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.SERVER_ROOM, serverRack, doodads, rng, false);
+    }
+
+    /**
+     * Furnishes the room plan as a clinic while keeping the two-cell medical
+     * corridor empty. The ward reuses the cardinal two-cell bed variants so
+     * each bed sits against a supporting wall and faces into its room.
+     */
+    private static void applyMedicalClinic(NavigationGrid grid, CellTopology topology,
+                                           int bl, int bt, int br, int bb,
+                                           List<Doodad> doodads, Random rng) {
+        if (purposeBounds(topology, bl, bt, br, bb,
+                RoomPurpose.MEDICAL_CORRIDOR) == null) return;
+
+        DoodadDef receptionDesk = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef triageStation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
+        DoodadDef treatmentConsole = TileRegistry.installed().doodad("doodad.military-command-console");
+        DoodadDef pharmacyShelf = TileRegistry.installed().doodad("doodad.shelf-2");
+        DoodadDef[] beds = {
+                TileRegistry.installed().doodad("doodad.residential-bed-head-n"),
+                TileRegistry.installed().doodad("doodad.residential-bed-v"),
+                TileRegistry.installed().doodad("doodad.residential-bed-head-e"),
+                TileRegistry.installed().doodad("doodad.residential-bed-h"),
+        };
+
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.MEDICAL_RECEPTION, receptionDesk, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.TRIAGE, triageStation, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.TREATMENT_ROOM, treatmentConsole, doodads, rng, false);
+        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.PATIENT_WARD, beds, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
     }
 
     /** Stamps one fixture into each disconnected region carrying {@code purpose}. */

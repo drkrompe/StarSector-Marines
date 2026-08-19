@@ -54,9 +54,9 @@ survey in [`pipeline-audit.md`](pipeline-audit.md)):
   (`BiomeMap` / legacy `DistrictMap`), with post-roll constraint filters.
 - **Fill** — per-leaf `BlockFiller.fill(...)` for ordinary leaves;
   `CompoundFiller.fill(...)` once per multi-leaf compound. The fill
-  catalog (residential / commercial / industrial shells, plazas, LZs,
-  parks, nature zones; military-base / gated-housing / dense-quarter
-  compounds) is enumerated in the audit.
+  catalog (residential / commercial / industrial / civic shells, plazas,
+  LZs, parks, nature zones; military-base / gated-housing / dense-quarter /
+  industrial / medical compounds) is enumerated in the audit.
 - **Stampers + finalize** — post-fill passes that read what fillers built
   and emit tactical anchors or overlay structures (pedestrian frames,
   biome overrides, fortress wall, defense posts, keep entry chamber),

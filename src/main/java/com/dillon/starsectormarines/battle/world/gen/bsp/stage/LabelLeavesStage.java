@@ -33,6 +33,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
  * enough room for a 12x10 inset apartment block and demote to ordinary homes
  * when undersized. Industrial-compound seeds likewise require the 15x12
  * tactical-factory footprint and demote to ordinary industrial buildings.
+ * Medical-campus seeds require the same large-lot envelope as their clinic
+ * plan and demote to ordinary commercial buildings when undersized (rather
+ * than bypassing the civic headquarters' own large-lot guard).
  */
 public final class LabelLeavesStage implements GenStage {
 
@@ -50,6 +53,10 @@ public final class LabelLeavesStage implements GenStage {
     public static final int INDUSTRIAL_COMPOUND_MIN_LONG_DIM = 15;
     /** Minimum short footprint for the factory seed in an industrial compound. */
     public static final int INDUSTRIAL_COMPOUND_MIN_SHORT_DIM = 12;
+    /** Minimum long footprint for the clinic seed in a medical campus. */
+    public static final int MEDICAL_CAMPUS_MIN_LONG_DIM = 15;
+    /** Minimum short footprint for the clinic seed in a medical campus. */
+    public static final int MEDICAL_CAMPUS_MIN_SHORT_DIM = 12;
 
     @Override
     public void run(GenContext ctx) {
@@ -65,6 +72,7 @@ public final class LabelLeavesStage implements GenStage {
         }
         ensureGatedHousingSeed(partition);
         ensureIndustrialCompoundSeed(partition);
+        ensureMedicalCampusSeed(partition);
     }
 
     /** Promote only an already-residential qualifying lot when no natural seed rolled. */
@@ -107,6 +115,29 @@ public final class LabelLeavesStage implements GenStage {
         if (best != null) best.kind = BlockKind.INDUSTRIAL_COMPOUND;
     }
 
+    /** Promote the largest qualifying civic/commercial lot when no clinic seed rolled. */
+    private static void ensureMedicalCampusSeed(Bsp.Partition partition) {
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind == BlockKind.MEDICAL_CAMPUS) return;
+        }
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind != BlockKind.BUILDING_CIVIC
+                    && leaf.kind != BlockKind.BUILDING_COMMERCIAL) continue;
+            if (Math.max(leaf.width(), leaf.height()) < MEDICAL_CAMPUS_MIN_LONG_DIM
+                    || Math.min(leaf.width(), leaf.height()) < MEDICAL_CAMPUS_MIN_SHORT_DIM) {
+                continue;
+            }
+            if (best == null
+                    || (leaf.kind == BlockKind.BUILDING_CIVIC
+                        && best.kind != BlockKind.BUILDING_CIVIC)
+                    || (leaf.kind == best.kind && leaf.area() > best.area())) {
+                best = leaf;
+            }
+        }
+        if (best != null) best.kind = BlockKind.MEDICAL_CAMPUS;
+    }
+
     static BlockKind constrainKindForSize(BlockKind kind, int width, int height) {
         if ((kind == BlockKind.LANDING_ZONE || kind == BlockKind.SPACEPORT_PAD)
                 && (width < LANDING_ZONE_MIN_SIDE || height < LANDING_ZONE_MIN_SIDE)) {
@@ -126,6 +157,11 @@ public final class LabelLeavesStage implements GenStage {
                 && (Math.max(width, height) < INDUSTRIAL_COMPOUND_MIN_LONG_DIM
                     || Math.min(width, height) < INDUSTRIAL_COMPOUND_MIN_SHORT_DIM)) {
             return BlockKind.BUILDING_INDUSTRIAL;
+        }
+        if (kind == BlockKind.MEDICAL_CAMPUS
+                && (Math.max(width, height) < MEDICAL_CAMPUS_MIN_LONG_DIM
+                    || Math.min(width, height) < MEDICAL_CAMPUS_MIN_SHORT_DIM)) {
+            return BlockKind.BUILDING_COMMERCIAL;
         }
         return kind;
     }

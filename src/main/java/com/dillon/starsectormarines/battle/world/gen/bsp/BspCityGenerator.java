@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.LandingZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.PlazaFiller;
@@ -138,6 +139,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new GatedHousingFiller());
         registerCompound(new DenseQuarterFiller());
         registerCompound(new IndustrialCompoundFiller());
+        registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
 
         this.conquestRecipe = buildConquestRecipe();
