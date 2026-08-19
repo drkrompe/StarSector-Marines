@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -34,6 +35,15 @@ class MechVariantTest {
     void catalogBuildsDistinctHardwareFromCompatibleComponents() {
         Set<String> ids = new HashSet<>();
         for (MechVariant variant : MechVariant.values()) assertTrue(ids.add(variant.id));
+
+        assertEquals(LayeredMechAppearance.CHASSIS_CLEAN,
+                MechVariant.BULWARK.chassisAppearance);
+        assertEquals(LayeredMechAppearance.CHASSIS_HOUND,
+                MechVariant.HOUND.chassisAppearance);
+        assertEquals(LayeredMechAppearance.CHASSIS_SIROCCO,
+                MechVariant.SIROCCO.chassisAppearance);
+        assertNotEquals(MechVariant.HOUND.chassisAppearance,
+                MechVariant.SIROCCO.chassisAppearance);
 
         MechLoadoutComponent bulwark = MechVariant.BULWARK.createLoadout(null);
         assertSame(MechWeaponComponent.DUAL_CHAINGUNS,

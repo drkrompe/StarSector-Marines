@@ -99,9 +99,11 @@ universe over time, not retrofitted into intel slots.
   [`battle-radio/`](battle-radio/overview.md).
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
-  -5 and -15 rack classes and profile-aware physical geometry. Production
-  encounters remain Bulwark-only pending manual tuning; a scout follows only
-  when recon behavior can make it meaningful. See [`mechs/`](mechs/overview.md).
+  -5 and -15 rack classes and profile-aware physical geometry. Hound and
+  Sirocco now have dedicated hull silhouettes, with shoulder racks externally
+  occluded instead of painted over the torso. Production encounters remain
+  Bulwark-only pending manual tuning; a scout follows only when recon behavior
+  can make it meaningful. See [`mechs/`](mechs/overview.md).
 
 ## Immediate next-up
 

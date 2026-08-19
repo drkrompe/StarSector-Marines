@@ -17,7 +17,7 @@ public enum MechVariant {
 
     HOUND("hound", "Hound", 300f, 1.70f, 0.42f, 50f,
             1.35f, 1.20f, 0.50f, 0.67f,
-            LayeredMechAppearance.CHASSIS_SOCKETED,
+            LayeredMechAppearance.CHASSIS_HOUND,
             MechWeaponComponent.DUAL_CHAINGUNS,
             MechWeaponComponent.SRM_5,
             MechWeaponComponent.SRM_5,
@@ -25,7 +25,7 @@ public enum MechVariant {
 
     SIROCCO("sirocco", "Sirocco", 230f, 1.45f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f,
-            LayeredMechAppearance.CHASSIS_SOCKETED,
+            LayeredMechAppearance.CHASSIS_SIROCCO,
             MechWeaponComponent.DUAL_LINEAR_CANNONS,
             MechWeaponComponent.LRM_5,
             MechWeaponComponent.LRM_5,
