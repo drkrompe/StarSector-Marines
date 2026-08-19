@@ -35,7 +35,7 @@
   lateral/elevation path; per-type vertical silhouettes gate unit contact;
   overshoots expire without false impacts. Full record:
   [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
-  Post-merge: 1530 tests green (1529 root + 1 asset-pipeline).
+  Post-merge: 1536 tests green (1535 root + 1 asset-pipeline).
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
