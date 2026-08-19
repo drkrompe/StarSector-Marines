@@ -8,6 +8,7 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.CustomCampaignEntityPlugin;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.impl.campaign.DerelictShipEntityPlugin;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -113,7 +116,9 @@ class DerelictCaptainDiscoveryTest {
     @Test
     void listenerObservesTargetWithoutTouchingVanillaLoot() {
         String entityId = findEntityId(true);
-        SectorEntityToken wreck = wreck(entityId, Set.of(Tags.SALVAGEABLE));
+        Map<String, Object> memoryValues = new HashMap<>();
+        SectorEntityToken wreck = entity(entityId, new DerelictShipEntityPlugin(),
+                Set.of(Tags.SALVAGEABLE), memory(memoryValues));
         MarineRoster roster = new MarineRoster();
         AtomicInteger cargoCalls = new AtomicInteger();
         CargoAPI cargo = proxy(CargoAPI.class, (method, args) -> {
@@ -132,6 +137,34 @@ class DerelictCaptainDiscoveryTest {
         assertEquals(0, cargoCalls.get());
         assertEquals(1, roster.captainCandidates().size());
         assertEquals(61f, roster.captainCandidates().get(0).discoveredAtDay());
+        assertEquals(roster.captainCandidates().get(0).sourceKey(),
+                memoryValues.get(CaptainDiscoverySalvageListener.PENDING_SOURCE_MEMORY_KEY));
+        assertEquals(true, memoryValues.get(
+                CaptainDiscoverySalvageListener.KEEP_SALVAGE_DIALOG_MEMORY_KEY));
+    }
+
+    @Test
+    void listenerDoesNotTakeOverAnotherSalvageContinuation() {
+        String entityId = findEntityId(true);
+        Map<String, Object> memoryValues = new HashMap<>();
+        memoryValues.put(CaptainDiscoverySalvageListener.KEEP_SALVAGE_DIALOG_MEMORY_KEY,
+                true);
+        SectorEntityToken wreck = entity(entityId, new DerelictShipEntityPlugin(),
+                Set.of(Tags.SALVAGEABLE), memory(memoryValues));
+        MarineRoster roster = new MarineRoster();
+        InteractionDialogAPI dialog = proxy(InteractionDialogAPI.class,
+                (method, args) -> method.getName().equals("getInteractionTarget")
+                        ? wreck : defaultValue(method.getReturnType()));
+        CaptainDiscoverySalvageListener listener = new CaptainDiscoverySalvageListener(
+                () -> roster, () -> 61f);
+
+        listener.reportAboutToShowLootToPlayer(null, dialog);
+
+        assertEquals(1, roster.captainCandidates().size());
+        assertEquals(true, memoryValues.get(
+                CaptainDiscoverySalvageListener.KEEP_SALVAGE_DIALOG_MEMORY_KEY));
+        assertFalse(memoryValues.containsKey(
+                CaptainDiscoverySalvageListener.PENDING_SOURCE_MEMORY_KEY));
     }
 
     private static String findEntityId(boolean eligible) {
@@ -151,12 +184,32 @@ class DerelictCaptainDiscoveryTest {
 
     private static SectorEntityToken entity(
             String id, CustomCampaignEntityPlugin plugin, Set<String> tags) {
+        return entity(id, plugin, tags, memory(new HashMap<>()));
+    }
+
+    private static SectorEntityToken entity(
+            String id, CustomCampaignEntityPlugin plugin, Set<String> tags,
+            MemoryAPI memory) {
         Set<String> copiedTags = new HashSet<>(tags);
         return proxy(SectorEntityToken.class, (method, args) -> switch (method.getName()) {
             case "getId" -> id;
             case "getCustomPlugin" -> plugin;
+            case "getMemoryWithoutUpdate" -> memory;
             case "hasTag" -> copiedTags.contains((String) args[0]);
             case "getTags" -> copiedTags;
+            default -> defaultValue(method.getReturnType());
+        });
+    }
+
+    private static MemoryAPI memory(Map<String, Object> values) {
+        return proxy(MemoryAPI.class, (method, args) -> switch (method.getName()) {
+            case "contains" -> values.containsKey((String) args[0]);
+            case "get", "getString" -> values.get((String) args[0]);
+            case "set" -> {
+                values.put((String) args[0], args[1]);
+                yield null;
+            }
+            case "unset" -> values.remove((String) args[0]);
             default -> defaultValue(method.getReturnType());
         });
     }
