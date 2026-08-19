@@ -115,7 +115,10 @@ universe over time, not retrofitted into intel slots.
   introduces one Bulwark, and HIGH fields budget-preserving mixed
   Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
   a scout follows only when recon behavior can make it meaningful. See
-  [`mechs/`](mechs/overview.md).
+  [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
+  ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
+  it follows behind the live chassis, fans to fire on contact, and receives
+  real protection from physical direct-fire interception.
 
 ## Immediate next-up
 
@@ -219,8 +222,9 @@ universe over time, not retrofitted into intel slots.
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
 5. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
-   panel to compare Hound/Sirocco against the unchanged Bulwark, tune their
-   identities, then approve budgeted production defender composition. See
+   panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
+   Hound-led infantry screens and tune chassis identities plus the formation
+   leash. Budgeted production defender composition is already approved. See
    [`mechs/next-session.md`](mechs/next-session.md).
 6. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
