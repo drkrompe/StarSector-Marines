@@ -138,6 +138,15 @@ one generated forearm/claw layer on both sides: claws stay beneath the carapace
 at rest, then one alternating claw moves forward above the torso for each
 contact swipe (`20d3bcb0`). Normal-zoom swipe readability remains manual.
 
+Rescue battles now keep that lower-HP swarm flowing with mission-local roving
+reinforcements. Below 70% of the opening population, a six-second cadence adds
+up to a 25% wave from deterministic reachable perimeter cells, never exceeds
+the opening cap, preserves safe reveal distance, and stops when the cohort
+resolves. Each civilian now owns an independent five-cell marine leash, cannot
+lead its nearest escort by more than two cells toward the lift, and seeks a
+screened position behind that marine near visible enemies (`ad11debf`). Manual
+wave-cadence and post-rebalance feel validation remain queued.
+
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
@@ -343,6 +352,8 @@ swarm tuning remain in the shared deferred queue.
   foreground contact animation (`20d3bcb0`).
 - G6 opportunistic-targeting follow-up — shared marine/evacuee candidate pool,
   25% target leeway, and immediate aggro rerouting (`4fedb34a`).
+- G5/G6 rescue-pressure follow-up — bounded perimeter reinforcement waves plus
+  independent civilian escort leashes and threat screening (`ad11debf`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

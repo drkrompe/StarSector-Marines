@@ -190,7 +190,15 @@ retreat path. Mechs and civilians still roll the legacy timer.
 
 ---
 
-### C. Bounding overwatch
+### C. Bounding overwatch ✅ SHIPPED (2026-08-19)
+
+**Implementation note.** Shipped in `b72819fc` as a coordinated branch of
+Story 19's threat-committed `EnterZone` advance. Stable `team:a` / `team:b`
+slots alternate between stanced covering fire and move-only bounds to distinct,
+reachable forward cover cells. The phase releases automatically with the route
+threat. Covering fire is real lethal fire; the reserved `ENEMY_SUPPRESSED`
+predicate remains inert until the combat model has a mechanical suppression
+consumer. See `../complete/20-bounding-overwatch.md`.
 
 > A marine fireteam advances on an objective in two halves. Half the
 > squad fires from a covered position; the other half moves forward to
@@ -305,7 +313,13 @@ spawned together or marines instructed to "follow that mech."
 
 ---
 
-### F. Objective rush under fire
+### F. Objective rush under fire ✅ SHIPPED (2026-05-18)
+
+**Implementation note.** This story landed as part of Story J in `c54991d4`.
+`CordonForPlant` assigns the planter separately from the per-portal holders;
+`HoldPortalCordon` keeps that planter moving/channeling without firing while
+the holders fight, and completes or cancels only with the objective/planter.
+No second member-goal system was required.
 
 > A marine fireteam is mid-plant on a charge site, takes incoming fire,
 > and *doesn't* break. The planter member keeps the plant timer

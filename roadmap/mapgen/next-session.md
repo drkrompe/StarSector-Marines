@@ -33,7 +33,8 @@ d14ce6a8  mapgen: tactical commercial interiors
 fa0533ee  mapgen: tactical military compound interiors
 4d929309  mapgen: add civic headquarters interiors
 e8ad9c4b  mapgen: add tactical industrial facilities
-7296aeec  mapgen: add industrial works compounds  ← latest mapgen work
+7296aeec  mapgen: add industrial works compounds
+444e0f97  mapgen: add residential courtyard compounds  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -105,6 +106,14 @@ findings) in
   reserves a marine-width entrance throat. Six deterministic fence orientations
   were derived from two transparent ImageGen masters. See
   [`complete/industrial-compound.md`](complete/industrial-compound.md).
+- **Ground tactical structures — residential courtyard compounds shipped
+  (`444e0f97`).** Qualifying gated-housing seeds now produce two
+  courtyard-facing, roomed apartment blocks plus a utility outbuilding inside
+  a paved enclosure. Two-cell common halls and the two-cell public gate are
+  sized around marine radius; beds, sofas, and raised planters supply
+  transparent movement cover without blocking shared circulation. Three new
+  transparent ImageGen masters produce six deterministic atlas frames. See
+  [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md).
 
 ## Next up (priority order)
 
@@ -170,8 +179,11 @@ reused verbatim. Candidate next tracks (priority order):
    smaller lots retain legacy warehouses. **Compound-scale industrial identity
    is now shipped (`7296aeec`)**: a three-parcel factory, fenced service/tank
    yard, and utility warehouse orient around shared circulation without
-   blocking the vehicle reservation. Next: residential compound identity —
-   larger apartment or gated-housing blocks around a tactical shared courtyard.
+   blocking the vehicle reservation. **Residential compound identity is now
+   shipped (`444e0f97`)**: two roomed apartment blocks and a utility building
+   orient around a tactical shared courtyard, with generated domestic and
+   exterior cover. Next: reuse the apartment planner on qualifying standalone
+   residential lots, then tackle public-service or medical campuses.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
@@ -180,7 +192,8 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md),
    [`complete/civic-headquarters.md`](complete/civic-headquarters.md),
    [`complete/industrial-facilities.md`](complete/industrial-facilities.md), and
-   [`complete/industrial-compound.md`](complete/industrial-compound.md).
+   [`complete/industrial-compound.md`](complete/industrial-compound.md), and
+   [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -389,8 +402,9 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat test -x :asset-pipeline:test` — full 1,665-test root suite green.
+- `gradlew.bat :test` — full 1,706-test merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
+- `python mod/graphics/doodads/test_stitch_atlas.py` — atlas stitcher tests green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
   all hard invariants hold.
 - `gradlew.bat :test --tests "*BspMapPreviewTest*"` — regenerates the preview
