@@ -38,9 +38,10 @@ and the current action reads `Overwatch` while the hold is active.
 - The latch releases when the rejected target dies, its cluster falls below
   the density threshold, or any member sees a low-density alternative.
 
-The density read deliberately uses current ground truth. It is a cheap tactical
-down-payment and a named swap site for the future per-squad belief map; this
-slice does not build a new perception system.
+The original density read deliberately used current ground truth as a named
+swap site. Story 25 (`db69ed73`) has since replaced the generic infantry path
+with per-squad believed-contact density: only formation members that squad has
+actually observed contribute to its pursuit hold.
 
 ## Cohesion boundary
 
@@ -96,7 +97,7 @@ This slice preserves the useful scoring substrate and closes those boundaries.
 
 ## Out of scope
 
-- Squad belief maps or commander influence maps.
+- Commander influence maps and cross-squad belief sharing.
 - Cross-squad coordination.
 - Suppression, surrender, or morale changes.
 - Changing objective-specific advance, breach, flank, fallback, or formation

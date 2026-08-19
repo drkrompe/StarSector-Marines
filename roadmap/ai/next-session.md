@@ -89,26 +89,34 @@ own leashes. See `complete/24-engagement-discipline.md`.
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
-gate. The full squad-belief + commander-influence layer remains parked.
+gate. Story 25's first perception vertical now ships too (`db69ed73`): direct
+LOS records every hostile into a decaying, id-keyed per-squad belief; GOAP
+target/LOS/range predicates and Story 24's formation-density hold consume that
+belief; the legacy last-seen point is a derived compatibility projection; and
+selected-squad overlays plus unversioned dumps expose the contacts. Audio
+detection, cross-squad sharing, and commander influence remain parked.
 
 ## Immediate next
 
-1. **Tactical playtest pass** — exercise Stories 19–24 together: objective
+1. **Tactical playtest pass** — exercise Stories 19–25 together: objective
    press/commit, bounding, last stands, difficulty-scaled assault mechs,
    mech-screen formations, and clustered-runner release into covered
-   overwatch. Tune the density threshold, three-cell cover-settle radius, and
-   twelve-cell cohesion leash only from visible battle results.
-2. **Next implementation slice: squad belief substrate** — contract the first
-   vertical from `stories/15-perception-and-influence.md` before coding. Replace
-   Story 24's named ground-truth density swap site and the existing last-seen
-   contact stamp without attempting the full commander influence map at once.
+   overwatch. Confirm magenta selected-squad contact ghosts refresh, remain at
+   their last observed cells through LOS loss, and fade out with alert decay.
+   Tune the density threshold, three-cell cover-settle radius, and twelve-cell
+   cohesion leash only from visible battle results.
+2. **Next perception slice: noise-backed contact updates** — contract the
+   `NoiseEvent` producer/bus and audio-detection vertical from
+   `stories/15-perception-and-influence.md`. Preserve imperfect localization,
+   confidence below direct LOS, faction-neutral behavior, and indirect-fire
+   secrecy; do not jump to commander aggregation or the influence map.
 
 ## Parked but design-complete
 
-- **Full perception & influence** (`stories/15-perception-and-influence.md`)
-  — squad belief map + commander heatmap. Tactical down-payments are shipped;
-  the ground-truth threat reads in guard-post and objective-advance leashes are
-  explicit swap sites when belief lands.
+- **Perception & influence remainder** (`stories/15-perception-and-influence.md`)
+  — audio contacts, cross-squad sharing, and commander heatmap. Direct squad
+  belief is shipped; ground-truth threat reads in guard-post and
+  objective-advance leashes remain explicit later swap sites.
 - **Commander improvements** (`stories/12-squad-of-squads.md` §
   Improvement path) — contour-aware target picking, cross-strip
   reallocation, defender-side commanders. All gated on doc 15.
@@ -145,5 +153,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/24-engagement-discipline.md` — shipped density-gated pursuit,
   covered Overwatch hold, release triggers, hard generic pursuit cohesion, and
   unversioned diagnostics (`43c619ff`, `8888e6f8`)
+- `complete/25-direct-squad-belief.md` — shipped direct-LOS contact memory,
+  linear decay, belief-backed GOAP predicates and Story 24 density, legacy
+  last-seen projection, overlay, and unversioned dump diagnostics (`db69ed73`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

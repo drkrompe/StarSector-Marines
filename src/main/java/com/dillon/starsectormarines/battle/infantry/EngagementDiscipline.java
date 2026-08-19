@@ -33,10 +33,10 @@ final class EngagementDiscipline {
         }
         if (target == 0L) return 0L;
 
-        PursuitDecision decision = scoring.assessPursuit(member, target);
+        PursuitDecision decision = scoring.assessPursuit(member, target, squad);
         if (decision == PursuitDecision.KEEP) return target;
 
-        long alternative = scoring.findBestVisibleLowDensityTarget(member, target);
+        long alternative = scoring.findBestVisibleLowDensityTarget(member, target, squad);
         if (alternative != 0L) {
             sim.world().setTargetId(member, alternative);
             return alternative;
@@ -47,7 +47,7 @@ final class EngagementDiscipline {
         // than switching into that formation.
         if (decision == PursuitDecision.RETARGET) return target;
 
-        int density = scoring.threatDensityAt(target, squad.faction);
+        int density = scoring.threatDensityAt(target, squad);
         squad.holdEngagementLine(target, density);
         clearSquadPursuit(squad, sim);
         return 0L;
@@ -73,9 +73,9 @@ final class EngagementDiscipline {
         if (rejected == 0L || sim.resolveUnit(rejected) == 0L) return true;
 
         TacticalScoring scoring = sim.getTacticalScoring();
-        int density = scoring.threatDensityAt(rejected, squad.faction);
+        int density = scoring.threatDensityAt(rejected, squad);
         squad.engagementDisciplineThreatDensity = density;
         if (density < TacticalScoring.HIGH_THREAT_DENSITY_COUNT) return true;
-        return scoring.findBestVisibleLowDensityTarget(member, rejected) != 0L;
+        return scoring.findBestVisibleLowDensityTarget(member, rejected, squad) != 0L;
     }
 }
