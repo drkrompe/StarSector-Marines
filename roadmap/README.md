@@ -67,8 +67,10 @@ universe over time, not retrofitted into intel slots.
 - **Map generation** — room-purpose refactor complete (Slices A–D), with that
   substrate now paying off in both station layouts and ground maps. Tactical
   commercial interiors ship purpose-labeled sales floors/stockrooms plus real
-  shelf footprints and two-cell combat aisles sized for infantry; the next
-  ground slice is a coherent multi-building commercial compound. See
+  shelf footprints and two-cell combat aisles sized for infantry; coherent
+  commercial compounds and role-specific military bases now orient their
+  buildings toward shared circulation. Military sites add bunk/rack/service/C2
+  fixture plans plus an outdoor radar silhouette. See
   [`mapgen/`](mapgen/).
 - **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
   tile definitions and their gen→tile mappings out of hardcoded Java
@@ -109,11 +111,16 @@ universe over time, not retrofitted into intel slots.
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
    outcome writeback, debrief, hidden moral consequence, and durable Distress
-   Net dispatch. The second archetype is contract-locked: a discovered political
+   Net dispatch. The second archetype is also complete: a discovered political
    chain can produce a costly defector-asylum promise followed by a delayed
-   protect-or-betray choice. Next is its append-only persistence and pure
-   lifecycle slice; generalize only the shared seams this consumer requires.
-   Keep swarm tuning deferred until manual playtesting resumes. See
+   protect-or-betray choice, with source-frozen plot/reputation reaction and
+   hidden moral meaning consumed exactly once. No living-world story remains
+   active. The kingmaker capstone is now complete too: decisive claimant victories
+   seal a deterministic Last Testament, deliver it through persistent intel and
+   Chronicle history, and have production-shaped debug/replay coverage
+   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). Contract the next event
+   archetype before extending the generic event surface. Keep swarm tuning deferred
+   until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual

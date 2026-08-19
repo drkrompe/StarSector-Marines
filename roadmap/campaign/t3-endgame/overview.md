@@ -1,13 +1,14 @@
 # Campaign T3 endgame — the faction flip
 
-**Status:** ownership/rank/diplomacy/player-reputation path CODE COMPLETE
-(2026-08-12); player-facing capstone narrative remains.
+**Status:** ownership/rank/diplomacy/player-reputation path + complete kingmaker
+capstone CODE COMPLETE (2026-08-19). Manual in-game UI smoke is deferred.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
 `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
 `5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`, `31be86ed`, `926047e8`,
 `4332927f`, `50591863`, `3610923d`, `487134ae`, `551081ab`, `4f6afb8b`,
-`753f3969`, `0ef347d3`, `03422b15`
+`753f3969`, `0ef347d3`, `03422b15`, `946262b2`, `15c017ed`, `379d8989`,
+`e0d7c117`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -133,7 +134,7 @@ claimant and displaced rival, source and result faction identities, flipped
 market, and actual ownership-write day. The dispatch remains blocked while the
 claim is `PREPARED`, then renders the concrete faction transition exactly once.
 
-## Still to specify after core writeback
+## Post-writeback stories
 
 - ~~Contract composition and player choices across the three progress bands.~~
   Locked in [civil-war participation](../living-world/civil-war-participation.md);
@@ -141,10 +142,13 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
   shipped (`551081ab`, `4f6afb8b`).
 - ~~Player reputation consequences for those explicit choices.~~ Shipped with
   contribution scaling and autonomous/stale neutrality (`03422b15`).
-- The kingmaker capstone — see [moral compass](../moral-compass.md) for the
-  multi-axis reveal that pays off at this tier. Its hidden ledger foundation is
-  shipped (`facfa007`, `6765eac6`, `2a1924e7`), but the reveal waits for more
-  than one meaningful source family.
+- ~~The kingmaker capstone~~ — see the completed
+  [Last Testament story](complete/kingmaker-capstone.md) and
+  [moral compass](../moral-compass.md) for the multi-axis reveal that pays off at
+  this tier. Its hidden ledger foundation, three meaningful source families,
+  persisted testimony snapshot, deterministic evidence editor, hidden-until-
+  earned intel, Chronicle cross-link, debug reachability, and replay-safe closure
+  are shipped (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`).
 
 ## Related
 

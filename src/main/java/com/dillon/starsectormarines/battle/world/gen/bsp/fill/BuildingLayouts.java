@@ -79,6 +79,14 @@ final class BuildingLayouts {
         SHOP,
         /** Industrial warehouse. Crates on both long walls + a desk at one doorway. Reads as cargo bay. */
         WAREHOUSE,
+        /** Military command post. C2 consoles flank a central tactical planning table. */
+        COMMAND_CENTER,
+        /** Military barracks. Paired bunk rows leave a broad central fire lane. */
+        BARRACKS,
+        /** Military armory. Alternating weapon racks and heavy supply stacks form cover lanes. */
+        ARMORY,
+        /** Military vehicle bay. Service equipment hugs one wall and leaves the bay center open. */
+        VEHICLE_BAY,
     }
 
     // ---- Public API ----
@@ -107,6 +115,10 @@ final class BuildingLayouts {
             case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
             case SHOP:      applyShop(grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
+            case COMMAND_CENTER: applyCommandCenter(grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case BARRACKS:       applyBarracks(grid, topology, bl, bt, br, bb, doodads); break;
+            case ARMORY:         applyArmory(grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case VEHICLE_BAY:    applyVehicleBay(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case SHED:
             default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
         }
@@ -381,6 +393,106 @@ final class BuildingLayouts {
 
         DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-2");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
+    }
+
+    /** Furnishes the deepest command chambers with hard C2 silhouettes while preserving circulation. */
+    private static void applyCommandCenter(NavigationGrid grid, CellTopology topology,
+                                           int bl, int bt, int br, int bb,
+                                           List<Doodad> doodads, Random rng) {
+        DoodadDef console = TileRegistry.installed().doodad("doodad.military-command-console");
+        DoodadDef table = TileRegistry.installed().doodad("doodad.military-tactical-table");
+
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_THRONE, table, doodads, rng);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_THRONE, console, doodads, rng);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_INNER, console, doodads, rng);
+    }
+
+    /** Two vertical bunk rows leave at least a two-cell central lane for 0.3-cell-radius marines. */
+    private static void applyBarracks(NavigationGrid grid, CellTopology topology,
+                                      int bl, int bt, int br, int bb,
+                                      List<Doodad> doodads) {
+        DoodadDef bunk = TileRegistry.installed().doodad("doodad.military-bunk");
+        fixtureWallLine(grid, topology, bl, bt, br, bb, WallSide.W, bunk, 2, doodads);
+        fixtureWallLine(grid, topology, bl, bt, br, bb, WallSide.E, bunk, 2, doodads);
+    }
+
+    /** Alternating rack/crate fixtures create firing lanes and meaningful heavy cover in the armory. */
+    private static void applyArmory(NavigationGrid grid, CellTopology topology,
+                                    int bl, int bt, int br, int bb,
+                                    List<Doodad> doodads, Random rng) {
+        DoodadDef[] stores = {
+                TileRegistry.installed().doodad("doodad.shelf-2"),
+                TileRegistry.installed().doodad("doodad.industrial-crate-stack"),
+        };
+        boolean horizontal = (br - bl) >= (bb - bt);
+        WallSide first = horizontal ? WallSide.N : WallSide.W;
+        WallSide second = horizontal ? WallSide.S : WallSide.E;
+        fixtureWallLineMix(grid, topology, bl, bt, br, bb, first, stores, 2, doodads, rng);
+        fixtureWallLineMix(grid, topology, bl, bt, br, bb, second, stores, 2, doodads, rng);
+        counterAtDoorway(grid, bl, bt, br, bb,
+                TileRegistry.installed().doodad("doodad.desk-2"), doodads);
+    }
+
+    /** Keeps the vehicle-bay center empty and pushes repair/service cover to the longer wall pair. */
+    private static void applyVehicleBay(NavigationGrid grid, CellTopology topology,
+                                        int bl, int bt, int br, int bb,
+                                        List<Doodad> doodads, Random rng) {
+        DoodadDef generator = TileRegistry.installed().doodad("doodad.industrial-generator");
+        DoodadDef[] utility = {
+                TileRegistry.installed().doodad("doodad.industrial-cable-reel"),
+                TileRegistry.installed().doodad("doodad.industrial-pallet-stack"),
+        };
+        boolean horizontal = (br - bl) >= (bb - bt);
+        WallSide serviceWall = horizontal ? WallSide.N : WallSide.W;
+        WallSide utilityWall = horizontal ? WallSide.S : WallSide.E;
+        fixtureWallLine(grid, topology, bl, bt, br, bb,
+                serviceWall, generator, 3, doodads);
+        wallLineMix(grid, bl, bt, br, bb, utilityWall, utility, 4, doodads, rng);
+    }
+
+    private static void stampPurposeFixture(NavigationGrid grid, CellTopology topology,
+                                            int bl, int bt, int br, int bb,
+                                            RoomPurpose purpose, DoodadDef prop,
+                                            List<Doodad> doodads, Random rng) {
+        int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb, purpose, doodads, rng);
+        if (cell != null) stampFixture(grid, topology, cell[0], cell[1], prop, doodads);
+    }
+
+    private static void fixtureWallLine(NavigationGrid grid, CellTopology topology,
+                                        int bl, int bt, int br, int bb,
+                                        WallSide side, DoodadDef prop, int spacing,
+                                        List<Doodad> doodads) {
+        fixtureWallLineMix(grid, topology, bl, bt, br, bb, side,
+                new DoodadDef[]{prop}, spacing, doodads, null);
+    }
+
+    private static void fixtureWallLineMix(NavigationGrid grid, CellTopology topology,
+                                           int bl, int bt, int br, int bb,
+                                           WallSide side, DoodadDef[] props, int spacing,
+                                           List<Doodad> doodads, Random rng) {
+        int start = (side == WallSide.N || side == WallSide.S) ? bl + 1 : bt + 1;
+        int end = (side == WallSide.N || side == WallSide.S) ? br - 1 : bb - 1;
+        for (int along = start; along <= end; along += spacing) {
+            int x = side == WallSide.W ? bl + 1 : side == WallSide.E ? br - 1 : along;
+            int y = side == WallSide.S ? bt + 1 : side == WallSide.N ? bb - 1 : along;
+            DoodadDef prop = props.length == 1 ? props[0] : props[rng.nextInt(props.length)];
+            stampFixture(grid, topology, x, y, prop, doodads);
+        }
+    }
+
+    /** Fixture props block bodies, remain transparent to fire, and never masquerade as structure. */
+    private static void stampFixture(NavigationGrid grid, CellTopology topology,
+                                     int x, int y, DoodadDef prop, List<Doodad> doodads) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
+        if (grid.isDoorway(x, y) || isNearDoorway(grid, x, y) || isOccupied(x, y, doodads)) return;
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        topology.setWall(x, y, false);
+        topology.setFixture(x, y, true);
+        doodads.add(new Doodad(x, y, prop));
     }
 
     // ---- Primitives ----

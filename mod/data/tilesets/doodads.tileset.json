@@ -113,6 +113,34 @@
       "row": 1,
       "cover": "heavy",
       "ballisticHalfHeight": 0.45
+    },
+    {
+      "id": "doodad.military-radar-dish",
+      "col": 0,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75
+    },
+    {
+      "id": "doodad.military-command-console",
+      "col": 1,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.military-tactical-table",
+      "col": 2,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38
+    },
+    {
+      "id": "doodad.military-bunk",
+      "col": 3,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.25
     }
   ],
   "cells": [
@@ -203,6 +231,30 @@
       "col": 7,
       "row": 1,
       "name": "Industrial scrap pile"
+    },
+    {
+      "col": 0,
+      "row": 2,
+      "name": "Military radar dish",
+      "description": "Armored field radar on a rotating pedestal."
+    },
+    {
+      "col": 1,
+      "row": 2,
+      "name": "Command console",
+      "description": "Three-screen command-and-control operator station."
+    },
+    {
+      "col": 2,
+      "row": 2,
+      "name": "Tactical planning table",
+      "description": "Armored illuminated battlefield planning table."
+    },
+    {
+      "col": 3,
+      "row": 2,
+      "name": "Barracks bunk",
+      "description": "Compact field cot with stowed kit."
     }
   ]
 }

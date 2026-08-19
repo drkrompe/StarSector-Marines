@@ -48,8 +48,19 @@ public final class DefectorAsylumSpawnSystem implements CampaignSystem {
         int chainRow = selectChain(state, epoch, day);
         if (chainRow < 0) return;
 
+        prepareEvent(state, triggerKey, chainRow, day);
+    }
+
+    static long prepareEvent(CampaignState state, long triggerKey,
+                             int chainRow, int day) {
+        if (state == null || triggerKey < 0L || chainRow < 0
+                || chainRow >= state.chainCount || day < 0
+                || day > Integer.MAX_VALUE - INITIAL_CHOICE_DAYS
+                || !eligible(state, chainRow, day)) {
+            return -1L;
+        }
         int tier = (state.chainTier[chainRow] & 0xFF) + 1;
-        DefectorAsylumEvent.prepare(state, triggerKey,
+        return DefectorAsylumEvent.prepare(state, triggerKey,
                 state.chainId[chainRow], state.chainActorHouseId[chainRow],
                 state.chainTarget[chainRow], state.chainMarketId[chainRow],
                 day, day + INITIAL_CHOICE_DAYS,
