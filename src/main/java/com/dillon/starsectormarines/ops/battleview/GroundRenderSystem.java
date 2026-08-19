@@ -146,22 +146,19 @@ public final class GroundRenderSystem implements RenderSystem {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (topology.isWall(x, y)) continue;
-                boolean nWall = isInBoundsWall(topology, x, y + 1);
-                boolean sWall = isInBoundsWall(topology, x, y - 1);
-                boolean eWall = isInBoundsWall(topology, x + 1, y);
-                boolean wWall = isInBoundsWall(topology, x - 1, y);
+                boolean nWall = GroundTileSelector.isInBoundsWall(topology, x, y + 1);
+                boolean sWall = GroundTileSelector.isInBoundsWall(topology, x, y - 1);
+                boolean eWall = GroundTileSelector.isInBoundsWall(topology, x + 1, y);
+                boolean wWall = GroundTileSelector.isInBoundsWall(topology, x - 1, y);
 
                 CellTopology.GroundKind kind = topology.getGroundKind(x, y);
                 int ord = kind.ordinal();
                 switch (kind) {
                     case STREET:
                         if (urbanTile3 != null) {
-                            if (isSidewalkCell(grid, topology, x, y)) {
-                                if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
-                                        !isSidewalkLikeCell(grid, topology, x, y + 1),
-                                        !isSidewalkLikeCell(grid, topology, x, y - 1),
-                                        !isSidewalkLikeCell(grid, topology, x + 1, y),
-                                        !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
+                            if (GroundTileSelector.isSidewalkCell(grid, topology, x, y)) {
+                                if (tileReg != null) urbanTile3Frame(tileReg.tile(GroundTileSelector.urban3TileId(
+                                        grid, topology, streetTileId, x, y)), x, y);
                             } else {
                                 if (tileReg != null) urbanTile3Frame(tileReg.tile(streetTileId), x, y);
                                 if (topology.isCrosswalk(x, y)) {
@@ -169,14 +166,14 @@ public final class GroundRenderSystem implements RenderSystem {
                                 }
                             }
                         } else if (road != null && tileReg != null) {
-                            if (isSidewalkCell(grid, topology, x, y)) {
+                            if (GroundTileSelector.isSidewalkCell(grid, topology, x, y)) {
                                 roadTile(blockFrame("road.sidewalk", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
                             } else {
                                 roadPerimeter("road.road", roadFill,
-                                        isRoadBoundary(grid, topology, x, y + 1),
-                                        isRoadBoundary(grid, topology, x, y - 1),
-                                        isRoadBoundary(grid, topology, x + 1, y),
-                                        isRoadBoundary(grid, topology, x - 1, y), x, y);
+                                        GroundTileSelector.isRoadBoundary(grid, topology, x, y + 1),
+                                        GroundTileSelector.isRoadBoundary(grid, topology, x, y - 1),
+                                        GroundTileSelector.isRoadBoundary(grid, topology, x + 1, y),
+                                        GroundTileSelector.isRoadBoundary(grid, topology, x - 1, y), x, y);
                                 if (topology.isCrosswalk(x, y)) {
                                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                                 }
@@ -184,19 +181,14 @@ public final class GroundRenderSystem implements RenderSystem {
                         }
                         break;
                     case SIDEWALK:
-                        if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
-                                !isSidewalkLikeCell(grid, topology, x, y + 1),
-                                !isSidewalkLikeCell(grid, topology, x, y - 1),
-                                !isSidewalkLikeCell(grid, topology, x + 1, y),
-                                !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
+                        if (tileReg != null) urbanTile3Frame(tileReg.tile(GroundTileSelector.urban3TileId(
+                                grid, topology, streetTileId, x, y)), x, y);
                         break;
                     case GRASS:
                     case DIRT:
                         // Prefer the sliced nature sheet; the Floors variant block is the fallback.
                         if (nature != null && tileReg != null) {
-                            natureTile(tileReg.tile(kind == CellTopology.GroundKind.GRASS
-                                    ? TileManifest.pickNatureGrassTileId(x, y)
-                                    : TileManifest.pickNatureDirtTileId(x, y)), x, y);
+                            natureTile(tileReg.tile(GroundTileSelector.natureTileId(kind, x, y)), x, y);
                         } else {
                             drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
                         }
@@ -390,29 +382,4 @@ public final class GroundRenderSystem implements RenderSystem {
         }
     }
 
-    // ---- neighbor predicates (ported verbatim) -------------------------------
-
-    private static boolean isInBoundsWall(CellTopology topology, int x, int y) {
-        return topology.inBounds(x, y) && topology.isWall(x, y);
-    }
-
-    private static boolean isSidewalkCell(NavigationGrid grid, CellTopology topology, int x, int y) {
-        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !topology.isStreet(x, y)) return false;
-        return isInBoundsWall(topology, x + 1, y)
-                || isInBoundsWall(topology, x - 1, y)
-                || isInBoundsWall(topology, x, y + 1)
-                || isInBoundsWall(topology, x, y - 1);
-    }
-
-    private static boolean isSidewalkLikeCell(NavigationGrid grid, CellTopology topology, int x, int y) {
-        if (!topology.inBounds(x, y)) return false;
-        if (topology.getGroundKind(x, y) == CellTopology.GroundKind.SIDEWALK) return true;
-        return isSidewalkCell(grid, topology, x, y);
-    }
-
-    private static boolean isRoadBoundary(NavigationGrid grid, CellTopology topology, int x, int y) {
-        if (!grid.inBounds(x, y)) return false;
-        if (topology.isWall(x, y)) return true;
-        return isSidewalkCell(grid, topology, x, y);
-    }
 }

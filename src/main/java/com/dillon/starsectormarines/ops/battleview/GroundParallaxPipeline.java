@@ -154,7 +154,7 @@ public final class GroundParallaxPipeline {
             + "}\n";
 
     private final ShaderProgram shader = new ShaderProgram("GroundParallax", VERTEX_SRC, FRAGMENT_SRC);
-    private final GroundMicroHeightSampler microHeight = new GroundMicroHeightSampler();
+    private final GroundMicroHeightSampler microHeight;
     private final SolidQuadBatch heightBatch = new SolidQuadBatch(4096);
 
     private boolean broken;
@@ -169,6 +169,15 @@ public final class GroundParallaxPipeline {
     /** Sampled once, like {@code DecalAccumulator.uiFboBinding} — never a per-frame {@code glGet*} (async-renderer stall). */
     private int uiFboBinding = -1;
     private boolean uiFboSampled;
+
+    /** Compatibility constructor; without a sprite registry sliced sheets remain macro-only/fallback. */
+    public GroundParallaxPipeline() {
+        this.microHeight = new GroundMicroHeightSampler(() -> null, () -> null, HeightSheetTexture::new);
+    }
+
+    public GroundParallaxPipeline(BattleSprites sprites) {
+        this.microHeight = new GroundMicroHeightSampler(sprites);
+    }
 
     /**
      * Renders {@code RenderLayer#GROUND} through the parallax pipeline:
