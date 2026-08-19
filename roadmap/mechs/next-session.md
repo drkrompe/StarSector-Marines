@@ -15,6 +15,13 @@ crater, and positional explosion audio. The Heavy Mortar turret shares that
 visual language with a 1.35-cell blast; ordinary rockets retain their softer HE
 recipe. Standalone battles and the vanilla-combat bridge use the same profile.
 
+Moving-fire target control now uses a 145-degree torso traverse to either side
+of the hip heading. Every mech combat posture shares a traverse-aware target
+refresh: visible threats inside 10 cells pull aggro from distant contacts, and
+an out-of-arc target yields to an immediately shootable in-arc enemy. A close
+target already being tracked remains sticky to prevent per-tick target churn.
+The remaining 70-degree rear wedge still requires the chassis to turn.
+
 The battle debug panel now exposes **Spawn mech family**, which creates:
 
 - Bulwark: unchanged heavy, with SRM-15 and LRM-15 racks;
@@ -98,5 +105,7 @@ adopt the budgeted mixed-lance rules in S1.
   weakness.
 - Do not turn gun-launched HE into a boost-ramping missile entity. Its visual
   body is the resolved ballistic `ShotEvent`; the timed detonation owns splash.
+- Do not make target selection ignore planted-hip traverse again. Movement and
+  firing must agree on which contacts the upper chassis can physically reach.
 - Bulwark's rockets are retained for comparison; removing them for a pure
   frontline-tank identity remains an explicit playtest decision.

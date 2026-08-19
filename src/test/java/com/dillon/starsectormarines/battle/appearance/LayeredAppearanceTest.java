@@ -71,11 +71,14 @@ public class LayeredAppearanceTest {
     }
 
     @Test
-    public void mechTorsoTracksWithinASeventyDegreeHipTraverse() {
+    public void mechTorsoTracksFlanksWithinAOneFortyFiveDegreeHipTraverse() {
+        assertEquals(145f, LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES,
+                0.001f);
         assertEquals(-45f, LayeredMechAppearance.torsoFacing(0f, -45f), 0.001f);
-        assertEquals(-70f, LayeredMechAppearance.torsoFacing(0f, -120f), 0.001f);
-        assertEquals(70f, LayeredMechAppearance.torsoFacing(0f, 120f), 0.001f);
-        assertEquals(-110f, LayeredMechAppearance.torsoFacing(180f, -90f), 0.001f);
+        assertEquals(-120f, LayeredMechAppearance.torsoFacing(0f, -120f), 0.001f);
+        assertEquals(120f, LayeredMechAppearance.torsoFacing(0f, 120f), 0.001f);
+        assertEquals(-145f, LayeredMechAppearance.torsoFacing(0f, -160f), 0.001f);
+        assertEquals(145f, LayeredMechAppearance.torsoFacing(0f, 160f), 0.001f);
     }
 
     @Test

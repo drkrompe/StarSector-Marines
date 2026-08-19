@@ -75,12 +75,8 @@ public final class MechBreakContact implements Action {
      * pulling back" read.
      */
     private static void opportunisticMechFire(long u, BattleControl sim) {
-        long target = sim.targetOf(u);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {
-            target = sim.getTacticalScoring().findBestTarget(u);
-            sim.world().setTargetId(u, target);
-        }
+        long target = MechTargeting.refreshTarget(u, sim);
+        sim.world().setTargetId(u, target);
         if (target == 0L) return;
         float dist = TacticalScoring.cellDistance(sim.world().x(u), sim.world().y(u),
                 sim.world().x(target), sim.world().y(target));

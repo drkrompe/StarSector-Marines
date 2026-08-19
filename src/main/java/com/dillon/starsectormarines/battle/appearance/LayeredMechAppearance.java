@@ -13,8 +13,13 @@ public final class LayeredMechAppearance {
     public static final int FLAG_TURNING = 1 << 7;
 
     public static final float FLASH_SECONDS = 0.075f;
-    /** Maximum upper-chassis traverse to either side of the planted hips. */
-    public static final float MAX_TORSO_TWIST_DEGREES = 70f;
+    /**
+     * Maximum upper-chassis traverse to either side of the planted hips.
+     * Leaves a 70-degree blind wedge directly behind the chassis: broad enough
+     * for a moving mech to keep a flank contact under its guns, while a target
+     * crossing the rear still forces the legs to turn.
+     */
+    public static final float MAX_TORSO_TWIST_DEGREES = 145f;
 
     public static final int ARMS_CHAINGUN = 0;
     public static final int ARMS_LINEAR_CANNON = 1;
