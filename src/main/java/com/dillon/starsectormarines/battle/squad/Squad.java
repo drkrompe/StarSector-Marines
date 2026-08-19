@@ -12,6 +12,13 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * A fireteam of marines that deboarded from one shuttle, or a defender squad
  * pegged to a tactical node at battle start. Squads are the unit of cohesion,
@@ -89,6 +96,23 @@ public final class Squad {
     /** Last cell an enemy was seen at by any squadmate. -1 sentinel = never. SUSPICIOUS uses this as the convergence target. */
     public int lastSeenEnemyX = -1;
     public int lastSeenEnemyY = -1;
+
+    /**
+     * Linear direct-contact memory lifetime. It intentionally matches the
+     * complete alert decay so the final believed contact expires as the squad
+     * returns to UNAWARE.
+     */
+    public static final float BELIEF_LIFETIME_SECONDS =
+            ENGAGED_DECAY_SECONDS + SUSPICIOUS_DECAY_SECONDS;
+    private static final float BELIEF_DECAY_PER_SECOND =
+            1f / BELIEF_LIFETIME_SECONDS;
+
+    /** Serial-write contact store owned by {@code SquadAlertSystem}. */
+    private final Map<Long, BelievedContact> contactMemory = new LinkedHashMap<>();
+    /** Immutable snapshot published before the parallel planner/read phase. */
+    private volatile List<BelievedContact> believedContacts = List.of();
+    /** Distinguishes the compatibility projection from an anonymous audio bearing. */
+    private boolean lastSeenFromBelief;
 
     /**
      * Tactical node this squad is anchored to. For GARRISON it's the position
@@ -454,6 +478,88 @@ public final class Squad {
      * that touch multiple squads must sort by {@link #id} before locking.
      */
     public final Object lock = new Object();
+
+    /** Immutable, deterministically ordered contact snapshot for tactical readers. */
+    public List<BelievedContact> believedContacts() {
+        return believedContacts;
+    }
+
+    /** The remembered contact for {@code unitId}, or {@code null} when unknown/expired. */
+    public BelievedContact believedContact(long unitId) {
+        for (BelievedContact contact : believedContacts) {
+            if (contact.unitId() == unitId) return contact;
+        }
+        return null;
+    }
+
+    /** True while at least one identified hostile contact remains in memory. */
+    public boolean hasBelievedContacts() {
+        return !believedContacts.isEmpty();
+    }
+
+    /**
+     * Ages the private serial-write store at tick start. The refreshed
+     * immutable snapshot is published after all direct observations land.
+     */
+    void beginBeliefTick(float dt) {
+        Iterator<Map.Entry<Long, BelievedContact>> iterator = contactMemory.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Long, BelievedContact> entry = iterator.next();
+            BelievedContact old = entry.getValue();
+            float confidence = old.confidence() - BELIEF_DECAY_PER_SECOND * dt;
+            if (confidence <= 0f) {
+                iterator.remove();
+            } else {
+                entry.setValue(new BelievedContact(old.unitId(), old.lastSeenCellX(),
+                        old.lastSeenCellY(), old.lastSeenTick(), confidence));
+            }
+        }
+    }
+
+    /** Records one authoritative direct-LOS observation at full confidence. */
+    void observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
+        contactMemory.put(unitId,
+                new BelievedContact(unitId, cellX, cellY, simTick, 1f));
+    }
+
+    /** True when another member already established this contact this tick. */
+    boolean observedDirectlyOnTick(long unitId, int simTick) {
+        BelievedContact contact = contactMemory.get(unitId);
+        return contact != null && contact.observedOnTick(simTick);
+    }
+
+    /** Records the existing anonymous gunfire investigation bearing. */
+    void observeAudibleBearing(int cellX, int cellY) {
+        lastSeenEnemyX = cellX;
+        lastSeenEnemyY = cellY;
+        lastSeenFromBelief = false;
+    }
+
+    /**
+     * Publishes belief for parallel readers and refreshes the legacy
+     * last-seen projection from the freshest deterministic contact.
+     */
+    void publishBeliefSnapshot() {
+        List<BelievedContact> snapshot = new ArrayList<>(contactMemory.values());
+        snapshot.sort(Comparator.comparingLong(BelievedContact::unitId));
+        believedContacts = List.copyOf(snapshot);
+
+        BelievedContact freshest = null;
+        for (BelievedContact contact : snapshot) {
+            if (freshest == null || contact.lastSeenTick() > freshest.lastSeenTick()) {
+                freshest = contact;
+            }
+        }
+        if (freshest != null) {
+            lastSeenEnemyX = freshest.lastSeenCellX();
+            lastSeenEnemyY = freshest.lastSeenCellY();
+            lastSeenFromBelief = true;
+        } else if (lastSeenFromBelief) {
+            lastSeenEnemyX = -1;
+            lastSeenEnemyY = -1;
+            lastSeenFromBelief = false;
+        }
+    }
 
     /**
      * Clears every Story 20 phase field atomically. Called when EnterZone

@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.squad.SquadAlertSystem;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -93,77 +92,32 @@ public final class WorldStateBuilder {
     // --- Stage 1 evaluators ---------------------------------------------
 
     private static boolean evalHasTarget(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (!sim.identity().type(u).combatant) continue;
-            if (sim.identity().faction(u) == squad.faction) continue;
-            return true;
-        }
-        return false;
+        return squad.hasBelievedContacts();
     }
 
     /**
-     * Cell radius around {@link Squad#lastSeenEnemyX}/{@code Y} within which
-     * enemies count as threat-set members for HAS_LOS_TO_TARGET. Sized to
-     * comfortably absorb post-observation drift during the ENGAGED alert
-     * window (~6s × ~2 cells/sec = ~12 cells) plus some slack for path
-     * detours. Squads with no known threat ({@code lastSeenEnemy = -1}) read
-     * HAS_LOS_TO_TARGET as false outright — they don't get pulled to enemies
-     * they've never observed.
-     *
-     * <p>Interim stand-in for the per-squad {@code BelievedContact} map
-     * documented in roadmap/ai/15-perception-and-influence.md. The single
-     * stamped cell is the minimum-viable representation of "what this squad
-     * knows about enemies"; the full belief map replaces it when the
-     * perception layer ships.
-     *
-     * <p>Indirect fire (mech LRM at 40-cell launch range) does not poison the
-     * stamp today because the audible-gunfire path
-     * ({@link SquadAlertSystem#GUNFIRE_ALERT_RADIUS} = 18) excludes far
-     * launchers before {@code lastSeenEnemy} would be updated.
+     * Direct observation is resolved once in the serial alert pass. A contact
+     * refreshed on this sim tick therefore means at least one member had LOS;
+     * the parallel planner does not rediscover enemies from global live state.
      */
-    private static final float HAS_LOS_THREAT_SET_RADIUS = 20f;
-
     private static boolean evalHasLosToTarget(Squad squad, BattleView sim) {
-        if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return false;
-
-        NavigationGrid grid = sim.getGrid();
-
-        // Pre-collect squad members once so the inner loop is O(threat-set × squad-size)
-        // instead of O(threat-set × total-units).
-        List<Long> members = new ArrayList<>(4);
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id) members.add(u);
-        }
-        if (members.isEmpty()) return false;
-
-        // Gather only enemies inside the threat-set window via the per-tick
-        // spatial index — eliminates the previous O(total-units) outer scan
-        // when the squad's lastSeenEnemy point sits far from most of the map.
-        LongBucket threats = new LongBucket();
-        sim.getUnitIndex().gather(squad.lastSeenEnemyX + 0.5f, squad.lastSeenEnemyY + 0.5f,
-                HAS_LOS_THREAT_SET_RADIUS, threats);
-        for (int i = 0, n = threats.size; i < n; i++) {
-            long enemy = threats.ids[i];
-            if (!sim.identity().type(enemy).combatant) continue;
-            if (sim.identity().faction(enemy) == squad.faction) continue;
-            for (long member : members) {
-                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) return true;
-            }
+        int tick = sim.getSimTickIndex();
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (contact.observedOnTick(tick)) return true;
         }
         return false;
     }
 
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
+        List<BelievedContact> contacts = squad.believedContacts();
+        if (contacts.isEmpty()) return false;
         for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
             long member = sim.liveUnitAt(mi);
             if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
-            for (int ei = 0; ei < n; ei++) {
-                long enemy = sim.liveUnitAt(ei);
-                if (!sim.identity().type(enemy).combatant) continue;
-                if (sim.identity().faction(enemy) == squad.faction) continue;
-                float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), sim.world().x(enemy), sim.world().y(enemy));
+            for (BelievedContact contact : contacts) {
+                float d = TacticalScoring.cellDistance(sim.world().x(member),
+                        sim.world().y(member), contact.lastSeenCellX() + 0.5f,
+                        contact.lastSeenCellY() + 0.5f);
                 if (d <= sim.world().attackRange(member)) return true;
             }
         }

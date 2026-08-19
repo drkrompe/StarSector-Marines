@@ -37,11 +37,13 @@ public final class HighlightOverlay {
     public static final String SRC_ACTION_CELLS    = "action-cells";
     public static final String SRC_SELECTED_SQUAD  = "selected-squad";
     public static final String SRC_CAPTAIN         = "captain";
+    public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan
     public static final Color COLOR_SELECTED_UNIT  = new Color(0x80, 0xFF, 0x80, 0xFF);  // green
     public static final Color COLOR_CAPTAIN        = new Color(0xFF, 0xD0, 0x40, 0xFF);  // gold
+    public static final Color COLOR_BELIEVED_CONTACT = new Color(0xFF, 0x50, 0xA0, 0xFF); // magenta
 
     private final Map<String, List<CellHighlight>> sources = new LinkedHashMap<>();
 

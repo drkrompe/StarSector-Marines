@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -102,6 +103,24 @@ public final class SquadStateDumper {
         o.put("moraleBroken", squad.moraleBroken);
         o.put("timeSinceContact", squad.timeSinceContact);
         o.put("timeSinceReplan", squad.timeSinceReplan);
+        JSONArray contacts = new JSONArray();
+        for (BelievedContact contact : squad.believedContacts()) {
+            JSONObject believed = new JSONObject();
+            believed.put("unitId", contact.unitId());
+            long liveContact = sim.resolveUnit(contact.unitId());
+            believed.put("unitName", liveContact != 0L
+                    ? sim.identity().name(liveContact) : null);
+            believed.put("lastSeenCellX", contact.lastSeenCellX());
+            believed.put("lastSeenCellY", contact.lastSeenCellY());
+            believed.put("lastSeenTick", contact.lastSeenTick());
+            believed.put("ageTicks", Math.max(0,
+                    sim.simTickIndex - contact.lastSeenTick()));
+            believed.put("confidence", contact.confidence());
+            believed.put("observedThisTick",
+                    contact.observedOnTick(sim.simTickIndex));
+            contacts.put(believed);
+        }
+        o.put("believedContacts", contacts);
         long leaderUnit = sim.resolveUnit(squad.leaderId);
         o.put("leaderId", leaderUnit != 0L ? sim.identity().name(leaderUnit) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
