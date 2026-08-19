@@ -191,6 +191,46 @@ class RescueEscortCommandTest {
     }
 
     @Test
+    void nearbyAttackerThrottlesOnlyTheRelatedSquad() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential()), 49L);
+        assertNotNull(payload);
+        Squad clearSquad = addMarineSquad(sim, 35, 25);
+        Squad pressuredSquad = addMarineSquad(sim,
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
+        clearSquad.alertLevel = SquadAlertLevel.ENGAGED;
+        pressuredSquad.alertLevel = SquadAlertLevel.ENGAGED;
+        sim.spawn(new EntitySpec("local-runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER,
+                payload.placement.shelterApproachX + 1,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.isCivilianEvacuationTriggered());
+        for (int i = 0; i < payload.size(); i++) {
+            sim.world().setCellPos(payload.entityId(i), 15, 8);
+        }
+        RescueEscortCommand command = new RescueEscortCommand(
+                payload.placement);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
+                payload.placement.liftX, payload.placement.liftY);
+
+        command.tick(sim);
+
+        assertEscortTarget(clearSquad,
+                Paths.cellX(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS),
+                Paths.cellY(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS));
+        ObjectiveAssignment pressured = pressuredSquad.assignedObjective;
+        assertNotNull(pressured);
+        assertTrue(pressured.targetCellX()
+                        != clearSquad.assignedObjective.targetCellX()
+                        || pressured.targetCellY()
+                        != clearSquad.assignedObjective.targetCellY(),
+                "the locally pressured squad keeps its own bounded formation slot");
+    }
+
+    @Test
     void pickupGuardsKeepTheirAuthoredPerimeterPosts() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(

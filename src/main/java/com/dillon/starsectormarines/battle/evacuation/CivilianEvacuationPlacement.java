@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayList;
@@ -11,12 +12,13 @@ import java.util.List;
 
 /**
  * Deterministic shelter/lift placement for the civilian-rescue payload.
- * Produces all eight unique spawn cells or no placement; callers never install
- * a partial representative cohort.
+ * Produces all eight unique spawn cells and a clear outdoor 5x5 lift footprint
+ * or no placement; callers never install a partial representative cohort.
  */
 public final class CivilianEvacuationPlacement {
 
-    public static final int LIFT_ZONE_RADIUS = 1;
+    /** Two cells around the center produces a clear 5x5 pickup/trigger area. */
+    public static final int LIFT_ZONE_RADIUS = 2;
     public static final int SHELTER_ZONE_RADIUS = 5;
     public static final int PICKUP_FORMATION_POINTS = 5;
     /** Thirteen-cell radius gives the five-point line an approximately 25x25 footprint. */
@@ -57,20 +59,23 @@ public final class CivilianEvacuationPlacement {
 
     /**
      * Finds a complete reachable placement, or {@code null} if the map has no
-     * suitable residential shelter, inset pickup formation, or eight spawn cells.
+     * suitable residential shelter, clear outdoor 5x5 lift footprint, inset
+     * pickup formation, or eight spawn cells.
      */
     public static CivilianEvacuationPlacement find(
-            NavigationGrid grid, List<PointOfInterest> pointsOfInterest,
-            long seed) {
-        return find(grid, pointsOfInterest, seed,
+            NavigationGrid grid, CellTopology topology,
+            List<PointOfInterest> pointsOfInterest, long seed) {
+        return find(grid, topology, pointsOfInterest, seed,
                 CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT);
     }
 
     public static CivilianEvacuationPlacement find(
-            NavigationGrid grid, List<PointOfInterest> pointsOfInterest,
-            long seed, int representativeCount) {
+            NavigationGrid grid, CellTopology topology,
+            List<PointOfInterest> pointsOfInterest, long seed,
+            int representativeCount) {
         if (representativeCount <= 0) return null;
-        if (grid == null || pointsOfInterest == null) return null;
+        if (grid == null || topology == null
+                || pointsOfInterest == null) return null;
         List<PointOfInterest> shelters = new ArrayList<>();
         for (PointOfInterest poi : pointsOfInterest) {
             if (poi != null && poi.kind == PointOfInterest.Kind.RESIDENTIAL
@@ -91,7 +96,8 @@ public final class CivilianEvacuationPlacement {
             PointOfInterest shelter = shelters.get(
                     (start + offset) % shelters.size());
             CivilianEvacuationPlacement placement =
-                    forShelter(grid, shelter, representativeCount);
+                    forShelter(grid, topology, shelter,
+                            representativeCount);
             if (placement != null) return placement;
         }
         return null;
@@ -134,11 +140,12 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static CivilianEvacuationPlacement forShelter(
-            NavigationGrid grid, PointOfInterest shelter,
+            NavigationGrid grid, CellTopology topology,
+            PointOfInterest shelter,
             int representativeCount) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
-        LiftSite lift = farthestReachableLift(grid, sx, sy);
+        LiftSite lift = farthestReachableLift(grid, topology, sx, sy);
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
                 grid, shelter, sx, sy, lift.x, lift.y,
@@ -151,6 +158,7 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static LiftSite farthestReachableLift(NavigationGrid grid,
+                                                   CellTopology topology,
                                                    int sx, int sy) {
         int bestX = -1;
         int bestY = -1;
@@ -159,7 +167,8 @@ public final class CivilianEvacuationPlacement {
         int formationRadius = formationRadius(grid);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!inPickupBand(grid, x, y) || !grid.isWalkable(x, y)) {
+                if (!inPickupBand(grid, x, y, formationRadius)
+                        || !clearLiftFootprint(grid, topology, x, y)) {
                     continue;
                 }
                 int distance = Math.abs(x - sx) + Math.abs(y - sy);
@@ -181,6 +190,23 @@ public final class CivilianEvacuationPlacement {
         return bestX >= 0
                 ? new LiftSite(bestX, bestY, formationRadius, bestFormation)
                 : null;
+    }
+
+    private static boolean clearLiftFootprint(NavigationGrid grid,
+                                               CellTopology topology,
+                                               int liftX, int liftY) {
+        for (int y = liftY - LIFT_ZONE_RADIUS;
+             y <= liftY + LIFT_ZONE_RADIUS; y++) {
+            for (int x = liftX - LIFT_ZONE_RADIUS;
+                 x <= liftX + LIFT_ZONE_RADIUS; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
+                        || grid.isDoorway(x, y)
+                        || topology.getBuildingId(x, y) != 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static int[] reachableSpawnCells(NavigationGrid grid,
@@ -231,12 +257,15 @@ public final class CivilianEvacuationPlacement {
                 && Math.abs(y - liftY) <= LIFT_ZONE_RADIUS;
     }
 
-    private static boolean inPickupBand(NavigationGrid grid, int x, int y) {
+    private static boolean inPickupBand(NavigationGrid grid, int x, int y,
+                                        int formationRadius) {
         int edgeDistance = Math.min(Math.min(x, grid.getWidth() - 1 - x),
                 Math.min(y, grid.getHeight() - 1 - y));
         int maxInset = Math.max(1,
                 (Math.min(grid.getWidth(), grid.getHeight()) - 1) / 2);
-        int inset = Math.min(PICKUP_EDGE_INSET, maxInset);
+        int desiredInset = formationRadius == PICKUP_FORMATION_RADIUS
+                ? PICKUP_EDGE_INSET : formationRadius + 1;
+        int inset = Math.min(desiredInset, maxInset);
         return edgeDistance >= inset
                 && edgeDistance <= Math.min(maxInset, inset + PICKUP_BAND_WIDTH);
     }
@@ -286,7 +315,10 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static int formationRadius(NavigationGrid grid) {
-        int available = (Math.min(grid.getWidth(), grid.getHeight()) - 3) / 2;
+        int minimumDimension = Math.min(grid.getWidth(), grid.getHeight());
+        int available = minimumDimension >= PICKUP_FORMATION_RADIUS * 2 + 3
+                ? PICKUP_FORMATION_RADIUS
+                : (minimumDimension - 2) / 4;
         return Math.max(3, Math.min(PICKUP_FORMATION_RADIUS, available));
     }
 
