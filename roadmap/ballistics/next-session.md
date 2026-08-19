@@ -43,7 +43,15 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Next: contract S4 — direct-fire unification
+## Active: S3c — obstacle catch heights
+
+Contract: [`stories/s3c-obstacle-catch-heights.md`](stories/s3c-obstacle-catch-heights.md).
+Keep structural wall ray stops full-height, but gate doodad crossing and
+directional wall-edge block rolls on the S3b round Z intersecting an authored
+catch band. Doodad heights are data-driven; existing block percentages become
+conditional probabilities rather than changing value.
+
+## After S3c: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-

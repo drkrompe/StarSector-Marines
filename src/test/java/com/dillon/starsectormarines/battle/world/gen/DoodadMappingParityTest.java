@@ -71,6 +71,17 @@ public class DoodadMappingParityTest {
         }
     }
 
+    @Test
+    void ballisticHeightGoldenSpansLowAndTallSilhouettes() {
+        TileRegistry reg = TileRegistry.installed();
+        assertEquals(0.16f, reg.doodad("doodad.decal-rubble-1").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.28f, reg.doodad("doodad.box").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.38f, reg.doodad("doodad.crate").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.75f, reg.doodad("doodad.shelf-1").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.30f, reg.doodad("doodad.sandbag-straight-n").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.60f, reg.doodad("doodad.industrial-crate-stack").ballisticHalfHeight, 1e-6f);
+    }
+
     private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {
         List<DoodadDef> got = mapping.doodadPool(poolId);
         assertEquals(expected.length, got.size(), "pool size for " + poolId);

@@ -169,6 +169,23 @@ public class TileRegistryParityTest {
     }
 
     @Test
+    void doodadBallisticHeightDefaultsByCoverAndRejectsInvalidValues() throws Exception {
+        JSONObject fallback = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.crate\", \"col\": 0, \"row\": 0, \"cover\": \"med\" } ] }");
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(fallback);
+        assertEquals(DoodadCover.MED.defaultBallisticHalfHeight(),
+                registry.doodad("x.crate").ballisticHalfHeight, 1e-6f);
+
+        JSONObject invalid = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.bad\", \"col\": 0, \"row\": 0, \"cover\": \"med\","
+                + " \"ballisticHalfHeight\": -0.1 } ] }");
+        assertThrows(IllegalStateException.class, () -> new TileRegistry().ingestSheet(invalid));
+    }
+
+    @Test
     void unknownLayerTokenFailsLoud() throws Exception {
         JSONObject root = new JSONObject(
                 "{ \"sheet\": \"graphics/tilesets/x.png\", \"tiles\": ["

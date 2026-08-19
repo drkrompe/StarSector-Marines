@@ -19,16 +19,17 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
  * <p><b>Cover.</b> Each doodad carries a {@link #cover} quality in
  * {@code [0..3]} matching the cell-grid cover scale ({@link com.dillon.starsectormarines.battle.nav.NavigationGrid#MAX_COVER}).
  * Read by {@link com.dillon.starsectormarines.battle.decision.TacticalScoring} when
- * picking firing positions and by direct-fire accuracy resolution — a marine
- * prefers cells beside high-cover doodads (crates, rubble piles), and incoming
- * fire from the protected facing is less likely to hit. Doodads remain
- * non-blocking and do not reduce damage after a hit.
+ * picking firing positions and by direct-fire resolution — a marine prefers
+ * cells beside high-cover doodads (crates, rubble piles), while a round crossing
+ * the prop's own cell may be intercepted when its Z lies within the authored
+ * {@link #ballisticHalfHeight}. Doodads do not affect line of sight or reduce
+ * damage after a hit.
  *
  * <p>Cover is intrinsic data on the {@link DoodadDef} (moddable-tilesets Phase 2):
  * the {@link #Doodad(int, int, DoodadDef)} ctor reads it from the def, so every
  * authoring site that scatters a registered prop gets a consistent value without
  * repeating it. Marker/resolver doodads (LZ pads, embankments) that aren't defs
- * pass an explicit cover via the 5-arg ctor.
+ * pass explicit cover and may optionally provide a ballistic half-height.
  */
 public final class Doodad {
 
@@ -50,6 +51,8 @@ public final class Doodad {
     public final boolean fromRoadSheet;
     /** Cover quality 0..3. Stored so {@code TacticalScoring}-style queries don't need to re-derive from {@link #tile} per call. */
     public final int cover;
+    /** Symmetric target-plane catch band around Z=0, in cells. */
+    public final float ballisticHalfHeight;
 
     /**
      * Builds a doodad from its data-driven {@link DoodadDef} (moddable-tilesets
@@ -59,7 +62,7 @@ public final class Doodad {
      */
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
-                def.sheetPath, def.cover.level());
+                def.sheetPath, def.cover.level(), def.ballisticHalfHeight);
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -68,13 +71,29 @@ public final class Doodad {
                 cover);
     }
 
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                  boolean fromRoadSheet, int cover, float ballisticHalfHeight) {
+        this(cellX, cellY, tile,
+                fromRoadSheet ? TileManifest.ROAD_SHEET : TileManifest.SHEET,
+                cover, ballisticHalfHeight);
+    }
+
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, String sheetPath, int cover) {
+        this(cellX, cellY, tile, sheetPath, cover,
+                DoodadCover.fromLevel(cover).defaultBallisticHalfHeight());
+    }
+
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                  String sheetPath, int cover, float ballisticHalfHeight) {
         this.cellX = cellX;
         this.cellY = cellY;
         this.tile = tile;
         this.sheetPath = sheetPath == null ? TileManifest.SHEET : sheetPath;
         this.fromRoadSheet = TileManifest.ROAD_SHEET.equals(this.sheetPath);
         this.cover = clamp(cover);
+        this.ballisticHalfHeight = Float.isFinite(ballisticHalfHeight)
+                ? Math.max(0f, ballisticHalfHeight)
+                : 0f;
     }
 
     private static int clamp(int v) {

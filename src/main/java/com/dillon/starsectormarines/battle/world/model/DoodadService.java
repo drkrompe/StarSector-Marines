@@ -52,17 +52,19 @@ public final class DoodadService {
     private byte[] doodadCoverByFacing;
 
     /**
-     * Per-cell doodad level — own-cell only, no cardinal-neighbor bleed
-     * (unlike {@link #doodadCoverByFacing}). Indexed as {@code grid.index(x, y)}.
-     * Lazily allocated on the first {@link #addDoodad} call with
-     * {@code cover > 0}; max-merged like the facing array. Exists for
+     * Per-cell doodad ballistic half-height by cover level — own-cell only,
+     * no cardinal-neighbor bleed (unlike {@link #doodadCoverByFacing}). Indexed
+     * as {@code grid.index(x, y) * (MAX_COVER + 1) + level}. Lazily allocated
+     * on the first {@link #addDoodad} call with {@code cover > 0}; each level's
+     * height is max-merged independently. Exists for
      * ballistic ray crossings ({@link com.dillon.starsectormarines.battle.combat.BallisticResolver}),
      * which must roll a block chance only against a cell a round's ray
-     * actually passes through a doodad's own footprint — the facing array's
-     * neighbor bleed is a firing-position-scoring concept, not a physical
-     * interception one (see {@code roadmap/ballistics/overview.md} §4).
+     * actually passes through a doodad's own footprint and vertical silhouette
+     * — the facing array's neighbor bleed is a firing-position-scoring concept,
+     * not a physical interception one (see {@code roadmap/ballistics/overview.md}
+     * §4).
      */
-    private byte[] doodadLevelOnCell;
+    private float[] doodadHalfHeightByLevelOnCell;
 
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
@@ -77,8 +79,9 @@ public final class DoodadService {
         if (doodadCoverByFacing == null) {
             doodadCoverByFacing = new byte[grid.getWidth() * grid.getHeight() * NavigationGrid.FACING_COUNT];
         }
-        if (doodadLevelOnCell == null) {
-            doodadLevelOnCell = new byte[grid.getWidth() * grid.getHeight()];
+        if (doodadHalfHeightByLevelOnCell == null) {
+            doodadHalfHeightByLevelOnCell = new float[
+                    grid.getWidth() * grid.getHeight() * (NavigationGrid.MAX_COVER + 1)];
         }
         // Isotropic on own cell — a marine standing on the crate cell counts
         // as covered from any angle. Max-merge with existing so stacked
@@ -94,10 +97,13 @@ public final class DoodadService {
         maxMergeDoodadFacing(d.cellX, d.cellY + 1, NavigationGrid.FACING_N, d.cover);
         maxMergeDoodadFacing(d.cellX - 1, d.cellY, NavigationGrid.FACING_E, d.cover);
         maxMergeDoodadFacing(d.cellX + 1, d.cellY, NavigationGrid.FACING_W, d.cover);
-        // Own-cell-only level, no neighbor bleed — see doodadLevelOnCell's doc.
+        // Own-cell-only ballistic silhouette, no neighbor bleed. Keep one
+        // maximum height per cover level so stacked props cannot accidentally
+        // combine a short heavy level with a tall light silhouette.
         int idx = grid.index(d.cellX, d.cellY);
-        int existing = doodadLevelOnCell[idx] & 0xFF;
-        if (d.cover > existing) doodadLevelOnCell[idx] = (byte) d.cover;
+        int slot = idx * (NavigationGrid.MAX_COVER + 1) + d.cover;
+        doodadHalfHeightByLevelOnCell[slot] = Math.max(
+                doodadHalfHeightByLevelOnCell[slot], d.ballisticHalfHeight);
     }
 
     /** Writes {@code level} to a cell+facing slot if higher than the current value. Out-of-bounds calls are no-ops so callers don't need to bounds-check the four neighbor writes around an edge doodad. */
@@ -130,9 +136,33 @@ public final class DoodadService {
      * that's merely adjacent to one. 0 if no doodad occupies this cell.
      */
     public int getDoodadLevelOnCell(int x, int y) {
-        if (doodadLevelOnCell == null) return 0;
+        return getDoodadLevelOnCell(x, y, 0f);
+    }
+
+    /**
+     * Strongest doodad cover level on this exact cell whose authored vertical
+     * silhouette contains {@code roundZ}. Returns zero when the trajectory
+     * clears every stacked prop; no neighbor-facing cover participates.
+     */
+    public int getDoodadLevelOnCell(int x, int y, float roundZ) {
+        if (doodadHalfHeightByLevelOnCell == null) return 0;
         if (!grid.inBounds(x, y)) return 0;
-        return doodadLevelOnCell[grid.index(x, y)] & 0xFF;
+        int base = grid.index(x, y) * (NavigationGrid.MAX_COVER + 1);
+        float absZ = Math.abs(roundZ);
+        for (int level = NavigationGrid.MAX_COVER; level > 0; level--) {
+            float halfHeight = doodadHalfHeightByLevelOnCell[base + level];
+            if (halfHeight > 0f && absZ <= halfHeight) return level;
+        }
+        return 0;
+    }
+
+    /** Package-visible diagnostic for deterministic stacked-profile tests. */
+    float getDoodadHalfHeightOnCell(int x, int y, int level) {
+        if (doodadHalfHeightByLevelOnCell == null) return 0f;
+        if (!grid.inBounds(x, y)) return 0f;
+        if (level <= 0 || level > NavigationGrid.MAX_COVER) return 0f;
+        int base = grid.index(x, y) * (NavigationGrid.MAX_COVER + 1);
+        return doodadHalfHeightByLevelOnCell[base + level];
     }
 
     /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */

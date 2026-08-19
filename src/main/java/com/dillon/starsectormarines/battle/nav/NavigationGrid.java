@@ -84,6 +84,8 @@ public class NavigationGrid {
      * south even though their east flank is "cozy."
      */
     public static final int MAX_COVER = 3;
+    /** Default symmetric Z catch band for directional wall-edge cover. */
+    public static final float DEFAULT_COVER_CATCH_HALF_HEIGHT = 0.35f;
 
     /** Facing N: threat is north (lower y) — cover comes from a wall at (x, y-1). */
     public static final int FACING_N = 0;
@@ -108,6 +110,8 @@ public class NavigationGrid {
      * a wall to rubble.
      */
     private final byte[] coverByFacing;
+    /** Per-facing symmetric vertical catch half-height paired with {@link #coverByFacing}. */
+    private final float[] coverCatchHalfHeightByFacing;
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
     private final int[] wallHp;
 
@@ -118,6 +122,7 @@ public class NavigationGrid {
         this.cellFlags = new long[size];
         this.edgePassability = new byte[size];
         this.coverByFacing = new byte[size * FACING_COUNT];
+        this.coverCatchHalfHeightByFacing = new float[size * FACING_COUNT];
         this.wallHp = new int[size];
     }
 
@@ -269,6 +274,18 @@ public class NavigationGrid {
         return getCoverAtFacing(x, y, facingFor(fromDx, fromDy));
     }
 
+    /** Per-facing symmetric target-plane catch half-height, or zero for no cover. */
+    public float getCoverCatchHalfHeightAtFacing(int x, int y, int facing) {
+        if (!inBounds(x, y)) return 0f;
+        if (facing < 0 || facing >= FACING_COUNT) return 0f;
+        return coverCatchHalfHeightByFacing[index(x, y) * FACING_COUNT + facing];
+    }
+
+    /** Directional catch half-height using the same facing snap as {@link #getCoverAt}. */
+    public float getCoverCatchHalfHeight(int x, int y, int fromDx, int fromDy) {
+        return getCoverCatchHalfHeightAtFacing(x, y, facingFor(fromDx, fromDy));
+    }
+
     /**
      * Scalar cover at (x, y) — the <em>sum</em> across all four facings.
      * Back-compat accessor for callers that don't carry a threat direction
@@ -289,10 +306,21 @@ public class NavigationGrid {
 
     /** Sets the cover at (x, y) for one facing. Clamped to [0, {@link #MAX_COVER}]. */
     public void setCoverAtFacing(int x, int y, int facing, int level) {
+        setCoverAtFacing(x, y, facing, level,
+                level > 0 ? DEFAULT_COVER_CATCH_HALF_HEIGHT : 0f);
+    }
+
+    /** Sets cover level and its symmetric target-plane catch half-height together. */
+    public void setCoverAtFacing(int x, int y, int facing, int level,
+                                 float catchHalfHeight) {
         if (!inBounds(x, y)) return;
         if (facing < 0 || facing >= FACING_COUNT) return;
         int clamped = Math.max(0, Math.min(MAX_COVER, level));
-        coverByFacing[index(x, y) * FACING_COUNT + facing] = (byte) clamped;
+        int slot = index(x, y) * FACING_COUNT + facing;
+        coverByFacing[slot] = (byte) clamped;
+        coverCatchHalfHeightByFacing[slot] = clamped > 0 && Float.isFinite(catchHalfHeight)
+                ? Math.max(0f, catchHalfHeight)
+                : 0f;
     }
 
     /**
@@ -380,6 +408,7 @@ public class NavigationGrid {
         Arrays.fill(cellFlags, 0L);
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverByFacing, (byte) 0);
+        Arrays.fill(coverCatchHalfHeightByFacing, 0f);
         Arrays.fill(wallHp, 0);
     }
 
