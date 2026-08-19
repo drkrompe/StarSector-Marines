@@ -27,6 +27,7 @@ import static org.lwjgl.opengl.GL20.glShaderSource;
 import static org.lwjgl.opengl.GL20.glUniform1f;
 import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniform2f;
+import static org.lwjgl.opengl.GL20.glUniform4f;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
@@ -105,6 +106,9 @@ public final class ShaderProgram {
     public void set1i(String name, int v) { glUniform1i(loc(name), v); }
     public void set1f(String name, float v) { glUniform1f(loc(name), v); }
     public void set2f(String name, float x, float y) { glUniform2f(loc(name), x, y); }
+    public void set4f(String name, float x, float y, float z, float w) {
+        glUniform4f(loc(name), x, y, z, w);
+    }
 
     private int loc(String name) {
         return uniformLocs.computeIfAbsent(name, n -> glGetUniformLocation(program, n));
