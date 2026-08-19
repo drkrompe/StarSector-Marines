@@ -140,13 +140,13 @@ seams the rest of the thread builds on:
 Both are stateless ops, fully unit-tested. The intent: Slices C–D are mostly
 "call these on a tick," not new mutation logic.
 
-## Next up — G8 defector asylum closure
+## Completed — G8 defector asylum
 
 The first black-swan event now runs from deterministic trigger through choice,
 mission emission, swarm battle, explicit report, campaign writeback, debrief,
 hidden moral consequence, and durable terminal dispatch. The second archetype
-is now contract-locked in
-[`stories/g8-defector-asylum.md`](stories/g8-defector-asylum.md): a discovered
+is now complete in
+[`complete/slice-g8-defector-asylum.md`](complete/slice-g8-defector-asylum.md): a discovered
 political chain produces a costly asylum request, followed ten days later by an
 explicit keep-the-promise/betrayal choice. Slice 1 is now shipped in `94a3f2f1`:
 the two-stage transition authority, atomic resource/payment seams, legacy
@@ -158,9 +158,17 @@ reconstructs the initial request, protected-custody interval, and follow-up
 offer from persisted state; exact frozen terms and identities drive the copy;
 all four buttons route through the existing exactly-once lifecycle authority;
 and terminal presentation fails closed when a resolved row lacks its typed
-outcome. Start Slice 4 with source-frozen chain/reputation consequences, moral
-source rows, terminal dispatch, and debug reachability. Keep swarm roster/stat
-tuning deferred until manual playtesting resumes.
+outcome. Slice 4 is now shipped in `d2c4c01b`: refusal, protection, and betrayal
+apply their frozen plot/reputation and hidden moral consequences exactly once;
+event timeouts settle before the source chain's daily advancement; ended or
+malformed sources fail closed without rewriting history; terminal Encrypted
+Channel copy remains durable; and debug intel can force both stages through the
+production lifecycle. Focused replay/load coverage and the full root automated
+suite pass. Manual UI validation and swarm tuning remain deferred as requested.
+
+There is no active living-world story after G8. Contract the next archetype or
+capstone before adding another event, reactive moral surface, or generic event
+framework; those remain intentional non-goals rather than implied follow-up.
 
 ## Open forks still unresolved (design)
 
@@ -276,3 +284,4 @@ tuning deferred until manual playtesting resumes.
 - G8 Slice 1 — append-only persistence and two-stage lifecycle (`94a3f2f1`).
 - G8 Slice 2 — deterministic discovered-chain producer (`7591dd86`).
 - G8 Slice 3 — reconstructible Encrypted Channel choices (`0235ff29`).
+- G8 Slice 4 — world reaction and terminal closure (`d2c4c01b`).
