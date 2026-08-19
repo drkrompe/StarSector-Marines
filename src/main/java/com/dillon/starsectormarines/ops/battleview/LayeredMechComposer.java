@@ -35,52 +35,120 @@ final class LayeredMechComposer {
                 0.17f, -0.28f - 0.055f * rightStep, 0f, alpha);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
-        if (arms == LayeredMechAppearance.ARMS_CHAINGUN) {
-            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, torsoFacingDeg,
-                    -0.37f, -0.15f + cgKick, 0f, alpha);
-            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, torsoFacingDeg,
-                    0.37f, -0.15f + cgKick, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_LINEAR_CANNON) {
-            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, torsoFacingDeg,
-                    -0.37f, -0.15f, 0f, alpha);
-            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, torsoFacingDeg,
-                    0.37f, -0.15f, 0f, alpha);
-        }
+        emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
+                torsoFacingDeg, cgKick, alpha);
 
-        // Shoulder racks are external equipment beneath the body layer. Their
-        // inboard casing is buried by the chassis while their outboard edge
-        // changes the silhouette instead of being pasted across the torso.
         float srmKick = ((flags & LayeredMechAppearance.FLAG_SRM_ACTIVE) != 0)
                 ? 0.018f * LayeredMechAppearance.recoil(srmPhase) : 0f;
         float lrmKick = ((flags & LayeredMechAppearance.FLAG_LRM_ACTIVE) != 0)
                 ? 0.024f * LayeredMechAppearance.recoil(lrmPhase) : 0f;
-        emitPod(out, assets, leftShoulder, actorX, actorY, hullWidth, torsoFacingDeg,
-                -0.40f, srmKick, lrmKick, alpha);
-        emitPod(out, assets, rightShoulder, actorX, actorY, hullWidth, torsoFacingDeg,
-                0.40f, srmKick, lrmKick, alpha);
+        boolean podsAboveChassis = chassis == LayeredMechAppearance.CHASSIS_CLEAN
+                || chassis == LayeredMechAppearance.CHASSIS_HOUND;
+        if (!podsAboveChassis) {
+            emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
+                    actorX, actorY, hullWidth, torsoFacingDeg, srmKick, lrmKick, alpha);
+        }
 
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
         emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
                 0f, 0f, 0f, alpha);
 
+        // Bulwark's racks are exposed above its armor; Hound carries one dorsal
+        // SRM rack. Sirocco's paired LRMs stay beneath its broader hull.
+        if (podsAboveChassis) {
+            emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
+                    actorX, actorY, hullWidth, torsoFacingDeg, srmKick, lrmKick, alpha);
+        }
+
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, torsoFacingDeg,
-                    -0.37f, 0.39f - cgKick, 0f, alpha);
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, torsoFacingDeg,
-                    0.37f, 0.39f - cgKick, 0f, alpha);
+            emitArmsFlash(out, assets, arms, actorX, actorY, hullWidth,
+                    torsoFacingDeg, cgKick, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
-            emitPodFlash(out, assets, leftShoulder, true,
-                    actorX, actorY, hullWidth, torsoFacingDeg, -0.40f, alpha);
-            emitPodFlash(out, assets, rightShoulder, true,
-                    actorX, actorY, hullWidth, torsoFacingDeg, 0.40f, alpha);
+            emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, true,
+                    actorX, actorY, hullWidth, torsoFacingDeg, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
-            emitPodFlash(out, assets, leftShoulder, false,
-                    actorX, actorY, hullWidth, torsoFacingDeg, -0.40f, alpha);
-            emitPodFlash(out, assets, rightShoulder, false,
-                    actorX, actorY, hullWidth, torsoFacingDeg, 0.40f, alpha);
+            emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, false,
+                    actorX, actorY, hullWidth, torsoFacingDeg, alpha);
         }
+    }
+
+    private static void emitArms(DrawList out, LayeredMechAssets assets,
+                                 int chassis, int arms,
+                                 float actorX, float actorY, float hullWidth,
+                                 float facingDeg, float kick, float alpha) {
+        if (arms == LayeredMechAppearance.ARMS_CHAINGUN) {
+            float widthScale = chassis == LayeredMechAppearance.CHASSIS_CLEAN ? 0.5f : 1f;
+            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
+                    -0.37f, -0.15f + kick, widthScale, 0f, alpha);
+            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
+                    0.37f, -0.15f + kick, widthScale, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN) {
+            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
+                    0f, -0.02f + kick, 1f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_LINEAR_CANNON) {
+            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, facingDeg,
+                    -0.37f, -0.15f, 1f, 0f, alpha);
+            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, facingDeg,
+                    0.37f, -0.15f, 1f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
+            emitFromRearPivot(out, assets.heavyCannon, actorX, actorY, hullWidth, facingDeg,
+                    0f, -0.05f, 1f, 0f, alpha);
+        }
+    }
+
+    private static void emitShoulderPods(DrawList out, LayeredMechAssets assets,
+                                         int chassis, int leftShoulder, int rightShoulder,
+                                         float actorX, float actorY, float hullWidth,
+                                         float facingDeg, float srmKick, float lrmKick,
+                                         float alpha) {
+        emitPod(out, assets, leftShoulder, actorX, actorY, hullWidth, facingDeg,
+                podLocalX(chassis, leftShoulder, rightShoulder, true),
+                srmKick, lrmKick, alpha);
+        emitPod(out, assets, rightShoulder, actorX, actorY, hullWidth, facingDeg,
+                podLocalX(chassis, leftShoulder, rightShoulder, false),
+                srmKick, lrmKick, alpha);
+    }
+
+    private static void emitArmsFlash(DrawList out, LayeredMechAssets assets, int arms,
+                                      float actorX, float actorY, float hullWidth,
+                                      float facingDeg, float kick, float alpha) {
+        if (arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN) {
+            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                    0f, 0.52f - kick, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
+            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                    0f, 0.57f, 0f, alpha);
+        } else {
+            float localY = arms == LayeredMechAppearance.ARMS_LINEAR_CANNON ? 0.51f : 0.39f;
+            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                    -0.37f, localY - kick, 0f, alpha);
+            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                    0.37f, localY - kick, 0f, alpha);
+        }
+    }
+
+    private static void emitShoulderFlashes(DrawList out, LayeredMechAssets assets,
+                                            int chassis, int leftShoulder, int rightShoulder,
+                                            boolean srm,
+                                            float actorX, float actorY, float hullWidth,
+                                            float facingDeg, float alpha) {
+        emitPodFlash(out, assets, leftShoulder, srm, actorX, actorY, hullWidth, facingDeg,
+                podLocalX(chassis, leftShoulder, rightShoulder, true), alpha);
+        emitPodFlash(out, assets, rightShoulder, srm, actorX, actorY, hullWidth, facingDeg,
+                podLocalX(chassis, leftShoulder, rightShoulder, false), alpha);
+    }
+
+    private static float podLocalX(int chassis, int leftShoulder, int rightShoulder,
+                                   boolean leftSlot) {
+        if (chassis == LayeredMechAppearance.CHASSIS_HOUND) {
+            boolean leftInstalled = leftShoulder != LayeredMechAppearance.POD_NONE;
+            boolean rightInstalled = rightShoulder != LayeredMechAppearance.POD_NONE;
+            if (leftInstalled != rightInstalled) return 0f;
+            return leftSlot ? -0.24f : 0.24f;
+        }
+        return leftSlot ? -0.40f : 0.40f;
     }
 
     private static LayeredSpriteCache selectChassis(LayeredMechAssets assets, int chassis) {
@@ -107,10 +175,10 @@ final class LayeredMechComposer {
                                 float srmKick, float lrmKick, float alpha) {
         if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
+                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 1f, 0f, alpha);
         } else if (isLargePod(pod)) {
             emitFromRearPivot(out, assets.lrmPod, actorX, actorY, hullWidth, facingDeg,
-                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 0f, alpha);
+                    localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 1f, 0f, alpha);
         }
     }
 
@@ -150,14 +218,14 @@ final class LayeredMechComposer {
     private static void emitFromRearPivot(DrawList out, LayeredSpriteCache sprite,
                                           float actorX, float actorY, float hullWidth,
                                           float facingDeg, float localX, float localY,
-                                          float relativeAngle, float alpha) {
+                                          float widthScale, float relativeAngle, float alpha) {
         float scale = hullWidth / 208f;
         float centerForward = sprite.pxHeight * scale * 0.5f;
         float[] pivot = rotate(localX * hullWidth, localY * hullWidth, facingDeg);
         float[] fromPivot = rotate(0f, centerForward, facingDeg + relativeAngle);
         out.addSprite(RenderLayer.UNITS, sprite.sprite,
                 actorX + pivot[0] + fromPivot[0], actorY + pivot[1] + fromPivot[1],
-                sprite.pxWidth * scale, sprite.pxHeight * scale,
+                sprite.pxWidth * scale * widthScale, sprite.pxHeight * scale,
                 facingDeg + relativeAngle, 1f, 1f, 1f, alpha);
     }
 

@@ -59,17 +59,24 @@ class MechVariantTest {
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
         assertFalse(hound.hasWeapon(MechWeapon.LRM_ARTILLERY));
+        assertSame(MechWeaponComponent.NOSE_CHAINGUN,
+                hound.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_5,
                 hound.mount(MechMountSlot.LEFT_SHOULDER).component);
-        assertSame(MechWeaponComponent.SRM_5,
-                hound.mount(MechMountSlot.RIGHT_SHOULDER).component);
+        assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
+        assertEquals(6, hound.mount(MechMountSlot.ARMS).component.projectilesPerTrigger);
 
         MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
         assertFalse(sirocco.hasWeapon(MechWeapon.SRM_POD));
-        assertSame(MechWeaponComponent.DUAL_LINEAR_CANNONS,
+        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 sirocco.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
+        assertSame(MechWeaponComponent.LRM_5,
+                sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
+        assertEquals(5f, MechWeapon.HEAVY_CANNON.damage, 0.001f);
+        assertEquals(3f, MechWeapon.HEAVY_CANNON.vsTurretMult, 0.001f);
+        assertEquals(26f, MechWeapon.HEAVY_CANNON.range, 0.001f);
 
         MechLoadoutComponent custom = new MechLoadoutComponent(MechVariant.HOUND,
                 MechWeaponComponent.DUAL_LINEAR_CANNONS,
@@ -127,7 +134,7 @@ class MechVariantTest {
 
         assertTrue(hound.mount(MechMountSlot.ARMS).cooldown > 0f);
         assertTrue(hound.mount(MechMountSlot.LEFT_SHOULDER).cooldown > 0f);
-        assertTrue(hound.mount(MechMountSlot.RIGHT_SHOULDER).cooldown > 0f);
+        assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
         assertFalse(hound.hasWeapon(MechWeapon.LRM_ARTILLERY));
 
         MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
