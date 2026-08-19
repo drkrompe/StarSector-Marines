@@ -70,6 +70,8 @@ Defined at `BspCityGenerator.java:105-107`:
 | `MilitaryBaseFiller` | MILITARY_BASE | perimeter wall, STONE parade ground, role-driven sub-buildings (COMMAND/BARRACKS/ARMORY/VEHICLE_BAY), gates, corner emplacements, tactical nodes |
 | `GatedHousingFiller` | GATED_HOUSING | INDOOR wall ring, GRASS yard, residential sub-buildings |
 | `DenseQuarterFiller` | DENSE_QUARTER | no wall, TILE alleys, large commercial sub-buildings |
+| `IndustrialCompoundFiller` | INDUSTRIAL_COMPOUND | tactical factory, fenced service yard, utility warehouse, shared striped apron |
+| `MedicalCampusFiller` | MEDICAL_CAMPUS | roomed clinic, medical support wing, open ambulance court, shared striped apron |
 
 ## Conventions across all fills
 
