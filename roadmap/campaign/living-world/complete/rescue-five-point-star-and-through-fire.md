@@ -4,6 +4,10 @@
 
 **Implemented:** `5f2c083d`
 
+**Superseded tuning:** The ten-cell inset and seven-cell star were widened in
+`c6589910`; see
+[`marine-swarm-avoidance-and-wide-perimeter.md`](marine-swarm-avoidance-and-wide-perimeter.md).
+
 ## Outcome
 
 - Civilian-rescue pickup placement now requires an inward landing zone at a
