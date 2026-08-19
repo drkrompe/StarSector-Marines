@@ -51,15 +51,15 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Next: contract S4 — direct-fire unification
+## Active: S4 — direct-fire unification
 
-S4 is outlined in `overview.md` but does not yet have a story contract. Write
-that contract before implementation. Scope: mech chaingun and turret direct-
-fire spray kinds adopt `BallisticResolver`; retire their `ShotRaycast` paths
-and the remaining abstract cover-accuracy application; preserve projectile
-sprites/weapon FX while damage and incidental contacts use the modeled round
-pipeline. Confirm which turret kinds are truly direct fire before sweeping —
-mortar/LOCUST arcs are projectile/AoE paths, not resolver candidates.
+Contract: [`stories/s4-direct-fire-unification.md`](stories/s4-direct-fire-unification.md).
+Migrate mech chaingun/SRM, handheld rockets, and ground Vulcan/Heavy-MG bursts
+onto `BallisticResolver`. Single-shot static turrets are already modeled through
+`sim.fireShot`; LRM/grenade/LOCUST arcs and aerial mounts stay on their existing
+paths. Retire abstract cover and direct-fire wall-snap callers. Fighter
+high/low/wide fire is an explicit follow-up coordinated with the air-entity
+rewrite.
 
 Manual playtest remains useful before tuning S4: friendly-fire feel
 (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, `FRIENDLY_MUZZLE_CLEARANCE = 2.0`),
