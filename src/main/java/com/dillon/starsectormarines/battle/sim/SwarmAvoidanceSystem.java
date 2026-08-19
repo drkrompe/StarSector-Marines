@@ -14,7 +14,8 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * The steer is applied after authored path movement, so it bends or slows an
  * advance without replacing the squad's objective or path. Several aliens in
  * the same direction add together up to a bounded retreat speed, making a
- * swarm more intimidating than one isolated runner.
+ * swarm more intimidating than one isolated runner. The combined authored and
+ * avoidance velocity is capped at the unit's movement-speed stat.
  */
 public final class SwarmAvoidanceSystem {
 
@@ -96,6 +97,23 @@ public final class SwarmAvoidanceSystem {
             steerX *= scale;
             steerY *= scale;
         }
+
+        float currentVx = entityWorld.getFloat(marine, components.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X);
+        float currentVy = entityWorld.getFloat(marine, components.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_Y);
+        float combinedVx = currentVx + steerX;
+        float combinedVy = currentVy + steerY;
+        float combinedSpeed = (float) Math.sqrt(
+                combinedVx * combinedVx + combinedVy * combinedVy);
+        float speedLimit = roster.movement().moveSpeed(marine);
+        if (combinedSpeed > speedLimit) {
+            float scale = speedLimit / combinedSpeed;
+            combinedVx *= scale;
+            combinedVy *= scale;
+        }
+        steerX = combinedVx - currentVx;
+        steerY = combinedVy - currentVy;
         move(marine, steerX * dt, steerY * dt, dt);
     }
 

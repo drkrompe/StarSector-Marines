@@ -315,6 +315,15 @@ public final class BallisticResolver {
             if (candidateId == source.entityId()) continue;
             if (!roster.isAliveById(candidateId)) continue;
 
+            Faction candidateFaction = roster.identity().faction(candidateId);
+            // Civilians are neutral rather than faction-allied, but marine
+            // rescue fire must treat them as protected non-targets. Defender
+            // fire retains ordinary target and incidental-contact behavior.
+            if (shooterFaction == Faction.MARINE
+                    && candidateFaction == Faction.CIVILIAN) {
+                continue;
+            }
+
             // The same physical body circle SeparationSystem shoves apart and
             // Detonations/WorldPicker size against — one radius concept per body.
             UnitType candidateType = roster.identity().type(candidateId);
@@ -382,7 +391,6 @@ public final class BallisticResolver {
             float contactZ = fromZ + zSlope * rayDistAtEntry;
             if (Math.abs(contactZ) > roster.hitHalfHeight(candidateId)) continue;
 
-            Faction candidateFaction = roster.identity().faction(candidateId);
             boolean friendly = candidateFaction == shooterFaction;
             if (friendly && rayDistAtEntry < PROXIMITY_CATCH_ZERO_DISTANCE) continue;
 

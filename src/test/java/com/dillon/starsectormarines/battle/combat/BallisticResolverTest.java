@@ -273,6 +273,49 @@ class BallisticResolverTest {
     }
 
     @Test
+    void marineRoundsIgnoreCivilianBodiesAndReachTheLockedEnemy() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long civilian = sim.spawn(new EntitySpec(
+                "colonist", Faction.CIVILIAN, UnitType.CIVILIAN, 6, ROW));
+        long target = spawn(sim, Faction.DEFENDER, 12);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(target, result.victimId(),
+                "a civilian body must not become a marine round's incidental victim");
+        assertTrue(result.hitIntended());
+        assertTrue(sim.getRoster().isAliveById(civilian));
+    }
+
+    @Test
+    void defenderRoundsCanStillTargetCivilians() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.DEFENDER, 2);
+        long civilian = sim.spawn(new EntitySpec(
+                "colonist", Faction.CIVILIAN, UnitType.CIVILIAN, 8, ROW));
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, civilian, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(civilian, result.victimId(),
+                "civilian protection is directional and must not suppress alien attacks");
+        assertTrue(result.hitIntended());
+        assertFalse(result.friendlyHit());
+    }
+
+    @Test
     void transitionDistanceAttenuatesFriendlyButNotEnemyIncidentalContacts() {
         BattleSimulation friendlySim = openArena();
         DoodadService friendlyDoodads = new DoodadService(friendlySim.getGrid());

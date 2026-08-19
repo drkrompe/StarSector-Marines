@@ -10,8 +10,9 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * Marine commander for civilian rescue: rally every live squad on the bunker
- * entrance, then continuously retarget the assignment to the moving cohort.
+ * Marine commander for civilian rescue: rally the mobile force on the bunker
+ * entrance, then continuously retarget it to the moving cohort. Pickup guards
+ * retain their authored perimeter posts.
  */
 public final class RescueEscortCommand implements MissionCommand {
 
@@ -50,7 +51,9 @@ public final class RescueEscortCommand implements MissionCommand {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
             if (squad.rescuePickupGuard) {
-                assignEscort(squad, placement.liftX, placement.liftY);
+                if (squad.assignedObjective == null) {
+                    assignEscort(squad, placement.liftX, placement.liftY);
+                }
                 continue;
             }
             if (target == null) {
