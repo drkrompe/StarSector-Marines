@@ -261,7 +261,10 @@ unused interior cells. Shelter protection is symmetric: the holdouts neither
 plan nor fire and swarm runners cannot target them until responding marines
 reach the entrance. They then retain the compound as a rear guard; if an
 observed response force is wiped first, protection releases to preserve a
-resolvable last stand (`822f5a2a`). The current pressure pass raises canonical
+resolvable last stand (`822f5a2a`). Before the first ground force deboards,
+targetless runners now take deterministic local roaming routes without entering
+either opening protection footprint. The first eligible marine target replaces
+that route immediately (`100110c2`). The current pressure pass raises canonical
 LOW/MEDIUM/HIGH openings from 12/24/40
 to 20/40/64 and runner health from 1.5 to 2.5 HP. DEBUG now offers a
 production-shaped HIGH/four-drop rescue alongside the retained force-scaled

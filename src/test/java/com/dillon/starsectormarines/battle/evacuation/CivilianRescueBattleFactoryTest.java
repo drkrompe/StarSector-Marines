@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -22,6 +23,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CivilianRescueBattleFactoryTest {
+
+    @Test
+    void openingSwarmRovesBeforeTheFirstShuttleTouchesDown() {
+        BattleSimulation sim = BattleSetup.createCivilianRescue(
+                5_004L, Collections.emptyList(), false, RiskLevel.LOW);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        int roaming = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().type(unit) != UnitType.SWARM_RUNNER) continue;
+            if (!Paths.isEmpty(sim.movement().path(unit))) roaming++;
+        }
+        assertTrue(sim.isCivilianShelterProtected());
+        assertTrue(roaming > 0,
+                "aliens should roam during the shuttle fly-in, before deboarding");
+    }
 
     @Test
     void dedicatedFactoryInstallsRealEvacuationPayload() {

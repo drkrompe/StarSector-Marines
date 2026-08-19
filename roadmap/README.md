@@ -215,7 +215,10 @@ universe over time, not retrofitted into intel slots.
    It remains inert and excluded from swarm targeting while the colonists are
    sealed, then holds the compound as a local rear guard after marine relief;
    a wiped responding force also releases the last stand so the battle cannot
-   deadlock (`822f5a2a`). Manual cadence and post-rebalance feel validation
+   deadlock (`822f5a2a`). Targetless runners now choose deterministic local
+   routes during the shuttle fly-in, while rejecting paths through the protected
+   shelter and pickup footprints; contact immediately restores opportunistic
+   pursuit (`100110c2`). Manual cadence and post-rebalance feel validation
    remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).

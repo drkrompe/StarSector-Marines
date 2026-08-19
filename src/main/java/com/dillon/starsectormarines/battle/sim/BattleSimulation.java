@@ -557,6 +557,10 @@ public class BattleSimulation implements BattleControl {
     public boolean isCivilianShelterProtected() {
         return civilianEvacuationSystem.isShelterProtected();
     }
+    /** Whether a cell belongs to the rescue shelter or opening pickup exclusion footprint. */
+    public boolean isInsideRescueOpeningProtectedZone(int x, int y) {
+        return civilianEvacuationSystem.isInsideOpeningProtectedZone(x, y);
+    }
     /** Whether a marine has reached the bunker entrance and begun evacuation. */
     public boolean isCivilianEvacuationTriggered() {
         return civilianEvacuationSystem.isEvacuationTriggered();

@@ -32,6 +32,7 @@ public final class CivilianEvacuationSystem {
     private int shelterApproachX = -1;
     private int shelterApproachY = -1;
     private int radius;
+    private CivilianEvacuationPlacement placement;
     private boolean configured;
     private boolean evacuationTriggered;
     private boolean respondingMarineObserved;
@@ -55,6 +56,7 @@ public final class CivilianEvacuationSystem {
         shelterApproachX = placement.shelterApproachX;
         shelterApproachY = placement.shelterApproachY;
         radius = CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+        this.placement = placement;
         configured = true;
         return true;
     }
@@ -159,6 +161,13 @@ public final class CivilianEvacuationSystem {
 
     public boolean hasPickupShuttle() {
         return pickupShuttleId != 0L;
+    }
+
+    /** Opening footprint targetless runners must not wander into. */
+    public boolean isInsideOpeningProtectedZone(int x, int y) {
+        return configured && (SwarmDefenseRoster.insideShelterZone(
+                x, y, placement)
+                || SwarmDefenseRoster.insideLiftZone(x, y, placement));
     }
 
     private long nearestMarine(long civilian, BattleSimulation sim) {
