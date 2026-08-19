@@ -124,6 +124,20 @@ public final class CampaignState implements Serializable {
     public int[]   repLastContractTick = new int[INITIAL_CAPACITY];
     public int     repCount           = 0;
 
+    // ---------- patronEngagements[] (immutable player/patron history) ----------
+
+    public long[] patronEngagementId = new long[INITIAL_CAPACITY];
+    public long[] patronEngagementSourceContractId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] patronEngagementHouseId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public byte[] patronEngagementContractType = new byte[INITIAL_CAPACITY];
+    public int[] patronEngagementMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public byte[] patronEngagementOutcome = new byte[INITIAL_CAPACITY];
+    public int[] patronEngagementHappenedTick =
+            filledInts(INITIAL_CAPACITY, -1);
+    public int patronEngagementCount = 0;
+
     // ---------- moralChoices[] (hidden player-character record) ----------
 
     /** Ruthless (-100) to merciful (+100). Never rendered numerically. */
@@ -360,6 +374,7 @@ public final class CampaignState implements Serializable {
     private long nextKingmakerTestamentId = 1;
     private long nextMoralChoiceId = 1;
     private long nextEventId = 1;
+    private long nextPatronEngagementId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
@@ -820,6 +835,24 @@ public final class CampaignState implements Serializable {
         return repIndexByHouseId.get(houseIdValue);
     }
 
+    /** Appends one already-validated immutable patron-engagement snapshot. */
+    long appendPatronEngagement(long sourceContractId, long houseId,
+                                ContractType contractType, int marketId,
+                                PatronEngagementOutcome outcome,
+                                int happenedTick) {
+        ensurePatronEngagementCapacity(patronEngagementCount + 1);
+        int i = patronEngagementCount++;
+        long id = nextPatronEngagementId++;
+        patronEngagementId[i] = id;
+        patronEngagementSourceContractId[i] = sourceContractId;
+        patronEngagementHouseId[i] = houseId;
+        patronEngagementContractType[i] = contractType.toByte();
+        patronEngagementMarketId[i] = marketId;
+        patronEngagementOutcome[i] = outcome.toByte();
+        patronEngagementHappenedTick[i] = happenedTick;
+        return id;
+    }
+
     /** Appends one already-validated immutable moral-choice snapshot. */
     long appendMoralChoice(MoralChoiceSource sourceType, long sourceId,
                            short mercyDelta, short integrityDelta,
@@ -1176,6 +1209,29 @@ public final class CampaignState implements Serializable {
         repLastContractTick   = Arrays.copyOf(repLastContractTick, n);
     }
 
+    private void ensurePatronEngagementCapacity(int needed) {
+        if (needed <= patronEngagementId.length) return;
+        int oldLength = patronEngagementId.length;
+        int n = Math.max(needed, patronEngagementId.length * 2);
+        patronEngagementId = Arrays.copyOf(patronEngagementId, n);
+        patronEngagementSourceContractId = Arrays.copyOf(
+                patronEngagementSourceContractId, n);
+        Arrays.fill(patronEngagementSourceContractId, oldLength, n, -1L);
+        patronEngagementHouseId = Arrays.copyOf(
+                patronEngagementHouseId, n);
+        Arrays.fill(patronEngagementHouseId, oldLength, n, -1L);
+        patronEngagementContractType = Arrays.copyOf(
+                patronEngagementContractType, n);
+        patronEngagementMarketId = Arrays.copyOf(
+                patronEngagementMarketId, n);
+        Arrays.fill(patronEngagementMarketId, oldLength, n, -1);
+        patronEngagementOutcome = Arrays.copyOf(
+                patronEngagementOutcome, n);
+        patronEngagementHappenedTick = Arrays.copyOf(
+                patronEngagementHappenedTick, n);
+        Arrays.fill(patronEngagementHappenedTick, oldLength, n, -1);
+    }
+
     private void ensureMoralChoiceCapacity(int needed) {
         if (needed <= moralChoiceId.length) return;
         int oldLength = moralChoiceId.length;
@@ -1489,6 +1545,40 @@ public final class CampaignState implements Serializable {
                 nextKingmakerTestamentId = Math.max(
                         nextKingmakerTestamentId,
                         kingmakerTestamentId[i] + 1L);
+            }
+        }
+        int patronEngagementCapacity = patronEngagementId != null
+                ? patronEngagementId.length : INITIAL_CAPACITY;
+        if (patronEngagementId == null) {
+            patronEngagementId = new long[patronEngagementCapacity];
+        }
+        if (patronEngagementSourceContractId == null) {
+            patronEngagementSourceContractId =
+                    filledLongs(patronEngagementCapacity, -1L);
+        }
+        if (patronEngagementHouseId == null) {
+            patronEngagementHouseId =
+                    filledLongs(patronEngagementCapacity, -1L);
+        }
+        if (patronEngagementContractType == null) {
+            patronEngagementContractType = new byte[patronEngagementCapacity];
+        }
+        if (patronEngagementMarketId == null) {
+            patronEngagementMarketId =
+                    filledInts(patronEngagementCapacity, -1);
+        }
+        if (patronEngagementOutcome == null) {
+            patronEngagementOutcome = new byte[patronEngagementCapacity];
+        }
+        if (patronEngagementHappenedTick == null) {
+            patronEngagementHappenedTick =
+                    filledInts(patronEngagementCapacity, -1);
+        }
+        if (nextPatronEngagementId <= 0L) {
+            nextPatronEngagementId = 1L;
+            for (int i = 0; i < patronEngagementCount; i++) {
+                nextPatronEngagementId = Math.max(nextPatronEngagementId,
+                        patronEngagementId[i] + 1L);
             }
         }
         int moralChoiceCapacity = moralChoiceId != null

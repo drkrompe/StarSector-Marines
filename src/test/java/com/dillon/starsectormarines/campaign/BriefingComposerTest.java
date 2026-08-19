@@ -77,6 +77,16 @@ public class BriefingComposerTest {
     }
 
     @Test
+    public void patronMemoryLandsBetweenOfficerPrefixAndPatronBody() {
+        String out = BriefingComposer.compose(
+                PatronArchetype.ESTABLISHED, OfficerMood.STEADY, 1L,
+                "[MEMORY]", "House Cavor", "Eventide", "$50,000", 40);
+
+        assertTrue(out.indexOf("[PREFIX:STEADY:") < out.indexOf("[MEMORY]"));
+        assertTrue(out.indexOf("[MEMORY]") < out.indexOf("[BODY:ESTABLISHED:"));
+    }
+
+    @Test
     public void compositionIsDeterministicPerContract() {
         String a = BriefingComposer.compose(
                 PatronArchetype.TIME_RUSHED, OfficerMood.DESPERATE, 42L, "P", "T", "$1", 0);

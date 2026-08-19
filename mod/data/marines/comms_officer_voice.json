@@ -178,5 +178,36 @@
 				]
 			}
 		}
+	},
+
+	# Returning-patron callbacks. These lines are outcome-pure: they may
+	# acknowledge only the terminal contract snapshot persisted by
+	# PatronEngagementMemory. Supported tokens are {patron}, {contract}, and
+	# {priorCount}.
+	"memory": {
+		"COMPLETED": [
+			"{patron}'s people again. Last {contract} closed cleanly.",
+			"We've worked for {patron} before. They remember the result.",
+			"{patron} came back. Our last job for them ended well.",
+			"This makes engagement {priorCount} with {patron}. The previous one held up."
+		],
+		"FAILED": [
+			"{patron}'s people again. Last {contract} ended badly; expect less patience.",
+			"We've got history with {patron}, and the last result wasn't good.",
+			"{patron} came back despite the last failure. I wouldn't waste that.",
+			"Engagement {priorCount} with {patron}. We're still carrying the last miss."
+		],
+		"WITHDREW": [
+			"{patron} came back despite our withdrawal. Don't assume they forgot.",
+			"We've walked away from {patron}'s work before. They're offering again.",
+			"{patron}'s people know we withdrew from the last {contract}. Read the terms closely.",
+			"This would be engagement {priorCount} with {patron}. The last one ended by our choice."
+		],
+		"EMPLOYER_BREACHED": [
+			"{patron}'s name again. Their side broke terms last time.",
+			"We've worked for {patron} before. Payment failed on their end.",
+			"{patron} is back after the last breach. I checked the terms twice.",
+			"Engagement {priorCount} with {patron}. Remember who broke the last agreement."
+		]
 	}
 }
