@@ -117,6 +117,46 @@ public final class PatronEngagementMemory {
                 count);
     }
 
+    /** Returns the newest recent engagement for another house at a market. */
+    public static Snapshot latestOtherAtMarket(
+            CampaignState state, int marketId, long excludedHouseId,
+            int asOfDay, int maxAgeDays) {
+        if (state == null || state.marketRegistry.get(marketId) == null
+                || excludedHouseId <= 0L || asOfDay < 0
+                || maxAgeDays < 0) {
+            return null;
+        }
+        int earliestDay = (int) Math.max(0L,
+                (long) asOfDay - maxAgeDays);
+        int latestRow = -1;
+        for (int row = 0; row < state.patronEngagementCount; row++) {
+            int happenedDay = state.patronEngagementHappenedTick[row];
+            if (state.patronEngagementHouseId[row] == excludedHouseId
+                    || state.patronEngagementMarketId[row] != marketId
+                    || happenedDay < earliestDay || happenedDay > asOfDay
+                    || !validSnapshotRow(state, row)) {
+                continue;
+            }
+            if (latestRow < 0 || newer(state, row, latestRow)) {
+                latestRow = row;
+            }
+        }
+        if (latestRow < 0) return null;
+        long houseId = state.patronEngagementHouseId[latestRow];
+        return snapshot(state, latestRow, validCount(state, houseId));
+    }
+
+    private static int validCount(CampaignState state, long houseId) {
+        int count = 0;
+        for (int row = 0; row < state.patronEngagementCount; row++) {
+            if (state.patronEngagementHouseId[row] == houseId
+                    && validSnapshotRow(state, row)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private static Snapshot snapshot(CampaignState state, int row, int count) {
         return new Snapshot(state.patronEngagementId[row],
                 state.patronEngagementSourceContractId[row],

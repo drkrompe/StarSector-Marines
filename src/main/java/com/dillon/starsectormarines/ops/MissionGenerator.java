@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
-import com.dillon.starsectormarines.campaign.PatronMemoryComposer;
+import com.dillon.starsectormarines.campaign.PatronBriefingContextComposer;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
@@ -296,9 +296,10 @@ public final class MissionGenerator {
         byte missionSalvageNegotiated = assaultPhase != null
                 ? assaultPhase.salvageNegotiated : state.contractSalvageNegotiated[row];
         int negotiatedPct = missionSalvageNegotiated & 0xFF;
-        String patronMemory = PatronMemoryComposer.compose(state,
-                state.contractPatronHouseId[row], contractId,
-                client.displayName);
+        String patronMemory = PatronBriefingContextComposer.compose(state,
+                state.contractPatronHouseId[row],
+                state.contractMarketId[row], contractId,
+                state.contractAcceptedTick[row], client.displayName);
         String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
                 contractId, patronMemory, client.displayName, targetPlanetName,
                 payoutFormatted, negotiatedPct);
