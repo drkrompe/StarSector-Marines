@@ -95,7 +95,7 @@ public enum MarineWeapon {
      */
     DMR        ("Railgun",
                 "railgun_fire",
-                new Color(0xC8, 0xC8, 0xFF),
+                new Color(0xE0, 0xF0, 0xFF),
                 32f, 4.0f, 0.55f, 1.80f, 0.40f,
                 ImpactProfile.KINETIC,
                 1, 0f, null, 0f,
