@@ -103,6 +103,7 @@ def main() -> None:
     normalize("chaingun-arm-v2.png", "chaingun-arm.png", (62, 112))
     normalize("linear-cannon-concept.png", "linear-cannon-variant.png", (58, 138))
     normalize("heavy-cannon.png", "heavy-cannon.png", (64, 128))
+    normalize("thigh-bone.png", "thigh-bone.png", (40, 112))
     normalize("srm-pod.png", "srm-pod.png", (62, 88))
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
     preview("idle.png", moving=False, firing=False)

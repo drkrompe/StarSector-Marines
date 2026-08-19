@@ -16,7 +16,10 @@ Hound now uses the narrow pointed hull and Sirocco the broader wedge, both
 flipped to face their intended direction. Hound's one SRM and Bulwark's heavy
 racks are visible above their chassis layers; Sirocco's paired LRMs tuck under
 its hull. Both light chassis expose their two feet beside the mid-body so their
-gaits are readable, while Bulwark's chainguns are horizontally compressed by half.
+gaits are readable. Their generated thigh linkages rotate and stretch from the
+waist toward each independently animated pad, with a longer light-mech stride
+making the mechanism legible in motion. Bulwark's chainguns remain horizontally
+compressed by half.
 
 A reproducible static contact sheet is available at
 [`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It

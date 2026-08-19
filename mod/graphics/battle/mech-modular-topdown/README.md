@@ -7,7 +7,8 @@ to provide corpse art.
 Every normalized chassis uses the same 208-pixel canvas as its sizing unit.
 `foot.png` is derived from the accepted Bulwark hull's bottom armor tab
 (neither generated leg is used). `chaingun-arm.png`,
-`srm-pod.png`, `lrm-pod.png`, and `heavy-cannon.png` each represent one reusable part. The shoulder
+`srm-pod.png`, `lrm-pod.png`, `heavy-cannon.png`, and `thigh-bone.png` each
+represent one reusable part. The shoulder
 weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
 can carry matching equipment or one deliberately centered rack. Feet and arms
@@ -23,12 +24,15 @@ Bulwark uses the broad `chassis.png`, exposed SRM/LRM racks, and horizontally
 compressed chainguns. Hound uses the generated narrow long-spine silhouette,
 flipped so its pointed end faces forward, with one centerline nose chaingun and
 one dorsal SRM-5. The two light chassis use exposed mid-body foot anchors so
-their alternating locomotion remains visible around the thinner bodies. Sirocco uses
+their alternating locomotion remains visible around the thinner bodies. A
+surface-mounted thigh linkage rotates and length-scales from each light mech's
+waist toward its live foot position, ending just inside the pad. Sirocco uses
 the generated broad wedge, likewise flipped,
 with paired LRM-5 racks and a centerline heavy anti-armor cannon. Their retained
 full-resolution ImageGen sources live in `sources/`, including
 `sources/heavy-cannon.png`. `chassis-socketed-variant.png` and
-`linear-cannon-variant.png` remain available for authored custom loads.
+`linear-cannon-variant.png` remain available for authored custom loads. The
+retained generated linkage source is `sources/thigh-bone.png`.
 
 Run `python build_assets.py` after replacing a retained source. The generated
 previews use the same hull-relative placement model as the runtime composer and

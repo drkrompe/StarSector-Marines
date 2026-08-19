@@ -37,6 +37,12 @@ class LayeredMechAssetTest {
         assertTransparentSprite(cannon, 64, 128, 500);
     }
 
+    @Test
+    void thighBoneIsAProductionReadyTransparentModule() throws IOException {
+        BufferedImage thighBone = load("thigh-bone.png");
+        assertTransparentSprite(thighBone, 40, 112, 300);
+    }
+
     private static BufferedImage load(String filename) throws IOException {
         BufferedImage image = ImageIO.read(ROOT.resolve(filename).toFile());
         assertNotNull(image, filename);
