@@ -27,12 +27,14 @@ final class LayeredMechComposer {
         float rightStep = stepping
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, true) : 0f;
 
-        // Feet and arm anchors are below the hull in draw order. Their pivots sit
-        // deep inside the chassis, so only toes/barrels can cross its silhouette.
+        // Feet and arm anchors are below the hull in draw order. Hound's narrow
+        // body exposes a wider stance so its alternating gait remains legible;
+        // the broader chassis retain the mostly-hidden heavy-mech treatment.
+        float footX = LayeredMechAppearance.footLateralOffset(chassis);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                -0.17f, -0.28f - 0.055f * leftStep, 0f, alpha);
+                -footX, -0.28f - 0.055f * leftStep, 0f, alpha);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                0.17f, -0.28f - 0.055f * rightStep, 0f, alpha);
+                footX, -0.28f - 0.055f * rightStep, 0f, alpha);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
         emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
