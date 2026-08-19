@@ -19,5 +19,6 @@ public enum BuildingKind {
     INDUSTRIAL,
     CIVIC,
     FORTIFIED,
+    MEDICAL,
     OTHER
 }

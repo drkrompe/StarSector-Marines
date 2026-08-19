@@ -18,7 +18,11 @@ public final class CivilianEvacuationPlacement {
 
     public static final int LIFT_ZONE_RADIUS = 1;
     public static final int SHELTER_ZONE_RADIUS = 5;
-    private static final int EDGE_BAND = 2;
+    public static final int PICKUP_FORMATION_POINTS = 5;
+    public static final int PICKUP_FORMATION_RADIUS = 7;
+    public static final int PICKUP_EDGE_INSET = 10;
+    private static final int PICKUP_BAND_WIDTH = 2;
+    private static final int FORMATION_SEARCH_RADIUS = 3;
 
     public final int shelterX;
     public final int shelterY;
@@ -28,12 +32,14 @@ public final class CivilianEvacuationPlacement {
     public final int liftX;
     public final int liftY;
     private final int[] spawnCells;
+    private final int[] formationCells;
 
     private CivilianEvacuationPlacement(int shelterX, int shelterY,
                                         int shelterApproachX,
                                         int shelterApproachY,
                                         int liftX, int liftY,
-                                        int[] spawnCells) {
+                                        int[] spawnCells,
+                                        int[] formationCells) {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
         this.shelterApproachX = shelterApproachX;
@@ -41,11 +47,12 @@ public final class CivilianEvacuationPlacement {
         this.liftX = liftX;
         this.liftY = liftY;
         this.spawnCells = spawnCells;
+        this.formationCells = formationCells;
     }
 
     /**
      * Finds a complete reachable placement, or {@code null} if the map has no
-     * suitable residential shelter, outer-band lift, or eight spawn cells.
+     * suitable residential shelter, inset pickup formation, or eight spawn cells.
      */
     public static CivilianEvacuationPlacement find(
             NavigationGrid grid, List<PointOfInterest> pointsOfInterest,
@@ -99,45 +106,67 @@ public final class CivilianEvacuationPlacement {
         return spawnCells[index * 2 + 1];
     }
 
+    public int formationPointCount() {
+        return formationCells.length / 2;
+    }
+
+    public int formationX(int index) {
+        checkFormationIndex(index);
+        return formationCells[index * 2];
+    }
+
+    public int formationY(int index) {
+        checkFormationIndex(index);
+        return formationCells[index * 2 + 1];
+    }
+
+    public int[] formationCells() {
+        return formationCells.clone();
+    }
+
     private static CivilianEvacuationPlacement forShelter(
             NavigationGrid grid, PointOfInterest shelter,
             int representativeCount) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
-        int[] lift = farthestReachableLift(grid, sx, sy);
+        LiftSite lift = farthestReachableLift(grid, sx, sy);
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
-                grid, shelter, sx, sy, lift[0], lift[1],
+                grid, shelter, sx, sy, lift.x, lift.y,
                 representativeCount);
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
                 sx, sy, shelter.anchorCellX, shelter.anchorCellY,
-                lift[0], lift[1], spawns);
+                lift.x, lift.y, spawns, lift.formationCells);
     }
 
-    private static int[] farthestReachableLift(NavigationGrid grid,
-                                                int sx, int sy) {
+    private static LiftSite farthestReachableLift(NavigationGrid grid,
+                                                   int sx, int sy) {
         int bestX = -1;
         int bestY = -1;
         int bestDistance = -1;
+        int[] bestFormation = null;
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!inOuterBand(grid, x, y) || !grid.isWalkable(x, y)) {
+                if (!inPickupBand(grid, x, y) || !grid.isWalkable(x, y)) {
                     continue;
                 }
                 int distance = Math.abs(x - sx) + Math.abs(y - sy);
                 if (distance < bestDistance) continue;
                 int[] path = GridPathfinder.findPath(grid, sx, sy, x, y);
                 if (Paths.isEmpty(path)) continue;
+                int[] formation = formationCells(grid, x, y);
+                if (formation == null) continue;
                 if (distance > bestDistance
                         || y < bestY || (y == bestY && x < bestX)) {
                     bestX = x;
                     bestY = y;
                     bestDistance = distance;
+                    bestFormation = formation;
                 }
             }
         }
-        return bestX >= 0 ? new int[]{bestX, bestY} : null;
+        return bestX >= 0 ? new LiftSite(bestX, bestY, bestFormation) : null;
     }
 
     private static int[] reachableSpawnCells(NavigationGrid grid,
@@ -188,10 +217,65 @@ public final class CivilianEvacuationPlacement {
                 && Math.abs(y - liftY) <= LIFT_ZONE_RADIUS;
     }
 
-    private static boolean inOuterBand(NavigationGrid grid, int x, int y) {
-        return x < EDGE_BAND || y < EDGE_BAND
-                || x >= grid.getWidth() - EDGE_BAND
-                || y >= grid.getHeight() - EDGE_BAND;
+    private static boolean inPickupBand(NavigationGrid grid, int x, int y) {
+        int edgeDistance = Math.min(Math.min(x, grid.getWidth() - 1 - x),
+                Math.min(y, grid.getHeight() - 1 - y));
+        int maxInset = Math.max(1,
+                (Math.min(grid.getWidth(), grid.getHeight()) - 1) / 2);
+        int inset = Math.min(PICKUP_EDGE_INSET, maxInset);
+        return edgeDistance >= inset
+                && edgeDistance <= Math.min(maxInset, inset + PICKUP_BAND_WIDTH);
+    }
+
+    private static int[] formationCells(NavigationGrid grid,
+                                         int liftX, int liftY) {
+        int[] result = new int[PICKUP_FORMATION_POINTS * 2];
+        for (int point = 0; point < PICKUP_FORMATION_POINTS; point++) {
+            double angle = -Math.PI / 2.0
+                    + point * Math.PI * 2.0 / PICKUP_FORMATION_POINTS;
+            int idealX = (int) Math.round(liftX
+                    + Math.cos(angle) * PICKUP_FORMATION_RADIUS);
+            int idealY = (int) Math.round(liftY
+                    + Math.sin(angle) * PICKUP_FORMATION_RADIUS);
+            int bestX = -1;
+            int bestY = -1;
+            int bestDistance = Integer.MAX_VALUE;
+            for (int y = idealY - FORMATION_SEARCH_RADIUS;
+                 y <= idealY + FORMATION_SEARCH_RADIUS; y++) {
+                for (int x = idealX - FORMATION_SEARCH_RADIUS;
+                     x <= idealX + FORMATION_SEARCH_RADIUS; x++) {
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
+                            || alreadySelected(result, point, x, y)) continue;
+                    int fromCenter = Math.max(Math.abs(x - liftX),
+                            Math.abs(y - liftY));
+                    if (fromCenter < PICKUP_FORMATION_RADIUS - 2) continue;
+                    if (Paths.isEmpty(GridPathfinder.findPath(
+                            grid, x, y, liftX, liftY))) continue;
+                    int dx = x - idealX;
+                    int dy = y - idealY;
+                    int distance = dx * dx + dy * dy;
+                    if (distance < bestDistance
+                            || (distance == bestDistance
+                            && (y < bestY || (y == bestY && x < bestX)))) {
+                        bestX = x;
+                        bestY = y;
+                        bestDistance = distance;
+                    }
+                }
+            }
+            if (bestX < 0) return null;
+            result[point * 2] = bestX;
+            result[point * 2 + 1] = bestY;
+        }
+        return result;
+    }
+
+    private static boolean alreadySelected(int[] cells, int count,
+                                            int x, int y) {
+        for (int i = 0; i < count; i++) {
+            if (cells[i * 2] == x && cells[i * 2 + 1] == y) return true;
+        }
+        return false;
     }
 
     private void checkSpawnIndex(int index) {
@@ -199,6 +283,14 @@ public final class CivilianEvacuationPlacement {
             throw new IndexOutOfBoundsException(index);
         }
     }
+
+    private void checkFormationIndex(int index) {
+        if (index < 0 || index >= formationPointCount()) {
+            throw new IndexOutOfBoundsException(index);
+        }
+    }
+
+    private record LiftSite(int x, int y, int[] formationCells) {}
 
     private static int mix32(long value) {
         value ^= value >>> 33;

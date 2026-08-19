@@ -21,6 +21,7 @@ public final class EscortAssignedCivilians implements Action {
     static final int RELIEF_RADIUS = 2;
     /** The remaining force forms a broad perimeter with room for debug rosters. */
     static final int ESCORT_RADIUS = 6;
+    static final int PICKUP_GUARD_RADIUS = 2;
 
     private EscortAssignedCivilians() {}
 
@@ -96,7 +97,7 @@ public final class EscortAssignedCivilians implements Action {
     }
 
     static int standoffRadius(Squad squad, BattleView sim) {
-        if (squad.rescuePickupGuard) return ESCORT_RADIUS;
+        if (squad.rescuePickupGuard) return PICKUP_GUARD_RADIUS;
         if (sim.isCivilianEvacuationTriggered()) return ESCORT_RADIUS;
         int leadSquadId = Integer.MAX_VALUE;
         for (Squad candidate : sim.getSquads()) {

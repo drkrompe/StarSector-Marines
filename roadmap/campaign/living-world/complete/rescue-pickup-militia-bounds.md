@@ -4,6 +4,10 @@
 
 **Implemented:** `2395397f`, `b6b0dd6f`
 
+**Superseded tuning:** The eight-guard outer-band line and non-replaced center
+mech were expanded in `5f2c083d`; see
+[`rescue-five-point-star-and-through-fire.md`](rescue-five-point-star-and-through-fire.md).
+
 ## Outcome
 
 - Civilian rescue now includes a physical, unarmed civilian Valkyrie at the

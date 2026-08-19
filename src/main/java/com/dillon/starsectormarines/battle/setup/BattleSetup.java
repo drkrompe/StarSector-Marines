@@ -632,7 +632,7 @@ public final class BattleSetup {
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
             installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
-                    scale.width, scale.height);
+                    risk, scale.width, scale.height);
             SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
                     sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
@@ -1238,7 +1238,8 @@ public final class BattleSetup {
     /** Installs the physical evac craft and the local defense-line reserve. */
     private static void installRescuePickup(
             BattleSimulation sim, CivilianEvacuationPlacement placement,
-            int evacueeCount, long seed, int gridW, int gridH) {
+            int evacueeCount, long seed, RiskLevel risk,
+            int gridW, int gridH) {
         LandingPad.Approach approach = nearestEdgeApproach(
                 placement.liftX, placement.liftY, gridW, gridH);
         float pickupX = placement.liftX + 0.5f;
@@ -1273,7 +1274,7 @@ public final class BattleSetup {
         if (!sim.configureRescuePickupSupport(
                 placement, supportX, supportY,
                 supportEntry[0], supportEntry[1],
-                supportEntry[2], supportEntry[3], seed)) {
+                supportEntry[2], supportEntry[3], seed, risk)) {
             throw new IllegalStateException(
                     "civilian rescue pickup support configuration failed");
         }

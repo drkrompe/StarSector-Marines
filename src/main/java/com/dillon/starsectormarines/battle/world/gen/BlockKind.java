@@ -116,6 +116,13 @@ public enum BlockKind {
     INDUSTRIAL_COMPOUND,
 
     /**
+     * Three-parcel public-service campus: a roomed clinic, a medical support
+     * building, and an open ambulance court facing shared striped circulation.
+     * Failed claims demote to an ordinary {@link #BUILDING_CIVIC} lot.
+     */
+    MEDICAL_CAMPUS,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.world.gen.BlockFiller}
