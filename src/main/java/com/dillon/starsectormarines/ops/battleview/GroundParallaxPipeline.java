@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
-import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
@@ -111,7 +110,9 @@ public final class GroundParallaxPipeline {
     // ---- shader tuning (playtest-tunable; see overview.md "Risks") -----------
 
     /** UV-space offset per unit of (biased height × eye.xy). Keeps peak offset in the few-screen-pixel range the paper calls for. */
-    private static final float STRENGTH = 0.006f;
+    public static final float MIN_STRENGTH = 0f;
+    public static final float MAX_STRENGTH = 0.020f;
+    public static final float DEFAULT_STRENGTH = 0.006f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     private static final float EYE_HEIGHT = 1.2f;
     /** height*scale+bias centers macro/micro height (nominally in [0,1], ~0.5 = "ground level") on zero before it's applied as an offset. */
@@ -154,8 +155,10 @@ public final class GroundParallaxPipeline {
             + "}\n";
 
     private final ShaderProgram shader = new ShaderProgram("GroundParallax", VERTEX_SRC, FRAGMENT_SRC);
-    private final GroundMicroHeightSampler microHeight;
-    private final SolidQuadBatch heightBatch = new SolidQuadBatch(4096);
+    private final GroundHeightPass heightPass;
+
+    /** Runtime-tunable through the battle debug panel; read every composite. */
+    private float strength = DEFAULT_STRENGTH;
 
     private boolean broken;
 
@@ -172,11 +175,19 @@ public final class GroundParallaxPipeline {
 
     /** Compatibility constructor; without a sprite registry sliced sheets remain macro-only/fallback. */
     public GroundParallaxPipeline() {
-        this.microHeight = new GroundMicroHeightSampler(() -> null, () -> null, HeightSheetTexture::new);
+        this.heightPass = new GroundHeightPass(new GroundMicroHeightSampler(() -> null, () -> null));
     }
 
     public GroundParallaxPipeline(BattleSprites sprites) {
-        this.microHeight = new GroundMicroHeightSampler(sprites);
+        this.heightPass = new GroundHeightPass(new GroundMicroHeightSampler(sprites));
+    }
+
+    public float parallaxStrength() { return strength; }
+
+    /** Applies immediately to the next rendered frame. */
+    public void setParallaxStrength(float strength) {
+        if (Float.isNaN(strength)) return;
+        this.strength = Math.max(MIN_STRENGTH, Math.min(MAX_STRENGTH, strength));
     }
 
     /**
@@ -225,9 +236,7 @@ public final class GroundParallaxPipeline {
     public void dispose() {
         releaseFbos();
         shader.dispose();
-        // BattleScreen persists across battles; the sampler's per-cell cache must
-        // not outlive this battle's map (same grid coords, different tiles).
-        microHeight.invalidate();
+        heightPass.dispose();
     }
 
     private void releaseFbos() {
@@ -259,8 +268,7 @@ public final class GroundParallaxPipeline {
             glColorMask(true, true, true, true);
             glClearColor(0.5f, 0.5f, 0.5f, 1f);
             glClear(GL_COLOR_BUFFER_BIT);
-            GroundHeightPass.emit(rc.camera, grid, topology, mapping, microHeight, heightBatch);
-            heightBatch.flush();
+            heightPass.render(rc.camera, grid, topology, mapping);
         });
     }
 
@@ -280,7 +288,7 @@ public final class GroundParallaxPipeline {
             shader.set1i("heightTex", 1);
             shader.set2f("screenCenter", 0.5f, 0.5f);
             shader.set1f("eyeHeight", EYE_HEIGHT);
-            shader.set1f("strength", STRENGTH);
+            shader.set1f("strength", strength);
             shader.set1f("heightScale", HEIGHT_SCALE);
             shader.set1f("heightBias", HEIGHT_BIAS);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
