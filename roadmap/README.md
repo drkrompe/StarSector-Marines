@@ -106,11 +106,12 @@ universe over time, not retrofitted into intel slots.
 2. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
    outcome writeback, debrief, hidden moral consequence, and durable Distress
-   Net dispatch. The second archetype is contract-locked: a discovered political
+   Net dispatch. The second archetype is also complete: a discovered political
    chain can produce a costly defector-asylum promise followed by a delayed
-   protect-or-betray choice. Next is its append-only persistence and pure
-   lifecycle slice; generalize only the shared seams this consumer requires.
-   Keep swarm tuning deferred until manual playtesting resumes. See
+   protect-or-betray choice, with source-frozen plot/reputation reaction and
+   hidden moral meaning consumed exactly once. No living-world story remains
+   active; contract the next archetype or capstone before extending the generic
+   event surface. Keep swarm tuning deferred until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual

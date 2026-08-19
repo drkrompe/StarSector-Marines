@@ -1,8 +1,8 @@
 # G8 — defector asylum
 
-**Status:** SLICES 1–3 COMPLETE — world reaction and closure next (2026-08-19)
+**Status:** CODE COMPLETE (2026-08-19)
 
-**Implemented:** `94a3f2f1`, `7591dd86`, `0235ff29`
+**Implemented:** `94a3f2f1`, `7591dd86`, `0235ff29`, `d2c4c01b`
 
 ## Purpose
 
@@ -125,8 +125,12 @@ historical facts.
    global intel reconstructs every open stage, routes all four explicit choices
    through the lifecycle authority, presents frozen identities/terms without
    previewing hidden consequences, and fails closed on malformed resolutions.
-4. **World reaction and closure** — chain/reputation consequences, moral source
-   rows, terminal dispatch, debug reachability, full save/replay matrix.
+4. ~~**World reaction and closure** — chain/reputation consequences, moral
+   source rows, terminal dispatch, debug reachability, full save/replay
+   matrix.~~ Shipped in `d2c4c01b`; a source-frozen consequence pass applies
+   bounded plot/reputation effects and the promised integrity/stewardship/mercy
+   meaning exactly once, runs before chain advancement, preserves terminal
+   dispatch, and exposes production-shaped spawn/follow-up debug controls.
 
 ## Acceptance
 
