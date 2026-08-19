@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -149,5 +150,14 @@ public class ShotEvent {
     /** Whether expiry represents a physical impact rather than free-flight overshoot. */
     public boolean impacts() {
         return stopKind != BallisticResolver.StopKind.OVERSHOOT;
+    }
+
+    /** Carrier-agnostic presentation class for muzzle, impact, light, decal, and audio recipes. */
+    public ImpactProfile impactProfile() {
+        if (turretKind != null) return turretKind.impactProfile();
+        if (marineSecondary != null) return marineSecondary.impactProfile();
+        if (marineWeapon != null) return marineWeapon.impactProfile;
+        if (mechWeapon != null) return mechWeapon.impactProfile;
+        return ImpactProfile.RIFLE;
     }
 }

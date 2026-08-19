@@ -106,7 +106,10 @@ universe over time, not retrofitted into intel slots.
   -5 and -15 rack classes and profile-aware physical geometry. Hound and
   Sirocco now have role-specific swapped/flipped hull silhouettes: Hound has a
   nose chaingun and single SRM, while Sirocco has paired LRMs and a new heavy
-  anti-armor cannon. Bulwark's racks are exposed above the hull and its
+  anti-armor cannon. That cannon and the Heavy Mortar turret now share a
+  gun-launched HE pass (`39aefccb`): visible ballistic shells, timed splash,
+  cannon muzzle/impact lighting and particles, vanilla explosion/ring art,
+  structural damage, decals, and positional audio. Bulwark's racks are exposed above the hull and its
   chainguns are narrower. Production encounters remain
   Bulwark-only pending manual tuning; a scout follows only when recon behavior
   can make it meaningful. See [`mechs/`](mechs/overview.md).

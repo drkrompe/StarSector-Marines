@@ -35,6 +35,23 @@ class GroundLightServiceTest {
         }
     }
 
+    @Test
+    void cannonHeCarriesTheLargestImpactLight() {
+        GroundLightService lights = new GroundLightService();
+        lights.spawnImpact(ImpactProfile.HE, 10f, 10f);
+        lights.selectNearest(camera());
+        GroundLightService.Light ordinaryHe = lights.selected(0);
+
+        lights.clear();
+        lights.spawnImpact(ImpactProfile.CANNON_HE, 10f, 10f);
+        lights.selectNearest(camera());
+        GroundLightService.Light cannonHe = lights.selected(0);
+
+        assertTrue(cannonHe.radius > ordinaryHe.radius);
+        assertTrue(cannonHe.intensity > ordinaryHe.intensity);
+        assertTrue(cannonHe.lifetime > ordinaryHe.lifetime);
+    }
+
     private static BattleCamera camera() {
         BattleCamera camera = new BattleCamera(20, 20);
         camera.setViewport(0f, 0f, 200f, 200f, 10f);

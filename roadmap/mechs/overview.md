@@ -1,8 +1,9 @@
 # Mech roster
 
 **Status:** Active. S1's modular hardpoint substrate and three-chassis debug
-comparison shipped in `2d3f044b`; battlefield tuning and production-roster
-integration remain.
+comparison shipped in `2d3f044b`; the shared heavy-cannon HE effects pass
+shipped in `39aefccb`. Battlefield tuning and production-roster integration
+remain.
 
 ## Concept
 
@@ -33,6 +34,10 @@ The renderer composes distinct Bulwark, Hound, and Sirocco chassis, several arm
 modules, and empty, SRM, LRM, or heavy-SRM shoulder slots. Hound now owns the
 narrow pointed silhouette, a single nose chaingun, and one dorsal SRM-5.
 Sirocco owns the broad wedge, paired LRM-5s, and a new centerline heavy cannon.
+That cannon now fires a visible Hellbore-style ballistic shell into a modest
+timed HE blast, with a cannon-specific muzzle/impact/audio recipe shared by the
+Heavy Mortar turret. Vanilla explosion frames and shock-ring art layer over the
+existing fire, smoke, decal, sound, and dynamic-ground-light systems.
 Bulwark's racks sit above its body layer and its chainguns are visually narrower.
 
 ## Proposed family
@@ -44,7 +49,7 @@ approve first.
 | --- | --- | --- | --- |
 | **Bulwark** (current heavy) | Apex generalist and anchor | Chaingun + SRM + LRM | 540 HP and all three range bands, but slow, conspicuous, and expensive |
 | **Hound** (breach strider) | Fast close assault | Nose chaingun + one SRM-5; no LRM | Reaches streets and compounds quickly, but has no indirect or long-range answer |
-| **Sirocco** (missile strider) | Mobile fire support | Heavy cannon + paired LRM-5; no SRM | Projects indirect pressure and threatens armor up close, but is fragile and lacks infantry saturation |
+| **Sirocco** (missile strider) | Mobile fire support | HE heavy cannon + paired LRM-5; no SRM | Projects indirect pressure and threatens armor up close, but is fragile and lacks infantry saturation |
 | **Needle** (scout strider) | Recon, target finding, flanking | Linear cannon; no pods | Fast and observant, but lacks area damage and needs a new recon doctrine to matter |
 
 S1 implements the substrate plus Hound and Sirocco. Its first slice now ships
