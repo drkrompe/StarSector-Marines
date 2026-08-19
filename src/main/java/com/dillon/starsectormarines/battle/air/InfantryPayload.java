@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
@@ -30,6 +31,15 @@ public enum InfantryPayload implements AirDeliveryPayload {
         if (loadout != null) loadout.seedInto(marine);
         if (mission.squadId == Squad.NO_SQUAD) {
             mission.squadId = context.mintSquad(type);
+            if (mission.rescueMilitiaTransport) {
+                Squad guard = context.squad(mission.squadId);
+                if (guard != null) {
+                    guard.rescuePickupGuard = true;
+                    guard.assignedObjective = ObjectiveAssignment.escort(
+                            guard.id, mission.rescueGuardX,
+                            mission.rescueGuardY);
+                }
+            }
             if (mission.garrisonNode != null) {
                 Squad garrison = context.squad(mission.squadId);
                 if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);

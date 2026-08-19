@@ -56,6 +56,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
+import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -163,6 +164,9 @@ public class BattleSimulation implements BattleControl {
     /** Mission-local perimeter waves; inert unless civilian-rescue setup configures them. */
     private final SwarmReinforcementSystem swarmReinforcements =
             new SwarmReinforcementSystem(civilianEvacuation);
+    /** Allied pickup garrison and casualty-driven shuttle reserve. */
+    private final RescuePickupSupportSystem rescuePickupSupport =
+            new RescuePickupSupportSystem(civilianEvacuation);
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
@@ -541,6 +545,9 @@ public class BattleSimulation implements BattleControl {
             CivilianEvacuationPlacement placement) {
         return civilianEvacuationSystem.configure(placement);
     }
+    public boolean attachCivilianPickupShuttle(long shuttleId) {
+        return civilianEvacuationSystem.attachPickupShuttle(shuttleId);
+    }
     /** Whether the rescue cohort is still sealed inside its opening shelter. */
     public boolean isCivilianShelterProtected() {
         return civilianEvacuationSystem.isShelterProtected();
@@ -548,6 +555,10 @@ public class BattleSimulation implements BattleControl {
     /** Whether a marine has reached the bunker entrance and begun evacuation. */
     public boolean isCivilianEvacuationTriggered() {
         return civilianEvacuationSystem.isEvacuationTriggered();
+    }
+    @Override
+    public boolean hasCivilianPickupShuttle() {
+        return civilianEvacuationSystem.hasPickupShuttle();
     }
     public boolean configureSwarmReinforcements(
             CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
@@ -558,6 +569,20 @@ public class BattleSimulation implements BattleControl {
     }
     public int swarmTargetPopulation() {
         return swarmReinforcements.targetPopulation();
+    }
+    public boolean configureRescuePickupSupport(
+            CivilianEvacuationPlacement placement,
+            float reinforcementLzX, float reinforcementLzY,
+            float entryX, float entryY, float exitX, float exitY) {
+        return rescuePickupSupport.configure(placement,
+                reinforcementLzX, reinforcementLzY,
+                entryX, entryY, exitX, exitY, this);
+    }
+    public boolean isRescuePickupSupportConfigured() {
+        return rescuePickupSupport.isConfigured();
+    }
+    public int liveRescuePickupGuards() {
+        return rescuePickupSupport.liveGuardCount(this);
     }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<com.dillon.starsectormarines.battle.logistics.ResupplyCache> getResupplyCaches() {
@@ -1241,6 +1266,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
+        rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);

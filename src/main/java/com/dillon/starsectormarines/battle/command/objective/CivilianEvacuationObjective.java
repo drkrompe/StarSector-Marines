@@ -5,15 +5,15 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * Marine objective that measures registered mission civilians crossing a
- * dedicated evacuation zone. Ambient civilians are invisible to it because
- * the objective iterates tracker identities, never faction or unit type.
+ * Marine objective that resolves the registered rescue cohort. Production
+ * missions let {@code CivilianEvacuationSystem} board civilians only after the
+ * physical pickup has landed; objective-only fixtures retain zone-crossing
+ * accounting. Ambient civilians are invisible because both paths iterate
+ * tracker identities, never faction or unit type.
  *
- * <p>The zone is a square centered on {@code (cellX, cellY)} with inclusive
- * cell radius. A registered live civilian becomes evacuated on entry. A
- * registered identity that is no longer live becomes lost. When every member
- * is terminal, the tracker seals: at least one evacuation completes the
- * objective, while a measured zero fails it.
+ * <p>A registered identity that is no longer live becomes lost. When every
+ * member is terminal, the tracker seals: at least one evacuation completes
+ * the objective, while a measured zero fails it.
  */
 public final class CivilianEvacuationObjective implements Objective {
 
@@ -63,10 +63,15 @@ public final class CivilianEvacuationObjective implements Objective {
                 tracker.markLost(id);
                 continue;
             }
-            int dx = Math.abs(sim.world().cellX(id) - cellX);
-            int dy = Math.abs(sim.world().cellY(id) - cellY);
-            if (dx <= radius && dy <= radius) {
-                tracker.markEvacuated(id);
+            // Legacy/objective-only fixtures still treat crossing the zone as
+            // success. Production rescue missions attach a physical pickup;
+            // their evacuation system owns boarding and waits for LANDED.
+            if (!sim.hasCivilianPickupShuttle()) {
+                int dx = Math.abs(sim.world().cellX(id) - cellX);
+                int dy = Math.abs(sim.world().cellY(id) - cellY);
+                if (dx <= radius && dy <= radius) {
+                    tracker.markEvacuated(id);
+                }
             }
         }
         if (tracker.activeCount() != 0 || !tracker.seal()) return;

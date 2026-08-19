@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -219,6 +222,42 @@ class CivilianEvacuationSystemTest {
                 sim.getCivilianEvacuationTracker().state(first));
         assertEquals(0L, sim.resolveUnit(first));
         assertEquals(0, sim.getCivilianEvacuationTracker().lostCount());
+    }
+
+    @Test
+    void physicalPickupMustLandBeforeCiviliansBoard() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 305L);
+        assertNotNull(payload);
+        float pickupX = payload.placement.liftX + 0.5f;
+        float pickupY = payload.placement.liftY + 0.5f;
+        long shuttleId = sim.spawnShuttle(ShuttleType.VALKYRIE,
+                Faction.CIVILIAN, pickupX, pickupY,
+                pickupX, pickupY, pickupX, pickupY + 10f, 0f);
+        ShuttleMission mission = sim.world().mission(shuttleId);
+        mission.marinesRemaining = 0;
+        mission.awaitingEvacuees = true;
+        mission.evacueeCapacity = payload.size();
+        assertTrue(sim.attachCivilianPickupShuttle(shuttleId));
+        for (int i = 0; i < payload.size(); i++) {
+            sim.world().setCellPos(payload.entityId(i),
+                    payload.placement.liftX, payload.placement.liftY);
+        }
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(ShuttleState.INCOMING, mission.state);
+        assertEquals(payload.size(),
+                sim.getCivilianEvacuationTracker().activeCount());
+        assertEquals(0, mission.evacueesAboard);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(ShuttleState.LANDED, mission.state);
+        assertEquals(payload.size(), mission.evacueesAboard);
+        assertEquals(0, sim.getCivilianEvacuationTracker().activeCount());
+        assertFalse(mission.awaitingEvacuees);
     }
 
     private static BattleSimulation simulation() {
