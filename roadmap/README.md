@@ -180,8 +180,12 @@ universe over time, not retrofitted into intel slots.
    (`bf6fdd64`). Mobile rescue squads now receive distinct line-and-depth rally
    slots before relief and throughout the escort, settle within two cells of
    those slots, and only enter their slower timed advance while an engaged
-   squad has a live alien within twelve cells (`f2159d82`). Manual cadence and
-   post-rebalance feel validation remain queued.
+   squad has a live alien within twelve cells (`f2159d82`). Squadmates now bind
+   to distinct cells around each squad rally instead of racing for the same
+   deferred occupancy claim. The pickup mech also retains its center/five-point
+   LZ patrol during contact, fires from that route, and cannot wander into a
+   generic field-overwatch or infantry-backstop assignment (`bdfd5bf8`). Manual
+   cadence and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through
