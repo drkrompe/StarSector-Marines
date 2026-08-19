@@ -53,6 +53,14 @@
   artillery scatter. Full record:
   [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
   Post-integration full suite: 1619 tests green.
+- **S4a SHIPPED** on `session/ballistics-proximity-catch`, implementation commit
+  `6ab24cbb`. Probabilistic doodad/edge-cover catches and friendly incidental
+  contacts now smoothstep from zero at 2 cells to full chance at 8 cells;
+  enemies, intended targets, structural walls, and downrange base odds remain
+  unchanged. Full record:
+  [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
+  All 35 focused tests pass; the 1,629-test root run has only the known
+  suite-order-dependent swarm fixture failure, which passes alone.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -60,13 +68,13 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active: S4a — proximity catch ramp
+## Active work
 
-Contract: [`stories/s4a-proximity-catch-ramp.md`](stories/s4a-proximity-catch-ramp.md).
-Add one shared smoothstep catch scale: zero through 2 cells from the muzzle,
-full at 8 cells. Apply it to doodad and directional edge-cover block rolls and
-friendly incidental contacts. Enemy interveners, intended-target accuracy, and
-structural walls remain unchanged.
+The contracted ballistics queue through S4a is complete. No implementation
+story is active. The next useful ballistics step is an in-game feel pass: watch
+units fire from immediately behind low cover, dense squad firing lanes, and
+midfield/target-side cover to calibrate whether the 2–8-cell transition reads
+naturally without making downrange cover feel weak.
 
 Fighter high/low/wide fire remains an explicit follow-up in air story 4f, after
 fighter attacks compose the real air entity and airborne Z/roof/wall policy is

@@ -23,8 +23,8 @@ visible lateral/high/low flight, vertical silhouettes). **S3c shipped
 silhouettes and height-gated directional edge cover). **S4 shipped 2026-08-19**
 (`complete/s4-direct-fire-unification.md` — shared source seam and modeled
 direct fire for mech, handheld rocket, and ground burst-turret paths). **S4a
-is active** (`stories/s4a-proximity-catch-ramp.md` — muzzle-distance attenuation
-for probabilistic cover and friendly incidental catches).
+shipped 2026-08-19** (`complete/s4a-proximity-catch-ramp.md` — muzzle-distance
+attenuation for probabilistic cover and friendly incidental catches).
 
 ## Why
 
@@ -118,7 +118,8 @@ horizontal-radius × vertical-half-height silhouette. Failed aim lies beyond
 that silhouette with a clearance widened by `effectiveSpread`. Lateral error
 changes the physical XY ray; elevation becomes a lightweight linear Z path
 projected into screen Y. The intended target never makes a second invisible
-hit roll. Incidental contacts retain their flat graze chance.
+hit roll. Enemy incidental contacts retain their flat graze chance; nearby
+friendly contacts receive the S4a proximity scale.
 
 ### 6. Committed outcomes, walk-in-order
 
@@ -162,10 +163,10 @@ movers can enter the corridor before contact.
    friendlies in the lane at reduced damage
    (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`). Deliberately annoying — the pain is
    a diegetic prompt toward better training and equipment for the troops.
-   Softener: friendly contacts within `FRIENDLY_MUZZLE_CLEARANCE = 2.0`
-   cells of the shooter are skipped (you shoot *around* the squadmate at
-   your shoulder), so clustered squads don't grind themselves down at
-   point-blank.
+   Softener: friendly contacts have zero catch chance through 2 cells and
+   smoothstep to their full incidental chance at 8 cells (you shoot *around*
+   squadmates near your firing position), so clustered squads don't grind
+   themselves down at point-blank.
 2. **Near-miss morale goes path-proximity in S1.** The miss ring dies with
    the swap, so endpoint semantics would under-trigger (a missed round's
    endpoint lands far downrange). `SquadMoraleSystem.squadHitByMiss`
@@ -208,10 +209,10 @@ movers can enter the corridor before contact.
   handheld rockets, and ground burst-turret spray now adopt the resolver;
   abstract cover and direct-fire wall-snap/miss-ring paths are retired. See
   [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
-- **S4a — proximity catch ramp.** Active: nearby probabilistic cover and
-  friendly interveners gain a smooth muzzle-distance attenuation while
+- ~~**S4a — proximity catch ramp.**~~ **SHIPPED** — nearby probabilistic cover
+  and friendly interveners gain a smooth muzzle-distance attenuation while
   downrange values remain unchanged. See
-  [`stories/s4a-proximity-catch-ramp.md`](stories/s4a-proximity-catch-ramp.md).
+  [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
 
 Future hooks (post-S4, backlog): doodad HP / cover erosion; lead error by
 aptitude; point defense generalization (`Projectile.intercepted` reserved);
