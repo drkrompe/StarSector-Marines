@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 public final class SwarmPressureBehavior implements UnitBehavior {
 
     private static final float CURRENT_TARGET_LEEWAY_SQUARED = 1.25f * 1.25f;
+    private static final int ROAM_MIN_DISTANCE = 3;
+    private static final int ROAM_RADIUS = 7;
+    private static final int ROAM_SAMPLE_ATTEMPTS = 16;
 
     public static final SwarmPressureBehavior INSTANCE =
             new SwarmPressureBehavior();
@@ -24,7 +27,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         long target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
         if (target == 0L) {
-            sim.clearPath(runner);
+            updateRoaming(runner, previousTarget, sim);
             return;
         }
 
@@ -55,6 +58,69 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                     sim.getOccupancyMap()));
         }
         sim.advanceMovement(runner);
+    }
+
+    /**
+     * Keeps an undiscovered swarm visibly roving before the first ground force
+     * arrives. Destinations are deterministic per runner/tick and paths may not
+     * enter the protected shelter or pickup footprints.
+     */
+    private static void updateRoaming(long runner, long previousTarget,
+                                      BattleSimulation sim) {
+        if (previousTarget != 0L) sim.clearPath(runner);
+        int[] currentPath = sim.movement().path(runner);
+        if (sim.movement().pathIdx(runner) < Paths.cellCount(currentPath)) {
+            sim.advanceMovement(runner);
+            return;
+        }
+        if (!sim.movement().mayRepath(runner)) return;
+
+        int originX = sim.world().cellX(runner);
+        int originY = sim.world().cellY(runner);
+        int span = ROAM_RADIUS * 2 + 1;
+        long seed = runner * 0x9E3779B97F4A7C15L
+                ^ (long) sim.getSimTickIndex() * 0xBF58476D1CE4E5B9L;
+        for (int attempt = 0; attempt < ROAM_SAMPLE_ATTEMPTS; attempt++) {
+            long sample = mix(seed + attempt * 0x94D049BB133111EBL);
+            int dx = Math.floorMod((int) sample, span) - ROAM_RADIUS;
+            int dy = Math.floorMod((int) (sample >>> 32), span) - ROAM_RADIUS;
+            if (Math.abs(dx) + Math.abs(dy) < ROAM_MIN_DISTANCE) continue;
+            int destinationX = originX + dx;
+            int destinationY = originY + dy;
+            if (!sim.getGrid().inBounds(destinationX, destinationY)
+                    || !sim.getGrid().isWalkable(destinationX, destinationY)
+                    || sim.isInsideRescueOpeningProtectedZone(
+                            destinationX, destinationY)) {
+                continue;
+            }
+            int destinationCell = sim.getGrid().index(destinationX, destinationY);
+            if ((sim.getOccupancyMap()[destinationCell] & 0xFF) != 0) continue;
+            int[] path = GridPathfinder.findPath(sim.getGrid(),
+                    originX, originY, destinationX, destinationY,
+                    sim.getOccupancyMap());
+            if (Paths.isEmpty(path) || crossesProtectedZone(path, sim)) continue;
+            sim.setPath(runner, path);
+            sim.advanceMovement(runner);
+            return;
+        }
+        sim.clearPath(runner);
+    }
+
+    private static boolean crossesProtectedZone(int[] path,
+                                                BattleSimulation sim) {
+        for (int i = 0, n = Paths.cellCount(path); i < n; i++) {
+            if (sim.isInsideRescueOpeningProtectedZone(
+                    Paths.cellX(path, i), Paths.cellY(path, i))) return true;
+        }
+        return false;
+    }
+
+    private static long mix(long value) {
+        value ^= value >>> 30;
+        value *= 0xBF58476D1CE4E5B9L;
+        value ^= value >>> 27;
+        value *= 0x94D049BB133111EBL;
+        return value ^ (value >>> 31);
     }
 
     /**
