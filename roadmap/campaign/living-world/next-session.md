@@ -130,7 +130,10 @@ aliens drop from 30 to 7.5 HP and runners from 24 to 6 HP; both live archetypes
 use generated true-overhead body/head/foot layers on the existing marine
 compositor, without firearm layers, while the held alien sheets remain fallback
 and corpse art (`bccbbe16`). The manual queue still owns roster size and
-post-rebalance time-to-contact/kill feel.
+post-rebalance time-to-contact/kill feel. The modular creature now also reuses
+one generated forearm/claw layer on both sides: claws stay beneath the carapace
+at rest, then one alternating claw moves forward above the torso for each
+contact swipe (`20d3bcb0`). Normal-zoom swipe readability remains manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -333,6 +336,8 @@ swarm tuning remain in the shared deferred queue.
   an opening deployment phase (`8b2af722`, `e0d29078`).
 - G6 health/art feel pass — quarter-HP aliens and modular live xeno composition
   (`bccbbe16`).
+- G6 layered swipe follow-up — generated fore-claw layer and alternating
+  foreground contact animation (`20d3bcb0`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
