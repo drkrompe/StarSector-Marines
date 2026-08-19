@@ -36,44 +36,36 @@ doesn't block it); contested compounds only commit an already-adjacent
 squad; everyone else stays on the strip search-and-destroy push. See
 `roadmap/conquest/complete/deliberate-compound-capture.md`.
 
+Story 19's cheap slice shipped (2026-08-19, `14d646a`): `EnterZone` no
+longer treats contact as a binary halt. A per-tick route threat score combines
+local force, retreat posture, and distance from the advance axis; hysteresis
+selects press versus commit, committed members prosecute inside a bounded
+off-axis leash, and falling threat releases the squad back onto its objective
+route automatically. Dump schema v6 exposes the full decision. See
+`complete/19-threat-scored-engagement-leash.md`.
+
+Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
+`09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
+speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
+gate. The full squad-belief + commander-influence layer remains parked.
+
 ## Immediate next
 
-00. **Threat-scored engagement leash** (`stories/19-threat-scored-engagement-leash.md`)
-    — replace the binary `haltOnContact` gate in the zone-push family with a
-    per-tick threat-scored commit-vs-press leash that self-releases (generalize
-    `GuardPostPatrol.computeLeash` to the advance axis). Shots-of-opportunity
-    down-payment already shipped (`8d33ca5` — `closestEnemyInAttackRange`).
-    Cheap slice (omniscient force-ratio + retreating-discount + astride-route)
-    is independently shippable; full honest-threat version parked behind the
-    perception layer (story 15).
-
-0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**
-   (`2b31af4`, `4cebcb8`, `87cf47c`, `94e3060`, `8e73d0d`, `7fc2415`, `08ef31e`).
-   The AABB scoping fix, the 0a exterior-clear guard, the richer
-   `GarrisonCompound`/`GarrisonPatrol` multi-building garrison (marine holder +
-   defender base garrison, primary-node coordination), and 0b — the captured
-   compound is held by the dedicated born-holding garrison squad shipped in by
-   `CompoundGarrisonSystem` (the capturing assault squad keeps advancing). See
-   `stories/17-garrison-zone-clear-scoping.md` § What shipped. Small follow-ups
-   remain (courtyard move-to-engage; SecureCompound off-path rooms;
-   release-when-quiet) in that doc's § Remaining follow-ups.
-1. **Perception cheap wins** (`stories/15-perception-and-influence.md`
-   § Near-term cheap wins) — threat-direction cover scoring, ranged LoS
-   variant, threat-set gate on `HAS_LOS_TO_TARGET`. Lay the data-flow
-   seam for the full perception system without committing to it.
-2. **Slice 4 (Stories C + F)** — per-member assignment + bounding
+1. **Slice 4 (Stories C + F)** — per-member assignment + bounding
    overwatch + objective rush under fire. F may collapse into J (the
    cordon goal hierarchy already covers planter-under-fire). See
    `stories/10-tactical-stories.md` § Slice 4.
-3. **Slice 5 (Story H)** — last-stand `HoldPosition` on `MUST_HOLD`
+2. **Slice 5 (Story H)** — last-stand `HoldPosition` on `MUST_HOLD`
    tactical nodes. Small scope.
-4. **Story E (mech-screened advance)** — remaining piece of Slice 6.
+3. **Story E (mech-screened advance)** — remaining piece of Slice 6.
    Blocked on mech GOAP Stage 2 work (`stories/13-mech-goap.md`).
 
 ## Parked but design-complete
 
 - **Full perception & influence** (`stories/15-perception-and-influence.md`)
-  — squad belief map + commander heatmap. Queues after cheap wins land.
+  — squad belief map + commander heatmap. Tactical down-payments are shipped;
+  the ground-truth threat reads in guard-post and objective-advance leashes are
+  explicit swap sites when belief lands.
 - **Commander improvements** (`stories/12-squad-of-squads.md` §
   Improvement path) — contour-aware target picking, cross-strip
   reallocation, defender-side commanders. All gated on doc 15.
@@ -92,9 +84,8 @@ squad; everyone else stays on the strip search-and-destroy push. See
   scoping + `GarrisonCompound`/`GarrisonPatrol` multi-building garrison + 0a/0b
   command fixes (all shipped; `GarrisonArea` is the reusable gate primitive,
   `TacticalNode.compoundBounds` the persisted footprint)
-- `stories/19-threat-scored-engagement-leash.md` — commit-vs-press during the
-  zone-push advance as a per-tick threat-scored leash with auto-release
-  (shots-of-opportunity slice shipped `8d33ca5`; scored leash designed,
-  generalizes `GuardPostPatrol.computeLeash`)
+- `complete/19-threat-scored-engagement-leash.md` — shipped commit-vs-press
+  zone advance with off-axis leash, hysteresis, auto-release, diagnostics, and
+  the belief-layer swap boundary (`8d33ca5`, `14d646a`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

@@ -163,10 +163,12 @@ class of bugs and unlocks frontline / bulge / breakthrough reasoning
 for the commander tier.
 
 Design lives in [`15-perception-and-influence.md`](stories/15-perception-and-influence.md).
-**Near-term cheap wins (threat-direction cover scoring, ranged LoS
-variant, threat-set gate on `HAS_LOS_TO_TARGET`) ship first as a
-tactical task** — they lay the data-flow seam for the full system
-without committing to it.
+**The near-term cheap wins are shipped**: threat-direction cover scoring,
+speed-scaled fallback scans, ranged LoS, and the last-seen threat-set gate on
+`HAS_LOS_TO_TARGET` (`5f12ac03`, `09bf4f70`, `6dd1e63c`, `04e3f814`). The
+threat-scored objective-advance leash now ships on that tactical seam too
+(`14d646a`; [story 19](complete/19-threat-scored-engagement-leash.md)). Full
+squad belief + commander influence remain parked.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 future)
 
