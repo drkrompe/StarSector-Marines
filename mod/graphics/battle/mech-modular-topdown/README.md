@@ -7,24 +7,28 @@ to provide corpse art.
 Every normalized chassis uses the same 208-pixel canvas as its sizing unit.
 `foot.png` is derived from the accepted Bulwark hull's bottom armor tab
 (neither generated leg is used). `chaingun-arm.png`,
-`srm-pod.png`, and `lrm-pod.png` each represent one reusable part. The shoulder
+`srm-pod.png`, `lrm-pod.png`, and `heavy-cannon.png` each represent one reusable part. The shoulder
 weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
-draws matching equipment on both hardpoints. Feet, arms, and shoulder racks are
-beneath the chassis layer. Rear/anchor regions are intentionally buried: motion
-exposes only a toe tip, recoil exposes no arm joint, and racks extend the outer
-silhouette instead of being pasted across the torso armor.
+can carry matching equipment or one deliberately centered rack. Feet and arms
+remain beneath the chassis layer. Shoulder-rack order is authored per hull:
+Bulwark and Hound expose their racks above the armor, while Sirocco's paired
+LRMs remain tucked under its broad hull. Rear/anchor regions are intentionally
+buried so motion exposes only a toe tip and recoil exposes no arm joint.
 
 Current hull-relative authored sizes are approximately 30% width for each
 chaingun arm, 30% for the SRM pod, and 36% for the heavier LRM pod.
 
-Bulwark uses the broad `chassis.png`. Hound uses the compact wedge-shaped
-`chassis-hound.png`; Sirocco uses the narrow long-spine
-`chassis-sirocco.png`. Their retained full-resolution ImageGen sources live in
-`sources/`. `chassis-socketed-variant.png` remains available for authored custom
-loads. `srm-pod.png` is the compact rack shell, while `lrm-pod.png` is the
-larger rack shell. `linear-cannon-variant.png` supplies Sirocco's direct-fire
-backup arms.
+Bulwark uses the broad `chassis.png`, exposed SRM/LRM racks, and horizontally
+compressed chainguns. Hound uses the generated narrow long-spine silhouette,
+flipped so its pointed end faces forward, with one centerline nose chaingun and
+one dorsal SRM-5. Its foot anchors use a wider stance than the other chassis so
+the alternating locomotion remains visible around the thin body. Sirocco uses
+the generated broad wedge, likewise flipped,
+with paired LRM-5 racks and a centerline heavy anti-armor cannon. Their retained
+full-resolution ImageGen sources live in `sources/`, including
+`sources/heavy-cannon.png`. `chassis-socketed-variant.png` and
+`linear-cannon-variant.png` remain available for authored custom loads.
 
 Run `python build_assets.py` after replacing a retained source. The generated
 previews use the same hull-relative placement model as the runtime composer and

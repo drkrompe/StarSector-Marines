@@ -4,9 +4,6 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
-
 import java.awt.Color;
 
 /**
@@ -23,6 +20,8 @@ import java.awt.Color;
  * <ul>
  *   <li>{@link #CHAINGUN} — close-band brawler. Heavy 12-round burst at high
  *       cycle rate. Reads as the mech walking forward "brrt"-ing.</li>
+ *   <li>{@link #HEAVY_CANNON} — precise short/mid anti-hardened fallback.
+ *       Low infantry throughput, but a large hardened-target multiplier.</li>
  *   <li>{@link #SRM_POD} — mid-close burst-damage salvo. Wave of 4 dumb
  *       rockets per launch, ammo-limited, big anti-anything punch.</li>
  *   <li>{@link #LRM_ARTILLERY} — long-band artillery. Slow arc, single
@@ -85,6 +84,23 @@ public enum MechWeapon {
                   0.35f, 4, /*wallDmgRadius*/ 0f),
 
     /**
+     * Single centerline anti-armor cannon. One accurate kinetic round keeps
+     * infantry throughput modest, while the hardened-target multiplier makes
+     * it a credible answer to turrets, mechs, hubs, and other armored bodies.
+     * Its 26-cell direct band leaves Sirocco's LRMs as the primary standoff
+     * weapon rather than turning the backup gun into a second long-range role.
+     */
+    HEAVY_CANNON("Heavy Cannon",
+                 "heavy_mauler_fire",
+                 new Color(0xFF, 0xD0, 0x88),
+                 26f, 5.0f, 0.76f, 2.50f, 3.0f,
+                 ImpactProfile.KINETIC,
+                 1, 0f,
+                 "graphics/missiles/shell_gauss_cannon.png", 0.24f, 0.24f,
+                 0f, 0.12f, false,
+                 0f, 6, /*wallDmgRadius*/ 0f),
+
+    /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
      * for the audio + projectile. Salvos are intentionally infrequent (5.5s
      * cooldown) so a single mech doesn't permanently deny mid-close approach.
@@ -142,7 +158,7 @@ public enum MechWeapon {
     public final float accuracy;
     /** Sim-seconds between trigger pulls. For CHAINGUN this is between bursts; for SRM between salvos; for LRM between shots. */
     public final float cooldown;
-    /** Damage multiplier vs {@link MapTurret} targets — chainguns plink (0.4×), missiles wreck (2-2.5×). */
+    /** Damage multiplier against hardened targets, including turrets, mechs, and objective hubs. */
     public final float vsTurretMult;
     public final ImpactProfile impactProfile;
     /** Projectiles per trigger pull. CHAINGUN burst (12), SRM salvo (4), LRM salvo (5). */
