@@ -16,10 +16,13 @@ public final class PatronMemoryVoice {
 
     static final String MEMORY_KEY = "memory";
     static final String CONTINUITY_KEY = "continuity";
+    static final String LOCAL_ECHO_KEY = "localEcho";
 
     private static volatile Map<PatronEngagementOutcome, String[]> cache;
     private static volatile Map<PatronRelationshipPattern, String[]>
             continuityCache;
+    private static volatile Map<PatronEngagementOutcome, String[]>
+            localEchoCache;
 
     private PatronMemoryVoice() {}
 
@@ -42,6 +45,18 @@ public final class PatronMemoryVoice {
             }
         }
         String[] pool = continuityCache.get(pattern);
+        return pool != null ? pool : new String[0];
+    }
+
+    public static String[] forLocalEcho(PatronEngagementOutcome outcome) {
+        if (localEchoCache == null) {
+            synchronized (PatronMemoryVoice.class) {
+                if (localEchoCache == null) {
+                    localEchoCache = loadLocalEchoOrEmpty();
+                }
+            }
+        }
+        String[] pool = localEchoCache.get(outcome);
         return pool != null ? pool : new String[0];
     }
 
@@ -117,6 +132,41 @@ public final class PatronMemoryVoice {
         return result;
     }
 
+    public static Map<PatronEngagementOutcome, String[]> parseLocalEcho(
+            JSONObject root) {
+        if (root == null) {
+            throw new IllegalStateException("patron local echo: null root");
+        }
+        JSONObject localEcho = root.optJSONObject(LOCAL_ECHO_KEY);
+        if (localEcho == null) {
+            throw new IllegalStateException("patron local echo: missing '"
+                    + LOCAL_ECHO_KEY + "' object");
+        }
+        Map<PatronEngagementOutcome, String[]> result =
+                new EnumMap<>(PatronEngagementOutcome.class);
+        for (PatronEngagementOutcome outcome
+                : PatronEngagementOutcome.values()) {
+            JSONArray array = localEcho.optJSONArray(outcome.name());
+            if (array == null || array.length() == 0) {
+                throw new IllegalStateException("patron local echo: '"
+                        + outcome.name() + "' is missing or empty");
+            }
+            String[] pool = new String[array.length()];
+            for (int i = 0; i < array.length(); i++) {
+                Object value = array.opt(i);
+                if (!(value instanceof String)
+                        || ((String) value).trim().isEmpty()) {
+                    throw new IllegalStateException("patron local echo: '"
+                            + outcome.name() + "' variant " + i
+                            + " is empty or not a string");
+                }
+                pool[i] = (String) value;
+            }
+            result.put(outcome, pool);
+        }
+        return result;
+    }
+
     static void loadForTest(
             Map<PatronEngagementOutcome, String[]> injected) {
         synchronized (PatronMemoryVoice.class) {
@@ -128,6 +178,14 @@ public final class PatronMemoryVoice {
             Map<PatronRelationshipPattern, String[]> injected) {
         synchronized (PatronMemoryVoice.class) {
             continuityCache = injected != null
+                    ? new HashMap<>(injected) : null;
+        }
+    }
+
+    static void loadLocalEchoForTest(
+            Map<PatronEngagementOutcome, String[]> injected) {
+        synchronized (PatronMemoryVoice.class) {
+            localEchoCache = injected != null
                     ? new HashMap<>(injected) : null;
         }
     }
@@ -169,6 +227,25 @@ public final class PatronMemoryVoice {
             LOG.warn("PatronMemoryVoice: continuity load failed — using S1 "
                     + "callbacks: " + failure.getMessage());
             return new EnumMap<>(PatronRelationshipPattern.class);
+        }
+    }
+
+    private static Map<PatronEngagementOutcome, String[]>
+            loadLocalEchoOrEmpty() {
+        try {
+            JSONObject root = Global.getSettings().loadJSON(
+                    CommsOfficerVoice.CONTENT_PATH, true);
+            Map<PatronEngagementOutcome, String[]> parsed =
+                    parseLocalEcho(root);
+            LOG.info("PatronMemoryVoice: loaded " + parsed.size()
+                    + " local-echo pools from "
+                    + CommsOfficerVoice.CONTENT_PATH);
+            return parsed;
+        } catch (Throwable failure) {
+            LOG.warn("PatronMemoryVoice: local-echo load failed — keeping "
+                    + "first-time briefing unchanged: "
+                    + failure.getMessage());
+            return new EnumMap<>(PatronEngagementOutcome.class);
         }
     }
 
