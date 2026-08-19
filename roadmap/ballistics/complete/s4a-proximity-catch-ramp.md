@@ -7,7 +7,7 @@
 > are unchanged.
 >
 > **Landed vs. planned deviations:** none. Post-integration verification: all
-> 35 focused ballistics/direct-fire tests pass; full suite 1635 tests green.
+> 35 focused ballistics/direct-fire tests pass; full suite 1643 tests green.
 
 Original contract below, kept for the record.
 
