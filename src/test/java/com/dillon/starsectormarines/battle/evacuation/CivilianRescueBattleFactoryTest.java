@@ -59,6 +59,13 @@ class CivilianRescueBattleFactoryTest {
             assertTrue(mission.awaitingEvacuees);
             assertEquals(8, mission.evacueeCapacity);
             assertEquals(0, mission.marinesRemaining);
+            int lzX = (int) Math.floor(mission.lzX);
+            int lzY = (int) Math.floor(mission.lzY);
+            int edgeDistance = Math.min(Math.min(lzX,
+                            sim.getGrid().getWidth() - 1 - lzX),
+                    Math.min(lzY, sim.getGrid().getHeight() - 1 - lzY));
+            assertTrue(edgeDistance
+                    >= CivilianEvacuationPlacement.PICKUP_EDGE_INSET);
             assertEquals(RescuePickupSupportSystem.INITIAL_ARRIVAL_DELAY_SECONDS,
                     mission.pendingDelay, 0.001f);
         }
@@ -67,10 +74,14 @@ class CivilianRescueBattleFactoryTest {
         int mechSorties = 0;
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
-            if (mission.rescueMilitiaTransport) militiaSorties++;
+            if (mission.rescueMilitiaTransport) {
+                militiaSorties++;
+                assertEquals(4, mission.marineLoadout.length);
+            }
             if (mission.rescuePickupMechTransport) mechSorties++;
         }
-        assertEquals(2, militiaSorties);
+        assertEquals(RescuePickupSupportSystem.TARGET_GUARD_SQUADS,
+                militiaSorties);
         assertEquals(1, mechSorties);
         assertTrue(sim.getCommander(Faction.MARINE)
                 instanceof RescueEscortCommand);

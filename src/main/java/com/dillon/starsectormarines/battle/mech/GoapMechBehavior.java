@@ -39,6 +39,7 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
     public static final List<Goal> MECH_GOALS = List.of(
+            PatrolRescueFormationGoal.INSTANCE,
             OverwatchKillZoneGoal.INSTANCE,
             BackstopAssignedSquadGoal.INSTANCE,
             MechSurviveContact.INSTANCE,
@@ -47,6 +48,7 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
+            PatrolRescueFormation.INSTANCE,
             EngageAtCurrentBand.INSTANCE,
             OverwatchKillZone.INSTANCE,
             BackstopAssignedSquad.INSTANCE,

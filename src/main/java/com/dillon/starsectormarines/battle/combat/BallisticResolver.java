@@ -51,8 +51,10 @@ public final class BallisticResolver {
 
     /** Missed rounds fly this far past the (spread-jittered) aim point before the ray's raw length is computed. */
     public static final float OVERSHOOT_CELLS = 3f;
-    /** Base hit chance for a contact that is not the locked target. Enemies use it flat; nearby friendlies receive the proximity catch scale. */
-    public static final float INCIDENTAL_HIT_CHANCE = 0.35f;
+    /** A physical ray crossing another hostile always transfers the missed shot into that body. */
+    public static final float HOSTILE_INCIDENTAL_HIT_CHANCE = 1f;
+    /** Friendly bodies retain a probabilistic graze so formation fire is not guaranteed self-harm. */
+    public static final float FRIENDLY_INCIDENTAL_HIT_CHANCE = 0.35f;
     /** Damage multiplier applied by the caller (queue time) when a round's victim shares the shooter's faction. Declared here as the tuning surface; not consumed inside {@link #resolve}. */
     public static final float FRIENDLY_FIRE_DAMAGE_MULT = 0.5f;
     /** Probabilistic cover and friendly contacts at or inside this muzzle distance have zero catch chance. */
@@ -434,8 +436,10 @@ public final class BallisticResolver {
                 if (!aim.onTarget()) continue;
                 return new Resolution(e.x, e.y, e.z, e.t, victim, true, e.friendly, StopKind.UNIT_HIT);
             }
-            float hitChance = INCIDENTAL_HIT_CHANCE * world.incomingAccuracyMult(victim);
-            if (e.friendly) hitChance *= proximityScale;
+            float hitChance = (e.friendly
+                    ? FRIENDLY_INCIDENTAL_HIT_CHANCE * proximityScale
+                    : HOSTILE_INCIDENTAL_HIT_CHANCE)
+                    * world.incomingAccuracyMult(victim);
             if (hitChance > 0f && rng.nextFloat() < hitChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, victim, false, e.friendly, StopKind.UNIT_HIT);
             }

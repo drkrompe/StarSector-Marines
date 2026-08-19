@@ -75,6 +75,7 @@ import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -574,10 +575,10 @@ public class BattleSimulation implements BattleControl {
             CivilianEvacuationPlacement placement,
             float reinforcementLzX, float reinforcementLzY,
             float entryX, float entryY, float exitX, float exitY,
-            long seed) {
+            long seed, RiskLevel risk) {
         return rescuePickupSupport.configure(placement,
                 reinforcementLzX, reinforcementLzY,
-                entryX, entryY, exitX, exitY, seed, this);
+                entryX, entryY, exitX, exitY, seed, risk, this);
     }
     public boolean isRescuePickupSupportConfigured() {
         return rescuePickupSupport.isConfigured();

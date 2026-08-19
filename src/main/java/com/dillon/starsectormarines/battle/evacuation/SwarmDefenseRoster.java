@@ -179,10 +179,11 @@ public final class SwarmDefenseRoster {
 
     static boolean insideLiftZone(
             int x, int y, CivilianEvacuationPlacement placement) {
+        int safeRadius = CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS + 2;
         return Math.abs(x - placement.liftX)
-                <= CivilianEvacuationPlacement.LIFT_ZONE_RADIUS
+                <= safeRadius
                 && Math.abs(y - placement.liftY)
-                <= CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+                <= safeRadius;
     }
 
     private static long priority(long seed, int cell) {

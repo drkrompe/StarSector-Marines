@@ -122,6 +122,13 @@ public final class Squad {
      */
     public boolean rescuePickupGuard;
 
+    /** Rescue-line mech squad that patrols the authored five-point perimeter. */
+    public boolean rescuePickupMech;
+    /** Packed x/y perimeter points for the rescue mech's quiet-state patrol. */
+    public int[] rescuePatrolCells;
+    /** Next packed point selected by the rescue mech patrol action. */
+    public int rescuePatrolIndex;
+
     /**
      * Member count at the moment {@link com.dillon.starsectormarines.battle.setup.BattleSetup}
      * finished spawning the squad. The fallback trigger compares

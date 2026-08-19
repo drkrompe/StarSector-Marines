@@ -15,7 +15,7 @@ class CivilianEvacuationPlacementTest {
 
     @Test
     void selectsResidentialShelterAndEightUniqueReachableCells() {
-        NavigationGrid grid = openGrid(20, 16);
+        NavigationGrid grid = openGrid(40, 32);
         PointOfInterest lab = poi(PointOfInterest.Kind.LABORATORY, 5, 5);
         PointOfInterest home = poi(PointOfInterest.Kind.RESIDENTIAL, 10, 8);
 
@@ -29,8 +29,20 @@ class CivilianEvacuationPlacementTest {
         assertEquals(home.anchorCellX, placement.shelterApproachX);
         assertEquals(home.anchorCellY, placement.shelterApproachY);
         assertEquals(8, placement.spawnCount());
-        assertTrue(placement.liftX < 2 || placement.liftY < 2
-                || placement.liftX >= 18 || placement.liftY >= 14);
+        int edgeDistance = Math.min(Math.min(placement.liftX,
+                        grid.getWidth() - 1 - placement.liftX),
+                Math.min(placement.liftY,
+                        grid.getHeight() - 1 - placement.liftY));
+        assertTrue(edgeDistance >= CivilianEvacuationPlacement.PICKUP_EDGE_INSET);
+        assertEquals(CivilianEvacuationPlacement.PICKUP_FORMATION_POINTS,
+                placement.formationPointCount());
+        for (int point = 0; point < placement.formationPointCount(); point++) {
+            assertTrue(grid.isWalkable(placement.formationX(point),
+                    placement.formationY(point)));
+            assertTrue(Math.max(Math.abs(placement.formationX(point) - placement.liftX),
+                    Math.abs(placement.formationY(point) - placement.liftY))
+                    >= CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS - 2);
+        }
         for (int i = 0; i < placement.spawnCount(); i++) {
             assertTrue(grid.isWalkable(
                     placement.spawnX(i), placement.spawnY(i)));
