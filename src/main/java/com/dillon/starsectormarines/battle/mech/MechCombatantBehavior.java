@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
@@ -10,8 +11,8 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
- * Mech slice of the combatant loop: three concurrent weapon tracks
- * (chaingun, SRM pod, LRM artillery) with independent gating, and a
+ * Mech slice of the combatant loop: concurrent installed hardpoints with
+ * independent gating, and a
  * "stand off at LRM range when not in close engagement" movement pattern.
  * Sibling of {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior};
  * {@link CombatantBehavior} picks between the two on presence of a
@@ -49,12 +50,11 @@ public final class MechCombatantBehavior implements UnitBehavior {
             tryFireMechWeapons(u, m, target, dist, sim, visible);
         }
 
-        // Close engagement = in chaingun range with LOS. Outside that, the
+        // Close engagement = in the preferred supplied direct band with LOS. Outside that, the
         // mech advances toward a firing position so it can re-acquire LOS for
         // its short-range weapons (LRMs already fire from here via the indirect
         // path above).
-        float preferredDirectRange = m.srmAmmoSalvos > 0
-                ? m.srmPod.range : m.chaingun.range;
+        float preferredDirectRange = m.preferredDirectRange();
         boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
         if (!closeEngagement && sim.movement().mayRepath(u)) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
@@ -74,7 +74,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     }
 
     /**
-     * Triggers the three mech weapons in their respective bands. Each track is
+     * Triggers all installed mech components in their respective bands. Each mount is
      * independent and may fire on the same tick:
      * <ul>
      *   <li><b>Chaingun</b> — close band, LOS-required. Fires when target is
@@ -94,61 +94,60 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * </ul>
      */
     public static void tryFireMechWeapons(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        tryFireChaingun(u, m, target, dist, sim, hasLos);
-        tryFireSrm(u, m, target, dist, sim, hasLos);
-        tryFireLrm(u, m, target, dist, sim, hasLos);
-    }
-
-    /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
-    public static void tryFireChaingun(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (m.isAimedAt(target) && hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
-                && dist <= m.chaingun.range) {
-            sim.fireMechWeapon(u, target, m.chaingun);
-            m.chaingunCooldown = m.chaingun.cooldown;
-            if (m.chaingun.burstCount > 1) {
-                m.chaingunBurstRemaining = m.chaingun.burstCount - 1;
-                m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                m.chaingunBurstTargetId = target;
-            }
+        for (MechWeaponMount mount : m.mounts()) {
+            tryFireMount(u, m, mount, target, dist, sim, hasLos);
         }
     }
 
-    /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
+    /** Arms-track compatibility entry point; it may carry chainguns or linear cannons. */
+    public static void tryFireChaingun(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
+        tryFireMount(u, m, m.mount(MechMountSlot.ARMS), target, dist, sim, hasLos);
+    }
+
+    /** Fires every installed SRM component; used by doctrines that permit close missiles. */
     public static void tryFireSrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (m.isAimedAt(target) && hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
-                && dist <= m.srmPod.range) {
-            sim.fireMechWeapon(u, target, m.srmPod);
-            m.srmAmmoSalvos--;
-            m.srmCooldown = m.srmPod.cooldown;
-            if (m.srmPod.burstCount > 1) {
-                m.srmSalvoRemaining = m.srmPod.burstCount - 1;
-                m.srmSalvoTimer = m.srmPod.burstSpacing;
-                m.srmSalvoTargetId = target;
+        for (MechWeaponMount mount : m.mounts()) {
+            if (mount != null && mount.weapon() == MechWeapon.SRM_POD) {
+                tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
         }
     }
 
     /**
-     * LRM artillery track: long-band indirect-fire salvo. Gated to outside
-     * chaingun range (no point lobbing artillery at point-blank targets) and
+     * Fires every installed LRM component. Gated to outside the arms range
+     * (no point lobbing artillery at point-blank targets) and
      * only fires when not actively in close engagement. No-LOS shots get the
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public static void tryFireLrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
-        if (m.isAimedAt(target) && m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
-                && dist <= m.lrmArtillery.range
-                && dist >  m.chaingun.range) {
-            float accMult = hasLos
-                    ? 1.0f
-                    : com.dillon.starsectormarines.battle.mech.MechWeapon.LRM_NO_LOS_ACC_MULT;
-            sim.fireMechWeapon(u, target, m.lrmArtillery, accMult);
-            m.lrmAmmoSalvos--;
-            m.lrmCooldown = m.lrmArtillery.cooldown;
-            if (m.lrmArtillery.burstCount > 1) {
-                m.lrmSalvoRemaining = m.lrmArtillery.burstCount - 1;
-                m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                m.lrmSalvoTargetId = target;
+        for (MechWeaponMount mount : m.mounts()) {
+            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY) {
+                tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
+        }
+    }
+
+    private static void tryFireMount(long u, MechLoadoutComponent loadout,
+                                     MechWeaponMount mount, long target, float dist,
+                                     BattleControl sim, boolean hasLos) {
+        if (mount == null || !loadout.isAimedAt(target) || mount.cooldown > 0f
+                || mount.burstRemaining > 0 || !mount.hasAmmo()) return;
+        MechWeapon weapon = mount.weapon();
+        if (dist > weapon.range) return;
+        boolean indirect = weapon == MechWeapon.LRM_ARTILLERY;
+        if (!indirect && !hasLos) return;
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        float minimumIndirectRange = arms != null ? arms.weapon().range : 0f;
+        if (indirect && dist <= minimumIndirectRange) return;
+
+        float accuracyMult = indirect && !hasLos ? MechWeapon.LRM_NO_LOS_ACC_MULT : 1f;
+        sim.fireMechWeapon(u, target, weapon, accuracyMult);
+        mount.consumeTrigger();
+        mount.cooldown = weapon.cooldown;
+        if (mount.component.projectilesPerTrigger > 1) {
+            mount.burstRemaining = mount.component.projectilesPerTrigger - 1;
+            mount.burstTimer = weapon.burstSpacing;
+            mount.burstTargetId = target;
         }
     }
 }

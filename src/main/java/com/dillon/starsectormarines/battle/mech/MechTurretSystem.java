@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -83,14 +84,11 @@ public final class MechTurretSystem {
     }
 
     private long aimTarget(MechLoadoutComponent loadout, long combatTarget) {
-        if (loadout.chaingunBurstRemaining > 0 && roster.isLive(loadout.chaingunBurstTargetId)) {
-            return loadout.chaingunBurstTargetId;
-        }
-        if (loadout.srmSalvoRemaining > 0 && roster.isLive(loadout.srmSalvoTargetId)) {
-            return loadout.srmSalvoTargetId;
-        }
-        if (loadout.lrmSalvoRemaining > 0 && roster.isLive(loadout.lrmSalvoTargetId)) {
-            return loadout.lrmSalvoTargetId;
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && mount.burstRemaining > 0
+                    && roster.isLive(mount.burstTargetId)) {
+                return mount.burstTargetId;
+            }
         }
         return combatTarget;
     }

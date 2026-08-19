@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -292,6 +293,30 @@ public final class UnitRosterService {
     /** Data owner for the IDENTITY component (type/faction/name) — {@code identity().name(id)} is the greppable-name read for debug dumps / logs / tests. */
     public IdentityService identity() { return identityService; }
 
+    /** Profile-aware physical radius shared by selection, separation, ballistics and AoE. */
+    public float radius(long id) {
+        MechVariant variant = identityService.mechVariant(id);
+        return variant != null ? variant.radius : identityService.type(id).radius;
+    }
+
+    /** Profile-aware target-plane half-height for ballistic contact. */
+    public float hitHalfHeight(long id) {
+        MechVariant variant = identityService.mechVariant(id);
+        return variant != null ? variant.hitHalfHeight : identityService.type(id).hitHalfHeight;
+    }
+
+    /** Profile-aware live/corpse render scale. */
+    public float renderScale(long id) {
+        MechVariant variant = identityService.mechVariant(id);
+        return variant != null ? variant.renderScale : identityService.type(id).renderScale;
+    }
+
+    /** Profile-aware morale weight of outgoing fire. */
+    public float moraleImpact(long id) {
+        MechVariant variant = identityService.mechVariant(id);
+        return variant != null ? variant.moraleImpact : identityService.type(id).moraleImpact;
+    }
+
     /** Data owner for convoy-vehicle world entities (ground archetype) — {@code GroundSystem} adopts / reaps vehicles and reads their identity + pose by id through it. */
     public ConvoyService convoy() { return convoyService; }
 
@@ -441,6 +466,8 @@ public final class UnitRosterService {
                     BattleComponents.LAYERED_HEAD_FAMILY, armorFamily);
         }
         if (mechLayerDrawn) {
+            MechVariant variant = spec.mechVariant != null
+                    ? spec.mechVariant : MechVariant.BULWARK;
             entityWorld.setFloat(id, components.MECH_LOCOMOTION,
                     BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LOCOMOTION,
@@ -450,21 +477,24 @@ public final class UnitRosterService {
                     BattleComponents.MECH_LAYERED_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES, 180f);
-            // Stock chassis: chaingun arms, compact SRM left, heavy LRM right.
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_CHASSIS, 0);
+                    BattleComponents.MECH_LAYERED_CHASSIS, variant.chassisAppearance);
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_ARMS, 0);
+                    BattleComponents.MECH_LAYERED_ARMS, variant.arms.appearanceSelector);
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_LEFT_SHOULDER, 3);
+                    BattleComponents.MECH_LAYERED_LEFT_SHOULDER,
+                    variant.leftShoulder != null ? variant.leftShoulder.appearanceSelector : 0);
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_RIGHT_SHOULDER, 2);
+                    BattleComponents.MECH_LAYERED_RIGHT_SHOULDER,
+                    variant.rightShoulder != null ? variant.rightShoulder.appearanceSelector : 0);
         }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, spec.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, spec.faction);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME, spec.name);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID, spec.campaignSoldierId);
+        entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
