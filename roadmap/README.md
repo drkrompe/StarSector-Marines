@@ -126,11 +126,13 @@ universe over time, not retrofitted into intel slots.
    seal a deterministic Last Testament, deliver it through persistent intel and
    Chronicle history, and have production-shaped debug/replay coverage
    (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). G9 **Silent Colony** is now
-   active: its first two slices persist the blind expedition and select one-shot
+   active: its first three slices persist the blind expedition, select one-shot
    dead/ruined sites behind the shared event gate, with a reconstructible Dead
-   Letter choice surface (`4d50805d`, `33b073bd`). Next is the dedicated
-   expedition mission lineage, survivor/archive objectives, and automated-threat
-   reveal.
+   Letter choice surface, then emit a dedicated mission with the exact survivor
+   cohort, physical archive recovery, and hidden-seed autonomous turret/drone
+   defense (`4d50805d`, `33b073bd`, `9a87c85b`). Next is strict outcome
+   writeback, durable Dead Letter/Chronicle closure, and debug/save/replay
+   reachability.
    Keep swarm tuning deferred until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
