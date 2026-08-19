@@ -42,6 +42,10 @@ class CampaignStateEventColumnsTest {
         assertEquals(0, state.eventCreditsOffered[0]);
         assertEquals(DefectorAsylumOutcome.NONE,
                 DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[0]));
+        assertEquals(-1L, state.eventColonyThreatSeed[0]);
+        assertEquals(AbandonedColonyArchiveOutcome.NONE,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.eventColonyArchiveOutcome[0]));
     }
 
     @Test
@@ -72,6 +76,10 @@ class CampaignStateEventColumnsTest {
         assertEquals(0, state.eventCreditsOffered[20]);
         assertEquals(DefectorAsylumOutcome.NONE,
                 DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[20]));
+        assertEquals(-1L, state.eventColonyThreatSeed[20]);
+        assertEquals(AbandonedColonyArchiveOutcome.NONE,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.eventColonyArchiveOutcome[20]));
     }
 
     @Test
@@ -99,6 +107,8 @@ class CampaignStateEventColumnsTest {
         state.eventFollowupDeadlineTick = null;
         state.eventCreditsOffered = null;
         state.eventDefectorOutcome = null;
+        state.eventColonyThreatSeed = null;
+        state.eventColonyArchiveOutcome = null;
         state.eventIndexById = null;
         Field nextId = CampaignState.class.getDeclaredField("nextEventId");
         nextId.setAccessible(true);
@@ -119,12 +129,15 @@ class CampaignStateEventColumnsTest {
         assertNotNull(state.eventFollowupDeadlineTick);
         assertNotNull(state.eventCreditsOffered);
         assertNotNull(state.eventDefectorOutcome);
+        assertNotNull(state.eventColonyThreatSeed);
+        assertNotNull(state.eventColonyArchiveOutcome);
         assertNotNull(state.eventIndexById);
         assertEquals(0, state.eventIndex(existing));
         assertEquals(-1L, state.eventTriggerKey[0]);
         assertEquals(-1, state.eventDecisionTick[0]);
         assertEquals(-1L, state.eventSourceChainId[0]);
         assertEquals(-1, state.eventFollowupTick[0]);
+        assertEquals(-1L, state.eventColonyThreatSeed[0]);
         assertEquals(2L, state.appendCampaignEvent(
                 CampaignEventType.CIVILIAN_RESCUE,
                 8L, 1, 12, 13, 10, 5, 100));
@@ -153,6 +166,8 @@ class CampaignStateEventColumnsTest {
         state.eventFollowupDeadlineTick = null;
         state.eventCreditsOffered = null;
         state.eventDefectorOutcome = null;
+        state.eventColonyThreatSeed = null;
+        state.eventColonyArchiveOutcome = null;
         state.eventIndexById = null;
 
         readResolve(state);
@@ -172,6 +187,10 @@ class CampaignStateEventColumnsTest {
         assertEquals(-1, state.eventFollowupDeadlineTick[0]);
         assertEquals(DefectorAsylumOutcome.NONE,
                 DefectorAsylumOutcome.fromByte(state.eventDefectorOutcome[0]));
+        assertEquals(-1L, state.eventColonyThreatSeed[0]);
+        assertEquals(AbandonedColonyArchiveOutcome.NONE,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.eventColonyArchiveOutcome[0]));
         assertNotNull(state.eventIndexById);
     }
 
