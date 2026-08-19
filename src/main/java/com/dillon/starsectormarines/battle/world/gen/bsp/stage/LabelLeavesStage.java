@@ -29,9 +29,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
  * reads visually as "courtyard inside the buildings" rather than as an open
  * landing apron. Civic headquarters require a genuinely large lot so their
  * two-cell spine and four side rooms remain useful at infantry scale; smaller
- * civic rolls become ordinary commercial buildings. Industrial-compound
- * seeds likewise require the 15x12 tactical-factory footprint and demote to
- * ordinary industrial buildings when undersized.
+ * civic rolls become ordinary commercial buildings. Gated-housing seeds need
+ * enough room for a 12x10 inset apartment block and demote to ordinary homes
+ * when undersized. Industrial-compound seeds likewise require the 15x12
+ * tactical-factory footprint and demote to ordinary industrial buildings.
  */
 public final class LabelLeavesStage implements GenStage {
 
@@ -41,6 +42,10 @@ public final class LabelLeavesStage implements GenStage {
     public static final int CIVIC_MIN_LONG_DIM = 13;
     /** Minimum short footprint dimension for a multi-room civic headquarters. */
     public static final int CIVIC_MIN_SHORT_DIM = 11;
+    /** Minimum long outer lot dimension for a courtyard-facing apartment seed. */
+    public static final int GATED_HOUSING_MIN_LONG_DIM = 14;
+    /** Minimum short outer lot dimension for a courtyard-facing apartment seed. */
+    public static final int GATED_HOUSING_MIN_SHORT_DIM = 12;
     /** Minimum long footprint for the factory seed in an industrial compound. */
     public static final int INDUSTRIAL_COMPOUND_MIN_LONG_DIM = 15;
     /** Minimum short footprint for the factory seed in an industrial compound. */
@@ -58,7 +63,25 @@ public final class LabelLeavesStage implements GenStage {
             leaf.kind = theme.pickBlockKind(ctx.rng);
             leaf.kind = constrainKindForSize(leaf.kind, leaf.width(), leaf.height());
         }
+        ensureGatedHousingSeed(partition);
         ensureIndustrialCompoundSeed(partition);
+    }
+
+    /** Promote only an already-residential qualifying lot when no natural seed rolled. */
+    private static void ensureGatedHousingSeed(Bsp.Partition partition) {
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind == BlockKind.GATED_HOUSING) return;
+        }
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind != BlockKind.BUILDING_RESIDENTIAL) continue;
+            if (Math.max(leaf.width(), leaf.height()) < GATED_HOUSING_MIN_LONG_DIM
+                    || Math.min(leaf.width(), leaf.height()) < GATED_HOUSING_MIN_SHORT_DIM) {
+                continue;
+            }
+            if (best == null || leaf.area() > best.area()) best = leaf;
+        }
+        if (best != null) best.kind = BlockKind.GATED_HOUSING;
     }
 
     /**
@@ -93,6 +116,11 @@ public final class LabelLeavesStage implements GenStage {
                 && (Math.max(width, height) < CIVIC_MIN_LONG_DIM
                     || Math.min(width, height) < CIVIC_MIN_SHORT_DIM)) {
             return BlockKind.BUILDING_COMMERCIAL;
+        }
+        if (kind == BlockKind.GATED_HOUSING
+                && (Math.max(width, height) < GATED_HOUSING_MIN_LONG_DIM
+                    || Math.min(width, height) < GATED_HOUSING_MIN_SHORT_DIM)) {
+            return BlockKind.BUILDING_RESIDENTIAL;
         }
         if (kind == BlockKind.INDUSTRIAL_COMPOUND
                 && (Math.max(width, height) < INDUSTRIAL_COMPOUND_MIN_LONG_DIM

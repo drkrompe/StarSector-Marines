@@ -52,6 +52,12 @@ def paste_pivot(canvas: Image.Image, part: Image.Image,
                                     pivot_y - sprite.height))
 
 
+def paste_centered(canvas: Image.Image, part: Image.Image,
+                   center_x: int, center_y: int) -> None:
+    canvas.alpha_composite(part, (center_x - part.width // 2,
+                                  center_y - part.height // 2))
+
+
 def preview(name: str, moving: bool, firing: bool,
             arm_name: str = "chaingun-arm.png") -> None:
     canvas = Image.new("RGBA", (384, 384), (30, 33, 30, 255))
@@ -61,22 +67,20 @@ def preview(name: str, moving: bool, firing: bool,
     srm = Image.open(ROOT / "srm-pod.png").convert("RGBA")
     lrm = Image.open(ROOT / "lrm-pod.png").convert("RGBA")
 
-    # Feet and arm roots are deliberately under the hull. Movement reveals no
-    # more than the toe; firing pulls one barrel back a few pixels.
-    foot_y = 269 if moving else 259
-    paste_pivot(canvas, foot, 157, foot_y)
-    paste_pivot(canvas, foot, 227, 259, mirror=True)
+    # Feet, arm roots, and rack roots are deliberately under the hull. Movement
+    # reveals no more than the toe; firing pulls both barrels back a few pixels.
+    foot_y = 262 if moving else 250
+    paste_centered(canvas, foot, 157, foot_y)
+    paste_centered(canvas, foot, 227, 250)
     paste_pivot(canvas, arm, 115, 223 - (4 if firing else 0))
     paste_pivot(canvas, arm, 269, 223, mirror=True)
 
-    canvas.alpha_composite(hull, (192 - hull.width // 2, 192 - hull.height // 2))
-
-    # Pods are shoulder-top layers, but their long plain rear casings remain
-    # buried. Only the barrel tops and slim muzzle edge break the hull outline.
+    # Racks extend the sides but their inboard casing is occluded by the hull.
     # Stock chassis uses the larger pod box on both shoulders. Weapon identity
     # remains per-slot runtime data; this is only the installed visual shell.
-    paste_pivot(canvas, lrm, 144, 271)
-    paste_pivot(canvas, lrm, 240, 271, mirror=True)
+    paste_pivot(canvas, lrm, 109, 254)
+    paste_pivot(canvas, lrm, 275, 254, mirror=True)
+    canvas.alpha_composite(hull, (192 - hull.width // 2, 192 - hull.height // 2))
     canvas.save(PREVIEWS / name)
 
 
@@ -84,6 +88,8 @@ def main() -> None:
     PREVIEWS.mkdir(parents=True, exist_ok=True)
     normalize("hull-clean-v2.png", "chassis.png", (208, 208))
     normalize("hull.png", "chassis-socketed-variant.png", (208, 208))
+    normalize("hound-hull.png", "chassis-hound.png", (208, 208))
+    normalize("sirocco-hull.png", "chassis-sirocco.png", (208, 208))
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.

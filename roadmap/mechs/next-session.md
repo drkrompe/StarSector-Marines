@@ -12,6 +12,11 @@ The battle debug panel now exposes **Spawn mech family**, which creates:
 - Hound: fast chaingun/paired-SRM-5 breacher with no LRM;
 - Sirocco: fragile linear-cannon/paired-LRM-5 support with no SRM.
 
+Hound and Sirocco now use dedicated hull sprites rather than sharing the
+socketed Bulwark body. Missile racks render beneath and outside the chassis, so
+their inboard casing is occluded and their role is read from the silhouette
+instead of a box pasted over the torso.
+
 A reproducible static contact sheet is available at
 [`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It
 uses the runtime layer order and anchors, showing both gameplay-relative sizes
@@ -23,11 +28,11 @@ real recon/spotting behavior.
 
 ## First action
 
-Review the static contact sheet for silhouette and hardpoint readability, then
-run an ordinary debug battle, expand the battle debug panel, and click **Spawn
-mech family**. Compare movement, range behavior, time-to-kill, missile density,
-and whether Sirocco's linear cannons remain a fallback rather than a second
-primary role.
+Review the revised static contact sheet, then run an ordinary debug battle,
+expand the battle debug panel, and click **Spawn mech family**. Confirm the new
+hulls and external racks remain readable while moving and turning; then compare
+range behavior, time-to-kill, missile density, and whether Sirocco's linear
+cannons remain a fallback rather than a second primary role.
 
 ## What shipped
 
@@ -40,6 +45,8 @@ primary role.
    separation, ballistics, and AoE.
 5. Deterministic in-battle family comparison plus focused tests; full build
    passed before integration.
+6. Dedicated Hound/Sirocco hull silhouettes and externally occluded shoulder
+   rack composition.
 
 After the comparison is accepted, tune the profile/component numbers and then
 adopt the budgeted mixed-lance rules in S1.

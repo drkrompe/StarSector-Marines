@@ -76,6 +76,8 @@ final class BuildingLayouts {
         SHED,
         /** Residential. Short bench wall-line on one long wall + a 2-prop cluster from the pool. */
         HOME,
+        /** Courtyard-facing apartment block with a lobby, common hall, living rooms, and bedrooms. */
+        APARTMENT_BLOCK,
         /** Commercial shop. Shelves on both long walls + a counter-style desk just inside a doorway. */
         SHOP,
         /** Industrial warehouse. Crates on both long walls + a desk at one doorway. Reads as cargo bay. */
@@ -118,6 +120,8 @@ final class BuildingLayouts {
         }
         switch (recipe) {
             case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
+            case APARTMENT_BLOCK: applyApartmentBlock(
+                    grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case SHOP:      applyShop(grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
             case INDUSTRIAL_FACILITY: applyIndustrialFacility(
@@ -170,6 +174,38 @@ final class BuildingLayouts {
             if (cell == null) break;
             doodads.add(new Doodad(cell[0], cell[1], chests[rng.nextInt(chests.length)]));
         }
+    }
+
+    /**
+     * Furnishes each purpose-labeled apartment room with one tactical fixture.
+     * The common two-cell hall remains completely clear; beds and sofas are low
+     * enough to preserve sightlines while still shaping movement and cover.
+     */
+    private static void applyApartmentBlock(NavigationGrid grid,
+                                            CellTopology topology,
+                                            PartitionLayout partition,
+                                            int bl, int bt, int br, int bb,
+                                            List<Doodad> doodads,
+                                            Random rng) {
+        if (purposeBounds(topology, bl, bt, br, bb,
+                RoomPurpose.RESIDENTIAL_HALL) == null) {
+            applyHome(grid, bl, bt, br, bb, doodads, rng);
+            return;
+        }
+
+        boolean vertical = partition.orient == PartitionLayout.Orient.VERTICAL;
+        DoodadDef bed = TileRegistry.installed().doodad(vertical
+                ? "doodad.residential-bed-v" : "doodad.residential-bed-h");
+        DoodadDef sofa = TileRegistry.installed().doodad(vertical
+                ? "doodad.residential-sofa-v" : "doodad.residential-sofa-h");
+        DoodadDef lobbyDesk = TileRegistry.installed().doodad("doodad.desk-1");
+
+        stampOneFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.BEDROOM, bed, doodads, rng, true);
+        stampOneFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.APARTMENT_LIVING, sofa, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.APARTMENT_LOBBY, lobbyDesk, doodads, rng, true);
     }
 
     /**

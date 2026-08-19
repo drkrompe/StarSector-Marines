@@ -631,6 +631,11 @@ public final class BattleSetup {
             SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
                     sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
+            if (!sim.configureSwarmReinforcements(
+                    payload.placement, swarm.size(), battleSeed)) {
+                throw new IllegalStateException(
+                        "civilian rescue swarm reinforcement configuration failed");
+            }
             return sim;
         }
         throw new IllegalStateException(
