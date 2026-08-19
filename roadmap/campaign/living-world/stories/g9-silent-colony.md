@@ -1,8 +1,8 @@
 # G9 — Silent Colony
 
-**Status:** SLICE 1 CODE COMPLETE (2026-08-19)
+**Status:** SLICE 2 CODE COMPLETE (2026-08-19)
 
-**Implemented:** `4d50805d`
+**Implemented:** `4d50805d`, `33b073bd`
 
 ## Purpose
 
@@ -19,10 +19,15 @@ site.
 
 ## Source and cadence — locked v1
 
-- A source is a valid persisted market identity whose live market has a
-  decivilized or ruins condition. The later producer must snapshot the market
-  slot; later recovery, recolonization, or condition changes cannot rewrite the
-  event.
+- A source is a live market identity with a primary entity and valid mission
+  target. A planet-condition-only site qualifies through scattered, widespread,
+  extensive, or vast ruins; any site qualifies through `decivilized` or
+  `abandoned_station`. Ruins on a functioning colony do not qualify by
+  themselves.
+- The producer selects directly from live site identities, then interns only the
+  chosen market. Hidden/uncolonized ruins therefore remain reachable without
+  pre-populating campaign state with every surveyed world. Later recovery,
+  recolonization, or condition changes cannot rewrite the frozen event.
 - A site may source at most one Silent Colony event. The trigger key is derived
   from stable site identity, never array order or the current day.
 - Starting on day 90, a deterministic 90-day epoch may choose at most one
@@ -30,6 +35,12 @@ site.
   rescue and defector asylum.
 - V1 is one-shot per site. Terminal history remains visible but never makes the
   same dead colony call again.
+
+Ruins severity becomes tier 1–4 from scattered through vast. Decivilized and
+abandoned-station sources use at least tier 2. Frozen terms are `20 + 10 × tier`
+supplies, `10 + 5 × tier` fuel, and `4 + 2 × tier` representative survivors.
+The threat seed is a stable site-key derivation; neither candidate enumeration
+order nor market-registry insertion order affects selection or terms.
 
 ## Frozen expedition facts — locked v1
 
@@ -115,9 +126,13 @@ consequence code.
    in `4d50805d`; the new event type, hidden threat seed, explicit archive
    outcome, atomic funding policy, neutral refusal/expiry, clamped mission
    report, growth sentinels, and legacy backfill are regression-covered.
-2. **Ruins-site producer and Dead Letter** — deterministic source selection,
+2. ~~**Ruins-site producer and Dead Letter** — deterministic source selection,
    common open-event gate, frozen terms, load reconstruction, and initial choice
-   surface.
+   surface.~~ Shipped in `33b073bd`; one unused dead site is selected per
+   90-day epoch without registry-order coupling, only the chosen identity is
+   interned, and the registered hidden-until-authenticated Dead Letter routes
+   funding/refusal through the Slice 1 authority while withholding survivor,
+   archive, threat, reward, and moral facts.
 3. **Expedition mission lineage** — event mission key/factory, deterministic
    automated threat reveal, survivor cohort, physical archive objective, and
    explicit dual outcome report.
@@ -150,6 +165,6 @@ consequence code.
 ## Slice 1 verification
 
 Focused Silent Colony, shared event-column, civilian-rescue, defector-asylum,
-and lifecycle tests pass. The complete root `:test` suite also passes on
-2026-08-19. Manual UI validation does not apply until Slice 2 introduces the
-Dead Letter surface.
+lifecycle, producer-order, and Dead Letter reconstruction tests pass. The
+complete root `:test` suite also passes on 2026-08-19. Manual Dead Letter UI
+validation remains deferred with the shared campaign verification queue.

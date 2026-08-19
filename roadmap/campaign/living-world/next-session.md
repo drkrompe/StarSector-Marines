@@ -183,13 +183,22 @@ the event row freezes exact expedition cost, representative survivor stakes, and
 a hidden deterministic threat seed. Funding is atomic, refusal/expiry reveal
 nothing, and only an explicit later mission report can resolve survivor count
 plus archive `LOST`/`RECOVERED`. Legacy saves backfill safe sentinels and replay
-cannot charge or resolve twice. Focused compatibility/replay tests and the full
-root suite pass.
+cannot charge or resolve twice.
 
-Next is Slice 2: select one-shot decivilized/ruins sites deterministically behind
-the common open-event gate, freeze production terms, and add the reconstructible
-Dead Letter choice surface. Do not create the mission, enemy, Chronicle result,
-reward, or inferred moral meaning in that slice.
+Slice 2 is shipped in `33b073bd`. Starting on day 90, one unused dead site per
+90-day epoch is selected from live decivilized, abandoned-station, or
+condition-only ruins identities behind the common open-event gate. Only the
+chosen site is interned. Severity freezes exact expedition stores and survivor
+stakes, while selection and the hidden threat seed remain stable across source
+enumeration order. The globally registered Dead Letter stays hidden until a
+valid row exists, reconstructs pending/committed/terminal state after load, and
+routes funding/refusal without revealing survivors, archive, threat, reward, or
+moral meaning. Focused compatibility/replay tests and the full root suite pass.
+
+Next is Slice 3: define event mission identity and build a dedicated expedition
+factory with an explicit survivor cohort, physical archive objective, and
+deterministic automated-threat reveal. Do not treat generic victory as an event
+outcome or grant archive cargo directly from the intel surface.
 
 ## Open forks still unresolved (design)
 
@@ -308,3 +317,5 @@ reward, or inferred moral meaning in that slice.
 - G8 Slice 4 — world reaction and terminal closure (`d2c4c01b`).
 - G9 contract + Slice 1 — Silent Colony persisted expedition authority
   (`4d50805d`).
+- G9 Slice 2 — deterministic dead-site producer and reconstructible Dead Letter
+  (`33b073bd`).

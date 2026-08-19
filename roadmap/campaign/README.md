@@ -41,7 +41,7 @@ Each thread is a sub-directory with its own `overview.md`, `stories/`
 | --- | --- | --- |
 | [`framework/`](framework/overview.md) | **shipped** | SoA tables + `CampaignSystem` tick framework + the architecture commitments. The substrate everything else sits on. |
 | [`contracts/`](contracts/overview.md) | **loop playable** | Five contract types, two modes, lifecycle state machine, three-layer salvage model, MRB rep, mission-resolver bridge. |
-| [`living-world/`](living-world/overview.md) | **G9 active; Slice 1 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and the new Silent Colony blind-expedition foundation. |
+| [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
 | [`loot/`](loot/overview.md) | **active** | Manifest + picker + capacity-aware settlement are code-complete; in-game shipping check and recovery modifiers are next. Consumes the contract salvage entitlement. Highest user value. |
 | [`infrastructure/`](infrastructure/overview.md) | designed | Buildings that modulate garrison default rates and house power; the mitigation side of scale inefficiency. |
 | [`narrative/`](narrative/overview.md) | designed | The patron tapestry: comms-officer narrator, archetype content axis, procedural-fatigue discipline. |
