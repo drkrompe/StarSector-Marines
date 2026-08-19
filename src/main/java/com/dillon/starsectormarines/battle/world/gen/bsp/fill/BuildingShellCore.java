@@ -203,22 +203,24 @@ final class BuildingShellCore {
                 grid, topology, bl, bt, br, bb, rng, config.interiorGround);
         punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, rng, config.interiorGround);
 
-        // Doodad layout — TINY buildings get sparse scatter (shed), LARGE
-        // buildings apply the per-type recipe (warehouse / shop / home, etc.).
-        BuildingLayouts.applyLayout(grid, bl, bt, br, bb,
-                config.doodadPoolId, config.layoutRecipe, doodads, rng);
-
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
         int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
         int[] interior = findInteriorAnchor(grid, cx, cy, bl, bt, br, bb);
 
-        // Label rooms based on the partition wall + interior anchor. Non-keep
+        // Label rooms before furnishing so purpose-aware layouts can place
+        // fixtures only in the chamber they belong to. Non-keep
         // configs leave both purposes null and skip labeling entirely; the keep
         // COMMAND config stamps THRONE on the anchor side and ENTRY on the
         // other side so post-fill stampers can identify chambers by direct
         // lookup instead of zone-graph inference.
         labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
+
+        // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
+        // LARGE buildings apply the per-type recipe. Purpose-aware commercial
+        // layouts consume the room labels and partition plan written above.
+        BuildingLayouts.applyLayout(grid, topology, layout, bl, bt, br, bb,
+                config.doodadPoolId, config.layoutRecipe, doodads, rng);
 
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
@@ -313,7 +315,8 @@ final class BuildingShellCore {
         int h = bb - bt + 1;
         boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
                 && h >= SECOND_DOORWAY_MIN_DIM
-                && rng.nextFloat() < SECOND_DOORWAY_CHANCE;
+                && (layout.forceOpposedPerimeterDoorways
+                    || rng.nextFloat() < SECOND_DOORWAY_CHANCE);
 
         if (!twoDoors) {
             punchDoorwayOnSide(grid, topology, bl, bt, br, bb, rng.nextInt(4), layout, rng, interiorGround);

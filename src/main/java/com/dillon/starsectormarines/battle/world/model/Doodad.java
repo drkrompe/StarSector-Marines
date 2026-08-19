@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 
 /**
- * Visual-only prop placed on a walkable cell — chairs, crates, chests, etc.
+ * Prop placed on a battle-map cell — chairs, crates, chests, shelves, etc.
  * Drawn by {@link com.dillon.starsectormarines.ops.BattleScreen} above the floor
  * pass and below units. Does not affect navigation or line of sight.
  *
@@ -12,11 +12,15 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
  * building interiors and threaded to the sim so all rendering reads from one
  * source of truth.
  *
+ * Most are visual-only and sit on walkable cells; generators may pair a prop
+ * with an explicit non-walkable topology footprint (for example a commercial
+ * shelf {@link CellTopology.Tag#FIXTURE}) when it must shape navigation.
+ *
  * <p><b>Cover.</b> Each doodad carries a {@link #cover} quality in
  * {@code [0..3]} matching the cell-grid cover scale ({@link com.dillon.starsectormarines.battle.nav.NavigationGrid#MAX_COVER}).
  * Read by {@link com.dillon.starsectormarines.battle.decision.TacticalScoring} when
  * picking firing positions and by direct-fire accuracy resolution — a marine
- * prefers cells with high-cover doodads (crates, rubble piles), and incoming
+ * prefers cells beside high-cover doodads (crates, rubble piles), and incoming
  * fire from the protected facing is less likely to hit. Doodads remain
  * non-blocking and do not reduce damage after a hit.
  *

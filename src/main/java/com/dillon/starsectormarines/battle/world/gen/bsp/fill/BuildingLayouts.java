@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -26,11 +28,10 @@ import java.util.Random;
  *       counter, etc.) rather than empty space with a stray chair.</li>
  * </ul>
  *
- * <p>Doodads are visual + cover hints; they don't block navigation, so dense
- * rows of crates won't seal off a corridor. Walkability is preserved by
- * skipping cells that are themselves doorways and the cell directly in front
- * of each doorway (so a marine entering doesn't materialize on top of a
- * shelf).
+ * <p>Most doodads remain visual + cover hints. Tactical shops are the
+ * deliberate exception: shelf runs stamp {@link CellTopology.Tag#FIXTURE}
+ * footprints that block movement but remain see-through and render as props.
+ * Their two-cell aisles are sized around the 0.3-cell infantry radius.
  *
  * <p>Pool-based recipes draw their props from the per-theme doodad pool resolved
  * via {@link GenMappingRegistry}; literal-frame recipes resolve specific-cell
@@ -46,6 +47,13 @@ final class BuildingLayouts {
 
     /** Cells of clearance maintained in front of each doorway. Props within this distance of a doorway are skipped so entering is never blocked visually. */
     private static final int DOORWAY_CLEARANCE = 1;
+
+    /**
+     * Width of tactical-store aisles. Two cells comfortably admit two
+     * 0.3-radius infantry bodies abreast (1.2 cells combined diameter), while
+     * a one-cell passage remains a deliberate single-file choke.
+     */
+    static final int TACTICAL_AISLE_WIDTH = 2;
 
     /** Cell spacing between props on a wall-line. 1 = stamp every cell; 2 = every other cell; etc. */
     private static final int WALL_LINE_SPACING = 1;
@@ -82,6 +90,8 @@ final class BuildingLayouts {
      * walkable interior cells.
      */
     static void applyLayout(NavigationGrid grid,
+                            CellTopology topology,
+                            PartitionLayout partition,
                             int bl, int bt, int br, int bb,
                             String doodadPoolId,
                             LayoutRecipe recipe,
@@ -95,7 +105,7 @@ final class BuildingLayouts {
         }
         switch (recipe) {
             case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
-            case SHOP:      applyShop(grid, bl, bt, br, bb, doodads, rng); break;
+            case SHOP:      applyShop(grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
             case SHED:
             default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
@@ -141,8 +151,14 @@ final class BuildingLayouts {
         }
     }
 
-    /** Commercial shop. Shelves line both long walls (per-cell variant mix across all 4 shelf types — empty/1/2/3 — so stock reads as varied); a desk sits one cell inside the (first found) doorway, facing the room. */
+    /**
+     * Commercial shop. Purpose-built plans get real shelf footprints,
+     * two-cell longitudinal lanes, a two-cell cross aisle, and a separate
+     * stockroom. Smaller stores retain the lighter perimeter treatment.
+     */
     private static void applyShop(NavigationGrid grid,
+                                  CellTopology topology,
+                                  PartitionLayout partition,
                                   int bl, int bt, int br, int bb,
                                   List<Doodad> doodads,
                                   Random rng) {
@@ -152,6 +168,12 @@ final class BuildingLayouts {
                 TileRegistry.installed().doodad("doodad.shelf-2"),
                 TileRegistry.installed().doodad("doodad.shelf-3"),
         };
+        if (partition.tacticalCommercial) {
+            applyTacticalShop(grid, topology, partition, bl, bt, br, bb,
+                    shelves, doodads, rng);
+            return;
+        }
+
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         if (wallsAreHorizontal) {
             wallLineMix(grid, bl, bt, br, bb, WallSide.N, shelves, WALL_LINE_SPACING, doodads, rng);
@@ -163,6 +185,180 @@ final class BuildingLayouts {
 
         DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-1");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
+    }
+
+    /** Furnishes the labeled sales floor as navigational aisles and the stockroom as loose cover. */
+    private static void applyTacticalShop(NavigationGrid grid,
+                                          CellTopology topology,
+                                          PartitionLayout partition,
+                                          int bl, int bt, int br, int bb,
+                                          DoodadDef[] shelves,
+                                          List<Doodad> doodads,
+                                          Random rng) {
+        int[] sales = purposeBounds(topology, bl, bt, br, bb, RoomPurpose.SHOP_FLOOR);
+        if (sales == null) return;
+
+        // The partition is perpendicular to the storefront/service entrances.
+        // Run racks front-to-back so their neighboring aisles preserve long
+        // firing lanes; break every run across the middle for a flank route.
+        boolean runsAlongX = partition.orient == PartitionLayout.Orient.VERTICAL;
+        int alongMin  = runsAlongX ? sales[0] : sales[1];
+        int alongMax  = runsAlongX ? sales[2] : sales[3];
+        int acrossMin = runsAlongX ? sales[1] : sales[0];
+        int acrossMax = runsAlongX ? sales[3] : sales[2];
+        int crossA = (alongMin + alongMax - 1) / 2;
+        int crossB = Math.min(alongMax, crossA + 1);
+        int laneCenterLo = (acrossMin + acrossMax - 1) / 2;
+        int laneCenterHi = Math.min(acrossMax, laneCenterLo + 1);
+
+        int fixturesBefore = countFixtures(topology, sales);
+        for (int across = acrossMin + TACTICAL_AISLE_WIDTH;
+             across <= acrossMax - TACTICAL_AISLE_WIDTH;
+             across += TACTICAL_AISLE_WIDTH + 1) {
+            // Reserve a central 2-cell maneuver/fire lane. Other rack rows are
+            // spaced by two open cells (diameter 0.6 infantry can pass abreast).
+            if (across >= laneCenterLo && across <= laneCenterHi) continue;
+            for (int along = alongMin + TACTICAL_AISLE_WIDTH;
+                 along <= alongMax - TACTICAL_AISLE_WIDTH;
+                 along++) {
+                if (along == crossA || along == crossB) continue;
+                int x = runsAlongX ? along : across;
+                int y = runsAlongX ? across : along;
+                stampShelfFixture(grid, topology, x, y,
+                        shelves[rng.nextInt(shelves.length)], doodads);
+            }
+        }
+        if (countFixtures(topology, sales) - fixturesBefore < 3) {
+            stampShelfIsland(grid, topology, partition, sales, shelves, doodads, rng);
+        }
+
+        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-1");
+        counterAtShopEntrance(grid, topology, bl, bt, br, bb, desk, doodads);
+
+        DoodadDef[] crates = {
+                TileRegistry.installed().doodad("doodad.box"),
+                TileRegistry.installed().doodad("doodad.crate"),
+        };
+        int stockProps = 2 + rng.nextInt(3);
+        for (int i = 0; i < stockProps; i++) {
+            int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.STOCKROOM, doodads, rng);
+            if (cell == null) break;
+            doodads.add(new Doodad(cell[0], cell[1], crates[rng.nextInt(crates.length)]));
+        }
+    }
+
+    private static int[] purposeBounds(CellTopology topology,
+                                       int bl, int bt, int br, int bb,
+                                       RoomPurpose purpose) {
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+        for (int y = bt + 1; y <= bb - 1; y++) {
+            for (int x = bl + 1; x <= br - 1; x++) {
+                if (topology.getRoomPurpose(x, y) != purpose) continue;
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+        return minX == Integer.MAX_VALUE ? null : new int[]{minX, minY, maxX, maxY};
+    }
+
+    private static int countFixtures(CellTopology topology, int[] bounds) {
+        int count = 0;
+        for (int y = bounds[1]; y <= bounds[3]; y++) {
+            for (int x = bounds[0]; x <= bounds[2]; x++) {
+                if (topology.isFixture(x, y)) count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Medium-store fallback: a three-cell display island centered in the room,
+     * perpendicular to the storefront-to-stockroom axis. The minimum 5x7 sales
+     * floor leaves two cells around all four sides, producing two flanks and
+     * cross routes even when the lot cannot support repeated shelf runs.
+     */
+    private static void stampShelfIsland(NavigationGrid grid, CellTopology topology,
+                                         PartitionLayout partition, int[] sales,
+                                         DoodadDef[] shelves, List<Doodad> doodads,
+                                         Random rng) {
+        int cx = (sales[0] + sales[2]) / 2;
+        int cy = (sales[1] + sales[3]) / 2;
+        boolean frontBackAlongX = partition.orient == PartitionLayout.Orient.VERTICAL;
+        for (int offset = -1; offset <= 1; offset++) {
+            int x = frontBackAlongX ? cx : cx + offset;
+            int y = frontBackAlongX ? cy + offset : cy;
+            stampShelfFixture(grid, topology, x, y,
+                    shelves[rng.nextInt(shelves.length)], doodads);
+        }
+    }
+
+    private static void stampShelfFixture(NavigationGrid grid, CellTopology topology,
+                                          int x, int y, DoodadDef shelf,
+                                          List<Doodad> doodads) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
+        if (grid.isDoorway(x, y) || isNearDoorway(grid, x, y)) return;
+        if (isOccupied(x, y, doodads)) return;
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        topology.setWall(x, y, false);
+        topology.setFixture(x, y, true);
+        doodads.add(new Doodad(x, y, shelf));
+    }
+
+    /** Place a checkout beside the exterior doorway whose inward cell is the sales floor. */
+    private static void counterAtShopEntrance(NavigationGrid grid, CellTopology topology,
+                                              int bl, int bt, int br, int bb,
+                                              DoodadDef desk, List<Doodad> doodads) {
+        for (int x = bl + 1; x <= br - 1; x++) {
+            if (grid.isDoorway(x, bt)
+                    && tryCounterBesideEntrance(grid, topology, x, bt, 0, 1, desk, doodads)) return;
+            if (grid.isDoorway(x, bb)
+                    && tryCounterBesideEntrance(grid, topology, x, bb, 0, -1, desk, doodads)) return;
+        }
+        for (int y = bt + 1; y <= bb - 1; y++) {
+            if (grid.isDoorway(bl, y)
+                    && tryCounterBesideEntrance(grid, topology, bl, y, 1, 0, desk, doodads)) return;
+            if (grid.isDoorway(br, y)
+                    && tryCounterBesideEntrance(grid, topology, br, y, -1, 0, desk, doodads)) return;
+        }
+    }
+
+    private static boolean tryCounterBesideEntrance(NavigationGrid grid, CellTopology topology,
+                                                     int doorX, int doorY, int inX, int inY,
+                                                     DoodadDef desk, List<Doodad> doodads) {
+        int insideX = doorX + inX;
+        int insideY = doorY + inY;
+        if (topology.getRoomPurpose(insideX, insideY) != RoomPurpose.SHOP_FLOOR) return false;
+        int baseX = doorX + 2 * inX;
+        int baseY = doorY + 2 * inY;
+        int sideX = inY;
+        int sideY = -inX;
+        int before = doodads.size();
+        tryStamp(grid, baseX + sideX, baseY + sideY, desk, doodads);
+        if (doodads.size() == before) {
+            tryStamp(grid, baseX - sideX, baseY - sideY, desk, doodads);
+        }
+        return true;
+    }
+
+    private static int[] pickFreePurposeCell(NavigationGrid grid, CellTopology topology,
+                                             int bl, int bt, int br, int bb,
+                                             RoomPurpose purpose,
+                                             List<Doodad> doodads, Random rng) {
+        List<int[]> free = new ArrayList<>();
+        for (int y = bt + 1; y <= bb - 1; y++) {
+            for (int x = bl + 1; x <= br - 1; x++) {
+                if (topology.getRoomPurpose(x, y) != purpose) continue;
+                if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)) continue;
+                if (isNearDoorway(grid, x, y) || isOccupied(x, y, doodads)) continue;
+                free.add(new int[]{x, y});
+            }
+        }
+        return free.isEmpty() ? null : free.get(rng.nextInt(free.size()));
     }
 
     /** Industrial warehouse. Crates line both long walls (per-cell variant mix between the two crate frames for hand-stacked feel); a desk at one doorway reads as supervisor / parts counter. */
