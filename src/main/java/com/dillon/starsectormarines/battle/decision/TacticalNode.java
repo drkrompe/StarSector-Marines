@@ -123,6 +123,12 @@ public final class TacticalNode {
     public final int priorityScore;
     /** Suggested squad slot count at this node. Fixed per-kind for v1; future {@code requestedShare} ratio can supersede. */
     public final int garrisonSize;
+    /**
+     * Explicit mission-authoring exception: a lone assigned survivor holds
+     * this node instead of yielding to survival or structural fallback logic.
+     * False by default; importance and node kind do not imply it.
+     */
+    public final boolean mustHold;
 
     /**
      * Footprint the AI treats as this node's <em>garrison area</em> — the box a
@@ -143,6 +149,14 @@ public final class TacticalNode {
     public TacticalNode(Kind kind, int anchorX, int anchorY,
                         int left, int top, int right, int bottom,
                         Faction defaultGuard, int priorityScore, int garrisonSize) {
+        this(kind, anchorX, anchorY, left, top, right, bottom,
+                defaultGuard, priorityScore, garrisonSize, false);
+    }
+
+    public TacticalNode(Kind kind, int anchorX, int anchorY,
+                        int left, int top, int right, int bottom,
+                        Faction defaultGuard, int priorityScore, int garrisonSize,
+                        boolean mustHold) {
         this.kind = kind;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
@@ -153,6 +167,7 @@ public final class TacticalNode {
         this.defaultGuard = defaultGuard;
         this.priorityScore = priorityScore;
         this.garrisonSize = garrisonSize;
+        this.mustHold = mustHold;
         // Default the garrison footprint to this node's own bbox; the compound
         // filler widens it for multi-building bases via setCompoundBounds.
         this.compoundLeft = left;

@@ -183,31 +183,79 @@
 	# Returning-patron callbacks. These lines are outcome-pure: they may
 	# acknowledge only the terminal contract snapshot persisted by
 	# PatronEngagementMemory. Supported tokens are {patron}, {contract}, and
-	# {priorCount}.
+	# {priorCount}, and {engagementNumber}.
 	"memory": {
 		"COMPLETED": [
 			"{patron}'s people again. Last {contract} closed cleanly.",
 			"We've worked for {patron} before. They remember the result.",
 			"{patron} came back. Our last job for them ended well.",
-			"This makes engagement {priorCount} with {patron}. The previous one held up."
+			"This would be engagement {engagementNumber} with {patron}. The previous one held up."
 		],
 		"FAILED": [
 			"{patron}'s people again. Last {contract} ended badly; expect less patience.",
 			"We've got history with {patron}, and the last result wasn't good.",
 			"{patron} came back despite the last failure. I wouldn't waste that.",
-			"Engagement {priorCount} with {patron}. We're still carrying the last miss."
+			"This would be engagement {engagementNumber} with {patron}. We're still carrying the last miss."
 		],
 		"WITHDREW": [
 			"{patron} came back despite our withdrawal. Don't assume they forgot.",
 			"We've walked away from {patron}'s work before. They're offering again.",
 			"{patron}'s people know we withdrew from the last {contract}. Read the terms closely.",
-			"This would be engagement {priorCount} with {patron}. The last one ended by our choice."
+			"This would be engagement {engagementNumber} with {patron}. The last one ended by our choice."
 		],
 		"EMPLOYER_BREACHED": [
 			"{patron}'s name again. Their side broke terms last time.",
 			"We've worked for {patron} before. Payment failed on their end.",
 			"{patron} is back after the last breach. I checked the terms twice.",
-			"Engagement {priorCount} with {patron}. Remember who broke the last agreement."
+			"This would be engagement {engagementNumber} with {patron}. Remember who broke the last agreement."
+		]
+	},
+
+	# Two-engagement factual patterns. Supported tokens add
+	# {previousContract}, {previousOutcome}, {latestContract}, and
+	# {latestOutcome} to the single-memory token set above.
+	"continuity": {
+		"SUCCESS_STREAK": [
+			"{patron} again. The last two jobs — {previousContract}, then {latestContract} — both closed cleanly.",
+			"We've delivered twice running for {patron}. The newest was the {latestContract}.",
+			"This would be engagement {engagementNumber} with {patron}. Two good results behind us.",
+			"Our last two files with {patron} both ended in completion. That's the pattern on record."
+		],
+		"RECOVERY": [
+			"{patron} again. The last {latestContract} ended well after the job before it did not.",
+			"Our newest result for {patron} was a completion. The prior file ended in {previousOutcome}.",
+			"The record with {patron} improved last time: {previousOutcome}, then completion.",
+			"This would be engagement {engagementNumber} with {patron}. We recovered on the most recent one."
+		],
+		"PLAYER_SETBACK": [
+			"We had a clean result with {patron}, then the last {latestContract} ended in {latestOutcome}.",
+			"{patron}'s back. Our record went from completion to {latestOutcome} on the last two files.",
+			"The last two with {patron}: one completion, then one {latestOutcome}. Keep that sequence in mind.",
+			"This would be engagement {engagementNumber} with {patron}. The newest result followed a good one."
+		],
+		"REPEATED_PLAYER_TROUBLE": [
+			"{patron} again. Our last two files ended in {previousOutcome} and {latestOutcome}.",
+			"We've had two rough results running with {patron}: {previousOutcome}, then {latestOutcome}.",
+			"The last two jobs for {patron} both ended on our side of the ledger, neither cleanly.",
+			"This would be engagement {engagementNumber} with {patron}. The last two did not end in completion."
+		],
+		"BREACH_AFTER_SUCCESS": [
+			"We delivered for {patron}, then their side broke terms on the last {latestContract}.",
+			"{patron}'s record with us went from completion to employer breach. I checked this file twice.",
+			"The last two with {patron}: a clean result, then broken terms on their side.",
+			"This would be engagement {engagementNumber} with {patron}. Their latest breach followed our completion."
+		],
+		"REPEATED_PATRON_BREACH": [
+			"{patron} again. Their side broke terms on each of the last two jobs.",
+			"Two employer breaches running with {patron}. That's not an inference; it's the file.",
+			"The last two agreements with {patron} both failed on their side.",
+			"This would be engagement {engagementNumber} with {patron}. They've breached twice already."
+		],
+		"MUTUAL_TROUBLE": [
+			"Our last two files with {patron} cut both ways: trouble on our side once, broken terms on theirs once.",
+			"{patron} again. Across the last two jobs, each side owns one bad ending.",
+			"The recent record with {patron} includes one employer breach and one player-side miss.",
+			"This would be engagement {engagementNumber} with {patron}. The last two had problems on both sides."
 		]
 	}
 }

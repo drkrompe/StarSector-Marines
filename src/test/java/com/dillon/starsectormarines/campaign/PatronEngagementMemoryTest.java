@@ -96,6 +96,40 @@ class PatronEngagementMemoryTest {
     }
 
     @Test
+    void historySelectsNewestTwoValidRowsIndependentOfInsertionOrder() {
+        Fixture fixture = fixture();
+        long newest = contract(fixture, ContractType.STRIKE,
+                ContractState.FAILED);
+        PatronEngagementMemory.record(fixture.state, newest,
+                PatronEngagementOutcome.FAILED, 30);
+        long oldest = contract(fixture, ContractType.GARRISON,
+                ContractState.ABANDONED);
+        PatronEngagementMemory.record(fixture.state, oldest,
+                PatronEngagementOutcome.WITHDREW, 10);
+        long middle = contract(fixture, ContractType.ESCORT,
+                ContractState.COMPLETED);
+        PatronEngagementMemory.record(fixture.state, middle,
+                PatronEngagementOutcome.COMPLETED, 20);
+
+        PatronEngagementMemory.History history =
+                PatronEngagementMemory.history(
+                        fixture.state, fixture.patronId);
+
+        assertNotNull(history);
+        assertEquals(3, history.engagementCount);
+        assertEquals(newest, history.latest.sourceContractId);
+        assertEquals(middle, history.previous.sourceContractId);
+        assertEquals(30, history.latest.happenedTick);
+        assertEquals(20, history.previous.happenedTick);
+
+        fixture.state.patronEngagementOutcome[2] = (byte) 127;
+        history = PatronEngagementMemory.history(
+                fixture.state, fixture.patronId);
+        assertEquals(2, history.engagementCount);
+        assertEquals(oldest, history.previous.sourceContractId);
+    }
+
+    @Test
     void roundTripRetainsMemoryAfterSourceContractIsGone() throws Exception {
         Fixture fixture = fixture();
         long contractId = contract(fixture, ContractType.EXTRACTION,
@@ -122,6 +156,42 @@ class PatronEngagementMemoryTest {
         assertEquals(1, restored.patronEngagementCount);
         assertEquals(memory.id, PatronEngagementMemory.record(restored,
                 contractId, PatronEngagementOutcome.EMPLOYER_BREACHED, 60));
+    }
+
+    @Test
+    void roundTripRetainsNewestTwoAfterBothSourcesAreGone()
+            throws Exception {
+        Fixture fixture = fixture();
+        long previous = contract(fixture, ContractType.GARRISON,
+                ContractState.COMPLETED);
+        PatronEngagementMemory.record(fixture.state, previous,
+                PatronEngagementOutcome.COMPLETED, 10);
+        long latest = contract(fixture, ContractType.ESCORT,
+                ContractState.FAILED);
+        PatronEngagementMemory.record(fixture.state, latest,
+                PatronEngagementOutcome.FAILED, 20);
+        assertEquals(2, ContractTableCompactor.removeTerminal(fixture.state));
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream output = new ObjectOutputStream(bytes)) {
+            output.writeObject(fixture.state);
+        }
+        CampaignState restored;
+        try (ObjectInputStream input = new ObjectInputStream(
+                new ByteArrayInputStream(bytes.toByteArray()))) {
+            restored = (CampaignState) input.readObject();
+        }
+
+        PatronEngagementMemory.History history =
+                PatronEngagementMemory.history(restored, fixture.patronId);
+        assertNotNull(history);
+        assertEquals(2, history.engagementCount);
+        assertEquals(latest, history.latest.sourceContractId);
+        assertEquals(PatronEngagementOutcome.FAILED,
+                history.latest.outcome);
+        assertEquals(previous, history.previous.sourceContractId);
+        assertEquals(PatronEngagementOutcome.COMPLETED,
+                history.previous.outcome);
     }
 
     @Test

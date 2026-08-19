@@ -2,7 +2,7 @@
 
 ## Where we are
 
-Stage 2 tactical stories are mostly shipped (Slices 1–4 + partial
+Stage 2 tactical stories are mostly shipped (Slices 1–5 + partial
 Slice 6). All three marine-side commanders now ship: `SabotageCommand`
 (objective-cluster), `ConquestCommand` (lateral-strip), and
 `AssaultCommand` (sector-grid sweep). Mech GOAP Stage 1 is complete
@@ -52,6 +52,13 @@ the objective route. Story F is also closed as already shipped by Story J's
 planter/portal-holder cordon (`c54991d4`). See
 `complete/20-bounding-overwatch.md`.
 
+Story 21 / Slice 5 shipped (2026-08-19, `ef76c7ba`): fortress command posts
+carry an explicit `mustHold` node flag. Their lone survivor selects the
+MISSION-tier `HoldPosition` goal over `SurviveContact`, returns to its authored
+post, holds and fires until killed, and ignores structural fallback links.
+Ordinary broken garrisons now yield cleanly to survival. See
+`complete/21-last-stand-objective-camper.md`.
+
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
@@ -59,9 +66,7 @@ gate. The full squad-belief + commander-influence layer remains parked.
 
 ## Immediate next
 
-1. **Slice 5 (Story H)** — last-stand `HoldPosition` on `MUST_HOLD`
-   tactical nodes. Small scope.
-2. **Story E (mech-screened advance)** — remaining piece of Slice 6.
+1. **Story E (mech-screened advance)** — remaining piece of Slice 6.
    Blocked on mech GOAP Stage 2 work (`stories/13-mech-goap.md`).
 
 ## Parked but design-complete
@@ -94,5 +99,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/20-bounding-overwatch.md` — shipped two-team leapfrog layered onto
   Story 19's committed `EnterZone` branch (`b72819fc`); also records Story F's
   prior closure in the sabotage cordon (`c54991d4`)
+- `complete/21-last-stand-objective-camper.md` — shipped explicit must-hold
+  node authoring and the lone-survivor `HoldPosition` mission override
+  (`ef76c7ba`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
