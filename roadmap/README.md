@@ -63,7 +63,11 @@ universe over time, not retrofitted into intel slots.
   entities" backlog item is blocked on.
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
-  this layer. See [`campaign/`](campaign/).
+  this layer. The first green-company ladder now ships two Independent jobs:
+  reinforce a fixed local militia line, then return for a joint counterattack,
+  both against militia-only bandits with no heavy support. See
+  [`campaign/`](campaign/) and
+  [`campaign/early-operations/`](campaign/early-operations/overview.md).
 - **Map generation** — room-purpose refactor complete (Slices A–D), with that
   substrate now paying off in both station layouts and ground maps. Tactical
   commercial interiors ship purpose-labeled sales floors/stockrooms plus real
@@ -119,7 +123,14 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-1. **Campaign personnel spine** — persistent six-person fireteams, cargo-backed
+1. **Early-operations playtest** — the two-job Independent opening ladder is
+   code-complete: one-player-sortie relief followed by a two-sortie joint
+   counterattack, with employer militia, finite advancing bandits, and no
+   fighters/mechs/turrets/reinforcement budget. Tune the 8+4 vs 12 relief and
+   4+player vs 12 counterattack ratios in live play before contracting a third
+   pinned-assault variant. See
+   [`campaign/early-operations/next-session.md`](campaign/early-operations/next-session.md).
+2. **Campaign personnel spine** — persistent six-person fireteams, cargo-backed
    enlistment, reserve management, armory allocation/presets, explicit
    deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery, and debrief are
    shipped (`aee9b9cf`, `b7bb10db`, `b3da11ad`, `4737404d`, `c35e88d4`,
@@ -139,7 +150,7 @@ universe over time, not retrofitted into intel slots.
    deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`). No personnel
    story remains active; contract a new one before expanding this work. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
-2. **Living-world follow-through** — the first black-swan event now runs from
+3. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
    outcome writeback, debrief, hidden moral consequence, and durable Distress
    Net dispatch. The second archetype is also complete: a discovered political
@@ -208,7 +219,7 @@ universe over time, not retrofitted into intel slots.
    remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Campaign narrative follow-through** — S1 patron engagement memory through
+4. **Campaign narrative follow-through** — S1 patron engagement memory through
    S5 remembered target locations are shipped (`1b950e48`, `cbfebaef`,
    `53cda364`, `03d8a24e`, `7b5367d4`). The comms officer prioritizes direct
    history, then a confirmed recent Chronicle fact naming that patron, then a
@@ -217,19 +228,19 @@ universe over time, not retrofitted into intel slots.
    before adding patron evolution, captain observations, or longer-form
    continuity. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
-4. **Command Powers S8 B-2** — add member-level commitment for power-source
+5. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
-5. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
+6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, tune their
    identities, then approve budgeted production defender composition. See
    [`mechs/next-session.md`](mechs/next-session.md).
-6. **Manual verification queue (deferred this session)** — the loot loop's
+7. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
    plus post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-7. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+8. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See
