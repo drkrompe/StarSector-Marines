@@ -1,8 +1,8 @@
 # T3 — the last testament
 
-**Status:** SLICE 2 CODE COMPLETE (2026-08-19)
+**Status:** SLICE 3 CODE COMPLETE (2026-08-19)
 
-**Implemented:** `946262b2`, `15c017e`
+**Implemented:** `946262b2`, `15c017e`, `379d8989`
 
 ## Purpose
 
@@ -163,8 +163,11 @@ contracts, houses, chains, markets, or factions.
    validates terminal source facts, selects at most one strongest historical deed
    per family, preserves mixed-character tension, and rejects malformed drafts
    without exposing hidden-system vocabulary or numbers.
-3. **Last Testament intel** — diegetic delivery, load reconstruction, historical
-   terminal state, and malformed-data fail-closed behavior.
+3. ~~**Last Testament intel** — diegetic delivery, load reconstruction,
+   historical terminal state, and malformed-data fail-closed behavior.~~ Shipped
+   in `379d8989`; one hidden-until-earned intel entry reconstructs authenticated
+   drafts newest-first, reveals only successfully rendered rows, preserves read
+   history, and performs no consequence or reward mutation.
 4. **Closure and reachability** — production-shaped debug setup, Chronicle
    cross-link, save/replay matrix, documentation closeout, and manual smoke.
 
