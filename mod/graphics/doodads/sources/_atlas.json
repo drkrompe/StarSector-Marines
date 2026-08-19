@@ -113,6 +113,38 @@
       "scale": 0.92,
       "order": 37
     },
+    "military-radar-dish.png": {
+      "id": "doodad.military-radar-dish",
+      "name": "Military radar dish",
+      "description": "Armored field radar on a rotating pedestal.",
+      "cover": "heavy",
+      "scale": 0.94,
+      "order": 50
+    },
+    "military-command-console.png": {
+      "id": "doodad.military-command-console",
+      "name": "Command console",
+      "description": "Three-screen command-and-control operator station.",
+      "cover": "med",
+      "scale": 0.95,
+      "order": 51
+    },
+    "military-tactical-table.png": {
+      "id": "doodad.military-tactical-table",
+      "name": "Tactical planning table",
+      "description": "Armored illuminated battlefield planning table.",
+      "cover": "med",
+      "scale": 0.92,
+      "order": 52
+    },
+    "military-bunk.png": {
+      "id": "doodad.military-bunk",
+      "name": "Barracks bunk",
+      "description": "Compact field cot with stowed kit.",
+      "cover": "light",
+      "scale": 0.93,
+      "order": 53
+    },
     "example-disabled.png": {
       "enabled": false,
       "id": "doodad.example",

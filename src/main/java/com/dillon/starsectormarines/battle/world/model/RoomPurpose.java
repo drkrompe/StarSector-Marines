@@ -44,4 +44,10 @@ public enum RoomPurpose {
     SHOP_FLOOR,
     /** Commercial building — staff-only stockroom behind the sales floor. */
     STOCKROOM,
+    /** Military compound — open sleeping quarters with paired bunk rows. */
+    BARRACKS,
+    /** Military compound — secured weapons and supply storage. */
+    ARMORY,
+    /** Military compound — open service floor for vehicles and field equipment. */
+    VEHICLE_BAY,
 }
