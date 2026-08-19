@@ -87,7 +87,13 @@ public class CellTopology {
         /** Only meaningful when {@link #CROSSWALK} is set. True = stripes run E-W (pedestrian crossing N-S). */
         CROSSWALK_HORIZ,
         /** Roof above this building cell has caved in. Roof pass skips the cell; persistent (not driven by LOS), set when an adjacent wall collapses or a direct interior hit cracks the roof. Rubble decal is spawned at the moment of cave-in by the damage path. */
-        ROOF_DESTROYED;
+        ROOF_DESTROYED,
+        /**
+         * A non-walkable interior prop footprint such as a commercial shelf run.
+         * Fixtures shape navigation but are not structural walls: the ground and
+         * doodad render normally, and finalize does not seed destructible wall HP.
+         */
+        FIXTURE;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -229,6 +235,8 @@ public class CellTopology {
     public void    setCrosswalkStripesHorizontal(int x, int y, boolean v)  { setTag(x, y, Tag.CROSSWALK_HORIZ, v); }
     public boolean isRoofDestroyed(int x, int y)                           { return hasTag(x, y, Tag.ROOF_DESTROYED); }
     public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
+    public boolean isFixture(int x, int y)                                 { return hasTag(x, y, Tag.FIXTURE); }
+    public void    setFixture(int x, int y, boolean v)                     { setTag(x, y, Tag.FIXTURE, v); }
 
     /** True iff the cell is part of a building and still has its intact roof — the aerial/indirect-fire shield discriminator. */
     public boolean isRoofIntact(int x, int y) {
@@ -361,12 +369,14 @@ public class CellTopology {
      * carving walkable space — vehicles and other "non-walkable but not a
      * wall" props stamp after this sweep so they keep WALL cleared. Water
      * cells should ALSO have their {@code GroundKind} set to WATER before
-     * this call so the wall pass can skip them via {@link #isWater}.
+     * this call so the wall pass can skip them via {@link #isWater}. Tagged
+     * {@link Tag#FIXTURE} cells are also skipped: their doodad supplies the
+     * visible obstacle even though navigation treats the footprint as blocked.
      */
     public void tagDefaultWalls(NavigationGrid nav) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (!nav.isWalkable(x, y) && !isWater(x, y)) {
+                if (!nav.isWalkable(x, y) && !isWater(x, y) && !isFixture(x, y)) {
                     flags[index(x, y)] |= Tag.WALL.mask();
                 }
             }

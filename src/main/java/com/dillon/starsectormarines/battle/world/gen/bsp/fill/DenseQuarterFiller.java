@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -43,7 +44,9 @@ public final class DenseQuarterFiller implements CompoundFiller {
 
     private static final BuildingShellCore.BuildingConfig TOWER_PRIMARY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.TILE, "SKY_PORT", PointOfInterest.Kind.COMMS,
-            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.COMMERCIAL);
+            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.COMMERCIAL,
+            new RoomPurpose[]{RoomPurpose.SHOP_FLOOR, RoomPurpose.STOCKROOM},
+            CommercialPartitionStrategy.DEFAULT);
     private static final BuildingShellCore.BuildingConfig TOWER_SECONDARY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.COMMERCIAL);
