@@ -155,7 +155,7 @@ queued behind playtest + doc 15.
 
 Design lives in [`12-squad-of-squads.md`](stories/12-squad-of-squads.md).
 
-### Perception & influence (parked)
+### Perception & influence (in progress)
 
 Per-squad belief about enemy positions (populated by LoS + audio
 detection + commander briefings, with decay) and the commander-tier
@@ -165,12 +165,15 @@ class of bugs and unlocks frontline / bulge / breakthrough reasoning
 for the commander tier.
 
 Design lives in [`15-perception-and-influence.md`](stories/15-perception-and-influence.md).
-**The near-term cheap wins are shipped**: threat-direction cover scoring,
+**The squad-belief layer is shipped**: direct LOS and one-time hostile noise
+events populate id-keyed, decaying contacts; audio is imperfect, lower
+confidence, wall-agnostic, and keeps indirect fire anonymous (`db69ed73`,
+`63ffdb6a`). The earlier cheap wins also ship: threat-direction cover scoring,
 speed-scaled fallback scans, ranged LoS, and the last-seen threat-set gate on
 `HAS_LOS_TO_TARGET` (`5f12ac03`, `09bf4f70`, `6dd1e63c`, `04e3f814`). The
 threat-scored objective-advance leash now ships on that tactical seam too
-(`14d646a`; [story 19](complete/19-threat-scored-engagement-leash.md)). Full
-squad belief + commander influence remain parked.
+(`14d646a`; [story 19](complete/19-threat-scored-engagement-leash.md)). The
+commander aggregation, influence grid, and briefing loop remain parked.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 

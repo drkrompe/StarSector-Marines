@@ -129,6 +129,9 @@ universe over time, not retrofitted into intel slots.
   That hold now reads the pursuing squad's own direct-LOS contact memory
   (`db69ed73`): unknown formation members do not leak into density, contacts
   decay with alert state, and selected-squad debug ghosts show remembered cells.
+  The same belief layer now hears one-time shot and detonation events through
+  walls (`63ffdb6a`) with deterministic inexact localization, lower confidence,
+  and anonymous indirect-fire bearings for both attacker and defender squads.
 
 ## Immediate next-up
 
