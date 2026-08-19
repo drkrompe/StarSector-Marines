@@ -3,6 +3,7 @@ package com.dillon.starsectormarines;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
+import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -45,6 +46,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         LOG.info("Starsector Marines: game loaded (newGame=" + newGame + ")");
         ensureBridgeIntel();
         ensureMarineRoster();
+        ensureCaptainDiscoverySalvageListener();
         ensureCampaignState();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
@@ -104,6 +106,15 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             roster.add(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
+    }
+
+    private static void ensureCaptainDiscoverySalvageListener() {
+        SectorAPI sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(
+                CaptainDiscoverySalvageListener.class);
+        sector.getListenerManager().addListener(
+                new CaptainDiscoverySalvageListener(), true);
+        LOG.info("Starsector Marines: captain discovery salvage listener registered");
     }
 
     private static void ensureCampaignState() {

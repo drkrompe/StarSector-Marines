@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.CaptainCandidate;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -95,6 +96,7 @@ public final class ArmoryScreen implements Screen {
     private MarineArmorPattern browsedArmor = MarineArmorPattern.ARMORLESS;
     private MarineSecondary browsedSecondary = MarineSecondary.ROCKET_LAUNCHER;
     private int inventoryScroll;
+    private int candidatePage;
     private String lastInventoryClickKey;
     private long lastInventoryClickNanos;
 
@@ -174,9 +176,54 @@ public final class ArmoryScreen implements Screen {
                 left + 394f, tabY + BUTTON_H - 6f, MUTED));
         float managementTop = top - 112f;
         float managementBottom = position.getY() + PAD + BUTTON_H + 12f;
+        managementTop = buildCandidateIntake(left, managementTop,
+                position.getWidth() - 2f * PAD);
         buildSquadList(left, managementTop, managementBottom);
         buildSelectedSquad(left + SQUAD_COL_W + GAP, managementTop, managementBottom,
                 position.getWidth() - 2f * PAD - SQUAD_COL_W - GAP);
+    }
+
+    private float buildCandidateIntake(float left, float top, float width) {
+        List<CaptainCandidate> candidates = roster.availableCaptainCandidates();
+        if (candidates.isEmpty()) {
+            candidatePage = 0;
+            return top;
+        }
+
+        candidatePage = Math.max(0, Math.min(candidatePage, candidates.size() - 1));
+        CaptainCandidate candidate = candidates.get(candidatePage);
+        String trait = candidate.startingTrait() == null ? "No specialty"
+                : candidate.startingTrait().displayName();
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "RECOVERED CAPTAIN CANDIDATE", left, top + 24f, VALUE));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                candidate.name() + " · " + candidate.startingRank().displayName()
+                        + " · " + trait + " · Derelict salvage, day "
+                        + (int) candidate.discoveredAtDay(),
+                left, top - 2f, HEADER));
+
+        float buttonY = top - 38f;
+        float right = left + width;
+        Runnable commission = roster.hasRoom() ? () -> {
+            roster.acceptCaptainCandidate(candidate.sourceKey());
+            rebuild();
+        } : null;
+        addButton(right - 160f, buttonY, 160f,
+                roster.hasRoom() ? "Offer Commission" : "Captain Roster Full",
+                commission, commission != null ? GOOD : MUTED);
+        if (candidates.size() > 1) {
+            addButton(right - 330f, buttonY, 72f, "Prev", candidatePage > 0 ? () -> {
+                candidatePage--;
+                rebuild();
+            } : null, candidatePage > 0 ? HEADER : MUTED);
+            addButton(right - 250f, buttonY, 82f,
+                    "Next " + (candidatePage + 1) + "/" + candidates.size(),
+                    candidatePage + 1 < candidates.size() ? () -> {
+                        candidatePage++;
+                        rebuild();
+                    } : null, candidatePage + 1 < candidates.size() ? HEADER : MUTED);
+        }
+        return top - 82f;
     }
 
     /** MechLab-style workspace: formation, installed kit, item dossier and inventory. */
