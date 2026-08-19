@@ -166,8 +166,11 @@ universe over time, not retrofitted into intel slots.
    reinforces its weakest point and center mech, and gives the mech a quiet-state
    perimeter patrol. Alien health is halved again to one eighth of its original
    pools, while missed direct-fire rays that cross another hostile now transfer
-   into that body at a 100% base catch chance (`5f2c083d`). Manual cadence,
-   spacing, and post-rebalance feel validation remain queued.
+   into that body at a 100% base catch chance (`5f2c083d`). The star now spans
+   25x25 cells around a fifteen-cell-inset LZ, and allied infantry apply a
+   density-aware avoidance steer to hostile aliens inside five cells
+   (`c6589910`). Manual cadence, avoidance, and post-rebalance feel validation
+   remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through
