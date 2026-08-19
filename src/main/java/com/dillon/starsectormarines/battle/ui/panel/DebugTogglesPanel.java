@@ -70,6 +70,7 @@ public final class DebugTogglesPanel implements HudPanel {
         final DoubleConsumer dialSetter;
         final double dialMin;
         final double dialMax;
+        final double dialExponent;
 
         Row(String label, BooleanSupplier checkboxState, Runnable onClick) {
             this.label = label;
@@ -79,10 +80,11 @@ public final class DebugTogglesPanel implements HudPanel {
             this.dialSetter = null;
             this.dialMin = 0;
             this.dialMax = 0;
+            this.dialExponent = 1;
         }
 
         Row(String label, DoubleSupplier dialValue, DoubleConsumer dialSetter,
-            double dialMin, double dialMax) {
+            double dialMin, double dialMax, double dialExponent) {
             this.label = label;
             this.checkboxState = null;
             this.onClick = null;
@@ -90,6 +92,7 @@ public final class DebugTogglesPanel implements HudPanel {
             this.dialSetter = dialSetter;
             this.dialMin = dialMin;
             this.dialMax = dialMax;
+            this.dialExponent = dialExponent;
         }
 
         boolean isDial() { return dialValue != null; }
@@ -101,7 +104,7 @@ public final class DebugTogglesPanel implements HudPanel {
     private static final float ROW_H     = 22f;
     private static final float CHECK_W   = 14f;
     private static final float PADDING   = 8f;
-    private static final float DIAL_TRACK_FROM_RIGHT = 118f;
+    private static final float DIAL_TRACK_FROM_RIGHT = 174f;
     private static final float DIAL_TRACK_TO_RIGHT   = 62f;
 
     private static final Color HEADER_TEXT = new Color(230, 230, 230);
@@ -141,8 +144,19 @@ public final class DebugTogglesPanel implements HudPanel {
     /** Register a draggable live numeric value. */
     public DebugTogglesPanel addDial(String label, DoubleSupplier getter, DoubleConsumer setter,
                                      double min, double max) {
+        return addDial(label, getter, setter, min, max, 1.0);
+    }
+
+    /**
+     * Register a dial whose normalized value follows {@code position^exponent}.
+     * Values above {@code 1} devote more track space to fine control near the
+     * minimum while preserving the exact endpoints.
+     */
+    public DebugTogglesPanel addDial(String label, DoubleSupplier getter, DoubleConsumer setter,
+                                     double min, double max, double exponent) {
         if (!(max > min)) throw new IllegalArgumentException("dial max must be greater than min");
-        rows.add(new Row(label, getter, setter, min, max));
+        if (!(exponent > 0)) throw new IllegalArgumentException("dial exponent must be positive");
+        rows.add(new Row(label, getter, setter, min, max, exponent));
         return this;
     }
 
@@ -261,7 +275,7 @@ public final class DebugTogglesPanel implements HudPanel {
         float x1 = dialTrackX1(x);
         float cy = rowY + ROW_H * 0.5f;
         double value = clamp(row.dialValue.getAsDouble(), row.dialMin, row.dialMax);
-        float t = (float) ((value - row.dialMin) / (row.dialMax - row.dialMin));
+        float t = (float) dialFractionForValue(value, row.dialMin, row.dialMax, row.dialExponent);
         float knobX = x0 + (x1 - x0) * t;
 
         glLineWidth(3f);
@@ -358,13 +372,23 @@ public final class DebugTogglesPanel implements HudPanel {
 
     private void setDialFromPointer(Row row, float pointerX) {
         row.dialSetter.accept(dialValueAt(pointerX, dialTrackX0(curX), dialTrackX1(curX),
-                row.dialMin, row.dialMax));
+                row.dialMin, row.dialMax, row.dialExponent));
     }
 
     static double dialValueAt(float pointerX, float trackX0, float trackX1, double min, double max) {
+        return dialValueAt(pointerX, trackX0, trackX1, min, max, 1.0);
+    }
+
+    static double dialValueAt(float pointerX, float trackX0, float trackX1,
+                              double min, double max, double exponent) {
         float t = trackX1 <= trackX0 ? 0f : (pointerX - trackX0) / (trackX1 - trackX0);
         t = Math.max(0f, Math.min(1f, t));
-        return min + (max - min) * t;
+        return min + (max - min) * Math.pow(t, exponent);
+    }
+
+    static double dialFractionForValue(double value, double min, double max, double exponent) {
+        double normalized = (clamp(value, min, max) - min) / (max - min);
+        return Math.pow(normalized, 1.0 / exponent);
     }
 
     private static double clamp(double value, double min, double max) {
