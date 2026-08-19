@@ -108,8 +108,9 @@ public final class GroundSimPresentation {
                 fx.spawnLaunchBackblast(s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
             }
             if (ShotFx.of(s).travels()) continue;
+            if (!s.impacts()) continue;
             ImpactProfile profile = (s.marineWeapon != null) ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
-            fx.spawnImpact(profile, s.toX, s.toY, isWallAt(grid, s.toX, s.toY));
+            fx.spawnImpact(profile, s.toX, s.visualToY(), isWallAt(grid, s.toX, s.toY));
         }
     }
 
@@ -118,19 +119,20 @@ public final class GroundSimPresentation {
     private void spawnImpactFxAndSounds(ImpactFx fx, BattleSimulation sim, NavigationGrid grid, Random rng) {
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(s).travels()) continue;
+            if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             if (s.turretKind != null) {
                 ImpactProfile profile = s.turretKind.impactProfile();
-                fx.spawnImpact(profile, s.toX, s.toY, isWall);
+                fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 if (profile == ImpactProfile.HE) playExplosion(s.toX, s.toY, 0.55f, rng);
             } else if (s.marineSecondary != null) {
-                fx.spawnImpact(s.marineSecondary.impactProfile(), s.toX, s.toY, isWall);
+                fx.spawnImpact(s.marineSecondary.impactProfile(), s.toX, s.visualToY(), isWall);
                 playAtCell(s.marineSecondary.impactSoundId, 0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
             } else if (s.marineWeapon != null) {
-                fx.spawnImpact(s.marineWeapon.impactProfile, s.toX, s.toY, isWall);
+                fx.spawnImpact(s.marineWeapon.impactProfile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
                 ImpactProfile profile = s.mechWeapon.impactProfile;
-                fx.spawnImpact(profile, s.toX, s.toY, isWall);
+                fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 if (profile == ImpactProfile.HE) playExplosion(s.toX, s.toY, 0.65f, rng);
             }
         }

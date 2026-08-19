@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -29,20 +30,34 @@ class ShotRenderServiceTest {
         ShotFx.Bolt bolt = (ShotFx.Bolt) ShotFx.of(shot).body();
 
         ShotRenderService.BoltPose start = ShotRenderService.boltPose(shot, bolt);
-        assertPose(start, 0f, 0f, 0f, 0f, 0f, 0f);
+        assertPose(start, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
 
         shot.lifetime = 0.5f;
         ShotRenderService.BoltPose middle = ShotRenderService.boltPose(shot, bolt);
-        assertPose(middle, 5f, 0f, 4f, 0f, 1f, 1f);
+        assertPose(middle, 5f, 0f, 0f, 4f, 0f, 0f, 1f, 1f);
 
         shot.lifetime = 0f;
         ShotRenderService.BoltPose end = ShotRenderService.boltPose(shot, bolt);
-        assertPose(end, 10f, 0f, 9f, 0f, 1f, 1f);
+        assertPose(end, 10f, 0f, 0f, 9f, 0f, 0f, 1f, 1f);
 
         ShotEvent shortShot = boltShot(2f, 3f, 2.5f, 3f, 1f);
         shortShot.lifetime = 0.5f;
         ShotRenderService.BoltPose shortMiddle = ShotRenderService.boltPose(shortShot, bolt);
-        assertPose(shortMiddle, 2.25f, 3f, 2f, 3f, 0.25f, 1f);
+        assertPose(shortMiddle, 2.25f, 3f, 0f, 2f, 3f, 0f, 0.25f, 1f);
+    }
+
+    @Test
+    void boltPoseInterpolatesElevationForProjectedHighAndLowFlight() {
+        ShotEvent shot = new ShotEvent(0f, 0f, 0f, 10f, 0f, 2f,
+                false, Faction.MARINE, 1f,
+                null, MarineWeapon.PULSE_RIFLE, null, null, 1f, false,
+                BallisticResolver.StopKind.OVERSHOOT);
+        shot.lifetime = 0.5f;
+
+        ShotRenderService.BoltPose pose = ShotRenderService.boltPose(
+                shot, (ShotFx.Bolt) ShotFx.of(shot).body());
+
+        assertPose(pose, 5f, 0f, 1f, 4f, 0f, 0.8f, 1f, 1f);
     }
 
     @Test
@@ -103,12 +118,15 @@ class ShotRenderServiceTest {
     }
 
     private static void assertPose(ShotRenderService.BoltPose pose,
-                                   float headX, float headY, float tailX, float tailY,
+                                   float headX, float headY, float headZ,
+                                   float tailX, float tailY, float tailZ,
                                    float visibleLength, float fadeIn) {
         assertEquals(headX, pose.headX(), EPS);
         assertEquals(headY, pose.headY(), EPS);
+        assertEquals(headZ, pose.headZ(), EPS);
         assertEquals(tailX, pose.tailX(), EPS);
         assertEquals(tailY, pose.tailY(), EPS);
+        assertEquals(tailZ, pose.tailZ(), EPS);
         assertEquals(visibleLength, pose.visibleLength(), EPS);
         assertEquals(fadeIn, pose.fadeIn(), EPS);
     }

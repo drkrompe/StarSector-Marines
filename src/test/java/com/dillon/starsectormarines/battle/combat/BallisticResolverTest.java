@@ -67,7 +67,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0.75f);
+        QueueRandom rng = new QueueRandom(0.75f, 0f, 0f);
         BallisticResolver.Resolution result = resolver.resolve(
                 shooter, target, 1f, 0f, VEL, rng);
 
@@ -108,12 +108,12 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (spread=0, both irrelevant), doodad crossing roll
+        // On-target roll + centered lateral/elevation, then doodad crossing roll
         // (blocks: 0f < the level-2 block chance 0.30). The crossing check
         // keys on the doodad's own-cell level only (getDoodadLevelOnCell),
         // so it fires exactly once, at cell 5 — see the DoodadService class
         // doc for why the facing-bled neighbor cover is a separate concern.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, res.kind());
@@ -136,7 +136,7 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
@@ -157,7 +157,7 @@ class BallisticResolverTest {
         long farTarget = spawn(sim, Faction.DEFENDER, 12);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f, /*cover*/ 0.99f, /*hit*/ 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, /*cover*/ 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -175,7 +175,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         // cover roll (never blocks, level 0), incidental hit roll (0 < INCIDENTAL_HIT_CHANCE).
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -199,11 +199,11 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (spread=0, irrelevant), cover roll (no block), hit
-        // roll (hits). No roll is consumed for behindEnemy at all — it's
+        // On-target commit + centered axes, then cover roll (no block).
+        // No roll is consumed for behindEnemy at all — it's
         // skipped before any event is created, so a queue sized for only the
         // real target's contact must not exhaust.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -213,25 +213,26 @@ class BallisticResolverTest {
         assertTrue(sim.getRoster().isAliveById(behindEnemy), "sanity: behindEnemy exists and is alive, just never contacted");
     }
 
-    // ---- failed target roll flies on and can graze the unit behind ----
+    // ---- the committed target miss visibly clears the silhouette ----
 
     @Test
-    void failedTargetRollFliesOnAndCanGrazeTheUnitBehind() {
+    void failedTargetRollAuthorsAVisibleMissWithoutASecondTargetRoll() {
         BattleSimulation sim = openArena();
         DoodadService doodads = new DoodadService(sim.getGrid());
         long shooter = spawn(sim, Faction.MARINE, 2);
         long target = spawn(sim, Faction.DEFENDER, 8);
-        long behind = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // target: cover roll (no block), hit roll MISSES (finalAccuracy=0).
-        // behind: cover roll (no block), hit roll HITS (INCIDENTAL_HIT_CHANCE).
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0.5f, 0.99f, 0f);
+        // Accuracy miss, pure +lateral direction, minimum clearance. The
+        // three-value queue proves the target never consumes a hidden second
+        // hit roll after aim has already committed the miss.
+        QueueRandom rng = new QueueRandom(0.5f, 0f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, rng);
 
-        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
-        assertEquals(behind, res.victimId(), "the missed round kept flying and grazed the unit behind the target");
-        assertFalse(res.hitIntended(), "behind is not the locked target");
+        assertEquals(BallisticResolver.StopKind.OVERSHOOT, res.kind());
+        assertEquals(0L, res.victimId());
+        assertTrue(Math.abs(res.endY() - rowCenter()) > UnitType.MARINE.radius,
+                "the authored miss must visibly pass outside the target's lateral silhouette");
     }
 
     // ---- cover-clip uses grid cover only; a doodad next to the victim must not double-roll ----
@@ -266,8 +267,8 @@ class BallisticResolverTest {
         // cover-clip roll at the target: 0.10 would block under a (wrong) doodad-cover
         // reading (level 2 -> 0.30 chance) but must NOT block against the real grid
         // cover of 0 (0.10 < 0f is false).
-        // hit roll: guaranteed (finalAccuracy=1).
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0.10f, 0f);
+        // Intended accuracy was already guaranteed by the commit roll.
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0.10f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
@@ -292,11 +293,11 @@ class BallisticResolverTest {
         long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER, UnitType.MARINE, 10, ROW + 1));
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant), cover roll (no grid cover), hit roll
-        // (hits). No doodad-crossing roll queued — if walkDoodadCrossings
+        // On-target commit + centered axes, then cover roll (no grid cover).
+        // No doodad-crossing roll queued — if walkDoodadCrossings
         // wrongly emitted one, this queue would either exhaust early or feed
         // the wrong float into the wrong check.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -312,18 +313,18 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant), single crossing roll pinned just below
+        // On-target commit + centered axes, single crossing roll pinned just below
         // the level-2 tuning anchor (0.30) so it blocks. Only 3 values are
         // queued — a second crossing roll (the old neighbor-bleed
         // double-count) would exhaust the queue.
-        QueueRandom blockRng = new QueueRandom(0f, 0f, 0.2999f);
+        QueueRandom blockRng = new QueueRandom(0f, 0.5f, 0.5f, 0.2999f);
         BallisticResolver.Resolution blocked = resolver.resolve(shooter, target, 1f, 0f, VEL, blockRng);
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
         assertEquals(cellCenter(5), blocked.endX(), EPS);
 
         // A roll landing exactly at the anchor must NOT block — pins 0.30 as
         // the exact boundary. Round then reaches the target normally.
-        QueueRandom missRng = new QueueRandom(0f, 0f, 0.30f, 0.99f, 0f);
+        QueueRandom missRng = new QueueRandom(0f, 0.5f, 0.5f, 0.30f, 0.99f);
         BallisticResolver.Resolution missed = resolver.resolve(shooter, target, 1f, 0f, VEL, missRng);
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, missed.kind());
         assertEquals(target, missed.victimId());
@@ -339,7 +340,7 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 8);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0.5f);
+        QueueRandom rng = new QueueRandom(0.5f, 0.25f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, res.kind());
@@ -347,7 +348,44 @@ class BallisticResolverTest {
         float expectedDist = (cellCenter(8) - cellCenter(2)) + BallisticResolver.OVERSHOOT_CELLS;
         assertEquals(cellCenter(2) + expectedDist, res.endX(), EPS);
         assertEquals(rowCenter(), res.endY(), EPS);
+        assertTrue(res.endZ() > UnitType.MARINE.hitHalfHeight,
+                "a pure elevation miss must visibly fly above the target");
         assertEquals(expectedDist / VEL, res.flightTime(), EPS);
+
+        BallisticResolver.Resolution low = resolver.resolve(
+                shooter, target, 0f, 0f, VEL,
+                new QueueRandom(0.5f, 0.75f, 0f));
+        assertEquals(BallisticResolver.StopKind.OVERSHOOT, low.kind());
+        assertTrue(low.endZ() < -UnitType.MARINE.hitHalfHeight,
+                "the same target-plane model must author low misses too");
+    }
+
+    @Test
+    void tallIncidentalBodyCanCatchAnElevatedRoundThatClearsAShortTarget() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long shortTarget = sim.spawn(new EntitySpec(
+                "short", Faction.DEFENDER, UnitType.SWARM_RUNNER, 8, ROW));
+        long tallBehind = sim.spawn(new EntitySpec(
+                "tall", Faction.DEFENDER, UnitType.HEAVY_MECH, 10, ROW));
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        // Miss the runner straight upward at minimum clearance. At the
+        // runner plane Z=0.5 clears its 0.3 half-height; farther downrange
+        // the same ray is still inside the mech's 0.8 half-height.
+        QueueRandom rng = new QueueRandom(
+                0.5f, 0.25f, 0f,
+                0.99f, 0f);
+        BallisticResolver.Resolution res = resolver.resolve(
+                shooter, shortTarget, 0f, 0f, VEL, rng);
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(tallBehind, res.victimId());
+        assertFalse(res.hitIntended());
+        assertTrue(res.endZ() > UnitType.SWARM_RUNNER.hitHalfHeight);
+        assertTrue(res.endZ() < UnitType.HEAVY_MECH.hitHalfHeight);
     }
 
     // ---- block-chance mapping 15/30/45 ----
@@ -373,7 +411,7 @@ class BallisticResolverTest {
                         + "time-domain solve to S1's math, not that a non-mover skipped extrapolation entirely");
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -404,9 +442,8 @@ class BallisticResolverTest {
         float roundVelocity = 10f;
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (spread=0, irrelevant), cover roll (no cover, no
-        // block), hit roll (guaranteed via finalAccuracy=1).
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        // On-target commit + centered axes, then cover roll (no cover).
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
@@ -462,12 +499,12 @@ class BallisticResolverTest {
         float roundVelocity = 5f; // slow round — long flight, wide exposure window
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant), candidate's cover roll (no grid cover
+        // On-target commit + centered axes, then candidate's cover roll (no grid cover
         // anywhere here), candidate's hit roll (INCIDENTAL_HIT_CHANCE=0.35;
         // it is not the locked target). The candidate's contact time (~1.0s)
         // is well before the far target's (~3.5s), so the round never
         // reaches the far target's event — no rolls queued for it.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -496,11 +533,11 @@ class BallisticResolverTest {
         float roundVelocity = 10f;
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant), cover-clip roll pinned at 0.1 — WOULD
+        // On-target commit + centered axes, then cover-clip roll pinned at 0.1 — WOULD
         // block under the (wrong) fire-tick-cell reading (0.1 < 0.45) but
         // must NOT block under the correct extrapolated-cell reading (cover
-        // 0 there, so any roll fails to trigger it). hit roll: guaranteed.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.1f, 0f);
+        // 0 there, so any roll fails to trigger it).
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.1f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
@@ -526,11 +563,11 @@ class BallisticResolverTest {
         float roundVelocity = 10f;
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant); the pacer produces no event at all
+        // On-target commit + centered axes; the pacer produces no event at all
         // (skipped before any roll), so only the far target's cover+hit
-        // rolls are queued — a queue sized for the pacer too would exhaust
+        // roll is queued — a queue sized for the pacer too would exhaust
         // wrong if it wrongly produced an event.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -558,10 +595,10 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 10);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant), cover roll (no block), hit roll
-        // (hits). No roll is consumed for behindEnemy — it's skipped before
+        // On-target commit + centered axes, then cover roll (no block).
+        // No roll is consumed for behindEnemy — it's skipped before
         // any event is created.
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -587,9 +624,9 @@ class BallisticResolverTest {
         setVelocity(sim, friendly, -5f, 0f);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // angle, offsetR (irrelevant) — friendly is skipped before any roll;
-        // farTarget's cover roll (no block), hit roll (guaranteed).
-        QueueRandom rng = new QueueRandom(0f, 0f, 0.99f, 0f);
+        // On-target commit + centered axes — friendly is skipped before any
+        // contact roll; farTarget's cover roll does not block.
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
@@ -612,7 +649,7 @@ class BallisticResolverTest {
         setVelocity(sim, target, -3f, 0f);
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
-        QueueRandom rng = new QueueRandom(0f, 0f);
+        QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());

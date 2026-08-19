@@ -24,31 +24,31 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  */
 public enum UnitType {
     /** Player faction's elite. Higher accuracy and HP than militia, expensive in lore. */
-    MARINE     ("graphics/battle/marine.png",      "graphics/battle/marine-dead.png",      true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    MARINE     ("graphics/battle/marine.png",      "graphics/battle/marine-dead.png",      true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Generic regular soldier of an aligned faction (e.g., friendly sector navy on a joint op). Stat-equal to MARINE; sprite differs. */
-    MARINE_BLUE("graphics/battle/blue-marine.png", "graphics/battle/blue-marine-dead.png", true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    MARINE_BLUE("graphics/battle/blue-marine.png", "graphics/battle/blue-marine-dead.png", true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Pirate / opposed-faction regular. Stat-equal to MARINE; sprite differs. Often on the DEFENDER side, occasionally allied. */
-    MARINE_RED ("graphics/battle/red-marine.png",  "graphics/battle/red-marine-dead.png",  true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    MARINE_RED ("graphics/battle/red-marine.png",  "graphics/battle/red-marine-dead.png",  true,  25f, 2.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Lightly armed local conscript. Less accurate, less HP, slower cooldown, shorter sight lanes than a regular. The bread-and-butter defender. Low morale impact — militia are not that intimidating to marines, so a squad can take a lot of militia fire before breaking. */
-    MILITIA    ("graphics/battle/militia.png",     "graphics/battle/militia-dead.png",     true,  15f, 1.5f, 2.0f, 0.22f, 1.2f, 18.0f, 28.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.4f, 0.3f),
+    MILITIA    ("graphics/battle/militia.png",     "graphics/battle/militia-dead.png",     true,  15f, 1.5f, 2.0f, 0.22f, 1.2f, 18.0f, 28.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.4f, 0.3f, 0.45f),
     /** Hostile fauna / xeno boarder. Aggressive brawler — high HP, high damage, slightly faster, mid accuracy. Above-baseline morale impact (animal panic). */
-    ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  30f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f),
+    ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  30f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f, 0.45f),
     /** Walker mech with chaingun arms and rocket-pod shoulders. Defender elite that shows up when the target planet has industries producing or demanding heavy armaments (Heavy Industry, Orbital Works, Ground Defenses, Heavy Batteries). High HP, three-weapon chassis loadout ({@link MechLoadoutComponent}) fired concurrently. Dead sheet has 4 prone hulks; the sim also spawns a {@link com.dillon.starsectormarines.battle.combat.fx.SmokingWreck} on death so the corpse smolders. Renders ~1.6× cell so it visually dominates infantry. Base {@code attackRange} is set to the LRM range so target acquisition reaches across the grid; base {@code attackDamage}/{@code attackCooldown} are unused on mechs (weapons read from {@link MechLoadoutComponent} instead) but kept non-zero as a defensive fallback. High morale impact — eating fire from a walker mech rattles a squad fast. */
-    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true, 540f, 4.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f),
+    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true, 540f, 4.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
-    CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
-    ENGINEER   ("graphics/battle/engineer.png",    null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    ENGINEER   ("graphics/battle/engineer.png",    null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
-    SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f),
+    SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Static ground turret. Combatant so it targets and gets targeted, but its sprite + stats come from the {@code TurretKind} baked in at construction (see {@code MapTurret#create}) — the values here are zero placeholders that {@code MapTurret#create} overwrites. */
-    TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.45f),
+    TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.45f, 0.60f),
     /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.drone.DroneHub}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
-    DRONE_HUB_STRUCTURE ("",                       null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f),
+    DRONE_HUB_STRUCTURE ("",                       null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
     /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
-    DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f),
+    DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f, 0.35f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
-    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  24f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f);
+    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  24f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
 
     public final String spritePath;
     /** Optional corpse sheet — 4 prone poses, auto-sliced like the alive sheets. Drawn for {@code !isAlive()} units in their own pre-pass so live units draw on top. Null = no corpse rendering (units just vanish on death). */
@@ -80,13 +80,20 @@ public enum UnitType {
      * one physical body circle per type, shared by every consumer.
      */
     public final float radius;
+    /**
+     * Half-height of the target-plane combat silhouette around Z=0, in
+     * cells. This is deliberately independent of {@link #renderScale}: the
+     * resolver combines it with {@link #radius} to decide whether a visible
+     * high/low round intersects the body.
+     */
+    public final float hitHalfHeight;
 
     UnitType(String spritePath, String deadSpritePath, boolean combatant,
              float maxHp, float attackDamage, float moveSpeed,
              float accuracy, float attackCooldown, float attackRange,
              float visionRange,
              FrameLayout frameLayout, float renderScale, float moraleImpact,
-             float radius) {
+             float radius, float hitHalfHeight) {
         this.spritePath = spritePath;
         this.deadSpritePath = deadSpritePath;
         this.combatant = combatant;
@@ -101,6 +108,7 @@ public enum UnitType {
         this.renderScale = renderScale;
         this.moraleImpact = moraleImpact;
         this.radius = radius;
+        this.hitHalfHeight = hitHalfHeight;
     }
 
     /**
