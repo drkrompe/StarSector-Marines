@@ -115,9 +115,11 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
     right_pod = scaled_sprite(variant.right_pod, hull_width) if variant.right_pod else None
 
     # Runtime draw order and zero-motion anchors from LayeredMechComposer.
-    foot_x = 0.25 if variant.name == "HOUND" else 0.17
-    centered(canvas, foot, origin, hull_width, -foot_x, -0.28)
-    centered(canvas, foot, origin, hull_width, foot_x, -0.28)
+    hound = variant.name == "HOUND"
+    foot_x = 0.32 if hound else 0.17
+    foot_y = -0.20 if hound else -0.28
+    centered(canvas, foot, origin, hull_width, -foot_x, foot_y)
+    centered(canvas, foot, origin, hull_width, foot_x, foot_y)
     if variant.arm_layout == "dual-narrow":
         narrow = arms.resize((max(1, arms.width // 2), arms.height), Image.Resampling.LANCZOS)
         rear_pivot(canvas, narrow, origin, hull_width, -0.37, -0.15)
