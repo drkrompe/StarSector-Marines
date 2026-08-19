@@ -32,6 +32,15 @@ final class CommercialPartitionStrategy implements PartitionStrategy {
     public PartitionLayout partition(NavigationGrid grid, CellTopology topology,
                                      int bl, int bt, int br, int bb,
                                      Random rng, GroundKind interiorGround) {
+        return partition(grid, topology, bl, bt, br, bb, rng, interiorGround,
+                BuildingPlacement.DEFAULT);
+    }
+
+    @Override
+    public PartitionLayout partition(NavigationGrid grid, CellTopology topology,
+                                     int bl, int bt, int br, int bb,
+                                     Random rng, GroundKind interiorGround,
+                                     BuildingPlacement placement) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean vertical = w >= MIN_LONG_DIM && h >= MIN_SHORT_DIM;
@@ -41,11 +50,31 @@ final class CommercialPartitionStrategy implements PartitionStrategy {
                     grid, topology, bl, bt, br, bb, rng, interiorGround);
         }
         if (vertical && horizontal) {
-            if (w == h) vertical = rng.nextBoolean();
-            else vertical = w > h;
+            if (placement.frontage == BuildingPlacement.Side.LEFT
+                    || placement.frontage == BuildingPlacement.Side.RIGHT) {
+                vertical = true;
+            } else if (placement.frontage == BuildingPlacement.Side.TOP
+                    || placement.frontage == BuildingPlacement.Side.BOTTOM) {
+                vertical = false;
+            } else if (w == h) {
+                vertical = rng.nextBoolean();
+            } else {
+                vertical = w > h;
+            }
         }
 
-        boolean stockAtLowEnd = rng.nextBoolean();
+        boolean stockAtLowEnd;
+        if (vertical && placement.frontage == BuildingPlacement.Side.LEFT) {
+            stockAtLowEnd = false;
+        } else if (vertical && placement.frontage == BuildingPlacement.Side.RIGHT) {
+            stockAtLowEnd = true;
+        } else if (!vertical && placement.frontage == BuildingPlacement.Side.TOP) {
+            stockAtLowEnd = false;
+        } else if (!vertical && placement.frontage == BuildingPlacement.Side.BOTTOM) {
+            stockAtLowEnd = true;
+        } else {
+            stockAtLowEnd = rng.nextBoolean();
+        }
         int stockroomDepth = Math.max(w, h) >= FULL_AISLE_LONG_DIM
                 && Math.min(w, h) >= FULL_AISLE_SHORT_DIM ? 3 : 2;
         if (vertical) {

@@ -112,6 +112,30 @@ class CommercialFloorPlanTest {
     }
 
     @Test
+    void compoundFrontageKeepsSalesFloorPublicAndStockroomAtRear() {
+        BlockLeaf leaf = new BlockLeaf(3, 2, 17, 16, false); // 15x15 supports either split axis
+        for (BuildingPlacement.Side frontage : BuildingPlacement.Side.values()) {
+            NavigationGrid grid = openGrid();
+            CellTopology topology = new CellTopology(W, H);
+            BuildingShellCore.carve(leaf, grid, topology, new ArrayList<>(), new Random(12),
+                    CONFIG, new BuildingPlacement(frontage, true));
+
+            assertTrue(hasDoorwayOnSide(grid, leaf, frontage),
+                    "public entrance should face " + frontage);
+            assertTrue(hasDoorwayOnSide(grid, leaf, frontage.opposite()),
+                    "service entrance should oppose " + frontage);
+            assertTrue(purposeCountOnInteriorEdge(topology, leaf, frontage, RoomPurpose.SHOP_FLOOR)
+                            > purposeCountOnInteriorEdge(topology, leaf, frontage, RoomPurpose.STOCKROOM),
+                    "sales floor should line public frontage " + frontage);
+            assertTrue(purposeCountOnInteriorEdge(
+                            topology, leaf, frontage.opposite(), RoomPurpose.STOCKROOM)
+                            > purposeCountOnInteriorEdge(
+                            topology, leaf, frontage.opposite(), RoomPurpose.SHOP_FLOOR),
+                    "stockroom should line rear facade " + frontage.opposite());
+        }
+    }
+
+    @Test
     void representativeUrbanBatchActuallyContainsTacticalStores() {
         long[] seeds = {1L, 42L, 100L, 777L, 1234L, 9999L};
         int mapsWithStores = 0;
@@ -167,6 +191,40 @@ class CommercialFloorPlanTest {
         for (int y = leaf.top + 1; y < leaf.bottom; y++) {
             if (grid.isDoorway(leaf.left, y)) count++;
             if (grid.isDoorway(leaf.right, y)) count++;
+        }
+        return count;
+    }
+
+    private static boolean hasDoorwayOnSide(NavigationGrid grid, BlockLeaf leaf,
+                                            BuildingPlacement.Side side) {
+        int min = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
+                ? leaf.left + 1 : leaf.top + 1;
+        int max = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
+                ? leaf.right - 1 : leaf.bottom - 1;
+        for (int along = min; along <= max; along++) {
+            int x = side == BuildingPlacement.Side.LEFT ? leaf.left
+                    : side == BuildingPlacement.Side.RIGHT ? leaf.right : along;
+            int y = side == BuildingPlacement.Side.TOP ? leaf.top
+                    : side == BuildingPlacement.Side.BOTTOM ? leaf.bottom : along;
+            if (grid.isDoorway(x, y)) return true;
+        }
+        return false;
+    }
+
+    private static int purposeCountOnInteriorEdge(CellTopology topology, BlockLeaf leaf,
+                                                   BuildingPlacement.Side side,
+                                                   RoomPurpose purpose) {
+        int count = 0;
+        int min = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
+                ? leaf.left + 1 : leaf.top + 1;
+        int max = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
+                ? leaf.right - 1 : leaf.bottom - 1;
+        for (int along = min; along <= max; along++) {
+            int x = side == BuildingPlacement.Side.LEFT ? leaf.left + 1
+                    : side == BuildingPlacement.Side.RIGHT ? leaf.right - 1 : along;
+            int y = side == BuildingPlacement.Side.TOP ? leaf.top + 1
+                    : side == BuildingPlacement.Side.BOTTOM ? leaf.bottom - 1 : along;
+            if (topology.getRoomPurpose(x, y) == purpose) count++;
         }
         return count;
     }

@@ -20,4 +20,15 @@ interface PartitionStrategy {
     PartitionLayout partition(NavigationGrid grid, CellTopology topology,
                               int bl, int bt, int br, int bb,
                               Random rng, GroundKind interiorGround);
+
+    /**
+     * Placement-aware variant used by compound buildings. Most strategies do
+     * not care which facade is public and keep their established behavior.
+     */
+    default PartitionLayout partition(NavigationGrid grid, CellTopology topology,
+                                      int bl, int bt, int br, int bb,
+                                      Random rng, GroundKind interiorGround,
+                                      BuildingPlacement placement) {
+        return partition(grid, topology, bl, bt, br, bb, rng, interiorGround);
+    }
 }
