@@ -74,7 +74,7 @@ public final class CivilianEvacuationPayload {
 
         CivilianEvacuationPlacement placement =
                 CivilianEvacuationPlacement.find(
-                        sim.getGrid(), pointsOfInterest, seed,
+                        sim.getGrid(), sim.getTopology(), pointsOfInterest, seed,
                         representativeCount);
         if (placement == null
                 || placement.spawnCount() != representativeCount
