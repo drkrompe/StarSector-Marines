@@ -90,6 +90,13 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Battle radio** *(v1 shipped)* — marine infantry squads now emit quiet,
+  positional visual-contact and fallback calls from real squad-state
+  transitions, plus globally throttled acknowledgements during sustained
+  engagements. The standalone battle and vanilla-combat bridge share one
+  presentation-only cue policy, so audio never perturbs sim determinism. An
+  in-game mix/content feel pass remains queued. See
+  [`battle-radio/`](battle-radio/overview.md).
 - **Mech roster** *(design stage)* — preserve the current all-range heavy as an
   apex chassis, then add lighter specialists with readable hardware weaknesses:
   a fast chaingun/SRM breacher and a fragile linear-cannon/LRM support strider
