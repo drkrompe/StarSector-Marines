@@ -1,6 +1,6 @@
 # Captain discovery
 
-**Status:** ACTIVE — Slice 1 in progress (2026-08-19)
+**Status:** ACTIVE — Slice 1 shipped (2026-08-19)
 
 ## Problem
 
@@ -69,6 +69,20 @@ transition; salvage owns detection and the interaction that presents it.
    and preserve vanilla salvage behavior.
 3. **Interaction and roster presentation** — survivor copy, accept/decline/full
    roster feedback, and readable provenance/state where personnel is managed.
+
+## Slice 1 complete
+
+`ecf70b58` locks the three-slice acquisition boundary. `055abb97` adds the
+XStream-safe candidate model, normalized namespaced source deduplication,
+deterministic future-captain identity, immutable authored details, irreversible
+resolution, and capacity-safe replayable admission. Legacy saves backfill an
+empty candidate collection; repair removes invalid/duplicate rows, adopts an
+already-present matching captain, and never invents one for a dangling accepted
+offer. Focused intake coverage and the full root automated suite pass.
+
+Slice 2 is next: identify the canonical vanilla salvage seam and prove that one
+eligible derelict can publish one candidate without replacing or duplicating
+normal salvage settlement.
 
 ## Non-goals
 
