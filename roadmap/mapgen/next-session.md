@@ -38,7 +38,8 @@ e8ad9c4b  mapgen: add tactical industrial facilities
 fc212e56  mapgen: support multi-cell residential doodads
 8e7a4815  mapgen: orient residential furniture to room walls
 d4595b97  mapgen: add standalone apartments and firing windows
-adf608b4  mapgen: add tactical medical campuses  ← latest mapgen work
+adf608b4  mapgen: add tactical medical campuses
+4f04d47d  mapgen: add tactical dense urban rows  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -145,6 +146,13 @@ findings) in
   placement, and shoot-through treatment/ward windows. Shared apron paint
   leaves the reserved vehicle centerline untouched. See
   [`complete/medical-campus.md`](complete/medical-campus.md).
+- **Dense urban rows shipped (`4f04d47d`).** Qualifying 13x10+ `DENSE_BLOCK`
+  lots now produce one roomed tenement and one alley market around a
+  three-cell service lane. Alley cover always leaves two cells clear, both
+  buildings have alley-facing and opposed exits, and selected bedroom/shop
+  windows provide shoot-through structural cover with usable interior firing
+  positions. Smaller lots retain the legacy four-shell block. See
+  [`complete/dense-urban-rows.md`](complete/dense-urban-rows.md).
 
 ## Next up (priority order)
 
@@ -221,9 +229,13 @@ reused verbatim. Candidate next tracks (priority order):
    interior cover positions. **Medical campuses are now shipped (`adf608b4`)**:
    exact three-parcel claims produce a roomed clinic, support wing, and open
    ambulance court; treatment and ward facades reuse the firing-window seam.
-   Next ground candidate: upgrade `DENSE_BLOCK` from four generic tiny shells
-   into roomed tenement/market buildings with deliberate alleys, cover, and
-   selected firing windows.
+   **Dense urban rows are now shipped (`4f04d47d`)**: qualifying `DENSE_BLOCK`
+   lots become a tenement/market pair around a three-cell tactical alley with
+   staggered cover, opposed exits, purposeful fixtures, and selective firing
+   windows; smaller blocks preserve the four-shell grammar. The next ground
+   slice is intentionally open: audit underdeveloped exterior kinds (plaza,
+   park, waterfront, rubble) against the current previews before choosing the
+   highest-value tactical upgrade.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
@@ -237,7 +249,8 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md),
    [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md),
    [`complete/standalone-apartments.md`](complete/standalone-apartments.md),
-   and [`complete/medical-campus.md`](complete/medical-campus.md).
+   [`complete/medical-campus.md`](complete/medical-campus.md),
+   and [`complete/dense-urban-rows.md`](complete/dense-urban-rows.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -446,7 +459,7 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,795-test merged root suite green.
+- `gradlew.bat :test` — full merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `python mod/graphics/doodads/test_stitch_atlas.py` — all four atlas stitcher
   tests green.
