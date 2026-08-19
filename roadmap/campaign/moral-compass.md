@@ -178,7 +178,7 @@ the player learns to read).
   [`personnel/complete/captain-trait-drift.md`](personnel/complete/captain-trait-drift.md).
 - NPC dialog gates — content-side, read the compass via a getter.
 - Capstone scene infrastructure — the locked story contract lives in
-  [`t3-endgame/stories/kingmaker-capstone.md`](t3-endgame/stories/kingmaker-capstone.md).
+  [`t3-endgame/complete/kingmaker-capstone.md`](t3-endgame/complete/kingmaker-capstone.md).
 
 ## Related
 

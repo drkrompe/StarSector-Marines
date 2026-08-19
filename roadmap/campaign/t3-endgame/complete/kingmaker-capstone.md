@@ -1,8 +1,8 @@
 # T3 — the last testament
 
-**Status:** SLICE 3 CODE COMPLETE (2026-08-19)
+**Status:** COMPLETE (2026-08-19)
 
-**Implemented:** `946262b2`, `15c017e`, `379d8989`
+**Implemented:** `946262b2`, `15c017ed`, `379d8989`, `e0d7c117`
 
 ## Purpose
 
@@ -146,6 +146,31 @@ The entry has no choice buttons, reward claim, date/count display, moral tooltip
 or consequence callback. It may point at the newest rendered testament's market
 on the sector map, but it never mutates that market or any other campaign table.
 
+### Chronicle cross-link — locked v1
+
+Sealing a testament appends one confirmed, intimate
+`KINGMAKER_TESTAMENT` Chronicle dispatch. It snapshots the testament id, source
+chain, claimant, displaced ruler, source/result factions, market, and sealed day.
+This is distinct from the earlier epic/intimate `THRONE_CLAIM_APPLIED` world-news
+dispatch: the faction flip reports public history, while the testament records
+private correspondence delivered because of the player's decisive role.
+
+Chronicle production is testament-id unique and recovery-safe. If a legacy or
+interrupted state contains a valid testament without its dispatch, the capstone
+system appends the missing link on a later daily tick; it never edits the earlier
+faction-flip snapshot or appends a duplicate.
+
+### Debug reachability — locked v1
+
+The dev-only campaign intel exposes one `Spawn kingmaker testament` control. It
+deterministically selects the lowest-id valid pair of active same-market,
+same-faction houses, constructs a resolved decisive claimant civil war, and then
+uses the production player-consequence, moral, testament, and discovery systems.
+It mirrors the local post-writeback house result but deliberately does not call
+the irreversible vanilla ownership or diplomacy ports. Existing testament
+history is returned rather than duplicated, and absence of a valid pair fails
+without partial mutation.
+
 Delivery is not a second consequence pass. Opening, dismissing, reconstructing,
 or reloading the intel cannot change reputation, moral axes, campaign events,
 contracts, houses, chains, markets, or factions.
@@ -168,8 +193,13 @@ contracts, houses, chains, markets, or factions.
    in `379d8989`; one hidden-until-earned intel entry reconstructs authenticated
    drafts newest-first, reveals only successfully rendered rows, preserves read
    history, and performs no consequence or reward mutation.
-4. **Closure and reachability** — production-shaped debug setup, Chronicle
-   cross-link, save/replay matrix, documentation closeout, and manual smoke.
+4. ~~**Closure and reachability** — production-shaped debug setup, Chronicle
+   cross-link, save/replay matrix, documentation closeout, and manual smoke.~~
+   Shipped in `e0d7c117`; testament sealing now emits one recovery-safe intimate
+   Chronicle link, and the dev intel can build the full capstone through the
+   production consequence/moral/testament/discovery path without calling
+   irreversible vanilla ports. Automated replay coverage passes; manual UI
+   smoke was deliberately deferred for this session.
 
 ## Acceptance
 
@@ -183,6 +213,15 @@ contracts, houses, chains, markets, or factions.
 - The player sees remembered deeds and a verdict, never a hidden-system readout.
 - Missing or inconsistent source data fails closed without fabricating prose or
   replaying campaign consequences.
+
+## Completion record
+
+The complete capstone now runs from decisive attributed claimant victory through
+an immutable moral-history snapshot, deterministic evidence editing, persistent
+Last Testament delivery, and a distinct Chronicle correspondence link. Focused
+tests cover malformed inputs, post-seal moral changes, missing-link recovery,
+stable house-pair selection, and save-style reconstruction/replay. The full
+root `:test` suite passed on 2026-08-19.
 
 ## Non-goals
 
