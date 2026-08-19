@@ -191,7 +191,10 @@ universe over time, not retrofitted into intel slots.
    escort's timed advance is now tracked per squad, so one locally pressured
    unit no longer stutter-steps the entire marine force. Lift placement now
    requires a fully walkable, outdoor, non-doorway 5x5 objective footprint
-   (`5a0da48d`). Manual cadence and post-rebalance feel validation remain queued.
+   (`5a0da48d`). LZ guards and moving escorts now spread their members through
+   stable per-squad 5x5 tactical pockets, preferring nearby wall and doodad
+   cover while retaining their authored squad anchor (`ba42612b`). Manual
+   cadence and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through
