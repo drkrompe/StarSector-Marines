@@ -1,5 +1,20 @@
 # S3a — weapon FX families
 
+> **Shipped 2026-08-19** on `session/ballistics-fx-families`, commit
+> `9c8a642f`. Pulse, rail, and drone fire now share the traveling-bolt sweep
+> while selecting distinct texture/length/width recipes. The DMR reuses
+> vanilla's own blue-white gauss shell as a rail needle; drone pulse reuses
+> the nearly neutral small flechette as a compact cyan dart; pulse rifle keeps
+> S3's custom tintable bolt. No new bitmap shipped and no sim, balance, impact,
+> or audio behavior changed. Full suite: 1513 tests.
+>
+> **Landed vs. planned deviations:** none. A scaled visual check confirmed the
+> three silhouettes remain distinct at the configured ground-cell dimensions.
+
+Original contract below, kept for the record.
+
+---
+
 > Follow S3's shared visible-round bolt with a small reuse-first visual
 > language: pulse rifle, railgun, and drone pulse keep one traveling-body
 > pipeline while gaining distinct silhouettes.
