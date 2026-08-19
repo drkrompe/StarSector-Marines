@@ -28,8 +28,11 @@ and the current action reads `Overwatch` while the hold is active.
   discipline uses an explicit visible/safe query so it cannot immediately
   reacquire the rejected runner.
 - With no safe alternative, the decision latches at squad scope. Every member
-  clears its generic pursuit path and target, the current plan fails, and the
-  next replan selects an `Overwatch` hold. Opportunity fire remains enabled.
+  clears its generic pursuit target, the current plan fails, and the next
+  replan selects an `Overwatch` hold. A member already behind wall/doodad
+  cover plants; an exposed member first takes a short lateral/backward path to
+  real cover, or uses the existing away-biased fallback when none is local.
+  Opportunity fire remains enabled throughout.
 - The latch releases when the rejected target dies, its cluster falls below
   the density threshold, or any member sees a low-density alternative.
 
@@ -76,6 +79,9 @@ This slice preserves the useful scoring substrate and closes those boundaries.
   rejected target, and counted density without a schema-version field.
 - Generic pursuit paths never leave the cohesion radius; explicit objective
   actions retain their existing movement contracts.
+- Held members already in threat-facing cover plant, while exposed members
+  settle into nearby lateral/backward wall or doodad cover without closing on
+  the rejected formation.
 
 ## Out of scope
 

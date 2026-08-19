@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
@@ -30,6 +31,10 @@ import com.dillon.starsectormarines.battle.nav.Paths;
  * unit reads settled). The shared infantry dispatcher then fills an
  * otherwise-empty fire intent against the closest legal target; settled,
  * that shot uses the stanced-fire profile.
+ *
+ * <p>Story I reuses this posture for a rejected pursuit. That branch preserves
+ * the line rather than the exact cell: covered members plant, while exposed
+ * members may shift laterally/backward into real cover before settling.
  */
 public final class OverwatchPosture implements Action {
 
@@ -60,7 +65,23 @@ public final class OverwatchPosture implements Action {
             squad.clearEngagementDisciplineHold();
             return ActionStatus.FAILURE;
         }
-        if (squad.engagementDisciplineHold) sim.world().setTargetId(member, 0L);
+        if (squad.engagementDisciplineHold) {
+            sim.world().setTargetId(member, 0L);
+            if (sim.movement().mayRepath(member)) {
+                int[] dest = sim.getTacticalScoring().findEngagementHoldPosition(
+                        member, squad.engagementDisciplineTargetId);
+                if (dest != null && !sim.movement().atCell(member, dest[0], dest[1])) {
+                    int[] path = GridPathfinder.findPath(sim.getGrid(),
+                            sim.world().cellX(member), sim.world().cellY(member),
+                            dest[0], dest[1], sim.getOccupancyMap());
+                    sim.setPath(member, InfantryCohesion.clampPursuitPath(path, squad));
+                } else if (!Paths.isEmpty(sim.world().path(member))) {
+                    sim.clearPath(member);
+                }
+            }
+            if (!Paths.isEmpty(sim.world().path(member))) sim.advanceMovement(member);
+            return ActionStatus.RUNNING;
+        }
         // Drop any in-flight path — the squad is on overwatch, not moving.
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
         // Target selection remains centralized in the dispatcher's opportunity

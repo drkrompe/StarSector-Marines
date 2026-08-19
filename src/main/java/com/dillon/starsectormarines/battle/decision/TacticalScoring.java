@@ -138,6 +138,8 @@ public final class TacticalScoring {
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
     /** Two nearby hostile combatants turn a candidate into a formation rather than an isolated pursuit target. */
     public static final int HIGH_THREAT_DENSITY_COUNT = 2;
+    /** Maximum cells an exposed engagement hold may shift to claim nearby cover. */
+    public static final int ENGAGEMENT_HOLD_COVER_RADIUS = 3;
 
     /** How far ahead of the squad centroid the advance-leash threat read looks. Longer routes are clipped to this local window. */
     public static final float ADVANCE_THREAT_LOOKAHEAD = 36f;
@@ -1441,6 +1443,70 @@ public final class TacticalScoring {
             }
         }
         return best;
+    }
+
+    /**
+     * Finds real wall/doodad cover for an exposed engagement-discipline hold
+     * without stepping closer to the rejected cluster. Returns the current
+     * cell when it is already covered, a reachable lateral/backward cover
+     * cell within {@link #ENGAGEMENT_HOLD_COVER_RADIUS}, or the ordinary
+     * away-biased fallback position when no local cover exists.
+     */
+    public int[] findEngagementHoldPosition(long self, long threat) {
+        if (!roster.isAliveById(self) || !roster.isAliveById(threat)) return null;
+        World world = roster.world();
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        int tx = world.cellX(threat);
+        int ty = world.cellY(threat);
+        int threatDx = tx - sx;
+        int threatDy = ty - sy;
+        int currentCover = grid.getCoverAt(sx, sy, threatDx, threatDy)
+                + doodads.getDoodadCoverAt(sx, sy, threatDx, threatDy);
+        if (currentCover > 0) return new int[]{sx, sy};
+
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        int radiusSquared = ENGAGEMENT_HOLD_COVER_RADIUS * ENGAGEMENT_HOLD_COVER_RADIUS;
+        for (int dy = -ENGAGEMENT_HOLD_COVER_RADIUS;
+             dy <= ENGAGEMENT_HOLD_COVER_RADIUS; dy++) {
+            for (int dx = -ENGAGEMENT_HOLD_COVER_RADIUS;
+                 dx <= ENGAGEMENT_HOLD_COVER_RADIUS; dx++) {
+                if (dx == 0 && dy == 0 || dx * dx + dy * dy > radiusSquared) continue;
+                // Positive dot means advancing toward the rejected cluster.
+                if (dx * threatDx + dy * threatDy > 0) continue;
+                int cx = sx + dx;
+                int cy = sy + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                int coverDx = tx - cx;
+                int coverDy = ty - cy;
+                int gridCover = grid.getCoverAt(cx, cy, coverDx, coverDy);
+                int doodadCover = doodads.getDoodadCoverAt(cx, cy, coverDx, coverDy);
+                if (gridCover + doodadCover <= 0) continue;
+                int[] path = GridPathfinder.findPath(grid, sx, sy, cx, cy, occupancyMap);
+                if (Paths.isEmpty(path)
+                        || pathAdvancesToward(path, sx, sy, threatDx, threatDy)) continue;
+                float score = Paths.cellCount(path)
+                        + FIRING_OCCUPANCY_COST * occupantsExcludingSelf(self, sx, sy, cx, cy)
+                        - FIRING_COVER_BONUS * gridCover
+                        - FIRING_DOODAD_COVER_BONUS * doodadCover;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{cx, cy};
+                }
+            }
+        }
+        return best != null ? best : findFallbackPosition(self);
+    }
+
+    private static boolean pathAdvancesToward(int[] path, int startX, int startY,
+                                              int threatDx, int threatDy) {
+        for (int i = 0, n = Paths.cellCount(path); i < n; i++) {
+            int dx = Paths.cellX(path, i) - startX;
+            int dy = Paths.cellY(path, i) - startY;
+            if (dx * threatDx + dy * threatDy > 0) return true;
+        }
+        return false;
     }
 
     /**
