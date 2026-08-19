@@ -21,7 +21,7 @@ public enum MechVariant {
             MechWeaponComponent.NOSE_CHAINGUN,
             MechWeaponComponent.SRM_5,
             null,
-            MechRole.ARMORED_SUPPORT),
+            MechRole.ASSAULT),
 
     SIROCCO("sirocco", "Sirocco", 230f, 1.45f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f,

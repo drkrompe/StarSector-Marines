@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.fs.starfarer.api.Global;
@@ -178,6 +180,10 @@ public final class SquadStateDumper {
             }
             o.put("alive", sim.world().isAlive(u));
             o.put("role", sim.role().role(u).name());
+            MechVariant mechVariant = sim.identity().mechVariant(u);
+            MechLoadoutComponent mechLoadout = sim.world().mechLoadout(u);
+            o.put("mechVariant", mechVariant != null ? mechVariant.id : null);
+            o.put("mechRole", mechLoadout != null ? mechLoadout.role.name() : null);
             o.put("cellX", sim.world().cellX(u));
             o.put("cellY", sim.world().cellY(u));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
