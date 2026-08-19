@@ -83,11 +83,11 @@ universe over time, not retrofitted into intel slots.
   (mod-merge: load order, id-override, validation) is deferred until a real
   submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
   [`moddable-tilesets/`](moddable-tilesets/overview.md).
-- **Surface relief** *(new, active)* — parallax mapping with offset limiting
-  (Welsh 2004) adapted to the top-down battlefield via a screen-space
-  composite, plus per-texel dynamic lighting later; height/normal sheets
-  auto-derived at build time from tile albedos by a kernel vendored from
-  MoonLightEngine. See [`surface-relief/`](surface-relief/overview.md).
+- **Surface relief** *(active)* — S1 derivation and the manually accepted S2
+  material-aware parallax/water pass are shipped. S3 dynamic ground bump
+  lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
+  pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
+  burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
 
 ## Immediate next-up
 
