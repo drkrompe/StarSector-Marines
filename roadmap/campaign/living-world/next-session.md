@@ -125,7 +125,13 @@ a 24-cell shelter approach band so the first landing can establish a defense
 Separation's interaction with that pressure is now regression-locked too:
 eight coincident runners all retain the shared target and sustain repeated
 melee attacks after the crowd fans out (`4973fc91`). This closes the movement
-primitive risk only; the existing manual queue still owns roster/stat feel.
+primitive risk. The first stat/art feel pass is now shipped as well: generic
+aliens drop from 30 to 7.5 HP and runners from 24 to 6 HP; both live archetypes
+use generated true-overhead body/head/foot layers on the existing marine
+compositor, without firearm layers, while the held alien sheets remain fallback
+and corpse art (`bccbbe16`). The manual queue still owns roster size and
+post-rebalance time-to-contact/kill feel.
+
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
@@ -168,12 +174,12 @@ event timeouts settle before the source chain's daily advancement; ended or
 malformed sources fail closed without rewriting history; terminal Encrypted
 Channel copy remains durable; and debug intel can force both stages through the
 production lifecycle. Focused replay/load coverage and the full root automated
-suite pass. Manual UI validation and swarm tuning remain deferred as requested.
+suite pass. Manual UI validation and post-rebalance swarm feel remain deferred.
 
-## Active — G9 Silent Colony
+## Completed — G9 Silent Colony
 
-The third black-swan archetype is now contracted in
-[`stories/g9-silent-colony.md`](stories/g9-silent-colony.md). A dead colony's
+The third black-swan archetype is complete in
+[`complete/slice-g9-silent-colony.md`](complete/slice-g9-silent-colony.md). A dead colony's
 automated burst asks the company to fund a blind expedition; a later dedicated
 mission will reveal stranded survivors, a sealed archive, and the colony's own
 dormant automated threat only after commitment.
@@ -195,10 +201,29 @@ valid row exists, reconstructs pending/committed/terminal state after load, and
 routes funding/refusal without revealing survivors, archive, threat, reward, or
 moral meaning. Focused compatibility/replay tests and the full root suite pass.
 
-Next is Slice 3: define event mission identity and build a dedicated expedition
-factory with an explicit survivor cohort, physical archive objective, and
-deterministic automated-threat reveal. Do not treat generic victory as an event
-outcome or grant archive cargo directly from the intel surface.
+Slice 3 is shipped in `9a87c85b`. A committed row now emits one stable local
+zero-economy expedition mission with frozen event/site/threat lineage. Its
+dedicated factory installs the exact 6–12-member survivor cohort, a separate
+timed archive-room objective, and a hidden-seed-selected autonomous defense
+profile made only from turrets and drone hubs. The seed freezes threat profile,
+map, and placement independently of the ordinary battle seed. Results reports
+survivor and archive facts separately, and an unfinished battle cannot invent
+archive loss. Existing civilian rescue remains on its biological-swarm path.
+
+Slice 4 is shipped in `43bd3693`. Silent Colony now dispatches through its own
+strict resolver, which binds the explicit survivor/archive report to the frozen
+event key, market, cohort, threat seed, and zero-economy mission envelope. The
+first valid report closes the event and creates one immutable Chronicle
+snapshot; committed saves can still resolve, while terminal save/load or mission
+replay cannot replace the facts or duplicate the dispatch. Dead Letter retains
+the terminal report, and debug intel can force an eligible local site through
+production terms. Archive evidence remains narrative-only, and no moral row is
+recorded because the mission never asks the player to state a priority or make a
+promise.
+
+No living-world story is currently active. Contract the next black-swan or
+political follow-through slice before implementation; manual UI validation and
+swarm tuning remain in the shared deferred queue.
 
 ## Open forks still unresolved (design)
 
@@ -306,6 +331,8 @@ outcome or grant archive cargo directly from the intel surface.
 - G6 playtest correction — implacable pursuit under fire (`fb50b964`).
 - G6 debug scaling — swarm pressure follows first-wave strength and preserves
   an opening deployment phase (`8b2af722`, `e0d29078`).
+- G6 health/art feel pass — quarter-HP aliens and modular live xeno composition
+  (`bccbbe16`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
@@ -319,3 +346,7 @@ outcome or grant archive cargo directly from the intel surface.
   (`4d50805d`).
 - G9 Slice 2 — deterministic dead-site producer and reconstructible Dead Letter
   (`33b073bd`).
+- G9 Slice 3 — dedicated expedition mission, autonomous threat, survivor cohort,
+  physical archive, and dual debrief report (`9a87c85b`).
+- G9 Slice 4 — strict event closure, immutable Chronicle report, durable Dead
+  Letter facts, and debug/save/replay reachability (`43bd3693`).
