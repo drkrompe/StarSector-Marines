@@ -17,20 +17,26 @@ untouched.
    FBO **color** target instead of the backbuffer (viewport-sized,
    recreated on resize). A second **height** target (same size; plain
    RGB8 grayscale is fine) renders the same tile quads sampling the S1
-   height sheets, tinted by per-tile **macro height**.
+   height sheets. RGBA carries **macro height**, raw **micro height**,
+   **water identity**, and **shore proximity**.
 3. **Macro height metadata.** Per-tile-id scalar in the gen-mapping /
    `TileRegistry` layer (walls high, buildings raised, ground mid, craters
    low, water lowest), with a sane code default so unmapped tiles are
    mid-height. Follow the Phase-2 data-driven pattern
    (`urban.mapping.json`).
 4. **Fullscreen parallax pass.** One quad, one fragment shader:
-   - `hsb = height * scale + bias` (paper's scale/bias, uniforms)
+   - combine centered macro and micro channels with independent strengths
    - `eye = normalize(vec3(screenCenter - fragPos, eyeHeight))`
    - `uv' = uv + hsb * eye.xy * strength` — **offset-limited form**
      (no divide by `eye.z`)
    - sample composed color at `uv'`.
    Then the rest of the frame draws on top as today.
-5. **Tuning + toggle.** Uniform-driven strength/eyeHeight; a dev/settings
+5. **Water material model.** Damp static water relief; add world-anchored,
+   time-varying refraction measured in cell fractions; strengthen it and add
+   restrained crest highlights near shore. Reject/backtrack samples that cross
+   the water mask so coast tiles remain stable.
+6. **Tuning + toggle.** Uniform-driven structure/surface/water strength and
+   eyeHeight; a dev/settings
    toggle that bypasses the whole indirection (ground passes go straight
    to backbuffer as today). Off by default until playtested? — ship ON in
    dev, decide at playtest.
@@ -53,7 +59,7 @@ untouched.
 ## Acceptance
 
 - Visually: panning the camera slides walls against ground; zoom changes
-  the lean; water reads as below-surface. No shimmer at screen edges
+  the lean; water reads as a moving surface with shore activity. No shimmer at screen edges
   (offset limiting), no atlas bleed anywhere.
 - Toggle off ⇒ pixel-identical to pre-story rendering.
 - Shader-compile failure path exercised (bad source in dev) ⇒ battle
