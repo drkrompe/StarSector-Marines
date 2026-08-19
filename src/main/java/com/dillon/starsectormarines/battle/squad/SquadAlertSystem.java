@@ -17,8 +17,8 @@ import java.util.List;
  * registered squad. Promotion rules:
  * <ul>
  *   <li><b>ENGAGED</b> — any living squadmate has LOS to an alive enemy
- *       combatant. {@code timeSinceContact} resets to zero and
- *       {@code lastSeenEnemy} captures that enemy's cell.</li>
+ *       combatant. {@code timeSinceContact} resets to zero and every visible
+ *       hostile refreshes the squad's identified contact belief.</li>
  *   <li><b>SUSPICIOUS</b> — no current LOS, but a squadmate is in a
  *       fall-back (recently hit). The squad converges on the last known
  *       enemy cell so a patrol that gets sniped doesn't keep walking its
@@ -41,9 +41,7 @@ import java.util.List;
  * ENGAGED/SUSPICIOUS/UNAWARE state machine. Structured as a units-outer
  * pass that posts each alive unit's contribution to its squad in one walk:
  * increments the alive count, accumulates centroid, notes if any member is
- * in fall-back, and (only if the squad isn't already tagged ENGAGED this
- * tick) runs a LoS scan for visible enemies. Engaged squads short-circuit
- * subsequent LoS scans for the same squad within this tick.
+ * in fall-back, and records every hostile combatant visible to any member.
  *
  * <p>The audible-gunfire promotion only runs for squads that finished the
  * first pass still un-engaged. Final state transitions are applied once
@@ -100,7 +98,7 @@ public final class SquadAlertSystem {
         this.shots = shots;
     }
 
-    public void tick(float dt) {
+    public void tick(float dt, int simTick) {
         NavigationGrid grid = navigation.getGrid();
         World world = roster.world();
         VisionService vision = roster.vision();
@@ -112,6 +110,7 @@ public final class SquadAlertSystem {
         // the hot path; reset at the top so a dead squad's leftover flags
         // don't leak into next tick.
         for (Squad squad : roster.getSquads()) {
+            squad.beginBeliefTick(dt);
             squad.aliveMembers = 0;
             squad.centroidX = 0f;
             squad.centroidY = 0f;
@@ -164,23 +163,21 @@ public final class SquadAlertSystem {
                 }
             }
 
-            // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
-            // one engaged squadmate is enough to commit the whole squad.
-            if (squad._engagedThisTick) continue;
+            // Belief scan records every visible hostile, not just the first.
+            // One member's observation is shared with the squad before GOAP.
             int uCellX = world.cellX(u);
             int uCellY = world.cellY(u);
             for (int j = 0; j < liveCount; j++) {
                 long other = dense[j];
                 if (identity.faction(other) == squad.faction) continue;
                 if (!identity.type(other).combatant) continue;
+                if (squad.observedDirectlyOnTick(other, simTick)) continue;
                 int otherCellX = world.cellX(other);
                 int otherCellY = world.cellY(other);
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         uAir, vision.airLosRadius(other))) continue;
                 squad._engagedThisTick = true;
-                squad.lastSeenEnemyX = otherCellX;
-                squad.lastSeenEnemyY = otherCellY;
-                break;
+                squad.observeDirectContact(other, otherCellX, otherCellY, simTick);
             }
         }
 
@@ -203,8 +200,8 @@ public final class SquadAlertSystem {
                         squad._suspiciousThisTick = true;
                         // fromX/Y are center-based, so the containing cell is
                         // the floor — round biases +1 for an on-center shooter.
-                        squad.lastSeenEnemyX = (int) Math.floor(shot.fromX);
-                        squad.lastSeenEnemyY = (int) Math.floor(shot.fromY);
+                        squad.observeAudibleBearing((int) Math.floor(shot.fromX),
+                                (int) Math.floor(shot.fromY));
                         break;
                     }
                 }
@@ -245,6 +242,7 @@ public final class SquadAlertSystem {
 
         // Finalize: divide centroids, apply alert-state transitions.
         for (Squad squad : roster.getSquads()) {
+            squad.publishBeliefSnapshot();
             if (squad.aliveMembers > 0) {
                 squad.centroidX /= squad.aliveMembers;
                 squad.centroidY /= squad.aliveMembers;

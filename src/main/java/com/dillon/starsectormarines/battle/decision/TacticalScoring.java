@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -660,6 +661,22 @@ public final class TacticalScoring {
         return threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
     }
 
+    /**
+     * Number of other contacts the observing squad remembers near the
+     * candidate's last-seen cell. Unknown hostiles are deliberately absent.
+     */
+    public int threatDensityAt(long candidate, Squad observer) {
+        BelievedContact center = observer.believedContact(candidate);
+        if (center == null) return 0;
+        float radiusSquared = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
+        int count = 0;
+        for (BelievedContact contact : observer.believedContacts()) {
+            if (contact.unitId() == candidate) continue;
+            if (center.distanceSquaredTo(contact) <= radiusSquared) count++;
+        }
+        return count;
+    }
+
     private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
         LongBucket scratch = new LongBucket();
         unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
@@ -716,6 +733,11 @@ public final class TacticalScoring {
      * produces {@link PursuitDecision#HOLD} instead of a blind reacquire.
      */
     public PursuitDecision assessPursuit(long self, long currentTarget) {
+        return assessPursuit(self, currentTarget, null);
+    }
+
+    /** Story-25 assessment using the acting squad's remembered density. */
+    public PursuitDecision assessPursuit(long self, long currentTarget, Squad observer) {
         World world = roster.world();
         if (currentTarget == 0L || !roster.isAliveById(currentTarget)) {
             return PursuitDecision.RETARGET;
@@ -733,8 +755,11 @@ public final class TacticalScoring {
                 world.x(currentTarget), world.y(currentTarget));
         float effectiveRange = effectiveAttackRange(self, currentTarget,
                 world.attackRange(self));
+        int density = observer != null
+                ? threatDensityAt(currentTarget, observer)
+                : threatDensityAt(currentTarget, selfFaction);
         if (!(visible && currentDist <= effectiveRange)
-                && threatDensityAt(currentTarget, selfFaction) >= HIGH_THREAT_DENSITY_COUNT) {
+                && density >= HIGH_THREAT_DENSITY_COUNT) {
             return PursuitDecision.HOLD;
         }
 
@@ -763,6 +788,12 @@ public final class TacticalScoring {
      * {@code 0L} when holding is safer than advancing on any visible contact.
      */
     public long findBestVisibleLowDensityTarget(long self, long excludedTarget) {
+        return findBestVisibleLowDensityTarget(self, excludedTarget, null);
+    }
+
+    /** Story-25 candidate search using the acting squad's remembered density. */
+    public long findBestVisibleLowDensityTarget(long self, long excludedTarget,
+                                                Squad observer) {
         World world = roster.world();
         VisionService vision = roster.vision();
         Faction selfFaction = roster.identity().faction(self);
@@ -785,7 +816,9 @@ public final class TacticalScoring {
             int cy = world.cellY(candidate);
             if (!canSeePair(grid, sx, sy, cx, cy,
                     selfAir, vision.airLosRadius(candidate))) continue;
-            int density = threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
+            int density = observer != null
+                    ? threatDensityAt(candidate, observer)
+                    : threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
             if (density >= HIGH_THREAT_DENSITY_COUNT) continue;
             float score = cellDistance(world.x(self), world.y(self),
                     world.x(candidate), world.y(candidate))
