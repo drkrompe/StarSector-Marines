@@ -12,15 +12,22 @@ The battle debug panel now exposes **Spawn mech family**, which creates:
 - Hound: fast chaingun/paired-SRM-5 breacher with no LRM;
 - Sirocco: fragile linear-cannon/paired-LRM-5 support with no SRM.
 
+A reproducible static contact sheet is available at
+[`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It
+uses the runtime layer order and anchors, showing both gameplay-relative sizes
+and a normalized 208-pixel comparison. Regenerate it with
+`mod/graphics/battle/mech-modular-topdown/render_variants.py` after sprite work.
+
 Needle, a fast unpodded scout, is documented but deferred until it can ship with
 real recon/spotting behavior.
 
 ## First action
 
-Run an ordinary debug battle, expand the battle debug panel, and click **Spawn
-mech family**. Compare silhouette readability, movement, range behavior,
-time-to-kill, missile density, and whether Sirocco's linear cannons remain a
-fallback rather than a second primary role.
+Review the static contact sheet for silhouette and hardpoint readability, then
+run an ordinary debug battle, expand the battle debug panel, and click **Spawn
+mech family**. Compare movement, range behavior, time-to-kill, missile density,
+and whether Sirocco's linear cannons remain a fallback rather than a second
+primary role.
 
 ## What shipped
 
