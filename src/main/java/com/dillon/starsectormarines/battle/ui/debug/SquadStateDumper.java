@@ -41,8 +41,8 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. */
-    private static final int SCHEMA_VERSION = 5;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. */
+    private static final int SCHEMA_VERSION = 6;
 
     private SquadStateDumper() {}
 
@@ -113,6 +113,17 @@ public final class SquadStateDumper {
         o.put("chokePointPortalId", squad.chokePointPortalId);
         o.put("fallbackTriggered", squad.fallbackTriggered);
         o.put("fallbackInProgress", squad.fallbackInProgress);
+        o.put("advanceEngageWeight", squad.advanceEngageWeight);
+        o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
+        o.put("advanceEngageLeash", squad.advanceEngageLeash);
+        long advanceThreat = sim.resolveUnit(squad.advanceThreatId);
+        o.put("advanceThreatId", advanceThreat != 0L ? sim.identity().name(advanceThreat) : null);
+        o.put("advanceThreatFoes", squad.advanceThreatFoes);
+        o.put("advanceThreatFriends", squad.advanceThreatFriends);
+        o.put("advanceThreatAnchorX", squad.advanceThreatAnchorX);
+        o.put("advanceThreatAnchorY", squad.advanceThreatAnchorY);
+        o.put("advanceThreatRetreating", squad.advanceThreatRetreating);
+        o.put("advanceThreatTick", squad.advanceThreatTick);
         return o;
     }
 

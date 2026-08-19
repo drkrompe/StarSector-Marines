@@ -331,6 +331,27 @@ public final class Squad {
      */
     public volatile int chokePointPortalId = -1;
 
+    // ---- Story 19: threat-scored objective advance ----
+
+    /** Raw commit-vs-press weight in [0,1] from the most recent EnterZone advance tick. Diagnostic plus hysteresis input. */
+    public volatile float advanceEngageWeight = 0f;
+    /** True while the weight has crossed the commit threshold and not yet fallen below the lower release threshold. */
+    public volatile boolean advanceEngageCommitted = false;
+    /** Maximum cells the squad may step off the advance axis to prosecute the current contact. Zero while pressing. */
+    public volatile float advanceEngageLeash = 0f;
+    /** Highest-contributing contact behind the current advance score, or {@code 0L} when no route threat exists. */
+    public volatile long advanceThreatId = 0L;
+    /** Raw hostile/friendly headcounts behind the weighted score; surfaced in squad dumps for tuning. */
+    public volatile int advanceThreatFoes = 0;
+    public volatile int advanceThreatFriends = 0;
+    /** Closest point on the advance axis to {@link #advanceThreatId}; center of the off-axis firing-position leash. */
+    public volatile int advanceThreatAnchorX = -1;
+    public volatile int advanceThreatAnchorY = -1;
+    /** True when the primary contact's active path ends materially farther from the squad centroid. */
+    public volatile boolean advanceThreatRetreating = false;
+    /** Sim tick at which the cached score was computed. Prevents N members from repeating one squad-level tally in the same tick. */
+    public volatile int advanceThreatTick = -1;
+
     /**
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
