@@ -102,12 +102,14 @@ public final class MissionLaunch {
                     det.shuttleManifest, m.risk);
         } else if (isCivilianRescueBattle(m)) {
             int firstWaveMarineSeats = firstWaveSeats(det.shuttleManifest);
-            int swarmCount = m.source.isDebug()
+            boolean stressTest = m.source == MissionSource.DEBUG_CIVILIAN_RESCUE;
+            int swarmCount = stressTest
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
             sim = BattleSetup.createCivilianRescue(seed,
-                    det.shuttleManifest, enemyHasHeavyArmor, m.risk, swarmCount, profile);
+                    det.shuttleManifest, enemyHasHeavyArmor, m.risk,
+                    swarmCount, profile, stressTest);
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
@@ -158,6 +160,8 @@ public final class MissionLaunch {
     static boolean isCivilianRescueBattle(Mission mission) {
         if (mission == null) return false;
         return mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE
+                || mission.source
+                    == MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE
                 || CivilianRescueMissionKey.parse(mission.id) != null;
     }
 

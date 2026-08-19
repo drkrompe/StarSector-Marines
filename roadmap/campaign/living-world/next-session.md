@@ -113,18 +113,19 @@ rank sensed marines and registered active evacuees in one distance-based target
 pool. A current victim gets 25% distance leeway, but a substantially closer
 marine can peel a runner off a colonist; target changes reroute immediately
 (`4fedb34a`). Deterministic
-LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
-zones, while the rescue factory now omits conventional defenders, defense-post
+LOW/MEDIUM/HIGH rosters originally placed 12/24/40 runners outside the shelter
+and lift zones, while the rescue factory now omits conventional defenders, defense-post
 turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
 `6b386199`, `88421954`, `710d2981`).
 The first playtest correction is shipped too: `SWARM_PRESSURE` no longer rolls
 the generic on-hit fallback that made runners stop under sustained fire, and
 full-distance contact pursuit is locked by regression tests (`fb50b964`).
 Debug rescue also scales swarm size from simultaneous first-wave marine seats
-instead of fighting the fixed production 12/24/40 roster or counting later
-sortie cycles at time zero. LOW/MEDIUM/HIGH use 2:1, 3:1, and 4:1 pressure, with
-a 24-cell shelter approach band so the first landing can establish a defense
-(`8b2af722`, `e0d29078`). Production remains unchanged.
+instead of counting later sortie cycles at time zero. LOW/MEDIUM/HIGH stress
+tests use 2:1, 3:1, and 4:1 pressure, with a 24-cell shelter approach band so
+the first landing can establish a defense (`8b2af722`, `e0d29078`). The debug
+catalog now also exposes a separate production-shaped canonical entry with the
+real HIGH/four-drop envelope and 16-cell approach band.
 Separation's interaction with that pressure is now regression-locked too:
 eight coincident runners all retain the shared target and sustain repeated
 melee attacks after the crowd fans out (`4973fc91`). This closes the movement
@@ -167,10 +168,12 @@ cross a secondary hostile, making wide bursts productive into dense swarms
 thirteen-cell radius and a 25x25 footprint around a fifteen-cell-inset LZ.
 Allied infantry now steer away from hostile aliens inside five cells: one slows
 a direct advance, while clustered pressure can force a bounded backstep without
-discarding the squad route (`c6589910`). The latest health pass halves both
-aliens again to one sixteenth of their original pools: 1.875 HP for generic
-aliens and 1.5 HP for runners. Service-grade fire now needs two pulse hits,
-three SMG hits, or one DMR hit on either target (`15a11674`). The latest rescue
+discarding the squad route (`c6589910`). The sixteenth-health pass left generic
+aliens at 1.875 HP and originally put runners at 1.5 HP (`15a11674`). The
+current pressure pass raises runners to 2.5 HP and the canonical
+LOW/MEDIUM/HIGH openings to 20/40/64. Service-grade fire now needs three pulse
+hits, four SMG hits, or one DMR hit against a runner; the campaign rescue
+therefore opens with 64 runners. The latest rescue
 playtest correction excludes civilians from marine direct-fire contacts,
 clamps authored movement plus alien avoidance to the mover's speed stat, and
 preserves each delivered militia squad's authored star point instead of
@@ -192,8 +195,9 @@ Lift placement also rejects any candidate whose 5x5 trigger footprint crosses a
 wall, doorway, or building interior (`5a0da48d`). Pickup timing, militia cadence,
 mech mix, through-fire strength, and engaged bounds remain manual.
 
-Outcome closure has its first checkpoint too. The debug client offers direct
-LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
+Outcome closure has its first checkpoint too. The debug client offers a
+production-shaped canonical rescue plus direct LOW/MEDIUM/HIGH stress scenarios
+without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
 representative and campaign-scaled rescue totals (`38bc6323`, `a27064fc`,
 `cf442e11`). Distress Net now retains the newest terminal rescue result after
@@ -413,8 +417,12 @@ swarm tuning remain in the shared deferred queue.
 - G5/G6 avoidance/spacing follow-up — five-cell density-aware alien aversion
   for allied infantry plus a thirteen-cell-radius, 25x25 pickup perimeter
   (`c6589910`).
-- G6 sixteenth-health follow-up — 1.875/1.5 HP aliens with explicit
+- G6 sixteenth-health follow-up — historical 1.875/1.5 HP aliens with explicit
   service-grade pulse/SMG/DMR hit-count contracts (`15a11674`).
+- G6 canonical-pressure follow-up — 20/40/64 production rosters, 2.5-HP
+  runners, and a distinct production-shaped DEBUG launch alongside the retained
+  force-scaled stress tests
+  ([`complete/canonical-rescue-pressure-pass.md`](complete/canonical-rescue-pressure-pass.md)).
 - G5/G6 rescue playtest correction — marine direct-fire civilian immunity,
   combined movement/avoidance speed cap, and persistent militia perimeter
   posts (`bf6fdd64`).

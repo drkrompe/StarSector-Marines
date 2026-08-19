@@ -48,7 +48,7 @@ public enum UnitType {
     /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
     DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f, 0.35f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
-    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,   1.5f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
+    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,   2.5f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
 
     public final String spritePath;
     /** Optional corpse sheet — 4 prone poses, auto-sliced like the alive sheets. Drawn for {@code !isAlive()} units in their own pre-pass so live units draw on top. Null = no corpse rendering (units just vanish on death). */

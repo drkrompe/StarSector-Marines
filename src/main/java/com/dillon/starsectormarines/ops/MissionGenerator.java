@@ -156,8 +156,23 @@ public final class MissionGenerator {
     static List<Mission> debugCivilianRescueMissions(
             String planetName, Random random, int startIndex) {
         if (planetName == null || random == null) return Collections.emptyList();
-        List<Mission> missions = new ArrayList<>(RiskLevel.values().length);
+        List<Mission> missions = new ArrayList<>(RiskLevel.values().length + 1);
         int index = Math.max(0, startIndex);
+        float canonicalX = 0.08f + random.nextFloat() * 0.84f;
+        float canonicalY = 0.08f + random.nextFloat() * 0.84f;
+        missions.add(new Mission(
+                "debug:CIVILIAN_RESCUE:CANONICAL:" + index++,
+                "SWARM RESCUE — CANONICAL",
+                MissionType.EXTRACTION,
+                MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE,
+                0, RiskLevel.HIGH, requirementsFor(RiskLevel.HIGH),
+                "DEBUG: production rescue pressure and four-drop response budget.",
+                canonicalX, canonicalY, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                4, 0, planetName, null, null,
+                -1L, -1L, -1,
+                CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT,
+                (byte) 0, (byte) 0, (byte) 100,
+                (byte) 0, (byte) 0, Collections.emptyList()));
         for (RiskLevel risk : RiskLevel.values()) {
             int requiredDrops = requiredDropsFor(MissionType.EXTRACTION, risk);
             if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
@@ -170,12 +185,12 @@ public final class MissionGenerator {
             String id = "debug:CIVILIAN_RESCUE:"
                     + risk.name() + ":" + index++;
             missions.add(new Mission(id,
-                    "SWARM RESCUE — " + risk.name(),
+                    "SWARM RESCUE STRESS — " + risk.name(),
                     MissionType.EXTRACTION,
                     MissionSource.DEBUG_CIVILIAN_RESCUE,
                     0, risk, requirementsFor(risk),
-                    "DEBUG: evacuate the registered civilian cohort under "
-                            + risk.name() + " swarm pressure.",
+                    "DEBUG STRESS TEST: evacuate the registered civilian cohort under "
+                            + risk.name() + " force-scaled swarm pressure.",
                     x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                     requiredDrops, employerShuttles,
                     planetName, null, null,
