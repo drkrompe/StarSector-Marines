@@ -3,6 +3,11 @@ package com.dillon.starsectormarines.campaign.systems;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.HouseFlavor;
+import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -33,6 +38,12 @@ class StationingWithdrawalServiceTest {
         assertEquals(1, fixture.state.repContractsFailed[0] & 0xFFFF);
         assertEquals(40, fixture.state.repLastContractTick[0]);
         assertEquals(-10, fixture.state.playerMrbRep);
+        assertEquals(1, fixture.state.patronEngagementCount);
+        assertEquals(PatronEngagementOutcome.WITHDREW,
+                PatronEngagementOutcome.fromByte(
+                        fixture.state.patronEngagementOutcome[0]));
+        assertEquals(fixture.contractId,
+                fixture.state.patronEngagementSourceContractId[0]);
     }
 
     @Test
@@ -49,6 +60,7 @@ class StationingWithdrawalServiceTest {
         assertEquals(Status.GARRISONED, fixture.captain.status());
         assertEquals(0, fixture.state.repCount);
         assertEquals(0, fixture.state.playerMrbRep);
+        assertEquals(0, fixture.state.patronEngagementCount);
     }
 
     @Test
@@ -96,11 +108,15 @@ class StationingWithdrawalServiceTest {
 
     private static Fixture fixture(ContractState stateValue) {
         CampaignState state = new CampaignState();
+        int marketId = state.marketRegistry.intern("jangala");
+        long patronId = state.addHouse(marketId, 1, HouseFlavor.CORPORATE,
+                HouseRank.TIER_2, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "House Cavor");
         MarineCaptain captain = new MarineCaptain("Captain", null, Rank.SERGEANT, 0f);
         captain.setStatus(Status.GARRISONED);
         int captainSlot = state.captainRegistry.intern(captain.id());
-        long contractId = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
-                stateValue, 10, 100, -1, (byte) 0, captainSlot, 7, -1,
+        long contractId = state.addContract(patronId, -1L, -1L, ContractType.GARRISON,
+                stateValue, 10, 100, -1, (byte) 0, captainSlot, marketId, -1,
                 0, 2_000, (byte) 25, (byte) 25, (byte) 100);
         state.contractMarinesCommitted[0] = 80;
         return new Fixture(state, contractId, captain);

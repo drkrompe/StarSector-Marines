@@ -50,7 +50,8 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> writes() {
-        return EnumSet.of(CampaignTable.CONTRACTS, CampaignTable.PLAYER_REP);
+        return EnumSet.of(CampaignTable.CONTRACTS, CampaignTable.PLAYER_REP,
+                CampaignTable.PATRON_MEMORY);
     }
 
     @Override
@@ -101,8 +102,8 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
 
         state.contractMarinesCommitted[parentRow] = 0;
         state.contractCaptainId[parentRow] = -1;
-        ContractReputation.employerBreached(
-                state, state.contractPatronHouseId[parentRow], day);
+        ContractReputation.employerBreachedForContract(
+                state, state.contractId[parentRow], day);
     }
 
     private static final class LivePersonnelStore implements PersonnelStore {
