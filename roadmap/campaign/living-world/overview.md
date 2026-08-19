@@ -236,8 +236,11 @@ writeback, and durable debrief dispatch. The first combat-feel pass quarters ali
 HP and moves live aliens onto the marine-style layered top-down runtime while
 retaining the held sheet as fallback/corpse art (`bccbbe16`). Their modular
 silhouette now includes reused left/right fore-claws and an alternating
-foreground contact swipe (`20d3bcb0`). Manual roster, swipe readability, and
-post-rebalance feel validation remain queued.
+foreground contact swipe (`20d3bcb0`). Swarm pressure now opportunistically
+ranks sensed marines and exposed evacuees together, with modest target leeway
+and immediate rerouting so soldiers can peel attackers off the objective
+(`4fedb34a`). Manual roster, swipe readability, and post-rebalance feel
+validation remain queued.
 
 ## Two payoffs that fall out for free
 
