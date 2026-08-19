@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -31,6 +33,7 @@ public final class CivilianEvacuationSystem {
     private int radius;
     private boolean configured;
     private boolean evacuationTriggered;
+    private long pickupShuttleId;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -54,6 +57,15 @@ public final class CivilianEvacuationSystem {
         return true;
     }
 
+    /** Associates the configured cohort with its physical pickup craft. */
+    public boolean attachPickupShuttle(long shuttleId) {
+        if (!configured || pickupShuttleId != 0L || shuttleId == 0L) {
+            return false;
+        }
+        pickupShuttleId = shuttleId;
+        return true;
+    }
+
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
         if (!evacuationTriggered && marineWithin(
@@ -72,7 +84,11 @@ public final class CivilianEvacuationSystem {
             }
             if (insideLiftZone(sim.world().cellX(id),
                     sim.world().cellY(id))) {
-                board(id, sim);
+                if (pickupReady(sim)) {
+                    board(id, sim);
+                } else {
+                    sim.clearPath(id);
+                }
                 continue;
             }
             long escort = evacuationTriggered ? nearestMarine(id, sim) : 0L;
@@ -115,9 +131,10 @@ public final class CivilianEvacuationSystem {
             sim.advanceMovement(id);
             if (insideLiftZone(sim.world().cellX(id),
                     sim.world().cellY(id))) {
-                board(id, sim);
+                if (pickupReady(sim)) board(id, sim);
             }
         }
+        releasePickupWhenResolved(sim);
     }
 
     public boolean isConfigured() {
@@ -131,6 +148,10 @@ public final class CivilianEvacuationSystem {
 
     public boolean isEvacuationTriggered() {
         return evacuationTriggered;
+    }
+
+    public boolean hasPickupShuttle() {
+        return pickupShuttleId != 0L;
     }
 
     private long nearestMarine(long civilian, BattleSimulation sim) {
@@ -255,10 +276,31 @@ public final class CivilianEvacuationSystem {
 
     private void board(long id, BattleSimulation sim) {
         if (!tracker.markEvacuated(id)) return;
+        ShuttleMission pickup = pickupMission(sim);
+        if (pickup != null && pickup.evacueesAboard < pickup.evacueeCapacity) {
+            pickup.evacueesAboard++;
+        }
         sim.clearPath(id);
         // Boarding removes the civilian from live iteration and rendering. It
         // is not a death and therefore creates no corpse or loss event.
         sim.releaseFromRegistry(id);
+    }
+
+    private boolean pickupReady(BattleSimulation sim) {
+        if (pickupShuttleId == 0L) return true;
+        ShuttleMission pickup = pickupMission(sim);
+        return pickup != null && pickup.state == ShuttleState.LANDED;
+    }
+
+    private ShuttleMission pickupMission(BattleSimulation sim) {
+        return pickupShuttleId == 0L
+                ? null : sim.world().mission(pickupShuttleId);
+    }
+
+    private void releasePickupWhenResolved(BattleSimulation sim) {
+        if (tracker.activeCount() != 0) return;
+        ShuttleMission pickup = pickupMission(sim);
+        if (pickup != null) pickup.awaitingEvacuees = false;
     }
 
     private boolean insideLiftZone(int x, int y) {

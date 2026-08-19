@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -79,6 +80,57 @@ class RescueEscortCommandTest {
         command.tick(sim);
 
         assertNull(squad.assignedObjective);
+    }
+
+    @Test
+    void engagedEscortAdvancesInTimedNonRegressingBounds() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential()), 43L);
+        assertNotNull(payload);
+        Squad squad = addMarineSquad(sim,
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
+        sim.advance(BattleSimulation.TICK_DT);
+        for (int i = 0; i < payload.size(); i++) {
+            sim.world().setCellPos(payload.entityId(i), 15, 8);
+        }
+        squad.alertLevel = SquadAlertLevel.ENGAGED;
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
+                payload.placement.liftX, payload.placement.liftY);
+
+        command.tick(sim);
+        assertEscortTarget(squad,
+                Paths.cellX(route, RescueEscortCommand.ENGAGED_BOUND_CELLS),
+                Paths.cellY(route, RescueEscortCommand.ENGAGED_BOUND_CELLS));
+
+        sim.simTickIndex += RescueEscortCommand.ENGAGED_BOUND_TICKS - 1;
+        command.tick(sim);
+        assertEscortTarget(squad,
+                Paths.cellX(route, RescueEscortCommand.ENGAGED_BOUND_CELLS),
+                Paths.cellY(route, RescueEscortCommand.ENGAGED_BOUND_CELLS));
+
+        sim.simTickIndex++;
+        command.tick(sim);
+        int secondBound = RescueEscortCommand.ENGAGED_BOUND_CELLS * 2;
+        assertEscortTarget(squad, Paths.cellX(route, secondBound),
+                Paths.cellY(route, secondBound));
+    }
+
+    @Test
+    void pickupGuardsStayOnTheirPerimeter() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential()), 44L);
+        assertNotNull(payload);
+        Squad guard = addMarineSquad(sim, 2, 2);
+        guard.rescuePickupGuard = true;
+
+        new RescueEscortCommand(payload.placement).tick(sim);
+
+        assertEscortTarget(guard, payload.placement.liftX,
+                payload.placement.liftY);
     }
 
     private static void assertEscortTarget(Squad squad, int x, int y) {

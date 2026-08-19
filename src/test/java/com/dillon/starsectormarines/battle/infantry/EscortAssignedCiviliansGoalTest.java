@@ -98,6 +98,19 @@ class EscortAssignedCiviliansGoalTest {
     }
 
     @Test
+    void pickupGuardCannotConsumeTheShelterReliefLead() {
+        BattleSimulation sim = simulation();
+        Squad guard = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 4)));
+        guard.rescuePickupGuard = true;
+        Squad mobile = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 6)));
+
+        assertEquals(EscortAssignedCivilians.ESCORT_RADIUS,
+                EscortAssignedCivilians.standoffRadius(guard, sim));
+        assertEquals(EscortAssignedCivilians.RELIEF_RADIUS,
+                EscortAssignedCivilians.standoffRadius(mobile, sim));
+    }
+
+    @Test
     void forwardScreenMakesEngagedEscortAdvanceAndFireBeforeLeashStalls() {
         BattleSimulation sim = simulation(28, 18);
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(

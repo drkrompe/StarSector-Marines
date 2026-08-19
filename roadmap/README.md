@@ -154,7 +154,11 @@ universe over time, not retrofitted into intel slots.
    while civilians independently leash to and shelter behind their nearest
    marine (`ad11debf`). The marine screen now rallies ahead of the cohort under
    fire, and civilian facing turns smoothly instead of snapping on path changes
-   (`bc29cb26`); manual cadence and post-rebalance feel validation remain queued.
+   (`bc29cb26`). Rescue pickup is now physical: a landed civilian Valkyrie
+   boards the cohort while eight fixed local militia receive capped Aeroshuttle
+   replacements, and engaged escorts advance in two-cell timed bounds instead
+   of freezing (`2395397f`). Manual cadence, spacing, and post-rebalance feel
+   validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory, S2
