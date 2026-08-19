@@ -88,12 +88,16 @@ public class LayeredAppearanceTest {
 
     @Test
     public void houndUsesAWiderFootStanceThanBroadChassis() {
-        assertEquals(0.25f, LayeredMechAppearance.footLateralOffset(
+        assertEquals(0.32f, LayeredMechAppearance.footLateralOffset(
                 LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
         assertEquals(0.17f, LayeredMechAppearance.footLateralOffset(
                 LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
         assertEquals(0.17f, LayeredMechAppearance.footLateralOffset(
                 LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+        assertEquals(-0.20f, LayeredMechAppearance.footRearOffset(
+                LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
+        assertEquals(-0.28f, LayeredMechAppearance.footRearOffset(
+                LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
     }
 
     @Test
