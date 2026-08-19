@@ -25,14 +25,16 @@ import java.util.Random;
  * round physically ends up</em>.
  *
  * <p>See {@code roadmap/ballistics/overview.md} (design record) and
- * {@code roadmap/ballistics/stories/s2-moving-targets.md} (the "Time-domain
+ * {@code roadmap/ballistics/complete/s2-moving-targets.md} (the "Time-domain
  * contact solve" and "Shooter lead" sections {@link #resolve} implements
  * step for step; S1's static-world solve, which the {@code w = 0} case
- * collapses to exactly, is {@code stories/s1-resolver-core.md}).
+ * collapses to exactly, is {@code complete/s1-resolver-core.md}).
  * Target-plane aim and the lightweight vertical silhouette are specified in
  * {@code roadmap/ballistics/complete/s3b-target-plane-accuracy.md}; obstacle
  * catch bands are specified in
- * {@code roadmap/ballistics/complete/s3c-obstacle-catch-heights.md}.
+ * {@code roadmap/ballistics/complete/s3c-obstacle-catch-heights.md}; explicit
+ * sources and ground direct-fire adopters are specified in
+ * {@code roadmap/ballistics/complete/s4-direct-fire-unification.md}.
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
@@ -123,7 +125,7 @@ public final class BallisticResolver {
      * victim's OWN extrapolated cell at contact time, floor(U(t)) — the
      * cover edge-clip lookup's cell, distinct from {@code x}/{@code y} (the
      * round's own FX endpoint, P(t)). See the "Contact-position split" note
-     * in {@code roadmap/ballistics/stories/s2-moving-targets.md}.
+     * in {@code roadmap/ballistics/complete/s2-moving-targets.md}.
      */
     private static final class Event {
         final float t;

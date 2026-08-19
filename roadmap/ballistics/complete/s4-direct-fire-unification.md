@@ -1,5 +1,21 @@
 # S4 — direct-fire unification
 
+> **Shipped 2026-08-19** on `session/ballistics-direct-fire-unification`,
+> implementation commit `b8c7e3e6`. Mech chaingun/SRM, handheld rockets,
+> and ground Vulcan/Heavy-MG bursts now author their high/low/wide path through
+> `BallisticResolver`; contact payloads arrive on real distance/velocity clocks,
+> while free-flight explosive overshoots carry no phantom detonation or impact
+> FX. Pre-integration full suite: 1595 tests green.
+>
+> **Landed vs. planned deviations:** none. The shared ground-turret sink also
+> carries vehicle entity ids, so mounted ground bursts gain shooter exclusion
+> and delayed hit-response identity with static emplacements. Aerial mounts and
+> all named indirect paths remain deliberately unchanged.
+
+Original contract below, kept for the record.
+
+---
+
 > Put every remaining ground-level direct-fire weapon on the modeled-round
 > pipeline. Kinetic spray and contact-fused rockets author one visible
 > high/low/wide trajectory, interact with units and obstacle silhouettes in
