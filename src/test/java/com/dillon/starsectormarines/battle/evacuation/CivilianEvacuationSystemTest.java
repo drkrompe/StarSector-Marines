@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -97,6 +98,95 @@ class CivilianEvacuationSystemTest {
                     .state(payload.entityId(i))
                     == CivilianEvacuationTracker.State.LOST);
         }
+    }
+
+    @Test
+    void escortLeashIsEvaluatedForEachCivilianIndependently() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 302L);
+        assertNotNull(payload);
+        long marine = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.isCivilianEvacuationTriggered());
+
+        long protectedCivilian = payload.entityId(0);
+        long distantCivilian = payload.entityId(1);
+        sim.world().setCellPos(protectedCivilian, 10, 10);
+        sim.world().setCellPos(distantCivilian, 22, 18);
+        sim.world().setCellPos(marine, 10, 11);
+        sim.clearPath(protectedCivilian);
+        sim.clearPath(distantCivilian);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertFalse(Paths.isEmpty(sim.movement().path(protectedCivilian)));
+        assertTrue(Paths.isEmpty(sim.movement().path(distantCivilian)));
+    }
+
+    @Test
+    void civilianStopsWhenMoreThanTwoCellsAheadOfNearestEscort() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 303L);
+        assertNotNull(payload);
+        long marine = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        long civilian = payload.entityId(0);
+        int axisX = Math.abs(payload.placement.shelterX - payload.placement.liftX)
+                >= Math.abs(payload.placement.shelterY - payload.placement.liftY)
+                ? Integer.compare(payload.placement.shelterX, payload.placement.liftX) : 0;
+        int axisY = axisX == 0
+                ? Integer.compare(payload.placement.shelterY, payload.placement.liftY) : 0;
+        sim.world().setCellPos(civilian,
+                payload.placement.liftX + axisX * 5,
+                payload.placement.liftY + axisY * 5);
+        sim.world().setCellPos(marine,
+                payload.placement.liftX + axisX * 9,
+                payload.placement.liftY + axisY * 9);
+        sim.clearPath(civilian);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(Paths.isEmpty(sim.movement().path(civilian)));
+    }
+
+    @Test
+    void nearbyThreatRoutesCivilianToScreenedSideOfMarine() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 304L);
+        assertNotNull(payload);
+        long marine = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        long civilian = payload.entityId(0);
+        sim.world().setCellPos(civilian, 10, 12);
+        sim.world().setCellPos(marine, 12, 10);
+        long threat = sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 14, 10)
+                .role(UnitRole.SWARM_PRESSURE));
+        sim.clearPath(civilian);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        int[] path = sim.movement().path(civilian);
+        assertFalse(Paths.isEmpty(path));
+        assertFalse(Paths.destX(path) == payload.placement.liftX
+                && Paths.destY(path) == payload.placement.liftY);
+        int fromMarineX = Paths.destX(path) - sim.world().cellX(marine);
+        int fromMarineY = Paths.destY(path) - sim.world().cellY(marine);
+        int awayFromThreatX = sim.world().cellX(marine) - sim.world().cellX(threat);
+        int awayFromThreatY = sim.world().cellY(marine) - sim.world().cellY(threat);
+        assertTrue(fromMarineX * awayFromThreatX
+                + fromMarineY * awayFromThreatY > 0);
     }
 
     private static long firstActiveCivilian(BattleSimulation sim) {

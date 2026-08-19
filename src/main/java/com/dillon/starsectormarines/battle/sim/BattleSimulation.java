@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -157,6 +158,9 @@ public class BattleSimulation implements BattleControl {
     /** Serial route/boarding driver, inert until a rescue payload configures it. */
     private final CivilianEvacuationSystem civilianEvacuationSystem =
             new CivilianEvacuationSystem(civilianEvacuation);
+    /** Mission-local perimeter waves; inert unless civilian-rescue setup configures them. */
+    private final SwarmReinforcementSystem swarmReinforcements =
+            new SwarmReinforcementSystem(civilianEvacuation);
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
@@ -540,6 +544,16 @@ public class BattleSimulation implements BattleControl {
     /** Whether a marine has reached the bunker entrance and begun evacuation. */
     public boolean isCivilianEvacuationTriggered() {
         return civilianEvacuationSystem.isEvacuationTriggered();
+    }
+    public boolean configureSwarmReinforcements(
+            CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
+        return swarmReinforcements.configure(placement, targetPopulation, seed);
+    }
+    public boolean isSwarmReinforcementConfigured() {
+        return swarmReinforcements.isConfigured();
+    }
+    public int swarmTargetPopulation() {
+        return swarmReinforcements.targetPopulation();
     }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<com.dillon.starsectormarines.battle.logistics.ResupplyCache> getResupplyCaches() {
@@ -1211,6 +1225,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
+        swarmReinforcements.tick(TICK_DT, this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single zone-graph rebuild for the whole tick — drains any wall
