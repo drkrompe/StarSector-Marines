@@ -22,7 +22,6 @@
     { "tileset": "Floors_Tiles.tileset.json" },
     { "tileset": "nature-tiles.tileset.json" },
     { "tileset": "urban-tileset-3.tileset.json" },
-    { "tileset": "urban-tileset-2.tileset.json",
-      "sheetOverride": "graphics/tilesets/urban-tileset-2-spaceport-apron.png" }
+    { "tileset": "urban-tileset-2.tileset.json" }
   ]
 }

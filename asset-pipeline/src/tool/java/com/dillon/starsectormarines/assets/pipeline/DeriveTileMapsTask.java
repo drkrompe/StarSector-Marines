@@ -72,9 +72,7 @@ public final class DeriveTileMapsTask {
                     continue;
                 }
                 JsonNode root = jsonMapper.readTree(Files.readString(tilesetJsonPath));
-                String sheetRelPath = entry.sheetOverride() != null
-                        ? entry.sheetOverride()
-                        : root.path("sheet").asText(null);
+                String sheetRelPath = root.path("sheet").asText(null);
                 if (sheetRelPath == null) {
                     System.err.printf("  [%s] FAILED: tileset json has no 'sheet' field%n", entry.tileset());
                     failed++;
