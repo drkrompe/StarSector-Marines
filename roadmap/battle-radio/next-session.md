@@ -5,6 +5,8 @@
 Background radio v1 shipped in `ba6f3b5a`: contact and morale-break calls now
 follow marine infantry squad transitions, with sparse acknowledgements during
 sustained engagements. Standalone and hybrid battles share the same policy.
+Deployment follow-up `476b2be6` makes `deployMod` generate the gitignored audio
+outputs first, preventing manifest/file skew on newly-added sound pools.
 
 ## Completed
 

@@ -56,6 +56,12 @@ touches one bank only.
    stable per-day so the line doesn't jitter as the player interacts
    with the screen. Tokens: `{patron}` (client form only),
    `{offerCount}`, `{clientCount}`, `{lapsingCount}`.
+2c. **Patron memory** (returning-client callback) draws one factual line from
+   the newest valid prior engagement with that house. The immutable source
+   facts are captured when a real contract reaches `COMPLETED`, `FAILED`,
+   `ABANDONED`, or patron-caused `DEFAULTED`; offer expiry and unrelated
+   political reputation are deliberately excluded. The callback is stable per
+   current contract and composes between the officer prefix and patron body.
 3. **Officer characterization** (future) — different officers will
    ship different prefix/suffix/summary pools and aside vocabularies.
    Same axis as swapping a captain. Not modeled until there's a second
@@ -63,8 +69,9 @@ touches one bank only.
    fixed characterization.
 
 Composed by `BriefingComposer.compose(archetype, mood, contractId, ...)`
-into `prefix + body + (optional suffix)`. All picks deterministic from
-the contract id so save/load and re-renders produce the same text. Mood
+into `prefix + (optional patron memory) + body + (optional suffix)`. All picks
+are deterministic from the contract id so save/load and re-renders produce the
+same text. Mood
 is read from `OfficerMoodReader.currentMood()`, which derives the bucket
 from vanilla `SharedData.getData().getPreviousReport()` (totalIncome /
 totalUpkeep / debt / previousDebt), `Global.getSector().getPlayerFleet()`
@@ -96,12 +103,12 @@ is what they noticed about the patron.
 
 ## Per-patron consistency across contracts
 
-Same patron across multiple contracts → the officer's reports converge.
-"Cavor's people again. Apologetic about the timeline this time — that's
-new." The player notices the pattern through the officer's continuity.
-Implementation: per-patron-archetype flavor pool indexed by `houseId`,
-drawing from category-tagged strings so the officer's recollections of
-the same Capo share idioms and call back to prior meetings.
+Same patron across multiple contracts → the officer remembers the company's
+measured history with them. Narrative S1 ships an immutable engagement ledger
+keyed exactly once by source contract and deterministic officer callbacks for
+success, failure, voluntary withdrawal, and employer breach. It intentionally
+does not infer changing motives or personality. Deeper per-patron idiom and
+state evolution remain later stories.
 
 ## After-action reports as observation
 
@@ -211,12 +218,13 @@ content pipeline can be designed in dialogue with them.
    arc transitions to `ESTABLISHED` or a new `VINDICATED` archetype.
    A time-rushed Capo who promotes shifts to established underworld
    Boss. The same `houseId` reads differently over months.
-4. **History-aware briefings.** Late-game contracts from a patron
-   reference *your* shared past with them, not just archetype-generic
-   flavor. The voice stays consistent; the content draws from real
-   campaign events (target name-checks, prior mission outcomes).
-   Implementation: per-house "history of player engagement" feed
-   strings sourced from MissionResolver writebacks.
+4. **History-aware briefings.** *(First slice shipped in `1b950e48`.)*
+   Late-game contracts from a patron reference *your* shared past with them,
+   not just archetype-generic flavor. The voice stays consistent; the content
+   draws from real campaign events (target name-checks, prior mission outcomes).
+   The shipped slice stores a per-house engagement feed from all real terminal
+   contract authorities and renders the newest valid fact. Target name-checks,
+   richer sequences, and event-linked memories remain future expansion.
 5. **Rare anomaly events.** Periodic departures from pattern —
    fallen-noble has a moment of triumph, time-rushed Capo writes one
    weirdly composed brief. Signals "this is a person, not a slot
