@@ -173,8 +173,12 @@ universe over time, not retrofitted into intel slots.
    25x25 cells around a fifteen-cell-inset LZ, and allied infantry apply a
    density-aware avoidance steer to hostile aliens inside five cells
    (`c6589910`). Alien health is now halved once more to 1.875/1.5 HP—two
-   service pulse hits, three SMG hits, or one DMR hit (`15a11674`). Manual
-   cadence, avoidance, and post-rebalance feel validation remain queued.
+   service pulse hits, three SMG hits, or one DMR hit (`15a11674`). Marine
+   direct fire now ignores civilian bodies, alien avoidance cannot raise a
+   marine above its movement-speed stat, and the five militia squads retain
+   their authored perimeter posts instead of collapsing onto the LZ center
+   (`bf6fdd64`). Manual cadence and post-rebalance feel validation remain
+   queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through

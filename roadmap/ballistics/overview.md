@@ -122,6 +122,9 @@ hit roll. Enemy incidental contacts now use a 100% base catch chance so an
 authored miss that physically crosses another hostile transfers into that
 body; the victim's incoming-accuracy modifier still applies. Nearby friendly
 contacts retain their 35% base chance and receive the S4a proximity scale.
+Marine direct fire excludes `Faction.CIVILIAN` bodies from the candidate set
+entirely, so a colonist cannot become either an intended or incidental victim;
+defender fire retains normal civilian targeting and collision.
 
 ### 6. Committed outcomes, walk-in-order
 
@@ -184,6 +187,10 @@ movers can enter the corridor before contact.
    at zero through 2 cells, smoothsteps to full strength at 8 cells, and applies
    it to doodads, directional edge cover, and friendly incidental contacts.
    Structural walls and enemy incidental contacts remain unscaled.
+5. **Civilians are protected from marine direct fire.** Civilians remain a
+   neutral faction for mission and AI purposes, but the ballistic candidate
+   gather omits them for `MARINE` sources. Defender sources still target and
+   incidentally hit them normally.
 
 ## Stories
 
