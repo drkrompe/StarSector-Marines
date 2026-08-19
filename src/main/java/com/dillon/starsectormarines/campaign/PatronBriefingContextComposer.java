@@ -9,14 +9,23 @@ public final class PatronBriefingContextComposer {
                                  int marketId, long currentContractId,
                                  int currentOfferDay,
                                  String patronDisplayName) {
+        return compose(state, patronHouseId, marketId, currentContractId,
+                currentOfferDay, patronDisplayName, null);
+    }
+
+    public static String compose(CampaignState state, long patronHouseId,
+                                 int marketId, long currentContractId,
+                                 int currentOfferDay,
+                                 String patronDisplayName,
+                                 PatronTargetNameResolver targetNames) {
         String direct = PatronMemoryComposer.compose(state, patronHouseId,
-                currentContractId, patronDisplayName);
+                currentContractId, patronDisplayName, targetNames);
         if (direct != null) return direct;
         String chronicle = PatronChronicleComposer.compose(state,
                 patronHouseId, currentContractId, currentOfferDay,
                 patronDisplayName);
         if (chronicle != null) return chronicle;
         return PatronLocalEchoComposer.compose(state, patronHouseId, marketId,
-                currentContractId, currentOfferDay);
+                currentContractId, currentOfferDay, targetNames);
     }
 }
