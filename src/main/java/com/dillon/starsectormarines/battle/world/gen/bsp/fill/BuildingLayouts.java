@@ -661,6 +661,8 @@ final class BuildingLayouts {
                         if (!footprintHasPurpose(
                                 topology, cell[0], cell[1], prop, purpose)) continue;
                         if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
+                        if (footprintTouchesWindow(
+                                topology, cell[0], cell[1], prop)) continue;
                         if (requirePreferredWall
                                 && (!hasWallSupport(grid, topology, cell[0], cell[1], prop)
                                 || !hasOpenFront(grid, topology, purpose,
@@ -1025,6 +1027,22 @@ final class BuildingLayouts {
             }
         }
         return true;
+    }
+
+    /** Keeps the standable cell immediately inside every firing window clear. */
+    private static boolean footprintTouchesWindow(CellTopology topology, int x, int y,
+                                                  DoodadDef prop) {
+        for (int dy = 0; dy < prop.footprintCellsY; dy++) {
+            for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+                int cellX = x + dx;
+                int cellY = y + dy;
+                if (topology.isWindow(cellX + 1, cellY)
+                        || topology.isWindow(cellX - 1, cellY)
+                        || topology.isWindow(cellX, cellY + 1)
+                        || topology.isWindow(cellX, cellY - 1)) return true;
+            }
+        }
+        return false;
     }
 
     /** Returns a random walkable, non-doorway, non-occupied interior cell, or {@code null} if no candidate exists. */

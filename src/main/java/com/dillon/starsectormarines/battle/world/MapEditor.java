@@ -58,7 +58,8 @@ public final class MapEditor {
 
     /**
      * Breaches a wall cell: opens grid walkability ({@code grid.damageCell}),
-     * clears the WALL tag + flips the ground to {@link CellTopology.GroundKind#RUBBLE},
+     * clears the WALL/window tags + flips the ground to
+     * {@link CellTopology.GroundKind#RUBBLE},
      * cracks the four adjacent roof cells open, and marks the zone graph dirty
      * so the new portal is picked up at tick end. Returns {@code false} (no-op)
      * when the cell wasn't a breachable wall.
@@ -66,6 +67,8 @@ public final class MapEditor {
     public boolean damageWall(int x, int y, int amount) {
         if (!grid.damageCell(x, y, amount)) return false;
         topology.setWall(x, y, false);
+        topology.setWindow(x, y, false);
+        grid.setSeeThrough(x, y, false);
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
         peelRoofAround(x, y);
         navigation.markCellOpened(x, y);

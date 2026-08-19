@@ -16,8 +16,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  *       renderer paints under everything else (asphalt, grass, water, indoor
  *       floor, rubble, etc.). Stored as a byte per cell.</li>
  *   <li>{@link Tag} bitmask — orthogonal overlays that can layer on any
- *       ground kind: WALL (non-walkable building), VEHICLE (parked truck on
- *       top of ground), CROSSWALK (stripe decoration on STREET ground).
+     *       ground kind: WALL (non-walkable building), WINDOW (see-through
+     *       firing aperture), VEHICLE (parked truck on top of ground),
+     *       CROSSWALK (stripe decoration on STREET ground).
  *       Stored as a long per cell.</li>
  * </ul>
  *
@@ -93,7 +94,13 @@ public class CellTopology {
          * Fixtures shape navigation but are not structural walls: the ground and
          * doodad render normally, and finalize does not seed destructible wall HP.
          */
-        FIXTURE;
+        FIXTURE,
+        /**
+         * A firing aperture in a structural wall. Window cells remain
+         * non-walkable and destructible, but the nav grid marks them
+         * see-through so sight and projectiles can cross the facade.
+         */
+        WINDOW;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -237,6 +244,8 @@ public class CellTopology {
     public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
     public boolean isFixture(int x, int y)                                 { return hasTag(x, y, Tag.FIXTURE); }
     public void    setFixture(int x, int y, boolean v)                     { setTag(x, y, Tag.FIXTURE, v); }
+    public boolean isWindow(int x, int y)                                  { return hasTag(x, y, Tag.WINDOW); }
+    public void    setWindow(int x, int y, boolean v)                      { setTag(x, y, Tag.WINDOW, v); }
 
     /** True iff the cell is part of a building and still has its intact roof — the aerial/indirect-fire shield discriminator. */
     public boolean isRoofIntact(int x, int y) {

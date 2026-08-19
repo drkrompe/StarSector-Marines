@@ -39,6 +39,8 @@ public final class GroundRenderSystem implements RenderSystem {
     // Terrain fill colors (independent of BattleRenderer; sourced from TileManifest / literals).
     private static final Color FLOOR_COLOR     = new Color(0x18, 0x22, 0x30);
     private static final Color WALL_COLOR      = new Color(0x06, 0x0A, 0x10);
+    private static final Color WINDOW_FRAME    = new Color(0x08, 0x12, 0x18);
+    private static final Color WINDOW_GLASS    = new Color(0x3A, 0x72, 0x84);
     private static final Color ROAD_FILL       = new Color(TileManifest.ROAD_FILL_RGB);
     private static final Color CROSSWALK_STRIPE = new Color(0xE8, 0xE8, 0xD0);
 
@@ -106,6 +108,7 @@ public final class GroundRenderSystem implements RenderSystem {
                     float x0 = cam.cellToScreenX(x);
                     float y0 = cam.cellToScreenY(y);
                     fillRect(x0, y0, x0 + cellPx, y0 + cellPx, WALL_COLOR);
+                    if (topology.isWindow(x, y)) windowPane(topology, x, y);
                 }
             }
             return;
@@ -225,8 +228,26 @@ public final class GroundRenderSystem implements RenderSystem {
                 TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y));
                 if (tile == null) fillCell(x, y, wallFill);
                 else urbanTile(tile, x, y, 0);
+                if (topology.isWindow(x, y)) windowPane(topology, x, y);
             }
         }
+    }
+
+    /** A compact cyan slit makes see-through wall cells readable as firing windows. */
+    private void windowPane(CellTopology topology, int gridX, int gridY) {
+        float cell = cam.cellPxSize();
+        float x0 = cam.cellToScreenX(gridX);
+        float y0 = cam.cellToScreenY(gridY);
+        int mask = topology.getWallDirMask(gridX, gridY);
+        boolean horizontal = (mask & (CellTopology.WALL_DIR_N | CellTopology.WALL_DIR_S)) != 0;
+        float frameX = x0 + cell * (horizontal ? 0.12f : 0.31f);
+        float frameY = y0 + cell * (horizontal ? 0.31f : 0.12f);
+        float frameW = cell * (horizontal ? 0.76f : 0.38f);
+        float frameH = cell * (horizontal ? 0.38f : 0.76f);
+        fillRect(frameX, frameY, frameX + frameW, frameY + frameH, WINDOW_FRAME);
+        float inset = cell * 0.07f;
+        fillRect(frameX + inset, frameY + inset,
+                frameX + frameW - inset, frameY + frameH - inset, WINDOW_GLASS);
     }
 
     /**

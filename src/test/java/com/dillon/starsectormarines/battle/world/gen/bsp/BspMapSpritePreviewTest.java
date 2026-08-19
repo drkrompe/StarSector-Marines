@@ -85,6 +85,8 @@ public class BspMapSpritePreviewTest {
 
     private static final Color BG          = new Color(0x10, 0x14, 0x1C);
     private static final Color WALL_CENTER = new Color(0x18, 0x18, 0x1C);
+    private static final Color WINDOW_FRAME = new Color(0x08, 0x12, 0x18);
+    private static final Color WINDOW_GLASS = new Color(0x3A, 0x72, 0x84);
     private static final Color LABEL_BG    = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG    = new Color(0xE0, 0xE8, 0xF4);
     private static final Color MARINE_FG   = new Color(80, 220, 100);
@@ -424,6 +426,7 @@ public class BspMapSpritePreviewTest {
                 } else {
                     stampFrame(urbanDrawer, urbanSink, tile, x, y, gh, 0);
                 }
+                if (topo.isWindow(x, y)) drawWindowPane(g, topo, x, y, gh);
             }
         }
 
@@ -456,6 +459,21 @@ public class BspMapSpritePreviewTest {
 
         g.dispose();
         return img;
+    }
+
+    /** Mirrors the firing-window overlay emitted by {@code GroundRenderSystem}. */
+    private static void drawWindowPane(Graphics2D g, CellTopology topology,
+                                       int gridX, int gridY, int gridH) {
+        int mask = topology.getWallDirMask(gridX, gridY);
+        boolean horizontal = (mask & (CellTopology.WALL_DIR_N | CellTopology.WALL_DIR_S)) != 0;
+        int x = gridX * CELL_PX + (horizontal ? 3 : 7);
+        int y = (gridH - 1 - gridY) * CELL_PX + (horizontal ? 7 : 3);
+        int width = horizontal ? 18 : 9;
+        int height = horizontal ? 9 : 18;
+        g.setColor(WINDOW_FRAME);
+        g.fillRect(x, y, width, height);
+        g.setColor(WINDOW_GLASS);
+        g.fillRect(x + 2, y + 2, width - 4, height - 4);
     }
 
     /** Wraps a registry block's {@code int[]{col,row}} pick as a {@link TileManifest.TileFrame}; {@code null} = the block's enclosed/fill case. */

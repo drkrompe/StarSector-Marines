@@ -228,6 +228,14 @@ final class BuildingShellCore {
         // lookup instead of zone-graph inference.
         labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
 
+        // Apartment rooms that touch the facade receive deliberate firing
+        // apertures. They remain structural, non-walkable wall cells; only LoS
+        // and projectile rays pass through. Purpose labels keep windows out of
+        // the shared lobby/hall and align them with private living space.
+        if (config.layoutRecipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK) {
+            stampApartmentWindows(grid, topology, bl, bt, br, bb);
+        }
+
         // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
         // LARGE buildings apply the per-type recipe. Purpose-aware commercial
         // layouts consume the room labels and partition plan written above.
@@ -236,6 +244,66 @@ final class BuildingShellCore {
 
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
+    }
+
+    private static void stampApartmentWindows(NavigationGrid grid, CellTopology topology,
+                                              int bl, int bt, int br, int bb) {
+        stampWindowRuns(grid, topology, bl, bt, br, bb,
+                BuildingPlacement.Side.TOP);
+        stampWindowRuns(grid, topology, bl, bt, br, bb,
+                BuildingPlacement.Side.BOTTOM);
+        stampWindowRuns(grid, topology, bl, bt, br, bb,
+                BuildingPlacement.Side.LEFT);
+        stampWindowRuns(grid, topology, bl, bt, br, bb,
+                BuildingPlacement.Side.RIGHT);
+    }
+
+    /** Stamps one centered aperture per contiguous living/bedroom run on a facade. */
+    private static void stampWindowRuns(NavigationGrid grid, CellTopology topology,
+                                        int bl, int bt, int br, int bb,
+                                        BuildingPlacement.Side side) {
+        boolean horizontal = side == BuildingPlacement.Side.TOP
+                || side == BuildingPlacement.Side.BOTTOM;
+        int min = horizontal ? bl + 1 : bt + 1;
+        int max = horizontal ? br - 1 : bb - 1;
+        int runStart = -1;
+        RoomPurpose runPurpose = null;
+        for (int along = min; along <= max + 1; along++) {
+            RoomPurpose purpose = along <= max
+                    ? inwardPurpose(topology, bl, bt, br, bb, side, along) : null;
+            boolean eligible = purpose == RoomPurpose.APARTMENT_LIVING
+                    || purpose == RoomPurpose.BEDROOM;
+            if (eligible && purpose == runPurpose) continue;
+            if (runStart >= 0) {
+                stampWindow(grid, topology, bl, bt, br, bb, side,
+                        (runStart + along - 1) / 2);
+            }
+            runStart = eligible ? along : -1;
+            runPurpose = eligible ? purpose : null;
+        }
+    }
+
+    private static RoomPurpose inwardPurpose(CellTopology topology,
+                                             int bl, int bt, int br, int bb,
+                                             BuildingPlacement.Side side, int along) {
+        int x = side == BuildingPlacement.Side.LEFT ? bl + 1
+                : side == BuildingPlacement.Side.RIGHT ? br - 1 : along;
+        int y = side == BuildingPlacement.Side.TOP ? bt + 1
+                : side == BuildingPlacement.Side.BOTTOM ? bb - 1 : along;
+        return topology.getRoomPurpose(x, y);
+    }
+
+    private static void stampWindow(NavigationGrid grid, CellTopology topology,
+                                    int bl, int bt, int br, int bb,
+                                    BuildingPlacement.Side side, int along) {
+        int x = side == BuildingPlacement.Side.LEFT ? bl
+                : side == BuildingPlacement.Side.RIGHT ? br : along;
+        int y = side == BuildingPlacement.Side.TOP ? bt
+                : side == BuildingPlacement.Side.BOTTOM ? bb : along;
+        if (grid.isDoorway(x, y)) return;
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        topology.setWindow(x, y, true);
     }
 
     /**
