@@ -185,6 +185,19 @@ public class GarrisonCompoundTest {
     }
 
     @Test
+    public void ordinaryGuardPostYieldsOnMoraleBreak() {
+        BattleSimulation sim = twoRoomBuildingSim();
+        TacticalNode lone = new TacticalNode(TacticalNode.Kind.GUARDPOST, 30, 2,
+                25, 0, 39, 4, Faction.DEFENDER, 50, 4);
+        sim.setTacticalMap(new TacticalMap(List.of(lone)));
+        Squad squad = defenderGarrison(4, lone);
+        WorldState broken = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
+
+        assertEquals(0f, GuardPost.INSTANCE.relevance(broken, squad, sim),
+                "an unflagged broken garrison keeps Story B's retreat behavior");
+    }
+
+    @Test
     public void customPlanIsASingleGarrisonPatrolStep() {
         BattleSimulation sim = threeZoneSim();
         Squad squad = marineSquad();

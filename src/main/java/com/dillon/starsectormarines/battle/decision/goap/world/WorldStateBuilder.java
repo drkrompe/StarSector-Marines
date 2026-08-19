@@ -64,7 +64,7 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.CAN_REPOSITION,                    WorldStateBuilder::evalCanReposition);
         EVALUATORS.put(Predicate.ZONE_CLEAR,                        STUB_FALSE);
         EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              WorldStateBuilder::evalEnemyInPortalCell);
-        EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 STUB_FALSE);
+        EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 (s, sim) -> TacticalNodeQueries.isMustHold(s));
         EVALUATORS.put(Predicate.THREAT_DENSITY_HIGH_AT_TARGET,     STUB_FALSE);
 
         // Mech GOAP Stage 1 — goal-side markers; both role-anchored goals

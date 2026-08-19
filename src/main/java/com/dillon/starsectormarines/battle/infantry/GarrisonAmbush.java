@@ -67,6 +67,7 @@ public final class GarrisonAmbush implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         // Garrison gate — same flag OverwatchPosture's preconditions read
         // through ENEMY_IN_KILL_ZONE. Set at squad mint for GARRISON nodes.
         if (!squad.holdsFireUntilKillZone) return 0f;
