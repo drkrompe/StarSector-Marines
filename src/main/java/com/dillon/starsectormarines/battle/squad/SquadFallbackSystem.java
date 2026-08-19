@@ -58,6 +58,10 @@ public final class SquadFallbackSystem {
         for (Squad squad : roster.getSquads()) {
             if (squad.assignedNode == null) continue;
             if (squad.aliveMembers == 0) continue;
+            // Story H: a must-hold post is an explicit exception to the
+            // structural FALLBACK_TO chain. Gate before the 50% trigger so
+            // the squad cannot lose the flagged assignment at 2/4 strength.
+            if (squad.assignedNode.mustHold) continue;
 
             // Arrival pass for in-progress retreats.
             if (squad.fallbackInProgress) {
