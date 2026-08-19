@@ -1,5 +1,20 @@
 # S4a — proximity catch ramp
 
+> **Shipped 2026-08-19** on `session/ballistics-proximity-catch`, implementation
+> commit `6ab24cbb`. Doodad and directional edge-cover block chances, plus
+> friendly incidental contacts, now share a 2–8-cell muzzle-distance
+> smoothstep. Nearby firing cover and squadmates are safer; downrange base odds
+> are unchanged.
+>
+> **Landed vs. planned deviations:** none. All 35 focused ballistics/direct-fire
+> tests pass. The 1,629-test root run reaches the one pre-existing,
+> suite-order-dependent `SwarmEvacuationOutcomeBridgeTest` failure documented
+> on `main`; its isolated rerun passes.
+
+Original contract below, kept for the record.
+
+---
+
 > Reduce probabilistic obstruction and friendly-fire catches near the muzzle,
 > then smoothly restore their full authored chance downrange. A unit firing
 > from immediately behind cover should reliably clear its own position; cover
