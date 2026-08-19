@@ -46,6 +46,9 @@ public final class BackstopAssignedSquadGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
+        // The rescue mech defends the authored LZ perimeter rather than
+        // attaching to a mobile infantry squad outside it.
+        if (squad.rescuePickupMech) return 0f;
         // Yield to SurviveContact when morale-broken — see the matching gate
         // in {@link OverwatchKillZoneGoal#relevance}. Backstop is a pacing
         // hint, not a unit-level objective; a mauled armored-support squad

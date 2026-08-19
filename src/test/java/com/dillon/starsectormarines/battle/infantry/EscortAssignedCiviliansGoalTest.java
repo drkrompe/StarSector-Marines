@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -18,7 +19,11 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -112,6 +117,70 @@ class EscortAssignedCiviliansGoalTest {
     }
 
     @Test
+    void squadmatesReceiveDistinctMovingDestinationsAroundTheRallyCell() {
+        BattleSimulation sim = simulation();
+        List<Long> members = addSquad(sim, 4, 2, 4);
+        Squad squad = sim.getSquad(sim.squad().squadId(members.get(0)));
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 14, 4);
+        SquadPlan plan = new SquadPlan(List.of(new SquadPlan.Step(
+                EscortAssignedCivilians.INSTANCE)));
+        Map<String, List<Long>> assignments = RoleAssigner.assign(members,
+                EscortAssignedCivilians.INSTANCE.roles(squad, sim));
+        plan.currentStep().assignments.putAll(assignments);
+        squad.currentPlan = plan;
+
+        Set<Long> destinations = new HashSet<>();
+        for (long member : members) {
+            EscortAssignedCivilians.INSTANCE.execute(member, squad, sim);
+            int[] path = sim.movement().path(member);
+            assertFalse(Paths.isEmpty(path));
+            int destX = Paths.destX(path);
+            int destY = Paths.destY(path);
+            assertTrue(destinations.add(cellKey(destX, destY)),
+                    "every squadmate must receive a distinct destination");
+            int dx = destX - 14;
+            int dy = destY - 4;
+            assertTrue(dx * dx + dy * dy
+                    <= EscortAssignedCivilians.RELIEF_RADIUS
+                    * EscortAssignedCivilians.RELIEF_RADIUS);
+        }
+        assertEquals(4, destinations.size());
+    }
+
+    @Test
+    void unitFormationMovesWithAnUpdatedSquadRallyCell() {
+        BattleSimulation sim = simulation();
+        List<Long> members = addSquad(sim, 4, 2, 4);
+        Squad squad = sim.getSquad(sim.squad().squadId(members.get(0)));
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 13, 4);
+        SquadPlan plan = new SquadPlan(List.of(new SquadPlan.Step(
+                EscortAssignedCivilians.INSTANCE)));
+        plan.currentStep().assignments.putAll(RoleAssigner.assign(members,
+                EscortAssignedCivilians.INSTANCE.roles(squad, sim)));
+        squad.currentPlan = plan;
+        for (long member : members) {
+            EscortAssignedCivilians.INSTANCE.execute(member, squad, sim);
+        }
+        List<Long> firstDestinations = members.stream()
+                .map(member -> cellKey(Paths.destX(sim.movement().path(member)),
+                        Paths.destY(sim.movement().path(member))))
+                .toList();
+
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 14, 4);
+        Set<Long> shiftedDestinations = new HashSet<>();
+        for (int i = 0; i < members.size(); i++) {
+            long member = members.get(i);
+            EscortAssignedCivilians.INSTANCE.execute(member, squad, sim);
+            int destX = Paths.destX(sim.movement().path(member));
+            int destY = Paths.destY(sim.movement().path(member));
+            assertEquals(firstDestinations.get(i), cellKey(destX - 1, destY),
+                    "each member keeps its relative formation slot as the rally advances");
+            assertTrue(shiftedDestinations.add(cellKey(destX, destY)));
+        }
+        assertEquals(4, shiftedDestinations.size());
+    }
+
+    @Test
     void pickupGuardCannotConsumeTheShelterReliefLead() {
         BattleSimulation sim = simulation();
         Squad guard = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 4)));
@@ -174,6 +243,27 @@ class EscortAssignedCiviliansGoalTest {
         squad.centroidX = x;
         squad.centroidY = y;
         return marine;
+    }
+
+    private static List<Long> addSquad(BattleSimulation sim, int count,
+                                       int x, int y) {
+        List<Long> members = new ArrayList<>(count);
+        long leader = addMarine(sim, x, y);
+        members.add(leader);
+        int squadId = sim.squad().squadId(leader);
+        Squad squad = sim.getSquad(squadId);
+        for (int i = 1; i < count; i++) {
+            long member = sim.spawn(new EntitySpec("marine-" + i,
+                    Faction.MARINE, UnitType.MARINE, x, y));
+            sim.squad().assignSquad(member, squadId);
+            members.add(member);
+        }
+        squad.aliveMembers = count;
+        return members;
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
     }
 
     private static BattleSimulation simulation() {
