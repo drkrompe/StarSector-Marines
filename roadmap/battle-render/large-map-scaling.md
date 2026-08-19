@@ -115,6 +115,8 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
   defender density too sparse spread over 4× area? (both → scale back or tune if bad).
 - ⏳ **Tiled decal FBO + camera residency** — the #1/#2 plan above; lands with/unblocks S3j
   (DECALS in the bridge) and removes the standalone's world-sized FBO ceiling.
+  Render-side board for that work (and for GROUND bake) is captured, not queued, in
+  [`stories/dense-render-tiles.md`](stories/dense-render-tiles.md).
 - ✅ **Incremental zone rebuild** — shipped (see §3); kills the per-wall-break O(W×H) spike.
 - ⏳ **Pathfinding hierarchy** — sim-side, the remaining ceiling before ~4× linear (flat A* today).
 

@@ -54,10 +54,13 @@
 >   Moved to [`complete/geometry-highlights-command-model.md`](complete/geometry-highlights-command-model.md).
 >   **Follow-up:** promote the captain badge to production when that feature lands.
 >
-> **Battle-render: camera view culling is in.** The remaining optional
-> work-reduction spike is the ground-FBO cache
-> ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)). Every
-> world pass is command-driven; every gameplay-geometry `Custom` is migrated.
+> **Battle-render: camera view culling is in.** Dense-tile residency
+> (baked n×m chunks, view-resident FBOs, bridge spectator cull) is
+> **captured and not queued** —
+> [`stories/dense-render-tiles.md`](stories/dense-render-tiles.md). That
+> story subsumes the single-world ground-FBO spike. Do not pick it up
+> until explicitly contracted. Every world pass is command-driven; every
+> gameplay-geometry `Custom` is migrated.
 >
 > **Still `Custom` and staying** — debug-only (all `@DebugOnly`):
 > `renderZoneOverlayDebug` (Z toggle), `renderConvoyDockingPathsDebug`
