@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +69,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     private static final int BRIDGE_SCAN_DEPTH = 5;
     /** Default wall HP — matches the legacy seed used elsewhere. Higher than building walls because the compound wall is meant to read as armor. */
     private static final int WALL_HP_FORTIFIED = 150;
+    private static final String RADAR_DISH_ID = "doodad.military-radar-dish";
 
     /**
      * Keep COMMAND sub-building. Opts into {@link RoomPurpose} labeling so
@@ -81,18 +84,21 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      */
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, "SKY_PORT", PointOfInterest.Kind.COMMS,
-            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
+            BuildingLayouts.LayoutRecipe.COMMAND_CENTER, BuildingKind.FORTIFIED,
             new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
             TernaryPartitionStrategy.DEFAULT);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, "RESIDENTIAL", PointOfInterest.Kind.RESIDENTIAL,
-            BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);
+            BuildingLayouts.LayoutRecipe.BARRACKS, BuildingKind.FORTIFIED,
+            new RoomPurpose[]{RoomPurpose.BARRACKS}, new BinaryPartitionStrategy(0f));
     private static final BuildingShellCore.BuildingConfig ARMORY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
+            BuildingLayouts.LayoutRecipe.ARMORY, BuildingKind.FORTIFIED,
+            new RoomPurpose[]{RoomPurpose.ARMORY}, new BinaryPartitionStrategy(0f));
     private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
+            BuildingLayouts.LayoutRecipe.VEHICLE_BAY, BuildingKind.FORTIFIED,
+            new RoomPurpose[]{RoomPurpose.VEHICLE_BAY}, new BinaryPartitionStrategy(0f));
 
     @Override
     public void fill(Compound compound, GenContext ctx) {
@@ -123,6 +129,8 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                 compound, inCompound, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, roadReservation, grid, topology);
         punchGates(compound, inCompound, roadCells, grid, topology, rng);
+        stampCommandRadar(compound, inCompound, memberCells, roadReservation,
+                grid, topology, doodads);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
         emitTacticalNodes(compound, leafPois, tactical);
     }
@@ -400,13 +408,104 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             BlockLeaf inset = new BlockLeaf(subL, subT, subR, subB, false);
             inset.kind = m.kind;
             BuildingShellCore.BuildingConfig config = configFor(compound.roles.get(m));
-            PointOfInterest poi = BuildingShellCore.carve(inset, grid, topology, doodads, rng, config);
+            BuildingPlacement placement = new BuildingPlacement(
+                    frontageTowardCompound(m, compound), true);
+            PointOfInterest poi = BuildingShellCore.carve(
+                    inset, grid, topology, doodads, rng, config, placement);
             if (poi != null) {
                 pois.add(poi);
                 leafPois.put(m, poi);
             }
         }
         return leafPois;
+    }
+
+    /** Points the public facade toward shared compound circulation rather than the outer wall. */
+    private BuildingPlacement.Side frontageTowardCompound(BlockLeaf leaf, Compound compound) {
+        int dx = (compound.left + compound.right) - (leaf.left + leaf.right);
+        int dy = (compound.top + compound.bottom) - (leaf.top + leaf.bottom);
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return dx < 0 ? BuildingPlacement.Side.LEFT : BuildingPlacement.Side.RIGHT;
+        }
+        return dy < 0 ? BuildingPlacement.Side.TOP : BuildingPlacement.Side.BOTTOM;
+    }
+
+    /**
+     * Places one outdoor radar near COMMAND on a broad piece of parade ground.
+     * Bridged courtyard cells are preferred over the one-cell building rim so
+     * the hard fixture does not turn circulation around a barracks into a choke.
+     */
+    private void stampCommandRadar(Compound compound, boolean[][] inCompound,
+                                   boolean[][] memberCells, boolean[][] roadReservation,
+                                   NavigationGrid grid, CellTopology topology,
+                                   List<Doodad> doodads) {
+        BlockLeaf command = null;
+        for (BlockLeaf member : compound.members) {
+            if (compound.roles.get(member) == Compound.Role.COMMAND) {
+                command = member;
+                break;
+            }
+        }
+        if (command == null) return;
+
+        int[] cell = bestRadarCell(compound, command, inCompound, memberCells,
+                roadReservation, grid, topology, false);
+        if (cell == null) {
+            cell = bestRadarCell(compound, command, inCompound, memberCells,
+                    roadReservation, grid, topology, true);
+        }
+        if (cell == null) return;
+
+        DoodadDef radar = TileRegistry.installed().doodad(RADAR_DISH_ID);
+        if (radar == null) return;
+        grid.setWalkable(cell[0], cell[1], false);
+        grid.setSeeThrough(cell[0], cell[1], true);
+        topology.setWall(cell[0], cell[1], false);
+        topology.setFixture(cell[0], cell[1], true);
+        doodads.add(new Doodad(cell[0], cell[1], radar));
+    }
+
+    private int[] bestRadarCell(Compound compound, BlockLeaf command,
+                                boolean[][] inCompound, boolean[][] memberCells,
+                                boolean[][] roadReservation, NavigationGrid grid,
+                                CellTopology topology, boolean allowMemberRim) {
+        int targetX = (command.left + command.right) / 2;
+        int targetY = (command.top + command.bottom) / 2;
+        int[] best = null;
+        int bestScore = Integer.MAX_VALUE;
+        for (int y = compound.top; y <= compound.bottom; y++) {
+            for (int x = compound.left; x <= compound.right; x++) {
+                if (!inCompound[x][y] || roadReservation[x][y]) continue;
+                if (!allowMemberRim && memberCells[x][y]) continue;
+                if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)) continue;
+                if (topology.getGroundKind(x, y) != PARADE_GROUND) continue;
+                if (nearDoorway(grid, x, y, 2) || openNeighbors(grid, x, y) < 3) continue;
+                int score = Math.abs(x - targetX) + Math.abs(y - targetY);
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    private boolean nearDoorway(NavigationGrid grid, int x, int y, int radius) {
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                if (grid.isDoorway(x + dx, y + dy)) return true;
+            }
+        }
+        return false;
+    }
+
+    private int openNeighbors(NavigationGrid grid, int x, int y) {
+        int count = 0;
+        if (grid.isWalkable(x + 1, y)) count++;
+        if (grid.isWalkable(x - 1, y)) count++;
+        if (grid.isWalkable(x, y + 1)) count++;
+        if (grid.isWalkable(x, y - 1)) count++;
+        return count;
     }
 
     private BuildingShellCore.BuildingConfig configFor(Compound.Role role) {
