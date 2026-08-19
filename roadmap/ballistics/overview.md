@@ -196,12 +196,14 @@ movers can enter the corridor before contact.
   wall-edge block rolls require vertical overlap; structural walls remain
   full-height. See
   [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
-- **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
-  adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
-  near-miss morale goes path-proximity.
+- **S4 — direct-fire unification.** Active: mech chaingun/SRM, handheld
+  rockets, and ground burst-turret spray adopt the resolver; retire abstract
+  cover and direct-fire wall-snap/miss-ring paths. Story:
+  [`stories/s4-direct-fire-unification.md`](stories/s4-direct-fire-unification.md).
 
 Future hooks (post-S4, backlog): doodad HP / cover erosion; lead error by
-aptitude; point defense generalization (`Projectile.intercepted` reserved).
+aptitude; point defense generalization (`Projectile.intercepted` reserved);
+fighter high/low/wide fire once fighter attacks compose the air-entity pipeline.
 
 ## Cross-refs
 
