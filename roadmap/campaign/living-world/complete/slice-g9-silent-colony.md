@@ -1,8 +1,8 @@
 # G9 — Silent Colony
 
-**Status:** SLICE 3 CODE COMPLETE (2026-08-19)
+**Status:** COMPLETE (2026-08-19)
 
-**Implemented:** `4d50805d`, `33b073bd`, `9a87c85b`
+**Implemented:** `4d50805d`, `33b073bd`, `9a87c85b`, `43bd3693`
 
 ## Purpose
 
@@ -142,9 +142,17 @@ consequence code.
    conventional infantry. A separate five-second archive-room recovery and
    terminal survivor accounting produce independent debrief facts; unfinished
    battles retain archive `NONE` rather than inferring loss from victory.
-4. **Closure and reachability** — strict outcome bridge, terminal Dead Letter,
+4. ~~**Closure and reachability** — strict outcome bridge, terminal Dead Letter,
    Chronicle report, debug setup, full save/replay matrix, and documented moral
-   decision only if the mission adds an explicit player priority.
+   decision only if the mission adds an explicit player priority.~~ Shipped in
+   `43bd3693`; outcome writeback now requires the matching event key, market,
+   survivor cohort, hidden threat seed, zero-economy envelope, and explicit
+   survivor/archive report. The first accepted report closes the event and
+   appends one immutable Chronicle snapshot; terminal replay, including across
+   save/load, cannot replace either record. Dead Letter retains the measured
+   terminal facts, and debug intel can force a production-shaped local site.
+   No moral row or archive cargo is created because the mission offers no
+   explicit player priority or promise.
 
 ## Acceptance
 
@@ -172,8 +180,11 @@ consequence code.
 
 Focused Silent Colony, shared event-column, civilian-rescue, defector-asylum,
 lifecycle, producer-order, and Dead Letter reconstruction tests pass. The
-Slice 3 factory additionally locks maximum cohort placement, autonomous-only
-defenders, battle-seed-independent threat placement, and independent survivor /
-archive reports. The complete root `:test` suite also passes on 2026-08-19.
-Manual Dead Letter, mission, battle, and debrief UI validation remains deferred
-with the shared campaign verification queue.
+factory locks maximum cohort placement, autonomous-only defenders,
+battle-seed-independent threat placement, and independent survivor/archive
+reports. Closure coverage includes strict mismatch rejection, zero/partial/full
+survivor outcomes, archive loss/recovery, committed-state load, terminal
+load/replay, Chronicle deduplication, legacy backfill, debug spawning, and the
+absence of inferred moral records. The complete root `test` suite also passes
+on 2026-08-19. Manual Dead Letter, mission, battle, and debrief UI validation
+remains deferred with the shared campaign verification queue.

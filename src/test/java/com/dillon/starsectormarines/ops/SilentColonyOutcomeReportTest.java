@@ -36,6 +36,7 @@ class SilentColonyOutcomeReportTest {
         assertEquals(2, outcome.civiliansRescued);
         assertEquals(AbandonedColonyArchiveOutcome.RECOVERED,
                 outcome.colonyArchiveOutcome);
+        assertEquals(55L, outcome.campaignEventThreatSeed);
     }
 
     @Test

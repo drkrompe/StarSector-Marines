@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -21,6 +22,8 @@ import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugKingmakerTestamentSpawner;
+import com.dillon.starsectormarines.campaign.systems.DebugSilentColonySpawner;
+import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
@@ -70,6 +73,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
     private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
+    private static final String BTN_SPAWN_COLONY   = "spawn-local-silent-colony";
     private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
     private static final String BTN_SPAWN_TESTAMENT = "spawn-kingmaker-testament";
     private static final String BTN_ADVANCE_DEFECTOR = "advance-defector-followup";
@@ -190,6 +194,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
         ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
+        ui.addButton("Spawn local Silent Colony", BTN_SPAWN_COLONY, 320f, 24f, 8f);
         ui.addButton("Spawn discovered-chain defector", BTN_SPAWN_DEFECTOR,
                 320f, 24f, 8f);
         ui.addButton("Spawn kingmaker testament", BTN_SPAWN_TESTAMENT,
@@ -347,6 +352,14 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                     + target + " addressed the kingmaker after "
                     + actor + "'s accession";
             location = market;
+        } else if (eventType == ChronicleEventType.SILENT_COLONY) {
+            AbandonedColonyArchiveOutcome archive =
+                    AbandonedColonyArchiveOutcome.fromByte(
+                            s.chronicleColonyArchiveOutcome[row]);
+            event = "SILENT COLONY — " + s.chronicleSurvivorsRescued[row]
+                    + " of " + s.chronicleSurvivorsAtRisk[row]
+                    + " survivors — archive " + archive.name();
+            location = market;
         } else {
             event = outcome.name() + " — " + actor + " vs " + target;
             location = industry + " @ " + market;
@@ -459,6 +472,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
         } else if (BTN_SPAWN_RESCUE.equals(buttonId)) {
             spawnLocalRescue(s);
+        } else if (BTN_SPAWN_COLONY.equals(buttonId)) {
+            spawnSilentColony(s);
         } else if (BTN_SPAWN_DEFECTOR.equals(buttonId)) {
             spawnDefector(s);
         } else if (BTN_SPAWN_TESTAMENT.equals(buttonId)) {
@@ -560,6 +575,35 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int day = (int) Global.getSector().getClock().getDay();
         DebugCivilianRescueSpawner.spawn(
                 state, selectedSlot, selectedMarket.getSize(), day);
+    }
+
+    private static void spawnSilentColony(CampaignState state) {
+        StarSystemAPI system = currentPlayerSystem();
+        if (system == null || Global.getSector() == null
+                || Global.getSector().getEconomy() == null) {
+            return;
+        }
+        MarketAPI selected = null;
+        int selectedTier = 0;
+        for (MarketAPI market
+                : Global.getSector().getEconomy().getMarketsCopy()) {
+            int tier = SilentColonySpawnSystem.eligibleTier(market);
+            if (tier == 0 || market.getPrimaryEntity() == null
+                    || market.getPrimaryEntity().getContainingLocation()
+                        != system) {
+                continue;
+            }
+            if (selected == null
+                    || market.getId().compareTo(selected.getId()) < 0) {
+                selected = market;
+                selectedTier = tier;
+            }
+        }
+        if (selected == null) return;
+        int marketSlot = state.marketRegistry.intern(selected.getId());
+        int day = (int) Global.getSector().getClock().getDay();
+        DebugSilentColonySpawner.spawn(
+                state, marketSlot, selectedTier, day);
     }
 
     private static void spawnDefector(CampaignState state) {
