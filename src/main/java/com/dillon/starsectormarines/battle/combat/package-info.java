@@ -4,7 +4,7 @@
  * <p>Category: feature domain (a cross-actor system; every armed unit
  *           routes through it).
  * <br>Charter:  shot emission + raycast ({@code ShotService},
- *           {@code ShotRaycast}, {@code ShotEvent}, {@code Projectile}),
+ *           {@code BallisticResolver}, {@code ShotEvent}, {@code Projectile}),
  *           damage resolution ({@code DamageService},
  *           {@code DamageResolver}, {@code HitResponseSystem}),
  *           detonations, the shared chassis-weapon firing mechanism
