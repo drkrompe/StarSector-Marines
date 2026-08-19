@@ -96,7 +96,13 @@ public final class MissionLaunch {
 
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
-        if (isSilentColonyBattle(m)) {
+        OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
+        if (openingOperation != null) {
+            sim = BattleSetup.createOpeningOperation(seed,
+                    det.shuttleManifest,
+                    DetachmentResolver.employerPhysicalShipCount(m),
+                    openingOperation, profile);
+        } else if (isSilentColonyBattle(m)) {
             sim = BattleSetup.createSilentColony(seed,
                     m.campaignEventThreatSeed, m.civiliansAtRisk,
                     det.shuttleManifest, m.risk);
@@ -170,6 +176,10 @@ public final class MissionLaunch {
                 && mission.source == MissionSource.CAMPAIGN_EVENT
                 && SilentColonyMissionKey.parse(mission.id) != null
                 && mission.campaignEventThreatSeed >= 0L;
+    }
+
+    static boolean isOpeningOperationBattle(Mission mission) {
+        return OpeningOperationKind.fromMission(mission) != null;
     }
 
     private static int firstWaveSeats(List<ShuttleAssignment> manifest) {
