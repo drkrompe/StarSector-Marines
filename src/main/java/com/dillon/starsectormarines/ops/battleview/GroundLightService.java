@@ -33,10 +33,18 @@ public final class GroundLightService {
     public void spawnMuzzle(ShotEvent shot) {
         Color color = muzzleColor(shot);
         ImpactProfile profile = impactProfile(shot);
-        float radius = profile == ImpactProfile.HE ? 4.2f
-                : (profile == ImpactProfile.KINETIC ? 3.2f : 2.4f);
-        float intensity = profile == ImpactProfile.HE ? 0.72f
-                : (profile == ImpactProfile.KINETIC ? 0.52f : 0.34f);
+        float radius = switch (profile) {
+            case CANNON_HE -> 5.2f;
+            case HE -> 4.2f;
+            case KINETIC -> 3.2f;
+            case RIFLE -> 2.4f;
+        };
+        float intensity = switch (profile) {
+            case CANNON_HE -> 0.92f;
+            case HE -> 0.72f;
+            case KINETIC -> 0.52f;
+            case RIFLE -> 0.34f;
+        };
         spawn(shot.fromX, shot.fromY, 0.9f, radius, color, intensity, 0.13f);
     }
 
@@ -44,6 +52,7 @@ public final class GroundLightService {
     public void spawnImpact(ImpactProfile profile, float x, float y) {
         ImpactProfile resolved = profile == null ? ImpactProfile.RIFLE : profile;
         switch (resolved) {
+            case CANNON_HE -> spawn(x, y, 1.5f, 7.2f, HE_IMPACT, 1.20f, 0.62f);
             case HE -> spawn(x, y, 1.2f, 5.5f, HE_IMPACT, 0.95f, 0.48f);
             case KINETIC -> spawn(x, y, 0.8f, 3.2f, KINETIC_IMPACT, 0.48f, 0.22f);
             case RIFLE -> spawn(x, y, 0.6f, 1.9f, WARM_MUZZLE, 0.22f, 0.13f);
@@ -161,11 +170,7 @@ public final class GroundLightService {
     }
 
     static ImpactProfile impactProfile(ShotEvent shot) {
-        if (shot.turretKind != null) return shot.turretKind.impactProfile();
-        if (shot.marineSecondary != null) return shot.marineSecondary.impactProfile();
-        if (shot.marineWeapon != null) return shot.marineWeapon.impactProfile;
-        if (shot.mechWeapon != null) return shot.mechWeapon.impactProfile;
-        return ImpactProfile.RIFLE;
+        return shot.impactProfile();
     }
 
     static final class Light {

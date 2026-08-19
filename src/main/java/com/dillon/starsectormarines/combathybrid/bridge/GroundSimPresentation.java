@@ -107,6 +107,10 @@ public final class GroundSimPresentation {
             if (s.mechWeapon == MechWeapon.CHAINGUN) {
                 fx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
+            if (s.impactProfile() == ImpactProfile.CANNON_HE) {
+                fx.spawnCannonMuzzleBlast(
+                        s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
+            }
             if (s.turretKind != null && s.turretKind.hasLaunchBackblast()) {
                 fx.spawnLaunchBackblast(s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
             }
@@ -127,7 +131,10 @@ public final class GroundSimPresentation {
             if (s.turretKind != null) {
                 ImpactProfile profile = s.turretKind.impactProfile();
                 fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
-                if (profile == ImpactProfile.HE) playExplosion(s.toX, s.toY, 0.55f, rng);
+                if (profile.explosive()) {
+                    playExplosion(s.toX, s.toY,
+                            profile == ImpactProfile.CANNON_HE ? 0.82f : 0.55f, rng);
+                }
             } else if (s.marineSecondary != null) {
                 fx.spawnImpact(s.marineSecondary.impactProfile(), s.toX, s.visualToY(), isWall);
                 playAtCell(s.marineSecondary.impactSoundId, 0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
@@ -136,7 +143,10 @@ public final class GroundSimPresentation {
             } else if (s.mechWeapon != null) {
                 ImpactProfile profile = s.mechWeapon.impactProfile;
                 fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
-                if (profile == ImpactProfile.HE) playExplosion(s.toX, s.toY, 0.65f, rng);
+                if (profile.explosive()) {
+                    playExplosion(s.toX, s.toY,
+                            profile == ImpactProfile.CANNON_HE ? 0.86f : 0.65f, rng);
+                }
             }
         }
     }

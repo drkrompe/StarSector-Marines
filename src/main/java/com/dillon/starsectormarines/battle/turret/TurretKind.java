@@ -62,7 +62,10 @@ public enum TurretKind {
                   "graphics/missiles/shell_round_lrg.png",
                   "heavy_mortar_fire",
                   "Heavy Mortar",
-                  36f,  9.0f, 0.55f,  2.50f, 75f,  60f, 1.8f, 0.28f, TurretRole.A2G,  15),
+                  36f,  9.0f, 0.55f,  2.50f, 75f,  60f, 1.8f, 0.32f, TurretRole.A2G,  15,
+                  /*burst*/ 1, 0f, /*aoe*/ 1.35f, /*wallDmg*/ 24, /*wallDmgRadius*/ 1.15f,
+                  /*arc*/ 0f, /*flightSec*/ 0.60f, /*hitSpread*/ 0.18f,
+                  /*minRange*/ 0f, /*smokeTrail*/ false),
     /** Rapid-fire flak — defensive area sweep. Wide turn rate, fast cooldown. */
     DUAL_FLAK    ("graphics/weapons/double_flak_cannon_turret_base.png",
                   "graphics/weapons/double_flak_cannon_turret_recoil.png",
@@ -374,12 +377,12 @@ public enum TurretKind {
         return this == LOCUST;
     }
 
-    /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
+    /** Visual impact profile for this kind — small spark for light weapons, kinetic flash for autocannons, rocket HE for launchers, and heavy cannon HE for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {
-            case HEAVY_MORTAR:
             case GRENADE_LAUNCHER:
             case LOCUST:                             return ImpactProfile.HE;
+            case HEAVY_MORTAR:                       return ImpactProfile.CANNON_HE;
             case ARBALEST:
             case DUAL_FLAK:
             case HEPHAESTUS:
