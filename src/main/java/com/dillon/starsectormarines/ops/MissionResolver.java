@@ -564,7 +564,6 @@ public final class MissionResolver {
         }
 
         int day = currentDayInt();
-        long patronId = state.contractPatronHouseId[row];
         ContractType contractType = ContractType.fromByte(state.contractType[row]);
 
         if (outcome.missionSource == MissionSource.STATIONING) {
@@ -589,7 +588,8 @@ public final class MissionResolver {
                             roster, outcome.deployedFireteamIds)
                     : null;
             if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
-                ContractReputation.failed(state, patronId, -1, day);
+                ContractReputation.failedForContract(
+                        state, outcome.contractId, -1, day);
             }
             LOG.info("MarineOps: Garrison defense " + outcome.missionId + " → " + result);
             return;
@@ -602,7 +602,7 @@ public final class MissionResolver {
         }
 
         if (contractType == ContractType.PLANETARY_ASSAULT) {
-            applyPlanetaryAssaultBridge(state, row, outcome, patronId, day);
+            applyPlanetaryAssaultBridge(state, row, outcome, day);
             return;
         }
 
@@ -614,7 +614,8 @@ public final class MissionResolver {
             if (phasesDone >= phasesTotal) {
                 state.contractState[row] = ContractState.COMPLETED.toByte();
                 if (contractType != ContractType.EXTRACTION) {
-                    ContractReputation.completed(state, patronId, +1, day);
+                    ContractReputation.completedForContract(
+                            state, outcome.contractId, +1, day);
                 }
                 LOG.info("MarineOps: contract " + outcome.contractId + " COMPLETED ("
                         + phasesDone + "/" + phasesTotal + ")");
@@ -634,7 +635,8 @@ public final class MissionResolver {
         } else {
             state.contractState[row] = ContractState.FAILED.toByte();
             if (contractType != ContractType.EXTRACTION) {
-                ContractReputation.failed(state, patronId, -2, day);
+                ContractReputation.failedForContract(
+                        state, outcome.contractId, -2, day);
             }
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
         }
@@ -672,7 +674,7 @@ public final class MissionResolver {
 
     private static void applyPlanetaryAssaultBridge(CampaignState state, int row,
                                                      MissionOutcome outcome,
-                                                     long patronId, int day) {
+                                                     int day) {
         PlanetaryAssaultResolution.Result result = PlanetaryAssaultResolution.apply(
                 state, row, outcome.victory,
                 phaseIndex(outcome), phaseAttempt(outcome), day);
@@ -683,7 +685,8 @@ public final class MissionResolver {
         }
         switch (result) {
             case CONTRACT_COMPLETED:
-                ContractReputation.completed(state, patronId, +1, day);
+                ContractReputation.completedForContract(
+                        state, outcome.contractId, +1, day);
                 applyPoliticalShift(state, row, outcome, day);
                 LOG.info("MarineOps: Planetary Assault " + outcome.contractId + " COMPLETED");
                 break;
@@ -698,7 +701,8 @@ public final class MissionResolver {
                         + " attempt " + state.contractPhaseAttempts[row]);
                 break;
             case CONTRACT_FAILED:
-                ContractReputation.failed(state, patronId, -2, day);
+                ContractReputation.failedForContract(
+                        state, outcome.contractId, -2, day);
                 LOG.info("MarineOps: Planetary Assault " + outcome.contractId + " FAILED");
                 break;
             default:

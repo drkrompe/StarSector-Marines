@@ -58,7 +58,7 @@ public final class StationingWithdrawalService {
         state.contractMarinesCommitted[row] = 0;
         state.contractCaptainId[row] = -1;
         state.contractState[row] = ContractState.ABANDONED.toByte();
-        ContractReputation.abandoned(state, state.contractPatronHouseId[row], day);
+        ContractReputation.abandonedForContract(state, contractId, day);
         return true;
     }
 

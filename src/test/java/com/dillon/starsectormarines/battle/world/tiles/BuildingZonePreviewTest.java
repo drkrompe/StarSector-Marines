@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrial
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
@@ -541,6 +542,64 @@ public class BuildingZonePreviewTest {
     }
 
     @Test
+    void renderResidentialCourtyardCompound() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        int width = 48;
+        int height = 38;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.STREET);
+            }
+        }
+
+        BlockLeaf main = new BlockLeaf(2, 2, 17, 15, false);
+        BlockLeaf secondary = new BlockLeaf(22, 2, 36, 15, false);
+        BlockLeaf utility = new BlockLeaf(2, 20, 13, 31, false);
+        boolean[][] roads = new boolean[width][height];
+        boolean[][] reserved = new boolean[width][height];
+        for (int y = 2; y <= 15; y++) {
+            for (int x = 18; x <= 21; x++) roads[x][y] = true;
+            reserved[20][y] = true;
+        }
+        for (int x = 2; x <= 17; x++) {
+            for (int y = 16; y <= 19; y++) roads[x][y] = true;
+            reserved[x][18] = true;
+        }
+        for (int y = 5; y <= 12; y++) {
+            roads[0][y] = true;
+            roads[1][y] = true;
+        }
+
+        List<BlockLeaf> members = new ArrayList<>(List.of(main, secondary, utility));
+        Map<BlockLeaf, Compound.Role> roles = new IdentityHashMap<>();
+        roles.put(main, Compound.Role.COMMAND);
+        roles.put(secondary, Compound.Role.BARRACKS);
+        roles.put(utility, Compound.Role.ARMORY);
+        Compound compound = new Compound(
+                com.dillon.starsectormarines.battle.world.gen.BlockKind.GATED_HOUSING,
+                main, members, roles, null);
+        GenContext ctx = new GenContext(grid, topology, new Random(117L), width, height, 117L);
+        ctx.put(BspKeys.ROAD_CELLS, roads);
+        ctx.put(BspKeys.ROAD_RESERVATION, reserved);
+        new GatedHousingFiller().fill(compound, ctx);
+        topology.tagDefaultWalls(grid);
+
+        BufferedImage image = renderScene(
+                grid, topology, ctx.doodads,
+                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
+                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
+                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
+                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                "residential compound · two apartment blocks + shared courtyard · seed=117");
+        Path output = OUT_DIR.resolve("residential-courtyard-compound.png");
+        ImageIO.write(image, "PNG", output.toFile());
+        System.out.println("  wrote " + output.toAbsolutePath());
+    }
+
+    @Test
     void renderIndustrialYardVariants() throws Exception {
         renderBuildingBatch(new IndustrialYardFiller(), "industrial-yard");
     }
@@ -693,6 +752,16 @@ public class BuildingZonePreviewTest {
                         stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
+                    case COURTYARD: {
+                        g.setColor(new Color(TileManifest.COURTYARD_FILL_RGB));
+                        g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
+                                DISPLAY_CELL_PX, DISPLAY_CELL_PX);
+                        TileManifest.TileFrame f = frame(reg.block("road.courtyard")
+                                .resolve(false, false, false, false));
+                        stampCell(drawer, roadSink, f, x, y, gridH,
+                                drawer.defaultGroundInsetPx());
+                        break;
+                    }
                     case BRICK: {
                         // Brick paving (fl-tile-1..5) on FLOORS_SHEET — per-
                         // cell hash variant pool. Plazas, building roofs (planned).
@@ -720,11 +789,18 @@ public class BuildingZonePreviewTest {
                                 floorsDrawer.defaultGroundInsetPx());
                         break;
                     }
+                    case STONE: {
+                        TileManifest.TileFrame f = frame(reg.block("floors.stone")
+                                .resolve(false, false, false, false, x, y));
+                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH,
+                                floorsDrawer.defaultGroundInsetPx());
+                        break;
+                    }
                     case STREET:
                         // Already painted as a flat fill in pass 1.
                         break;
                     default:
-                        // Other GroundKinds (GRASS/DIRT/WATER/etc.) aren't
+                        // Other GroundKinds (GRASS/WATER/etc.) aren't
                         // emitted by the building fillers under test — guard
                         // surfaces a regression visibly.
                         g.setColor(Color.MAGENTA);
