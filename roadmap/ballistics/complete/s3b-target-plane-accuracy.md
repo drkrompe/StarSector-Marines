@@ -1,5 +1,20 @@
 # S3b — target-plane accuracy
 
+> **Shipped 2026-08-19** on `session/ballistics-target-plane-accuracy`,
+> implementation commit `cd6094fd`. Intended accuracy is now committed once
+> into lateral/elevation aim, per-type vertical silhouettes participate in
+> contacts, and every visible shot carrier projects the resulting Z path.
+> Free-flight overshoots disappear without a false impact. Full suite: 1529
+> tests (1528 root + 1 asset-pipeline).
+>
+> **Landed vs. planned deviations:** none. The same vertical path is also
+> threaded through contrail samples so future target-plane weapons can add a
+> trail without reopening projection semantics.
+
+Original contract below, kept for the record.
+
+---
+
 > Make accuracy visible and physical. A shot's one authored accuracy roll
 > chooses whether its aim lies inside the intended target silhouette; misses
 > scatter in the plane perpendicular to fire, producing real lateral trajectories

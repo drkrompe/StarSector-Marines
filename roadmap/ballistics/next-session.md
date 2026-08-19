@@ -30,6 +30,12 @@
   bitmap and no sim/balance changes. Full record:
   [`complete/s3a-weapon-fx-families.md`](complete/s3a-weapon-fx-families.md).
   1513 tests green.
+- **S3b SHIPPED** on `session/ballistics-target-plane-accuracy`, implementation
+  commit `cd6094fd`. Intended accuracy now commits once into a visible
+  lateral/elevation path; per-type vertical silhouettes gate unit contact;
+  overshoots expire without false impacts. Full record:
+  [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
+  1529 tests green (1528 root + 1 asset-pipeline).
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -37,16 +43,7 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active: S3b — target-plane accuracy
-
-Contract: [`stories/s3b-target-plane-accuracy.md`](stories/s3b-target-plane-accuracy.md).
-Replace the locked target's invisible contact roll with one authored target-
-plane aim result: lateral error changes the physical XY ray, elevation error
-gates contacts against per-type vertical silhouettes, and visible rounds project
-that Z axis into screen Y. Overshoots expire without false impact FX. Preserve
-existing accuracy probabilities, incidental grazes, cover, and damage tuning.
-
-## After S3b: contract S4 — direct-fire unification
+## Next: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-
@@ -63,13 +60,14 @@ lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
 completed S3 structure.
 
-## Where things live (post-S3a)
+## Where things live (post-S3b)
 
 - `battle/combat/BallisticResolver.java` — the fire-time ray walk,
   solved in the time domain against each candidate's extrapolated
-  motion; shooter lead lives inside `resolve()`. All tuning constants
-  live here as the tuning surface (including `MAX_MOVER_SPEED_CELLS`,
-  the S2 gather-margin scaling term).
+  motion; shooter lead and the target-plane XY/Z path live inside `resolve()`.
+  `TargetPlaneAim` owns the single intended accuracy commit and miss clearance.
+  All tuning constants live here as the tuning surface (including
+  `MAX_MOVER_SPEED_CELLS`, the S2 gather-margin scaling term).
 - `battle/sim/MovementService.java` — `velX`/`velY` by-id getters read
   `MOVEMENT_VEL_X/Y` for the resolver's extrapolation.
 - `battle/infantry/MarineWeapon.java` — `roundVelocity` is the real
@@ -85,5 +83,6 @@ completed S3 structure.
   infantry `fireSecondary` paths use it until S4 unifies direct fire.
 - `ops/battleview/ShotFx.java` — `Bolt` texture/length/width recipes + shared
   `travels()` arrival semantic. `ShotRenderService` owns bolt kinematics and
-  growth; `BattleSprites` loads the derived set of mod/vanilla textures into
-  the path-keyed projectile cache.
+  projects ShotEvent Z through tracers, bolts, and sprites; `BattleSprites`
+  loads the derived set of mod/vanilla textures into the path-keyed projectile
+  cache. Both presentation bridges suppress impact FX for resolver overshoots.
