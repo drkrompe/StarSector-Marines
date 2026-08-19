@@ -19,10 +19,10 @@ import java.awt.Color;
  * or require different layered sprites. Loadout is per-marine, assigned at
  * deboard time via {@link MarineLoadout#primary}.
  *
- * <p>Primaries render as colored line tracers (pulse-laser-style), not full
- * projectile sprites — vanilla pulse lasers have no bullet sprite anyway, and
- * a 35-pixel kinetic shell rendered at our cell scale would be invisible. The
- * tracer color and per-weapon fire sound do the visual differentiation work.
+ * <p>Primaries render as either weapon-colored traveling bolts or explicit
+ * projectile sprites. The white-base bolt texture is tinted from
+ * {@link #tracerColor}; shell-backed weapons use {@link #projectileSpritePath}.
+ * Per-weapon fire sound supplies the matching audio identity.
  *
  * <p>The {@link #vsTurretMult} multiplier is applied in
  * {@link BattleSimulation#fireShot} when the target is a {@link MapTurret} —
@@ -49,9 +49,8 @@ public enum MarineWeapon {
      *
      * <p>Per-round damage 1.0 (max burst total 3.0); cooldown 1.0s between
      * trigger pulls; burst spacing 0.09s for a crisp three-flash cadence
-     * just slower than the SMG's brrt. Tracer-style — at 0.15s tracer
-     * lifetime + 0.09s spacing the three flashes briefly overlap, which
-     * reads as a burst without needing a projectile sprite.
+     * just slower than the SMG's brrt. The three traveling bolts briefly
+     * overlap, which reads as a burst without a bespoke projectile sprite.
      *
      * <p>Mild range falloff (0.30 → 0.245 effective accuracy at d=24) and a
      * small 0.4-cell spread keep the BR the "always useful" baseline — not
@@ -86,7 +85,7 @@ public enum MarineWeapon {
                 0.60f, 1.4f, 45f),
     /**
      * Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus.
-     * Vanilla railgun. Single shot, line tracer for now.
+     * Vanilla railgun. Single long, fast traveling bolt.
      *
      * <p>Minimal range falloff (0.10: 0.55 → 0.495 at d=32) and a tiny
      * 0.15-cell spread mean range is the DMR's whole point — the curve stays
@@ -125,7 +124,7 @@ public enum MarineWeapon {
     public final String displayName;
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
     public final String fireSoundId;
-    /** Line-tracer color. Distinct per weapon so the player can pick out which marine is firing which gun at a glance. */
+    /** Traveling-bolt tint (and legacy tracer tint). Distinct per weapon so the player can identify fire at a glance. */
     public final Color tracerColor;
     public final float range;
     public final float damage;
@@ -139,7 +138,7 @@ public enum MarineWeapon {
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} == 1. */
     public final float burstSpacing;
-    /** Optional projectile sprite. When non-null, shots render as a rotated traveling sprite (like turret kinetics + the rocket) instead of a line tracer. Used by SMG to launch visible bullets. */
+    /** Optional projectile sprite. When non-null, shots render as that rotated traveling sprite instead of the shared tinted bolt. */
     public final String projectileSpritePath;
     /** Projectile sprite visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
     public final float projectileVisualCells;
