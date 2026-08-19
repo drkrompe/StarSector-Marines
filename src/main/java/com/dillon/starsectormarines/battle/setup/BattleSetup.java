@@ -20,7 +20,6 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -405,7 +404,7 @@ public final class BattleSetup {
      * on successive sorties.
      */
     private static MarineLoadout[] buildSabotageLoadout(int capacity, List<ChargeSiteObjective> sites, int dropIndex, Random rng) {
-        MarineLoadout[] roster = buildBaseLoadouts(capacity, rng);
+        MarineLoadout[] roster = InfantryLoadoutRolls.playerSquad(capacity, rng);
         if (!sites.isEmpty()) {
             // Slot 0 becomes the planter — keep their primary weapon assignment
             // (so they fire opportunistically en route), drop any secondary so
@@ -458,33 +457,6 @@ public final class BattleSetup {
         // Attach as a presence component — requires the entity id, so the caller
         // must have run sim.spawnShuttle (which mints it) first.
         sim.attachAirTurrets(shuttleId, turrets);
-    }
-
-    private static MarineLoadout[] buildBaseLoadouts(int capacity, Random rng) {
-        MarineLoadout[] roster = new MarineLoadout[capacity];
-        int rocketSlot = (capacity > 1) ? capacity - 1 : -1;
-        for (int i = 0; i < capacity; i++) {
-            MarineWeapon primary = rollPrimary(rng);
-            EquipmentGrade grade = InfantryLoadoutRolls.playerEquipmentGrade(rng);
-            SoldierProfile profile = InfantryLoadoutRolls.playerProfile(rng);
-            if (i == rocketSlot) {
-                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, grade, profile,
-                        MarineSecondary.ROCKET_LAUNCHER,
-                        MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
-            } else {
-                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, grade, profile,
-                        null, 0);
-            }
-        }
-        return roster;
-    }
-
-    /** Weighted primary roll — pulse rifle is the workhorse, SMG + DMR split the specialist slots evenly. */
-    private static MarineWeapon rollPrimary(Random rng) {
-        int r = rng.nextInt(4);
-        if (r == 0) return MarineWeapon.SMG;
-        if (r == 1) return MarineWeapon.DMR;
-        return MarineWeapon.PULSE_RIFLE;
     }
 
     /** Back-compat overload — assumes generic ASSAULT mission type. */
@@ -553,7 +525,7 @@ public final class BattleSetup {
             // shuttle doesn't deboard the same exact fireteam composition twice.
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = buildBaseLoadouts(a.type.capacity, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.type.capacity, rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
@@ -642,7 +614,7 @@ public final class BattleSetup {
                 MarineLoadout[][] cycleLoadouts =
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
-                    cycleLoadouts[cycle] = buildBaseLoadouts(
+                    cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
                             assignment.type.capacity, rng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
@@ -752,7 +724,7 @@ public final class BattleSetup {
             mission.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = buildBaseLoadouts(a.type.capacity, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.type.capacity, rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
