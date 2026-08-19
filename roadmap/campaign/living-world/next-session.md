@@ -145,7 +145,12 @@ the opening cap, preserves safe reveal distance, and stops when the cohort
 resolves. Each civilian now owns an independent five-cell marine leash, cannot
 lead its nearest escort by more than two cells toward the lift, and seeks a
 screened position behind that marine near visible enemies (`ad11debf`). Manual
-wave-cadence and post-rebalance feel validation remain queued.
+playtesting then exposed a six-cell marine hold radius fighting the civilian's
+two-cell forward leash. Marine squads now rally five reachable route cells ahead
+of the cohort and retain moving fire while advancing; layered civilians turn on
+a 180-degree-per-second shortest arc and keep their last idle facing instead of
+snapping between headings (`bc29cb26`). Wave cadence and post-rebalance feel
+validation remain queued.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -354,6 +359,8 @@ swarm tuning remain in the shared deferred queue.
   25% target leeway, and immediate aggro rerouting (`4fedb34a`).
 - G5/G6 rescue-pressure follow-up — bounded perimeter reinforcement waves plus
   independent civilian escort leashes and threat screening (`ad11debf`).
+- G5/G6 advance/facing correction — forward marine screen under fire plus
+  rate-limited persistent civilian facing (`bc29cb26`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

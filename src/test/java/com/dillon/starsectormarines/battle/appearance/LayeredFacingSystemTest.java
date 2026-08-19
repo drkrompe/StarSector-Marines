@@ -120,6 +120,42 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void civilianFacingTurnsGraduallyAndHoldsItsLastIdleLook() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long civilian = sim.spawn(new EntitySpec("c", Faction.CIVILIAN,
+                UnitType.CIVILIAN, 5, 5));
+        FacingSystem system = new FacingSystem(sim.getEntityWorld(),
+                sim.getBattleComponents(), sim.getRoster());
+        float maximumStep = FacingSystem.CIVILIAN_TURN_RATE_DEGREES_PER_SECOND
+                * BattleSimulation.TICK_DT;
+
+        sim.getEntityWorld().setFloat(civilian, c.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X, UnitType.CIVILIAN.moveSpeed);
+        system.tick();
+        float eastwardLook = f(sim, civilian,
+                BattleComponents.LAYERED_FACING_DEGREES);
+        assertEquals(maximumStep, Math.abs(LayeredAppearance.wrapDegrees(
+                eastwardLook - 180f)), 0.001f);
+
+        sim.getEntityWorld().setFloat(civilian, c.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X, -UnitType.CIVILIAN.moveSpeed);
+        system.tick();
+        float reversedLook = f(sim, civilian,
+                BattleComponents.LAYERED_FACING_DEGREES);
+        assertTrue(Math.abs(LayeredAppearance.wrapDegrees(
+                reversedLook - eastwardLook)) <= maximumStep + 0.001f,
+                "opposite path bearings cannot snap the civilian look");
+
+        sim.getEntityWorld().setFloat(civilian, c.MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X, 0f);
+        system.tick();
+        assertEquals(reversedLook, f(sim, civilian,
+                BattleComponents.LAYERED_FACING_DEGREES), 0.001f,
+                "an idle substep retains the last authored civilian look");
+    }
+
+    @Test
     public void rocketSwitchesAboveShoulderOnlyAfterMidpointFire() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)

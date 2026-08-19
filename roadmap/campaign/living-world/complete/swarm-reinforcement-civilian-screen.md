@@ -2,7 +2,7 @@
 
 **Status:** CODE COMPLETE (2026-08-19)
 
-**Implemented:** `ad11debf`
+**Implemented:** `ad11debf`; playtest correction `bc29cb26`
 
 ## Outcome
 
@@ -32,8 +32,22 @@
   forward-lead restraint, and screened-side routing.
 - The full Gradle build passes, including map and rendering regression suites.
 
+## Playtest correction
+
+Continuous contact exposed a radius mismatch: civilians stopped after leading
+their nearest marine by two cells, while squads considered any position within
+six cells of the cohort close enough to hold. `bc29cb26` moves the marine rally
+five reachable route cells ahead of the cohort, so escorts keep a moving fire
+intent and advance the screen rather than settling permanently behind it.
+
+The same correction gives layered civilian actors a 180-degree-per-second
+shortest-arc turn rate. They retain their last facing during idle movement
+substeps, preventing rapid south/path/south visual snaps when threat screening
+changes or briefly clears a route.
+
 ## Manual follow-up
 
 Play LOW/MEDIUM/HIGH rescue missions to tune the 70% floor, six-second cadence,
-and 25% wave size together. The intended feel is a replenishing flow of small
-packs, not an invisible spawn directly on top of the escort formation.
+25% wave size, five-cell forward screen, and civilian turn rate together. The
+intended feel is a replenishing flow of small packs against an escort formation
+that advances deliberately under fire.
