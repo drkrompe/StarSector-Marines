@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
@@ -19,7 +20,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 interface HeightSource {
 
     /** No-op micro contribution — returns {@code macroHeight} unchanged. */
-    HeightSource NONE = (macroHeight, topology, gridX, gridY) -> macroHeight;
+    HeightSource NONE = (macroHeight, grid, topology, gridX, gridY) -> macroHeight;
 
     /**
      * Combines a cell's macro height with this source's per-texel contribution
@@ -29,5 +30,5 @@ interface HeightSource {
      * the color tile, so the micro sample can come from the matching source
      * rect on that tile's derived height sheet.
      */
-    float combine(float macroHeight, CellTopology topology, int gridX, int gridY);
+    float combine(float macroHeight, NavigationGrid grid, CellTopology topology, int gridX, int gridY);
 }

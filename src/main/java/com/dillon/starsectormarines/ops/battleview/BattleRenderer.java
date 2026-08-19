@@ -184,7 +184,7 @@ public class BattleRenderer {
             new DecalAccumulator(DevConfig.DECAL_FBO_PX_PER_CELL);
 
     /** S2 (surface-relief) ground FBO + offset-limited-parallax composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
-    private final GroundParallaxPipeline groundParallax = new GroundParallaxPipeline();
+    private final GroundParallaxPipeline groundParallax;
 
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
@@ -205,6 +205,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        this.groundParallax = new GroundParallaxPipeline(sprites);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
