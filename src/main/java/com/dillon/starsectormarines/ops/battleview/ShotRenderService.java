@@ -71,27 +71,26 @@ public final class ShotRenderService implements RenderSystem {
                     c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, lifeT * alphaMult);
         }
 
-        // Bolt sweep: white-base sprite stretched head-to-tail on the shot's
-        // real flight clock, then tinted from the primary weapon declaration.
+        // Bolt sweep: the configured family silhouette stretched head-to-tail
+        // on the real flight clock, then tinted from the weapon declaration.
         float cellPx = cam.cellPxSize();
-        ShuttleSpriteCache boltSprite = sprites.projectileSprite(ShotFx.BOLT_SPRITE_PATH);
-        if (boltSprite != null) {
-            for (ShotEvent s : shots) {
-                if (!(ShotFx.of(s).body() instanceof ShotFx.Bolt bolt)) continue;
-                BoltPose pose = boltPose(s, bolt);
-                if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
+        for (ShotEvent s : shots) {
+            if (!(ShotFx.of(s).body() instanceof ShotFx.Bolt bolt)) continue;
+            ShuttleSpriteCache boltSprite = sprites.projectileSprite(bolt.spritePath());
+            if (boltSprite == null) continue;
+            BoltPose pose = boltPose(s, bolt);
+            if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
 
-                float centerX = (pose.headX() + pose.tailX()) * 0.5f;
-                float centerY = (pose.headY() + pose.tailY()) * 0.5f;
-                float pxH = pose.visibleLength() * cellPx;
-                float pxW = pxH * boltSprite.aspect;
-                Color color = bolt.color() != null ? bolt.color() : Color.WHITE;
-                out.addSprite(RenderLayer.SHOTS, boltSprite.sprite,
-                        cam.cellToScreenX(centerX), cam.cellToScreenY(centerY),
-                        pxW, pxH, bearingDeg(s.fromX, s.fromY, s.toX, s.toY),
-                        color.getRed() / 255f, color.getGreen() / 255f,
-                        color.getBlue() / 255f, pose.fadeIn() * alphaMult);
-            }
+            float centerX = (pose.headX() + pose.tailX()) * 0.5f;
+            float centerY = (pose.headY() + pose.tailY()) * 0.5f;
+            float pxH = pose.visibleLength() * cellPx;
+            float pxW = boltWidthCells(pose, bolt) * cellPx;
+            Color color = bolt.color() != null ? bolt.color() : Color.WHITE;
+            out.addSprite(RenderLayer.SHOTS, boltSprite.sprite,
+                    cam.cellToScreenX(centerX), cam.cellToScreenY(centerY),
+                    pxW, pxH, bearingDeg(s.fromX, s.fromY, s.toX, s.toY),
+                    color.getRed() / 255f, color.getGreen() / 255f,
+                    color.getBlue() / 255f, pose.fadeIn() * alphaMult);
         }
 
         // Sprite sweep: shots whose body is a traveling projectile sprite.
@@ -144,6 +143,13 @@ public final class ShotRenderService implements RenderSystem {
         float tailY = headY - dy * invLength * visibleLength;
         float fadeIn = Math.min(1f, progress / BOLT_FADE_IN_FRACTION);
         return new BoltPose(headX, headY, tailX, tailY, visibleLength, fadeIn);
+    }
+
+    /** Width grows with the emerging streak so a bolt never spawns as a sideways muzzle blob. */
+    static float boltWidthCells(BoltPose pose, ShotFx.Bolt bolt) {
+        if (bolt.lengthCells() <= 1e-6f) return 0f;
+        float growth = Math.min(1f, pose.visibleLength() / bolt.lengthCells());
+        return Math.max(0f, bolt.widthCells()) * growth;
     }
 
     private static float bearingDeg(float fromX, float fromY, float toX, float toY) {

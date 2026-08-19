@@ -16,6 +16,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -86,7 +87,7 @@ public class ShotFxTest {
     }
 
     @Test
-    public void marinePrimariesTravelAsBoltsUnlessTheyHaveAProjectileSprite() {
+    public void marinePrimariesUseDistinctTravelingBodyFamilies() {
         for (MarineWeapon w : MarineWeapon.values()) {
             ShotFx fx = ShotFx.of(shot(null, w, null, null));
             if (w.projectileSpritePath != null) {
@@ -97,14 +98,19 @@ public class ShotFxTest {
                 assertInstanceOf(Bolt.class, fx.body(), "primary should bolt: " + w);
                 Bolt bolt = (Bolt) fx.body();
                 assertSame(w.tracerColor, bolt.color(), "bolt color for " + w);
-                float expectedLength = switch (w) {
-                    case PULSE_RIFLE -> 1.0f;
-                    case DMR -> 1.8f;
-                    case DRONE_PULSE -> 0.8f;
+                BoltExpectation expected = switch (w) {
+                    case PULSE_RIFLE -> new BoltExpectation(
+                            ShotFx.PULSE_BOLT_SPRITE_PATH, 1.0f, 0.25f);
+                    case DMR -> new BoltExpectation(
+                            ShotFx.RAIL_NEEDLE_SPRITE_PATH, 1.8f, 0.16f);
+                    case DRONE_PULSE -> new BoltExpectation(
+                            ShotFx.DRONE_DART_SPRITE_PATH, 0.65f, 0.16f);
                     case FIELD_RIFLE, SMG -> throw new AssertionError(
                             "sprite-backed primary reached bolt assertion: " + w);
                 };
-                assertEquals(expectedLength, bolt.lengthCells(), 0f, "bolt length for " + w);
+                assertEquals(expected.spritePath(), bolt.spritePath(), "bolt path for " + w);
+                assertEquals(expected.lengthCells(), bolt.lengthCells(), 0f, "bolt length for " + w);
+                assertEquals(expected.widthCells(), bolt.widthCells(), 0f, "bolt width for " + w);
             }
             assertTrue(fx.travels(), "every primary now has a traveling body: " + w);
             assertNoTrailsArcOrContrail(fx);
@@ -112,7 +118,15 @@ public class ShotFxTest {
     }
 
     @Test
-    public void generatedBoltAssetIsTransparentWhiteBaseAtRuntimeDimensions() throws Exception {
+    public void boltFamiliesExposeTheDistinctTextureSetForCacheLoading() {
+        assertEquals(Set.of(
+                ShotFx.PULSE_BOLT_SPRITE_PATH,
+                ShotFx.RAIL_NEEDLE_SPRITE_PATH,
+                ShotFx.DRONE_DART_SPRITE_PATH), ShotFx.boltSpritePaths());
+    }
+
+    @Test
+    public void generatedPulseBoltAssetIsTransparentWhiteBaseAtRuntimeDimensions() throws Exception {
         Path path = Path.of("mod/graphics/fx/round_bolt.png");
         assertTrue(Files.isRegularFile(path), "generated bolt asset must ship in mod graphics");
         BufferedImage image = ImageIO.read(path.toFile());
@@ -171,6 +185,8 @@ public class ShotFxTest {
         assertInstanceOf(Sprite.class, fx.body(), msg + " should be a Sprite body");
         return (Sprite) fx.body();
     }
+
+    private record BoltExpectation(String spritePath, float lengthCells, float widthCells) {}
 
     private static void assertNoTrailsArcOrContrail(ShotFx fx) {
         assertEquals(0f, fx.arcHeight(), 0f);

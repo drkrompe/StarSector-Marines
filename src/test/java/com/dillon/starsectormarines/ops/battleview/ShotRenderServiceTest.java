@@ -14,6 +14,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -52,38 +54,52 @@ class ShotRenderServiceTest {
         ShotRenderService.BoltPose pose = ShotRenderService.boltPose(shot, bolt);
 
         assertEquals(0.5f, pose.fadeIn(), EPS);
+        assertEquals(0.125f, ShotRenderService.boltWidthCells(pose, bolt), EPS,
+                "half-grown pulse bolt should also be half width");
     }
 
     @Test
-    void collectEmitsOneTravelingBoltSpriteWithoutGlContext() {
-        BattleSimulation sim = openArena(20, 20);
-        ShotEvent shot = boltShot(5f, 5f, 15f, 5f, 1f);
-        shot.lifetime = 0.5f;
-        sim.postShot(shot);
-
+    void collectResolvesEveryBoltFamilyTextureWithoutGlContext() {
         SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
                 (proxy, method, args) -> null);
-        ShuttleSpriteCache cache = new ShuttleSpriteCache(fakeSprite, 0.25f);
+        ShuttleSpriteCache cache = new ShuttleSpriteCache(fakeSprite, 1f);
+        List<String> requestedPaths = new ArrayList<>();
         BattleSprites sprites = new BattleSprites() {
             @Override
             public ShuttleSpriteCache projectileSprite(String path) {
-                assertEquals(ShotFx.BOLT_SPRITE_PATH, path);
+                requestedPaths.add(path);
                 return cache;
             }
         };
         ShotRenderService renderer = new ShotRenderService(sprites, new ImpactFx());
-        DrawList out = new DrawList();
 
-        renderer.collect(context(sim), out);
+        for (MarineWeapon weapon : List.of(
+                MarineWeapon.PULSE_RIFLE, MarineWeapon.DMR, MarineWeapon.DRONE_PULSE)) {
+            BattleSimulation sim = openArena(20, 20);
+            ShotEvent shot = boltShot(5f, 5f, 15f, 5f, 1f, weapon);
+            shot.lifetime = 0.5f;
+            sim.postShot(shot);
+            DrawList out = new DrawList();
 
-        assertEquals(1, out.count(RenderLayer.SHOTS));
+            renderer.collect(context(sim), out);
+
+            ShotFx.Bolt bolt = (ShotFx.Bolt) ShotFx.of(shot).body();
+            assertEquals(bolt.spritePath(), requestedPaths.get(requestedPaths.size() - 1));
+            assertEquals(1, out.count(RenderLayer.SHOTS));
+        }
+        assertEquals(3, requestedPaths.size());
     }
 
     private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
                                       float lifetime) {
+        return boltShot(fromX, fromY, toX, toY, lifetime, MarineWeapon.PULSE_RIFLE);
+    }
+
+    private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
+                                      float lifetime, MarineWeapon weapon) {
         return new ShotEvent(fromX, fromY, toX, toY, true, Faction.MARINE,
-                lifetime, null, MarineWeapon.PULSE_RIFLE, null, null);
+                lifetime, null, weapon, null, null);
     }
 
     private static void assertPose(ShotRenderService.BoltPose pose,
