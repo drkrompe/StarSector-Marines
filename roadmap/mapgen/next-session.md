@@ -402,7 +402,7 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,673-test root suite green.
+- `gradlew.bat :test` — full 1,706-test merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `python mod/graphics/doodads/test_stitch_atlas.py` — atlas stitcher tests green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
