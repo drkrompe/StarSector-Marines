@@ -242,8 +242,11 @@ and immediate rerouting so soldiers can peel attackers off the objective
 (`4fedb34a`). Rescue pressure now replenishes depleted runner populations with
 bounded, safe perimeter waves, while each civilian independently leashes to its
 nearest marine and seeks the screened side of that escort near visible threats
-(`ad11debf`). Manual reinforcement cadence, swipe readability, and
-post-rebalance feel validation remain queued.
+(`ad11debf`). The escort rally now stays five reachable route cells ahead of the
+cohort so continuous contact cannot deadlock the two-cell civilian leash against
+the former six-cell marine hold; civilian facing also turns at a finite rate and
+persists through idle substeps (`bc29cb26`). Manual reinforcement cadence, swipe
+readability, and post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free
 

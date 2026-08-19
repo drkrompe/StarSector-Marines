@@ -371,6 +371,12 @@ safe reveal distance from civilians and marines; reinforcement stops when the
 cohort resolves. Civilians now evaluate a five-cell marine leash independently,
 stop if they lead their nearest escort by more than two cells toward the lift,
 and seek the screened side of that marine when a visible enemy is nearby.
+The first follow-up playtest found that the marine six-cell hold radius could
+deadlock against that two-cell civilian leash during continuous contact.
+Marine squads now rally five reachable route cells ahead of the cohort while
+retaining moving fire. Layered civilians turn toward new travel bearings at
+180 degrees per second and retain their last idle facing, removing rapid visual
+heading flips as screening paths change (`bc29cb26`).
 
 ### Outcome closure — first checkpoint
 
