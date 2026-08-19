@@ -41,8 +41,6 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. v7: bounding-overwatch phase and destinations. v8: must-hold node authoring. */
-    private static final int SCHEMA_VERSION = 8;
 
     private SquadStateDumper() {}
 
@@ -62,7 +60,6 @@ public final class SquadStateDumper {
         if (squad == null || sim == null) return null;
         try {
             JSONObject root = new JSONObject();
-            root.put("schemaVersion", SCHEMA_VERSION);
             root.put("simTickIndex", sim.simTickIndex);
             root.put("selectedMemberId", selectedUnitEntityId != 0L ? selectedUnitEntityId : JSONObject.NULL);
             root.put("squad", buildSquadJson(squad, sim));
