@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -97,7 +98,7 @@ public final class GroundSimPresentation {
     }
 
     /** Line-tracer impacts land instantly (the beam covers its whole travel at fire), plus per-shot
-     *  muzzle/backblast flourishes. Projectile-sprite shots defer their impact to arrival. */
+     *  muzzle/backblast flourishes. Traveling bodies defer their impact to arrival. */
     private void spawnFireFx(ImpactFx fx, BattleSimulation sim, NavigationGrid grid) {
         for (ShotEvent s : sim.getShotsThisFrame()) {
             if (s.mechWeapon == MechWeapon.CHAINGUN) {
@@ -106,17 +107,17 @@ public final class GroundSimPresentation {
             if (s.turretKind != null && s.turretKind.hasLaunchBackblast()) {
                 fx.spawnLaunchBackblast(s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
             }
-            if (hasProjectileSprite(s)) continue;
+            if (ShotFx.of(s).travels()) continue;
             ImpactProfile profile = (s.marineWeapon != null) ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
             fx.spawnImpact(profile, s.toX, s.toY, isWallAt(grid, s.toX, s.toY));
         }
     }
 
-    /** Projectile-sprite shots that reached their endpoint this frame: spawn the impact particle and,
+    /** Traveling-body shots that reached their endpoint this frame: spawn the impact particle and,
      *  for HE / secondary rounds, the paired explosion clip. */
     private void spawnImpactFxAndSounds(ImpactFx fx, BattleSimulation sim, NavigationGrid grid, Random rng) {
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
-            if (!hasProjectileSprite(s)) continue;
+            if (!ShotFx.of(s).travels()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             if (s.turretKind != null) {
                 ImpactProfile profile = s.turretKind.impactProfile();
@@ -198,15 +199,6 @@ public final class GroundSimPresentation {
                 (cellX - cfg.gridW() * 0.5f) * cfg.worldUnitsPerCell(),
                 (cellY - cfg.gridH() * 0.5f) * cfg.worldUnitsPerCell());
         Global.getSoundPlayer().playSound(soundId, pitch, volume, loc, zeroVel);
-    }
-
-    /** Traveling-sprite shots (turret kinetic, rocket, SMG bullet, mech round) defer impact FX to
-     *  arrival; instant line tracers fire it at launch. Mirrors {@code BattleScreen.hasProjectileSprite}. */
-    private static boolean hasProjectileSprite(ShotEvent s) {
-        return s.turretKind != null
-                || s.marineSecondary != null
-                || (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null)
-                || (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null);
     }
 
     private static boolean isWallAt(NavigationGrid grid, float x, float y) {
