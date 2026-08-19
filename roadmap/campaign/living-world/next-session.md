@@ -196,8 +196,14 @@ wall, doorway, or building interior (`5a0da48d`). Pickup and moving escort squad
 now spread members across a 5x5 pocket around each authored squad anchor. Cell
 selection prefers local wall/doodad cover, then separation, with stable
 per-squad variation that does not reshuffle as the screen moves (`ba42612b`).
-Pickup timing, militia cadence, mech mix, through-fire strength, and engaged
-bounds remain manual.
+The colonists' selected residential shelter now also spawns a four-person local
+militia squad in unused interior cells with randomized defender loadouts. Until
+marine relief, the squad is inert and omitted from both sensed and strategic
+swarm targets; it cannot open its own shelter or become a civilian leash anchor.
+After relief it holds the compound as a rear guard. If an observed responding
+force is wiped before arrival, the shelter releases so the mission cannot end
+in an untargetable garrison deadlock (`822f5a2a`). Pickup timing, militia
+cadence, mech mix, through-fire strength, and engaged bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers a
 production-shaped canonical rescue plus direct LOW/MEDIUM/HIGH stress scenarios
@@ -438,6 +444,10 @@ swarm tuning remain in the shared deferred queue.
   per pressured squad plus clear outdoor 5x5 lift objectives (`5a0da48d`).
 - G5/G6 tactical-pocket follow-up — cover-aware, stably varied 5x5 member
   formations for pickup guards and moving escorts (`ba42612b`).
+- G5/G6 protected-shelter follow-up — a four-person residential-compound
+  garrison with symmetric pre-relief non-aggro and a resolvable last-stand
+  fallback
+  ([`complete/rescue-protected-shelter-garrison.md`](complete/rescue-protected-shelter-garrison.md)).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

@@ -196,8 +196,13 @@ universe over time, not retrofitted into intel slots.
    requires a fully walkable, outdoor, non-doorway 5x5 objective footprint
    (`5a0da48d`). LZ guards and moving escorts now spread their members through
    stable per-squad 5x5 tactical pockets, preferring nearby wall and doodad
-   cover while retaining their authored squad anchor (`ba42612b`). Manual
-   cadence and post-rebalance feel validation remain queued.
+   cover while retaining their authored squad anchor (`ba42612b`). The selected
+   residential shelter now contains a four-person randomized militia garrison.
+   It remains inert and excluded from swarm targeting while the colonists are
+   sealed, then holds the compound as a local rear guard after marine relief;
+   a wiped responding force also releases the last stand so the battle cannot
+   deadlock (`822f5a2a`). Manual cadence and post-rebalance feel validation
+   remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through

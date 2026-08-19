@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -51,6 +52,31 @@ class CivilianRescueBattleFactoryTest {
         assertEquals(0, sim.liveRescuePickupGuards());
         assertEquals(SwarmDefenseRoster.LOW_COUNT,
                 sim.swarmTargetPopulation());
+        List<Squad> shelterGuards = sim.getSquads().stream()
+                .filter(squad -> squad.rescueShelterGuard)
+                .toList();
+        assertEquals(1, shelterGuards.size());
+        Squad shelterGuard = shelterGuards.get(0);
+        assertEquals(RescueShelterGarrison.MEMBER_COUNT,
+                shelterGuard.originalSize);
+        int shelterBuilding = -1;
+        int shelterMembers = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(unit)
+                    || sim.squad().squadId(unit) != shelterGuard.id) continue;
+            shelterMembers++;
+            assertEquals(Faction.MARINE, sim.identity().faction(unit));
+            assertEquals(UnitType.MILITIA, sim.identity().type(unit));
+            assertTrue(sim.combat().primaryWeapon(unit) != null);
+            int building = sim.getTopology().getBuildingId(
+                    sim.world().cellX(unit), sim.world().cellY(unit));
+            assertTrue(building > 0);
+            if (shelterBuilding < 0) shelterBuilding = building;
+            assertEquals(shelterBuilding, building,
+                    "the entire holdout squad spawns in one residential compound");
+        }
+        assertEquals(RescueShelterGarrison.MEMBER_COUNT, shelterMembers);
         int pickupCraft = 0;
         for (long id : sim.getAirEntityIds()) {
             if (sim.world().airFaction(id) != Faction.CIVILIAN) continue;

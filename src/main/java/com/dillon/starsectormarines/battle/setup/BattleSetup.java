@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
@@ -644,6 +645,10 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            if (RescueShelterGarrison.install(sim, map,
+                    payload.placement, risk, battleSeed) == null) {
+                continue;
+            }
             installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
                     risk, scale.width, scale.height);
             SwarmDefenseRoster swarm = stressTest
