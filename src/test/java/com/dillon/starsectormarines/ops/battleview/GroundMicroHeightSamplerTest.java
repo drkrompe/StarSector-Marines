@@ -22,11 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class GroundMicroHeightSamplerTest {
-
-    private static final float MACRO = 0.5f;
-    private static final float MICRO_SCALE = 0.25f;
 
     private static SpriteSheetFrames natureFrames;
     private static SpriteSheetFrames urban3Frames;
@@ -39,127 +37,128 @@ class GroundMicroHeightSamplerTest {
     }
 
     @Test
-    void samplesTheExactHashedNatureFrameUsedByTheColorPass() {
+    void resolvesExactHashedNatureFrameWithoutAveragingIt() {
         NavigationGrid grid = walkableGrid(4, 3);
         CellTopology topology = new CellTopology(4, 3);
         topology.setGroundKind(1, 1, CellTopology.GroundKind.GRASS);
         topology.setGroundKind(2, 1, CellTopology.GroundKind.DIRT);
 
-        GroundMicroHeightSampler sampler = sampler(natureFrames, urban3Frames);
+        GroundMicroHeightSampler resolver = resolver(natureFrames, urban3Frames);
         TileRegistry reg = TileRegistry.installed();
-
         String grassId = GroundTileSelector.natureTileId(CellTopology.GroundKind.GRASS, 1, 1);
         String dirtId = GroundTileSelector.natureTileId(CellTopology.GroundKind.DIRT, 2, 1);
         assertEquals("nature.grass-1", grassId);
         assertEquals("nature.dirt-2", dirtId);
-        assertEquals(expectedSliced(MACRO, reg.tile(grassId), natureFrames),
-                sampler.combine(MACRO, grid, topology, 1, 1), 1e-6f);
-        assertEquals(expectedSliced(MACRO, reg.tile(dirtId), natureFrames),
-                sampler.combine(MACRO, grid, topology, 2, 1), 1e-6f);
+        assertSample(expectedSliced(reg.tile(grassId), natureFrames), resolver.resolve(grid, topology, 1, 1));
+        assertSample(expectedSliced(reg.tile(dirtId), natureFrames), resolver.resolve(grid, topology, 2, 1));
     }
 
     @Test
-    void samplesStreetAndImplicitOrExplicitSidewalkFrames() {
+    void resolvesStreetAndImplicitOrExplicitSidewalkFrames() {
         NavigationGrid grid = walkableGrid(5, 5);
         CellTopology topology = new CellTopology(5, 5);
         topology.setGroundKind(1, 1, CellTopology.GroundKind.STREET);
         topology.setGroundKind(2, 2, CellTopology.GroundKind.STREET);
-        topology.setWall(2, 3, true); // makes (2,2) an implicit sidewalk
+        topology.setWall(2, 3, true);
         topology.setGroundKind(4, 4, CellTopology.GroundKind.SIDEWALK);
 
-        GenMappingRegistry mapping = GenMappingRegistry.installed();
-        String streetId = mapping.groundBlockId(CellTopology.GroundKind.STREET);
-        assertEquals("urban3.street-square",
-                GroundTileSelector.urban3TileId(grid, topology, streetId, 1, 1));
-        assertEquals("urban3.sidewalk-corner",
-                GroundTileSelector.urban3TileId(grid, topology, streetId, 2, 2));
-        assertEquals("urban3.sidewalk-corner",
-                GroundTileSelector.urban3TileId(grid, topology, streetId, 4, 4));
-
-        GroundMicroHeightSampler sampler = sampler(natureFrames, urban3Frames);
+        GroundMicroHeightSampler resolver = resolver(natureFrames, urban3Frames);
         TileRegistry reg = TileRegistry.installed();
-        assertEquals(expectedSliced(MACRO, reg.tile("urban3.street-square"), urban3Frames),
-                sampler.combine(MACRO, grid, topology, 1, 1), 1e-6f);
-        assertEquals(expectedSliced(MACRO, reg.tile("urban3.sidewalk-corner"), urban3Frames),
-                sampler.combine(MACRO, grid, topology, 2, 2), 1e-6f);
-        assertEquals(expectedSliced(MACRO, reg.tile("urban3.sidewalk-corner"), urban3Frames),
-                sampler.combine(MACRO, grid, topology, 4, 4), 1e-6f);
+        assertSample(expectedSliced(reg.tile("urban3.street-square"), urban3Frames),
+                resolver.resolve(grid, topology, 1, 1));
+        assertSample(expectedSliced(reg.tile("urban3.sidewalk-corner"), urban3Frames),
+                resolver.resolve(grid, topology, 2, 2));
+        assertSample(expectedSliced(reg.tile("urban3.sidewalk-corner"), urban3Frames),
+                resolver.resolve(grid, topology, 4, 4));
     }
 
     @Test
-    void mirrorsFixedGridFallbacksWhenSlicedColorSheetsAreUnavailable() {
+    void mirrorsFixedGridFallbacksAndMacroOnlyCases() {
         NavigationGrid grid = walkableGrid(4, 3);
         CellTopology topology = new CellTopology(4, 3);
         topology.setGroundKind(1, 1, CellTopology.GroundKind.GRASS);
         topology.setGroundKind(2, 1, CellTopology.GroundKind.STREET);
         topology.setGroundKind(3, 1, CellTopology.GroundKind.SIDEWALK);
-        topology.setWall(2, 2, true); // STREET color fallback chooses road.sidewalk
+        topology.setWall(2, 2, true);
 
-        GroundMicroHeightSampler sampler = sampler(null, null);
+        GroundMicroHeightSampler resolver = resolver(null, null);
         TileRegistry reg = TileRegistry.installed();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        assertEquals(expectedGrid(MACRO, reg.block(mapping.groundBlockId(CellTopology.GroundKind.GRASS)),
+        assertSample(expectedGrid(reg.block(mapping.groundBlockId(CellTopology.GroundKind.GRASS)),
                         topology, 1, 1),
-                sampler.combine(MACRO, grid, topology, 1, 1), 1e-6f);
-        assertEquals(expectedGrid(MACRO, reg.block("road.sidewalk"), topology, 2, 1),
-                sampler.combine(MACRO, grid, topology, 2, 1), 1e-6f);
-        assertEquals(MACRO, sampler.combine(MACRO, grid, topology, 3, 1), 1e-6f,
-                "explicit SIDEWALK has no color fallback and must stay macro-only");
+                resolver.resolve(grid, topology, 1, 1));
+        assertSample(expectedGrid(reg.block("road.sidewalk"), topology, 2, 1),
+                resolver.resolve(grid, topology, 2, 1));
+        assertNull(resolver.resolve(grid, topology, 3, 1),
+                "explicit SIDEWALK has no fixed-grid color fallback");
+
+        topology.setGroundKind(0, 0, CellTopology.GroundKind.INDOOR);
+        assertNull(resolver.resolve(grid, topology, 0, 0),
+                "S1 skipped the mixed urban wall/floor sheet");
     }
 
     @Test
-    void cacheKeepsOnlyTheMicroOffsetAndReResolvesChangedTerrainKind() {
+    void cacheReResolvesChangedTerrainAndNeighborWalls() {
         NavigationGrid grid = walkableGrid(3, 3);
         CellTopology topology = new CellTopology(3, 3);
+        GroundMicroHeightSampler resolver = resolver(natureFrames, urban3Frames);
+
         topology.setGroundKind(1, 1, CellTopology.GroundKind.GRASS);
-        GroundMicroHeightSampler sampler = sampler(natureFrames, urban3Frames);
-
-        float atLowMacro = sampler.combine(0.35f, grid, topology, 1, 1);
-        float atHighMacro = sampler.combine(0.75f, grid, topology, 1, 1);
-        assertEquals(0.40f, atHighMacro - atLowMacro, 1e-6f,
-                "cached samples must not freeze the first macro height");
-
+        GroundMicroHeightSampler.Sample grass = resolver.resolve(grid, topology, 1, 1);
         topology.setGroundKind(1, 1, CellTopology.GroundKind.DIRT);
-        TileDef dirt = TileRegistry.installed().tile(
-                GroundTileSelector.natureTileId(CellTopology.GroundKind.DIRT, 1, 1));
-        assertEquals(expectedSliced(0.75f, dirt, natureFrames),
-                sampler.combine(0.75f, grid, topology, 1, 1), 1e-6f,
-                "a changed kind at the same coordinate must select a new frame");
+        GroundMicroHeightSampler.Sample dirt = resolver.resolve(grid, topology, 1, 1);
+        assertEquals(expectedSliced(TileRegistry.installed().tile("nature.grass-1"), natureFrames).srcX, grass.srcX);
+        assertEquals(expectedSliced(TileRegistry.installed().tile("nature.dirt-1"), natureFrames).srcX, dirt.srcX);
 
         topology.setGroundKind(1, 1, CellTopology.GroundKind.STREET);
         topology.setWall(1, 2, true);
-        float sidewalk = sampler.combine(MACRO, grid, topology, 1, 1);
-        assertEquals(expectedSliced(MACRO, TileRegistry.installed().tile("urban3.sidewalk-corner"), urban3Frames),
-                sidewalk, 1e-6f);
+        assertSample(expectedSliced(TileRegistry.installed().tile("urban3.sidewalk-corner"), urban3Frames),
+                resolver.resolve(grid, topology, 1, 1));
         topology.setWall(1, 2, false);
-        assertEquals(expectedSliced(MACRO, TileRegistry.installed().tile("urban3.street-square"), urban3Frames),
-                sampler.combine(MACRO, grid, topology, 1, 1), 1e-6f,
-                "destroying an adjacent wall must invalidate implicit-sidewalk selection");
+        assertSample(expectedSliced(TileRegistry.installed().tile("urban3.street-square"), urban3Frames),
+                resolver.resolve(grid, topology, 1, 1));
     }
 
-    private static GroundMicroHeightSampler sampler(SpriteSheetFrames nature, SpriteSheetFrames urban3) {
-        return new GroundMicroHeightSampler(() -> nature, () -> urban3,
-                path -> new HeightSheetTexture(image(path)));
+    @Test
+    void macroAndMicroCompositionMatchesShaderFormulaAndClamps() {
+        assertEquals(0.5f, GroundHeightPass.compose(0.5f, 0.5f), 1e-6f);
+        assertEquals(0.625f, GroundHeightPass.compose(0.5f, 1f), 1e-6f);
+        assertEquals(0f, GroundHeightPass.compose(0.05f, 0f), 1e-6f);
+        assertEquals(1f, GroundHeightPass.compose(0.95f, 1f), 1e-6f);
     }
 
-    private static float expectedSliced(float macro, TileDef tile, SpriteSheetFrames frames) {
-        SpriteSheetFrames.Frame f = frames.frames[tile.frame];
+    private static GroundMicroHeightSampler resolver(SpriteSheetFrames nature, SpriteSheetFrames urban3) {
+        return new GroundMicroHeightSampler(() -> nature, () -> urban3);
+    }
+
+    private static GroundMicroHeightSampler.Sample expectedSliced(TileDef tile, SpriteSheetFrames frames) {
+        SpriteSheetFrames.Frame frame = frames.frames[tile.frame];
         int inset = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
-        float average = new HeightSheetTexture(image(GroundMicroHeightSampler.derivedHeightPath(tile.sheetPath)))
-                .averageHeight(f.x + inset, f.y + inset,
-                        Math.max(1, f.w - 2 * inset), Math.max(1, f.h - 2 * inset));
-        return macro + (average - 0.5f) * MICRO_SCALE;
+        return new GroundMicroHeightSampler.Sample(
+                GroundMicroHeightSampler.derivedHeightPath(tile.sheetPath),
+                frame.x + inset, frame.y + inset,
+                Math.max(1, frame.w - 2 * inset), Math.max(1, frame.h - 2 * inset));
     }
 
-    private static float expectedGrid(float macro, GridBlockDef block, CellTopology topology, int x, int y) {
+    private static GroundMicroHeightSampler.Sample expectedGrid(
+            GridBlockDef block, CellTopology topology, int x, int y) {
         int[] cell = block.resolve(wall(topology, x, y + 1), wall(topology, x, y - 1),
                 wall(topology, x + 1, y), wall(topology, x - 1, y), x, y);
         int inset = block.cellPx >= TileManifest.TILE_SIZE
                 ? FixedGridTileDrawer.GROUND_INSET_PX_LARGE : FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
-        float average = new HeightSheetTexture(image(GroundMicroHeightSampler.derivedHeightPath(block.sheetPath)))
-                .averageHeight(cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
-                        block.cellPx - 2 * inset, block.cellPx - 2 * inset);
-        return macro + (average - 0.5f) * MICRO_SCALE;
+        return new GroundMicroHeightSampler.Sample(
+                GroundMicroHeightSampler.derivedHeightPath(block.sheetPath),
+                cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
+                block.cellPx - 2 * inset, block.cellPx - 2 * inset);
+    }
+
+    private static void assertSample(GroundMicroHeightSampler.Sample expected,
+                                     GroundMicroHeightSampler.Sample actual) {
+        assertEquals(expected.heightSheetPath, actual.heightSheetPath);
+        assertEquals(expected.srcX, actual.srcX);
+        assertEquals(expected.srcY, actual.srcY);
+        assertEquals(expected.srcW, actual.srcW);
+        assertEquals(expected.srcH, actual.srcH);
     }
 
     private static boolean wall(CellTopology topology, int x, int y) {

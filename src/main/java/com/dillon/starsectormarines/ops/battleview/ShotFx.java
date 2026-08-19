@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -27,10 +29,9 @@ import java.util.function.Function;
  * same boundary {@link RenderAppearance} keeps with {@code UnitType}. Built once
  * per enum value into per-enum tables; {@link #of(ShotEvent)} dispatches.
  *
- * <p><b>F2 (this slice)</b> stands up the record + derivation + its pinning test;
- * no pass change. The {@code ShotRenderService} sweeps that consume it — and the
- * path-keyed projectile-sprite cache {@link Sprite#spritePath} enables — land in
- * F3. See {@code roadmap/battle-render/stories/fx-shots-command-model.md}.
+ * <p>The {@code ShotRenderService} sweeps consume this composition directly;
+ * the path-keyed projectile-sprite cache {@link Sprite#spritePath} enables is
+ * shared by ordinary sprites and each {@link Bolt} style texture.
  *
  * @param body       projectile sprite vs. hitscan tracer
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
@@ -42,8 +43,15 @@ import java.util.function.Function;
 public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                      boolean engineTrail, boolean smokeTrail, ContrailStyle contrail) {
 
-    /** A shot's body: a traveling projectile sprite, or a hitscan tracer line. */
-    public sealed interface Body permits Sprite, Tracer {}
+    /** S3's soft white-base energy bolt, retained for the pulse-rifle family. */
+    public static final String PULSE_BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
+    /** Vanilla railgun projectile reused as the DMR's stretched blue-white needle. */
+    public static final String RAIL_NEEDLE_SPRITE_PATH = "graphics/missiles/shell_gauss_cannon.png";
+    /** Nearly neutral vanilla flechette reused as the drone's compact cyan dart. */
+    public static final String DRONE_DART_SPRITE_PATH = "graphics/missiles/flechette_sml.png";
+
+    /** A shot's body: a traveling projectile sprite, traveling bolt, or hitscan tracer line. */
+    public sealed interface Body permits Sprite, Bolt, Tracer {}
 
     /**
      * Projectile sprite identified by its <em>texture path</em> — carrier-agnostic,
@@ -51,6 +59,15 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
      * path-keyed cache). {@code visualCells} is the per-weapon long-axis size.
      */
     public record Sprite(String spritePath, float visualCells) implements Body {}
+
+    /**
+     * Traveling tinted streak. The path selects a reusable silhouette while
+     * explicit length/width keep its ground-scale proportions independent of
+     * source-texture dimensions. The sweep grows it out of the muzzle during
+     * early flight.
+     */
+    public record Bolt(String spritePath, Color color,
+                       float lengthCells, float widthCells) implements Body {}
 
     /**
      * Hitscan tracer line. {@code color} {@code null} → the sweep resolves the
@@ -88,6 +105,11 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return NO_SOURCE;
     }
 
+    /** True when the body advances on the shot clock and its impact FX belongs at arrival. */
+    public boolean travels() {
+        return body instanceof Sprite || body instanceof Bolt;
+    }
+
     private static ShotFx deriveTurret(TurretKind k) {
         // The one render-side per-kind mapping: which turrets ribbon (and its
         // style). A future contrail-bearing weapon opts in here — the sweep stays
@@ -105,9 +127,31 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
 
     private static ShotFx derivePrimary(MarineWeapon w) {
         Body body = w.projectileSpritePath != null
-                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)  // SMG
-                : new Tracer(w.tracerColor);                                    // pulse rifle / DMR / drone pulse
+                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)
+                : bolt(w);
         return new ShotFx(body, 0f, false, false, false, null);
+    }
+
+    private static Bolt bolt(MarineWeapon w) {
+        return switch (w) {
+            case PULSE_RIFLE -> new Bolt(PULSE_BOLT_SPRITE_PATH,
+                    w.tracerColor, 1.0f, 0.25f);
+            case DMR -> new Bolt(RAIL_NEEDLE_SPRITE_PATH,
+                    w.tracerColor, 1.8f, 0.16f);
+            case DRONE_PULSE -> new Bolt(DRONE_DART_SPRITE_PATH,
+                    w.tracerColor, 0.65f, 0.16f);
+            case FIELD_RIFLE, SMG -> throw new IllegalArgumentException(
+                    "sprite-backed primary cannot derive a bolt: " + w);
+        };
+    }
+
+    /** Distinct traveling-bolt textures for cache loading; derived from effects, not carriers. */
+    static Set<String> boltSpritePaths() {
+        Set<String> paths = new HashSet<>();
+        for (ShotFx fx : PRIMARY.values()) {
+            if (fx.body() instanceof Bolt bolt) paths.add(bolt.spritePath());
+        }
+        return Set.copyOf(paths);
     }
 
     private static ShotFx deriveSecondary(MarineSecondary w) {

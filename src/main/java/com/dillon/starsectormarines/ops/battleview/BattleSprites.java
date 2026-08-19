@@ -387,8 +387,8 @@ public class BattleSprites {
                 if (aim != null) marineSecondaryAimSheets.put(sec, aim);
             }
         }
-        // Primary projectile sprites (SMG bullet today). Skip weapons whose
-        // projectile path is null — those fire as line tracers.
+        // Primary projectile sprites (field-rifle / SMG shells today). Skip
+        // weapons whose projectile path is null — those share the tinted bolt.
         for (MarineWeapon w : MarineWeapon.values()) {
             if (w.projectileSpritePath == null) continue;
             try {
@@ -408,6 +408,12 @@ public class BattleSprites {
             } catch (Exception e) {
                 LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath, e);
             }
+        }
+        // Bolt families may use mod or vanilla textures. The derived path set
+        // keeps cache loading effect-driven and deduplicates shared styles.
+        for (String path : ShotFx.boltSpritePaths()) {
+            ShuttleSpriteCache cache = loadTurretSprite(path);
+            if (cache != null) projectileSpriteByPath.put(path, cache);
         }
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine

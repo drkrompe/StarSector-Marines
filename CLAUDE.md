@@ -7,6 +7,55 @@ For project vision, current focus, and immediate next-up, see
 [`roadmap/`](roadmap/). Read `roadmap/README.md` first; each feature
 directory has its own design doc and `next-session.md` for handoff state.
 
+## Session worktrees (default workflow)
+
+Keep the main workspace checked out on `main` and free of session edits so it
+remains available as the integration point for concurrent sessions. For every
+task that may change repository files, use this workflow unless the user
+explicitly asks for a different one. Read-only investigation does not require a
+worktree.
+
+1. At the start of the task, inspect `git status` and `git worktree list`. If the
+   session is already in a linked worktree under `.claude/worktrees/`, use it;
+   do not create a nested worktree.
+2. Otherwise, from the main workspace, create a uniquely named branch and
+   linked worktree based on the current local `main`:
+
+   ```powershell
+   git worktree add -b session/<unique-name> .claude/worktrees/<unique-name> main
+   ```
+
+3. Change the session's working directory to that worktree. Perform all edits,
+   builds, tests, staging, and commits there. Never make task changes directly
+   in the main workspace.
+4. Stage only paths owned by the session and commit all intended changes on the
+   session branch. Do not use `git stash`, and do not modify, remove, or reuse
+   another session's branch or worktree.
+5. Before integration, merge the latest local `main` into the session branch
+   inside the worktree and resolve conflicts there. Re-run relevant verification.
+6. Return to the main workspace, verify that it is still on `main` and clean,
+   then integrate with a fast-forward-only merge:
+
+   ```powershell
+   git merge --ff-only session/<unique-name>
+   ```
+
+   If `main` advanced and the fast-forward fails, go back to the session
+   worktree, merge `main` again, verify, and retry. If the main workspace has
+   uncommitted changes, do not absorb, discard, or overwrite them; leave the
+   worktree intact and report the integration blocker.
+7. Only after confirming that the session commit is reachable from `main`,
+   remove the linked worktree and delete its merged branch from the main
+   workspace:
+
+   ```powershell
+   git worktree remove .claude/worktrees/<unique-name>
+   git branch -d session/<unique-name>
+   ```
+
+The main workspace is for brief integration and worktree administration only.
+Do not run builds or leave generated task files there.
+
 ## Build & deploy
 
 - Toolchain: Eclipse Adoptium JDK 25 (registered via Gradle's auto-detected toolchain).
@@ -87,19 +136,16 @@ roadmap/<feature>/
   and a mechanical package-move rewrite that merely preserves a file's existing
   FQNs is fine.)
 
-## Committing (concurrent sessions share this tree)
+## Committing
 
-Several Claude sessions run in parallel against the same working tree, index,
-and HEAD. Commit loop:
+Linked worktrees give each session its own working tree and index, but commits
+should still stay narrowly scoped:
 
 1. Stage explicit paths only — `git add <path> …`, never `git add -A`/`.`.
-2. Commit with the same pathspec — `git commit -- <path> …`, never a bare
-   `git commit` (a bare commit records the whole index, sweeping in files
-   another session staged).
-3. Never `git stash` — it hides other sessions' in-flight work.
-
-A stray file or mixed hunks from a parallel session are fine — leave them
-rather than rewriting shared history to extract them.
+2. Review `git status` and the staged diff before committing.
+3. Commit only the current task's files. Leave unrelated files and other
+   sessions' work alone.
+4. Never `git stash`; it complicates ownership and recovery across worktrees.
 
 ### Commit-command mechanics (these have bitten before)
 
@@ -115,12 +161,12 @@ rather than rewriting shared history to extract them.
 - A failed-pathspec error means **nothing was committed** — fix the flag order
   / quoting and re-run (the `git add` already staged the files; don't re-add).
 
-## Your PWD is C:/Users/Dillon/IdeaProjects/starsectormarines
-Note that unless you `cd` to a different directory your primary directory will already be:
-```sh
-cd "C:/Users/Dillon/IdeaProjects/starsectormarines";
-```
-- 99% of the time, there is no need to cd to the project root for things like git or reading files.
+## Workspace location
+
+Sessions normally start in the main workspace at
+`C:/Users/Dillon/IdeaProjects/starsectormarines`. Read-only tasks may remain
+there. For tasks that change files, follow the session worktree workflow above
+and run all task commands from `C:/Users/Dillon/IdeaProjects/starsectormarines/.claude/worktrees/<unique-name>`.
 
 ## Multi-project layout
 
