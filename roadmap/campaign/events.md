@@ -353,6 +353,9 @@ movement preserve swarm pressure. Both types now carry the same presentation-onl
 layered animation component as marines, with continuous facing, independent head
 look, and alternating feet; weapon layers are explicitly suppressed. Manual
 playtesting still owns roster size and post-rebalance time-to-contact (`bccbbe16`).
+The composed actor now reuses one generated forearm/claw layer twice: both arms
+sit beneath the torso at rest, while contact fire alternates a forward claw
+above the body and retracts it over the existing firing pose (`20d3bcb0`).
 
 ### Outcome closure — first checkpoint
 
