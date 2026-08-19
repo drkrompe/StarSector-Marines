@@ -1,9 +1,9 @@
-"""Extract an ImageGen 3x3 presentation grid into the runtime road atlas.
+"""Extract the ImageGen 3x3 presentation grid into the runtime road atlas.
 
 The model rendered each 32px logical tile as a separate framed panel. This
 script removes the black gutters, downsamples panels independently, restores
-the existing atlas alpha topology, and writes a versioned road sheet so the
-candidate can be previewed without overwriting the currently-shipped art.
+the existing atlas alpha topology, and overwrites the canonical production
+road sheet.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ from PIL import Image, ImageFilter
 HERE = Path(__file__).resolve().parent
 TILESETS = HERE.parent
 GENERATED = HERE / "urban-tileset-2-spaceport-apron.raw.png"
-SOURCE = TILESETS / "urban-tileset-2-imagegen.png"
-OUTPUT = TILESETS / "urban-tileset-2-spaceport-apron.png"
+SOURCE = TILESETS / "urban-tileset-2.png"
+OUTPUT = TILESETS / "urban-tileset-2.png"
 
 CELL_PX = 32
 ATLAS_COL = 6

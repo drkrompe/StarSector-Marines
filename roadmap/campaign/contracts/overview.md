@@ -6,6 +6,21 @@
 > a chain (multi-month political plot) and a mission (single battle
 > instance).
 
+## Implementation state
+
+The contracted G1-G30 implementation spine is shipped. It covers offer
+generation, all five offered contract types, stationing assignment and
+defaults, MRB eligibility/scoring, multi-phase Planetary Assaults, Cadre
+incidents, and playable Garrison responses from rival Strikes, vanilla raids,
+and internal market flips. Individual shipped records live in
+[`complete/`](complete/); the consolidated implementation history is
+[`complete/contracts-loop.md`](complete/contracts-loop.md).
+
+There is no active numbered contract story. Define G31 before extending this
+thread; the open questions below are design prompts, not an implementation
+queue. See [`next-session.md`](next-session.md) for the cold-start handoff and
+the separately deferred smoke checks.
+
 ## Three-layer hierarchy
 
 ```

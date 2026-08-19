@@ -1,7 +1,7 @@
 # ImageGen prompt recipe
 
 The initial doodad atlas used the built-in ImageGen workflow. Every generated
-asset used the existing `urban-tileset-imagegen.png` as the primary rendering
+asset used the existing `urban-tileset.png` as the primary rendering
 reference and the modular `army-green/body.png` as a scale and pixel-density
 reference.
 

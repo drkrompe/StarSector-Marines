@@ -1,31 +1,42 @@
-# ImageGen tileset experiments
+# ImageGen tileset source
 
-These are non-destructive raw ImageGen style-transfer attempts. They are not drop-in replacements: every generated PNG is RGB, uses near-black in place of transparency, and has a model-selected canvas size.
+These are the raw ImageGen style-transfer sources and normalization tools used
+to build the shipped tilesets in the parent directory. The raw images are not
+drop-in runtime assets: each is RGB, uses near-black in place of transparency,
+and has a model-selected canvas size.
 
-The original atlases in the parent directory are unchanged.
+The normalized production atlases use the canonical runtime names. The retired
+pre-ImageGen atlases and temporary `*-imagegen.png` candidates are no longer
+kept alongside them.
 
-`normalize_tilesets.py` converts the raw attempts into exact-size RGBA runtime candidates in the parent directory. The manifests and `TileManifest` currently point at these normalized `*-imagegen.png` candidates.
+`normalize_tilesets.py` converts the general raw sources into exact-size RGBA
+runtime atlases in the parent directory. The spaceport road sheet uses its own
+panel-extraction script.
 
-Run the normalization again with:
+Regenerate the canonical atlases with:
 
 ```powershell
-python mod\graphics\tilesets\imagegen-experiments\normalize_tilesets.py
+python mod\graphics\tilesets\imagegen-source\normalize_tilesets.py
+python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
+.\gradlew.bat :asset-pipeline:deriveTileMaps
 ```
 
 ## Outputs
 
-| Output | Original | Raw result | Initial topology check |
-| --- | --- | --- | --- |
-| `urban-tileset.raw.png` | 320x320 RGBA | 1254x1254 RGB | Strong whole-sheet preservation; 2 originally empty cells contain spillover |
-| `urban-tileset-2.raw.png` | 544x96 RGBA | 2172x724 RGB | All logical groups retained, but the 17x3 strip was vertically padded and cells drifted |
-| `urban-tileset-3.raw.png` | 400x60 RGBA | 2166x726 RGB | All 7 auto-sliced frames retained in order |
-| `Floors_Tiles.raw.png` | 400x416 RGBA | 1225x1284 RGB | Material families retained; most topology drift and blank-cell pollution |
-| `Water_tiles.raw.png` | 400x400 RGBA | 1254x1254 RGB | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.raw.png` | 1200x80 RGBA | 2172x724 RGB | All 20 auto-sliced frames retained in order |
+| Runtime atlas | Raw source | Initial topology check |
+| --- | --- | --- |
+| `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGB) | Strong whole-sheet preservation; 2 originally empty cells contain spillover |
+| `urban-tileset-2.png` | `urban-tileset-2-spaceport-apron.raw.png` (1254x1254 RGB) | The approved 3x3 spaceport apron is extracted panel-by-panel into the road atlas |
+| `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
+| `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) | Material families retained; most topology drift and blank-cell pollution |
+| `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) | All 20 auto-sliced frames retained in order |
 
 ## Shared prompt frame
 
-All attempts used built-in ImageGen in `style-transfer` mode. The edit target was always Image 1. The approved `urban-tileset` experiment and/or marine sprites were supplied only as style references.
+All sources used built-in ImageGen in `style-transfer` mode. The edit target
+was always Image 1. The approved `urban-tileset` production art and/or marine
+sprites were supplied only as style references.
 
 Shared rendering request:
 
@@ -42,7 +53,11 @@ Sheet-specific constraints:
 
 ## Normalization strategy
 
-The script restores the original canvas dimensions and alpha topology non-destructively. For fixed-grid sheets, it fits the generated content into the source content bounds and restores the source alpha mask exactly. For auto-strips, it detects generated frames, fits them to the original frame bounding boxes, and restores the original inter-frame gaps before the existing slicer runs.
+The scripts preserve the runtime canvas dimensions and alpha topology. For
+fixed-grid sheets, normalization fits generated content into the current
+production content bounds and restores its alpha mask exactly. For auto-strips,
+it detects generated frames, fits them to the production frame bounding boxes,
+and restores the inter-frame gaps before the existing slicer runs.
 
 The current normalized pass uses whole-content fitting for fixed-grid sheets and per-frame fitting for auto-strips. After fitting, it removes ImageGen's dark isolated-sprite outline from repeating ground fields by mirroring a narrow band of neighboring interior rows and columns through each tile edge. This cleanup is intentionally limited to:
 
