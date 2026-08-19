@@ -55,6 +55,12 @@ public final class OverwatchPosture implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        if (squad.engagementDisciplineHold
+                && EngagementDiscipline.canReleaseHold(member, squad, sim)) {
+            squad.clearEngagementDisciplineHold();
+            return ActionStatus.FAILURE;
+        }
+        if (squad.engagementDisciplineHold) sim.world().setTargetId(member, 0L);
         // Drop any in-flight path — the squad is on overwatch, not moving.
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
         // Target selection remains centralized in the dispatcher's opportunity

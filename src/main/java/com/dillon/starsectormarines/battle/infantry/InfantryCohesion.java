@@ -8,15 +8,10 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  * and read by {@code WorldStateBuilder} for the
  * {@code WITHIN_COHESION_RADIUS} predicate.
  *
- * <p>Cohesion is a soft leash: when a member drifts more than
- * {@link #COHESION_RADIUS} cells from the rest of the squad, the postures
- * path them back toward the centroid before resuming normal engagement, so
- * fireteams move as a group instead of scattering. Once within radius,
- * normal targeting takes over.
- *
- * <p>Stage 2 will likely re-imagine this as a hard cohesion clamp during
- * ENGAGED posture (Story I — engagement discipline). For now the soft
- * leash matches Stage 1's playtested behavior.
+ * <p>Cohesion has two layers: the historical recovery override pulls a member
+ * back after it drifts outside the radius, while Story I clips generic
+ * Approach/Engage pursuit paths before they can cross that radius. Explicit
+ * objective actions retain their own movement and leash contracts.
  */
 public final class InfantryCohesion {
 
@@ -93,5 +88,30 @@ public final class InfantryCohesion {
         // The containing cell of a continuous position is its floor (round
         // would bias toward the next cell for center-based coordinates).
         return new int[]{(int) Math.floor(cx), (int) Math.floor(cy)};
+    }
+
+    /**
+     * Clips a generic pursuit path at the last cell whose center is inside the
+     * squad leash. The path includes its start cell, so returning a one-cell
+     * prefix is a valid planted hold when the first step would cross the
+     * boundary.
+     */
+    public static int[] clampPursuitPath(int[] path, Squad squad) {
+        if (path.length == 0 || squad.aliveMembers <= 1) return path;
+        float radiusSquared = COHESION_RADIUS * COHESION_RADIUS;
+        int cells = path.length / 2;
+        int permittedCells = cells;
+        for (int i = 0; i < cells; i++) {
+            float dx = path[i * 2] + 0.5f - squad.centroidX;
+            float dy = path[i * 2 + 1] + 0.5f - squad.centroidY;
+            if (dx * dx + dy * dy > radiusSquared) {
+                permittedCells = Math.max(1, i);
+                break;
+            }
+        }
+        if (permittedCells == cells) return path;
+        int[] clipped = new int[permittedCells * 2];
+        System.arraycopy(path, 0, clipped, 0, clipped.length);
+        return clipped;
     }
 }

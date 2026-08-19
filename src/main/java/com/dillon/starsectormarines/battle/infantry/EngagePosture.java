@@ -71,12 +71,7 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
+        long target = EngagementDiscipline.targetForPursuit(member, squad, sim);
         if (target == 0L) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
@@ -143,7 +138,8 @@ public final class EngagePosture implements Action {
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (sim.movement().mayRepath(member)) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
+                boolean genericPursuit = dest == null;
+                if (genericPursuit) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.
@@ -151,8 +147,10 @@ public final class EngagePosture implements Action {
                     sim.world().setTargetId(member, 0L);
                     return ActionStatus.RUNNING;
                 }
-                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
+                int[] path = GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap());
+                if (genericPursuit) path = InfantryCohesion.clampPursuitPath(path, squad);
+                sim.setPath(member, path);
             }
             sim.advanceMovement(member);
         }

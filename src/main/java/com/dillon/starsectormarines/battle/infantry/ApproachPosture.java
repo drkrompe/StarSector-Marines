@@ -55,12 +55,7 @@ public final class ApproachPosture implements Action {
         // squad walking past a close mech to engage a distant turret because
         // member.target was locked at approach start; shouldKeepPursuing's
         // closer-visible-target check is what unsticks that case.
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
+        long target = EngagementDiscipline.targetForPursuit(member, squad, sim);
         if (target == 0L) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
@@ -72,7 +67,8 @@ public final class ApproachPosture implements Action {
 
         if (sim.movement().mayRepath(member)) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            boolean genericPursuit = dest == null;
+            if (genericPursuit) dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop
@@ -83,8 +79,10 @@ public final class ApproachPosture implements Action {
                 sim.world().setTargetId(member, 0L);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
+            int[] path = GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap());
+            if (genericPursuit) path = InfantryCohesion.clampPursuitPath(path, squad);
+            sim.setPath(member, path);
         }
         sim.advanceMovement(member);
 

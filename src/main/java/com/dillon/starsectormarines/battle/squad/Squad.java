@@ -410,6 +410,15 @@ public final class Squad {
     public volatile int[] mechScreenTargetXs = new int[0];
     public volatile int[] mechScreenTargetYs = new int[0];
 
+    // ---- Story 24: engagement discipline ----
+
+    /** True while generic infantry pursuit is held at its last firing line. */
+    public volatile boolean engagementDisciplineHold = false;
+    /** Clustered target that caused the hold, or {@code 0L} while inactive. */
+    public volatile long engagementDisciplineTargetId = 0L;
+    /** Nearby-hostile count measured when the hold was most recently evaluated. */
+    public volatile int engagementDisciplineThreatDensity = 0;
+
     /**
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
@@ -479,6 +488,24 @@ public final class Squad {
             mechScreenMemberIds = new long[0];
             mechScreenTargetXs = new int[0];
             mechScreenTargetYs = new int[0];
+        }
+    }
+
+    /** Latches the rejected pursuit target and its measured local formation size. */
+    public void holdEngagementLine(long targetId, int threatDensity) {
+        synchronized (lock) {
+            engagementDisciplineHold = true;
+            engagementDisciplineTargetId = targetId;
+            engagementDisciplineThreatDensity = threatDensity;
+        }
+    }
+
+    /** Clears every transient engagement-discipline field atomically. */
+    public void clearEngagementDisciplineHold() {
+        synchronized (lock) {
+            engagementDisciplineHold = false;
+            engagementDisciplineTargetId = 0L;
+            engagementDisciplineThreatDensity = 0;
         }
     }
 

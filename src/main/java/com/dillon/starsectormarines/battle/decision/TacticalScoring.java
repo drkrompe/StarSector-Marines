@@ -136,6 +136,8 @@ public final class TacticalScoring {
     public static final int THREAT_DENSITY_RADIUS = 4;
     /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
+    /** Two nearby hostile combatants turn a candidate into a formation rather than an isolated pursuit target. */
+    public static final int HIGH_THREAT_DENSITY_COUNT = 2;
 
     /** How far ahead of the squad centroid the advance-leash threat read looks. Longer routes are clipped to this local window. */
     public static final float ADVANCE_THREAT_LOOKAHEAD = 36f;
@@ -642,6 +644,21 @@ public final class TacticalScoring {
      * compound when squads pick targets each tick.
      */
     private float scoreThreatDensity(long candidate, float candX, float candY, Faction selfFaction) {
+        return threatDensityAt(candidate, candX, candY, selfFaction) * TARGET_THREAT_DENSITY_COST;
+    }
+
+    /**
+     * Number of other hostile combatants within the Story-I density radius of
+     * {@code candidate}. This ground-truth query is the explicit future swap
+     * site for a per-squad believed-contact map.
+     */
+    public int threatDensityAt(long candidate, Faction selfFaction) {
+        if (!roster.isAliveById(candidate)) return 0;
+        World world = roster.world();
+        return threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
+    }
+
+    private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
         LongBucket scratch = new LongBucket();
         unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
@@ -652,7 +669,14 @@ public final class TacticalScoring {
             if (!roster.identity().type(other).combatant) continue;
             count++;
         }
-        return count * TARGET_THREAT_DENSITY_COST;
+        return count;
+    }
+
+    /** Result of re-evaluating a cached infantry pursuit target. */
+    public enum PursuitDecision {
+        KEEP,
+        RETARGET,
+        HOLD
     }
 
     /**
@@ -674,14 +698,26 @@ public final class TacticalScoring {
      *       — the user-visible case is a mech walking up to a squad engaged on
      *       a distant turret; ignoring the mech and continuing to fire past
      *       it is the failure mode.</li>
-     *   <li>LOS is broken to the current target <em>and</em> it now sits
-     *       inside a non-trivial threat-density cluster — Story I bail-out
-     *       to prevent chasing a fleer into their squad.</li>
+     *   <li>The target requires movement and now sits inside a non-trivial
+     *       threat-density cluster — Story I bail-out to prevent chasing a
+     *       fleer into their squad.</li>
      * </ul>
      */
     public boolean shouldKeepPursuing(long self, long currentTarget) {
+        return assessPursuit(self, currentTarget) == PursuitDecision.KEEP;
+    }
+
+    /**
+     * Story-I pursuit assessment. A visible target already inside effective
+     * weapon range remains legal because no advance is required. Any target
+     * that requires movement and has at least two nearby hostile combatants
+     * produces {@link PursuitDecision#HOLD} instead of a blind reacquire.
+     */
+    public PursuitDecision assessPursuit(long self, long currentTarget) {
         World world = roster.world();
-        if (currentTarget == 0L || !roster.isAliveById(currentTarget)) return false;
+        if (currentTarget == 0L || !roster.isAliveById(currentTarget)) {
+            return PursuitDecision.RETARGET;
+        }
         VisionService vision = roster.vision();
         Faction selfFaction = roster.identity().faction(self);
         int sx = world.cellX(self);
@@ -691,6 +727,15 @@ public final class TacticalScoring {
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
                 vision.airLosRadius(self), vision.airLosRadius(currentTarget));
 
+        float currentDist = cellDistance(world.x(self), world.y(self),
+                world.x(currentTarget), world.y(currentTarget));
+        float effectiveRange = effectiveAttackRange(self, currentTarget,
+                world.attackRange(self));
+        if (!(visible && currentDist <= effectiveRange)
+                && threatDensityAt(currentTarget, selfFaction) >= HIGH_THREAT_DENSITY_COUNT) {
+            return PursuitDecision.HOLD;
+        }
+
         // "Meaningfully closer visible enemy" check — runs whether or not the
         // current target is visible. If current is invisible and a visible
         // alternative exists, switch unconditionally. If current is visible,
@@ -698,37 +743,60 @@ public final class TacticalScoring {
         // RETARGET_DISTANCE_MARGIN to dampen thrashing.
         long closerVisible = closestVisibleOtherEnemy(self, currentTarget);
         if (closerVisible != 0L) {
-            if (!visible) return false;
-            float currentDist = cellDistance(world.x(self), world.y(self), world.x(currentTarget), world.y(currentTarget));
+            if (!visible) return PursuitDecision.RETARGET;
             float candidateDist = cellDistance(world.x(self), world.y(self),
                     world.x(closerVisible),
                     world.y(closerVisible));
-            if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) return false;
+            if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) {
+                return PursuitDecision.RETARGET;
+            }
         }
 
-        if (visible) return true;
+        return PursuitDecision.KEEP;
+    }
 
-        // LOS lost — bail out if the target ducked into a cluster. Density
-        // count > 1 means "at least 2 of their squadmates nearby" — chasing
-        // into that costs more than the dropped target is worth.
-        int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
-        int density = 0;
+    /**
+     * Best visible candidate whose nearby-hostile count remains below the
+     * engagement-discipline gate, excluding {@code excludedTarget}. Returns
+     * {@code 0L} when holding is safer than advancing on any visible contact.
+     */
+    public long findBestVisibleLowDensityTarget(long self, long excludedTarget) {
+        World world = roster.world();
+        VisionService vision = roster.vision();
+        Faction selfFaction = roster.identity().faction(self);
+        int selfSquadId = roster.squad().hasSquad(self)
+                ? roster.squad().squadId(self) : Squad.NO_SQUAD;
+        int sx = world.cellX(self);
+        int sy = world.cellY(self);
+        float selfAir = vision.airLosRadius(self);
+        long best = 0L;
+        float bestScore = Float.MAX_VALUE;
 
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            long other = dense[i];
-            if (other == currentTarget) continue;
-            if (roster.identity().faction(other) == selfFaction) continue;
-            if (!roster.identity().type(other).combatant) continue;
-            float dx = world.x(other) - world.x(currentTarget);
-            float dy = world.y(other) - world.y(currentTarget);
-            if (dx * dx + dy * dy <= r2) {
-                density++;
-                if (density > 1) return false;
+            long candidate = dense[i];
+            if (candidate == excludedTarget || candidate == self) continue;
+            if (roster.identity().faction(candidate) == selfFaction
+                    || !roster.identity().type(candidate).combatant) continue;
+            int cx = world.cellX(candidate);
+            int cy = world.cellY(candidate);
+            if (!canSeePair(grid, sx, sy, cx, cy,
+                    selfAir, vision.airLosRadius(candidate))) continue;
+            int density = threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
+            if (density >= HIGH_THREAT_DENSITY_COUNT) continue;
+            float score = cellDistance(world.x(self), world.y(self),
+                    world.x(candidate), world.y(candidate))
+                    + scoreCrowding(selfFaction, selfSquadId, candidate, self)
+                    + density * TARGET_THREAT_DENSITY_COST
+                    + scoreWeaponAffinity(self, candidate)
+                    + scoreZoneMismatch(sx, sy, cx, cy);
+            if (score < bestScore) {
+                bestScore = score;
+                best = candidate;
             }
         }
-        return true;
+        return best;
     }
 
     /**
