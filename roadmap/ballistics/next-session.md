@@ -23,6 +23,13 @@
   has a strict dimensions/alpha/grayscale asset contract. Full record:
   [`complete/s3-visible-rounds.md`](complete/s3-visible-rounds.md).
   1507 tests green.
+- **S3a SHIPPED** on `session/ballistics-fx-families`, commit `9c8a642f`.
+  `ShotFx.Bolt` now carries texture path + explicit length/width: pulse keeps
+  the custom tintable bolt, DMR reuses vanilla's gauss shell as a rail needle,
+  and drone pulse reuses the small flechette as a compact cyan dart. No new
+  bitmap and no sim/balance changes. Full record:
+  [`complete/s3a-weapon-fx-families.md`](complete/s3a-weapon-fx-families.md).
+  1513 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -30,16 +37,7 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active: S3a — weapon FX families
-
-Contract: [`stories/s3a-weapon-fx-families.md`](stories/s3a-weapon-fx-families.md).
-Reuse the vanilla railgun shell and small flechette sprites to give the DMR and
-drone pulse distinct silhouettes while the pulse rifle keeps S3's custom
-white-base bolt. Generalize `ShotFx.Bolt` with sprite path + explicit width;
-load the derived path set through the shared projectile cache. No sim or balance
-changes.
-
-## After S3a: contract S4 — direct-fire unification
+## Next up: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-
@@ -52,11 +50,11 @@ mortar/LOCUST arcs are projectile/AoE paths, not resolver candidates.
 Manual playtest remains useful before tuning S4: friendly-fire feel
 (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, `FRIENDLY_MUZZLE_CLEARANCE = 2.0`),
 suppression feel under path-proximity near-miss, and how visible the S2
-lead/extrapolation and S3 bolt lengths read at the tuned per-weapon
+lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
 completed S3 structure.
 
-## Where things live (post-S3)
+## Where things live (post-S3a)
 
 - `battle/combat/BallisticResolver.java` — the fire-time ray walk,
   solved in the time domain against each candidate's extrapolated
@@ -76,6 +74,7 @@ completed S3 structure.
   level for crossings.
 - `CoverAccuracyResolver` still lives — mech (`HeavyWeapons`) and
   infantry `fireSecondary` paths use it until S4 unifies direct fire.
-- `ops/battleview/ShotFx.java` — `Bolt` composition + shared `travels()`
-  arrival semantic. `ShotRenderService` owns bolt kinematics; `BattleSprites`
-  loads `graphics/fx/round_bolt.png` into the path-keyed projectile cache.
+- `ops/battleview/ShotFx.java` — `Bolt` texture/length/width recipes + shared
+  `travels()` arrival semantic. `ShotRenderService` owns bolt kinematics and
+  growth; `BattleSprites` loads the derived set of mod/vanilla textures into
+  the path-keyed projectile cache.
