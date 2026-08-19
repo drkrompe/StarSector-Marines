@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
@@ -97,7 +96,7 @@ public class HeavyWeapons {
         fireIndirectRound(shooter, target, weapon, accuracyMult);
     }
 
-    /** Modeled ground-level round for chaingun and SRM tracks. */
+    /** Modeled ground-level round for chaingun, cannon, and SRM tracks. */
     private void fireDirectRound(long shooter, long target, MechWeapon weapon,
                                  float accuracyMult) {
         World world = roster.world();
@@ -131,7 +130,11 @@ public class HeavyWeapons {
                             weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                             /*friendlyFireImmune*/ false)
                     : null;
-            if (weapon.impactProfile == ImpactProfile.HE) {
+            // Rocket-class rounds own a Projectile so future point defense can
+            // intercept the payload. Gun-launched HE remains a ballistic
+            // ShotEvent paired with a timed detonation; it must not inherit a
+            // rocket's boost curve merely because both are explosive.
+            if (weapon.engineTrail) {
                 shots.queueProjectile(new Projectile(
                         fromX, fromY, res.endX(), res.endY(),
                         /*hasBoostRamp*/ true, /*arcHeight*/ 0f,

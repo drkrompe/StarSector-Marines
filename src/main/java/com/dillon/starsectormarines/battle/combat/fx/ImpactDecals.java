@@ -49,24 +49,37 @@ public final class ImpactDecals {
                 }
                 break;
             case HE:
-                int craterIdx = rng.nextBoolean()
-                        ? DecalKind.CRATER_MEDIUM_A.index
-                        : DecalKind.CRATER_MEDIUM_B.index;
-                sim.addDecal(new Decal(x, y, craterIdx, rot, 1.30f));
-                float jx = x + (rng.nextFloat() * 2f - 1f) * 0.35f;
-                float jy = y + (rng.nextFloat() * 2f - 1f) * 0.35f;
-                int rubbleIdx;
-                float fireRoll = rng.nextFloat();
-                if (fireRoll < 0.20f) {
-                    rubbleIdx = DecalKind.RUBBLE_FIRE.index;
-                } else if (fireRoll < 0.60f) {
-                    rubbleIdx = DecalKind.RUBBLE.index;
-                } else {
-                    rubbleIdx = DecalKind.RUBBLE_ALT.index;
-                }
-                sim.addDecal(new Decal(jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
+                spawnHeAftermath(sim, rng, x, y, rot,
+                        1.30f, 1.10f, 0.35f, 0.20f);
+                break;
+            case CANNON_HE:
+                spawnHeAftermath(sim, rng, x, y, rot,
+                        1.65f, 1.35f, 0.45f, 0.35f);
                 break;
         }
+    }
+
+    private static void spawnHeAftermath(BattleSimulation sim, Random rng,
+                                         float x, float y, float rotation,
+                                         float craterScale, float rubbleScale,
+                                         float rubbleJitter, float fireChance) {
+        int craterIdx = rng.nextBoolean()
+                ? DecalKind.CRATER_MEDIUM_A.index
+                : DecalKind.CRATER_MEDIUM_B.index;
+        sim.addDecal(new Decal(x, y, craterIdx, rotation, craterScale));
+        float jx = x + (rng.nextFloat() * 2f - 1f) * rubbleJitter;
+        float jy = y + (rng.nextFloat() * 2f - 1f) * rubbleJitter;
+        int rubbleIdx;
+        float fireRoll = rng.nextFloat();
+        if (fireRoll < fireChance) {
+            rubbleIdx = DecalKind.RUBBLE_FIRE.index;
+        } else if (fireRoll < fireChance + (1f - fireChance) * 0.5f) {
+            rubbleIdx = DecalKind.RUBBLE.index;
+        } else {
+            rubbleIdx = DecalKind.RUBBLE_ALT.index;
+        }
+        sim.addDecal(new Decal(jx, jy, rubbleIdx,
+                rng.nextFloat() * 360f, rubbleScale));
     }
 
     /**

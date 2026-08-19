@@ -84,21 +84,24 @@ public enum MechWeapon {
                   0.35f, 4, /*wallDmgRadius*/ 0f),
 
     /**
-     * Single centerline anti-armor cannon. One accurate kinetic round keeps
-     * infantry throughput modest, while the hardened-target multiplier makes
-     * it a credible answer to turrets, mechs, hubs, and other armored bodies.
+     * Single centerline anti-armor cannon. One accurate gun-launched HE round
+     * carries modest splash and structural bite, while the hardened-target
+     * multiplier makes it a credible answer to turrets, mechs, hubs, and other
+     * armored bodies. The small blast is deliberately well below missile-pod
+     * saturation so this remains a backup weapon rather than Sirocco's primary
+     * infantry answer.
      * Its 26-cell direct band leaves Sirocco's LRMs as the primary standoff
      * weapon rather than turning the backup gun into a second long-range role.
      */
     HEAVY_CANNON("Heavy Cannon",
-                 "heavy_mauler_fire",
+                 "hellbore_fire",
                  new Color(0xFF, 0xD0, 0x88),
                  26f, 5.0f, 0.76f, 2.50f, 3.0f,
-                 ImpactProfile.KINETIC,
+                 ImpactProfile.CANNON_HE,
                  1, 0f,
-                 "graphics/missiles/shell_gauss_cannon.png", 0.24f, 0.24f,
+                 "graphics/missiles/shell_hellbore.png", 0.34f, 0.30f,
                  0f, 0.12f, false,
-                 0f, 6, /*wallDmgRadius*/ 0f),
+                 1.0f, 18, /*wallDmgRadius*/ 0.9f),
 
     /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
