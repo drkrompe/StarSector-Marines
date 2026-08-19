@@ -167,8 +167,12 @@ cross a secondary hostile, making wide bursts productive into dense swarms
 thirteen-cell radius and a 25x25 footprint around a fifteen-cell-inset LZ.
 Allied infantry now steer away from hostile aliens inside five cells: one slows
 a direct advance, while clustered pressure can force a bounded backstep without
-discarding the squad route (`c6589910`). Pickup timing, avoidance feel, militia
-cadence, mech mix, through-fire strength, and engaged bounds remain manual.
+discarding the squad route (`c6589910`). The latest health pass halves both
+aliens again to one sixteenth of their original pools: 1.875 HP for generic
+aliens and 1.5 HP for runners. Service-grade fire now needs two pulse hits,
+three SMG hits, or one DMR hit on either target (`15a11674`). Pickup timing,
+avoidance feel, militia cadence, mech mix, through-fire strength, and engaged
+bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -391,6 +395,8 @@ swarm tuning remain in the shared deferred queue.
 - G5/G6 avoidance/spacing follow-up — five-cell density-aware alien aversion
   for allied infantry plus a thirteen-cell-radius, 25x25 pickup perimeter
   (`c6589910`).
+- G6 sixteenth-health follow-up — 1.875/1.5 HP aliens with explicit
+  service-grade pulse/SMG/DMR hit-count contracts (`15a11674`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).

@@ -172,8 +172,9 @@ universe over time, not retrofitted into intel slots.
    into that body at a 100% base catch chance (`5f2c083d`). The star now spans
    25x25 cells around a fifteen-cell-inset LZ, and allied infantry apply a
    density-aware avoidance steer to hostile aliens inside five cells
-   (`c6589910`). Manual cadence, avoidance, and post-rebalance feel validation
-   remain queued.
+   (`c6589910`). Alien health is now halved once more to 1.875/1.5 HP—two
+   service pulse hits, three SMG hits, or one DMR hit (`15a11674`). Manual
+   cadence, avoidance, and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through
