@@ -5,7 +5,8 @@ public enum ChronicleEventType {
     CHAIN_OUTCOME,
     ACTIVE_CHAIN_RUMOR,
     HOUSE_DORMANT,
-    THRONE_CLAIM_APPLIED;
+    THRONE_CLAIM_APPLIED,
+    KINGMAKER_TESTAMENT;
 
     private static final ChronicleEventType[] VALUES = values();
 
