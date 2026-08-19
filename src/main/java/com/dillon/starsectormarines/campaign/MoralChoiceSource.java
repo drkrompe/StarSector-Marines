@@ -6,7 +6,9 @@ public enum MoralChoiceSource {
     CIVIL_WAR_CLAIMANT,
     CIVIL_WAR_INCUMBENT,
     CIVILIAN_RESCUE_REFUSED,
-    CIVILIAN_RESCUE_SAVED;
+    CIVILIAN_RESCUE_SAVED,
+    /** One source-unique marker for any terminal defector-asylum choice. */
+    DEFECTOR_ASYLUM;
 
     private static final MoralChoiceSource[] VALUES = values();
 
