@@ -27,7 +27,8 @@ bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
 6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop
 c447104  mapgen: concentric "onion" station layout — defensive rings around a core
-f04c2d5  mapgen: diamond defense station — cardinal ports converging inward  ← latest mapgen work
+f04c2d5  mapgen: diamond defense station — cardinal ports converging inward
+d14ce6a8  mapgen: tactical commercial interiors  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -63,6 +64,13 @@ findings) in
   unmanned defender corner-tower guns at the strongest overwatch sites in the
   conquest recipe — the first player-visible payoff. Connectivity +
   garrison-deployability scans hold; placement is rng-free + deterministic.
+- **Ground tactical structures — first commercial slice shipped (`d14ce6a8`).**
+  Stores on qualifying lots now generate `SHOP_FLOOR` + `STOCKROOM` rooms,
+  opposed public/service entrances, and real see-through shelf footprints with
+  two-cell fire/maneuver lanes sized from the 0.3-cell infantry radius. The
+  primary building in qualifying `DENSE_QUARTER` compounds consumes the same
+  planner. See
+  [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md).
 
 ## Next up (priority order)
 
@@ -119,7 +127,16 @@ reused verbatim. Candidate next tracks (priority order):
   (`requireRoadOverlays` on `CompoundFiller`, with `CompoundFillerOverlayTest`).
   See the section below for what each resolution was.
 
-1. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
+1. **Ground tactical-structure track** — tactical commercial interiors are
+   shipped (`d14ce6a8`). Next: make a commercial compound read as one coherent
+   site (anchor store + storefronts + loading/service space + shared arcade or
+   courtyard), preserving inter-leaf road cells as a concourse until an earlier
+   footprint-planning stage can safely suppress/replan road-graph edges. Then
+   generalize the floor-plan artifact to offices, warehouses, and larger
+   multi-room civic buildings. See
+   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md).
+
+2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
    (InitSolid → StationPartition → RoomCarve → Corridor → StationSpawn), the
    room/corridor `StationGraph` published, validation scan gating one-component

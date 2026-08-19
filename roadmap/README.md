@@ -64,9 +64,12 @@ universe over time, not retrofitted into intel slots.
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).
-- **Map generation** — room-purpose refactor complete (Slices A–D);
-  partition strategies + per-cell labels now generalize past the keep
-  toward station / ship interiors. See [`mapgen/`](mapgen/).
+- **Map generation** — room-purpose refactor complete (Slices A–D), with that
+  substrate now paying off in both station layouts and ground maps. Tactical
+  commercial interiors ship purpose-labeled sales floors/stockrooms plus real
+  shelf footprints and two-cell combat aisles sized for infantry; the next
+  ground slice is a coherent multi-building commercial compound. See
+  [`mapgen/`](mapgen/).
 - **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
   tile definitions and their gen→tile mappings out of hardcoded Java
   (`NatureTile`, `TileManifest`, per-`BlockKind` filler presets) into a
