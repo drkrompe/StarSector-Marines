@@ -86,15 +86,29 @@ class EscortAssignedCiviliansGoalTest {
     }
 
     @Test
-    void onlyLeadSquadClosesTightlyBeforeShelterRelief() {
+    void everyMobileSquadClosesOnItsOwnSlotBeforeShelterRelief() {
         BattleSimulation sim = simulation();
         Squad lead = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 4)));
         Squad support = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 6)));
 
         assertEquals(EscortAssignedCivilians.RELIEF_RADIUS,
                 EscortAssignedCivilians.standoffRadius(lead, sim));
-        assertEquals(EscortAssignedCivilians.ESCORT_RADIUS,
+        assertEquals(EscortAssignedCivilians.RELIEF_RADIUS,
                 EscortAssignedCivilians.standoffRadius(support, sim));
+    }
+
+    @Test
+    void supportSquadFiveCellsFromItsRallyDoesNotPause() {
+        BattleSimulation sim = simulation();
+        long marine = addMarine(sim, 9, 4);
+        Squad squad = sim.getSquad(sim.squad().squadId(marine));
+        squad.assignedObjective = ObjectiveAssignment.escort(
+                squad.id, 14, 4);
+
+        EscortAssignedCivilians.INSTANCE.execute(marine, squad, sim);
+
+        assertFalse(Paths.isEmpty(sim.movement().path(marine)),
+                "a squad five cells from its own slot must keep advancing");
     }
 
     @Test
