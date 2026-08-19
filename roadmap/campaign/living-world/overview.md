@@ -256,7 +256,13 @@ formations, and lift selection requires a clear outdoor, non-doorway 5x5 trigger
 footprint (`5a0da48d`). Both pickup guards and post-relief mobile escorts now
 choose distinct member cells from stable per-squad 5x5 pockets, weighting local
 wall/doodad cover before spacing and deterministic variation (`ba42612b`). The
-current pressure pass raises canonical LOW/MEDIUM/HIGH openings from 12/24/40
+residential shelter now fields a four-person randomized militia garrison in
+unused interior cells. Shelter protection is symmetric: the holdouts neither
+plan nor fire and swarm runners cannot target them until responding marines
+reach the entrance. They then retain the compound as a rear guard; if an
+observed response force is wiped first, protection releases to preserve a
+resolvable last stand (`822f5a2a`). The current pressure pass raises canonical
+LOW/MEDIUM/HIGH openings from 12/24/40
 to 20/40/64 and runner health from 1.5 to 2.5 HP. DEBUG now offers a
 production-shaped HIGH/four-drop rescue alongside the retained force-scaled
 LOW/MEDIUM/HIGH stress fights
