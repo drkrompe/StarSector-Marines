@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
@@ -249,6 +250,19 @@ public final class World {
     public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
         entityWorld.addComponent(id, components.MECH_LOADOUT);
         entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
+        if (entityWorld.has(id, components.MECH_LAYERED_ANIMATION)) {
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_CHASSIS, loadout.variant.chassisAppearance);
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_ARMS,
+                    loadout.appearanceSelector(MechMountSlot.ARMS));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_LEFT_SHOULDER,
+                    loadout.appearanceSelector(MechMountSlot.LEFT_SHOULDER));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_RIGHT_SHOULDER,
+                    loadout.appearanceSelector(MechMountSlot.RIGHT_SHOULDER));
+        }
     }
     /** Detach the loadout when the wreck spawns (a {@code removeComponent} row-move back to a plain corpse). Serial-only. */
     public void removeMechLoadout(long id) { entityWorld.removeComponent(id, components.MECH_LOADOUT); }

@@ -1,6 +1,41 @@
 # S1 — Specialist striders
 
-**Status:** Design ready; roster approval and implementation pending.
+**Status:** Slice A shipped (`2d3f044b`, 2026-08-19). Manual comparison/tuning
+and production-roster integration remain.
+
+## Shipped slice A
+
+The first vertical slice now exists behind **Spawn mech family** in the battle
+debug panel. It deterministically places Bulwark, Hound, and Sirocco together
+using the current battle's center-nearest unoccupied walkable cells.
+
+The implementation landed:
+
+- physical `ARMS`, `LEFT_SHOULDER`, and `RIGHT_SHOULDER` hardpoints;
+- generic installed-component state with independent cooldown, representative
+  burst/salvo, target lock, ammunition, and resupply behavior per mount;
+- dual chaingun and dual linear-cannon arm components;
+- SRM-5, SRM-15, LRM-5, and LRM-15 shoulder components;
+- persistent Bulwark, Hound, and Sirocco chassis profiles with profile-driven
+  health, speed, accuracy, vision, render scale, morale weight, radius, hit
+  height, layered chassis, arms, and pod selectors;
+- profile-aware picking, separation, ballistic contact, blast contact, live
+  rendering, and corpse rendering;
+- generic firing/continuation, torso aim, animation, and resupply paths that
+  operate only on installed mounts;
+- focused variant/component/debug-fixture regressions plus the full build.
+
+The launcher number is a MechWarrior-style rack/readability class, not a demand
+to simulate every physical tube as a projectile. Small -5 racks emit a two-shot
+representative packet. Bulwark's -15 racks preserve the exact old four-SRM and
+five-LRM packets and ammunition capacities, avoiding a stealth balance change.
+
+Hound now uses paired SRM-5 shoulders; Sirocco uses paired LRM-5 shoulders. A
+public authored-loadout constructor can independently replace the arms and
+either shoulder component, and appearance follows the installed hardware.
+
+Production defender allocation and the player's Mech Support power deliberately
+remain Bulwark-only until the comparison is manually accepted.
 
 ## Player-facing outcome
 
@@ -23,8 +58,8 @@ The following values are tuning seeds, not final balance promises.
 | Profile | HP | Speed | Render scale | Body radius | Vision | Weapons | Default doctrine |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
 | Bulwark | 540 | 1.15 | 1.60 | 0.60 | 55 | Chaingun, SRM, LRM | Either current role |
-| Hound | ~300 | ~1.70 | ~1.35 | ~0.50 | ~50 | Chaingun, SRM | `ARMORED_SUPPORT` initially |
-| Sirocco | ~230 | ~1.45 | ~1.35 | ~0.45–0.50 | ~55 | Linear cannon, LRM | `LR_SUPPORT` |
+| Hound | 300 | 1.70 | 1.35 | 0.50 | 50 | Chainguns, paired SRM-5 | `ARMORED_SUPPORT` initially |
+| Sirocco | 230 | 1.45 | 1.35 | 0.48 | 55 | Linear cannons, paired LRM-5 | `LR_SUPPORT` |
 
 ### Bulwark — heavy control
 
@@ -34,7 +69,7 @@ by the player's existing Mech Support command power.
 
 ### Hound — breach strider
 
-The Hound uses chaingun arms and compact SRM shoulders. Higher speed lets it
+The Hound uses chaingun arms and paired compact SRM-5 shoulders. Higher speed lets it
 cross a road, exploit a broken wall, or reinforce a contested compound before
 the heavy could arrive. Its smaller health pool makes that commitment risky.
 With no LRM track, open ground and disciplined standoff fire are real counters.
@@ -46,7 +81,7 @@ already work and remain legible without that behavior expansion.
 ### Sirocco — missile strider
 
 The Sirocco uses the existing twin-linear-cannon arm art as a modest direct-fire
-backup and carries LRM shoulders. It has neither the heavy's health nor an SRM
+backup and carries paired compact LRM-5 shoulders. It has neither the heavy's health nor an SRM
 panic button. Its `LR_SUPPORT` doctrine should keep it behind friendly bodies,
 while flanking or overrunning it meaningfully shuts down its advantage.
 
@@ -56,8 +91,8 @@ removing close missiles.
 
 ## Architecture decision
 
-Do not add a `UnitType` for every hardpoint combination. Introduce a
-`MechVariant` profile/catalog whose stable identity owns:
+The shipped implementation does not add a `UnitType` for every hardpoint
+combination. Its `MechVariant` profile/catalog owns:
 
 - display/debug label;
 - default doctrine;
@@ -77,19 +112,18 @@ variant profile must be the source of the live body's actual properties.
 
 ### Weapon tracks
 
-`MechLoadoutComponent` currently requires one chaingun, one SRM, and one LRM
-track. Generalize it so the direct-fire arm track can carry either chaingun or
-linear cannon and the shoulder tracks can be absent. Every firing, continuation,
-AI utility, ammunition, HUD/debug, and appearance path must treat an absent
-slot as unavailable rather than manufacturing a dummy weapon.
+`MechLoadoutComponent` now holds optional generic mounts for arms and both
+shoulders. The arms can carry chainguns or linear cannons; either shoulder can
+carry any compatible SRM/LRM component or remain empty. Firing, continuation,
+AI utility, ammunition, debug, resupply, and appearance paths iterate only real
+installed mounts rather than manufacturing dummy weapons.
 
 The heavy's three existing tracks and cadence must be preserved exactly.
 
 ### Physical properties
 
-Several body properties currently come directly from `UnitType`, even though
-`EntitySpec` already supports many stat overrides. Before rendering a light
-machine smaller, make render scale and all gameplay geometry variant-aware:
+Body properties previously came directly from `UnitType`. The shipped profile
+identity now makes render scale and gameplay geometry variant-aware across:
 
 - click/picking bounds;
 - separation and avoidance radius;
@@ -97,16 +131,15 @@ machine smaller, make render scale and all gameplay geometry variant-aware:
 - explosion and area-effect distance checks;
 - wreck/impact placement where applicable.
 
-Whether these become explicit ECS columns or immutable spawned-body values is
-an implementation choice. The contract is that visuals and physical behavior
-use one profile-derived source of truth.
+The profile persists on the entity's identity across the corpse transition, and
+`UnitRosterService` is the shared source for these physical values.
 
 ### Construction and appearance
 
-Add one variant-aware creation seam that applies profile values before spawn,
-attaches the corresponding loadout after spawn, and seeds
-`LayeredMechAppearance` from the profile. Remove the current hardcoded clean
-chassis/chaingun/heavy-SRM/LRM selection from the generic mech path.
+`EntitySpec.mechVariant` applies profile values before spawn, while the profile
+creates its loadout after spawn. Initial layered selectors come from the
+profile, and loadout attachment reauthors arms/shoulders from the actual
+installed components so custom authored configurations render correctly.
 
 Use existing assets for S1:
 
@@ -120,7 +153,7 @@ diagram.
 
 ## Delivery slices
 
-### A. Variant substrate and comparison fixture
+### A. Variant substrate and comparison fixture — shipped
 
 1. Add the catalog, `LINEAR_CANNON`, optional weapon slots, and profile-driven
    appearance/body construction.
@@ -130,8 +163,8 @@ diagram.
 4. Add automated contracts for profile values, missing slots, geometry source
    consistency, and unchanged heavy behavior.
 
-This produces a safe visual and combat comparison before changing encounter
-composition.
+This shipped in `2d3f044b` and produces a safe visual/combat comparison before
+changing encounter composition.
 
 ### B. Tune battlefield identities
 

@@ -44,13 +44,14 @@ class MechTurretSystemTest {
                 "120 deg/sec at 30 Hz gives a four-degree traverse step");
         assertFalse(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        assertEquals(0f, loadout.chaingunCooldown, 0.001f,
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        assertEquals(0f, arms.cooldown, 0.001f,
                 "a weapon must wait for the torso to traverse onto its target");
 
         for (int i = 0; i < 10; i++) turrets.tick(BattleSimulation.TICK_DT);
 
         assertTrue(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        assertEquals(loadout.chaingun.cooldown, loadout.chaingunCooldown, 0.001f);
+        assertEquals(arms.weapon().cooldown, arms.cooldown, 0.001f);
     }
 }

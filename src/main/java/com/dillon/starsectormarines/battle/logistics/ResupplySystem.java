@@ -75,8 +75,7 @@ public final class ResupplySystem {
         if (world.hasSecondaryWeapon(unit)
                 && world.secondaryAmmo(unit) < world.secondaryWeapon(unit).startingAmmo) return true;
         MechLoadoutComponent mech = world.mechLoadout(unit);
-        return mech != null && (mech.srmAmmoSalvos < MechLoadoutComponent.DEFAULT_SRM_AMMO_SALVOS
-                || mech.lrmAmmoSalvos < MechLoadoutComponent.DEFAULT_LRM_AMMO_SALVOS);
+        return mech != null && mech.needsSupply();
     }
 
     private boolean transferOne(long unit) {
@@ -90,15 +89,6 @@ public final class ResupplySystem {
             }
         }
         MechLoadoutComponent mech = world.mechLoadout(unit);
-        if (mech == null) return false;
-        if (mech.lrmAmmoSalvos < MechLoadoutComponent.DEFAULT_LRM_AMMO_SALVOS) {
-            mech.lrmAmmoSalvos++;
-            return true;
-        }
-        if (mech.srmAmmoSalvos < MechLoadoutComponent.DEFAULT_SRM_AMMO_SALVOS) {
-            mech.srmAmmoSalvos++;
-            return true;
-        }
-        return false;
+        return mech != null && mech.resupplyOne();
     }
 }

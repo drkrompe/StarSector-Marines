@@ -2,49 +2,59 @@
 
 ## State of play
 
-The existing heavy mech has been inventoried and the first specialist family is
-specified in [`stories/s1-specialist-striders.md`](stories/s1-specialist-striders.md).
-This was a design-only session: no production code or balance values changed.
+The modular hardpoint substrate and first specialist family shipped in
+`2d3f044b`. Production encounters and the player's Mech Support power still use
+Bulwark exclusively.
 
-The recommendation is to preserve the current heavy as the Bulwark apex/control,
-then build two lighter variants on the renderer and GOAP behavior already in
-the game:
+The battle debug panel now exposes **Spawn mech family**, which creates:
 
-- Hound: fast chaingun/SRM breacher with no LRM;
-- Sirocco: fragile linear-cannon/LRM support with no SRM.
+- Bulwark: unchanged heavy, with SRM-15 and LRM-15 racks;
+- Hound: fast chaingun/paired-SRM-5 breacher with no LRM;
+- Sirocco: fragile linear-cannon/paired-LRM-5 support with no SRM.
+
+A reproducible static contact sheet is available at
+[`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It
+uses the runtime layer order and anchors, showing both gameplay-relative sizes
+and a normalized 208-pixel comparison. Regenerate it with
+`mod/graphics/battle/mech-modular-topdown/render_variants.py` after sprite work.
 
 Needle, a fast unpodded scout, is documented but deferred until it can ship with
 real recon/spotting behavior.
 
-## First decision
+## First action
 
-Confirm or revise the provisional names and approve Hound/Sirocco as the first
-pair. Preserve the role identities even if the fiction or names change.
+Review the static contact sheet for silhouette and hardpoint readability, then
+run an ordinary debug battle, expand the battle debug panel, and click **Spawn
+mech family**. Compare movement, range behavior, time-to-kill, missile density,
+and whether Sirocco's linear cannons remain a fallback rather than a second
+primary role.
 
-## First implementation slice
+## What shipped
 
-1. Add a stable `MechVariant` profile/catalog without multiplying `UnitType`.
-2. Add `LINEAR_CANNON`; generalize the direct-fire track and make both missile
-   tracks genuinely optional.
-3. Apply profile stats, physical dimensions, loadout, and layered appearance
-   through one variant-aware construction seam.
-4. Add Bulwark, Hound, and Sirocco to a deterministic comparison battle while
-   leaving production rosters on Bulwark.
-5. Verify missing-slot behavior, heavy regression, appearance, and consistent
-   small-body geometry; then playtest and tune.
+1. Stable `MechVariant` chassis profiles without multiplying `UnitType`.
+2. Generic swappable arm/left-shoulder/right-shoulder weapon components and
+   per-mount live state.
+3. `LINEAR_CANNON`, SRM/LRM -5 and -15 rack classes, profile/component-driven
+   layered appearance, and component-aware resupply.
+4. Profile stats and physical dimensions shared by rendering, picking,
+   separation, ballistics, and AoE.
+5. Deterministic in-battle family comparison plus focused tests; full build
+   passed before integration.
 
-Only after that comparison is accepted should defender generation adopt the
-budgeted mixed-lance rules in S1.
+After the comparison is accepted, tune the profile/component numbers and then
+adopt the budgeted mixed-lance rules in S1.
 
 ## Relevant code seams
 
-- `UnitType.HEAVY_MECH` is the sole current pre-spawn mech tag and owns several
-  physical/render values that light profiles must override consistently.
-- `MechLoadoutComponent.defaultLoadout(role)` currently constructs all three
-  mandatory weapon tracks.
-- `MechWeapon` contains chaingun, SRM, and LRM but no linear cannon.
-- `UnitRosterService` hardcodes the current layered appearance before the
-  loadout is attached.
+- `UnitType.HEAVY_MECH` remains the compatibility pre-spawn mech tag;
+  `MechVariant` is persisted on identity and `UnitRosterService` resolves the
+  entity's profile-aware physical values.
+- `MechLoadoutComponent` owns an optional mount per physical slot; its public
+  authored constructor is the spawn-time swapping seam.
+- `MechWeaponComponent` owns rack class, representative packet, ammunition,
+  compatibility, and art; `MechWeapon` owns projectile behavior.
+- `World.attachMechLoadout` updates layered hardpoint selectors from the actual
+  installed components, including custom authored loadouts.
 - `DefenderRoster` exposes only a mech count; production integration will need
   a deterministic profile/budget representation.
 - `MechSupportPayload` should deliberately remain heavy-only for this story.

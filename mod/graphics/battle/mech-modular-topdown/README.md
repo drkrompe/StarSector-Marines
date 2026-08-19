@@ -27,3 +27,8 @@ well as a future energy or linear weapon.
 Run `python build_assets.py` after replacing a retained source. The generated
 previews use the same hull-relative placement model as the runtime composer and
 are written beneath `build/sprite-previews/mech/` rather than packaged with the mod.
+
+Run `python render_variants.py` to regenerate the Bulwark/Hound/Sirocco contact
+sheet at `roadmap/mechs/previews/layered-mech-variants.png`. Its upper row keeps
+the variants' gameplay-relative render scales; its lower row normalizes all
+three hulls to 208 pixels for direct sprite and hardpoint comparison.

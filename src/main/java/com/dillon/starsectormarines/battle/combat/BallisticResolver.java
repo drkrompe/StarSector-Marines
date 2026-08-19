@@ -249,7 +249,7 @@ public final class BallisticResolver {
         UnitType targetType = roster.identity().type(target);
         TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
                 finalAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
-                targetType.radius, targetType.hitHalfHeight, rng);
+                roster.radius(target), roster.hitHalfHeight(target), rng);
         float baseDx = leadX - fromX;
         float baseDy = leadY - fromY;
         float baseDist = (float) Math.sqrt(baseDx * baseDx + baseDy * baseDy);
@@ -316,7 +316,7 @@ public final class BallisticResolver {
             // The same physical body circle SeparationSystem shoves apart and
             // Detonations/WorldPicker size against — one radius concept per body.
             UnitType candidateType = roster.identity().type(candidateId);
-            float r = candidateType.radius;
+            float r = roster.radius(candidateId);
             float ux = world.x(candidateId);
             float uy = world.y(candidateId);
 
@@ -378,7 +378,7 @@ public final class BallisticResolver {
             // apply their own Z gates at their respective event sites;
             // structural walls alone remain full-height.
             float contactZ = fromZ + zSlope * rayDistAtEntry;
-            if (Math.abs(contactZ) > candidateType.hitHalfHeight) continue;
+            if (Math.abs(contactZ) > roster.hitHalfHeight(candidateId)) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
             boolean friendly = candidateFaction == shooterFaction;
