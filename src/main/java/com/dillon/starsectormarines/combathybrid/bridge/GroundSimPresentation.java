@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
@@ -58,6 +59,7 @@ public final class GroundSimPresentation {
     private static final float RIFLE_VOLUME        = 0.5f;
 
     private final GroundBattleConfig cfg;
+    private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final Vector2f scratch = new Vector2f();
     private final Vector2f zeroVel = new Vector2f(0f, 0f);
 
@@ -91,6 +93,7 @@ public final class GroundSimPresentation {
         spawnImpactFxAndSounds(fx, sim, grid, rng);
         playFireSounds(sim, rng);
         playDeathVoice(sim);
+        playRadioChatter(sim, dt);
         spawnAmbientFx(fx, sim);
 
         fx.advance(dt);
@@ -168,6 +171,14 @@ public final class GroundSimPresentation {
                 break;
             }
         }
+    }
+
+    /** Shared squad-event policy, projected through the bridge's combat-world audio frame. */
+    private void playRadioChatter(BattleSimulation sim, float dt) {
+        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim.getSquads());
+        if (emission == null) return;
+        playAtCell(emission.cue().soundId(), 1f, emission.cue().volume(),
+                emission.cellX(), emission.cellY());
     }
 
     /** Burning-wreck smoke + flame puffs the sim queued this tick. */

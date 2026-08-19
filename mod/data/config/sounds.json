@@ -70,6 +70,26 @@
 		{"file":"sounds/battle/voice-dead/marines_voice_dead_19.ogg","pitch":1,"volume":1.0},
 	],
 
+	# ----- radio: sparse marine squad chatter (event-driven; positional) -----
+	"marines_radio_contact":[
+		{"file":"sounds/battle/radio/marines_radio_contact_01.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_contact_02.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_contact_03.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_contact_04.ogg","pitch":1,"volume":0.75},
+	],
+	"marines_radio_fallback":[
+		{"file":"sounds/battle/radio/marines_radio_fallback_01.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_fallback_02.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_fallback_03.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_fallback_04.ogg","pitch":1,"volume":0.75},
+	],
+	"marines_radio_ack":[
+		{"file":"sounds/battle/radio/marines_radio_ack_01.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_ack_02.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_ack_03.ogg","pitch":1,"volume":0.75},
+		{"file":"sounds/battle/radio/marines_radio_ack_04.ogg","pitch":1,"volume":0.75},
+	],
+
 	# ----- explosions: numbered pool (random pick) + a distinct muffled-distant variant -----
 	"marines_explosion":[
 		{"file":"sounds/battle/explosions/marines_explosion_01.ogg","pitch":1,"volume":0.9},
