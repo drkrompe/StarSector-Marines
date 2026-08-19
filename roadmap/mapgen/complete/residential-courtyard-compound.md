@@ -80,7 +80,7 @@ their intended firing lanes.
 - `DoodadMappingParityTest` locks the new atlas ballistic metadata.
 - `BuildingZonePreviewTest.renderResidentialCourtyardCompound` writes
   `build/zone-previews/residential-courtyard-compound.png`.
-- Full root suite: 1,673 tests green. Asset-pipeline suite green.
+- Full merged root suite: 1,706 tests green. Asset-pipeline suite green.
 - `mod/graphics/doodads/test_stitch_atlas.py`: two tests green.
 - Legacy, conquest, and station validation scans retain one cell component,
   one edge component, and valid deployment on every batch seed.
