@@ -90,6 +90,58 @@ class BattleRadioChatterTest {
                 chatter.advance(1f, List.of(marines)).cue());
     }
 
+    @Test
+    void friendlyFirePreemptsFallbackAndUsesTheHitSquad() {
+        BattleRadioChatter chatter = new BattleRadioChatter(new Random(6L));
+        Squad first = infantry(1, Faction.MARINE);
+        Squad hitSquad = infantry(2, Faction.MARINE);
+        first.alertLevel = SquadAlertLevel.ENGAGED;
+        hitSquad.alertLevel = SquadAlertLevel.ENGAGED;
+        first.moraleBroken = true;
+
+        BattleRadioChatter.FrameEvents events = new BattleRadioChatter.FrameEvents(
+                List.of(hitSquad.id), false, Squad.NO_SQUAD, false, 0f, 0f);
+        BattleRadioChatter.Emission emission = chatter.advance(3f, List.of(first, hitSquad), events);
+
+        assertEquals(BattleRadioChatter.Cue.CHECK_FIRE, emission.cue());
+        assertEquals(hitSquad.id, emission.squadId());
+    }
+
+    @Test
+    void visibleEnemyMechUsesSpottingSquadAndOnlyAnnouncesOnce() {
+        BattleRadioChatter chatter = new BattleRadioChatter(new Random(7L));
+        Squad far = infantry(1, Faction.MARINE);
+        Squad near = infantry(2, Faction.MARINE);
+        far.alertLevel = SquadAlertLevel.ENGAGED;
+        near.alertLevel = SquadAlertLevel.ENGAGED;
+        far.centroidX = 2f;
+        near.centroidX = 18f;
+        BattleRadioChatter.FrameEvents mech = new BattleRadioChatter.FrameEvents(
+                List.of(), true, near.id, false, 0f, 0f);
+
+        BattleRadioChatter.Emission emission = chatter.advance(3f, List.of(far, near), mech);
+
+        assertEquals(BattleRadioChatter.Cue.MECH_SPOTTED, emission.cue());
+        assertEquals(near.id, emission.squadId());
+        assertNull(chatter.advance(8f, List.of(far, near), mech));
+    }
+
+    @Test
+    void enemyDeathUsesKillBragPool() {
+        BattleRadioChatter chatter = new BattleRadioChatter(new Random(8L));
+        Squad marines = infantry(1, Faction.MARINE);
+        marines.alertLevel = SquadAlertLevel.ENGAGED;
+        BattleRadioChatter.FrameEvents death = new BattleRadioChatter.FrameEvents(
+                List.of(), false, Squad.NO_SQUAD, true, 4f, 5f);
+
+        BattleRadioChatter.Emission emission = chatter.advance(3f, List.of(marines), death);
+
+        assertEquals(BattleRadioChatter.Cue.CONTACT, emission.cue());
+        BattleRadioChatter.Emission killBrag = chatter.advance(7f, List.of(marines), death);
+        assertEquals(BattleRadioChatter.Cue.ENEMY_DOWN, killBrag.cue());
+        assertEquals("marines_radio_enemy_down", killBrag.cue().soundId());
+    }
+
     private static Squad infantry(int id, Faction faction) {
         Squad squad = new Squad(id, faction);
         squad.aliveMembers = 4;

@@ -12,6 +12,10 @@ outputs first, preventing manifest/file skew on newly-added sound pools.
 
 - [Background radio v1](complete/background-radio-v1.md)
 
+## Active
+
+- [Expanded combat events](stories/expanded-combat-events.md)
+
 ## Next
 
 1. Run an in-game mix and voice-content feel pass; tune only from observed
