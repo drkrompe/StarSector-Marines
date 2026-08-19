@@ -3,13 +3,15 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — point overlays (rocks, plants,
  * debris) painted above ground/decals/vehicles and below units. Each doodad uses
  * the full fixed-grid source rectangle and world rectangle declared by its
- * cell footprint; the drain batches them per sheet.
+ * cell footprint; the drain batches them per sheet. Off-camera footprints are
+ * skipped against {@link VisibleCellRect}.
  *
  * <p>Emitted in two passes — road-sheet doodads first, then urban — so each sheet
  * forms one contiguous run for the strict-painter drain (one batch flush per
@@ -39,20 +41,23 @@ public final class DoodadRenderSystem implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
+        VisibleCellRect view = cam.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS,
+                ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
 
-        emitSheet(ctx, out, cam, road, TileManifest.ROAD_SHEET, cellPx, alphaMult);
-        emitSheet(ctx, out, cam, generated, TileManifest.DOODAD_SHEET, cellPx, alphaMult);
-        emitSheet(ctx, out, cam, urban, TileManifest.SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, view, road, TileManifest.ROAD_SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, view, generated, TileManifest.DOODAD_SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, view, urban, TileManifest.SHEET, cellPx, alphaMult);
     }
 
     private static void emitSheet(RenderContext ctx, DrawList out, BattleCamera cam,
-                                  SpriteAPI sheet, String sheetPath,
+                                  VisibleCellRect view, SpriteAPI sheet, String sheetPath,
                                   float cellPx, float alphaMult) {
         if (sheet == null) return;
         for (Doodad d : ctx.sim.getDoodads()) {
-            if (sheetPath.equals(d.sheetPath)) {
-                emit(out, cam, sheet, d, cellPx, alphaMult);
-            }
+            if (!sheetPath.equals(d.sheetPath)) continue;
+            if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            emit(out, cam, sheet, d, cellPx, alphaMult);
         }
     }
 

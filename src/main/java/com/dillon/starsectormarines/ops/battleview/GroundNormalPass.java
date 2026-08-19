@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.QuadBatch;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 
@@ -33,8 +34,10 @@ final class GroundNormalPass {
 
     void render(BattleCamera camera, NavigationGrid grid, CellTopology topology) {
         float cellPx = camera.cellPxSize();
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        VisibleCellRect view = camera.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
                 float cx = camera.cellToScreenX(x + 0.5f);
                 float cy = camera.cellToScreenY(y + 0.5f);
                 GroundMicroHeightSampler.Sample sample = resolver.resolve(grid, topology, x, y);

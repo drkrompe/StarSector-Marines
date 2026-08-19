@@ -68,8 +68,10 @@ calls into per-flush calls. Options considered:
 - **D — display lists**: dead end; geometry changes every frame (camera pan).
 
 The bigger lever is orthogonal — **reduce quad count** (frustum-cull emitted
-tiles; FBO-cache the static ground). Split out as a follow-up spike:
-[`perf-ground-fbo-cache.md`](perf-ground-fbo-cache.md).
+tiles; FBO-cache the static ground). Tile/view culling shipped separately
+([`camera-view-cull.md`](camera-view-cull.md)). The remaining spike is the
+ground-FBO cache:
+[`perf-ground-fbo-cache.md`](../stories/perf-ground-fbo-cache.md).
 
 ## What landed
 

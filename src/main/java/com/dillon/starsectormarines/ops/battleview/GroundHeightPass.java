@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.QuadBatch;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 
@@ -72,9 +73,11 @@ final class GroundHeightPass {
         float wallHeight = mapping != null
                 ? mapping.wallMacroHeight() : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT;
         float[] currentShoreFactors = waterShoreFactors(topology);
+        VisibleCellRect view = cam.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
 
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
                 float macro = topology.isWall(x, y) ? wallHeight
                         : (mapping != null ? mapping.macroHeight(topology.getGroundKind(x, y)) : 0.5f);
                 float water = isWaterSurface(topology, x, y) ? 1f : 0f;

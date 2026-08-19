@@ -1,5 +1,11 @@
 # Battle render reorg — next session
 
+> ✅ **Camera view culling — SHIPPED.** Dense ground/height/normal/fog walks
+> `BattleCamera.visibleCells` instead of the whole grid; roofs and doodads
+> reject on AABB. Units/shots/vehicles stay linear. Not the bridge spectator
+> cull, and not the ground-FBO cache. Write-up:
+> [`complete/camera-view-cull.md`](complete/camera-view-cull.md).
+>
 > ✅ **STRUCTURAL REORG COMPLETE.** All stories A–J + Final shipped & verified.
 > `BattleScreen` is the loop; `renderWorld` is two loops (collect-all → drain-all);
 > every world pass is a `worldSystems` producer.
@@ -48,8 +54,9 @@
 >   Moved to [`complete/geometry-highlights-command-model.md`](complete/geometry-highlights-command-model.md).
 >   **Follow-up:** promote the captain badge to production when that feature lands.
 >
-> **Battle-render: only the optional ground-FBO perf spike remains
-> ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).** Every
+> **Battle-render: camera view culling is in.** The remaining optional
+> work-reduction spike is the ground-FBO cache
+> ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)). Every
 > world pass is command-driven; every gameplay-geometry `Custom` is migrated.
 >
 > **Still `Custom` and staying** — debug-only (all `@DebugOnly`):
@@ -58,9 +65,6 @@
 > FBO/own-GL: `renderDecals`, `impactFx`, `flybyOverlay`, `lightAccumulator`.
 > Apply `@DebugOnly` to other debug members as spotted (`grep @DebugOnly` = the
 > prod-build strip index).
->
-> Or the optional perf follow-up still on the shelf: the ground-FBO
-> work-reduction spike ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).
 
 ## State of play
 

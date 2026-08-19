@@ -91,6 +91,49 @@ public final class BattleCamera {
         return px >= vpX && px < vpX + vpW && py >= vpY && py < vpY + vpH;
     }
 
+    /**
+     * Inclusive cell AABB covering the current viewport, clamped to this
+     * camera's world. Equivalent to {@code visibleCells(0, worldCellsW, worldCellsH)}.
+     */
+    public VisibleCellRect visibleCells() {
+        return visibleCells(0, worldCellsW, worldCellsH);
+    }
+
+    /**
+     * Inclusive cell AABB covering the current viewport plus {@code margin}
+     * cells on each side, clamped to this camera's world.
+     */
+    public VisibleCellRect visibleCells(int margin) {
+        return visibleCells(margin, worldCellsW, worldCellsH);
+    }
+
+    /**
+     * Inclusive cell AABB covering the current viewport plus {@code margin}
+     * cells on each side, clamped to {@code [0, gridW) × [0, gridH)}.
+     *
+     * <p>A cell at integer {@code (cx, cy)} occupies {@code [cx, cx+1) × [cy, cy+1)}.
+     * The viewport edges are mapped through {@link #screenToCellX}/{@link #screenToCellY}
+     * and expanded with {@code floor}/{@code ceil} so a partially visible cell is
+     * included. Callers that need a halo (fog gradient, parallax edge samples)
+     * pass a positive {@code margin}.
+     */
+    public VisibleCellRect visibleCells(int margin, int gridW, int gridH) {
+        if (cellPxSize() <= 0f || vpW <= 0f || vpH <= 0f || gridW <= 0 || gridH <= 0) {
+            return VisibleCellRect.EMPTY;
+        }
+        int pad = Math.max(0, margin);
+        int minX = (int) Math.floor(screenToCellX(vpX)) - pad;
+        int maxX = (int) Math.ceil(screenToCellX(vpX + vpW)) + pad;
+        int minY = (int) Math.floor(screenToCellY(vpY)) - pad;
+        int maxY = (int) Math.ceil(screenToCellY(vpY + vpH)) + pad;
+        minX = Math.max(0, minX);
+        minY = Math.max(0, minY);
+        maxX = Math.min(gridW - 1, maxX);
+        maxY = Math.min(gridH - 1, maxY);
+        if (minX > maxX || minY > maxY) return VisibleCellRect.EMPTY;
+        return new VisibleCellRect(minX, minY, maxX, maxY);
+    }
+
     /** Pans by a pixel delta — drag handlers pass mouse-move deltas straight through. */
     public void panByPixels(float dxPx, float dyPx) {
         float c = cellPxSize();
