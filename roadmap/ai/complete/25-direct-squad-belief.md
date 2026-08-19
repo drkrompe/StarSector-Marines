@@ -1,5 +1,7 @@
 # 25 — Direct squad belief substrate
 
+**Shipped 2026-08-19 in `db69ed73`.**
+
 ## Player-visible contract
 
 A squad makes tactical decisions from enemies its own members have actually
@@ -78,3 +80,14 @@ confidence, and whether it was refreshed on the dump tick.
 - Commander briefings, cross-squad contact sharing, or radio delay.
 - Commander influence heatmaps and strategic assignment changes.
 - Migrating every live-world tactical query in one pass.
+
+## Verification
+
+- `SquadBeliefTest` covers multi-contact direct observation, id-keyed refresh,
+  current-tick LOS predicates, unseen-enemy exclusion, confidence decay, and
+  compatibility-projection expiry.
+- `EngagementDisciplineTest` covers observed formations for marine and
+  defender pursuers, unobserved formation members, remembered unseen deaths,
+  decay release, safe retargeting, and rejected-target death.
+- Focused belief, engagement-discipline, and tactical-scoring tests passed.
+- Full `gradlew.bat :test` passed before the documentation closeout.
