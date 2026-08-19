@@ -67,8 +67,10 @@ universe over time, not retrofitted into intel slots.
 - **Map generation** — room-purpose refactor complete (Slices A–D), with that
   substrate now paying off in both station layouts and ground maps. Tactical
   commercial interiors ship purpose-labeled sales floors/stockrooms plus real
-  shelf footprints and two-cell combat aisles sized for infantry; the next
-  ground slice is a coherent multi-building commercial compound. See
+  shelf footprints and two-cell combat aisles sized for infantry; coherent
+  commercial compounds and role-specific military bases now orient their
+  buildings toward shared circulation. Military sites add bunk/rack/service/C2
+  fixture plans plus an outdoor radar silhouette. See
   [`mapgen/`](mapgen/).
 - **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
   tile definitions and their gen→tile mappings out of hardcoded Java
