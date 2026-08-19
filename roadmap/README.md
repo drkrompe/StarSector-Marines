@@ -126,6 +126,9 @@ universe over time, not retrofitted into intel slots.
   pursuit now also rejects clustered runners (`43c619ff`, `8888e6f8`), settles
   exposed holders laterally/backward into real cover, and hard-clips ordinary
   Engage/Approach paths to squad cohesion without constraining mission moves.
+  That hold now reads the pursuing squad's own direct-LOS contact memory
+  (`db69ed73`): unknown formation members do not leak into density, contacts
+  decay with alert state, and selected-squad debug ghosts show remembered cells.
 
 ## Immediate next-up
 
