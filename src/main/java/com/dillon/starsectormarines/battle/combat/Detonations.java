@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
+import com.dillon.starsectormarines.battle.perception.NoiseKind;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -43,6 +45,7 @@ public class Detonations {
     private final DamageService damageService;
     private final MapEditor mapEditor;
     private final EffectsService effects;
+    private final NoiseEventBus noiseEvents;
 
     /**
      * Reused per-detonation gather of the units in splash range before any
@@ -55,13 +58,14 @@ public class Detonations {
 
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapEditor mapEditor,
-                       EffectsService effects) {
+                       EffectsService effects, NoiseEventBus noiseEvents) {
         this.roster = roster;
         this.grid = grid;
         this.topology = topology;
         this.damageService = damageService;
         this.mapEditor = mapEditor;
         this.effects = effects;
+        this.noiseEvents = noiseEvents;
     }
 
     /** Queues a detonation onto the in-flight list. Drained by {@link #tick}. */
@@ -115,6 +119,9 @@ public class Detonations {
      * {@code UnitSpatialIndex} if detonation frequency ever rises.
      */
     private void detonate(PendingDetonation det) {
+        noiseEvents.post(det.endpointX, det.endpointY,
+                Math.min(4f, 2f + det.aoeRadius), 0L,
+                det.shooterFaction, NoiseKind.DETONATION);
         int targetCx = (int) Math.floor(det.endpointX);
         int targetCy = (int) Math.floor(det.endpointY);
         if (det.aoeRadius > 0f) {

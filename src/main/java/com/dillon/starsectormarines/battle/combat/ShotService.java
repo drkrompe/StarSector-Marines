@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.combat;
 
 
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
+import com.dillon.starsectormarines.battle.perception.NoiseKind;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,16 @@ import java.util.List;
  * grabs the same monitor so concurrent readers see a consistent list.
  */
 public final class ShotService {
+
+    private final NoiseEventBus noiseEvents;
+
+    public ShotService() {
+        this(null);
+    }
+
+    public ShotService(NoiseEventBus noiseEvents) {
+        this.noiseEvents = noiseEvents;
+    }
 
     /** Callback the projectile-arrival path uses to hand a {@link PendingDetonation} to the weapons subsystem. Functional interface so the BattleSimulation site is a lambda. */
     @FunctionalInterface
@@ -117,6 +129,10 @@ public final class ShotService {
         synchronized (activeShots) {
             activeShots.add(shot);
             shotsThisFrame.add(shot);
+        }
+        if (noiseEvents != null) {
+            noiseEvents.post(shot.fromX, shot.fromY, shot.noiseMagnitude(),
+                    shot.audibleSourceUnitId(), shot.shooterFaction, NoiseKind.SHOT);
         }
     }
 
