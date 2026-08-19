@@ -718,7 +718,7 @@ public final class BattleSetup {
                 MarineLoadout[][] cycleLoadouts =
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
-                    cycleLoadouts[cycle] = buildBaseLoadouts(
+                    cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
                             assignment.type.capacity, marineRng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
