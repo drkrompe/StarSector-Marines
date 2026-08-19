@@ -127,11 +127,18 @@ single Commander objective ("retake slice"). Squads converge rather
 than round-robin spread. Delivery via the existing means, still gated
 by compound supply.
 
-### Slice 3: Telegraph + phase state machine
+### Slice 3: Telegraph + phase state machine — ✓ shipped `f0c766a3`
 
 `muster → telegraph → assault → resolve` lifecycle. Comms-officer
 warning at telegraph, threatened-slice signpost, after-action read at
-resolve. Tune lead time.
+resolve. The existing lifecycle now exposes an explicit resolution retained
+through cooldown plus the telegraph timer and target centroid. A reusable
+`BattleCommsFeed` / `BattleCommsPanel` surface presents player-POV warning,
+wave-inbound, and success/failure/abort dispatches; a pulsing world-anchored
+diamond marks the threatened target centroid and carries the sim-time
+countdown during TELEGRAPH. Notice lifetimes run on real time so pause and
+battle speed do not make the officer read vanish instantly. Tune lead time,
+plate placement, marker readability, and copy duration in slice 5 playtest.
 
 ### Slice 4: Resolve + frontline integration
 
@@ -145,15 +152,13 @@ Budget cost, rarity/cooldown, telegraph timing, wave size. Playtest
 the loss-then-reclaim rhythm — the bulge must threaten without making
 the map feel like it refuses to stay taken.
 
-## Decisions (resolved 2026-08-13, first implementation pass)
+## Decisions (resolved 2026-08-13 core; 2026-08-19 telegraph surface)
 
-- **Scope cut:** slices 1, 2, and 4 land first (decision + earmark,
-  massed prepaid dispatch, emergent resolve). The phase machine exists
-  from day one (muster → telegraph → assault → resolve → cooldown) but
-  slice 3's *telegraph surface* is deferred — no comms/notification UI
-  exists in battle yet, and per the no-stopgap rule we don't build a
-  pop-up placeholder. The telegraph phase logs its comms line and
-  exposes phase + target slice for the future comms-officer layer.
+- **Delivery sequence:** slices 1, 2, and 4 landed first (decision +
+  earmark, massed prepaid dispatch, emergent resolve) with phase/target
+  read seams. Slice 3 followed in `f0c766a3` with the reusable battle comms
+  surface, officer dispatches, and threatened-district world signpost; no
+  counterattack-only placeholder was introduced.
 - **Overflow detection** = `RecaptureTargetService.eligibleTargets()`
   empty while ≥ 1 slice is contested — progressive reinforcement has
   nothing left to plug, so the overflow pools into the bulge.

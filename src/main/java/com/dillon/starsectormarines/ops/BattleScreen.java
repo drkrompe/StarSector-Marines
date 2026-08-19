@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
+import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
@@ -535,6 +536,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // CompoundMarkerRenderer instance constructed in this screen; the
         // panel handles the at-a-glance "captured / total" read.
         hud.addPanel(new CompoundProgressPanel(this));
+        // Player-facing battle dispatch surface. Added last so urgent comms
+        // plates and the counterattack signpost paint above ordinary HUD
+        // chrome; the panel is read-only and never consumes input.
+        hud.addPanel(new BattleCommsPanel(this));
     }
 
     /**
