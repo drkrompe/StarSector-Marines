@@ -14,7 +14,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFille
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,6 +34,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -479,6 +485,59 @@ public class BuildingZonePreviewTest {
     @Test
     void renderIndustrialVariants() throws Exception {
         renderBuildingBatch(new BuildingIndustrialFiller(), "industrial", INDUSTRIAL_VARIANTS);
+    }
+
+    @Test
+    void renderIndustrialCompoundSite() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        int width = 40;
+        int height = 34;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.STREET);
+            }
+        }
+
+        BlockLeaf factory = new BlockLeaf(2, 2, 18, 14, false);
+        BlockLeaf yard = new BlockLeaf(22, 2, 34, 14, false);
+        BlockLeaf utility = new BlockLeaf(2, 18, 13, 28, false);
+        boolean[][] roads = new boolean[width][height];
+        boolean[][] reserved = new boolean[width][height];
+        for (int y = 2; y <= 14; y++) {
+            for (int x = 19; x <= 21; x++) roads[x][y] = true;
+            reserved[20][y] = true;
+        }
+        for (int x = 2; x <= 18; x++) {
+            for (int y = 15; y <= 17; y++) roads[x][y] = true;
+            reserved[x][16] = true;
+        }
+        List<BlockLeaf> members = new ArrayList<>(List.of(factory, yard, utility));
+        Map<BlockLeaf, Compound.Role> roles = new IdentityHashMap<>();
+        roles.put(factory, Compound.Role.COMMAND);
+        roles.put(yard, Compound.Role.BARRACKS);
+        roles.put(utility, Compound.Role.ARMORY);
+        Compound compound = new Compound(
+                com.dillon.starsectormarines.battle.world.gen.BlockKind.INDUSTRIAL_COMPOUND,
+                factory, members, roles, null);
+        GenContext ctx = new GenContext(grid, topology, new Random(83L), width, height, 83L);
+        ctx.put(BspKeys.ROAD_CELLS, roads);
+        ctx.put(BspKeys.ROAD_RESERVATION, reserved);
+        new IndustrialCompoundFiller().fill(compound, ctx);
+        topology.tagDefaultWalls(grid);
+
+        BufferedImage image = renderScene(
+                grid, topology, ctx.doodads,
+                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
+                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
+                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
+                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                "industrial compound · factory + fenced yard + utility · seed=83");
+        Path output = OUT_DIR.resolve("industrial-compound.png");
+        ImageIO.write(image, "PNG", output.toFile());
+        System.out.println("  wrote " + output.toAbsolutePath());
     }
 
     @Test

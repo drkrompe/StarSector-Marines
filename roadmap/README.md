@@ -126,16 +126,17 @@ universe over time, not retrofitted into intel slots.
    seal a deterministic Last Testament, deliver it through persistent intel and
    Chronicle history, and have production-shaped debug/replay coverage
    (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). G9 **Silent Colony** is now
-   active: its first three slices persist the blind expedition, select one-shot
-   dead/ruined sites behind the shared event gate, with a reconstructible Dead
-   Letter choice surface, then emit a dedicated mission with the exact survivor
-   cohort, physical archive recovery, and hidden-seed autonomous turret/drone
-   defense (`4d50805d`, `33b073bd`, `9a87c85b`). Next is strict outcome
-   writeback, durable Dead Letter/Chronicle closure, and debug/save/replay
-   reachability.
+   complete: a one-shot dead/ruined site can fund a blind expedition, emit a
+   dedicated exact-cohort mission against hidden-seed autonomous defenses, and
+   close only from its lineage-bound survivor/archive report. Dead Letter and
+   Chronicle preserve measured terminal facts exactly once across save/replay,
+   with production-shaped debug reachability and no inferred moral or cargo
+   reward (`4d50805d`, `33b073bd`, `9a87c85b`, `43bd3693`). Contract the next
+   living-world story before implementation.
    The first swarm-feel correction now quarters alien HP and prefers a
-   marine-style layered top-down actor over the fallback sheet (`bccbbe16`);
-   manual roster and post-rebalance feel validation remain queued. See
+   marine-style layered top-down actor over the fallback sheet (`bccbbe16`),
+   with generated fore-claws that alternate a foreground contact swipe
+   (`20d3bcb0`); manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual

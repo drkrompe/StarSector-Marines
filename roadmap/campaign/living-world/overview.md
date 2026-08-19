@@ -234,7 +234,9 @@ production and Distress Net presentation, explicit event mission lineage,
 registered evacuation cohort/objective, risk-scaled swarm payload, strict outcome
 writeback, and durable debrief dispatch. The first combat-feel pass quarters alien
 HP and moves live aliens onto the marine-style layered top-down runtime while
-retaining the held sheet as fallback/corpse art (`bccbbe16`). Manual roster and
+retaining the held sheet as fallback/corpse art (`bccbbe16`). Their modular
+silhouette now includes reused left/right fore-claws and an alternating
+foreground contact swipe (`20d3bcb0`). Manual roster, swipe readability, and
 post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free

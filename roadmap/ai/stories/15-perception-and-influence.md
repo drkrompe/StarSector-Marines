@@ -258,23 +258,23 @@ from the BreakLOS discussion:
 
 ## Near-term cheap wins (BreakLOS investigation outcomes)
 
-These ship as a separate tactical task and do *not* require the
-full perception system. They lay the right data flow so the full
+**All four shipped.** These landed as separate tactical changes and do *not*
+require the full perception system. They lay the right data flow so the full
 system slots in cleanly later:
 
-1. **Threat-direction cover scoring** in `findFallbackPosition` —
+1. ✅ **Threat-direction cover scoring** (`5f12ac03`) in `findFallbackPosition` —
    read `NavigationGrid.coverByFacing[facingFor(threatDx, threatDy)]`
    instead of `getCoverAt`. Already-baked data; one-line math
    change at TacticalScoring.java:670.
-2. **Scan range scaling with move speed** — bump
+2. ✅ **Scan range scaling with move speed** (`09bf4f70`) — bump
    `FALLBACK_SCAN_RANGE` and let it scale per unit (fast units
    scan farther). TacticalScoring.java:101.
-3. **Ranged LoS variant** — new `hasLineOfSightWithin(x0, y0, x1,
+3. ✅ **Ranged LoS variant** (`6dd1e63c`) — new `hasLineOfSightWithin(x0, y0, x1,
    y1, maxCells)` on `NavigationGrid`. Used **only** in
    `isHiddenFromAllEnemies` initially, so distant enemies stop
    rejecting fallback candidates. Other LoS sites keep the
    unbounded primitive until the full perception layer ships.
-4. **Threat-set gate on `HAS_LOS_TO_TARGET`** — interim: filter
+4. ✅ **Threat-set gate on `HAS_LOS_TO_TARGET`** (`04e3f814`) — interim: filter
    `WorldStateBuilder`'s enemy iteration by "within N cells of
    any squad member's `lastSeenEnemy` cluster." This is the
    minimum-viable stand-in for the full belief map and removes
@@ -304,15 +304,13 @@ morale. Movement away from threat is what the player needs to see.
 
 ## Status
 
-**Parked.** Near-term cheap wins (see above) ship as a tactical
-task and provide the seam for the full system. The full
-perception + heatmap layers queue after:
-
-- The cheap wins are in and squad behavior is grounded enough to
-  validate against.
-- The squad-of-squads commander (`12-squad-of-squads.md`) lands
-  with the assignment shape, because the heatmap is most useful
-  to a commander that's already doing assignment work.
+**Full layer parked; tactical down-payment shipped.** The four near-term cheap
+wins above are complete. Story 19's objective-advance leash also consumes the
+same seam with an explicitly omniscient enemy tally (`14d646a`). The full
+perception + heatmap layers remain deliberately unscheduled. The squad-of-squads
+assignment shape they feed is now present; the remaining readiness gate is a
+manual battle pass that validates the cheap-win and engagement-leash tuning
+well enough to replace the ground-truth reads with belief-gated contacts.
 
 When ready to implement (rough order):
 

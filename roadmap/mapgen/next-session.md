@@ -31,7 +31,9 @@ f04c2d5  mapgen: diamond defense station — cardinal ports converging inward
 d14ce6a8  mapgen: tactical commercial interiors
 7bb9b4f2  mapgen: orient coherent commercial compounds
 fa0533ee  mapgen: tactical military compound interiors
-4d929309  mapgen: add civic headquarters interiors  ← latest mapgen work
+4d929309  mapgen: add civic headquarters interiors
+e8ad9c4b  mapgen: add tactical industrial facilities
+7296aeec  mapgen: add industrial works compounds  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -95,6 +97,14 @@ findings) in
   and an opaque server room. Three new office doodads landed, and the atlas
   stitcher now preserves authored ballistic heights from `_atlas.json`. See
   [`complete/civic-headquarters.md`](complete/civic-headquarters.md).
+- **Ground tactical structures — industrial works compounds shipped
+  (`7296aeec`).** Exactly three parcels now read as one site: a tactical
+  factory, transparent-fenced service/tank yard, and utility warehouse face a
+  striped shared loading apron while the reserved vehicle centerline remains
+  clear. Yard equipment supplies real movement/LOS cover, and the two-cell gate
+  reserves a marine-width entrance throat. Six deterministic fence orientations
+  were derived from two transparent ImageGen masters. See
+  [`complete/industrial-compound.md`](complete/industrial-compound.md).
 
 ## Next up (priority order)
 
@@ -154,20 +164,23 @@ reused verbatim. Candidate next tracks (priority order):
 1. **Ground tactical-structure track** — tactical commercial interiors
    (`d14ce6a8`), coherent commercial compounds (`7bb9b4f2`), tactical military
    compounds (`fa0533ee`), and multi-room civic headquarters (`4d929309`) are
-   shipped. **Large industrial facilities are now shipped (`e8ad9c4b`)**:
+   shipped. **Large industrial facilities are shipped (`e8ad9c4b`)**:
    15x12+ lots gain an aligned loading/service spine, production floor,
    supervisor/control room, parts cage, and opaque machinery/tank firing lanes;
-   smaller lots retain legacy warehouses. Next: compound-scale industrial
-   identity pairing a large factory with an adjacent fenced service yard, tank
-   farm, or utility shed around shared circulation. A true fused multi-lot
-   structure remains gated on
+   smaller lots retain legacy warehouses. **Compound-scale industrial identity
+   is now shipped (`7296aeec`)**: a three-parcel factory, fenced service/tank
+   yard, and utility warehouse orient around shared circulation without
+   blocking the vehicle reservation. Next: residential compound identity —
+   larger apartment or gated-housing blocks around a tactical shared courtyard.
+   A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
    [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md),
    [`complete/commercial-compound.md`](complete/commercial-compound.md),
    [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md),
-   [`complete/civic-headquarters.md`](complete/civic-headquarters.md), and
-   [`complete/industrial-facilities.md`](complete/industrial-facilities.md).
+   [`complete/civic-headquarters.md`](complete/civic-headquarters.md),
+   [`complete/industrial-facilities.md`](complete/industrial-facilities.md), and
+   [`complete/industrial-compound.md`](complete/industrial-compound.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -376,9 +389,8 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — map-gen label/partition tests green. (Use the
-  `:test` task, not bare `test` — the `:asset-pipeline:test` subproject has a
-  pre-existing unrelated failure that red-builds a project-wide `test`.)
+- `gradlew.bat test -x :asset-pipeline:test` — full 1,665-test root suite green.
+- `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
   all hard invariants hold.
 - `gradlew.bat :test --tests "*BspMapPreviewTest*"` — regenerates the preview

@@ -1,8 +1,9 @@
 # 19 — Threat-Scored Engagement Leash (commit-vs-press, with auto-release)
 
-**Design — partially down-paid.** Shots-of-opportunity during the zone-push
-advance shipped (`8d33ca5`); the scored commit-vs-press decision and its
-auto-release are designed here, not yet built. Replaces the binary
+**Shipped 2026-08-19 (`14d646a`).** Shots-of-opportunity during the zone-push
+advance shipped earlier (`8d33ca5`); the scored commit-vs-press decision,
+bounded off-axis prosecution, hysteresis, auto-release, and dump diagnostics
+now ship. Replaces the binary
 `haltOnContact` gate in the zone-push action family with a per-tick
 threat-scored leash that decides *how much* to commit to a contact versus
 press the objective, and releases for free when the threat fades.
@@ -113,7 +114,7 @@ retreating-militia case fall out correctly:
 `THREAT_DENSITY_HIGH_AT_TARGET` is a `STUB_FALSE` placeholder today
 (`WorldStateBuilder.java:68`) — the named-but-empty seam this work fills. The
 honest long-term threat read is the **perception/influence layer**
-([`15-perception-and-influence.md`](15-perception-and-influence.md)): the
+([`15-perception-and-influence.md`](../stories/15-perception-and-influence.md)): the
 `hostile_believed` channel, belief-gated so a squad can't react to enemies it
 hasn't observed (and can't be flanked by accounting for forces it can't see).
 `computeLeash` already carries the same perception debt, flagged inline:
@@ -128,7 +129,7 @@ This story inherits that debt and that fix path.
 
 ## Phasing
 
-- **Cheap slice** (builds directly on `8d33ca5`): force-ratio + retreating
+- **Cheap slice — shipped (`14d646a`)** (builds directly on `8d33ca5`): force-ratio + retreating
   discount + astride-route term via `countCombatantsWithin`, a leash off the
   advance axis in `advanceIntoZone`, hysteresis on commit/release. Omniscient
   threat read, debt-flagged like `computeLeash`. Self-contained inside the
@@ -138,20 +139,17 @@ This story inherits that debt and that fix path.
   power-weighted threat tally into a shared `TacticalScoring` primitive so the
   guard-post leash and the advance leash read the same threat field.
 
-The cheap slice is independently shippable and directly removes the
-"walking-at-enemies" frustration; the open question is whether to ship it on the
-omniscient read or hold the whole thing behind the perception layer so threat is
-honest from day one. (Leaning: ship cheap, debt-flagged — it matches the
-existing `computeLeash` precedent and the perception swap is a localized later
-change.)
+The cheap slice shipped on the debt-flagged omniscient read, matching the
+existing `computeLeash` precedent. The perception swap stays localized to the
+threat-input method when the belief layer lands.
 
 ## Code anchors
 
 - `infantry/GuardPostPatrol.java:229` — `computeLeash`, the odds-scaled-leash
   precedent to generalize.
 - `decision/goap/action/AbstractZoneAction.java` — `advanceIntoZone`; the
-  `haltOnContact` binary gate to replace, and where `closestEnemyInAttackRange`
-  (shipped) already lives.
+  former `haltOnContact` binary gate, now the scored-leash consumer, and where
+  `closestEnemyInAttackRange` (shipped) already lives.
 - `decision/TacticalScoring.java` — `countCombatantsWithin` (force tally),
   `closestEnemyInAttackRange` (shots of opportunity, shipped),
   `RETARGET_DISTANCE_MARGIN` (hysteresis precedent).
@@ -171,11 +169,11 @@ change.)
 
 ## Cross-references
 
-- [Perception & influence](15-perception-and-influence.md) — the honest threat
+- [Perception & influence](../stories/15-perception-and-influence.md) — the honest threat
   read (`hostile_believed`); shares the omniscient-tally perception debt.
-- [Story bank](10-tactical-stories.md) — Story K (room-clear sweep) is the
+- [Story bank](../stories/10-tactical-stories.md) — Story K (room-clear sweep) is the
   posture this leashes.
-- [Garrison zone-clear scoping](17-garrison-zone-clear-scoping.md) — the
+- [Garrison zone-clear scoping](../stories/17-garrison-zone-clear-scoping.md) — the
   SQ-87 outdoor-clear freeze is the sticky-state failure this design avoids;
   shares the `GuardPostPatrol` garrison vocabulary.
 - `memory/feedback_scored_over_binary_gates.md` — the working preference this
@@ -183,8 +181,27 @@ change.)
 - `memory/battle_patrol_freeze_modes.md`, `memory/tier_override_design.md` —
   related squad-behavior failure modes and the priority-bucket model.
 
+## What shipped
+
+- `TacticalScoring.assessAdvanceThreat` clips the objective route to a local
+  36-cell advance segment, weights contacts by distance from that axis, and
+  discounts contacts whose active path carries them away from the squad.
+- Nearby friendly strength normalizes the weighted hostile force. A pressing
+  squad commits at `0.55` and releases below `0.30`; the per-tick recompute is
+  the teardown, so no separate engage goal or release action exists.
+- Committed members fire stanced when they already have the contact, or path to
+  a firing cell inside a weight-scaled 4–12-cell leash around the threat's
+  projection onto the advance axis. Pressing members keep the objective path
+  and fire moving shots of opportunity.
+- `SquadStateDumper` schema v6 surfaces weight, commitment, leash, primary
+  contact, raw force counts, axis anchor, retreat posture, and score tick.
+- `AdvanceThreatLeashTest` covers route/flank weighting, retreat discount,
+  threshold hysteresis, moving-fire press, stanced commit, bounded prosecution,
+  and automatic release.
+
 ## Status
 
-**Design — cheap slice ready to prototype, full version parked behind story 15.**
-Shots-of-opportunity down-payment shipped (`8d33ca5`). Open decision: ship the
-cheap slice on the omniscient threat read now, or hold for the perception layer.
+**Cheap slice shipped and sealed in `complete/` (`14d646a`).** The enemy tally
+is deliberately omniscient and marked as perception debt. Replacing it with
+belief-gated `hostile_believed` input remains part of story 15's full
+perception layer, not unfinished work in this slice.

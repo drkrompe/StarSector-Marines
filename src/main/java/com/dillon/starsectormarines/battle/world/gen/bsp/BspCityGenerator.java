@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentia
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.LandingZoneFiller;
@@ -136,6 +137,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new MilitaryBaseFiller());
         registerCompound(new GatedHousingFiller());
         registerCompound(new DenseQuarterFiller());
+        registerCompound(new IndustrialCompoundFiller());
         registerCompound(new SpaceportDistrictFiller());
 
         this.conquestRecipe = buildConquestRecipe();

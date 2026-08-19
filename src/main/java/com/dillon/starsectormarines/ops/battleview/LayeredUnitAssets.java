@@ -10,6 +10,7 @@ public final class LayeredUnitAssets {
     public final LayeredSpriteCache body;
     public final LayeredSpriteCache head;
     public final LayeredSpriteCache foot;
+    public final LayeredSpriteCache foreClaw;
     public final LayeredSpriteCache rifle;
     public final LayeredSpriteCache laserGun;
     public final LayeredSpriteCache smg;
@@ -20,7 +21,8 @@ public final class LayeredUnitAssets {
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
 
     public LayeredUnitAssets(LayeredSpriteCache body, LayeredSpriteCache head,
-                             LayeredSpriteCache foot, LayeredSpriteCache rifle,
+                             LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
+                             LayeredSpriteCache rifle,
                              LayeredSpriteCache laserGun,
                              LayeredSpriteCache smg,
                              LayeredSpriteCache dmr,
@@ -31,6 +33,7 @@ public final class LayeredUnitAssets {
         this.body = body;
         this.head = head;
         this.foot = foot;
+        this.foreClaw = foreClaw;
         this.rifle = rifle;
         this.laserGun = laserGun;
         this.smg = smg;
