@@ -59,8 +59,8 @@
   enemies, intended targets, structural walls, and downrange base odds remain
   unchanged. Full record:
   [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
-  All 35 focused tests pass; the 1,629-test root run has only the known
-  suite-order-dependent swarm fixture failure, which passes alone.
+  Post-integration: all 35 focused ballistics/direct-fire tests pass; full
+  suite 1635 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:

@@ -6,10 +6,8 @@
 > smoothstep. Nearby firing cover and squadmates are safer; downrange base odds
 > are unchanged.
 >
-> **Landed vs. planned deviations:** none. All 35 focused ballistics/direct-fire
-> tests pass. The 1,629-test root run reaches the one pre-existing,
-> suite-order-dependent `SwarmEvacuationOutcomeBridgeTest` failure documented
-> on `main`; its isolated rerun passes.
+> **Landed vs. planned deviations:** none. Post-integration verification: all
+> 35 focused ballistics/direct-fire tests pass; full suite 1635 tests green.
 
 Original contract below, kept for the record.
 
