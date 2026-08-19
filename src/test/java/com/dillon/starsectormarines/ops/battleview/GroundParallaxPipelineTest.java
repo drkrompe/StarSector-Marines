@@ -15,6 +15,8 @@ class GroundParallaxPipelineTest {
         pipeline.setParallaxStrength(-1f);
         assertEquals(GroundParallaxPipeline.MIN_STRENGTH, pipeline.parallaxStrength(), 1e-6f);
         pipeline.setParallaxStrength(1f);
+        assertEquals(1f, pipeline.parallaxStrength(), 1e-6f);
+        pipeline.setParallaxStrength(10f);
         assertEquals(GroundParallaxPipeline.MAX_STRENGTH, pipeline.parallaxStrength(), 1e-6f);
     }
 }

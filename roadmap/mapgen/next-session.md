@@ -28,7 +28,8 @@ aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
 6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop
 c447104  mapgen: concentric "onion" station layout — defensive rings around a core
 f04c2d5  mapgen: diamond defense station — cardinal ports converging inward
-d14ce6a8  mapgen: tactical commercial interiors  ← latest mapgen work
+d14ce6a8  mapgen: tactical commercial interiors
+7bb9b4f2  mapgen: orient coherent commercial compounds  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -71,6 +72,13 @@ findings) in
   primary building in qualifying `DENSE_QUARTER` compounds consumes the same
   planner. See
   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md).
+- **Ground tactical structures — coherent compound slice shipped (`7bb9b4f2`).**
+  `DENSE_QUARTER` now selects its largest member as an anchor store, gives
+  smaller members storefront or service roles, faces public doors and sales
+  floors toward shared BRICK concourses, keeps stock/service access at the
+  opposed rear facade, and leaves reserved STREET centerlines untouched for the
+  vehicle graph. See
+  [`complete/commercial-compound.md`](complete/commercial-compound.md).
 
 ## Next up (priority order)
 
@@ -127,14 +135,14 @@ reused verbatim. Candidate next tracks (priority order):
   (`requireRoadOverlays` on `CompoundFiller`, with `CompoundFillerOverlayTest`).
   See the section below for what each resolution was.
 
-1. **Ground tactical-structure track** — tactical commercial interiors are
-   shipped (`d14ce6a8`). Next: make a commercial compound read as one coherent
-   site (anchor store + storefronts + loading/service space + shared arcade or
-   courtyard), preserving inter-leaf road cells as a concourse until an earlier
-   footprint-planning stage can safely suppress/replan road-graph edges. Then
-   generalize the floor-plan artifact to offices, warehouses, and larger
-   multi-room civic buildings. See
-   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md).
+1. **Ground tactical-structure track** — tactical commercial interiors
+   (`d14ce6a8`) and coherent commercial compounds (`7bb9b4f2`) are shipped.
+   Next: generalize the placement-aware floor-plan artifact to offices,
+   warehouses, and larger multi-room civic buildings. A true fused multi-lot
+   structure remains gated on an earlier footprint-plan stage that can safely
+   suppress/replan road-graph edges. See
+   [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md)
+   and [`complete/commercial-compound.md`](complete/commercial-compound.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`

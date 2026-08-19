@@ -94,11 +94,10 @@ public enum BlockKind {
     GATED_HOUSING,
 
     /**
-     * Multi-leaf compound — downtown skyscraper district. No outer wall;
-     * the cluster reads as a dense cluster of large commercial buildings
-     * with TILE-paved alleys between them, like a 2D top-down view of a
-     * financial district. Each member leaf carves a big multi-room
-     * commercial building filling most of the leaf.
+     * Multi-leaf compound — downtown commercial complex. No outer wall;
+     * the cluster reads as an anchor store, storefronts, and service units
+     * facing shared BRICK-paved concourses around a reserved public service
+     * lane. Each member leaf carves a commercial building that fills the lot.
      *
      * <p>Demoted to {@link #BUILDING_COMMERCIAL} if the claim pass fails
      * to grow it.
