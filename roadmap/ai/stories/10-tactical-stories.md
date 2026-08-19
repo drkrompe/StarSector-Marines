@@ -276,7 +276,15 @@ the gunfire-alert system that already ships.
 
 ---
 
-### E. Mech-screened advance
+### E. Mech-screened advance ✅ SHIPPED (2026-08-19)
+
+**Implementation note.** Shipped in `0daf058e` as a faction-neutral,
+unit-anchored branch of objective `EnterZone`. Infantry follows in a distinct
+threat-relative pocket, fans within a short leash when the assault mech can
+engage, and falls straight back to ordinary objective movement if the screen
+is lost. Direct-fire unit-body interception supplies real moving cover; no
+parallel LOS or cover system was added. See
+`../complete/23-mech-screened-advance.md`.
 
 > A marine squad accompanies a friendly mech down a corridor. The mech
 > walks point. Marines pace behind it, using the mech's bulk as
@@ -657,7 +665,7 @@ What each story needs, so we can spot the shared dependencies.
 | B. Pinned and broken ✅ | `MORALE_BROKEN` | `BreakContact` | `SurviveContact` | Squad morale state (drain/recover/cap/hysteresis); cover-out-of-LOS reuses `TacticalScoring.findFallbackPosition` |
 | C. Bounding overwatch | `ENEMY_SUPPRESSED` | `SuppressFromCover`, `BoundForward` | — | **Per-member action assignment**; `RoleAssigner` actually used |
 | D. Patrol intercept ✅ | (uses alert spread) | `FlankApproach` | `ReinforceContact` | Flanking waypoint algorithm (90° off garrison axis); RoutinePatrol SUSPICIOUS yield |
-| E. Mech-screened advance | `BEHIND_FRIENDLY_RELATIVE_TO_THREAT` | `EscortFollow` (anchor=Unit variant) | — | Soft cover from non-static entities; threat-direction vector |
+| E. Mech-screened advance ✅ | (action-scoped geometry) | `MechScreenAdvance` (`EnterZone` branch) | — | Physical unit-body interception; threat-direction vector |
 | F. Objective rush under fire | (mission predicates) | `PlantCharge` | `CompleteObjective` | **Per-member goal override**; retires `PlanterBehavior` |
 | G. Cover-aware reposition ✅ | `CAN_REPOSITION` | `RepositionToCover` | — | Per-facing cover (4-way N/E/S/W) on doodads; per-unit `repositionCooldown` (1.5s) |
 | I. Engagement discipline | `THREAT_DENSITY_AT_TARGET` | (target picker rewrite, no new action) | — | **Threat-density-aware target scoring**; pursuit gating; squad cohesion as hard constraint |
@@ -730,12 +738,12 @@ Recommended slicing:
 - **Slice 5 (remaining mission goal priority):** Story H — last-stand
   `HoldPosition` on `MUST_HOLD` tactical nodes. Story B already shipped
   in Slice 2.5.
-- **Slice 6 ✅ partial (cross-squad emergence):** Story D shipped
+- **Slice 6 ✅ (cross-squad emergence):** Story D shipped
   2026-05-27 — `ReinforceContact` goal + `FlankApproach` action with
-  flanking waypoint algorithm (90° off garrison axis). Story E (mech
-  screening) remains. Story 22's ASSAULT Hound now supplies its moving point
-  unit; the remaining work is infantry follow/fan geometry and mech-body soft
-  cover ([13-mech-goap.md](13-mech-goap.md)).
+  flanking waypoint algorithm (90° off garrison axis). Story E shipped
+  2026-08-19 in `0daf058e`: infantry now selects Story 22's ASSAULT point unit,
+  follows/fans against the live threat axis, and receives physical mech-body
+  interception from the shared ballistic resolver.
 
 ## What this doc is for
 

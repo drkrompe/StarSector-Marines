@@ -119,7 +119,10 @@ universe over time, not retrofitted into intel slots.
   introduces one Bulwark, and HIGH fields budget-preserving mixed
   Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
   a scout follows only when recon behavior can make it meaningful. See
-  [`mechs/`](mechs/overview.md).
+  [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
+  ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
+  it follows behind the live chassis, fans to fire on contact, and receives
+  real protection from physical direct-fire interception.
 
 ## Immediate next-up
 
@@ -144,8 +147,11 @@ universe over time, not retrofitted into intel slots.
    extraction, repair, compaction, and debrief all ship. The hidden moral
    compass's first diegetic reaction now ships too: long-serving captains gain
    one deterministic, persistent `IDEALIST`/`CYNICAL` outlook from choices they
-   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). No personnel story remains
-   active; contract a new one before expanding this characterization. See
+   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). Captain discovery is complete
+   too: eligible derelict salvage now produces deterministic, persistent
+   cryo-pod survivors with replay-safe commission/referral/defer resolution and
+   deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`). No personnel
+   story remains active; contract a new one before expanding this work. See
    [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
 3. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
@@ -212,7 +218,10 @@ universe over time, not retrofitted into intel slots.
    It remains inert and excluded from swarm targeting while the colonists are
    sealed, then holds the compound as a local rear guard after marine relief;
    a wiped responding force also releases the last stand so the battle cannot
-   deadlock (`822f5a2a`). Manual cadence and post-rebalance feel validation
+   deadlock (`822f5a2a`). Targetless runners now choose deterministic local
+   routes during the shuttle fly-in, while rejecting paths through the protected
+   shelter and pickup footprints; contact immediately restores opportunistic
+   pursuit (`100110c2`). Manual cadence and post-rebalance feel validation
    remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
@@ -230,8 +239,9 @@ universe over time, not retrofitted into intel slots.
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
 6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
-   panel to compare Hound/Sirocco against the unchanged Bulwark, tune their
-   identities, then approve budgeted production defender composition. See
+   panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
+   Hound-led infantry screens and tune chassis identities plus the formation
+   leash. Budgeted production defender composition is already approved. See
    [`mechs/next-session.md`](mechs/next-session.md).
 7. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence

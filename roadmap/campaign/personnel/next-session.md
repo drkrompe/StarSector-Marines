@@ -52,7 +52,7 @@ isolated Gradle build passed.
 The deployment-reachability correction is shipped and recorded in
 [`complete/deployment-readiness.md`](complete/deployment-readiness.md).
 The named-stationing lifecycle is complete in
-[`stories/named-stationing.md`](stories/named-stationing.md). New stationing
+[`complete/named-stationing.md`](complete/named-stationing.md). New stationing
 offers bind named, rank-bounded fireteams without cargo mutation; incidents
 freeze and settle their identities; every completion, withdrawal, failure, and
 default-extraction path resolves exactly once. Anonymous saves retain their
@@ -67,10 +67,37 @@ captain-local and deterministic, and the shared captain row presents readable
 pass. Manual UI/balance validation remains queued, as requested for the current
 automated-only session.
 
-There is no active personnel story after this closure. Select and contract a
-new story before extending outlooks into combat modifiers, reversals, transfers,
-dialog, or interpersonal conflict; those remain intentional non-goals rather
-than implied follow-up work.
+## Complete — captain discovery
+
+The shipped contract is recorded in
+[`complete/captain-discovery.md`](complete/captain-discovery.md). Slice 1 is
+shipped (`ecf70b58`, `055abb97`): `MarineRoster` now persists one immutable
+candidate per normalized namespaced campaign source and resolves offers through
+capacity-safe accept/decline operations. Acceptance freezes the future captain
+identity and is replay-safe; legacy repair backfills the collection, drops bad
+or duplicate rows, adopts an already-present matching captain, and never
+recreates a dangling accepted one. Focused intake tests and the full root
+automated suite pass.
+
+Slice 2 is shipped (`3b70fcc4`, `d780e345`): a transient `ShowLootListener`
+observes vanilla loot presentation without touching cargo, selects ordinary
+non-mission wrecks with a stable one-in-eight roll, deterministically freezes a
+bounded captain profile, and publishes it through the roster authority. Replay,
+mission-tag exclusion, profile stability, cargo isolation, the full root test
+suite, and the complete Gradle build pass.
+
+Slice 3 is shipped (`7a32e771`): Captain Discovery retains only its own salvage
+continuation, presents the survivor after vanilla loot closes, and resolves
+commission/referral/defer choices through the candidate authority. Full-roster
+offers remain available and actionable in Personnel, which shows frozen rank,
+trait, source, and discovery day. Another salvage flow's continuation is never
+taken over. The focused interaction matrix and merged full root automated suite
+pass; manual in-game layout validation remains deferred as requested.
+
+There is no active personnel story. Contract a new one before extending captain
+discovery into tavern hiring, markets, wages, dismissal, or trading, or moral
+outlooks into combat modifiers, reversals, transfers, dialog, or interpersonal
+conflict. Those remain intentional non-goals.
 
 ## Commit chain
 
@@ -99,3 +126,8 @@ than implied follow-up work.
 - `a31e9a2a` / `0039f9b5` / `c05999e2` — close the named release lifecycle.
 - `492864ef` / `1a2fc58e` / `9e4c1ac2` — freeze and settle battle identities.
 - `721372d8` / `a8b72598` / `496cea19` — close compaction, repair, and debrief.
+- `ecf70b58` — lock the captain-discovery acquisition contract.
+- `055abb97` — persist source-keyed candidates and exactly-once roster intake.
+- `3b70fcc4` — lock the non-invasive derelict-salvage seam.
+- `d780e345` — publish deterministic candidates from eligible vanilla wrecks.
+- `7a32e771` — present and resolve recovered captains after vanilla salvage.
