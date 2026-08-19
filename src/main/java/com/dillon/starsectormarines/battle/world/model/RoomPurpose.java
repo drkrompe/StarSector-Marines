@@ -59,4 +59,14 @@ public enum RoomPurpose {
     CONFERENCE_ROOM,
     /** Civic headquarters — secured data room whose racks block line of sight. */
     SERVER_ROOM,
+    /** Industrial facility — two-cell service spine joining loading and rear entrances. */
+    INDUSTRIAL_SPINE,
+    /** Industrial facility — frontage-side material receiving and dispatch area. */
+    LOADING_BAY,
+    /** Industrial facility — main fabrication floor with opaque machine cover. */
+    PRODUCTION_FLOOR,
+    /** Industrial facility — enclosed supervisor and process-control station. */
+    CONTROL_ROOM,
+    /** Industrial facility — secured replacement-parts and tool storage. */
+    PARTS_CAGE,
 }
