@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 /** Direct pressure behavior for swarm runners; no squad or infantry GOAP. */
 public final class SwarmPressureBehavior implements UnitBehavior {
 
+    private static final float CURRENT_TARGET_LEEWAY_SQUARED = 1.25f * 1.25f;
+
     public static final SwarmPressureBehavior INSTANCE =
             new SwarmPressureBehavior();
 
@@ -17,6 +19,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     @Override
     public void update(long runner, BattleSimulation sim) {
         tickCooldown(runner, sim);
+        long previousTarget = sim.combat().targetId(runner);
         long target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
         if (target == 0L) {
@@ -43,7 +46,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
 
-        if (sim.movement().mayRepath(runner)
+        boolean targetChanged = target != previousTarget;
+        if ((targetChanged || sim.movement().mayRepath(runner))
                 && needsPath(runner, targetX, targetY, sim)) {
             sim.setPath(runner, GridPathfinder.findPath(sim.getGrid(),
                     runnerX, runnerY, targetX, targetY,
@@ -53,24 +57,20 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     }
 
     /**
-     * Previously acquired evacuees first, then newly sensed evacuees; nearest
-     * marine when no civilian has been discovered. Runners can remember prey
-     * that breaks line of sight, but do not know the cohort's exact position
-     * before seeing it.
+     * Chooses the nearest sensed marine or active evacuee, with modest
+     * stickiness for the current target. This lets nearby marines peel runners
+     * away from civilians without making the swarm oscillate between nearly
+     * equidistant victims. When no local target is sensed, a runner continues
+     * toward remembered prey or falls back to the nearest marine.
      */
     public static long selectTarget(long runner, BattleSimulation sim) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
+        long current = sim.combat().targetId(runner);
+        boolean currentValid = isEligibleRememberedTarget(current, tracker, sim);
         long best = 0L;
         float bestDistance = Float.MAX_VALUE;
         if (!sim.isCivilianShelterProtected()) {
-            long remembered = sim.combat().targetId(runner);
-            if (tracker.state(remembered)
-                    == CivilianEvacuationTracker.State.ACTIVE
-                    && sim.resolveUnit(remembered) != 0L) {
-                return remembered;
-            }
-
             for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
                 long candidate = tracker.entityIdAt(i);
                 if (tracker.state(candidate)
@@ -80,27 +80,66 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 }
                 if (!canSense(runner, candidate, sim)) continue;
                 float distance = distanceSquared(runner, candidate, sim);
-                if (distance < bestDistance
-                        || (distance == bestDistance && candidate < best)) {
+                if (isBetter(candidate, distance, best, bestDistance)) {
                     best = candidate;
                     bestDistance = distance;
                 }
             }
-            if (best != 0L) return best;
         }
 
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long candidate = sim.liveUnitAt(i);
+            if (sim.identity().faction(candidate) != Faction.MARINE) continue;
+            if (!canSense(runner, candidate, sim)) continue;
+            float distance = distanceSquared(runner, candidate, sim);
+            if (isBetter(candidate, distance, best, bestDistance)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+
+        if (best != 0L) {
+            if (currentValid) {
+                float currentDistance = distanceSquared(runner, current, sim);
+                if (current == best
+                        || currentDistance <= bestDistance * CURRENT_TARGET_LEEWAY_SQUARED) {
+                    return current;
+                }
+            }
+            return best;
+        }
+
+        if (currentValid) return current;
+
+        // Strategic pressure fallback: the swarm still advances when all
+        // marines are beyond local sensing range, but civilians remain unknown
+        // until first contact reveals them.
         bestDistance = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
             if (sim.identity().faction(candidate) != Faction.MARINE) continue;
             float distance = distanceSquared(runner, candidate, sim);
-            if (distance < bestDistance
-                    || (distance == bestDistance && candidate < best)) {
+            if (isBetter(candidate, distance, best, bestDistance)) {
                 best = candidate;
                 bestDistance = distance;
             }
         }
         return best;
+    }
+
+    private static boolean isEligibleRememberedTarget(
+            long candidate, CivilianEvacuationTracker tracker,
+            BattleSimulation sim) {
+        if (candidate == 0L || sim.resolveUnit(candidate) == 0L) return false;
+        if (sim.identity().faction(candidate) == Faction.MARINE) return true;
+        return !sim.isCivilianShelterProtected()
+                && tracker.state(candidate) == CivilianEvacuationTracker.State.ACTIVE;
+    }
+
+    private static boolean isBetter(long candidate, float distance,
+                                    long best, float bestDistance) {
+        return distance < bestDistance
+                || (distance == bestDistance && (best == 0L || candidate < best));
     }
 
     private static boolean canSense(long runner, long candidate,

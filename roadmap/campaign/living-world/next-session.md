@@ -108,8 +108,11 @@ battle factory, and the matching market exposes one Distress Net mission
 (`c870193f`, `d1dae861`, `2cd8416a`, `bee0c6b4`, `84e9e175`).
 The intended biological threat payload is now shipped. Append-only
 `SWARM_RUNNER` / `SWARM_PRESSURE` identity reuses the held alien sheets without
-changing the battle-side faction model; runners prioritize registered active
-evacuees, fall back to marines, and deal contact damage. Deterministic
+changing the battle-side faction model; runners deal contact damage and now
+rank sensed marines and registered active evacuees in one distance-based target
+pool. A current victim gets 25% distance leeway, but a substantially closer
+marine can peel a runner off a colonist; target changes reroute immediately
+(`4fedb34a`). Deterministic
 LOW/MEDIUM/HIGH rosters place 12/24/40 runners outside the shelter and lift
 zones, while the rescue factory now omits conventional defenders, defense-post
 turrets, reinforcement providers, and fighter support (`94cb765b`, `80020b48`,
@@ -338,6 +341,8 @@ swarm tuning remain in the shared deferred queue.
   (`bccbbe16`).
 - G6 layered swipe follow-up — generated fore-claw layer and alternating
   foreground contact animation (`20d3bcb0`).
+- G6 opportunistic-targeting follow-up — shared marine/evacuee candidate pool,
+  25% target leeway, and immediate aggro rerouting (`4fedb34a`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
