@@ -831,6 +831,7 @@ public class BspMapPreviewTest {
             case GATED_HOUSING: return "GH";
             case DENSE_QUARTER: return "DQ";
             case INDUSTRIAL_COMPOUND: return "IC";
+            case MEDICAL_CAMPUS: return "MED";
             default:            return kind.name().substring(0, Math.min(3, kind.name().length()));
         }
     }

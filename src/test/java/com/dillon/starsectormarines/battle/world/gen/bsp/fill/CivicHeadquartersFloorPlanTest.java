@@ -110,8 +110,10 @@ class CivicHeadquartersFloorPlanTest {
                 headquarters++;
                 int width = poi.right - poi.left + 1;
                 int height = poi.bottom - poi.top + 1;
-                assertTrue(Math.max(width, height) >= LabelLeavesStage.CIVIC_MIN_LONG_DIM);
-                assertTrue(Math.min(width, height) >= LabelLeavesStage.CIVIC_MIN_SHORT_DIM);
+                assertTrue(Math.max(width, height) >= LabelLeavesStage.CIVIC_MIN_LONG_DIM,
+                        "undersized administrative POI " + width + "x" + height + " seed=" + seed);
+                assertTrue(Math.min(width, height) >= LabelLeavesStage.CIVIC_MIN_SHORT_DIM,
+                        "undersized administrative POI " + width + "x" + height + " seed=" + seed);
             }
         }
         assertTrue(headquarters >= 2, "civic headquarters should survive representative size filtering");
