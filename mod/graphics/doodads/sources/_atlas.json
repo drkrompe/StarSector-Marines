@@ -156,6 +156,60 @@
       "scale": 0.94,
       "order": 40
     },
+    "industrial-fence-corner-nw.png": {
+      "id": "doodad.industrial-fence-corner-nw",
+      "name": "Industrial fence corner NW",
+      "description": "Chain-link corner connecting east and south.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.96,
+      "order": 41
+    },
+    "industrial-fence-corner-ne.png": {
+      "id": "doodad.industrial-fence-corner-ne",
+      "name": "Industrial fence corner NE",
+      "description": "Chain-link corner connecting west and south.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.96,
+      "order": 42
+    },
+    "industrial-fence-corner-sw.png": {
+      "id": "doodad.industrial-fence-corner-sw",
+      "name": "Industrial fence corner SW",
+      "description": "Chain-link corner connecting east and north.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.96,
+      "order": 43
+    },
+    "industrial-fence-corner-se.png": {
+      "id": "doodad.industrial-fence-corner-se",
+      "name": "Industrial fence corner SE",
+      "description": "Chain-link corner connecting west and north.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.96,
+      "order": 44
+    },
+    "industrial-fence-straight-h.png": {
+      "id": "doodad.industrial-fence-straight-h",
+      "name": "Industrial fence horizontal",
+      "description": "Straight horizontal chain-link security fence.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.98,
+      "order": 45
+    },
+    "industrial-fence-straight-v.png": {
+      "id": "doodad.industrial-fence-straight-v",
+      "name": "Industrial fence vertical",
+      "description": "Straight vertical chain-link security fence.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "scale": 0.98,
+      "order": 46
+    },
     "military-radar-dish.png": {
       "id": "doodad.military-radar-dish",
       "name": "Military radar dish",
