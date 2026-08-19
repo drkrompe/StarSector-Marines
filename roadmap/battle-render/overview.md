@@ -120,6 +120,17 @@ split stateful FX (contrail lifecycle) into services. FBO blits (decals)
 escape, not geometry hiding from the drain. Design + slices:
 [`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
 
+## Future: dense render tiles (not queued)
+
+> Captured, not contracted. CPU view-cull of cells shipped in
+> [`complete/camera-view-cull.md`](complete/camera-view-cull.md). The next
+> architecture — if GROUND collect or the world-sized decal FBO becomes the
+> ceiling — is **baked `n×m` cell tiles** as GPU residency, with the cell
+> grid remaining sim truth. Story:
+> [`stories/dense-render-tiles.md`](stories/dense-render-tiles.md). Folds the
+> single-world ground-FBO spike and the tiled-decal plan in
+> [`large-map-scaling.md`](large-map-scaling.md).
+
 ## Future: camera view-projection + camera-Z
 
 > Beyond this reorg's scope (the decomposition above is purely structural). A

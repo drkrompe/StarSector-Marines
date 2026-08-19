@@ -10,6 +10,11 @@ pattern (their other engine, MoonLight, uses it at much larger scale)
 and we don't want the design context lost when we eventually have
 profiling evidence to justify the surgery.
 
+Dense *ground* tiles (`n×m` baked cell chunks as render residency) are a
+different object on a similar pitch — see
+[`../battle-render/stories/dense-render-tiles.md`](../battle-render/stories/dense-render-tiles.md).
+This file stays about unit `gather()`.
+
 ## Current shape (post-`4edb1f4`)
 
 - `ArrayList<Unit>[] buckets`, one per cell-region (BUCKET=16 cells).
