@@ -70,7 +70,9 @@ universe over time, not retrofitted into intel slots.
   shelf footprints and two-cell combat aisles sized for infantry; coherent
   commercial compounds and role-specific military bases now orient their
   buildings toward shared circulation. Military sites add bunk/rack/service/C2
-  fixture plans plus an outdoor radar silhouette. See
+  fixture plans plus an outdoor radar silhouette. Large civic lots now add
+  frontage-aware headquarters with a two-cell lobby/service spine, two offices,
+  conference and server rooms, and distinct low-versus-opaque office cover. See
   [`mapgen/`](mapgen/).
 - **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
   tile definitions and their gen→tile mappings out of hardcoded Java
