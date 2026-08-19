@@ -40,4 +40,8 @@ public enum RoomPurpose {
      * on top of this membership marker.
      */
     CORRIDOR,
+    /** Commercial building — public sales floor and the store's primary combat space. */
+    SHOP_FLOOR,
+    /** Commercial building — staff-only stockroom behind the sales floor. */
+    STOCKROOM,
 }

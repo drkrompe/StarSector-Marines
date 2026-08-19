@@ -43,11 +43,12 @@ public final class FinalizeStage implements GenStage {
         verifyRoadGraphWalkable(grid, ctx.get(BspKeys.ROAD_GRAPH));
     }
 
-    /** Every non-walkable, non-water cell gets a starting HP. Water is non-walkable but isn't a destructible wall. */
+    /** Structural non-walkable cells get starting HP; water and prop fixtures are not destructible walls. */
     private static void seedWallHp(NavigationGrid grid, CellTopology topology) {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!grid.isWalkable(x, y) && !topology.isWater(x, y)) {
+                if (!grid.isWalkable(x, y) && !topology.isWater(x, y)
+                        && !topology.isFixture(x, y)) {
                     grid.setWallHp(x, y, WALL_HP_DEFAULT);
                 }
             }
