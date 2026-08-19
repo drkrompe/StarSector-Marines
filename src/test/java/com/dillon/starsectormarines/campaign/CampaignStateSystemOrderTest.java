@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
+import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -65,6 +66,7 @@ class CampaignStateSystemOrderTest {
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
         int moralCompass = indexOf(systems, MoralCompassSystem.class);
+        int kingmakerTestament = indexOf(systems, KingmakerTestamentSystem.class);
         int captainDrift = indexOf(systems, CaptainTraitDriftSystem.class);
         int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
         int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
@@ -98,6 +100,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(eventLifecycle < moralCompass);
         assertTrue(eventLifecycle < rescueSpawn);
         assertTrue(rescueSpawn < moralCompass);
+        assertTrue(moralCompass < kingmakerTestament);
+        assertTrue(kingmakerTestament < captainDrift);
         assertTrue(moralCompass < captainDrift);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);

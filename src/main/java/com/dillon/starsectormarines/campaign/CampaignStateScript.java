@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
+import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
@@ -100,6 +101,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new CivilWarPlayerConsequenceSystem(),
                 new CivilianRescueSpawnSystem(),
                 new MoralCompassSystem(),
+                new KingmakerTestamentSystem(),
                 new CaptainTraitDriftSystem(),
                 new StationingDefaultExtractionSystem(),
                 new ExtractionResolutionSystem(),
