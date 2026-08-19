@@ -4,8 +4,8 @@
 > implementation commit `cd6094fd`. Intended accuracy is now committed once
 > into lateral/elevation aim, per-type vertical silhouettes participate in
 > contacts, and every visible shot carrier projects the resulting Z path.
-> Free-flight overshoots disappear without a false impact. Full suite: 1529
-> tests (1528 root + 1 asset-pipeline).
+> Free-flight overshoots disappear without a false impact. Post-merge full
+> suite: 1530 tests (1529 root + 1 asset-pipeline).
 >
 > **Landed vs. planned deviations:** none. The same vertical path is also
 > threaded through contrail samples so future target-plane weapons can add a
