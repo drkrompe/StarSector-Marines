@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -50,6 +51,12 @@ public final class IdentityService {
      * AIR_IDENTITY / GROUND_IDENTITY type instead).
      */
     public UnitType type(long id) { return (UnitType) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE); }
+
+    /** Persistent chassis profile, or null for a non-mech ground entity. */
+    public MechVariant mechVariant(long id) {
+        return (MechVariant) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_MECH_VARIANT);
+    }
 
     /**
      * The entity's immutable {@link Faction}. The by-id replacement for the

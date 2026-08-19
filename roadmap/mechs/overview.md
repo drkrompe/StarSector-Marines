@@ -1,7 +1,8 @@
 # Mech roster
 
-**Status:** Design stage. The current heavy strider is shipped; the specialist
-family is specified in S1 but not yet implemented.
+**Status:** Active. S1's modular hardpoint substrate and three-chassis debug
+comparison shipped in `2d3f044b`; battlefield tuning and production-roster
+integration remain.
 
 ## Concept
 
@@ -45,7 +46,10 @@ approve first.
 | **Sirocco** (missile strider) | Mobile fire support | Linear cannon + LRM; no SRM | Projects indirect pressure, but is fragile and folds when isolated at close range |
 | **Needle** (scout strider) | Recon, target finding, flanking | Linear cannon; no pods | Fast and observant, but lacks area damage and needs a new recon doctrine to matter |
 
-S1 implements the substrate plus Hound and Sirocco. Needle deliberately waits
+S1 implements the substrate plus Hound and Sirocco. Its first slice now ships
+paired small racks on the light specialists: Hound carries two SRM-5 components
+and Sirocco two LRM-5 components, while Bulwark retains its SRM-15/LRM-15 pair.
+Needle deliberately waits
 for a later story: merely making a fast weak shooter would not fulfill the
 recon fantasy. It needs information play such as spotting or target painting
 and a corresponding GOAP role.

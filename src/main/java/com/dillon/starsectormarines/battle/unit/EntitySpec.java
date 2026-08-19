@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
@@ -52,6 +53,8 @@ public final class EntitySpec {
     public EquipmentGrade equipmentGrade = EquipmentGrade.SERVICE;
     public SoldierProfile soldierProfile = SoldierProfile.REGULAR;
     public String campaignSoldierId;
+    /** Persistent physical/loadout profile for mech-class entities; null otherwise. */
+    public MechVariant mechVariant;
     public LayeredArmorFamily layeredArmorFamily;
     public Objective assignedObjective;
     public int homeCellX = -1;
@@ -88,6 +91,7 @@ public final class EntitySpec {
         this.accuracy = type.accuracy;
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
+        if (type.isMech()) MechVariant.BULWARK.applyTo(this);
     }
 
     public EntitySpec squad(int squadId) { this.squadId = squadId; return this; }
@@ -100,6 +104,11 @@ public final class EntitySpec {
     public EntitySpec turretKind(TurretKind kind) { this.turretKind = kind; return this; }
     public EntitySpec homeHubId(long id) { this.homeHubId = id; return this; }
     public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
+    public EntitySpec mechVariant(MechVariant variant) {
+        if (!type.isMech()) throw new IllegalStateException("Only mech unit types accept a mech variant");
+        if (variant == null) throw new IllegalArgumentException("Mech variant is required");
+        return variant.applyTo(this);
+    }
     public EntitySpec layeredArmorFamily(LayeredArmorFamily family) { this.layeredArmorFamily = family; return this; }
 
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.logistics;
 
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -30,8 +31,9 @@ public class ResupplySystemTest {
                 .secondary(MarineSecondary.ROCKET_LAUNCHER, 0));
         long mech = sim.spawn(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH, 11, 10));
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT);
-        loadout.srmAmmoSalvos = 0;
-        loadout.lrmAmmoSalvos = 0;
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount.component.ammoCapacity >= 0) mount.ammo = 0;
+        }
         sim.world().attachMechLoadout(mech, loadout);
 
         ResupplyService service = new ResupplyService();
@@ -45,8 +47,9 @@ public class ResupplySystemTest {
 
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo,
                 sim.world().secondaryAmmo(marine));
-        assertEquals(MechLoadoutComponent.DEFAULT_SRM_AMMO_SALVOS, loadout.srmAmmoSalvos);
-        assertEquals(MechLoadoutComponent.DEFAULT_LRM_AMMO_SALVOS, loadout.lrmAmmoSalvos);
+        for (MechWeaponMount mount : loadout.mounts()) {
+            assertEquals(mount.component.ammoCapacity, mount.ammo);
+        }
         assertTrue(cache.depleted());
     }
 

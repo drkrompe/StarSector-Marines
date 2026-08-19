@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
+import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -563,6 +564,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
                 2.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
+        debugPanel.addAction("Spawn mech family", () -> MechFamilyDebugSpawner.spawn(getSim()));
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
                 () -> turretAuthor.active,
