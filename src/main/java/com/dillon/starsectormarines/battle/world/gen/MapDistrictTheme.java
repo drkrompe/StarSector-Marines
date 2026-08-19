@@ -68,6 +68,7 @@ public enum MapDistrictTheme {
         INDUSTRIAL.table = WeightedTable.<BlockKind>builder()
                 .add(BlockKind.BUILDING_INDUSTRIAL,  38)
                 .add(BlockKind.INDUSTRIAL_YARD,      28)
+                .add(BlockKind.INDUSTRIAL_COMPOUND,   6)
                 .add(BlockKind.WASTELAND_RUBBLE,     10)
                 .add(BlockKind.FORTIFIED_POST,        8)
                 .add(BlockKind.BUILDING_COMMERCIAL,   5)
@@ -105,6 +106,7 @@ public enum MapDistrictTheme {
                 .add(BlockKind.FORTIFIED_POST,        4)
                 .add(BlockKind.GATED_HOUSING,         2)  // walled subdivision in mixed zones
                 .add(BlockKind.DENSE_QUARTER,         2)  // small downtown pocket
+                .add(BlockKind.INDUSTRIAL_COMPOUND,   1)  // rare integrated works
                 .add(BlockKind.MILITARY_BASE,         2)  // rare base in mixed zones
                 .add(BlockKind.LANDING_ZONE,          2)
                 // No WATERFRONT / NATURE_WETLAND in MIXED — interior water looks wrong.
@@ -165,6 +167,7 @@ public enum MapDistrictTheme {
                 .add(BlockKind.BUILDING_INDUSTRIAL,  22)
                 .add(BlockKind.SPACEPORT_PAD,        18)  // the spaceport apron — open killing ground
                 .add(BlockKind.INDUSTRIAL_YARD,      18)
+                .add(BlockKind.INDUSTRIAL_COMPOUND,   5)  // factory + fenced dockyard
                 .add(BlockKind.BUILDING_COMMERCIAL,  12)
                 .add(BlockKind.WASTELAND_RUBBLE,      8)
                 .add(BlockKind.FORTIFIED_POST,        8)

@@ -29,7 +29,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
  * reads visually as "courtyard inside the buildings" rather than as an open
  * landing apron. Civic headquarters require a genuinely large lot so their
  * two-cell spine and four side rooms remain useful at infantry scale; smaller
- * civic rolls become ordinary commercial buildings.
+ * civic rolls become ordinary commercial buildings. Industrial-compound
+ * seeds likewise require the 15x12 tactical-factory footprint and demote to
+ * ordinary industrial buildings when undersized.
  */
 public final class LabelLeavesStage implements GenStage {
 
@@ -39,6 +41,10 @@ public final class LabelLeavesStage implements GenStage {
     public static final int CIVIC_MIN_LONG_DIM = 13;
     /** Minimum short footprint dimension for a multi-room civic headquarters. */
     public static final int CIVIC_MIN_SHORT_DIM = 11;
+    /** Minimum long footprint for the factory seed in an industrial compound. */
+    public static final int INDUSTRIAL_COMPOUND_MIN_LONG_DIM = 15;
+    /** Minimum short footprint for the factory seed in an industrial compound. */
+    public static final int INDUSTRIAL_COMPOUND_MIN_SHORT_DIM = 12;
 
     @Override
     public void run(GenContext ctx) {
@@ -52,7 +58,30 @@ public final class LabelLeavesStage implements GenStage {
             leaf.kind = theme.pickBlockKind(ctx.rng);
             leaf.kind = constrainKindForSize(leaf.kind, leaf.width(), leaf.height());
         }
+        ensureIndustrialCompoundSeed(partition);
+    }
 
+    /**
+     * Keep the compound visible without converting arbitrary districts: when
+     * no natural seed rolled, promote the largest already-industrial lot that
+     * can hold the tactical factory. The claim pass still requires two valid
+     * neighbors and demotes a failed seed back to an ordinary factory.
+     */
+    private static void ensureIndustrialCompoundSeed(Bsp.Partition partition) {
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind == BlockKind.INDUSTRIAL_COMPOUND) return;
+        }
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind != BlockKind.BUILDING_INDUSTRIAL
+                    && leaf.kind != BlockKind.INDUSTRIAL_YARD) continue;
+            if (Math.max(leaf.width(), leaf.height()) < INDUSTRIAL_COMPOUND_MIN_LONG_DIM
+                    || Math.min(leaf.width(), leaf.height()) < INDUSTRIAL_COMPOUND_MIN_SHORT_DIM) {
+                continue;
+            }
+            if (best == null || leaf.area() > best.area()) best = leaf;
+        }
+        if (best != null) best.kind = BlockKind.INDUSTRIAL_COMPOUND;
     }
 
     static BlockKind constrainKindForSize(BlockKind kind, int width, int height) {
@@ -64,6 +93,11 @@ public final class LabelLeavesStage implements GenStage {
                 && (Math.max(width, height) < CIVIC_MIN_LONG_DIM
                     || Math.min(width, height) < CIVIC_MIN_SHORT_DIM)) {
             return BlockKind.BUILDING_COMMERCIAL;
+        }
+        if (kind == BlockKind.INDUSTRIAL_COMPOUND
+                && (Math.max(width, height) < INDUSTRIAL_COMPOUND_MIN_LONG_DIM
+                    || Math.min(width, height) < INDUSTRIAL_COMPOUND_MIN_SHORT_DIM)) {
+            return BlockKind.BUILDING_INDUSTRIAL;
         }
         return kind;
     }

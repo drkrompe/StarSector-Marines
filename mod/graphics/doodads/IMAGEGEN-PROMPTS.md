@@ -155,3 +155,37 @@ Per-asset primary requests:
   console, a low angular blue-gray and gunmetal operator panel with three cyan
   process screens, amber emergency indicators, chunky switches, cable ports,
   and hazard-yellow edge rails; no chair or operator.
+
+## Industrial-compound fence kit
+
+The fence kit used the built-in ImageGen tool in `stylized-concept` mode with
+genuinely transparent backgrounds. Untouched outputs live in `imagegen-raw/`
+and `imagegen-masters/`; `derive_industrial_fence_frames.py` crops and rotates
+the two masters into six runtime sources.
+
+Shared rendering contract:
+
+```text
+Asset type: a single 32x32-ready top-down tactical-game doodad sprite and
+rotation master.
+Scene/backdrop: genuinely transparent background with clean alpha.
+Style/medium: pixelated-realistic strict top-down game sprite, crisp clustered
+pixels, restrained high-contrast detail legible after reduction to 32x32,
+matching the gritty blue-gray and hazard-yellow industrial doodad atlas.
+Composition: orthographic 90-degree top-down, centered, generous even padding,
+full object visible, exact horizontal/vertical alignment suitable for rotation.
+Lighting: subtle overhead upper-left object-local highlights only.
+Constraints: exactly one isolated fence asset; no floor, base tile, cast
+shadow, people, readable text, logo, watermark, scenery, or magenta; no
+isometric or perspective view; preserve alpha through and around wire mesh.
+```
+
+Per-master primary requests:
+
+- `industrial-fence-straight.png`: one straight horizontal rugged industrial
+  chain-link security fence, thin dark gunmetal end posts, dense blue-gray
+  crisscross mesh, and a narrow hazard-yellow lower rail; transparent mesh,
+  symmetrical endpoints, and suitable for seamless repetition and rotation.
+- `industrial-fence-corner-nw.png`: one compact L-shaped northwest corner with
+  equal arms extending east and south from a reinforced post, matching mesh,
+  posts, and hazard rail; aligned for deterministic mirroring into four corners.

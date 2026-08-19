@@ -136,50 +136,92 @@
       "ballisticHalfHeight": 0.45
     },
     {
-      "id": "doodad.military-radar-dish",
+      "id": "doodad.industrial-fence-corner-nw",
       "col": 3,
       "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-corner-ne",
+      "col": 4,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-corner-sw",
+      "col": 5,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-corner-se",
+      "col": 6,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-straight-h",
+      "col": 7,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-straight-v",
+      "col": 0,
+      "row": 3,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.military-radar-dish",
+      "col": 1,
+      "row": 3,
       "cover": "heavy",
       "ballisticHalfHeight": 0.75
     },
     {
       "id": "doodad.military-command-console",
-      "col": 4,
-      "row": 2,
+      "col": 2,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.military-tactical-table",
-      "col": 5,
-      "row": 2,
+      "col": 3,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.38
     },
     {
       "id": "doodad.military-bunk",
-      "col": 6,
-      "row": 2,
+      "col": 4,
+      "row": 3,
       "cover": "light",
       "ballisticHalfHeight": 0.25
     },
     {
       "id": "doodad.office-workstation-bank",
-      "col": 7,
-      "row": 2,
+      "col": 5,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.45
     },
     {
       "id": "doodad.office-server-rack",
-      "col": 0,
+      "col": 6,
       "row": 3,
       "cover": "heavy",
       "ballisticHalfHeight": 0.75
     },
     {
       "id": "doodad.office-conference-table",
-      "col": 1,
+      "col": 7,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.38
@@ -295,41 +337,77 @@
     {
       "col": 3,
       "row": 2,
-      "name": "Military radar dish",
-      "description": "Armored field radar on a rotating pedestal."
+      "name": "Industrial fence corner NW",
+      "description": "Chain-link corner connecting east and south."
     },
     {
       "col": 4,
       "row": 2,
-      "name": "Command console",
-      "description": "Three-screen command-and-control operator station."
+      "name": "Industrial fence corner NE",
+      "description": "Chain-link corner connecting west and south."
     },
     {
       "col": 5,
       "row": 2,
-      "name": "Tactical planning table",
-      "description": "Armored illuminated battlefield planning table."
+      "name": "Industrial fence corner SW",
+      "description": "Chain-link corner connecting east and north."
     },
     {
       "col": 6,
       "row": 2,
-      "name": "Barracks bunk",
-      "description": "Compact field cot with stowed kit."
+      "name": "Industrial fence corner SE",
+      "description": "Chain-link corner connecting west and north."
     },
     {
       "col": 7,
       "row": 2,
+      "name": "Industrial fence horizontal",
+      "description": "Straight horizontal chain-link security fence."
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "name": "Industrial fence vertical",
+      "description": "Straight vertical chain-link security fence."
+    },
+    {
+      "col": 1,
+      "row": 3,
+      "name": "Military radar dish",
+      "description": "Armored field radar on a rotating pedestal."
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "name": "Command console",
+      "description": "Three-screen command-and-control operator station."
+    },
+    {
+      "col": 3,
+      "row": 3,
+      "name": "Tactical planning table",
+      "description": "Armored illuminated battlefield planning table."
+    },
+    {
+      "col": 4,
+      "row": 3,
+      "name": "Barracks bunk",
+      "description": "Compact field cot with stowed kit."
+    },
+    {
+      "col": 5,
+      "row": 3,
       "name": "Office workstation bank",
       "description": "Low municipal workstation with terminal and privacy panel."
     },
     {
-      "col": 0,
+      "col": 6,
       "row": 3,
       "name": "Office server rack",
       "description": "Dense municipal data cabinet with status lights."
     },
     {
-      "col": 1,
+      "col": 7,
       "row": 3,
       "name": "Civic conference table",
       "description": "Administrative planning table with inset presentation display."

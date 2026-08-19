@@ -828,6 +828,7 @@ public class BspMapPreviewTest {
             case MILITARY_BASE: return "MIL";
             case GATED_HOUSING: return "GH";
             case DENSE_QUARTER: return "DQ";
+            case INDUSTRIAL_COMPOUND: return "IC";
             default:            return kind.name().substring(0, Math.min(3, kind.name().length()));
         }
     }
