@@ -5,10 +5,11 @@ package com.dillon.starsectormarines.battle.unit;
  * squad; defenders are whatever opposed force the mission generated (faction
  * garrison, pirate gang, etc). CIVILIAN is the neutral bucket — non-combatants
  * present on the map (residents, lab techs, dockworkers) who don't count
- * toward either side's elimination objective and who get shot at only
- * incidentally. Future missions with multiple opposed factions can keep using
- * MARINE/DEFENDER as the two-sided abstraction; tier comes from
- * {@link UnitType}, not faction.
+ * toward either side's elimination objective. Marine direct fire excludes
+ * civilian bodies from both intended and incidental contacts; defender fire
+ * can still target or incidentally hit them. Future missions with multiple
+ * opposed factions can keep using MARINE/DEFENDER as the two-sided
+ * abstraction; tier comes from {@link UnitType}, not faction.
  *
  * <p>Win condition (v1): last faction with surviving combatants wins.
  */

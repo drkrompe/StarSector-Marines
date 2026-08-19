@@ -75,6 +75,32 @@ class SwarmAvoidanceSystemTest {
     }
 
     @Test
+    void avoidanceCannotExceedTheMarinesAuthoredMoveSpeed() {
+        BattleSimulation sim = openArena(24, 20);
+        long marine = spawn(sim, "marine", Faction.MARINE,
+                UnitType.MARINE, 5, 10);
+        spawn(sim, "runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 5, 12);
+        sim.setPath(marine, new int[]{5, 10, 15, 10});
+        float startX = sim.world().x(marine);
+        float startY = sim.world().y(marine);
+        sim.movement().beginTick(BattleSimulation.TICK_DT);
+        sim.advanceMovement(marine);
+
+        avoidanceFor(sim).tick(BattleSimulation.TICK_DT);
+
+        float dx = sim.world().x(marine) - startX;
+        float dy = sim.world().y(marine) - startY;
+        float displacement = (float) Math.sqrt(dx * dx + dy * dy);
+        float vx = sim.movement().velX(marine);
+        float vy = sim.movement().velY(marine);
+        float appliedSpeed = (float) Math.sqrt(vx * vx + vy * vy);
+        assertTrue(displacement <= UnitType.MARINE.moveSpeed
+                * BattleSimulation.TICK_DT + 1e-5f);
+        assertTrue(appliedSpeed <= UnitType.MARINE.moveSpeed + 1e-5f);
+    }
+
+    @Test
     void conventionalEnemiesAndDistantAliensDoNotAlterMovement() {
         BattleSimulation sim = openArena(24, 20);
         long marine = spawn(sim, "marine", Faction.MARINE,

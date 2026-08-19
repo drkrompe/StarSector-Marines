@@ -119,10 +119,28 @@ class RescueEscortCommandTest {
     }
 
     @Test
-    void pickupGuardsStayOnTheirPerimeter() {
+    void pickupGuardsKeepTheirAuthoredPerimeterPosts() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
                 sim, List.of(residential()), 44L);
+        assertNotNull(payload);
+        Squad guard = addMarineSquad(sim, 2, 2);
+        guard.rescuePickupGuard = true;
+        int postX = payload.placement.formationX(0);
+        int postY = payload.placement.formationY(0);
+        guard.assignedObjective = ObjectiveAssignment.escort(
+                guard.id, postX, postY);
+
+        new RescueEscortCommand(payload.placement).tick(sim);
+
+        assertEscortTarget(guard, postX, postY);
+    }
+
+    @Test
+    void pickupGuardWithoutAnAuthoredPostFallsBackToTheLift() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential()), 45L);
         assertNotNull(payload);
         Squad guard = addMarineSquad(sim, 2, 2);
         guard.rescuePickupGuard = true;
