@@ -126,6 +126,35 @@ class CampaignStateChronicleColumnsTest {
     }
 
     @Test
+    void silentColonyDispatchRetainsMeasuredFactsOnce() {
+        CampaignState state = new CampaignState();
+        int market = state.marketRegistry.intern("hesperus_ruins");
+
+        long id = state.addChronicleSilentColony(9L, market, 8, 3,
+                AbandonedColonyArchiveOutcome.RECOVERED, 20, 20);
+        long replay = state.addChronicleSilentColony(9L, market, 91, 90,
+                AbandonedColonyArchiveOutcome.LOST, 93, 94);
+
+        assertEquals(id, replay);
+        assertEquals(1, state.chronicleCount);
+        assertEquals(ChronicleEventType.SILENT_COLONY,
+                ChronicleEventType.fromByte(state.chronicleEventType[0]));
+        assertEquals(ChronicleBand.INTIMATE,
+                ChronicleBand.fromByte(state.chronicleBand[0]));
+        assertEquals(ChronicleConfidence.CONFIRMED,
+                ChronicleConfidence.fromByte(state.chronicleConfidence[0]));
+        assertEquals(9L, state.chronicleSourceEventId[0]);
+        assertEquals(market, state.chronicleMarketId[0]);
+        assertEquals(8, state.chronicleSurvivorsAtRisk[0]);
+        assertEquals(3, state.chronicleSurvivorsRescued[0]);
+        assertEquals(AbandonedColonyArchiveOutcome.RECOVERED,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.chronicleColonyArchiveOutcome[0]));
+        assertEquals(20, state.chronicleHappenedTick[0]);
+        assertEquals(20, state.chronicleLearnedTick[0]);
+    }
+
+    @Test
     void growthInitializesUnusedChronicleAndChainSentinels() {
         CampaignState state = new CampaignState();
         for (int i = 0; i < 20; i++) {
@@ -144,6 +173,12 @@ class CampaignStateChronicleColumnsTest {
         assertEquals(-1, state.chronicleSourceFactionId[20]);
         assertEquals(-1, state.chronicleResultFactionId[20]);
         assertEquals(-1L, state.chronicleTestamentId[20]);
+        assertEquals(-1L, state.chronicleSourceEventId[20]);
+        assertEquals(-1, state.chronicleSurvivorsAtRisk[20]);
+        assertEquals(-1, state.chronicleSurvivorsRescued[20]);
+        assertEquals(AbandonedColonyArchiveOutcome.NONE,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.chronicleColonyArchiveOutcome[20]));
         assertEquals(-1, state.chronicleHappenedTick[20]);
         assertEquals(-1, state.chronicleLearnedTick[20]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[20]);
@@ -167,6 +202,10 @@ class CampaignStateChronicleColumnsTest {
         state.chronicleSourceFactionId = null;
         state.chronicleResultFactionId = null;
         state.chronicleTestamentId = null;
+        state.chronicleSourceEventId = null;
+        state.chronicleSurvivorsAtRisk = null;
+        state.chronicleSurvivorsRescued = null;
+        state.chronicleColonyArchiveOutcome = null;
         state.chronicleHappenedTick = null;
         state.chronicleLearnedTick = null;
         state.chainDiscoveryProcessedTick = null;
@@ -190,6 +229,10 @@ class CampaignStateChronicleColumnsTest {
         assertNotNull(state.chronicleSourceFactionId);
         assertNotNull(state.chronicleResultFactionId);
         assertNotNull(state.chronicleTestamentId);
+        assertNotNull(state.chronicleSourceEventId);
+        assertNotNull(state.chronicleSurvivorsAtRisk);
+        assertNotNull(state.chronicleSurvivorsRescued);
+        assertNotNull(state.chronicleColonyArchiveOutcome);
         assertNotNull(state.chronicleHappenedTick);
         assertNotNull(state.chronicleLearnedTick);
         assertNotNull(state.chainDiscoveryProcessedTick);
@@ -199,6 +242,12 @@ class CampaignStateChronicleColumnsTest {
         assertEquals(-1, state.chronicleSourceFactionId[0]);
         assertEquals(-1, state.chronicleResultFactionId[0]);
         assertEquals(-1L, state.chronicleTestamentId[0]);
+        assertEquals(-1L, state.chronicleSourceEventId[0]);
+        assertEquals(-1, state.chronicleSurvivorsAtRisk[0]);
+        assertEquals(-1, state.chronicleSurvivorsRescued[0]);
+        assertEquals(AbandonedColonyArchiveOutcome.NONE,
+                AbandonedColonyArchiveOutcome.fromByte(
+                        state.chronicleColonyArchiveOutcome[0]));
         assertEquals(-1, state.chronicleLearnedTick[0]);
         assertEquals(-1, state.chainDiscoveryProcessedTick[0]);
         assertEquals(-1, state.chainLastDiscoveryCheckTick[0]);

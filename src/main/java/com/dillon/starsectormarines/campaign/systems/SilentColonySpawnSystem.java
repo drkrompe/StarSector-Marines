@@ -149,6 +149,29 @@ public final class SilentColonySpawnSystem implements CampaignSystem {
         return conditionOnly ? Math.max(tier, ruinsTier) : tier;
     }
 
+    /** Returns this live market's production eligibility tier, or zero. */
+    public static int eligibleTier(MarketAPI market) {
+        if (market == null || market.getId() == null) return 0;
+        int tier = 0;
+        if (market.hasCondition(Conditions.RUINS_SCATTERED)) {
+            tier = Math.max(tier, 1);
+        }
+        if (market.hasCondition(Conditions.RUINS_WIDESPREAD)) {
+            tier = Math.max(tier, 2);
+        }
+        if (market.hasCondition(Conditions.RUINS_EXTENSIVE)) {
+            tier = Math.max(tier, 3);
+        }
+        if (market.hasCondition(Conditions.RUINS_VAST)) {
+            tier = Math.max(tier, 4);
+        }
+        return eligibleTier(market.isPlanetConditionMarketOnly(),
+                !market.isInvalidMissionTarget(),
+                market.getPrimaryEntity() != null,
+                market.hasCondition(Conditions.DECIVILIZED),
+                market.hasCondition(Conditions.ABANDONED_STATION), tier);
+    }
+
     private static long mix(long value) {
         value ^= value >>> 30;
         value *= 0xBF58476D1CE4E5B9L;
@@ -197,32 +220,10 @@ public final class SilentColonySpawnSystem implements CampaignSystem {
             List<Site> result = new ArrayList<>();
             for (MarketAPI market
                     : Global.getSector().getEconomy().getMarketsCopy()) {
-                int tier = ruinTier(market);
+                int tier = eligibleTier(market);
                 if (tier > 0) result.add(new Site(market.getId(), tier));
             }
             return result;
-        }
-
-        private static int ruinTier(MarketAPI market) {
-            if (market == null || market.getId() == null) return 0;
-            int tier = 0;
-            if (market.hasCondition(Conditions.RUINS_SCATTERED)) {
-                tier = Math.max(tier, 1);
-            }
-            if (market.hasCondition(Conditions.RUINS_WIDESPREAD)) {
-                tier = Math.max(tier, 2);
-            }
-            if (market.hasCondition(Conditions.RUINS_EXTENSIVE)) {
-                tier = Math.max(tier, 3);
-            }
-            if (market.hasCondition(Conditions.RUINS_VAST)) {
-                tier = Math.max(tier, 4);
-            }
-            return eligibleTier(market.isPlanetConditionMarketOnly(),
-                    !market.isInvalidMissionTarget(),
-                    market.getPrimaryEntity() != null,
-                    market.hasCondition(Conditions.DECIVILIZED),
-                    market.hasCondition(Conditions.ABANDONED_STATION), tier);
         }
     }
 }
