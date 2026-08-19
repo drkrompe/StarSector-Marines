@@ -73,7 +73,7 @@ preserving 1x1 defaults for legacy doodads and planters.
 - `build/zone-previews/residential-courtyard-compound.png` was inspected at
   sprite resolution: oriented two-cell beds and sofas remain inside their
   rooms while halls and entrances stay open.
-- Full merged root suite: 1,739 tests green. Asset-pipeline suite green. Legacy,
+- Full merged root suite: 1,742 tests green. Asset-pipeline suite green. Legacy,
   conquest, and station validation batches retain one connected walkable
   component and valid deployment.
 
