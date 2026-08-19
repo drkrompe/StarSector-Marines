@@ -125,7 +125,13 @@ a 24-cell shelter approach band so the first landing can establish a defense
 Separation's interaction with that pressure is now regression-locked too:
 eight coincident runners all retain the shared target and sustain repeated
 melee attacks after the crowd fans out (`4973fc91`). This closes the movement
-primitive risk only; the existing manual queue still owns roster/stat feel.
+primitive risk. The first stat/art feel pass is now shipped as well: generic
+aliens drop from 30 to 7.5 HP and runners from 24 to 6 HP; both live archetypes
+use generated true-overhead body/head/foot layers on the existing marine
+compositor, without firearm layers, while the held alien sheets remain fallback
+and corpse art (`bccbbe16`). The manual queue still owns roster size and
+post-rebalance time-to-contact/kill feel.
+
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
 swarm fixtures verify zero/partial/full evacuation; and Results displays both
@@ -168,7 +174,7 @@ event timeouts settle before the source chain's daily advancement; ended or
 malformed sources fail closed without rewriting history; terminal Encrypted
 Channel copy remains durable; and debug intel can force both stages through the
 production lifecycle. Focused replay/load coverage and the full root automated
-suite pass. Manual UI validation and swarm tuning remain deferred as requested.
+suite pass. Manual UI validation and post-rebalance swarm feel remain deferred.
 
 ## Completed — G9 Silent Colony
 
@@ -325,6 +331,8 @@ swarm tuning remain in the shared deferred queue.
 - G6 playtest correction — implacable pursuit under fire (`fb50b964`).
 - G6 debug scaling — swarm pressure follows first-wave strength and preserves
   an opening deployment phase (`8b2af722`, `e0d29078`).
+- G6 health/art feel pass — quarter-HP aliens and modular live xeno composition
+  (`bccbbe16`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
