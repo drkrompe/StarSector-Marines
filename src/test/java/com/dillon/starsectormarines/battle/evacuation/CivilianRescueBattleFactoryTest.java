@@ -48,7 +48,7 @@ class CivilianRescueBattleFactoryTest {
         assertTrue(sim.getReinforcementService().isEmpty());
         assertTrue(sim.isSwarmReinforcementConfigured());
         assertTrue(sim.isRescuePickupSupportConfigured());
-        assertEquals(8, sim.liveRescuePickupGuards());
+        assertEquals(0, sim.liveRescuePickupGuards());
         assertEquals(SwarmDefenseRoster.LOW_COUNT,
                 sim.swarmTargetPopulation());
         int pickupCraft = 0;
@@ -59,8 +59,19 @@ class CivilianRescueBattleFactoryTest {
             assertTrue(mission.awaitingEvacuees);
             assertEquals(8, mission.evacueeCapacity);
             assertEquals(0, mission.marinesRemaining);
+            assertEquals(RescuePickupSupportSystem.INITIAL_ARRIVAL_DELAY_SECONDS,
+                    mission.pendingDelay, 0.001f);
         }
         assertEquals(1, pickupCraft);
+        int militiaSorties = 0;
+        int mechSorties = 0;
+        for (long id : sim.getAirEntityIds()) {
+            ShuttleMission mission = sim.world().mission(id);
+            if (mission.rescueMilitiaTransport) militiaSorties++;
+            if (mission.rescuePickupMechTransport) mechSorties++;
+        }
+        assertEquals(2, militiaSorties);
+        assertEquals(1, mechSorties);
         assertTrue(sim.getCommander(Faction.MARINE)
                 instanceof RescueEscortCommand);
     }

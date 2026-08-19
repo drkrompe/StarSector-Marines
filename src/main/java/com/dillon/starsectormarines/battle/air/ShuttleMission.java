@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -68,6 +69,10 @@ public final class ShuttleMission {
 
     /** Marks a local-militia reinforcement sortie for rescue-mission accounting. */
     public boolean rescueMilitiaTransport;
+    /** Marks the one-off mech delivery assigned to the rescue pickup line. */
+    public boolean rescuePickupMechTransport;
+    /** Optional physical mech variant carried by a mech-support sortie. */
+    public MechVariant mechVariant;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */
     public int rescueGuardX = -1;
     public int rescueGuardY = -1;
