@@ -19,8 +19,10 @@ public final class CivilianEvacuationPlacement {
     public static final int LIFT_ZONE_RADIUS = 1;
     public static final int SHELTER_ZONE_RADIUS = 5;
     public static final int PICKUP_FORMATION_POINTS = 5;
-    public static final int PICKUP_FORMATION_RADIUS = 7;
-    public static final int PICKUP_EDGE_INSET = 10;
+    /** Thirteen-cell radius gives the five-point line an approximately 25x25 footprint. */
+    public static final int PICKUP_FORMATION_RADIUS = 13;
+    /** Keeps the full production-sized formation inside the map with a small rear margin. */
+    public static final int PICKUP_EDGE_INSET = 15;
     private static final int PICKUP_BAND_WIDTH = 2;
     private static final int FORMATION_SEARCH_RADIUS = 3;
 
@@ -31,6 +33,7 @@ public final class CivilianEvacuationPlacement {
     public final int shelterApproachY;
     public final int liftX;
     public final int liftY;
+    private final int formationRadius;
     private final int[] spawnCells;
     private final int[] formationCells;
 
@@ -38,6 +41,7 @@ public final class CivilianEvacuationPlacement {
                                         int shelterApproachX,
                                         int shelterApproachY,
                                         int liftX, int liftY,
+                                        int formationRadius,
                                         int[] spawnCells,
                                         int[] formationCells) {
         this.shelterX = shelterX;
@@ -46,6 +50,7 @@ public final class CivilianEvacuationPlacement {
         this.shelterApproachY = shelterApproachY;
         this.liftX = liftX;
         this.liftY = liftY;
+        this.formationRadius = formationRadius;
         this.spawnCells = spawnCells;
         this.formationCells = formationCells;
     }
@@ -110,6 +115,10 @@ public final class CivilianEvacuationPlacement {
         return formationCells.length / 2;
     }
 
+    public int formationRadius() {
+        return formationRadius;
+    }
+
     public int formationX(int index) {
         checkFormationIndex(index);
         return formationCells[index * 2];
@@ -137,7 +146,8 @@ public final class CivilianEvacuationPlacement {
         if (spawns == null) return null;
         return new CivilianEvacuationPlacement(
                 sx, sy, shelter.anchorCellX, shelter.anchorCellY,
-                lift.x, lift.y, spawns, lift.formationCells);
+                lift.x, lift.y, lift.formationRadius,
+                spawns, lift.formationCells);
     }
 
     private static LiftSite farthestReachableLift(NavigationGrid grid,
@@ -146,6 +156,7 @@ public final class CivilianEvacuationPlacement {
         int bestY = -1;
         int bestDistance = -1;
         int[] bestFormation = null;
+        int formationRadius = formationRadius(grid);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!inPickupBand(grid, x, y) || !grid.isWalkable(x, y)) {
@@ -155,7 +166,8 @@ public final class CivilianEvacuationPlacement {
                 if (distance < bestDistance) continue;
                 int[] path = GridPathfinder.findPath(grid, sx, sy, x, y);
                 if (Paths.isEmpty(path)) continue;
-                int[] formation = formationCells(grid, x, y);
+                int[] formation = formationCells(
+                        grid, x, y, formationRadius);
                 if (formation == null) continue;
                 if (distance > bestDistance
                         || y < bestY || (y == bestY && x < bestX)) {
@@ -166,7 +178,9 @@ public final class CivilianEvacuationPlacement {
                 }
             }
         }
-        return bestX >= 0 ? new LiftSite(bestX, bestY, bestFormation) : null;
+        return bestX >= 0
+                ? new LiftSite(bestX, bestY, formationRadius, bestFormation)
+                : null;
     }
 
     private static int[] reachableSpawnCells(NavigationGrid grid,
@@ -228,15 +242,16 @@ public final class CivilianEvacuationPlacement {
     }
 
     private static int[] formationCells(NavigationGrid grid,
-                                         int liftX, int liftY) {
+                                         int liftX, int liftY,
+                                         int formationRadius) {
         int[] result = new int[PICKUP_FORMATION_POINTS * 2];
         for (int point = 0; point < PICKUP_FORMATION_POINTS; point++) {
             double angle = -Math.PI / 2.0
                     + point * Math.PI * 2.0 / PICKUP_FORMATION_POINTS;
             int idealX = (int) Math.round(liftX
-                    + Math.cos(angle) * PICKUP_FORMATION_RADIUS);
+                    + Math.cos(angle) * formationRadius);
             int idealY = (int) Math.round(liftY
-                    + Math.sin(angle) * PICKUP_FORMATION_RADIUS);
+                    + Math.sin(angle) * formationRadius);
             int bestX = -1;
             int bestY = -1;
             int bestDistance = Integer.MAX_VALUE;
@@ -248,7 +263,7 @@ public final class CivilianEvacuationPlacement {
                             || alreadySelected(result, point, x, y)) continue;
                     int fromCenter = Math.max(Math.abs(x - liftX),
                             Math.abs(y - liftY));
-                    if (fromCenter < PICKUP_FORMATION_RADIUS - 2) continue;
+                    if (fromCenter < formationRadius - 2) continue;
                     if (Paths.isEmpty(GridPathfinder.findPath(
                             grid, x, y, liftX, liftY))) continue;
                     int dx = x - idealX;
@@ -268,6 +283,11 @@ public final class CivilianEvacuationPlacement {
             result[point * 2 + 1] = bestY;
         }
         return result;
+    }
+
+    private static int formationRadius(NavigationGrid grid) {
+        int available = (Math.min(grid.getWidth(), grid.getHeight()) - 3) / 2;
+        return Math.max(3, Math.min(PICKUP_FORMATION_RADIUS, available));
     }
 
     private static boolean alreadySelected(int[] cells, int count,
@@ -290,7 +310,8 @@ public final class CivilianEvacuationPlacement {
         }
     }
 
-    private record LiftSite(int x, int y, int[] formationCells) {}
+    private record LiftSite(int x, int y, int formationRadius,
+                            int[] formationCells) {}
 
     private static int mix32(long value) {
         value ^= value >>> 33;

@@ -41,8 +41,12 @@ class CivilianEvacuationPlacementTest {
                     placement.formationY(point)));
             assertTrue(Math.max(Math.abs(placement.formationX(point) - placement.liftX),
                     Math.abs(placement.formationY(point) - placement.liftY))
-                    >= CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS - 2);
+                    >= placement.formationRadius() - 2);
         }
+        assertEquals(CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS,
+                placement.formationRadius());
+        assertTrue(formationSpan(placement, true) >= 25);
+        assertTrue(formationSpan(placement, false) >= 25);
         for (int i = 0; i < placement.spawnCount(); i++) {
             assertTrue(grid.isWalkable(
                     placement.spawnX(i), placement.spawnY(i)));
@@ -55,6 +59,19 @@ class CivilianEvacuationPlacementTest {
                         || placement.spawnY(i) != placement.spawnY(j));
             }
         }
+    }
+
+    private static int formationSpan(CivilianEvacuationPlacement placement,
+                                     boolean xAxis) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (int point = 0; point < placement.formationPointCount(); point++) {
+            int value = xAxis ? placement.formationX(point)
+                    : placement.formationY(point);
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+        return max - min + 1;
     }
 
     @Test

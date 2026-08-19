@@ -179,7 +179,7 @@ public final class SwarmDefenseRoster {
 
     static boolean insideLiftZone(
             int x, int y, CivilianEvacuationPlacement placement) {
-        int safeRadius = CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS + 2;
+        int safeRadius = placement.formationRadius() + 2;
         return Math.abs(x - placement.liftX)
                 <= safeRadius
                 && Math.abs(y - placement.liftY)
