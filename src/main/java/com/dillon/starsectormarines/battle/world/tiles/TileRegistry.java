@@ -165,8 +165,24 @@ public final class TileRegistry {
                             + "' has invalid ballisticHalfHeight " + ballisticHalfHeight);
                 }
             }
+            int footprintCellsX = 1;
+            int footprintCellsY = 1;
+            JSONArray footprint = o.optJSONArray("footprintCells");
+            if (footprint != null) {
+                if (footprint.length() != 2) {
+                    throw new IllegalStateException("TileRegistry: doodad '" + id
+                            + "' footprintCells must contain [width, height]");
+                }
+                footprintCellsX = footprint.getInt(0);
+                footprintCellsY = footprint.getInt(1);
+                if (footprintCellsX <= 0 || footprintCellsY <= 0) {
+                    throw new IllegalStateException("TileRegistry: doodad '" + id
+                            + "' footprintCells values must be positive");
+                }
+            }
             doodadsById.put(id, new DoodadDef(
-                    id, sheet, col, row, cover, ballisticHalfHeight));
+                    id, sheet, col, row, cover, ballisticHalfHeight,
+                    footprintCellsX, footprintCellsY));
         }
     }
 

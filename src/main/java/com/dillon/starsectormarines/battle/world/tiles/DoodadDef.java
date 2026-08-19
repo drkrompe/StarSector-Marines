@@ -8,10 +8,11 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * {@code (col,row)} frames the {@code TileManifest} doodad pools hardcoded and
  * the cover the {@code Doodad.defaultCoverFor} table derived.
  *
- * <p>A doodad is a single source cell ({@link #col},{@link #row} on
- * {@link #sheetPath}) plus intrinsic tactical {@link #cover} and a symmetric
- * {@link #ballisticHalfHeight} — the prop's combat profile is the same wherever
- * a filler scatters it (a crate is medium cover in a shop or a warehouse alike).
+ * <p>A doodad begins at source cell ({@link #col},{@link #row} on
+ * {@link #sheetPath}) and may span {@link #footprintCellsX} by
+ * {@link #footprintCellsY} cells. The same span is its rendered and tactical
+ * world footprint. Intrinsic {@link #cover} and symmetric
+ * {@link #ballisticHalfHeight} apply to every occupied cell.
  * Gen scatters them by id; which ids go in which pool is the
  * {@code GenMappingRegistry}'s concern, not this def's.
  *
@@ -26,14 +27,25 @@ public final class DoodadDef {
     public final DoodadCover cover;
     /** Symmetric target-plane catch band around Z=0, in cells. */
     public final float ballisticHalfHeight;
+    public final int footprintCellsX;
+    public final int footprintCellsY;
 
     public DoodadDef(String id, String sheetPath, int col, int row, DoodadCover cover) {
         this(id, sheetPath, col, row, cover,
-                (cover == null ? DoodadCover.NONE : cover).defaultBallisticHalfHeight());
+                (cover == null ? DoodadCover.NONE : cover).defaultBallisticHalfHeight(), 1, 1);
     }
 
     public DoodadDef(String id, String sheetPath, int col, int row,
                      DoodadCover cover, float ballisticHalfHeight) {
+        this(id, sheetPath, col, row, cover, ballisticHalfHeight, 1, 1);
+    }
+
+    public DoodadDef(String id, String sheetPath, int col, int row,
+                     DoodadCover cover, float ballisticHalfHeight,
+                     int footprintCellsX, int footprintCellsY) {
+        if (footprintCellsX <= 0 || footprintCellsY <= 0) {
+            throw new IllegalArgumentException("Doodad footprint must be positive");
+        }
         this.id = id;
         this.sheetPath = sheetPath;
         this.col = col;
@@ -42,5 +54,7 @@ public final class DoodadDef {
         this.ballisticHalfHeight = Float.isFinite(ballisticHalfHeight)
                 ? Math.max(0f, ballisticHalfHeight)
                 : 0f;
+        this.footprintCellsX = footprintCellsX;
+        this.footprintCellsY = footprintCellsY;
     }
 }

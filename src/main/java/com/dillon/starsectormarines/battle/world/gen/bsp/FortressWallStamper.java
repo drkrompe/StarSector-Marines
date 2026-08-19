@@ -675,10 +675,15 @@ public final class FortressWallStamper implements GenStage {
         // parade ground looks wrong, and orphaned crates inside the kill zone
         // give attackers free cover the level designer didn't intend.
         doodads.removeIf(d -> {
-            int dx = d.cellX;
-            int dy = d.cellY;
-            if (dx < 0 || dx >= w || dy < 0 || dy >= h) return false;
-            return toClear[dx][dy] || wallsCleared[dx][dy];
+            for (int fy = 0; fy < d.footprintCellsY; fy++) {
+                for (int fx = 0; fx < d.footprintCellsX; fx++) {
+                    int x = d.cellX + fx;
+                    int y = d.cellY + fy;
+                    if (x < 0 || x >= w || y < 0 || y >= h) continue;
+                    if (toClear[x][y] || wallsCleared[x][y]) return true;
+                }
+            }
+            return false;
         });
     }
 

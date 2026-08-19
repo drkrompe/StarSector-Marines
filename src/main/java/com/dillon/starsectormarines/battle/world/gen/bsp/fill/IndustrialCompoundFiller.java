@@ -237,7 +237,7 @@ public final class IndustrialCompoundFiller implements CompoundFiller {
                         : frontage == BuildingPlacement.Side.RIGHT ? yard.right - depth : along;
                 int y = frontage == BuildingPlacement.Side.TOP ? yard.top + depth
                         : frontage == BuildingPlacement.Side.BOTTOM ? yard.bottom - depth : along;
-                ctx.doodads.removeIf(d -> d.cellX == x && d.cellY == y);
+                ctx.doodads.removeIf(d -> d.occupiesCell(x, y));
                 ctx.grid.setWalkableFloor(x, y);
                 ctx.grid.setSeeThrough(x, y, true);
                 ctx.topology.setWall(x, y, false);
