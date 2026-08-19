@@ -1,8 +1,8 @@
 # T3 — the last testament
 
-**Status:** SLICE 1 CODE COMPLETE (2026-08-19)
+**Status:** SLICE 2 CODE COMPLETE (2026-08-19)
 
-**Implemented:** `946262b2`
+**Implemented:** `946262b2`, `15c017e`
 
 ## Purpose
 
@@ -138,9 +138,12 @@ contracts, houses, chains, markets, or factions.
    tests.~~ Shipped in `946262b2`; the producer runs immediately after the moral
    pass, requires an exact handoff-day claimant ledger row, and freezes identities,
    axes, contribution, and the exclusive ledger boundary exactly once.
-2. **Evidence editor** — deterministic pure selection from the frozen ledger
+2. ~~**Evidence editor** — deterministic pure selection from the frozen ledger
    prefix, source-family diversity, mixed-character synthesis, and exhaustive
-   prose tests without numeric leakage.
+   prose tests without numeric leakage.~~ Shipped in `15c017e`; the pure editor
+   validates terminal source facts, selects at most one strongest historical deed
+   per family, preserves mixed-character tension, and rejects malformed drafts
+   without exposing hidden-system vocabulary or numbers.
 3. **Last Testament intel** — diegetic delivery, load reconstruction, historical
    terminal state, and malformed-data fail-closed behavior.
 4. **Closure and reachability** — production-shaped debug setup, Chronicle
