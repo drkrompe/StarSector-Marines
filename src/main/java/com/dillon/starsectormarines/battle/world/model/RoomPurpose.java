@@ -69,4 +69,12 @@ public enum RoomPurpose {
     CONTROL_ROOM,
     /** Industrial facility — secured replacement-parts and tool storage. */
     PARTS_CAGE,
+    /** Residential compound — public threshold between the courtyard and apartment hall. */
+    APARTMENT_LOBBY,
+    /** Residential compound — two-cell common hall linking entrances and private rooms. */
+    RESIDENTIAL_HALL,
+    /** Residential compound — shared sitting and dining room with low furniture cover. */
+    APARTMENT_LIVING,
+    /** Residential compound — private sleeping room with a low bed fixture. */
+    BEDROOM,
 }

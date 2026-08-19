@@ -225,6 +225,48 @@
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.38
+    },
+    {
+      "id": "doodad.residential-bed-h",
+      "col": 0,
+      "row": 4,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28
+    },
+    {
+      "id": "doodad.residential-bed-v",
+      "col": 1,
+      "row": 4,
+      "cover": "light",
+      "ballisticHalfHeight": 0.28
+    },
+    {
+      "id": "doodad.residential-sofa-h",
+      "col": 2,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.42
+    },
+    {
+      "id": "doodad.residential-sofa-v",
+      "col": 3,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.42
+    },
+    {
+      "id": "doodad.residential-planter-h",
+      "col": 4,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.residential-planter-v",
+      "col": 5,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55
     }
   ],
   "cells": [
@@ -411,6 +453,42 @@
       "row": 3,
       "name": "Civic conference table",
       "description": "Administrative planning table with inset presentation display."
+    },
+    {
+      "col": 0,
+      "row": 4,
+      "name": "Residential bed horizontal",
+      "description": "Low civilian bed aligned east-west."
+    },
+    {
+      "col": 1,
+      "row": 4,
+      "name": "Residential bed vertical",
+      "description": "Low civilian bed aligned north-south."
+    },
+    {
+      "col": 2,
+      "row": 4,
+      "name": "Residential sofa horizontal",
+      "description": "Low two-seat civilian sofa aligned east-west."
+    },
+    {
+      "col": 3,
+      "row": 4,
+      "name": "Residential sofa vertical",
+      "description": "Low two-seat civilian sofa aligned north-south."
+    },
+    {
+      "col": 4,
+      "row": 4,
+      "name": "Courtyard planter horizontal",
+      "description": "Raised concrete shrub planter aligned east-west."
+    },
+    {
+      "col": 5,
+      "row": 4,
+      "name": "Courtyard planter vertical",
+      "description": "Raised concrete shrub planter aligned north-south."
     }
   ]
 }

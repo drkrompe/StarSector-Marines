@@ -41,8 +41,8 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. */
-    private static final int SCHEMA_VERSION = 6;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. v7: bounding-overwatch phase and destinations. */
+    private static final int SCHEMA_VERSION = 7;
 
     private SquadStateDumper() {}
 
@@ -124,6 +124,30 @@ public final class SquadStateDumper {
         o.put("advanceThreatAnchorY", squad.advanceThreatAnchorY);
         o.put("advanceThreatRetreating", squad.advanceThreatRetreating);
         o.put("advanceThreatTick", squad.advanceThreatTick);
+        o.put("boundingActive", squad.boundingActive);
+        o.put("boundingPhase", squad.boundingPhase);
+        o.put("boundingTargetZoneId", squad.boundingTargetZoneId);
+        o.put("boundingDestX", squad.boundingDestX);
+        o.put("boundingDestY", squad.boundingDestY);
+        long boundingThreat = sim.resolveUnit(squad.boundingThreatId);
+        o.put("boundingThreatId", boundingThreat != 0L ? sim.identity().name(boundingThreat) : null);
+        o.put("boundingStrideX", squad.boundingStrideX);
+        o.put("boundingStrideY", squad.boundingStrideY);
+        long[] boundingMembers = squad.boundingMemberIds;
+        int[] boundingXs = squad.boundingTargetXs;
+        int[] boundingYs = squad.boundingTargetYs;
+        int boundingCount = Math.min(boundingMembers.length,
+                Math.min(boundingXs.length, boundingYs.length));
+        JSONArray boundingTargets = new JSONArray();
+        for (int i = 0; i < boundingCount; i++) {
+            JSONObject target = new JSONObject();
+            long bounder = sim.resolveUnit(boundingMembers[i]);
+            target.put("memberId", bounder != 0L ? sim.identity().name(bounder) : null);
+            target.put("x", boundingXs[i]);
+            target.put("y", boundingYs[i]);
+            boundingTargets.put(target);
+        }
+        o.put("boundingTargets", boundingTargets);
         return o;
     }
 

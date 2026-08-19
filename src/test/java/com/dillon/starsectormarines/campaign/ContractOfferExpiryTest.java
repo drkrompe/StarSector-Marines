@@ -136,4 +136,36 @@ public class ContractOfferExpiryTest {
         assertEquals(ContractState.ACTIVE, ContractState.fromByte(state.contractState[row]),
                 "ACTIVE contract must not be touched by the OFFERED-aging branch");
     }
+
+    @Test
+    public void stationingTermWritesOnePatronMemoryPerTerminalContract() {
+        CampaignState state = new CampaignState();
+        int marketId = state.marketRegistry.intern("jangala");
+        long patronId = state.addHouse(marketId, 1, HouseFlavor.CORPORATE,
+                HouseRank.TIER_2, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "House Cavor");
+        long completed = state.addContract(patronId, -1L, -1L,
+                ContractType.GARRISON, ContractState.ACTIVE, 10, 20, -1,
+                (byte) 1, -1, marketId, -1, 1_000, 0,
+                (byte) 25, (byte) 25, (byte) 100);
+        state.contractPhasesDone[state.contractIndex(completed)] = 1;
+        long failed = state.addContract(patronId, -1L, -1L,
+                ContractType.CADRE, ContractState.ACTIVE, 10, 20, -1,
+                (byte) 1, -1, marketId, -1, 1_000, 0,
+                (byte) 25, (byte) 25, (byte) 100);
+
+        ContractLifecycleSystem system = new ContractLifecycleSystem();
+        system.tick(state, 20);
+        system.tick(state, 21);
+
+        assertEquals(2, state.patronEngagementCount);
+        assertEquals(completed, state.patronEngagementSourceContractId[0]);
+        assertEquals(PatronEngagementOutcome.COMPLETED,
+                PatronEngagementOutcome.fromByte(
+                        state.patronEngagementOutcome[0]));
+        assertEquals(failed, state.patronEngagementSourceContractId[1]);
+        assertEquals(PatronEngagementOutcome.FAILED,
+                PatronEngagementOutcome.fromByte(
+                        state.patronEngagementOutcome[1]));
+    }
 }

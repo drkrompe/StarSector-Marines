@@ -2,6 +2,12 @@
 
 Shipped in `ba6f3b5a`.
 
+Deployment follow-up `476b2be6`: `deployMod` now depends on
+`:asset-pipeline:processAudio`. The initial slice committed reproducible source
+clips and manifest entries, but generated `mod/sounds/` files are gitignored;
+without that dependency, a deploy could copy `sounds.json` without its new Ogg
+files and Starsector would fail during sound loading.
+
 ## What landed
 
 - Twelve selected MW4 radio clips committed as reproducible audio-pipeline
@@ -30,6 +36,8 @@ Shipped in `ba6f3b5a`.
 - `gradlew.bat build`
 - `gradlew.bat :asset-pipeline:processAudio` — 64 encoded, 0 failed; radio
   outputs confirmed as mono positional clips.
+- `gradlew.bat deployMod --dry-run` — schedules `processAudio` before
+  `deployMod`.
 
 ## Deferred
 

@@ -149,6 +149,10 @@ public final class TacticalScoring {
     public static final float ADVANCE_THREAT_RETREAT_MULT = 0.2f;
     /** Enemy force equal to half the nearby friendly force saturates the advance threat score at 1. */
     public static final float ADVANCE_THREAT_PARITY_FRACTION = 0.5f;
+    /** Radius around a bound's forward stride point searched for covered firing cells. */
+    public static final int BOUNDING_POSITION_SEARCH_RADIUS = 4;
+    /** Minimum objective-axis progress a bounder must make; rejects oscillation and same-line role swaps. */
+    public static final float BOUNDING_MIN_FORWARD_PROGRESS = 2f;
 
     /**
      * Penalty added to a no-LoS target's score when {@code allowNoLos} is set
@@ -1370,6 +1374,109 @@ public final class TacticalScoring {
         }
         return best;
     }
+
+    /**
+     * Assigns one distinct, reachable forward firing cell to every member in
+     * {@code bounders}. The search is centered on the phase's stride point,
+     * but each candidate is validated against the individual member's weapon
+     * range and current position. Returning an empty list is an all-or-nothing
+     * failure: the caller keeps the squad on the ordinary committed-contact
+     * path instead of moving only part of a bound with nobody able to take
+     * over overwatch.
+     *
+     * <p>Cover dominates the rank, then proximity to the stride point, route
+     * length, existing occupancy, and spacing from cells already reserved in
+     * this phase. This is deliberately a small greedy assignment — fireteams
+     * cap around eight members and a bound contains at most half of them.
+     */
+    public List<BoundingPosition> findBoundingPositions(List<Long> bounders,
+                                                        long threat,
+                                                        int strideX, int strideY,
+                                                        int destX, int destY) {
+        if (bounders.isEmpty() || !roster.isAliveById(threat)) return List.of();
+
+        World world = roster.world();
+        float axisX = destX - strideX;
+        float axisY = destY - strideY;
+        float axisLen = (float) Math.sqrt(axisX * axisX + axisY * axisY);
+        if (axisLen < 1e-4f) return List.of();
+        axisX /= axisLen;
+        axisY /= axisLen;
+
+        int threatX = world.cellX(threat);
+        int threatY = world.cellY(threat);
+        List<BoundingPosition> assigned = new ArrayList<>(bounders.size());
+        for (long member : bounders) {
+            if (!roster.isAliveById(member)) continue;
+            BoundingPosition best = null;
+            float bestScore = Float.MAX_VALUE;
+            int memberX = world.cellX(member);
+            int memberY = world.cellY(member);
+
+            for (int dy = -BOUNDING_POSITION_SEARCH_RADIUS; dy <= BOUNDING_POSITION_SEARCH_RADIUS; dy++) {
+                for (int dx = -BOUNDING_POSITION_SEARCH_RADIUS; dx <= BOUNDING_POSITION_SEARCH_RADIUS; dx++) {
+                    int x = strideX + dx;
+                    int y = strideY + dy;
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+                    if (isReserved(assigned, x, y)) continue;
+
+                    float anchorDistance = cellDistance(x, y, strideX, strideY);
+                    if (anchorDistance > BOUNDING_POSITION_SEARCH_RADIUS) continue;
+                    float forward = (x - memberX) * axisX + (y - memberY) * axisY;
+                    if (forward < BOUNDING_MIN_FORWARD_PROGRESS) continue;
+                    float remaining = cellDistance(memberX, memberY, destX, destY);
+                    if (forward > remaining + 0.5f) continue;
+                    if (!grid.hasLineOfSight(x, y, threatX, threatY)) continue;
+                    if (cellDistance(x + 0.5f, y + 0.5f,
+                            world.x(threat), world.y(threat)) > world.attackRange(member)) continue;
+
+                    int[] path = GridPathfinder.findPath(grid, memberX, memberY, x, y, occupancyMap);
+                    if (Paths.isEmpty(path)) continue;
+
+                    int threatDx = threatX - x;
+                    int threatDy = threatY - y;
+                    int cover = grid.getCoverAt(x, y, threatDx, threatDy)
+                            + doodads.getDoodadCoverAt(x, y, threatDx, threatDy);
+                    int occupancy = occupancyMap[grid.index(x, y)] & 0xFF;
+                    float spacingPenalty = boundingSpacingPenalty(assigned, x, y);
+                    float score = -cover * 100f
+                            + anchorDistance * 5f
+                            + Paths.cellCount(path)
+                            + occupancy * 12f
+                            + spacingPenalty;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        best = new BoundingPosition(member, x, y);
+                    }
+                }
+            }
+
+            if (best == null) return List.of();
+            assigned.add(best);
+        }
+        return assigned.size() == bounders.size() ? assigned : List.of();
+    }
+
+    private static boolean isReserved(List<BoundingPosition> assigned, int x, int y) {
+        for (BoundingPosition p : assigned) {
+            if (p.x == x && p.y == y) return true;
+        }
+        return false;
+    }
+
+    private static float boundingSpacingPenalty(List<BoundingPosition> assigned, int x, int y) {
+        float penalty = 0f;
+        for (BoundingPosition p : assigned) {
+            float distance = cellDistance(x, y, p.x, p.y);
+            if (distance <= FIRING_AOE_SPREAD_RADIUS) {
+                penalty += (FIRING_AOE_SPREAD_RADIUS + 1f - distance) * 20f;
+            }
+        }
+        return penalty;
+    }
+
+    /** Immutable member-to-cell result from {@link #findBoundingPositions}. */
+    public record BoundingPosition(long memberId, int x, int y) {}
 
     /**
      * Cover-aware variant of {@code findFiringPosition} —

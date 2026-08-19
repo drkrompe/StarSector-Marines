@@ -54,6 +54,25 @@ class ContractReputationTest {
         assertEquals(65535, state.repContractsCompleted[repRow] & 0xFFFF);
     }
 
+    @Test
+    void contractAuthorityRecordsOutcomeAndReplaysAsNoOp() {
+        CampaignState state = state(HouseRank.TIER_2);
+        int marketId = state.marketRegistry.intern("jangala");
+        long contractId = state.addContract(state.houseId[0], -1L, -1L,
+                ContractType.STRIKE, ContractState.COMPLETED, 10, -1, -1,
+                (byte) 1, -1, marketId, -1, 1_000, 0,
+                (byte) 25, (byte) 25, (byte) 100);
+
+        ContractReputation.completedForContract(state, contractId, 1, 20);
+        ContractReputation.completedForContract(state, contractId, 1, 21);
+
+        assertEquals(1, state.repValue[0]);
+        assertEquals(3, state.playerMrbRep);
+        assertEquals(1, state.repContractsCompleted[0] & 0xFFFF);
+        assertEquals(1, state.patronEngagementCount);
+        assertEquals(20, state.patronEngagementHappenedTick[0]);
+    }
+
     private static void assertCompletionReward(HouseRank rank, int expectedMrb) {
         CampaignState state = state(rank);
         ContractReputation.completed(state, state.houseId[0], 1, 20);
