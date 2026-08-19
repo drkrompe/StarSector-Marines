@@ -45,8 +45,9 @@ import java.util.List;
  *       earmarks the ticket burst all-or-nothing and snapshots the target
  *       slice's manned nodes.</li>
  *   <li><b>TELEGRAPH.</b> The comms-hook window ({@link #TELEGRAPH_SEC}) —
- *       today just a log line (slice 3's comms-officer UI is a later
- *       story). Re-validates each tick that the slice is still conceded;
+ *       the battle HUD reads the exposed phase, timer, target, and outcome
+ *       state to narrate the buildup and mark the threatened district.
+ *       Re-validates each tick that the slice is still conceded;
  *       a natural re-contest aborts with a full refund.</li>
  *   <li><b>ASSAULT.</b> One cadence tick: re-checks the slice is still
  *       conceded (a re-contest landing in the one-tick gap since the last
@@ -110,9 +111,8 @@ public final class CounterattackSystem {
     /**
      * Sim-seconds the telegraph phase holds before the wave launches — the
      * player's reaction window to dig in, fall back, or pre-empt. The
-     * comms-hook (slice 3, out of scope here) fires at phase entry; today
-     * that's a log line. Tune for "long enough to react, short enough to
-     * feel threatening" per the design doc's open question.
+     * comms warning fires at phase entry. Tune for "long enough to react,
+     * short enough to feel threatening" per the design doc's open question.
      */
     public static final float TELEGRAPH_SEC = 20f;
 
@@ -170,8 +170,11 @@ public final class CounterattackSystem {
      */
     public static final int MAX_BULGES_PER_BATTLE = 2;
 
-    /** Phase of the bulge state machine. Public so tests and a future HUD/comms hook can read it directly. */
+    /** Phase of the bulge state machine. Public so tests and the HUD/comms presenter can read it directly. */
     public enum Phase { IDLE, TELEGRAPH, ASSAULT, RESOLVE, COOLDOWN }
+
+    /** Player-facing disposition of the most recent bulge. Retained through cooldown so the HUD cannot miss the resolving tick. */
+    public enum Resolution { NONE, SUCCESS, FAILURE, ABORTED }
 
     private final RecaptureTargetService targets;
     private final ReinforcementService reinforcement;
@@ -199,6 +202,13 @@ public final class CounterattackSystem {
     /** Consecutive RESOLVE ticks the bulge slice has read contested, unbroken. Reset to 0 on entering RESOLVE and whenever a tick reads not-contested. See {@link #SUCCESS_HOLD_TICKS}. */
     private int holdStreak = 0;
 
+    /** Outcome of the current/most recent bulge. Reset when a new muster starts and after cooldown returns to idle. */
+    private Resolution resolution = Resolution.NONE;
+
+    /** Representative world cell for the threatened-slice signpost: centroid of the muster's target nodes. */
+    private float bulgeCenterX = Float.NaN;
+    private float bulgeCenterY = Float.NaN;
+
     public CounterattackSystem(RecaptureTargetService targets, ReinforcementService reinforcement,
                                 BattleResources resources, TraversalAxis axis) {
         this.targets = targets;
@@ -207,11 +217,23 @@ public final class CounterattackSystem {
         this.axis = axis;
     }
 
-    /** Current phase. Exposed for tests and a future HUD/comms hook. */
+    /** Current phase. Exposed for tests and the battle comms presenter. */
     public Phase getPhase() { return phase; }
 
     /** The slice the current or most recent bulge targets, or {@code null} when no bulge has ever mustered / the last one fully reset. */
     public BiomeKind getBulgeSlice() { return bulgeSlice; }
+
+    /** Countdown for TELEGRAPH/RESOLVE/COOLDOWN, in simulation seconds. */
+    public float getPhaseTimeRemaining() { return Math.max(0f, phaseTimer); }
+
+    /** Resolution retained through cooldown; {@link Resolution#NONE} while no bulge has resolved. */
+    public Resolution getResolution() { return resolution; }
+
+    /** Representative X cell for the current threatened slice, or NaN while no bulge snapshot exists. */
+    public float getBulgeCenterX() { return bulgeCenterX; }
+
+    /** Representative Y cell for the current threatened slice, or NaN while no bulge snapshot exists. */
+    public float getBulgeCenterY() { return bulgeCenterY; }
 
     /** Slow-tick: accumulate {@code dt}, then on cadence advance whichever phase is active. */
     public void tick(float dt, BattleView sim) {
@@ -281,7 +303,9 @@ public final class CounterattackSystem {
 
         bulgeSlice = slice;
         bulgeTargets = manned;
+        updateBulgeCenter(manned);
         rotationIndex = 0;
+        resolution = Resolution.NONE;
         phase = Phase.TELEGRAPH;
         phaseTimer = TELEGRAPH_SEC;
         LOG.info("counterattack: mustering bulge against " + slice + " — "
@@ -416,9 +440,11 @@ public final class CounterattackSystem {
         if (success || phaseTimer <= 0f) {
             bulgesFired++;
             if (success) {
+                resolution = Resolution.SUCCESS;
                 LOG.info("counterattack: bulge against " + bulgeSlice
                         + " succeeded — defenders re-established presence, front shifts back");
             } else {
+                resolution = Resolution.FAILURE;
                 LOG.info("counterattack: bulge against " + bulgeSlice
                         + " failed — wave wiped, earmark burned, front holds");
             }
@@ -450,6 +476,7 @@ public final class CounterattackSystem {
         resources.produce(Faction.DEFENDER, ResourceType.REINFORCEMENT, lump);
         LOG.info("counterattack: bulge against " + bulgeSlice + " aborted — " + reason + ", earmark refunded");
         holdStreak = 0;
+        resolution = Resolution.ABORTED;
         phase = Phase.COOLDOWN;
         phaseTimer = ABORT_COOLDOWN_SEC;
     }
@@ -462,5 +489,19 @@ public final class CounterattackSystem {
         bulgeTargets = null;
         rotationIndex = 0;
         holdStreak = 0;
+        resolution = Resolution.NONE;
+        bulgeCenterX = Float.NaN;
+        bulgeCenterY = Float.NaN;
+    }
+
+    private void updateBulgeCenter(List<RecaptureTarget> candidates) {
+        float sumX = 0f;
+        float sumY = 0f;
+        for (RecaptureTarget candidate : candidates) {
+            sumX += candidate.objectiveX() + 0.5f;
+            sumY += candidate.objectiveY() + 0.5f;
+        }
+        bulgeCenterX = sumX / candidates.size();
+        bulgeCenterY = sumY / candidates.size();
     }
 }
