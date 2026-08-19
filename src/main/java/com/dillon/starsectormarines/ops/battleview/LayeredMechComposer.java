@@ -27,9 +27,9 @@ final class LayeredMechComposer {
         float rightStep = stepping
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, true) : 0f;
 
-        // Feet and arm anchors are below the hull in draw order. Hound's narrow
-        // body exposes a wider stance so its alternating gait remains legible;
-        // the broader chassis retain the mostly-hidden heavy-mech treatment.
+        // Feet and arm anchors are below the hull in draw order. The light
+        // chassis plant their feet near the mid-body so alternating extension
+        // remains legible; the Bulwark retains its mostly-hidden heavy stance.
         float footX = LayeredMechAppearance.footLateralOffset(chassis);
         float footY = LayeredMechAppearance.footRearOffset(chassis);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
