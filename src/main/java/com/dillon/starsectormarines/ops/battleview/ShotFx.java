@@ -156,7 +156,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
 
     private static ShotFx deriveSecondary(MarineSecondary w) {
         return new ShotFx(new Sprite(w.projectileSpritePath, w.projectileVisualCells),
-                0f, false, false, false, null);
+                0f, false, false, false, ContrailStyle.MISSILE_SMOKE);
     }
 
     private static ShotFx deriveMech(MechWeapon w) {

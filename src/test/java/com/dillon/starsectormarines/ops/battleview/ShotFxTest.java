@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.render2d.ContrailStyle;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -126,6 +127,11 @@ public class ShotFxTest {
     }
 
     @Test
+    public void dmrNeedleUsesAHighContrastPaleBlueTint() {
+        assertEquals(new Color(0xE0, 0xF0, 0xFF), MarineWeapon.DMR.tracerColor);
+    }
+
+    @Test
     public void generatedPulseBoltAssetIsTransparentWhiteBaseAtRuntimeDimensions() throws Exception {
         Path path = Path.of("mod/graphics/fx/round_bolt.png");
         assertTrue(Files.isRegularFile(path), "generated bolt asset must ship in mod graphics");
@@ -154,14 +160,18 @@ public class ShotFxTest {
     }
 
     @Test
-    public void marineSecondariesAreSpritesWithNoModifiers() {
+    public void marineSecondariesAreSpritesWithMissileSmokeContrails() {
         for (MarineSecondary w : MarineSecondary.values()) {
             ShotFx fx = ShotFx.of(shot(null, null, w, null));
             Sprite body = assertSprite(fx, "secondary " + w);
             assertEquals(w.projectileSpritePath, body.spritePath(), "sprite path for " + w);
             assertEquals(w.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + w);
             assertTrue(fx.travels(), "secondary body travels: " + w);
-            assertNoTrailsArcOrContrail(fx);
+            assertEquals(0f, fx.arcHeight(), 0f);
+            assertFalse(fx.boostRamp());
+            assertFalse(fx.engineTrail());
+            assertFalse(fx.smokeTrail(), "ribbon replaces discrete smoke puffs");
+            assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
         }
     }
 
