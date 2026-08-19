@@ -177,8 +177,11 @@ universe over time, not retrofitted into intel slots.
    direct fire now ignores civilian bodies, alien avoidance cannot raise a
    marine above its movement-speed stat, and the five militia squads retain
    their authored perimeter posts instead of collapsing onto the LZ center
-   (`bf6fdd64`). Manual cadence and post-rebalance feel validation remain
-   queued.
+   (`bf6fdd64`). Mobile rescue squads now receive distinct line-and-depth rally
+   slots before relief and throughout the escort, settle within two cells of
+   those slots, and only enter their slower timed advance while an engaged
+   squad has a live alien within twelve cells (`f2159d82`). Manual cadence and
+   post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through
