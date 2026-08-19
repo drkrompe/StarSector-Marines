@@ -56,6 +56,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
+import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -77,6 +78,8 @@ import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -161,6 +164,9 @@ public class BattleSimulation implements BattleControl {
     /** Mission-local perimeter waves; inert unless civilian-rescue setup configures them. */
     private final SwarmReinforcementSystem swarmReinforcements =
             new SwarmReinforcementSystem(civilianEvacuation);
+    /** Allied pickup garrison and casualty-driven shuttle reserve. */
+    private final RescuePickupSupportSystem rescuePickupSupport =
+            new RescuePickupSupportSystem(civilianEvacuation);
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
@@ -279,6 +285,8 @@ public class BattleSimulation implements BattleControl {
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
     private final LongList deathsThisFrame = new LongArrayList();
+    /** Marine squad ids whose members were actually hit by friendly rounds during the last {@link #advance(float)} call. */
+    private final IntList friendlyFireSquadsThisFrame = new IntArrayList();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
@@ -537,6 +545,9 @@ public class BattleSimulation implements BattleControl {
             CivilianEvacuationPlacement placement) {
         return civilianEvacuationSystem.configure(placement);
     }
+    public boolean attachCivilianPickupShuttle(long shuttleId) {
+        return civilianEvacuationSystem.attachPickupShuttle(shuttleId);
+    }
     /** Whether the rescue cohort is still sealed inside its opening shelter. */
     public boolean isCivilianShelterProtected() {
         return civilianEvacuationSystem.isShelterProtected();
@@ -544,6 +555,10 @@ public class BattleSimulation implements BattleControl {
     /** Whether a marine has reached the bunker entrance and begun evacuation. */
     public boolean isCivilianEvacuationTriggered() {
         return civilianEvacuationSystem.isEvacuationTriggered();
+    }
+    @Override
+    public boolean hasCivilianPickupShuttle() {
+        return civilianEvacuationSystem.hasPickupShuttle();
     }
     public boolean configureSwarmReinforcements(
             CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
@@ -554,6 +569,20 @@ public class BattleSimulation implements BattleControl {
     }
     public int swarmTargetPopulation() {
         return swarmReinforcements.targetPopulation();
+    }
+    public boolean configureRescuePickupSupport(
+            CivilianEvacuationPlacement placement,
+            float reinforcementLzX, float reinforcementLzY,
+            float entryX, float entryY, float exitX, float exitY) {
+        return rescuePickupSupport.configure(placement,
+                reinforcementLzX, reinforcementLzY,
+                entryX, entryY, exitX, exitY, this);
+    }
+    public boolean isRescuePickupSupportConfigured() {
+        return rescuePickupSupport.isConfigured();
+    }
+    public int liveRescuePickupGuards() {
+        return rescuePickupSupport.liveGuardCount(this);
     }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<com.dillon.starsectormarines.battle.logistics.ResupplyCache> getResupplyCaches() {
@@ -652,6 +681,8 @@ public class BattleSimulation implements BattleControl {
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     public LongList getDeathsThisFrame()         { return deathsThisFrame; }
+    /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
+    public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
@@ -953,6 +984,7 @@ public class BattleSimulation implements BattleControl {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
         shots.beginFrame();
         deathsThisFrame.clear();
+        friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         if (complete) return;
         tickAccumulator += dt;
@@ -1215,7 +1247,16 @@ public class BattleSimulation implements BattleControl {
         // than re-queuing for a drain that already ran this tick.
         shots.tickImpacts(TICK_DT, impact -> {
             if (!rosterService.isAliveById(impact.victimId)) return;
+            int friendlyFireSquad = Squad.NO_SQUAD;
+            if (impact.friendly
+                    && rosterService.identity().faction(impact.victimId) == Faction.MARINE
+                    && rosterService.squad().hasSquad(impact.victimId)) {
+                friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
+            }
             damageService.applyDamage(impact.victimId, impact.damage, impact.vsTurretMult, impact.moraleImpact);
+            if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
+                friendlyFireSquadsThisFrame.add(friendlyFireSquad);
+            }
             hitResponse.rollFallbackOnHit(impact.victimId);
             hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
         });
@@ -1225,6 +1266,7 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
+        rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);

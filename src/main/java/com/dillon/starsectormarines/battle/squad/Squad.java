@@ -116,6 +116,13 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
+     * Local allied squad assigned permanently to a civilian-rescue pickup
+     * perimeter. The rescue commander leaves these squads on station while it
+     * advances the player's mobile escort force.
+     */
+    public boolean rescuePickupGuard;
+
+    /**
      * Member count at the moment {@link com.dillon.starsectormarines.battle.setup.BattleSetup}
      * finished spawning the squad. The fallback trigger compares
      * {@link #aliveMembers} against this peak: when casualties bring the squad

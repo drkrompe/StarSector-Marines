@@ -64,6 +64,10 @@ touches one bank only.
    current contract and composes between the officer prefix and patron body.
    With two valid prior engagements, S2 recognizes one of seven exhaustive
    relationship patterns; with one, the S1 newest-outcome callback remains.
+2d. **Local echo** (first-time-client callback) uses the newest engagement for
+   a different house at the same market when it happened within the prior 180
+   days. Direct patron history always wins. The echo states only the measured
+   other-patron outcome and never claims a political relationship.
 3. **Officer characterization** (future) — different officers will
    ship different prefix/suffix/summary pools and aside vocabularies.
    Same axis as swapping a captain. Not modeled until there's a second
@@ -129,7 +133,10 @@ Patron B's contract briefing mentions Patron A's recent operation in
 passing — not naming the player, just acknowledging that something
 happened in the world. The player connects the dots. Over months of
 play, this builds the sense of a universe larger than the player's
-own activity.
+own activity. Narrative S3 ships the first bounded version (`53cda364`):
+a first-time patron's briefing may receive one recent same-market engagement
+echo from a different house. Returning patrons retain their direct S1/S2
+history instead, and no cross-house motive or relationship is inferred.
 
 ## Discoverable, not announced
 
@@ -222,14 +229,16 @@ content pipeline can be designed in dialogue with them.
    arc transitions to `ESTABLISHED` or a new `VINDICATED` archetype.
    A time-rushed Capo who promotes shifts to established underworld
    Boss. The same `houseId` reads differently over months.
-4. **History-aware briefings.** *(S1 `1b950e48`; S2 `cbfebaef`.)*
+4. **History-aware briefings.** *(S1 `1b950e48`; S2 `cbfebaef`; S3
+   `53cda364`.)*
    Late-game contracts from a patron reference *your* shared past with them,
    not just archetype-generic flavor. The voice stays consistent; the content
    draws from real campaign events (target name-checks, prior mission outcomes).
    The shipped slices store a per-house engagement feed from all real terminal
-   contract authorities and render either the newest valid fact or a factual
-   two-engagement pattern. Target name-checks, longer sequences, and
-   event-linked memories remain future expansion.
+   contract authorities and render either the newest valid fact, a factual
+   two-engagement pattern, or one bounded same-market echo for a first-time
+   patron. Target name-checks, longer sequences, and event-linked memories
+   remain future expansion.
 5. **Rare anomaly events.** Periodic departures from pattern —
    fallen-noble has a moment of triumph, time-rushed Capo writes one
    weirdly composed brief. Signals "this is a person, not a slot
