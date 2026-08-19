@@ -129,13 +129,14 @@ derived from the stories rather than from a generic GOAP rolodex.
   infrastructure (cover model, ZoneQueries, goal-priority buckets,
   threat-density picker).
 
-**Shipped stories (Slices 1–3.5):** A (garrison ambush), B (pinned and
-broken), G (cover-aware reposition), I (engagement discipline), J (sabotage
-cordon), K (room-clear sweep), L (choke-point ambush), M (room breach).
+**Shipped stories (Slices 1–4 + partial Slice 6):** A (garrison ambush), B
+(pinned and broken), C (bounding overwatch), D (patrol intercept), F (objective
+rush under fire), G (cover-aware reposition), I (engagement discipline), J
+(sabotage cordon), K (room-clear sweep), L (choke-point ambush), M (room
+breach).
 
-**Remaining stories (Slices 4–6):** C (bounding overwatch), D (patrol
-intercept), E (mech-screened advance), F (objective rush under fire),
-H (last-stand camper). See `stories/10-tactical-stories.md` for the full slicing.
+**Remaining stories:** E (mech-screened advance) and H (last-stand camper).
+See `stories/10-tactical-stories.md` for the full slicing.
 
 ### Squad-of-squads commander tier (active)
 

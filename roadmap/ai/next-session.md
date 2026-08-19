@@ -2,7 +2,7 @@
 
 ## Where we are
 
-Stage 2 tactical stories are mostly shipped (Slices 1–3.5 + partial
+Stage 2 tactical stories are mostly shipped (Slices 1–4 + partial
 Slice 6). All three marine-side commanders now ship: `SabotageCommand`
 (objective-cluster), `ConquestCommand` (lateral-strip), and
 `AssaultCommand` (sector-grid sweep). Mech GOAP Stage 1 is complete
@@ -44,6 +44,14 @@ off-axis leash, and falling threat releases the squad back onto its objective
 route automatically. Dump schema v6 exposes the full decision. See
 `complete/19-threat-scored-engagement-leash.md`.
 
+Story 20 / Slice 4 shipped (2026-08-19, `b72819fc`): committed `EnterZone`
+advances now split into stable two-team bounding overwatch. One half holds and
+fires stanced while the other moves without firing to distinct, reachable
+forward cover; arrival flips the roles, and Story 19's threat release restores
+the objective route. Story F is also closed as already shipped by Story J's
+planter/portal-holder cordon (`c54991d4`). See
+`complete/20-bounding-overwatch.md`.
+
 Story 15's four tactical cheap wins were already shipped (`5f12ac03`,
 `09bf4f70`, `6dd1e63c`, `04e3f814`): directional fallback cover,
 speed-scaled fallback scans, bounded LoS, and the interim last-seen threat-set
@@ -51,13 +59,9 @@ gate. The full squad-belief + commander-influence layer remains parked.
 
 ## Immediate next
 
-1. **Slice 4 (Stories C + F)** — per-member assignment + bounding
-   overwatch + objective rush under fire. F may collapse into J (the
-   cordon goal hierarchy already covers planter-under-fire). See
-   `stories/10-tactical-stories.md` § Slice 4.
-2. **Slice 5 (Story H)** — last-stand `HoldPosition` on `MUST_HOLD`
+1. **Slice 5 (Story H)** — last-stand `HoldPosition` on `MUST_HOLD`
    tactical nodes. Small scope.
-3. **Story E (mech-screened advance)** — remaining piece of Slice 6.
+2. **Story E (mech-screened advance)** — remaining piece of Slice 6.
    Blocked on mech GOAP Stage 2 work (`stories/13-mech-goap.md`).
 
 ## Parked but design-complete
@@ -87,5 +91,8 @@ gate. The full squad-belief + commander-influence layer remains parked.
 - `complete/19-threat-scored-engagement-leash.md` — shipped commit-vs-press
   zone advance with off-axis leash, hysteresis, auto-release, diagnostics, and
   the belief-layer swap boundary (`8d33ca5`, `14d646a`)
+- `complete/20-bounding-overwatch.md` — shipped two-team leapfrog layered onto
+  Story 19's committed `EnterZone` branch (`b72819fc`); also records Story F's
+  prior closure in the sabotage cordon (`c54991d4`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
