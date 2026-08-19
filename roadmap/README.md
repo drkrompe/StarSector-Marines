@@ -157,8 +157,11 @@ universe over time, not retrofitted into intel slots.
    (`bc29cb26`). Rescue pickup is now physical: a landed civilian Valkyrie
    boards the cohort while eight fixed local militia receive capped Aeroshuttle
    replacements, and engaged escorts advance in two-cell timed bounds instead
-   of freezing (`2395397f`). Manual cadence, spacing, and post-rebalance feel
-   validation remain queued.
+   of freezing (`2395397f`). The entire pickup footprint now waits through a
+   twelve-second opening grace period, then arrives in staggered physical
+   sorties with one deterministic Bulwark or Sirocco supporting the militia
+   (`b6b0dd6f`). Manual cadence, spacing, and post-rebalance feel validation
+   remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory, S2
