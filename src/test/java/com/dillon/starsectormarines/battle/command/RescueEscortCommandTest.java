@@ -154,13 +154,13 @@ class RescueEscortCommandTest {
     }
 
     private static BattleSimulation simulation() {
-        NavigationGrid grid = new NavigationGrid(24, 16);
+        NavigationGrid grid = new NavigationGrid(40, 30);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 grid.setWalkableFloor(x, y);
             }
         }
-        return new BattleSimulation(grid, new CellTopology(24, 16));
+        return new BattleSimulation(grid, new CellTopology(40, 30));
     }
 
     private static PointOfInterest residential() {
