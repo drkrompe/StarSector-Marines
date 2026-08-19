@@ -17,9 +17,9 @@ import java.util.function.Supplier;
 
 /**
  * Resolves each ground cell to the exact source rectangle the color pass uses,
- * but on an S1-derived height sheet. {@link GroundHeightPass} then draws that
- * rectangle as a texture, preserving every height texel instead of collapsing
- * the rectangle to one average value.
+ * but on the matching S1-derived height and normal sheets. The material passes
+ * draw that rectangle as a texture, preserving every derived texel instead of
+ * collapsing the rectangle to one average value.
  *
  * <p>The resolver mirrors both variable-width nature/urban-3 selection and
  * fixed-grid fallback selection. Cells on sheets S1 deliberately skipped
@@ -149,7 +149,8 @@ final class GroundMicroHeightSampler {
 
     private static Sample sample(String colorSheetPath, int srcX, int srcY, int srcW, int srcH) {
         if (!DERIVED_SHEETS.contains(colorSheetPath)) return null;
-        return new Sample(derivedHeightPath(colorSheetPath), srcX, srcY, srcW, srcH);
+        return new Sample(derivedHeightPath(colorSheetPath), derivedNormalPath(colorSheetPath),
+                srcX, srcY, srcW, srcH);
     }
 
     /** {@code graphics/tilesets/Foo.png} -> {@code graphics/tilesets/Foo_height.png}. */
@@ -157,6 +158,13 @@ final class GroundMicroHeightSampler {
         int dot = colorSheetPath.lastIndexOf('.');
         String base = dot >= 0 ? colorSheetPath.substring(0, dot) : colorSheetPath;
         return base + "_height.png";
+    }
+
+    /** {@code graphics/tilesets/Foo.png} -> {@code graphics/tilesets/Foo_normal.png}. */
+    static String derivedNormalPath(String colorSheetPath) {
+        int dot = colorSheetPath.lastIndexOf('.');
+        String base = dot >= 0 ? colorSheetPath.substring(0, dot) : colorSheetPath;
+        return base + "_normal.png";
     }
 
     private static boolean isWallAt(CellTopology topology, int x, int y) {
@@ -196,17 +204,30 @@ final class GroundMicroHeightSampler {
 
     static final class Sample {
         final String heightSheetPath;
+        final String normalSheetPath;
         final int srcX;
         final int srcY;
         final int srcW;
         final int srcH;
 
         Sample(String heightSheetPath, int srcX, int srcY, int srcW, int srcH) {
+            this(heightSheetPath, normalPathFromHeight(heightSheetPath), srcX, srcY, srcW, srcH);
+        }
+
+        Sample(String heightSheetPath, String normalSheetPath,
+               int srcX, int srcY, int srcW, int srcH) {
             this.heightSheetPath = heightSheetPath;
+            this.normalSheetPath = normalSheetPath;
             this.srcX = srcX;
             this.srcY = srcY;
             this.srcW = srcW;
             this.srcH = srcH;
+        }
+
+        private static String normalPathFromHeight(String heightSheetPath) {
+            return heightSheetPath.endsWith("_height.png")
+                    ? heightSheetPath.substring(0, heightSheetPath.length() - "_height.png".length())
+                    + "_normal.png" : heightSheetPath + "_normal.png";
         }
     }
 

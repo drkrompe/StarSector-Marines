@@ -46,9 +46,12 @@ Instead:
 2. A parallel RGBA **material-height** target renders the same quads. Its
    channels preserve macro height, derived micro height, water identity, and
    shoreline proximity instead of prematurely collapsing them to grayscale.
-3. One fullscreen quad + small GLSL fragment shader applies the
-   offset-limited parallax against the composed color image.
-4. Units, shots, FX, UI draw on top, un-warped.
+3. A parallel RGB **normal** target renders the corresponding generated-normal
+   atlas rectangles, with flat-normal fallback for unsupported or missing art.
+4. One fullscreen quad + small GLSL fragment shader applies the
+   offset-limited parallax, samples color and normal at the displaced
+   coordinate, then adds the bounded dynamic-light contribution.
+5. Units, shots, FX, UI draw on top, un-warped.
 
 In the composed screen image, offset samples DO hit spatial neighbors —
 atlas bleed is structurally impossible.
@@ -90,12 +93,21 @@ Two adaptations needed (see S1):
 - **Percentile window scope** — normalize per-sheet (or per pool), NOT
   per-cell, so a flat grass tile doesn't get stretched to full 0–1 range.
 
+## Dynamic ground lights
+
+Muzzle flashes, impacts, heavy impacts, and fire bursts create short-lived
+screen-visible lights in battle space. Repeated co-located events merge, then
+camera culling and nearest-first selection cap the shader input at eight
+lights. Squared radial attenuation and the composed normal map provide local
+shape without introducing a shadow or wall-occlusion system. The contribution
+is strictly additive, so zero active lights preserve S2 pixel-for-pixel.
+
 ## Stories
 
-- **S1 — Derivation pipeline** (`stories/s1-derivation-pipeline.md`):
+- **S1 — Derivation pipeline** (`complete/s1-derivation-pipeline.md`):
   vendor the kernel, add a `deriveTileMaps` Gradle task, bake
   `<sheet>_height.png` / `<sheet>_normal.png` for the terrain sheets.
-- **S2 — Screen-space ground parallax** (`stories/s2-screenspace-parallax.md`):
+- **S2 — Screen-space ground parallax** (`complete/s2-screenspace-parallax.md`):
   shader infra (first GLSL in the mod), ground FBO pair, height pass,
   fullscreen offset-limited parallax pass. Water-first tuning.
 - **S3 — Dynamic bump lighting** (`stories/s3-dynamic-bump-lighting.md`):

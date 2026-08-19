@@ -42,4 +42,17 @@ class GroundParallaxPipelineTest {
         assertEquals(GroundParallaxPipeline.MAX_WATER_WAVE_AMPLITUDE,
                 pipeline.waterWaveAmplitude(), 1e-6f);
     }
+
+    @Test
+    void bumpLightingSettingClampsToItsDebugDialRange() {
+        GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
+        assertEquals(GroundParallaxPipeline.DEFAULT_LIGHTING_STRENGTH,
+                pipeline.lightingStrength(), 1e-6f);
+        pipeline.setLightingStrength(-1f);
+        assertEquals(GroundParallaxPipeline.MIN_LIGHTING_STRENGTH,
+                pipeline.lightingStrength(), 1e-6f);
+        pipeline.setLightingStrength(99f);
+        assertEquals(GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
+                pipeline.lightingStrength(), 1e-6f);
+    }
 }
