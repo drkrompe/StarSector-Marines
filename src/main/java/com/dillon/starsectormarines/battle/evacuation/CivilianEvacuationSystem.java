@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
@@ -33,6 +34,7 @@ public final class CivilianEvacuationSystem {
     private int radius;
     private boolean configured;
     private boolean evacuationTriggered;
+    private boolean respondingMarineObserved;
     private long pickupShuttleId;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
@@ -68,10 +70,15 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
-        if (!evacuationTriggered && marineWithin(
-                shelterApproachX, shelterApproachY,
-                RELIEF_TRIGGER_RADIUS, sim)) {
-            evacuationTriggered = true;
+        if (!evacuationTriggered) {
+            boolean respondingMarineAlive = hasRespondingMarine(sim);
+            respondingMarineObserved |= respondingMarineAlive;
+            if (marineWithin(shelterApproachX, shelterApproachY,
+                    RELIEF_TRIGGER_RADIUS, sim)
+                    || (respondingMarineObserved
+                    && !respondingMarineAlive)) {
+                evacuationTriggered = true;
+            }
         }
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
@@ -160,6 +167,7 @@ public final class CivilianEvacuationSystem {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
+            if (isShelterGuard(unit, sim)) continue;
             float distance = distanceSquared(civilian, unit, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && (best == 0L || unit < best))) {
@@ -266,12 +274,31 @@ public final class CivilianEvacuationSystem {
                                         BattleSimulation sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != Faction.MARINE) continue;
+            if (!isRespondingMarine(unit, sim)) continue;
             int dx = sim.world().cellX(unit) - x;
             int dy = sim.world().cellY(unit) - y;
             if (dx * dx + dy * dy <= distance * distance) return true;
         }
         return false;
+    }
+
+    private static boolean hasRespondingMarine(BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (isRespondingMarine(sim.liveUnitAt(i), sim)) return true;
+        }
+        return false;
+    }
+
+    private static boolean isRespondingMarine(long unit,
+                                               BattleSimulation sim) {
+        return sim.identity().faction(unit) == Faction.MARINE
+                && !isShelterGuard(unit, sim);
+    }
+
+    private static boolean isShelterGuard(long unit,
+                                          BattleSimulation sim) {
+        Squad squad = sim.squadOf(unit);
+        return squad != null && squad.rescueShelterGuard;
     }
 
     private void board(long id, BattleSimulation sim) {
