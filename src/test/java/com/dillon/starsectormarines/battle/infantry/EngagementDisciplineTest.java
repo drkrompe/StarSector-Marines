@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -147,12 +149,36 @@ class EngagementDisciplineTest {
         f.sim.world().setCellPos(f.buddyA, 9, 6);
         f.sim.world().setCellPos(f.buddyB, 10, 5);
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
-        f.sim.setPath(f.member, new int[]{5, 5, 6, 5});
+        f.sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7),
+                false, Doodad.COVER_HEAVY));
 
         assertEquals(ActionStatus.RUNNING,
                 OverwatchPosture.INSTANCE.execute(f.member, f.squad, f.sim));
-        assertTrue(Paths.isEmpty(f.sim.world().path(f.member)));
+        assertTrue(Paths.isEmpty(f.sim.world().path(f.member)),
+                "member already behind threat-facing doodad cover plants");
         assertTrue(InfantryUnitPrep.tryOpportunityPrimary(f.member, f.sim));
+    }
+
+    @Test
+    void exposedHoldMovesBackwardIntoNearbyDoodadCover() {
+        Fixture f = clusteredRunner(Faction.MARINE, true);
+        f.sim.addDoodad(new Doodad(4, 5, new TileManifest.TileFrame(4, 7),
+                false, Doodad.COVER_HEAVY));
+        EngagementDiscipline.targetForPursuit(f.member, f.squad, f.sim);
+
+        assertEquals(ActionStatus.RUNNING,
+                OverwatchPosture.INSTANCE.execute(f.member, f.squad, f.sim));
+        int[] path = f.sim.world().path(f.member);
+        assertFalse(Paths.isEmpty(path));
+        assertTrue(Paths.destX(path) <= 5,
+                "cover settle must remain lateral or backward from an eastern threat");
+        int coverDx = f.sim.world().cellX(f.rejected) - Paths.destX(path);
+        int coverDy = f.sim.world().cellY(f.rejected) - Paths.destY(path);
+        int cover = f.sim.getGrid().getCoverAt(
+                Paths.destX(path), Paths.destY(path), coverDx, coverDy)
+                + f.sim.getDoodadCoverAt(
+                Paths.destX(path), Paths.destY(path), coverDx, coverDy);
+        assertTrue(cover > 0, "the settle destination must provide actual cover");
     }
 
     @Test

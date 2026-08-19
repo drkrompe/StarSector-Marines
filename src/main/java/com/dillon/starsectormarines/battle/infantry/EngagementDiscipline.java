@@ -49,9 +49,18 @@ final class EngagementDiscipline {
 
         int density = scoring.threatDensityAt(target, squad.faction);
         squad.holdEngagementLine(target, density);
-        sim.world().setTargetId(member, 0L);
-        sim.clearPath(member);
+        clearSquadPursuit(squad, sim);
         return 0L;
+    }
+
+    private static void clearSquadPursuit(Squad squad, BattleControl sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long squadmate = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(squadmate)
+                    || sim.squad().squadId(squadmate) != squad.id) continue;
+            sim.world().setTargetId(squadmate, 0L);
+            sim.clearPath(squadmate);
+        }
     }
 
     /**
