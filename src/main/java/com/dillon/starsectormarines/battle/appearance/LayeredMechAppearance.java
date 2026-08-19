@@ -83,6 +83,11 @@ public final class LayeredMechAppearance {
         return 1f - (p - 0.56f) / 0.20f;
     }
 
+    /** Hull-width-relative lateral foot anchor for the authored chassis silhouette. */
+    public static float footLateralOffset(int chassis) {
+        return chassis == CHASSIS_HOUND ? 0.25f : 0.17f;
+    }
+
     private static float clamp01(float value) {
         return Math.max(0f, Math.min(1f, value));
     }

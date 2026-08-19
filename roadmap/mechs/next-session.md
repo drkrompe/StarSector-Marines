@@ -15,7 +15,8 @@ The battle debug panel now exposes **Spawn mech family**, which creates:
 Hound now uses the narrow pointed hull and Sirocco the broader wedge, both
 flipped to face their intended direction. Hound's one SRM and Bulwark's heavy
 racks are visible above their chassis layers; Sirocco's paired LRMs tuck under
-its hull. Bulwark's chainguns are horizontally compressed by half.
+its hull. Hound's two feet sit farther outside its thin centerline so its gait
+is readable, while Bulwark's chainguns are horizontally compressed by half.
 
 A reproducible static contact sheet is available at
 [`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It
