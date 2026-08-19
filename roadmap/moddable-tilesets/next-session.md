@@ -74,6 +74,9 @@ the optional Phase 2 extensions:
 - Dual JSON, not one (tileset def vs. mapping have different lifecycles).
 - Id-addressed registry is the linchpin; landed first (kills enum-order-=-PNG-
   order + hardcoded `(col,row)`).
+- Shipped atlases own the canonical `graphics/tilesets/<name>.png` paths. Raw
+  ImageGen authoring inputs live under `graphics/tilesets/imagegen-source/`;
+  legacy atlases and temporary `*-imagegen.png` runtime candidates are retired.
 - `TileRegistry.installed()` / `GenMappingRegistry.installed()` process-wide
   singletons (`Global.*`-shaped), NOT GenContext DI; tests install a
   disk-loaded registry via an auto-registered JUnit extension.

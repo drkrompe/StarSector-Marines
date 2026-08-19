@@ -1,9 +1,10 @@
-"""Normalize raw ImageGen tileset edits back into runtime-compatible atlases.
+"""Normalize raw ImageGen tileset sources into the canonical runtime atlases.
 
 The generated images use model-selected canvas sizes and a near-black matte.
 This script preserves the generated surface rendering while restoring the
-original atlas dimensions, fixed-grid alpha topology, and auto-strip frame
-ordering. Originals are constraints only and are never overwritten.
+runtime atlas dimensions, fixed-grid alpha topology, and auto-strip frame
+ordering. The checked-in runtime atlases are the geometry templates and are
+overwritten in place with normalized output.
 """
 
 from __future__ import annotations
@@ -35,23 +36,43 @@ class StripSpec:
 
 
 GRID_SPECS = (
-    GridSpec("urban-tileset.png", "urban-tileset.raw.png", "urban-tileset-imagegen.png"),
-    GridSpec("urban-tileset-2.png", "urban-tileset-2.raw.png", "urban-tileset-2-imagegen.png"),
-    GridSpec("Floors_Tiles.png", "Floors_Tiles.raw.png", "Floors_Tiles-imagegen.png"),
-    GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles-imagegen.png"),
+    GridSpec("urban-tileset.png", "urban-tileset.raw.png", "urban-tileset.png"),
+    GridSpec("Floors_Tiles.png", "Floors_Tiles.raw.png", "Floors_Tiles.png"),
+    GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles.png"),
 )
 
 STRIP_SPECS = (
-    StripSpec("urban-tileset-3.png", "urban-tileset-3.raw.png", "urban-tileset-3-imagegen.png", 7),
-    StripSpec("nature-tiles.png", "nature-tiles.raw.png", "nature-tiles-imagegen.png", 20),
+    StripSpec("urban-tileset-3.png", "urban-tileset-3.raw.png", "urban-tileset-3.png", 7),
+    StripSpec("nature-tiles.png", "nature-tiles.raw.png", "nature-tiles.png", 20),
 )
+
+# Auto-strips need their original production placement boxes pinned explicitly.
+# The normalized alpha silhouettes do not necessarily touch every side of those
+# boxes, so deriving placement from the previous output would shrink and drift
+# frames on each regeneration.
+STRIP_FRAME_BOXES = {
+    "urban-tileset-3.png": (
+        (17, 12, 56, 56), (69, 13, 110, 56), (121, 14, 161, 56),
+        (179, 15, 218, 54), (235, 19, 267, 51), (285, 21, 322, 45),
+        (347, 12, 364, 54),
+    ),
+    "nature-tiles.png": (
+        (11, 14, 61, 69), (75, 15, 123, 68), (147, 16, 194, 67),
+        (213, 15, 260, 66), (278, 14, 327, 65), (347, 15, 394, 65),
+        (409, 16, 454, 65), (477, 24, 522, 69), (534, 31, 567, 69),
+        (584, 25, 619, 61), (633, 22, 674, 62), (684, 16, 725, 66),
+        (735, 20, 777, 69), (812, 34, 839, 59), (862, 31, 894, 59),
+        (912, 28, 948, 60), (963, 24, 1000, 64), (1006, 22, 1055, 67),
+        (1071, 21, 1115, 65), (1130, 19, 1177, 67),
+    ),
+}
 
 # Repeating ground fields must tile without the dark outline ImageGen painted
 # around isolated source sprites. Deliberately exclude wall, transition, and
 # overlay cells: their edge contrast communicates topology rather than atlas
 # separation.
 GRID_GROUND_EDGE_CELLS = {
-    "Floors_Tiles-imagegen.png": (
+    "Floors_Tiles.png": (
         16,
         (
             (17, 1), (16, 2), (17, 2), (18, 2), (17, 3),  # brick
@@ -62,7 +83,7 @@ GRID_GROUND_EDGE_CELLS = {
         ),
         2,
     ),
-    "Water_tiles-imagegen.png": (
+    "Water_tiles.png": (
         16,
         ((6, 7), (7, 7), (8, 7)),
         2,
@@ -70,10 +91,10 @@ GRID_GROUND_EDGE_CELLS = {
 }
 
 STRIP_GROUND_EDGE_FRAMES = {
-    "urban-tileset-3-imagegen.png": (4, 3),
+    "urban-tileset-3.png": (4, 3),
     # ImageGen's ground frames have a shallow 3px side outline but a much
     # deeper bottom shadow; sample vertical edges 6px inward.
-    "nature-tiles-imagegen.png": (7, (3, 6)),
+    "nature-tiles.png": (7, (3, 6)),
 }
 
 # The three 16px sand variants were generated with different left/right
@@ -82,7 +103,7 @@ STRIP_GROUND_EDGE_FRAMES = {
 # periodic vertical join. Normalize only their horizontal edge columns to the
 # shared pool mean; retain each variant's interior and top/bottom texture.
 GRID_HORIZONTAL_EDGE_POOLS = {
-    "Floors_Tiles-imagegen.png": (
+    "Floors_Tiles.png": (
         16,
         ((6, 14), (7, 14), (8, 14)),
         3,
@@ -90,7 +111,7 @@ GRID_HORIZONTAL_EDGE_POOLS = {
 }
 
 GRID_HORIZONTAL_BIAS_POOLS = {
-    "Floors_Tiles-imagegen.png": (
+    "Floors_Tiles.png": (
         16,
         ((6, 14), (7, 14), (8, 14)),
         0.85,
@@ -316,10 +337,9 @@ def normalize_strip(spec: StripSpec) -> None:
     source = Image.open(TILESETS / spec.source).convert("RGBA")
     raw = Image.open(HERE / spec.raw).convert("RGB")
     source_rgba = np.asarray(source)
-    source_mask = source_rgba[:, :, 3] > 16
     raw_rgb, raw_strong, raw_alpha = _raw_layers(raw)
 
-    source_boxes = _frame_boxes(source_mask, spec.frames)
+    source_boxes = list(STRIP_FRAME_BOXES[spec.output])
     raw_boxes = _frame_boxes(raw_strong, spec.frames)
     output = np.zeros_like(source_rgba)
     raw_h, raw_w = raw_strong.shape
