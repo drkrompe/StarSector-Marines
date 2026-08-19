@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
@@ -20,12 +21,13 @@ import java.awt.Color;
  * A faithful migration of {@code BattleRenderer.renderGrid} +
  * {@code renderTiledFloorsAndWalls} into the command model.
  *
- * <p><strong>Dense pass.</strong> It walks the whole grid every frame (up to ~38k
- * cells) and emits one pooled {@link com.dillon.starsectormarines.render2d.DrawCommand}
+ * <p><strong>Dense pass.</strong> It walks the camera's
+ * {@link VisibleCellRect} every frame (the whole grid at zoom 1.0; a slice once
+ * zoomed in) and emits one pooled {@link com.dillon.starsectormarines.render2d.DrawCommand}
  * per tile/fill — zero steady-state allocation, since {@link DrawList} recycles
  * the slots. Emission is in strict paint order: a full-grid backing fill, then per
- * non-wall cell its base tile, then any nature overlay, then any doorway, then a
- * second pass for wall tiles. The strict-painter drain coalesces consecutive
+ * visible non-wall cell its base tile, then any nature overlay, then any doorway, then a
+ * second pass for visible wall tiles. The strict-painter drain coalesces consecutive
  * same-sheet tiles into one batch flush, so spatially-coherent terrain (streets,
  * grass regions) batches just as tightly as the old per-sheet-batch pass.
  *
@@ -91,8 +93,11 @@ public final class GroundRenderSystem implements RenderSystem {
 
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
+        VisibleCellRect view = cam.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
 
         // Full-grid backing fill — under everything (matches renderGrid's backing quad).
+        // One quad; the scissor bracket clips it to the viewport.
         float wx0 = cam.cellToScreenX(0);
         float wy0 = cam.cellToScreenY(0);
         float wx1 = cam.cellToScreenX(grid.getWidth());
@@ -102,8 +107,8 @@ public final class GroundRenderSystem implements RenderSystem {
         if (urban == null) {
             // No tile sheet: solid-fill non-walkable cells (renderGrid's fallback branch).
             float cellPx = cam.cellPxSize();
-            for (int y = 0; y < grid.getHeight(); y++) {
-                for (int x = 0; x < grid.getWidth(); x++) {
+            for (int y = view.minY(); y <= view.maxY(); y++) {
+                for (int x = view.minX(); x <= view.maxX(); x++) {
                     if (grid.isWalkable(x, y)) continue;
                     float x0 = cam.cellToScreenX(x);
                     float y0 = cam.cellToScreenY(y);
@@ -114,13 +119,13 @@ public final class GroundRenderSystem implements RenderSystem {
             return;
         }
 
-        emitFloors(grid, topology);
-        emitWalls(grid, topology);
+        emitFloors(grid, topology, view);
+        emitWalls(grid, topology, view);
     }
 
     // ---- floor + overlay pass ------------------------------------------------
 
-    private void emitFloors(NavigationGrid grid, CellTopology topology) {
+    private void emitFloors(NavigationGrid grid, CellTopology topology, VisibleCellRect view) {
         // Resolve the data-driven GroundKind -> render-block mapping once per
         // pass (GenMappingRegistry.groundBlockId). Each kind's block carries its
         // own resolver (autotile layout / variant pool / single) + sheet + cellPx,
@@ -146,8 +151,8 @@ public final class GroundRenderSystem implements RenderSystem {
         String streetTileId = (genMapping == null) ? "urban3.street-square"
                 : genMapping.groundBlockId(CellTopology.GroundKind.STREET);
 
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
                 if (topology.isWall(x, y)) continue;
                 boolean nWall = GroundTileSelector.isInBoundsWall(topology, x, y + 1);
                 boolean sWall = GroundTileSelector.isInBoundsWall(topology, x, y - 1);
@@ -217,13 +222,13 @@ public final class GroundRenderSystem implements RenderSystem {
 
     // ---- wall pass -----------------------------------------------------------
 
-    private void emitWalls(NavigationGrid grid, CellTopology topology) {
+    private void emitWalls(NavigationGrid grid, CellTopology topology, VisibleCellRect view) {
         // Fill color for the enclosed (no-frame) wall cell comes from the
         // urban.wall block's fillRgb — data-driven, falling back to WALL_COLOR.
         GridBlockDef wallBlock = (tileReg == null) ? null : tileReg.block("urban.wall");
         Color wallFill = (wallBlock != null && wallBlock.fillRgb != null) ? new Color(wallBlock.fillRgb) : WALL_COLOR;
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
                 if (!topology.isWall(x, y)) continue;
                 TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y));
                 if (tile == null) fillCell(x, y, wallFill);

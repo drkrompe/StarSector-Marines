@@ -7,10 +7,12 @@
 ## Premise
 
 The flush rewrite attacked *per-quad submission cost*. This attacks *quad
-count*. GROUND walks all ~38k cells every frame and emits one
-`DrawCommand`/quad each, even though the terrain is **static geometry** — only
-the camera transform changes frame to frame. Re-emitting + re-submitting the
-whole ground every frame is wasted work.
+count*. GROUND now range-loops the camera view
+([`../complete/camera-view-cull.md`](../complete/camera-view-cull.md)), so the
+zoomed-in fight already skips off-screen cells. At zoom 1.0 the whole map is
+still on screen, and even a visible slice is re-emitted every frame even
+though the terrain is **static geometry** — only the camera transform changes.
+Re-emitting + re-submitting that geometry every frame is wasted work.
 
 **Idea:** render the ground layer once into an FBO (in world space, or at a
 fixed zoom), then each frame draw a *single* textured quad with the current

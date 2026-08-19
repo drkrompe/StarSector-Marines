@@ -21,6 +21,8 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
@@ -34,6 +36,7 @@ import com.dillon.starsectormarines.render2d.PolyTess;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -361,8 +364,10 @@ public class BattleRenderer {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin(GL_QUADS);
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        VisibleCellRect view = rc.camera.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
                 int zoneId = zones.zoneIdAt(x, y);
                 if (zoneId < 0) continue;
                 int h = zoneId * 0x9E3779B1; // Knuth multiplicative hash for stable color spread
@@ -402,16 +407,11 @@ public class BattleRenderer {
         int gw = vis.gridWidth();
         int gh = vis.gridHeight();
         float cellPx = rc.camera.cellPxSize();
+        VisibleCellRect view = rc.camera.visibleCells(VisibleCellRect.FOG_MARGIN_CELLS, gw, gh);
 
-        int margin = 8;
-        int minCellX = Math.max(0, (int) Math.floor(rc.camera.screenToCellX(rc.camera.vpX())) - margin);
-        int maxCellX = Math.min(gw - 1, (int) Math.ceil(rc.camera.screenToCellX(rc.camera.vpX() + rc.camera.vpW())) + margin);
-        int minCellY = Math.max(0, (int) Math.floor(rc.camera.screenToCellY(rc.camera.vpY())) - margin);
-        int maxCellY = Math.min(gh - 1, (int) Math.ceil(rc.camera.screenToCellY(rc.camera.vpY() + rc.camera.vpH())) + margin);
-
-        for (int cy = minCellY; cy <= maxCellY; cy++) {
+        for (int cy = view.minY(); cy <= view.maxY(); cy++) {
             int rowBase = cy * gw;
-            for (int cx = minCellX; cx <= maxCellX; cx++) {
+            for (int cx = view.minX(); cx <= view.maxX(); cx++) {
                 int idx = rowBase + cx;
                 float fogAlpha;
                 if (!revealed[idx]) {
@@ -435,7 +435,7 @@ public class BattleRenderer {
     }
 
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
-        com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
+        Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
         // Floors sheet is ensured at BattleScreen.attach; collect stays GL-free. Guard covers the not-loaded case.
         if (sprites.floorsSheet() == null) return;
@@ -447,12 +447,17 @@ public class BattleRenderer {
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
-        for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
+        VisibleCellRect view = rc.camera.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS,
+                sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        for (Building b : buildings.all()) {
             float roofAlpha = b.currentAlpha;
             if (roofAlpha <= 0.01f) continue;
+            if (!view.intersects(b.minX, b.maxX, b.minY, b.maxY)) continue;
             for (int i = 0, n = b.cellCount(); i < n; i++) {
                 int cx = b.cellsX[i];
                 int cy = b.cellsY[i];
+                if (!view.contains(cx, cy)) continue;
                 if (topology.isRoofDestroyed(cx, cy)) continue;
                 int[] c = brick.resolve(false, false, false, false, cx, cy);
                 TileManifest.TileFrame f = new TileManifest.TileFrame(c[0], c[1]);
