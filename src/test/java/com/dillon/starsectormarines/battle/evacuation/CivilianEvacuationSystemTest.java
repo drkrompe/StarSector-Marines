@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -63,6 +64,64 @@ class CivilianEvacuationSystemTest {
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(Paths.isEmpty(sim.movement().path(first)));
+    }
+
+    @Test
+    void shelterGarrisonCannotOpenItsOwnBarricadeOrEscortCivilians() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 306L);
+        assertNotNull(payload);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        squad.rescueShelterGuard = true;
+        sim.spawn(new EntitySpec("shelter guard", Faction.MARINE,
+                UnitType.MILITIA, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY).squad(squadId));
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(sim.isCivilianShelterProtected(),
+                "the holdout cannot count as its own responding relief force");
+
+        long responder = sim.spawn(new EntitySpec("responder", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.isCivilianEvacuationTriggered());
+        long civilian = payload.entityId(0);
+        sim.world().setCellPos(responder, 2, 2);
+        sim.clearPath(civilian);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(Paths.isEmpty(sim.movement().path(civilian)),
+                "stationary shelter guards are not civilian escort anchors");
+    }
+
+    @Test
+    void wipedObservedResponseForceReleasesTheShelterLastStand() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 307L);
+        assertNotNull(payload);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        squad.rescueShelterGuard = true;
+        sim.spawn(new EntitySpec("shelter guard", Faction.MARINE,
+                UnitType.MILITIA, payload.placement.shelterX,
+                payload.placement.shelterY).squad(squadId));
+        long responder = sim.spawn(new EntitySpec("responder", Faction.MARINE,
+                UnitType.MARINE, 2, 2));
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.isCivilianShelterProtected());
+        sim.releaseFromRegistry(responder);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertFalse(sim.isCivilianShelterProtected());
+        assertTrue(sim.isCivilianEvacuationTriggered(),
+                "the garrison must become targetable so elimination can resolve");
     }
 
     @Test

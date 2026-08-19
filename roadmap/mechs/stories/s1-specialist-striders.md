@@ -1,8 +1,9 @@
 # S1 — Specialist striders
 
 **Status:** Slice A shipped (`2d3f044b`, 2026-08-19); heavy-cannon FX tuning
-shipped (`39aefccb`, 2026-08-19). Manual comparison/tuning and
-production-roster integration remain.
+shipped (`39aefccb`, 2026-08-19); production-roster integration and ASSAULT
+Hound doctrine shipped (`1ef74f23`, 2026-08-19). Manual comparison/tuning
+remains.
 
 ## Shipped slice A
 
@@ -35,8 +36,8 @@ Hound now uses one dorsal SRM-5; Sirocco uses paired LRM-5 shoulders. A
 public authored-loadout constructor can independently replace the arms and
 either shoulder component, and appearance follows the installed hardware.
 
-Production defender allocation and the player's Mech Support power deliberately
-remain Bulwark-only until the comparison is manually accepted.
+Production defenders now use the budget-preserving mixed roster recorded below.
+The player's Mech Support power deliberately remains Bulwark-only.
 
 ## Shipped heavy-cannon FX tuning
 
@@ -212,7 +213,7 @@ Playtest the fixture for silhouette readability, travel time, time-to-kill,
 minimum/maximum useful range, and whether the Sirocco's backup gun is genuinely
 defensive. Adjust the provisional numbers, but preserve each weakness.
 
-### C. Budgeted defender integration
+### C. Budgeted defender integration — shipped (`1ef74f23`)
 
 Replace the flat assumption that every `mechCount` entry is equivalent with a
 small deterministic threat budget. Suggested starting costs are Bulwark 3,

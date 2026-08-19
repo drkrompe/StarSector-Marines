@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /** Direct pressure behavior for swarm runners; no squad or infantry GOAP. */
@@ -89,7 +90,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
-            if (sim.identity().faction(candidate) != Faction.MARINE) continue;
+            if (!eligibleMarine(candidate, sim)) continue;
             if (!canSense(runner, candidate, sim)) continue;
             float distance = distanceSquared(runner, candidate, sim);
             if (isBetter(candidate, distance, best, bestDistance)) {
@@ -117,7 +118,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         bestDistance = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
-            if (sim.identity().faction(candidate) != Faction.MARINE) continue;
+            if (!eligibleMarine(candidate, sim)) continue;
             float distance = distanceSquared(runner, candidate, sim);
             if (isBetter(candidate, distance, best, bestDistance)) {
                 best = candidate;
@@ -131,9 +132,19 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             long candidate, CivilianEvacuationTracker tracker,
             BattleSimulation sim) {
         if (candidate == 0L || sim.resolveUnit(candidate) == 0L) return false;
-        if (sim.identity().faction(candidate) == Faction.MARINE) return true;
+        if (sim.identity().faction(candidate) == Faction.MARINE) {
+            return eligibleMarine(candidate, sim);
+        }
         return !sim.isCivilianShelterProtected()
                 && tracker.state(candidate) == CivilianEvacuationTracker.State.ACTIVE;
+    }
+
+    private static boolean eligibleMarine(long candidate,
+                                           BattleSimulation sim) {
+        if (sim.identity().faction(candidate) != Faction.MARINE) return false;
+        Squad squad = sim.squadOf(candidate);
+        return !sim.isCivilianShelterProtected()
+                || squad == null || !squad.rescueShelterGuard;
     }
 
     private static boolean isBetter(long candidate, float distance,
