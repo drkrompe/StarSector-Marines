@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -524,6 +525,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
                 () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
                         !com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
+        debugPanel.addDial("Parallax",
+                () -> renderer.getGroundParallax().parallaxStrength(),
+                value -> renderer.getGroundParallax().setParallaxStrength((float) value),
+                GroundParallaxPipeline.MIN_STRENGTH,
+                GroundParallaxPipeline.MAX_STRENGTH);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",

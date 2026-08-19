@@ -12,115 +12,100 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * Real {@link HeightSource} — biases a cell's macro height by the average
- * texel value S1's derived {@code <sheet>_height.png} carries for the SAME
- * source rect {@link GroundRenderSystem} draws the color tile from.
+ * Resolves each ground cell to the exact source rectangle the color pass uses,
+ * but on an S1-derived height sheet. {@link GroundHeightPass} then draws that
+ * rectangle as a texture, preserving every height texel instead of collapsing
+ * the rectangle to one average value.
  *
- * <p>The generic {@link GridBlockDef} path and the variable-width sliced
- * nature/urban-3 sheets are both supported. Sliced sampling reuses the frame
- * tables already produced while loading the color sheets; a null frame table
- * means the color renderer took its fixed-grid fallback, so this sampler takes
- * the same fallback. Walls and blocks on S1-skipped sheets remain macro-only.
- *
- * <p>A resolved micro <em>offset</em> is cached per cell rather than the final
- * macro+micro value. This keeps a cached wall/rubble or mapping fallback from
- * freezing an old macro height if runtime terrain state changes. The cache also
- * records wall/kind state so a changed ground kind is resolved again.
+ * <p>The resolver mirrors both variable-width nature/urban-3 selection and
+ * fixed-grid fallback selection. Cells on sheets S1 deliberately skipped
+ * (walls, indoor floors, rubble) return {@code null} and stay macro-only.
+ * Resolution is cached per cell with a terrain fingerprint so wall demolition
+ * and ground-kind changes cannot leave stale atlas coordinates behind.
  */
-final class GroundMicroHeightSampler implements HeightSource {
+final class GroundMicroHeightSampler {
 
-    /** How far the micro sample can push the macro value, each direction. Playtest-tunable. */
-    private static final float MICRO_SCALE = 0.25f;
+    private static final Set<String> DERIVED_SHEETS = Set.of(
+            TileManifest.ROAD_SHEET,
+            TileManifest.FLOORS_SHEET,
+            TileManifest.WATER_SHEET,
+            TileManifest.STREET3_SHEET,
+            TileManifest.NATURE_SHEET);
 
     private final Supplier<SpriteSheetFrames> natureFrames;
     private final Supplier<SpriteSheetFrames> urban3Frames;
-    private final Function<String, HeightSheetTexture> textureFactory;
-    private final Map<String, HeightSheetTexture> heightSheets = new HashMap<>();
     private final Map<Long, CacheEntry> cache = new HashMap<>();
 
     GroundMicroHeightSampler(BattleSprites sprites) {
-        this(sprites::natureFrames, sprites::urbanTile3Frames, HeightSheetTexture::new);
+        this(sprites::natureFrames, sprites::urbanTile3Frames);
     }
 
     /** Package-private injection seam used by asset-backed unit tests. */
     GroundMicroHeightSampler(Supplier<SpriteSheetFrames> natureFrames,
-                             Supplier<SpriteSheetFrames> urban3Frames,
-                             Function<String, HeightSheetTexture> textureFactory) {
+                             Supplier<SpriteSheetFrames> urban3Frames) {
         this.natureFrames = natureFrames;
         this.urban3Frames = urban3Frames;
-        this.textureFactory = textureFactory;
     }
 
-    @Override
-    public float combine(float macroHeight, NavigationGrid grid, CellTopology topology, int gridX, int gridY) {
+    Sample resolve(NavigationGrid grid, CellTopology topology, int gridX, int gridY) {
         long key = packKey(gridX, gridY);
         CellTopology.GroundKind kind = topology.getGroundKind(gridX, gridY);
         boolean wall = topology.isWall(gridX, gridY);
         int state = terrainState(grid, topology, gridX, gridY, kind, wall);
         CacheEntry cached = cache.get(key);
-        if (cached != null && cached.terrainState == state) {
-            return macroHeight + cached.microOffset;
-        }
+        if (cached != null && cached.terrainState == state) return cached.sample;
 
-        float microOffset = resolveOffset(grid, topology, gridX, gridY, wall, kind);
-        cache.put(key, new CacheEntry(state, microOffset));
-        return macroHeight + microOffset;
+        Sample sample = resolveUncached(grid, topology, gridX, gridY, wall, kind);
+        cache.put(key, new CacheEntry(state, sample));
+        return sample;
     }
 
-    /** Drops the per-cell cache (NOT the loaded sheets). Call between battles — cell coords don't survive a map change. */
+    /** Drops per-cell atlas resolution between battles. */
     void invalidate() {
         cache.clear();
     }
 
-    private float resolveOffset(NavigationGrid grid, CellTopology topology, int gridX, int gridY,
-                                boolean wall, CellTopology.GroundKind kind) {
-        if (wall || kind == CellTopology.GroundKind.SNOW) return 0f;
+    private Sample resolveUncached(NavigationGrid grid, CellTopology topology, int gridX, int gridY,
+                                   boolean wall, CellTopology.GroundKind kind) {
+        if (wall || kind == CellTopology.GroundKind.SNOW) return null;
 
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         TileRegistry tileReg = TileRegistry.installed();
-        if (mapping == null || tileReg == null) return 0f;
+        if (mapping == null || tileReg == null) return null;
 
         if (kind == CellTopology.GroundKind.GRASS || kind == CellTopology.GroundKind.DIRT) {
             SpriteSheetFrames frames = natureFrames.get();
             if (frames != null) {
-                Float sliced = sampleSliced(tileReg.tile(GroundTileSelector.natureTileId(kind, gridX, gridY)), frames);
-                // The color pass used the sliced sheet. Missing/corrupt derived
-                // data must stay macro-only, not sample a different fallback art tile.
-                return sliced == null ? 0f : sliced;
+                return sliced(tileReg.tile(GroundTileSelector.natureTileId(kind, gridX, gridY)), frames);
             }
-            // Color path falls back to the mapped Floors_Tiles block when the
-            // sliced nature sheet failed to load.
-            return sampleGridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
+            return gridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
         }
 
         if (kind == CellTopology.GroundKind.STREET || kind == CellTopology.GroundKind.SIDEWALK) {
             SpriteSheetFrames frames = urban3Frames.get();
             if (frames != null) {
                 String streetTileId = mapping.groundBlockId(CellTopology.GroundKind.STREET);
-                Float sliced = sampleSliced(tileReg.tile(GroundTileSelector.urban3TileId(
+                return sliced(tileReg.tile(GroundTileSelector.urban3TileId(
                         grid, topology, streetTileId, gridX, gridY)), frames);
-                return sliced == null ? 0f : sliced;
             }
-            // STREET has the road autotile fallback; explicit SIDEWALK has no
-            // fixed-grid fallback in GroundRenderSystem and stays macro-only.
             return kind == CellTopology.GroundKind.STREET
-                    ? sampleStreetFallback(grid, topology, tileReg, gridX, gridY)
-                    : 0f;
+                    ? streetFallback(grid, topology, tileReg, gridX, gridY)
+                    : null;
         }
 
-        return sampleGridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
+        return gridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
     }
 
-    private float sampleStreetFallback(NavigationGrid grid, CellTopology topology,
-                                       TileRegistry tileReg, int gridX, int gridY) {
+    private Sample streetFallback(NavigationGrid grid, CellTopology topology,
+                                  TileRegistry tileReg, int gridX, int gridY) {
         if (GroundTileSelector.isSidewalkCell(grid, topology, gridX, gridY)) {
-            return sampleResolvedBlock(tileReg.block("road.sidewalk"), false, false, false, false, gridX, gridY);
+            return resolvedBlock(tileReg.block("road.sidewalk"), false, false, false, false, gridX, gridY);
         }
-        return sampleResolvedBlock(tileReg.block("road.road"),
+        return resolvedBlock(tileReg.block("road.road"),
                 GroundTileSelector.isRoadBoundary(grid, topology, gridX, gridY + 1),
                 GroundTileSelector.isRoadBoundary(grid, topology, gridX, gridY - 1),
                 GroundTileSelector.isRoadBoundary(grid, topology, gridX + 1, gridY),
@@ -128,54 +113,46 @@ final class GroundMicroHeightSampler implements HeightSource {
                 gridX, gridY);
     }
 
-    private Float sampleSliced(TileDef tile, SpriteSheetFrames frames) {
+    private static Sample sliced(TileDef tile, SpriteSheetFrames frames) {
         if (tile == null || frames == null || tile.frame < 0 || tile.frame >= frames.frames.length) return null;
         SpriteSheetFrames.Frame frame = frames.frames[tile.frame];
         int inset = tile.isGround() ? FixedGridTileDrawer.GROUND_INSET_PX_LARGE : 0;
-        return sampleOffset(tile.sheetPath,
+        return sample(tile.sheetPath,
                 frame.x + inset, frame.y + inset,
                 Math.max(1, frame.w - 2 * inset), Math.max(1, frame.h - 2 * inset));
     }
 
-    private float sampleGridBlock(String blockId, TileRegistry tileReg, CellTopology topology,
-                                  int gridX, int gridY) {
-        if (blockId == null) return 0f;
+    private static Sample gridBlock(String blockId, TileRegistry tileReg, CellTopology topology,
+                                    int gridX, int gridY) {
+        if (blockId == null) return null;
         GridBlockDef block = tileReg.block(blockId);
-        if (block == null) return 0f;
-
-        boolean n = isWallAt(topology, gridX, gridY + 1);
-        boolean s = isWallAt(topology, gridX, gridY - 1);
-        boolean e = isWallAt(topology, gridX + 1, gridY);
-        boolean w = isWallAt(topology, gridX - 1, gridY);
-        return sampleResolvedBlock(block, n, s, e, w, gridX, gridY);
+        if (block == null) return null;
+        return resolvedBlock(block,
+                isWallAt(topology, gridX, gridY + 1),
+                isWallAt(topology, gridX, gridY - 1),
+                isWallAt(topology, gridX + 1, gridY),
+                isWallAt(topology, gridX - 1, gridY),
+                gridX, gridY);
     }
 
-    private float sampleResolvedBlock(GridBlockDef block, boolean n, boolean s, boolean e, boolean w,
-                                      int gridX, int gridY) {
-        if (block == null) return 0f;
-        int[] c = block.resolve(n, s, e, w, gridX, gridY);
-        if (c == null) return 0f;
-
-        int inset = (block.cellPx >= TileManifest.TILE_SIZE)
+    private static Sample resolvedBlock(GridBlockDef block, boolean n, boolean s, boolean e, boolean w,
+                                        int gridX, int gridY) {
+        if (block == null) return null;
+        int[] cell = block.resolve(n, s, e, w, gridX, gridY);
+        if (cell == null) return null;
+        int inset = block.cellPx >= TileManifest.TILE_SIZE
                 ? FixedGridTileDrawer.GROUND_INSET_PX_LARGE : FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
-        Float offset = sampleOffset(block.sheetPath,
-                c[0] * block.cellPx + inset, c[1] * block.cellPx + inset,
+        return sample(block.sheetPath,
+                cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
                 block.cellPx - 2 * inset, block.cellPx - 2 * inset);
-        return offset == null ? 0f : offset;
     }
 
-    private Float sampleOffset(String colorSheetPath, int srcX, int srcY, int srcW, int srcH) {
-        float micro = heightSheetFor(colorSheetPath).averageHeight(srcX, srcY, srcW, srcH);
-        if (micro < 0f) return null;
-        return (micro - 0.5f) * MICRO_SCALE;
+    private static Sample sample(String colorSheetPath, int srcX, int srcY, int srcW, int srcH) {
+        if (!DERIVED_SHEETS.contains(colorSheetPath)) return null;
+        return new Sample(derivedHeightPath(colorSheetPath), srcX, srcY, srcW, srcH);
     }
 
-    private HeightSheetTexture heightSheetFor(String colorSheetPath) {
-        return heightSheets.computeIfAbsent(colorSheetPath,
-                p -> textureFactory.apply(derivedHeightPath(p)));
-    }
-
-    /** {@code graphics/tilesets/Foo.png} -> {@code graphics/tilesets/Foo_height.png} — S1's naming convention. */
+    /** {@code graphics/tilesets/Foo.png} -> {@code graphics/tilesets/Foo_height.png}. */
     static String derivedHeightPath(String colorSheetPath) {
         int dot = colorSheetPath.lastIndexOf('.');
         String base = dot >= 0 ? colorSheetPath.substring(0, dot) : colorSheetPath;
@@ -190,12 +167,6 @@ final class GroundMicroHeightSampler implements HeightSource {
         return ((long) x << 32) | (y & 0xFFFFFFFFL);
     }
 
-    /**
-     * Cheap mutation fingerprint for everything that can change the selected
-     * source rect. Urban-3 sidewalk corners inspect neighboring sidewalk cells,
-     * and those can in turn inspect their cardinal walls, hence the radius-two
-     * window for STREET/SIDEWALK. Fixed-grid blocks only read cardinal walls.
-     */
     private int terrainState(NavigationGrid grid, CellTopology topology, int x, int y,
                              CellTopology.GroundKind kind, boolean wall) {
         int state = 31 * kind.ordinal() + (wall ? 1 : 0);
@@ -223,13 +194,29 @@ final class GroundMicroHeightSampler implements HeightSource {
         return 31 * state + (isWallAt(topology, x - 1, y) ? 1 : 0);
     }
 
+    static final class Sample {
+        final String heightSheetPath;
+        final int srcX;
+        final int srcY;
+        final int srcW;
+        final int srcH;
+
+        Sample(String heightSheetPath, int srcX, int srcY, int srcW, int srcH) {
+            this.heightSheetPath = heightSheetPath;
+            this.srcX = srcX;
+            this.srcY = srcY;
+            this.srcW = srcW;
+            this.srcH = srcH;
+        }
+    }
+
     private static final class CacheEntry {
         final int terrainState;
-        final float microOffset;
+        final Sample sample;
 
-        CacheEntry(int terrainState, float microOffset) {
+        CacheEntry(int terrainState, Sample sample) {
             this.terrainState = terrainState;
-            this.microOffset = microOffset;
+            this.sample = sample;
         }
     }
 }
