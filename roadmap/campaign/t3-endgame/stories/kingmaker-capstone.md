@@ -83,6 +83,43 @@ If the frozen history has too little evidence for an axis, the testament remains
 silent about that dimension. It never invents off-screen conduct to fill a prose
 template.
 
+### Evidence selection — locked v1
+
+The editor considers only ledger rows below the testament's exclusive frozen
+boundary whose happened and recorded days are no later than the sealed day. A
+candidate must still agree with its immutable source facts; a source id, terminal
+state, outcome, or historical day mismatch discards that candidate rather than
+guessing what occurred.
+
+The three v1 witness families are prior civil wars, civilian rescue, and
+defector asylum. The coronation civil-war row is excluded because the accusation
+already names that act. Choose at most one deed per family. Within a family,
+prefer the row with the greatest total applied moral weight, then the later
+happened day, then the lower stable moral-choice id. Finally order selected deeds
+by happened day and id so the testimony reads as a history. Thus row iteration
+order is never a narrative tiebreaker.
+
+Rescue prose distinguishes refusal, fewer than half saved, at least half saved,
+and everyone saved without printing counts. Defector prose distinguishes refusal
+before a promise, protection after a buyout, and explicit betrayal for payment.
+Prior civil-war prose distinguishes overthrowing a ruler from defending one.
+
+### Verdict synthesis — locked v1
+
+Internal verdict clauses are eligible at an absolute axis magnitude of 10. If
+the three human-conduct axes contain
+both protective/principled and exploitative/expedient signals, select the
+strongest clause from each side so the contradiction survives even when another
+axis has a larger magnitude. Otherwise select the strongest two eligible axes.
+Absolute magnitude ranks first; integrity, mercy, stewardship, then
+institutionalism is the fixed tie priority.
+
+The final sentence joins compatible clauses with “and” and opposed clauses with
+“yet.” With one supported clause it states only that judgment; with none it says
+the record denies the ruler a simple name. These thresholds and rankings remain
+internal. The output contains deeds and character language, never axis labels,
+pole labels, values, ids, dates, counts, or contribution bands.
+
 ## Delivery and persistence
 
 The content snapshot begins `SEALED`. A later dedicated Last Testament intel
