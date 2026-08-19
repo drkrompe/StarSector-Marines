@@ -37,7 +37,8 @@ e8ad9c4b  mapgen: add tactical industrial facilities
 444e0f97  mapgen: add residential courtyard compounds
 fc212e56  mapgen: support multi-cell residential doodads
 8e7a4815  mapgen: orient residential furniture to room walls
-d4595b97  mapgen: add standalone apartments and firing windows  ← latest mapgen work
+d4595b97  mapgen: add standalone apartments and firing windows
+adf608b4  mapgen: add tactical medical campuses  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -137,6 +138,13 @@ findings) in
   pass sight and projectiles, provide directional wall cover, and retain a
   clear interior firing cell. See
   [`complete/standalone-apartments.md`](complete/standalone-apartments.md).
+- **Medical campuses shipped (`adf608b4`).** Rare civic/mixed large-lot seeds
+  claim exactly three parcels: a purpose-partitioned clinic, medical support
+  wing, and open ambulance court. The clinic has a two-cell circulation spine,
+  reception/triage/treatment/ward/pharmacy rooms, medical-specific fixture
+  placement, and shoot-through treatment/ward windows. Shared apron paint
+  leaves the reserved vehicle centerline untouched. See
+  [`complete/medical-campus.md`](complete/medical-campus.md).
 
 ## Next up (priority order)
 
@@ -210,7 +218,12 @@ reused verbatim. Candidate next tracks (priority order):
    apartment reuse is now shipped (`d4595b97`)**: qualifying 12x10+ ordinary
    lots orient the same room plan toward adjacent streets, while apartment
    facades gain non-traversable, shoot-through firing windows with clear
-   interior cover positions. Next: tackle a public-service or medical campus.
+   interior cover positions. **Medical campuses are now shipped (`adf608b4`)**:
+   exact three-parcel claims produce a roomed clinic, support wing, and open
+   ambulance court; treatment and ward facades reuse the firing-window seam.
+   Next ground candidate: upgrade `DENSE_BLOCK` from four generic tiny shells
+   into roomed tenement/market buildings with deliberate alleys, cover, and
+   selected firing windows.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
@@ -223,7 +236,8 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md),
    [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md),
    [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md),
-   and [`complete/standalone-apartments.md`](complete/standalone-apartments.md).
+   [`complete/standalone-apartments.md`](complete/standalone-apartments.md),
+   and [`complete/medical-campus.md`](complete/medical-campus.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -432,7 +446,7 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,764-test merged root suite green.
+- `gradlew.bat :test` — full 1,789-test root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `python mod/graphics/doodads/test_stitch_atlas.py` — all four atlas stitcher
   tests green.
