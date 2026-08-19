@@ -50,26 +50,43 @@ public final class CivilianEvacuationPayload {
     }
 
     public static CivilianEvacuationPayload install(
+            BattleSimulation sim, MapResult map, long seed,
+            int representativeCount, boolean requireAnyEvacuated) {
+        return map == null ? null
+                : install(sim, map.pointsOfInterest, seed,
+                representativeCount, requireAnyEvacuated);
+    }
+
+    public static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed) {
+        return install(sim, pointsOfInterest, seed, V1_TYPES.length, true);
+    }
+
+    public static CivilianEvacuationPayload install(
+            BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
+            long seed, int representativeCount,
+            boolean requireAnyEvacuated) {
         if (sim == null) return null;
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
-        if (tracker.registeredCount() != 0 || tracker.isSealed()) return null;
+        if (!tracker.prepareExpectedCount(representativeCount)) return null;
 
         CivilianEvacuationPlacement placement =
                 CivilianEvacuationPlacement.find(
-                        sim.getGrid(), pointsOfInterest, seed);
+                        sim.getGrid(), pointsOfInterest, seed,
+                        representativeCount);
         if (placement == null
-                || placement.spawnCount() != V1_TYPES.length
-                || tracker.expectedCount() != V1_TYPES.length) {
+                || placement.spawnCount() != representativeCount
+                || tracker.expectedCount() != representativeCount) {
             return null;
         }
 
-        long[] ids = new long[V1_TYPES.length];
+        long[] ids = new long[representativeCount];
         for (int i = 0; i < ids.length; i++) {
             ids[i] = sim.spawn(new EntitySpec(
-                    "Evacuee " + (i + 1), Faction.CIVILIAN, V1_TYPES[i],
+                    "Evacuee " + (i + 1), Faction.CIVILIAN,
+                    V1_TYPES[i % V1_TYPES.length],
                     placement.spawnX(i), placement.spawnY(i))
                     .role(UnitRole.VIP));
             if (!tracker.register(ids[i])) {
@@ -81,7 +98,8 @@ public final class CivilianEvacuationPayload {
         CivilianEvacuationObjective objective =
                 new CivilianEvacuationObjective(tracker,
                         placement.liftX, placement.liftY,
-                        CivilianEvacuationPlacement.LIFT_ZONE_RADIUS);
+                        CivilianEvacuationPlacement.LIFT_ZONE_RADIUS,
+                        requireAnyEvacuated);
         if (!sim.configureCivilianEvacuation(placement)) {
             throw new IllegalStateException(
                     "planned evacuation routing configuration failed");

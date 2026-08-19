@@ -330,9 +330,9 @@ public class MarineOpsContext {
         if (cached != null) return cached;
         List<Mission> generated;
         if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
-            Mission rescue = localCivilianRescueMission();
-            generated = rescue != null
-                    ? Collections.singletonList(rescue)
+            Mission eventMission = localCampaignEventMission();
+            generated = eventMission != null
+                    ? Collections.singletonList(eventMission)
                     : Collections.emptyList();
         } else {
             generated = Collections.unmodifiableList(
@@ -375,12 +375,20 @@ public class MarineOpsContext {
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         CampaignState campaignState = campaignScript != null
                 ? campaignScript.state() : null;
-        if (market != null && CivilianRescueLocalMission.committedRow(
-                campaignState, market.getId()) >= 0) {
+        int rescueRow = market != null
+                ? CivilianRescueLocalMission.committedRow(
+                campaignState, market.getId()) : -1;
+        int colonyRow = market != null
+                ? SilentColonyLocalMission.committedRow(
+                campaignState, market.getId()) : -1;
+        if (market != null && (rescueRow >= 0 || colonyRow >= 0)) {
             String crest = market.getFaction() != null
                     ? market.getFaction().getCrest() : null;
             out.add(new Client(DISTRESS_CLIENT_FACTION_ID,
-                    "Distress Net — Civilian Evacuation", crest,
+                    colonyRow >= 0
+                            ? "Dead Letter — Silent Colony Expedition"
+                            : "Distress Net — Civilian Evacuation",
+                    crest,
                     RepLevel.NEUTRAL, false, null));
             seen.add(DISTRESS_CLIENT_FACTION_ID);
         }
@@ -435,13 +443,16 @@ public class MarineOpsContext {
         return out;
     }
 
-    private Mission localCivilianRescueMission() {
+    private Mission localCampaignEventMission() {
         if (market == null || planet == null) return null;
         CampaignStateScript script = CampaignStateScript.getInstance();
         CampaignState state = script != null ? script.state() : null;
         String factionId = market.getFaction() != null
                 ? market.getFaction().getId() : null;
-        return CivilianRescueLocalMission.find(state, market.getId(),
+        Mission rescue = CivilianRescueLocalMission.find(
+                state, market.getId(), planet.getName(), factionId);
+        if (rescue != null) return rescue;
+        return SilentColonyLocalMission.find(state, market.getId(),
                 planet.getName(), factionId);
     }
 
