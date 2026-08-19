@@ -157,12 +157,12 @@ universe over time, not retrofitted into intel slots.
    (`bc29cb26`); manual cadence and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Campaign narrative follow-through** — S1 patron engagement memory and S2
-   relationship-pattern callbacks are shipped (`1b950e48`, `cbfebaef`): real
-   terminal outcomes persist exactly once beyond compaction, and the comms
-   officer can recognize the newest valid result or a factual two-engagement
-   sequence. Contract the next narrative story before adding patron evolution,
-   captain observations, or cross-patron references. See
+3. **Campaign narrative follow-through** — S1 patron engagement memory, S2
+   relationship-pattern callbacks, and S3 local cross-patron echoes are shipped
+   (`1b950e48`, `cbfebaef`, `53cda364`). The comms officer now prioritizes
+   direct history, then may ground a first-time patron in one measured recent
+   same-market engagement. Contract the next narrative story before adding
+   patron evolution, captain observations, or Chronicle-linked references. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
 4. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
