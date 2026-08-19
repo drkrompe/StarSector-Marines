@@ -100,6 +100,12 @@ public class LayeredAppearanceTest {
                 LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
         assertEquals(-0.28f, LayeredMechAppearance.footRearOffset(
                 LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
+        assertEquals(0.16f, LayeredMechAppearance.footStepReach(
+                LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
+        assertEquals(0.16f, LayeredMechAppearance.footStepReach(
+                LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+        assertEquals(0.055f, LayeredMechAppearance.footStepReach(
+                LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
     }
 
     @Test
