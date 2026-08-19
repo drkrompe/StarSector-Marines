@@ -2,7 +2,7 @@
 
 > Replace small-arms pure accuracy rolls with fire-time-resolved ballistic
 > rays: rounds have a velocity and a line of flight, collide with unit radii
-> (hit roll on contact), roll against doodads, and hard-stop on walls.
+> and vertical silhouettes, roll against doodads, and hard-stop on walls.
 > Damage and visuals ride the flight clock; the sim never steps collision
 > per tick.
 
@@ -16,8 +16,10 @@ contact solve, shooter lead, per-weapon `roundVelocity`; landed as specced).
 **S3 shipped 2026-08-19** (`complete/s3-visible-rounds.md` — traveling tinted
 bolts on the real flight clock, shared arrival-timed impact semantics). **S3a
 shipped 2026-08-19** (`complete/s3a-weapon-fx-families.md` — reuse-first pulse,
-rail, and drone projectile silhouettes). S4 (direct-fire unification) is next —
-after the active S3b target-plane accuracy follow-up; see `next-session.md`.
+rail, and drone projectile silhouettes). **S3b shipped 2026-08-19**
+(`complete/s3b-target-plane-accuracy.md` — one target-plane accuracy commit,
+visible lateral/high/low flight, vertical silhouettes). S4 (direct-fire
+unification) is next; see `next-session.md`.
 
 ## Why
 
@@ -101,22 +103,24 @@ is structurally avoided, not just tuned away):
   Wall cells crossed by the ray itself remain a hard stop
   (`firstWallOnLine`).
 
-### 5. Accuracy stack survives as the per-contact hit roll
+### 5. Accuracy stack authors the intended trajectory once
 
-Geometry decides *who can be hit*; the roll decides *whether it connects*.
-Range falloff, stance, aptitude, equipment grade all stay as tuned — they
-become the hit probability rolled when the ray contacts a unit's radius.
-The purist alternative (accuracy as pure angular error, hits fully
-emergent) forces a rebalance of every accuracy stat; rejected for v1.
-`effectiveSpread` (already distance-scaled) becomes lateral offset on the
-trajectory so misses still look organic.
+Range falloff, stance, aptitude, equipment grade, and target evasion all stay
+as tuned, but their one combined roll now chooses an aim point in the plane
+perpendicular to fire. Successful aim lies inside the intended target's
+horizontal-radius × vertical-half-height silhouette. Failed aim lies beyond
+that silhouette with a clearance widened by `effectiveSpread`. Lateral error
+changes the physical XY ray; elevation becomes a lightweight linear Z path
+projected into screen Y. The intended target never makes a second invisible
+hit roll. Incidental contacts retain their flat graze chance.
 
 ### 6. Committed outcomes, walk-in-order
 
 All rolls happen at fire time. Contacts (wall cap, doodad crossings, unit
 closest-approaches) sort by contact time; walk in order — first blocker or
-successful hit stops the round, failed rolls let it fly on. A round that
-misses its intended target **keeps flying** and can hit whoever is behind.
+successful contact stops the round, failed incidental rolls let it fly on. A
+round that misses its intended target **keeps flying** and can hit whoever is
+behind if its real XY/Z trajectory intersects their silhouette.
 Impact tick re-guards only `isAlive` (existing released-target pattern in
 `DamageResolver`); no re-validation of position — the prediction is the
 outcome.
@@ -141,9 +145,10 @@ rounds renderable as visible stylized projectiles (SMG already has
 | Delayed damage safety | `DamageResolver` released-target guards; arrival-sink pattern |
 | Impact clock + FX dispatch | `ShotService` tick / `shotsExpiredThisFrame` |
 
-New: per-`UnitType` collision radius (infantry ~0.35 cells, mechs larger);
-segment query on the spatial index (bucket walk along the ray with an
-expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
+Ballistics shares each `UnitType.radius` with separation, picking, and AoE,
+and now pairs it with `UnitType.hitHalfHeight` for target-plane contact. The
+spatial-index segment query expands its bucket walk by flight exposure so
+movers can enter the corridor before contact.
 
 ## Resolved questions (owner decisions, 2026-08-13)
 
@@ -180,10 +185,10 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
   pipeline now gives pulse, rail, and drone fire distinct silhouettes by
   reusing vanilla assets before generating new art. See
   [`complete/s3a-weapon-fx-families.md`](complete/s3a-weapon-fx-families.md).
-- **S3b — target-plane accuracy.** Active follow-up: roll intended accuracy
-  once into lateral/elevation aim error, gate contacts against a lightweight
-  vertical silhouette, and project high/low flight through visible rounds.
-  Story: [`stories/s3b-target-plane-accuracy.md`](stories/s3b-target-plane-accuracy.md).
+- ~~**S3b — target-plane accuracy.**~~ **SHIPPED** — intended accuracy is
+  committed once into lateral/elevation aim, contacts use lightweight vertical
+  silhouettes, and visible rounds project high/low flight. See
+  [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.
