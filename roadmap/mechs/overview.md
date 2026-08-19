@@ -2,8 +2,8 @@
 
 **Status:** Active. S1's modular hardpoint substrate and three-chassis debug
 comparison shipped in `2d3f044b`; the shared heavy-cannon HE effects pass
-shipped in `39aefccb`. Battlefield tuning and production-roster integration
-remain.
+shipped in `39aefccb`; risk-scaled production integration and the ASSAULT
+Hound doctrine shipped in `1ef74f23`. Battlefield tuning remains.
 
 ## Concept
 
@@ -25,10 +25,12 @@ chassis, while a heavy can still be assigned either of today's doctrines.
 
 ## Current baseline
 
-The only live mech is `UnitType.HEAVY_MECH`: 540 health, 1.15 movement speed,
-and a chaingun, SRM pod, and LRM artillery pod. Its weapon tracks operate
-independently, so it threatens every range band. `LR_SUPPORT` and
-`ARMORED_SUPPORT` change how it uses that equipment, not what it carries.
+`UnitType.HEAVY_MECH` remains the shared pre-spawn capability tag, while
+`MechVariant` supplies the live Bulwark/Hound/Sirocco profile. Production
+defenders now field none at LOW, one Bulwark at MEDIUM, and deterministic
+mixed groups at HIGH when the target has heavy armor. `LR_SUPPORT`,
+`ARMORED_SUPPORT`, and `ASSAULT` change how a mech uses its equipment, not what
+it carries.
 
 The renderer composes distinct Bulwark, Hound, and Sirocco chassis, several arm
 modules, and empty, SRM, LRM, or heavy-SRM shoulder slots. Hound now owns the
@@ -48,7 +50,7 @@ replaced by a visible in-arc contact when one exists. This applies to ordinary
 engagement, rescue patrol, overwatch, backstop, and withdrawal fire rather than
 being special-cased to one mission behavior.
 
-## Proposed family
+## Shipped family
 
 Names and numbers are provisional. The battlefield identities are the part to
 approve first.
@@ -87,7 +89,8 @@ and a corresponding GOAP role.
 
 1. [S1 — Specialist striders](stories/s1-specialist-striders.md): add the
    variant model, Hound and Sirocco, a deterministic comparison fixture, then
-   integrate them into budgeted defender lances after tuning.
+   integrate them into budgeted defender groups. The implementation is
+   complete; manual tuning remains.
 2. **S2 — Recon strider** *(unwritten)*: give Needle a real information role,
    including sensor/target-painting interactions and a `RECON` doctrine.
 3. **S3 — Player access and progression** *(unwritten)*: decide how variants

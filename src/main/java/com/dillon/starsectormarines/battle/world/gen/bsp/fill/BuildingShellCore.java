@@ -233,7 +233,9 @@ final class BuildingShellCore {
         // only LoS and projectile rays pass through. Shared circulation and
         // public thresholds stay protected by the purpose filter.
         if (config.layoutRecipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK
-                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC) {
+                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC
+                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.DENSE_TENEMENT
+                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.DENSE_MARKET) {
             stampPurposeWindows(grid, topology, bl, bt, br, bb, config.layoutRecipe);
         }
 
@@ -290,6 +292,12 @@ final class BuildingShellCore {
         if (recipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK) {
             return purpose == RoomPurpose.APARTMENT_LIVING
                     || purpose == RoomPurpose.BEDROOM;
+        }
+        if (recipe == BuildingLayouts.LayoutRecipe.DENSE_TENEMENT) {
+            return purpose == RoomPurpose.BEDROOM;
+        }
+        if (recipe == BuildingLayouts.LayoutRecipe.DENSE_MARKET) {
+            return purpose == RoomPurpose.SHOP_FLOOR;
         }
         return recipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC
                 && (purpose == RoomPurpose.TREATMENT_ROOM

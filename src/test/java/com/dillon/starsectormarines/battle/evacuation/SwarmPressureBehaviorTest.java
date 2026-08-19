@@ -2,8 +2,11 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.SeparationSystem;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -35,6 +38,44 @@ class SwarmPressureBehaviorTest {
         assertTrue(sim.isCivilianShelterProtected());
         assertEquals(marine,
                 SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
+    void sealedShelterGuardNeitherFightsNorDrawsSwarmAggro() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        6, 4, 10, 8, 8, 6, 8, 6)), 12L);
+        assertNotNull(payload);
+        long runner = runner(sim, 2, 2);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        squad.rescueShelterGuard = true;
+        long guard = sim.spawn(new EntitySpec("shelter guard",
+                Faction.MARINE, UnitType.MILITIA, 3, 2).squad(squadId));
+        long responder = marine(sim, 15, 11);
+        sim.combat().setTargetId(guard, runner);
+        sim.setPath(guard, GridPathfinder.findPath(sim.getGrid(),
+                3, 2, 4, 6));
+
+        GoapInfantryBehavior.INSTANCE.update(guard, sim);
+
+        assertEquals(0L, sim.combat().targetId(guard));
+        assertTrue(Paths.isEmpty(sim.movement().path(guard)));
+        assertEquals(responder,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+
+        sim.world().setCellPos(responder,
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertFalse(sim.isCivilianShelterProtected());
+        sim.world().setCellPos(responder, 15, 11);
+        sim.combat().setTargetId(runner, 0L);
+        assertEquals(guard, SwarmPressureBehavior.selectTarget(runner, sim),
+                "the local guard becomes ordinary nearby prey after relief");
     }
 
     @Test

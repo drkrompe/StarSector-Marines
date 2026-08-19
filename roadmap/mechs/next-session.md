@@ -3,8 +3,10 @@
 ## State of play
 
 The modular hardpoint substrate and first specialist family shipped in
-`2d3f044b`. Production encounters and the player's Mech Support power still use
-Bulwark exclusively.
+`2d3f044b`. Production defender integration shipped in `1ef74f23`: LOW fields
+no mechs, MEDIUM introduces one Bulwark, and HIGH uses deterministic
+mission-scaled Bulwark/Hound/Sirocco groups without increasing old mech body
+counts. The player's Mech Support power remains Bulwark-only.
 
 The heavy-cannon FX pass shipped in `39aefccb`. Sirocco's backup gun now fires
 a larger visible Hellbore-style ballistic shell with a true 1-cell timed HE
@@ -48,9 +50,9 @@ real recon/spotting behavior.
 
 ## First action
 
-Review the revised static contact sheet, then run an ordinary debug battle,
-expand the battle debug panel, and click **Spawn mech family**. Confirm the new
-hulls and external racks remain readable while moving and turning; then compare
+Run representative MEDIUM and HIGH production battles, then use **Spawn mech
+family** for direct comparison. Confirm mixed defender groups remain readable
+while moving and turning; then compare
 range behavior, time-to-kill, missile density, and whether Sirocco's heavy
 cannon remains an anti-armor fallback rather than a second primary role. Also
 check that its shell remains visible at normal zoom, the muzzle/impact reads as
@@ -74,9 +76,11 @@ close-range weakness.
    visible ballistic shells, timed splash/structure damage, cannon muzzle and
    impact particles, vanilla explosion/ring sprites, decals, lighting, and
    positional audio (`39aefccb`).
+8. Deterministic difficulty-scaled defender profiles and the Hound's
+   faction-neutral ASSAULT doctrine (`1ef74f23`).
 
-After the comparison is accepted, tune the profile/component numbers and then
-adopt the budgeted mixed-lance rules in S1.
+Tune profile/component numbers from the production encounters; mixed-group
+adoption itself is complete.
 
 ## Relevant code seams
 
@@ -89,8 +93,8 @@ adopt the budgeted mixed-lance rules in S1.
   compatibility, and art; `MechWeapon` owns projectile behavior.
 - `World.attachMechLoadout` updates layered hardpoint selectors from the actual
   installed components, including custom authored loadouts.
-- `DefenderRoster` exposes only a mech count; production integration will need
-  a deterministic profile/budget representation.
+- `DefenderRoster.mechVariants` is the immutable deterministic production
+  composition; `mechCount` is derived from its size.
 - `MechSupportPayload` should deliberately remain heavy-only for this story.
 
 ## Known traps

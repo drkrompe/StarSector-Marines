@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercial
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusFiller;
@@ -117,6 +118,14 @@ public class BuildingZonePreviewTest {
             new BuildingVariant("minimum 15x12", 15, 12, 41L),
             new BuildingVariant("tall 12x15",    12, 15, 53L),
             new BuildingVariant("large 17x13",   17, 13, 89L),
+    };
+
+    /** Dense lots retain compact blocks below threshold and become mixed-use rows on larger footprints. */
+    private static final BuildingVariant[] DENSE_URBAN_VARIANTS = {
+            new BuildingVariant("compact 12x9",  12, 9,  31L),
+            new BuildingVariant("minimum 13x10", 13, 10, 91L),
+            new BuildingVariant("tall 10x13",    10, 13, 91L),
+            new BuildingVariant("large 15x12",   15, 12, 67L),
     };
 
     /**
@@ -487,6 +496,11 @@ public class BuildingZonePreviewTest {
     @Test
     void renderIndustrialVariants() throws Exception {
         renderBuildingBatch(new BuildingIndustrialFiller(), "industrial", INDUSTRIAL_VARIANTS);
+    }
+
+    @Test
+    void renderDenseUrbanVariants() throws Exception {
+        renderBuildingBatch(new DenseBlockFiller(), "dense-urban", DENSE_URBAN_VARIANTS);
     }
 
     @Test
