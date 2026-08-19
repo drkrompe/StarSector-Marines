@@ -385,10 +385,10 @@ two-stage event lifecycle without cloning the rescue battle.
 
 The third archetype is active as **Silent Colony** in
 [`living-world/stories/g9-silent-colony.md`](living-world/stories/g9-silent-colony.md).
-Its first slice persists the blind expedition promise: exact resource cost,
-representative survivor stakes, a hidden deterministic threat seed, and an
-explicit archive outcome. Production site selection, Dead Letter presentation,
-and the dedicated automated-threat mission remain later slices.
+Its first two slices persist the blind expedition promise, select one-shot live
+decivilized/abandoned/ruins sites deterministically, and reconstruct exact-cost
+choices through the registered Dead Letter. The dedicated survivor/archive
+mission and automated-threat reveal remain later slices.
 
 ## Open questions (parked)
 
