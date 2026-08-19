@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
+import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
@@ -40,6 +42,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -70,6 +73,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -659,6 +663,125 @@ public final class BattleSetup {
         }
         throw new IllegalStateException(
                 "unable to place civilian rescue payload after 8 map attempts");
+    }
+
+    /**
+     * Dedicated Silent Colony expedition. The frozen threat seed owns the
+     * ruined map and autonomous-defense placement; the ordinary battle seed
+     * affects only the responding marine loadouts.
+     */
+    public static BattleSimulation createSilentColony(
+            long battleSeed, long threatSeed, int survivorCount,
+            List<ShuttleAssignment> manifest, RiskLevel risk) {
+        if (threatSeed < 0L || survivorCount <= 0 || risk == null) {
+            throw new IllegalArgumentException(
+                    "valid Silent Colony mission facts required");
+        }
+        SilentColonyThreatProfile threat =
+                SilentColonyThreatProfile.fromSeed(threatSeed);
+        for (int attempt = 0; attempt < 8; attempt++) {
+            long scenarioSeed = threatSeed
+                    + attempt * 0x9E3779B97F4A7C15L;
+            MapScale scale = MapScale.forRisk(risk);
+            MapResult map = MAP_GEN.generate(scale.width, scale.height,
+                    scenarioSeed, null, TargetProfile.NEUTRAL);
+            Random scenarioRng = new Random(
+                    scenarioSeed ^ 0x4155544F4D415445L);
+            List<ShuttleAssignment> assignments = resolveManifest(manifest);
+            List<MapVehicle> vehiclePlacements = stampVehicles(
+                    map, scenarioRng);
+            List<DefensePost> candidates = new ArrayList<>();
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph, map.grid.getWidth(),
+                            map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, candidates,
+                    scenarioRng);
+            List<DefensePost> automatedPosts = threat.select(candidates);
+            if (automatedPosts.isEmpty()) continue;
+
+            List<LandingPad> lzCells = LandingPadSelector.select(
+                    map, assignments.size(), LZ_MIN_SEPARATION);
+            List<ParkedAircraft> parkedAircraft = stampParkedAircraft(
+                    map, lzCells, scenarioRng);
+            BattleSimulation sim = buildMap(map, vehiclePlacements,
+                    automatedPosts, parkedAircraft).sim();
+
+            CivilianEvacuationPayload survivors =
+                    CivilianEvacuationPayload.install(sim, map,
+                            scenarioSeed, survivorCount, false);
+            if (survivors == null) continue;
+            PointOfInterest archiveSite = pickColonyArchiveSite(
+                    map.pointsOfInterest, survivors.placement,
+                    scenarioSeed);
+            if (archiveSite == null) continue;
+            int archiveZone = sim.getZoneGraph().zoneIdAt(
+                    archiveSite.interiorAnchorX,
+                    archiveSite.interiorAnchorY);
+            if (archiveZone < 0) continue;
+            ColonyArchiveObjective archive = new ColonyArchiveObjective(
+                    archiveSite.interiorAnchorX,
+                    archiveSite.interiorAnchorY, archiveZone);
+            sim.addObjective(archive);
+            sim.addObjective(new EliminateFactionObjective(
+                    Faction.DEFENDER, Faction.MARINE));
+
+            Random marineRng = new Random(
+                    battleSeed ^ 0x455850454449544EL);
+            stampLzPads(sim, lzCells);
+            for (int i = 0; i < lzCells.size(); i++) {
+                ShuttleAssignment assignment =
+                        assignments.get(i % assignments.size());
+                LandingPad lz = lzCells.get(i);
+                float lzCenterX = lz.centerX + 0.5f;
+                float lzCenterY = lz.centerY + 0.5f;
+                float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
+                        scale.width, scale.height, lz.approach);
+                long shuttleId = sim.spawnShuttle(
+                        assignment.type, Faction.MARINE,
+                        lzCenterX, lzCenterY,
+                        entry[0], entry[1], entry[2], entry[3],
+                        i * SHUTTLE_DROP_STAGGER_SEC);
+                ShuttleMission shuttleMission = sim.world().mission(shuttleId);
+                shuttleMission.totalCycles = assignment.cycles;
+                MarineLoadout[][] cycleLoadouts =
+                        new MarineLoadout[assignment.cycles][];
+                for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                    cycleLoadouts[cycle] = buildBaseLoadouts(
+                            assignment.type.capacity, marineRng);
+                }
+                shuttleMission.cycleLoadouts = cycleLoadouts;
+                shuttleMission.marineLoadout = cycleLoadouts[0];
+                equipDefaultTurrets(sim, shuttleId);
+            }
+            sim.setCommander(Faction.MARINE,
+                    new SilentColonyCommand(survivors.placement, archive));
+            return sim;
+        }
+        throw new IllegalStateException(
+                "unable to place Silent Colony objectives after 8 map attempts");
+    }
+
+    private static PointOfInterest pickColonyArchiveSite(
+            List<PointOfInterest> sites,
+            CivilianEvacuationPlacement placement,
+            long seed) {
+        List<PointOfInterest> candidates = new ArrayList<>();
+        for (PointOfInterest site : sites) {
+            if (site == null) continue;
+            if (site.interiorAnchorX == placement.shelterX
+                    && site.interiorAnchorY == placement.shelterY) {
+                continue;
+            }
+            candidates.add(site);
+        }
+        if (candidates.isEmpty()) return null;
+        candidates.sort(Comparator
+                .comparingInt((PointOfInterest site) -> site.interiorAnchorY)
+                .thenComparingInt(site -> site.interiorAnchorX)
+                .thenComparingInt(site -> site.kind.ordinal()));
+        int index = Math.floorMod((int) (seed ^ (seed >>> 32)),
+                candidates.size());
+        return candidates.get(index);
     }
 
     /**
