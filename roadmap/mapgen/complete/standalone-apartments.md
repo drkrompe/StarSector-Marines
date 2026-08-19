@@ -59,7 +59,7 @@ contract.
   valid deployment across legacy, conquest, and all station recipes.
 - The sprite preview was regenerated and inspected with the directional cyan
   slit overlay.
-- Full root suite: 1,768 tests green. Asset-pipeline suite green.
+- Full merged root suite: 1,783 tests green. Asset-pipeline suite green.
 
 ## Deliberate next boundary
 
