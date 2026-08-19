@@ -76,9 +76,9 @@ phase number, target zone/destination, threat id, stride point, and immutable
 member-to-cell arrays for the current bounding team. It never lives on the
 parameterized `EnterZone` action.
 
-Squad-state JSON advances to schema v7 and includes the phase and assigned
-bounding destinations. The plan dump already exposes the stable `team:a` /
-`team:b` membership.
+Squad-state JSON includes the phase and assigned bounding destinations. The
+plan dump also exposes the stable `team:a` / `team:b` membership. This is an
+internal debug contract, not a released versioned schema.
 
 ## Acceptance
 

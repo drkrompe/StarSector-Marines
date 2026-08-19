@@ -345,7 +345,7 @@ public final class SpaceportFiller implements BlockFiller {
 
     private static boolean doodadAt(int x, int y, List<Doodad> doodads) {
         for (Doodad doodad : doodads) {
-            if (doodad.cellX == x && doodad.cellY == y) return true;
+            if (doodad.occupiesCell(x, y)) return true;
         }
         return false;
     }

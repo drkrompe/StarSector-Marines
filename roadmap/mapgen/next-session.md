@@ -34,7 +34,8 @@ fa0533ee  mapgen: tactical military compound interiors
 4d929309  mapgen: add civic headquarters interiors
 e8ad9c4b  mapgen: add tactical industrial facilities
 7296aeec  mapgen: add industrial works compounds
-444e0f97  mapgen: add residential courtyard compounds  ← latest mapgen work
+444e0f97  mapgen: add residential courtyard compounds
+fc212e56  mapgen: support multi-cell residential doodads  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -114,6 +115,13 @@ findings) in
   transparent movement cover without blocking shared circulation. Three new
   transparent ImageGen masters produce six deterministic atlas frames. See
   [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md).
+- **Multi-cell doodad footprints shipped (`fc212e56`).** Residential beds and
+  sofas now consume and render across their natural two-cell spans, with cover,
+  ballistics, placement, cleanup, and exclusion logic honoring every occupied
+  cell. Furniture remains within its room purpose and cannot split the
+  remaining floor into disconnected pockets. The atlas/manifest seam is
+  reusable by future large props; legacy doodads still default to 1x1. See
+  [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md).
 
 ## Next up (priority order)
 
@@ -182,7 +190,8 @@ reused verbatim. Candidate next tracks (priority order):
    blocking the vehicle reservation. **Residential compound identity is now
    shipped (`444e0f97`)**: two roomed apartment blocks and a utility building
    orient around a tactical shared courtyard, with generated domestic and
-   exterior cover. Next: reuse the apartment planner on qualifying standalone
+   exterior cover. Beds and sofas now use true two-cell doodad footprints
+   (`fc212e56`). Next: reuse the apartment planner on qualifying standalone
    residential lots, then tackle public-service or medical campuses.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
@@ -191,9 +200,10 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/commercial-compound.md`](complete/commercial-compound.md),
    [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md),
    [`complete/civic-headquarters.md`](complete/civic-headquarters.md),
-   [`complete/industrial-facilities.md`](complete/industrial-facilities.md), and
-   [`complete/industrial-compound.md`](complete/industrial-compound.md), and
-   [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md).
+   [`complete/industrial-facilities.md`](complete/industrial-facilities.md),
+   [`complete/industrial-compound.md`](complete/industrial-compound.md),
+   [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md),
+   and [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -402,9 +412,10 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,706-test merged root suite green.
+- `gradlew.bat :test` — full 1,742-test merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
-- `python mod/graphics/doodads/test_stitch_atlas.py` — atlas stitcher tests green.
+- `python mod/graphics/doodads/test_stitch_atlas.py` — all three atlas stitcher
+  tests green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
   all hard invariants hold.
 - `gradlew.bat :test --tests "*BspMapPreviewTest*"` — regenerates the preview

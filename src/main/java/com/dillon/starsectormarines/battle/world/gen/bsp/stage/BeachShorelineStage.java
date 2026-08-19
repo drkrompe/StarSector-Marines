@@ -93,8 +93,16 @@ public final class BeachShorelineStage implements GenStage {
         // (LZ arrows, beach crates, etc.) would otherwise float on water.
         if (!doodads.isEmpty()) {
             doodads.removeIf(d -> {
-                if (!grid.inBounds(d.cellX, d.cellY)) return false;
-                return topology.isWater(d.cellX, d.cellY);
+                for (int dy = 0; dy < d.footprintCellsY; dy++) {
+                    for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                        int cellX = d.cellX + dx;
+                        int cellY = d.cellY + dy;
+                        if (grid.inBounds(cellX, cellY) && topology.isWater(cellX, cellY)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             });
         }
     }

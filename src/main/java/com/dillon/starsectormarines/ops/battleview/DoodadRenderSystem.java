@@ -7,15 +7,14 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — point overlays (rocks, plants,
- * debris) painted above ground/decals/vehicles and below units. Each doodad is a
- * full {@code TILE_SIZE} sub-rect of its authored fixed-grid sheet, drawn at
- * its cell center; the drain batches them per sheet.
+ * debris) painted above ground/decals/vehicles and below units. Each doodad uses
+ * the full fixed-grid source rectangle and world rectangle declared by its
+ * cell footprint; the drain batches them per sheet.
  *
  * <p>Emitted in two passes — road-sheet doodads first, then urban — so each sheet
  * forms one contiguous run for the strict-painter drain (one batch flush per
  * sheet). Road-under-urban matches the original {@code renderDoodads} flush order;
- * doodads are one-per-cell point overlays with no cross-sheet overlap, so the
- * order is not load-bearing.
+ * doodads do not overlap across sheets, so the order is not load-bearing.
  */
 public final class DoodadRenderSystem implements RenderSystem {
 
@@ -62,11 +61,13 @@ public final class DoodadRenderSystem implements RenderSystem {
         TileManifest.TileFrame f = d.tile;
         int srcX = f.col * TileManifest.TILE_SIZE;
         int srcY = f.row * TileManifest.TILE_SIZE;
-        float cx = cam.cellToScreenX(d.cellX + 0.5f);
-        float cy = cam.cellToScreenY(d.cellY + 0.5f);
+        int sourceWidth = TileManifest.TILE_SIZE * d.footprintCellsX;
+        int sourceHeight = TileManifest.TILE_SIZE * d.footprintCellsY;
+        float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
+        float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
         out.addSheetQuad(RenderLayer.DOODADS, sheet,
-                srcX, srcY, TileManifest.TILE_SIZE, TileManifest.TILE_SIZE,
-                cx, cy, cellPx, cellPx,
+                srcX, srcY, sourceWidth, sourceHeight,
+                cx, cy, cellPx * d.footprintCellsX, cellPx * d.footprintCellsY,
                 1f, 1f, 1f, alphaMult);
     }
 }

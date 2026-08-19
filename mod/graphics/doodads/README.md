@@ -32,8 +32,9 @@ is safe because the generated manifest moves each stable doodad id to its new
 - Sources must have a useful alpha channel. The build rejects fully opaque raw
   ImageGen canvases so matte or chroma-key backgrounds do not leak into game
   art. Use `--allow-opaque` only for deliberately opaque assets.
-- Visible pixels are cropped, proportionally fitted, and centered in a 32x32
-  cell with 2px padding by default.
+- Visible pixels are cropped, proportionally fitted, and centered in the
+  authored cell footprint with 2px outer padding by default. Assets without a
+  footprint remain 32x32.
 - Lanczos resampling is the default for high-resolution ImageGen cutouts. Use
   `--resample nearest` for already-authored pixel art.
 
@@ -49,6 +50,8 @@ An asset can set:
 - `padding`: transparent inset within the cell
 - `scale`: multiplier in `(0, 1]` after fitting
 - `offset`: final `[x, y]` pixel adjustment
+- `footprintCells`: rendered and tactical `[width, height]` cell span; defaults
+  to `[1, 1]`
 - `enabled`: set to `false` to leave a source out of the atlas
 
 Example:
@@ -57,11 +60,12 @@ Example:
 {
   "defaults": { "cover": "none", "padding": 2 },
   "assets": {
-    "sandbag-corner-ne.png": {
-      "id": "doodad.sandbag-corner-ne",
-      "cover": "heavy",
-      "order": 30,
-      "offset": [0, 1]
+    "residential-sofa-h.png": {
+      "id": "doodad.residential-sofa-h",
+      "cover": "med",
+      "footprintCells": [2, 1],
+      "order": 72,
+      "offset": [0, 0]
     }
   }
 }

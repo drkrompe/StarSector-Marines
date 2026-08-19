@@ -73,6 +73,46 @@ class StitchAtlasTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "fully opaque"):
                 build_atlas(options)
 
+    def test_packs_and_publishes_multicell_footprints(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "sources"
+            source.mkdir()
+            self._cutout(source / "wide.png", (40, 18), (255, 0, 0, 255))
+            self._cutout(source / "tall.png", (18, 40), (0, 255, 0, 255))
+            (source / "_atlas.json").write_text(
+                json.dumps(
+                    {
+                        "assets": {
+                            "wide.png": {"order": 1, "footprintCells": [2, 1]},
+                            "tall.png": {"order": 2, "footprintCells": [1, 2]},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            image_path = root / "atlas.png"
+            manifest_path = root / "atlas.tileset.json"
+
+            build_atlas(
+                BuildOptions(
+                    input_dir=source,
+                    output_image=image_path,
+                    output_manifest=manifest_path,
+                    sheet_path="graphics/test/atlas.png",
+                    metadata_path=source / "_atlas.json",
+                    columns=2,
+                )
+            )
+
+            with Image.open(image_path) as atlas:
+                self.assertEqual((64, 96), atlas.size)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual([0, 0], [manifest["doodads"][0]["col"], manifest["doodads"][0]["row"]])
+            self.assertEqual([2, 1], manifest["doodads"][0]["footprintCells"])
+            self.assertEqual([0, 1], [manifest["doodads"][1]["col"], manifest["doodads"][1]["row"]])
+            self.assertEqual([1, 2], manifest["doodads"][1]["footprintCells"])
+
     @staticmethod
     def _cutout(path: Path, size: tuple[int, int], color: tuple[int, int, int, int]):
         image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))

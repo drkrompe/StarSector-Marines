@@ -431,7 +431,7 @@ public class BspMapSpritePreviewTest {
         for (Doodad d : map.doodads) {
             TileSink sink = TileManifest.DOODAD_SHEET.equals(d.sheetPath)
                     ? doodadSink : d.fromRoadSheet ? roadSink : urbanSink;
-            stampFrame(urbanDrawer, sink, d.tile, d.cellX, d.cellY, gh, 0);
+            stampDoodad(urbanDrawer, sink, d, gh);
         }
 
         // ---- Spawn markers ---- green = marine, red = defender.
@@ -554,8 +554,10 @@ public class BspMapSpritePreviewTest {
             if (d.cover < Doodad.COVER_MED) continue;
             g.setColor(d.cover == Doodad.COVER_HEAVY ? HEAVY_COVER_FG : MED_COVER_FG);
             int x = d.cellX * CELL_PX + 1;
-            int y = (gridH - 1 - d.cellY) * CELL_PX + 1;
-            g.drawRect(x, y, CELL_PX - 3, CELL_PX - 3);
+            int y = (gridH - d.cellY - d.footprintCellsY) * CELL_PX + 1;
+            int width = d.footprintCellsX * CELL_PX - 3;
+            int height = d.footprintCellsY * CELL_PX - 3;
+            g.drawRect(x, y, width, height);
             g.drawString(d.cover == Doodad.COVER_HEAVY ? "H" : "M", x + 3, y + 10);
         }
         g.setColor(new Color(0, 0, 0, 215));
@@ -566,5 +568,16 @@ public class BspMapSpritePreviewTest {
         g.setColor(HEAVY_COVER_FG);
         g.drawString("H heavy doodad cover", 99, 23);
         g.dispose();
+    }
+
+    private static void stampDoodad(FixedGridTileDrawer drawer, TileSink sink,
+                                    Doodad doodad, int gridH) {
+        float dstW = CELL_PX * doodad.footprintCellsX;
+        float dstH = CELL_PX * doodad.footprintCellsY;
+        float dstCx = (doodad.cellX + doodad.footprintCellsX * 0.5f) * CELL_PX;
+        float dstCy = (gridH - doodad.cellY - doodad.footprintCellsY * 0.5f) * CELL_PX;
+        drawer.drawSpan(sink, doodad.tile,
+                doodad.footprintCellsX, doodad.footprintCellsY,
+                dstCx, dstCy, dstW, dstH, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
     }
 }

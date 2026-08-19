@@ -65,6 +65,7 @@ class GatedHousingFillerTest {
             assertTrue(countFixtures(fixture.topology, apartment,
                     RoomPurpose.BEDROOM) >= 2);
             assertPurposeIsClear(fixture, apartment, RoomPurpose.RESIDENTIAL_HALL);
+            assertMulticellResidentialFixtures(fixture, apartment);
         }
 
         int courtyardPlanters = 0;
@@ -89,14 +90,24 @@ class GatedHousingFillerTest {
         assertAllWalkableCellsConnected(fixture.grid);
 
         for (Doodad doodad : fixture.ctx.doodads) {
-            assertFalse(fixture.reserved[doodad.cellX][doodad.cellY],
-                    "residential prop cannot occupy the vehicle reservation");
+            for (int dy = 0; dy < doodad.footprintCellsY; dy++) {
+                for (int dx = 0; dx < doodad.footprintCellsX; dx++) {
+                    assertFalse(fixture.reserved[doodad.cellX + dx][doodad.cellY + dy],
+                            "residential prop cannot occupy the vehicle reservation");
+                }
+            }
         }
     }
 
     @Test
     void compoundLayoutIsDeterministic() {
         assertEquals(digest(generate(771L)), digest(generate(771L)));
+    }
+
+    @Test
+    void multicellFurnitureCannotSealAShallowRoom() {
+        MapResult map = new BspCityGenerator().generate(80, 80, 777L);
+        assertAllWalkableCellsConnected(map.grid);
     }
 
     @Test
@@ -226,6 +237,30 @@ class GatedHousingFillerTest {
         }
     }
 
+    private static void assertMulticellResidentialFixtures(Fixture fixture, BlockLeaf apartment) {
+        int furniture = 0;
+        for (Doodad doodad : fixture.ctx.doodads) {
+            RoomPurpose purpose = fixture.topology.getRoomPurpose(doodad.cellX, doodad.cellY);
+            if (purpose != RoomPurpose.BEDROOM && purpose != RoomPurpose.APARTMENT_LIVING) continue;
+            if (!apartment.contains(doodad.cellX, doodad.cellY)) continue;
+            furniture++;
+            assertEquals(2, doodad.footprintCellsX * doodad.footprintCellsY,
+                    "beds and sofas occupy two cells");
+            for (int dy = 0; dy < doodad.footprintCellsY; dy++) {
+                for (int dx = 0; dx < doodad.footprintCellsX; dx++) {
+                    int x = doodad.cellX + dx;
+                    int y = doodad.cellY + dy;
+                    assertTrue(apartment.contains(x, y));
+                    assertEquals(purpose, fixture.topology.getRoomPurpose(x, y));
+                    assertTrue(fixture.topology.isFixture(x, y));
+                    assertFalse(fixture.grid.isWalkable(x, y));
+                    assertTrue(fixture.grid.isSeeThrough(x, y));
+                }
+            }
+        }
+        assertEquals(4, furniture, "each apartment receives two beds and two sofas");
+    }
+
     private static void assertAllWalkableCellsConnected(NavigationGrid grid) {
         boolean[][] seen = new boolean[grid.getWidth()][grid.getHeight()];
         ArrayDeque<int[]> queue = new ArrayDeque<>();
@@ -274,7 +309,9 @@ class GatedHousingFillerTest {
         }
         for (Doodad doodad : fixture.ctx.doodads) {
             out.append(doodad.cellX).append(':').append(doodad.cellY).append(':')
-                    .append(doodad.tile.col).append(':').append(doodad.tile.row).append('|');
+                    .append(doodad.tile.col).append(':').append(doodad.tile.row).append(':')
+                    .append(doodad.footprintCellsX).append('x')
+                    .append(doodad.footprintCellsY).append('|');
         }
         return out.toString();
     }
