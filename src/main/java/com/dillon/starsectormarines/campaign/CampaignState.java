@@ -186,6 +186,8 @@ public final class CampaignState implements Serializable {
     public int[] chronicleSourceFactionId = filledInts(INITIAL_CAPACITY, -1);
     /** Result faction snapshot for faction-flip dispatches; -1 otherwise. */
     public int[] chronicleResultFactionId = filledInts(INITIAL_CAPACITY, -1);
+    /** Kingmaker testament linked by this dispatch; -1 for other event types. */
+    public long[] chronicleTestamentId = filledLongs(INITIAL_CAPACITY, -1L);
     public int[] chronicleHappenedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
     public int chronicleCount = 0;
@@ -218,6 +220,36 @@ public final class CampaignState implements Serializable {
     /** Day diplomacy consequences completed; -1 while pending or failed. */
     public int[] throneClaimConsequenceAppliedTick = filledInts(INITIAL_CAPACITY, -1);
     public int throneClaimCount = 0;
+
+    // ---------- kingmakerTestaments[] (immutable T3 moral-capstone snapshots) ----------
+
+    public long[] kingmakerTestamentId = new long[INITIAL_CAPACITY];
+    public long[] kingmakerTestamentThroneClaimId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] kingmakerTestamentSourceChainId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] kingmakerTestamentClaimantHouseId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public long[] kingmakerTestamentDeposedHouseId =
+            filledLongs(INITIAL_CAPACITY, -1L);
+    public int[] kingmakerTestamentSourceFactionId =
+            filledInts(INITIAL_CAPACITY, -1);
+    public int[] kingmakerTestamentResultFactionId =
+            filledInts(INITIAL_CAPACITY, -1);
+    public int[] kingmakerTestamentMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public short[] kingmakerTestamentPlayerContribution =
+            new short[INITIAL_CAPACITY];
+    /** Hidden axis snapshots; never rendered numerically. */
+    public int[] kingmakerTestamentMercy = new int[INITIAL_CAPACITY];
+    public int[] kingmakerTestamentIntegrity = new int[INITIAL_CAPACITY];
+    public int[] kingmakerTestamentStewardship = new int[INITIAL_CAPACITY];
+    public int[] kingmakerTestamentInstitutionalism = new int[INITIAL_CAPACITY];
+    /** Exclusive upper ledger-row boundary available when this snapshot was sealed. */
+    public int[] kingmakerTestamentMoralChoiceCount =
+            filledInts(INITIAL_CAPACITY, -1);
+    public int[] kingmakerTestamentSealedTick = filledInts(INITIAL_CAPACITY, -1);
+    public byte[] kingmakerTestamentState = new byte[INITIAL_CAPACITY];
+    public int kingmakerTestamentCount = 0;
 
     // ---------- contracts[] (sixth table — see contracts/overview.md §"contracts[]") ----------
 
@@ -313,6 +345,7 @@ public final class CampaignState implements Serializable {
     private long nextChronicleId = 1;
     private long nextContractId = 1;
     private long nextThroneClaimId = 1;
+    private long nextKingmakerTestamentId = 1;
     private long nextMoralChoiceId = 1;
     private long nextEventId = 1;
 
@@ -469,6 +502,7 @@ public final class CampaignState implements Serializable {
         chronicleIndustryId[i] = industryId;
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
+        chronicleTestamentId[i] = -1L;
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -494,6 +528,7 @@ public final class CampaignState implements Serializable {
         chronicleIndustryId[i] = industryId;
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
+        chronicleTestamentId[i] = -1L;
         chronicleHappenedTick[i] = initiatedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -518,6 +553,7 @@ public final class CampaignState implements Serializable {
         chronicleIndustryId[i] = -1;
         chronicleSourceFactionId[i] = -1;
         chronicleResultFactionId[i] = -1;
+        chronicleTestamentId[i] = -1L;
         chronicleHappenedTick[i] = happenedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
@@ -548,7 +584,44 @@ public final class CampaignState implements Serializable {
         chronicleIndustryId[i] = -1;
         chronicleSourceFactionId[i] = sourceFactionId;
         chronicleResultFactionId[i] = resultFactionId;
+        chronicleTestamentId[i] = -1L;
         chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
+    /** Appends one confirmed, intimate dispatch linked to a sealed testament. */
+    public long addChronicleKingmakerTestament(long testamentId,
+                                                long sourceChainId,
+                                                long claimantHouseId,
+                                                long deposedHouseId,
+                                                int sourceFactionId,
+                                                int resultFactionId,
+                                                int marketId,
+                                                int sealedTick,
+                                                int learnedTick) {
+        for (int row = 0; row < chronicleCount; row++) {
+            if (chronicleTestamentId[row] == testamentId) {
+                return chronicleId[row];
+            }
+        }
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = ChronicleEventType.KINGMAKER_TESTAMENT.toByte();
+        chronicleSourceChainId[i] = sourceChainId;
+        chronicleChainOutcome[i] = ChainState.RESOLVED.toByte();
+        chronicleBand[i] = ChronicleBand.INTIMATE.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
+        chronicleActorHouseId[i] = claimantHouseId;
+        chronicleTargetHouseId[i] = deposedHouseId;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = -1;
+        chronicleSourceFactionId[i] = sourceFactionId;
+        chronicleResultFactionId[i] = resultFactionId;
+        chronicleTestamentId[i] = testamentId;
+        chronicleHappenedTick[i] = sealedTick;
         chronicleLearnedTick[i] = learnedTick;
         return id;
     }
@@ -597,6 +670,64 @@ public final class CampaignState implements Serializable {
     /** O(1) lookup: throne-claim id to row index, or {@code -1}. */
     public int throneClaimIndex(long id) {
         return throneClaimIndexById.get(id);
+    }
+
+    /** Finds a testament by its source throne claim, or {@code -1}. */
+    public int kingmakerTestamentIndexForClaim(long throneClaimIdValue) {
+        for (int row = 0; row < kingmakerTestamentCount; row++) {
+            if (kingmakerTestamentThroneClaimId[row] == throneClaimIdValue) {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    /** Finds a testament by its stable id, or {@code -1}. */
+    public int kingmakerTestamentIndex(long testamentIdValue) {
+        for (int row = 0; row < kingmakerTestamentCount; row++) {
+            if (kingmakerTestamentId[row] == testamentIdValue) return row;
+        }
+        return -1;
+    }
+
+    /** Seals one immutable testimony snapshot per source throne claim. */
+    public long sealKingmakerTestament(long throneClaimIdValue,
+                                       long sourceChainId,
+                                       long claimantHouseId,
+                                       long deposedHouseId,
+                                       int sourceFactionId,
+                                       int resultFactionId,
+                                       int marketId,
+                                       short playerContribution,
+                                       int mercy,
+                                       int integrity,
+                                       int stewardship,
+                                       int institutionalism,
+                                       int moralChoiceCountAtSeal,
+                                       int sealedTick) {
+        int existing = kingmakerTestamentIndexForClaim(throneClaimIdValue);
+        if (existing >= 0) return kingmakerTestamentId[existing];
+
+        ensureKingmakerTestamentCapacity(kingmakerTestamentCount + 1);
+        int i = kingmakerTestamentCount++;
+        long id = nextKingmakerTestamentId++;
+        kingmakerTestamentId[i] = id;
+        kingmakerTestamentThroneClaimId[i] = throneClaimIdValue;
+        kingmakerTestamentSourceChainId[i] = sourceChainId;
+        kingmakerTestamentClaimantHouseId[i] = claimantHouseId;
+        kingmakerTestamentDeposedHouseId[i] = deposedHouseId;
+        kingmakerTestamentSourceFactionId[i] = sourceFactionId;
+        kingmakerTestamentResultFactionId[i] = resultFactionId;
+        kingmakerTestamentMarketId[i] = marketId;
+        kingmakerTestamentPlayerContribution[i] = playerContribution;
+        kingmakerTestamentMercy[i] = mercy;
+        kingmakerTestamentIntegrity[i] = integrity;
+        kingmakerTestamentStewardship[i] = stewardship;
+        kingmakerTestamentInstitutionalism[i] = institutionalism;
+        kingmakerTestamentMoralChoiceCount[i] = moralChoiceCountAtSeal;
+        kingmakerTestamentSealedTick[i] = sealedTick;
+        kingmakerTestamentState[i] = KingmakerTestamentState.SEALED.toByte();
+        return id;
     }
 
     /** Finds or creates a rep row for the given house id. Returns the row index. */
@@ -866,6 +997,8 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleSourceFactionId, oldLength, n, -1);
         chronicleResultFactionId = Arrays.copyOf(chronicleResultFactionId, n);
         Arrays.fill(chronicleResultFactionId, oldLength, n, -1);
+        chronicleTestamentId = Arrays.copyOf(chronicleTestamentId, n);
+        Arrays.fill(chronicleTestamentId, oldLength, n, -1L);
         chronicleHappenedTick = Arrays.copyOf(chronicleHappenedTick, n);
         Arrays.fill(chronicleHappenedTick, oldLength, n, -1);
         chronicleLearnedTick = Arrays.copyOf(chronicleLearnedTick, n);
@@ -906,6 +1039,48 @@ public final class CampaignState implements Serializable {
         throneClaimConsequenceAppliedTick = Arrays.copyOf(
                 throneClaimConsequenceAppliedTick, n);
         Arrays.fill(throneClaimConsequenceAppliedTick, oldLength, n, -1);
+    }
+
+    private void ensureKingmakerTestamentCapacity(int needed) {
+        if (needed <= kingmakerTestamentId.length) return;
+        int oldLength = kingmakerTestamentId.length;
+        int n = Math.max(needed, kingmakerTestamentId.length * 2);
+        kingmakerTestamentId = Arrays.copyOf(kingmakerTestamentId, n);
+        kingmakerTestamentThroneClaimId = Arrays.copyOf(
+                kingmakerTestamentThroneClaimId, n);
+        Arrays.fill(kingmakerTestamentThroneClaimId, oldLength, n, -1L);
+        kingmakerTestamentSourceChainId = Arrays.copyOf(
+                kingmakerTestamentSourceChainId, n);
+        Arrays.fill(kingmakerTestamentSourceChainId, oldLength, n, -1L);
+        kingmakerTestamentClaimantHouseId = Arrays.copyOf(
+                kingmakerTestamentClaimantHouseId, n);
+        Arrays.fill(kingmakerTestamentClaimantHouseId, oldLength, n, -1L);
+        kingmakerTestamentDeposedHouseId = Arrays.copyOf(
+                kingmakerTestamentDeposedHouseId, n);
+        Arrays.fill(kingmakerTestamentDeposedHouseId, oldLength, n, -1L);
+        kingmakerTestamentSourceFactionId = Arrays.copyOf(
+                kingmakerTestamentSourceFactionId, n);
+        Arrays.fill(kingmakerTestamentSourceFactionId, oldLength, n, -1);
+        kingmakerTestamentResultFactionId = Arrays.copyOf(
+                kingmakerTestamentResultFactionId, n);
+        Arrays.fill(kingmakerTestamentResultFactionId, oldLength, n, -1);
+        kingmakerTestamentMarketId = Arrays.copyOf(kingmakerTestamentMarketId, n);
+        Arrays.fill(kingmakerTestamentMarketId, oldLength, n, -1);
+        kingmakerTestamentPlayerContribution = Arrays.copyOf(
+                kingmakerTestamentPlayerContribution, n);
+        kingmakerTestamentMercy = Arrays.copyOf(kingmakerTestamentMercy, n);
+        kingmakerTestamentIntegrity = Arrays.copyOf(kingmakerTestamentIntegrity, n);
+        kingmakerTestamentStewardship = Arrays.copyOf(
+                kingmakerTestamentStewardship, n);
+        kingmakerTestamentInstitutionalism = Arrays.copyOf(
+                kingmakerTestamentInstitutionalism, n);
+        kingmakerTestamentMoralChoiceCount = Arrays.copyOf(
+                kingmakerTestamentMoralChoiceCount, n);
+        Arrays.fill(kingmakerTestamentMoralChoiceCount, oldLength, n, -1);
+        kingmakerTestamentSealedTick = Arrays.copyOf(
+                kingmakerTestamentSealedTick, n);
+        Arrays.fill(kingmakerTestamentSealedTick, oldLength, n, -1);
+        kingmakerTestamentState = Arrays.copyOf(kingmakerTestamentState, n);
     }
 
     private void ensureRepCapacity(int needed) {
@@ -1085,6 +1260,9 @@ public final class CampaignState implements Serializable {
         if (chronicleResultFactionId == null) {
             chronicleResultFactionId = filledInts(chronicleCapacity, -1);
         }
+        if (chronicleTestamentId == null) {
+            chronicleTestamentId = filledLongs(chronicleCapacity, -1L);
+        }
         if (chronicleHappenedTick == null) {
             chronicleHappenedTick = filledInts(chronicleCapacity, -1);
         }
@@ -1154,6 +1332,64 @@ public final class CampaignState implements Serializable {
             nextThroneClaimId = 1L;
             for (int i = 0; i < throneClaimCount; i++) {
                 nextThroneClaimId = Math.max(nextThroneClaimId, throneClaimId[i] + 1L);
+            }
+        }
+        int testamentCapacity = kingmakerTestamentId != null
+                ? kingmakerTestamentId.length : INITIAL_CAPACITY;
+        if (kingmakerTestamentId == null) {
+            kingmakerTestamentId = new long[testamentCapacity];
+        }
+        if (kingmakerTestamentThroneClaimId == null) {
+            kingmakerTestamentThroneClaimId = filledLongs(testamentCapacity, -1L);
+        }
+        if (kingmakerTestamentSourceChainId == null) {
+            kingmakerTestamentSourceChainId = filledLongs(testamentCapacity, -1L);
+        }
+        if (kingmakerTestamentClaimantHouseId == null) {
+            kingmakerTestamentClaimantHouseId = filledLongs(testamentCapacity, -1L);
+        }
+        if (kingmakerTestamentDeposedHouseId == null) {
+            kingmakerTestamentDeposedHouseId = filledLongs(testamentCapacity, -1L);
+        }
+        if (kingmakerTestamentSourceFactionId == null) {
+            kingmakerTestamentSourceFactionId = filledInts(testamentCapacity, -1);
+        }
+        if (kingmakerTestamentResultFactionId == null) {
+            kingmakerTestamentResultFactionId = filledInts(testamentCapacity, -1);
+        }
+        if (kingmakerTestamentMarketId == null) {
+            kingmakerTestamentMarketId = filledInts(testamentCapacity, -1);
+        }
+        if (kingmakerTestamentPlayerContribution == null) {
+            kingmakerTestamentPlayerContribution = new short[testamentCapacity];
+        }
+        if (kingmakerTestamentMercy == null) {
+            kingmakerTestamentMercy = new int[testamentCapacity];
+        }
+        if (kingmakerTestamentIntegrity == null) {
+            kingmakerTestamentIntegrity = new int[testamentCapacity];
+        }
+        if (kingmakerTestamentStewardship == null) {
+            kingmakerTestamentStewardship = new int[testamentCapacity];
+        }
+        if (kingmakerTestamentInstitutionalism == null) {
+            kingmakerTestamentInstitutionalism = new int[testamentCapacity];
+        }
+        if (kingmakerTestamentMoralChoiceCount == null) {
+            kingmakerTestamentMoralChoiceCount = filledInts(testamentCapacity, -1);
+        }
+        if (kingmakerTestamentSealedTick == null) {
+            kingmakerTestamentSealedTick = filledInts(testamentCapacity, -1);
+        }
+        if (kingmakerTestamentState == null) {
+            kingmakerTestamentState = new byte[testamentCapacity];
+        }
+        if (nextKingmakerTestamentId <= 0L) {
+            nextKingmakerTestamentId = 1L;
+            for (int i = 0; i < kingmakerTestamentCount; i++) {
+                nextKingmakerTestamentId = Math.max(
+                        nextKingmakerTestamentId,
+                        kingmakerTestamentId[i] + 1L);
             }
         }
         int moralChoiceCapacity = moralChoiceId != null

@@ -1,11 +1,11 @@
 # Moral compass — the silent track
 
-**Status:** TWO SOURCE FAMILIES + FIRST DIEGETIC REACTION CODE COMPLETE
-(2026-08-12). See
+**Status:** THREE SOURCE FAMILIES + DIEGETIC REACTION + CAPSTONE DELIVERY CODE
+COMPLETE (2026-08-19). See
 [`personnel/complete/captain-trait-drift.md`](personnel/complete/captain-trait-drift.md).
 
 **Implemented:** `facfa007`, `6765eac6`, `2a1924e7`, `cf8b717b`,
-`5fd8969d`, `1b2afcb4`
+`5fd8969d`, `1b2afcb4`, `946262b2`, `15c017e`, `379d8989`
 
 > The hidden foundation is a locked spec; later reaction surfaces remain design
 > discussion. The discipline here (never surface the numbers) is load-bearing —
@@ -108,6 +108,16 @@ cannot double-count either fact. The player sees neither the axis names nor the
 ledger consequence; future event prose may describe people and costs, never the
 hidden score.
 
+## Third source — defector asylum
+
+The defector-asylum event adds the first integrity-bearing source family.
+Refusal before a promise records -5 mercy. Keeping asylum records +20 integrity
+and +10 stewardship; explicitly selling the defector back records -25 integrity
+and -10 stewardship. Passive expiry before commitment is neutral, while silence
+after commitment protects the defector because the promise remains in force.
+All terminal variants share the source-unique `DEFECTOR_ASYLUM` namespace keyed
+by event id.
+
 ## How it surfaces — diegetic only
 
 Never as a UI number. No "Honor: 47/100" display, ever. The track exists;
@@ -167,8 +177,8 @@ the player learns to read).
   `CYNICAL` or `IDEALIST` outlook without exposing the hidden scores. See
   [`personnel/complete/captain-trait-drift.md`](personnel/complete/captain-trait-drift.md).
 - NPC dialog gates — content-side, read the compass via a getter.
-- Capstone scene infrastructure — lives in
-  [`t3-endgame/overview.md`](t3-endgame/overview.md) when written.
+- Capstone scene infrastructure — the locked story contract lives in
+  [`t3-endgame/complete/kingmaker-capstone.md`](t3-endgame/complete/kingmaker-capstone.md).
 
 ## Related
 
