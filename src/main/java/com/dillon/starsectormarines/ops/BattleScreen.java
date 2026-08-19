@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublis
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -764,9 +765,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      *       arrival, not at launch.</li>
      * </ul>
      *
-     * <p>HE shells (mortar) additionally play a positional explosion clip at
-     * impact. Kinetic shells stay silent — the fire SFX already covers them
-     * and a second clip per shot is sonic clutter.
+     * <p>Explosive rounds additionally play a positional explosion clip at
+     * impact, with gun-launched heavy HE mixed above rocket HE. Kinetic shells
+     * stay silent — the fire SFX already covers them and a second clip per shot
+     * is sonic clutter.
      */
     private void spawnImpactFx(BattleSimulation sim) {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
@@ -787,8 +789,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             // the chaingun gets one; rockets are tube-launched and the
             // launch animation is already the projectile sprite leaving
             // the mount.
-            if (s.mechWeapon == com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN) {
+            if (s.mechWeapon == MechWeapon.CHAINGUN) {
                 renderer.getImpactFx().spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
+            }
+            if (s.impactProfile() == ImpactProfile.CANNON_HE) {
+                renderer.getImpactFx().spawnCannonMuzzleBlast(
+                        s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
             }
             // SAM-site launch backblast — kinds flagged hasLaunchBackblast
             // emit a directional cone of smoke puffs out the back of the
@@ -824,12 +830,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // clip — matches the mech HE branch below. Previously gated
                 // on HEAVY_MORTAR only, so LOCUST salvos landed silently
                 // despite spawning a full HE detonation visual.
-                if (profile == ImpactProfile.HE) {
+                if (profile.explosive()) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                             s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.55f, loc, zeroVel);
+                    float volume = profile == ImpactProfile.CANNON_HE ? 0.82f : 0.55f;
+                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
                 }
             } else if (s.marineSecondary != null) {
                 profile = s.marineSecondary.impactProfile();
@@ -848,12 +855,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // burst itself is loud enough at fire time).
                 profile = s.mechWeapon.impactProfile;
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
-                if (profile == ImpactProfile.HE) {
+                if (profile.explosive()) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                             s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.65f, loc, zeroVel);
+                    float volume = profile == ImpactProfile.CANNON_HE ? 0.86f : 0.65f;
+                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
                 }
             } else {
                 profile = ImpactProfile.RIFLE;

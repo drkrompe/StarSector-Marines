@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -121,6 +122,42 @@ class DirectFireUnificationTest {
         assertSame(MechWeapon.LRM_ARTILLERY, lrm.mechWeapon);
         assertNull(lrm.stopKind, "indirect artillery retains its scatter/projectile path");
         assertTrue(lrmSim.getActiveProjectiles().get(0).onArrival.aerialDelivery);
+    }
+
+    @Test
+    void gunLaunchedHeavyHeUsesVisibleBallisticRoundsAndTimedSplash() {
+        BattleSimulation mechSim = arena(true);
+        long mech = mechSim.spawn(new EntitySpec("sirocco", Faction.MARINE,
+                UnitType.HEAVY_MECH, 2, ROW));
+        mechSim.fireMechWeapon(mech, target(mechSim), MechWeapon.HEAVY_CANNON);
+
+        ShotEvent cannon = onlyShot(mechSim);
+        assertSame(MechWeapon.HEAVY_CANNON, cannon.mechWeapon);
+        assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
+        assertEquals(BallisticResolver.StopKind.WALL, cannon.stopKind);
+        assertEquals(WALL_X + 0.5f, cannon.toX, EPS);
+        assertTrue(mechSim.getActiveProjectiles().isEmpty(),
+                "a gun shell is a ballistic shot, not a boost-ramping missile entity");
+        assertEquals(1, mechSim.getInflightDetonations().size());
+        PendingDetonation cannonBlast = mechSim.getInflightDetonations().get(0);
+        assertEquals(MechWeapon.HEAVY_CANNON.aoeRadius, cannonBlast.aoeRadius, EPS);
+        assertEquals(MechWeapon.HEAVY_CANNON.wallDamage, cannonBlast.wallDamage);
+
+        BattleSimulation turretSim = arena(true);
+        long mortar = turretSim.spawn(MapTurret.create(
+                "heavy-mortar", Faction.MARINE, TurretKind.HEAVY_MORTAR, 2, ROW));
+        turretSim.fireShotFrom(mortar,
+                turretSim.world().x(mortar), turretSim.world().y(mortar),
+                Faction.MARINE, TurretKind.HEAVY_MORTAR, target(turretSim),
+                /*aerialShooter*/ false, /*hasLos*/ true);
+
+        ShotEvent mortarShot = onlyShot(turretSim);
+        assertSame(ImpactProfile.CANNON_HE, mortarShot.impactProfile());
+        assertEquals(BallisticResolver.StopKind.WALL, mortarShot.stopKind);
+        assertEquals(1, turretSim.getInflightDetonations().size());
+        PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
+        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius, mortarBlast.aoeRadius, EPS);
+        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage, mortarBlast.wallDamage);
     }
 
     @Test
