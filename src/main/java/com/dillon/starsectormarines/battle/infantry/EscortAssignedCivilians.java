@@ -19,8 +19,8 @@ public final class EscortAssignedCivilians implements Action {
             new EscortAssignedCivilians();
     /** The lead squad must enter the shelter's physical relief trigger. */
     static final int RELIEF_RADIUS = 2;
-    /** The remaining force forms a broad perimeter with room for debug rosters. */
-    static final int ESCORT_RADIUS = 6;
+    /** Each squad forms locally around its distinct commander-authored screen slot. */
+    static final int ESCORT_RADIUS = 2;
     static final int PICKUP_GUARD_RADIUS = 2;
 
     private EscortAssignedCivilians() {}
@@ -99,13 +99,7 @@ public final class EscortAssignedCivilians implements Action {
     static int standoffRadius(Squad squad, BattleView sim) {
         if (squad.rescuePickupGuard) return PICKUP_GUARD_RADIUS;
         if (sim.isCivilianEvacuationTriggered()) return ESCORT_RADIUS;
-        int leadSquadId = Integer.MAX_VALUE;
-        for (Squad candidate : sim.getSquads()) {
-            if (candidate.faction != squad.faction || candidate.aliveMembers <= 0
-                    || candidate.rescuePickupGuard) continue;
-            leadSquadId = Math.min(leadSquadId, candidate.id);
-        }
-        return squad.id == leadSquadId ? RELIEF_RADIUS : ESCORT_RADIUS;
+        return RELIEF_RADIUS;
     }
 
     private static int[] nearestOpenRallyCell(long member, int tx, int ty,
