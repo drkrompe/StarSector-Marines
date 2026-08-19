@@ -28,21 +28,16 @@ import java.util.List;
  *   },
  *   "sheets": [
  *     { "tileset": "Water_tiles.tileset.json" },
- *     { "tileset": "urban-tileset-2.tileset.json",
- *       "sheetOverride": "graphics/tilesets/urban-tileset-2-spaceport-apron.png" }
+ *     { "tileset": "urban-tileset-2.tileset.json" }
  *   ]
  * }
  * }</pre>
  *
  * <p>{@code tileset} is a filename under {@code mod/data/tilesets/} — the
  * runtime schema ({@code TileRegistry.ingestSheet}) is read directly for
- * grid/slice layout ({@code cellPx} or {@code slice}), so this manifest only
- * carries knobs the runtime schema has no field for. {@code sheetOverride} is
- * for the rare case where the tileset json's own {@code "sheet"} field isn't
- * the PNG actually loaded at runtime (e.g. {@code urban-tileset-2.tileset.json}
- * names {@code urban-tileset-2-imagegen.png}, but {@code TileManifest.ROAD_SHEET}
- * loads {@code urban-tileset-2-spaceport-apron.png}) — bake against what the
- * game loads, not what the tileset json happens to name.
+ * grid/slice layout ({@code cellPx} or {@code slice}) and the canonical sheet
+ * path, so this manifest only carries derivation knobs the runtime schema has
+ * no field for.
  *
  * <p>Any recipe field on a sheet entry overrides {@code "defaults"}; an unset
  * field (and an absent {@code "defaults"} block entirely) falls back to
@@ -63,7 +58,6 @@ public record TileMapRecipeManifest(RecipeValues defaults, List<SheetEntry> shee
 
     public record SheetEntry(
             String tileset,
-            String sheetOverride,
             String heightPolarity,
             Integer heightBlurRadius,
             Float lowPercentile,

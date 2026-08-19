@@ -233,6 +233,10 @@ chosen mapping is bound into the per-`BlockKind` filler dispatch.
   would couple a sheet redraw to a gen-tuning edit.
 - **Id-addressed registry as the linchpin, landed first.** Everything else
   hangs off stable string ids; do that before any mod-facing work.
+- **Shipped atlases use canonical runtime paths.** Production art owns
+  `graphics/tilesets/<name>.png`; raw ImageGen authoring inputs live under
+  `graphics/tilesets/imagegen-source/`. Legacy atlases and temporary
+  `*-imagegen.png` runtime candidates are retired.
 - **Mapping JSON names code fillers.** The data/algorithm seam is explicit
   in the schema (`"filler": "nature-zone"`), so the schema can't promise
   expressiveness it can't deliver (the wetland carve).
