@@ -114,13 +114,15 @@ universe over time, not retrofitted into intel slots.
    Net dispatch. The second archetype is also complete: a discovered political
    chain can produce a costly defector-asylum promise followed by a delayed
    protect-or-betray choice, with source-frozen plot/reputation reaction and
-   hidden moral meaning consumed exactly once. No living-world story remains
-   active. The kingmaker capstone is now complete too: decisive claimant victories
+   hidden moral meaning consumed exactly once. The kingmaker capstone is now
+   complete too: decisive claimant victories
    seal a deterministic Last Testament, deliver it through persistent intel and
    Chronicle history, and have production-shaped debug/replay coverage
-   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). Contract the next event
-   archetype before extending the generic event surface. Keep swarm tuning deferred
-   until manual playtesting resumes. See
+   (`946262b2`, `15c017ed`, `379d8989`, `e0d7c117`). G9 **Silent Colony** is now
+   active: its first slice persists an atomic blind expedition, survivor stakes,
+   hidden deterministic threat seed, and explicit archive outcome (`4d50805d`).
+   Next is the ruins-site producer and reconstructible Dead Letter choice surface.
+   Keep swarm tuning deferred until manual playtesting resumes. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
