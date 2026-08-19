@@ -15,9 +15,9 @@
 {
   "clips": [
     // ----- music -----
-    // DEPRECATION (slated for removal before a stable public release): the two tracks below are
-    // proprietary MechWarrior 4: Mercenaries audio, kept only as placeholders. Replace with
-    // CC-licensed equivalents. See mod/CREDITS "Game Audio (proprietary — unofficial fan use)".
+    // DEPRECATION (slated for removal before a stable public release): the MW4 music and radio
+    // clips in this manifest are proprietary placeholders. Replace with CC-licensed equivalents.
+    // See mod/CREDITS "Game Audio (proprietary — unofficial fan use)".
     { "id": "marines_intel_music",  "source": "music/next-move.ogg", "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music",    "source": "music/behemoths.ogg",                                                "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_02", "source": "music/DavidKBD - InterstellarPack - 01 - Interstellar.ogg",          "kind": "music", "out": "battle/music" },
@@ -34,6 +34,20 @@
     { "id": "marines_smallarms_rifle_01",  "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_smallarms_rifle_02",  "source": "small-arms/Futuristic Assault Rifle Single Shot 02.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_smallarms_reload",    "source": "small-arms/reload-small-arm.wav",                        "kind": "positional", "out": "battle/small-arms" },
+
+    // ----- marine squad radio (positional, anchored to the speaking squad's centroid) -----
+    { "id": "marines_radio_contact_01",  "source": "radio/viscontact_ais.wav", "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_contact_02",  "source": "radio/viscontact_bul.wav", "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_contact_03",  "source": "radio/viscontact_han.wav", "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_contact_04",  "source": "radio/viscontact_scr.wav", "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_fallback_01", "source": "radio/fallback_ais.wav",   "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_fallback_02", "source": "radio/fallback_bul.wav",   "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_fallback_03", "source": "radio/fallback_han.wav",   "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_fallback_04", "source": "radio/fallback_scr.wav",   "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_ack_01",      "source": "radio/copy_ais.wav",       "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_ack_02",      "source": "radio/copy_bul.wav",       "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_ack_03",      "source": "radio/rogerthat_han.wav",  "kind": "positional", "out": "battle/radio" },
+    { "id": "marines_radio_ack_04",      "source": "radio/rogerthat_scr.wav",  "kind": "positional", "out": "battle/radio" },
 
     // ----- explosions -----
     { "id": "marines_explosion_muffled_distant", "source": "explosions/explosion-muffled-distant.wav", "kind": "positional", "out": "battle/explosions" },
