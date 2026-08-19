@@ -14,7 +14,5 @@ public enum ScreenId {
     STATIONING,
     BATTLE,
     RESULTS,
-    LOOT,
-    TILESET_DEBUG,
-    UNIT_DEBUG
+    LOOT
 }
