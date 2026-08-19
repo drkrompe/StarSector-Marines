@@ -49,6 +49,11 @@ public final class RoutinePatrol implements Goal {
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
         if (squad.faction != Faction.DEFENDER) return 0f;
+        // A commander-authored task outranks the ambient patrol loop. This is
+        // normally invisible because legacy defenders have no commander, but
+        // opening relief operations order their raider squads to advance on
+        // the allied line before contact.
+        if (squad.assignedObjective != null) return 0f;
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.alertLevel == SquadAlertLevel.ENGAGED) return 0f;
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS

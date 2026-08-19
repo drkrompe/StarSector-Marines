@@ -42,6 +42,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
@@ -84,6 +85,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayDeque;
@@ -128,6 +130,12 @@ public final class BattleSetup {
     private static final int DEFENDER_SPAWN_SCAN_RADIUS = 14;
     /** BFS radius around a tactical-node anchor for picking garrison spawn cells. Tight — defenders should appear inside or right next to their post. */
     private static final int GARRISON_SPAWN_RADIUS = 5;
+
+    /** Fixed opening-operation forces: two local fireteams and three raider fireteams. */
+    private static final int OPENING_LOCAL_MILITIA = 8;
+    private static final int OPENING_RAIDERS = 12;
+    private static final int OPENING_FIRETEAM_SIZE = 4;
+    private static final int OPENING_LINE_OFFSET = 9;
 
     /** Total ambient civilians (mix of CIVILIAN/ENGINEER/SCIENTIST) scattered around residential POIs as map flavor. */
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
@@ -551,6 +559,83 @@ public final class BattleSetup {
         if (type == MissionType.ASSAULT) {
             sim.setCommander(Faction.MARINE, new AssaultCommand());
         }
+        return sim;
+    }
+
+    /**
+     * Authored green-company operation: finite militia-only opposition, no
+     * turrets, mechs, fighters, or reinforcement layer. Employer transports
+     * deboard local militia while later manifest entries retain player seats.
+     */
+    public static BattleSimulation createOpeningOperation(
+            long seed, List<ShuttleAssignment> manifest, int employerShips,
+            OpeningOperationKind kind, TargetProfile profile) {
+        if (kind == null) throw new IllegalArgumentException(
+                "opening operation kind is required");
+
+        MapScale scale = MapScale.forRisk(RiskLevel.LOW);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null,
+                profile != null ? profile : TargetProfile.NEUTRAL);
+        Random rng = new Random(seed);
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<LandingPad> lzCells = LandingPadSelector.select(
+                map, assignments.size(), LZ_MIN_SEPARATION);
+        List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
+        BattleSimulation sim = buildMap(map, vehiclePlacements,
+                Collections.emptyList(), parkedAircraft).sim();
+
+        sim.addObjective(new EliminateFactionObjective(
+                Faction.MARINE, Faction.DEFENDER));
+        sim.addObjective(new EliminateFactionObjective(
+                Faction.DEFENDER, Faction.MARINE));
+
+        stampLzPads(sim, lzCells);
+        int localTransports = Math.max(0, Math.min(employerShips,
+                assignments.size()));
+        for (int i = 0; i < lzCells.size(); i++) {
+            ShuttleAssignment assignment = assignments.get(i % assignments.size());
+            LandingPad lz = lzCells.get(i);
+            float lzCenterX = lz.centerX + 0.5f;
+            float lzCenterY = lz.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
+                    scale.width, scale.height, lz.approach);
+            long shuttleId = sim.spawnShuttle(
+                    assignment.type, Faction.MARINE,
+                    lzCenterX, lzCenterY,
+                    entry[0], entry[1], entry[2], entry[3],
+                    i * SHUTTLE_DROP_STAGGER_SEC);
+            ShuttleMission shuttleMission = sim.world().mission(shuttleId);
+            shuttleMission.totalCycles = assignment.cycles;
+            MarineLoadout[][] cycleLoadouts =
+                    new MarineLoadout[assignment.cycles][];
+            boolean localMilitia = i < localTransports;
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                cycleLoadouts[cycle] = localMilitia
+                        ? InfantryLoadoutRolls.defenderSquad(
+                                assignment.type.capacity, UnitType.MILITIA,
+                                RiskLevel.LOW, rng)
+                        : InfantryLoadoutRolls.playerSquad(
+                                assignment.type.capacity, rng);
+            }
+            shuttleMission.cycleLoadouts = cycleLoadouts;
+            shuttleMission.marineLoadout = cycleLoadouts[0];
+            if (localMilitia) shuttleMission.deboardUnitType = UnitType.MILITIA;
+            // Deliberately do not install default shuttle turrets. These jobs
+            // are for companies whose lift is transport, not close support.
+        }
+
+        if (kind == OpeningOperationKind.RELIEF) {
+            spawnOpeningDefenseLine(sim, map, lzCells.get(0), rng);
+        }
+        spawnOpeningRaiders(sim, map, rng);
+        spawnAmbientCivilians(sim, map, rng);
+        spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+
+        sim.setCommander(Faction.MARINE, new OpeningOperationCommand(
+                Faction.MARINE, Faction.DEFENDER, true));
+        sim.setCommander(Faction.DEFENDER, new OpeningOperationCommand(
+                Faction.DEFENDER, Faction.MARINE, false));
         return sim;
     }
 
@@ -1317,6 +1402,88 @@ public final class BattleSetup {
             approach = LandingPad.Approach.EAST;
         }
         return approach;
+    }
+
+    private static void spawnOpeningDefenseLine(
+            BattleSimulation sim, MapResult map, LandingPad firstLz,
+            Random rng) {
+        int towardEnemyX = Integer.compare(map.defenderSpawnX, firstLz.centerX);
+        int towardEnemyY = Integer.compare(map.defenderSpawnY, firstLz.centerY);
+        int anchorX = clamp(firstLz.centerX + towardEnemyX * OPENING_LINE_OFFSET,
+                0, map.grid.getWidth() - 1);
+        int anchorY = clamp(firstLz.centerY + towardEnemyY * OPENING_LINE_OFFSET,
+                0, map.grid.getHeight() - 1);
+        List<int[]> cells = pickDefensiveCluster(
+                map.grid, anchorX, anchorY, OPENING_LOCAL_MILITIA);
+        spawnOpeningMilitiaSquads(sim, cells, Faction.MARINE,
+                "local", true, rng);
+    }
+
+    private static void spawnOpeningRaiders(
+            BattleSimulation sim, MapResult map, Random rng) {
+        List<int[]> cells = pickDefensiveCluster(map.grid,
+                map.defenderSpawnX, map.defenderSpawnY, OPENING_RAIDERS);
+        spawnOpeningMilitiaSquads(sim, cells, Faction.DEFENDER,
+                "raider", false, rng);
+    }
+
+    /** Spawns intentionally low-grade four-person militia squads for either side. */
+    private static void spawnOpeningMilitiaSquads(
+            BattleSimulation sim, List<int[]> cells, Faction faction,
+            String idPrefix, boolean localGarrison, Random rng) {
+        Squad squad = null;
+        int squadMembers = 0;
+        int squadIndex = -1;
+        for (int index = 0; index < cells.size(); index++) {
+            int[] cell = cells.get(index);
+            if (squad == null || squadMembers >= OPENING_FIRETEAM_SIZE) {
+                if (squad != null) squad.originalSize = squadMembers;
+                squadIndex++;
+                squadMembers = 0;
+                int squadId = sim.mintSquad(faction, UnitType.MILITIA);
+                squad = sim.getSquad(squadId);
+                if (localGarrison) {
+                    squad.assignedNode = openingDefenseNode(
+                            cell[0], cell[1], faction, sim.getGrid());
+                    squad.patrolRadius = 4;
+                }
+            }
+            EntitySpec unit = makeOpeningMilitia(
+                    idPrefix + "-" + squadIndex + "-" + squadMembers,
+                    faction, cell[0], cell[1], rng)
+                    .role(localGarrison ? UnitRole.GARRISON : UnitRole.PATROL)
+                    .squad(squad.id);
+            if (localGarrison) unit.home(cell[0], cell[1]);
+            sim.spawn(unit);
+            squadMembers++;
+        }
+        if (squad != null) squad.originalSize = squadMembers;
+    }
+
+    private static EntitySpec makeOpeningMilitia(
+            String id, Faction faction, int x, int y, Random rng) {
+        return new EntitySpec(id, faction, UnitType.MILITIA, x, y)
+                .primaryWeapon(
+                        InfantryLoadoutRolls.defenderPrimary(
+                                UnitType.MILITIA, rng),
+                        InfantryLoadoutRolls.defenderEquipmentGrade(
+                                UnitType.MILITIA, RiskLevel.LOW, rng),
+                        InfantryLoadoutRolls.defenderProfile(
+                                UnitType.MILITIA, RiskLevel.LOW, rng));
+    }
+
+    private static TacticalNode openingDefenseNode(
+            int x, int y, Faction faction, NavigationGrid grid) {
+        return new TacticalNode(TacticalNode.Kind.OBJECTIVE, x, y,
+                clamp(x - 2, 0, grid.getWidth() - 1),
+                clamp(y - 2, 0, grid.getHeight() - 1),
+                clamp(x + 2, 0, grid.getWidth() - 1),
+                clamp(y + 2, 0, grid.getHeight() - 1),
+                faction, 50, OPENING_FIRETEAM_SIZE);
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
