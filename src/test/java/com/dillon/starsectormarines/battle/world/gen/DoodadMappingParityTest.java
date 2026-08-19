@@ -83,6 +83,7 @@ public class DoodadMappingParityTest {
         assertEquals(0.68f, reg.doodad("doodad.industrial-machine-tool").ballisticHalfHeight, 1e-6f);
         assertEquals(0.82f, reg.doodad("doodad.industrial-fluid-tank").ballisticHalfHeight, 1e-6f);
         assertEquals(0.45f, reg.doodad("doodad.industrial-control-console").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.72f, reg.doodad("doodad.industrial-fence-straight-h").ballisticHalfHeight, 1e-6f);
         assertEquals(0.25f, reg.doodad("doodad.military-bunk").ballisticHalfHeight, 1e-6f);
         assertEquals(0.75f, reg.doodad("doodad.military-radar-dish").ballisticHalfHeight, 1e-6f);
         assertEquals(0.45f, reg.doodad("doodad.office-workstation-bank").ballisticHalfHeight, 1e-6f);

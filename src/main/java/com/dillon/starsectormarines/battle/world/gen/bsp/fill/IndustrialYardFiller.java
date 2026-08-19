@@ -32,6 +32,7 @@ public final class IndustrialYardFiller implements BlockFiller {
     private static final String PIPES     = "doodad.industrial-pipe-bundle";
     private static final String PALLETS   = "doodad.industrial-pallet-stack";
     private static final String SCRAP     = "doodad.industrial-scrap-pile";
+    private static final String TANK      = "doodad.industrial-fluid-tank";
 
     @Override
     public BlockKind kind() { return BlockKind.INDUSTRIAL_YARD; }
@@ -39,13 +40,18 @@ public final class IndustrialYardFiller implements BlockFiller {
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
         paintOpenDirt(leaf, ctx.grid, ctx.topology);
-        YardLayout yard = new YardLayout(leaf, ctx);
-        int grammar = ctx.rng.nextInt(3);
+        furnishArea(leaf, ctx, false, ctx.rng.nextInt(4));
+    }
+
+    /** Reusable authored yard furnishing for compound-owned inset yards. */
+    static void furnishArea(BlockLeaf area, GenContext ctx, boolean tactical, int grammar) {
+        YardLayout yard = new YardLayout(area, ctx, tactical);
         boolean mirror = ctx.rng.nextBoolean();
         switch (grammar) {
             case 0: freightStaging(yard, mirror); break;
             case 1: maintenanceBay(yard, mirror); break;
-            default: salvageLot(yard, mirror); break;
+            case 2: salvageLot(yard, mirror); break;
+            default: tankFarm(yard, mirror); break;
         }
     }
 
@@ -81,8 +87,20 @@ public final class IndustrialYardFiller implements BlockFiller {
         y.place(CRATES,    5, 6, true,  mirror);
     }
 
-    private static void paintOpenDirt(BlockLeaf leaf, NavigationGrid grid,
-                                      CellTopology topology) {
+    private static void tankFarm(YardLayout y, boolean mirror) {
+        y.paintPad(1, 6, false, mirror);
+        y.paintPad(3, 6, false, mirror);
+        y.paintPad(5, 6, false, mirror);
+        y.place(TANK,      1, 6, false, mirror);
+        y.place(TANK,      3, 6, false, mirror);
+        y.place(TANK,      5, 6, false, mirror);
+        y.place(PIPES,     2, 6, true,  mirror);
+        y.place(DRUMS,     4, 6, true,  mirror);
+        y.place(GENERATOR, 5, 6, true,  mirror);
+    }
+
+    static void paintOpenDirt(BlockLeaf leaf, NavigationGrid grid,
+                              CellTopology topology) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 grid.setWalkableFloor(x, y);
@@ -98,11 +116,13 @@ public final class IndustrialYardFiller implements BlockFiller {
         private final boolean horizontal;
         private final int length;
         private final int breadth;
+        private final boolean tactical;
         private final Set<Long> occupied = new HashSet<>();
 
-        YardLayout(BlockLeaf leaf, GenContext ctx) {
+        YardLayout(BlockLeaf leaf, GenContext ctx, boolean tactical) {
             this.leaf = leaf;
             this.ctx = ctx;
+            this.tactical = tactical;
             this.horizontal = leaf.width() >= leaf.height();
             this.length = horizontal ? leaf.width() : leaf.height();
             this.breadth = horizontal ? leaf.height() : leaf.width();
@@ -119,6 +139,12 @@ public final class IndustrialYardFiller implements BlockFiller {
             DoodadDef def = TileRegistry.installed().doodad(id);
             if (def == null) throw new IllegalStateException("Missing industrial doodad " + id);
             ctx.doodads.add(new Doodad(cell[0], cell[1], def));
+            if (tactical) {
+                ctx.grid.setWalkable(cell[0], cell[1], false);
+                ctx.grid.setSeeThrough(cell[0], cell[1], !TANK.equals(id));
+                ctx.topology.setWall(cell[0], cell[1], false);
+                ctx.topology.setFixture(cell[0], cell[1], true);
+            }
             occupied.add(key(cell[0], cell[1]));
             return cell;
         }

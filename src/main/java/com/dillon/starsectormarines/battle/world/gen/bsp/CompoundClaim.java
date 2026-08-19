@@ -24,7 +24,7 @@ import java.util.Set;
  * handles them as a group.
  *
  * <p>Driven by a list of {@link ClaimSpec} so multiple compound kinds
- * (MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER) can run in one pass with
+ * (MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND) can run in one pass with
  * different size budgets / per-map caps / demotion targets. Specs are
  * processed in the order given; once a leaf is claimed (by any spec) it
  * can't seed another compound.
@@ -77,7 +77,12 @@ public final class CompoundClaim {
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)));
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
+            new ClaimSpec(BlockKind.INDUSTRIAL_COMPOUND, BlockKind.BUILDING_INDUSTRIAL,
+                    1, 3, 3, 3, 12, 7,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
+                            BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
+                            BlockKind.NATURE_BEACH)));
 
     /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
@@ -89,7 +94,12 @@ public final class CompoundClaim {
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,
-                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)));
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
+            new ClaimSpec(BlockKind.INDUSTRIAL_COMPOUND, BlockKind.BUILDING_INDUSTRIAL,
+                    1, 3, 3, 3, 12, 7,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
+                            BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
+                            BlockKind.NATURE_BEACH)));
 
     private CompoundClaim() {}
 

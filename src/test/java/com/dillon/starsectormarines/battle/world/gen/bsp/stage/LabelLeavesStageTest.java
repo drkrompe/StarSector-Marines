@@ -18,4 +18,16 @@ class LabelLeavesStageTest {
         assertEquals(BlockKind.BUILDING_COMMERCIAL,
                 LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 13, 10));
     }
+
+    @Test
+    void industrialCompoundSeedsRequireTacticalFactoryDimensions() {
+        assertEquals(BlockKind.INDUSTRIAL_COMPOUND,
+                LabelLeavesStage.constrainKindForSize(BlockKind.INDUSTRIAL_COMPOUND, 15, 12));
+        assertEquals(BlockKind.INDUSTRIAL_COMPOUND,
+                LabelLeavesStage.constrainKindForSize(BlockKind.INDUSTRIAL_COMPOUND, 12, 15));
+        assertEquals(BlockKind.BUILDING_INDUSTRIAL,
+                LabelLeavesStage.constrainKindForSize(BlockKind.INDUSTRIAL_COMPOUND, 14, 12));
+        assertEquals(BlockKind.BUILDING_INDUSTRIAL,
+                LabelLeavesStage.constrainKindForSize(BlockKind.INDUSTRIAL_COMPOUND, 15, 11));
+    }
 }
