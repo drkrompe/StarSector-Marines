@@ -430,6 +430,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         spawnImpactFx(sim);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
+            renderer.getGroundLights().spawnHeavyImpact(impact[0], impact[1], impact[2]);
             Vector2f loc = new Vector2f(
                     impact[0] * AUDIO_WORLD_UNITS_PER_CELL,
                     impact[1] * AUDIO_WORLD_UNITS_PER_CELL);
@@ -444,8 +445,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         for (float[] burst : sim.getFireBurstsThisFrame()) {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
+            renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
         renderer.getImpactFx().advance(dt * speedMultiplier);
+        renderer.getGroundLights().advance(dt * speedMultiplier);
         // Contrail trails — push the leading-edge sample for each in-flight
         // contrail shot and age the lot. Real (unscaled) dt, not sim-time, so
         // trails keep dissipating during sim pause (matches the old render-frame
@@ -482,8 +485,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
         renderer.getDecalAccumulator().dispose();
-        // Same leak concern as the decal accumulator, for S2's ground FBO pair.
+        // Same leak concern as the decal accumulator, for the S2/S3 ground FBO set.
         renderer.getGroundParallax().dispose();
+        renderer.getGroundLights().clear();
 
         if (!audioActive) return;
         audioActive = false;
@@ -546,6 +550,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                 value -> renderer.getGroundParallax().setWaterWaveAmplitude((float) value),
                 GroundParallaxPipeline.MIN_WATER_WAVE_AMPLITUDE,
                 GroundParallaxPipeline.MAX_WATER_WAVE_AMPLITUDE,
+                2.0);
+        debugPanel.addDial("Bump lighting",
+                () -> renderer.getGroundParallax().lightingStrength(),
+                value -> renderer.getGroundParallax().setLightingStrength((float) value),
+                GroundParallaxPipeline.MIN_LIGHTING_STRENGTH,
+                GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
                 2.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
@@ -759,6 +769,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // whole travel instantly. Traveling bodies (sprites and bolts) wait
         // for arrival in the second pass.
         for (ShotEvent s : sim.getShotsThisFrame()) {
+            renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).
             if (s.marineSecondary == null && s.turretKind == null) {
@@ -790,6 +801,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ImpactProfile profile = (s.marineWeapon != null)
                     ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
             renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
+            renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
@@ -840,6 +852,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 profile = ImpactProfile.RIFLE;
             }
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
+            renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
         }
     }
 
