@@ -175,7 +175,7 @@ public final class GroundSimPresentation {
 
     /** Shared squad-event policy, projected through the bridge's combat-world audio frame. */
     private void playRadioChatter(BattleSimulation sim, float dt) {
-        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim.getSquads());
+        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim);
         if (emission == null) return;
         playAtCell(emission.cue().soundId(), 1f, emission.cue().volume(),
                 emission.cellX(), emission.cellY());

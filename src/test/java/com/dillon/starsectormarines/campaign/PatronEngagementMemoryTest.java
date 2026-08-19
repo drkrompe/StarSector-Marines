@@ -130,6 +130,69 @@ class PatronEngagementMemoryTest {
     }
 
     @Test
+    void localQuerySelectsNewestEligibleOtherPatronFact() {
+        Fixture fixture = fixture();
+        int otherMarket = fixture.state.marketRegistry.intern("asharu");
+        long otherPatron = fixture.state.addHouse(fixture.marketId, 1,
+                HouseFlavor.FEUDAL, HouseRank.TIER_2, HouseStatus.ACTIVE,
+                PatronArchetype.FALLEN_NOBLE, "House Other");
+        long remotePatron = fixture.state.addHouse(otherMarket, 1,
+                HouseFlavor.UNDERWORLD, HouseRank.TIER_2,
+                HouseStatus.ACTIVE, PatronArchetype.SUSPICIOUS,
+                "House Remote");
+        record(fixture.state, fixture.patronId, fixture.marketId,
+                PatronEngagementOutcome.COMPLETED, 99);
+        record(fixture.state, remotePatron, otherMarket,
+                PatronEngagementOutcome.COMPLETED, 99);
+        record(fixture.state, otherPatron, fixture.marketId,
+                PatronEngagementOutcome.WITHDREW, 10);
+        long eligible = record(fixture.state, otherPatron, fixture.marketId,
+                PatronEngagementOutcome.FAILED, 80);
+        record(fixture.state, otherPatron, fixture.marketId,
+                PatronEngagementOutcome.COMPLETED, 101);
+        record(fixture.state, otherPatron, fixture.marketId,
+                PatronEngagementOutcome.COMPLETED, 90);
+        fixture.state.patronEngagementOutcome[
+                fixture.state.patronEngagementCount - 1] = (byte) 127;
+
+        PatronEngagementMemory.Snapshot echo =
+                PatronEngagementMemory.latestOtherAtMarket(fixture.state,
+                        fixture.marketId, fixture.patronId, 100, 90);
+
+        assertNotNull(echo);
+        assertEquals(eligible, echo.sourceContractId);
+        assertEquals(PatronEngagementOutcome.FAILED, echo.outcome);
+        assertEquals(80, echo.happenedTick);
+    }
+
+    @Test
+    void localQueryIncludesExactAgeBoundaryAndUsesIdTieBreak() {
+        Fixture fixture = fixture();
+        long firstPatron = fixture.state.addHouse(fixture.marketId, 1,
+                HouseFlavor.FEUDAL, HouseRank.TIER_2, HouseStatus.ACTIVE,
+                PatronArchetype.FALLEN_NOBLE, "House First");
+        long secondPatron = fixture.state.addHouse(fixture.marketId, 1,
+                HouseFlavor.UNDERWORLD, HouseRank.TIER_2,
+                HouseStatus.ACTIVE, PatronArchetype.SUSPICIOUS,
+                "House Second");
+        record(fixture.state, firstPatron, fixture.marketId,
+                PatronEngagementOutcome.COMPLETED, 20);
+        long laterId = record(fixture.state, secondPatron, fixture.marketId,
+                PatronEngagementOutcome.EMPLOYER_BREACHED, 20);
+
+        PatronEngagementMemory.Snapshot echo =
+                PatronEngagementMemory.latestOtherAtMarket(fixture.state,
+                        fixture.marketId, fixture.patronId, 200, 180);
+
+        assertNotNull(echo);
+        assertEquals(laterId, echo.sourceContractId);
+        assertEquals(PatronEngagementOutcome.EMPLOYER_BREACHED,
+                echo.outcome);
+        assertNull(PatronEngagementMemory.latestOtherAtMarket(fixture.state,
+                fixture.marketId, fixture.patronId, 201, 180));
+    }
+
+    @Test
     void roundTripRetainsMemoryAfterSourceContractIsGone() throws Exception {
         Fixture fixture = fixture();
         long contractId = contract(fixture, ContractType.EXTRACTION,
@@ -242,6 +305,25 @@ class PatronEngagementMemoryTest {
         return fixture.state.addContract(fixture.patronId, -1L, -1L, type,
                 state, 10, -1, -1, (byte) 1, -1, fixture.marketId, -1,
                 1_000, 0, (byte) 25, (byte) 25, (byte) 100);
+    }
+
+    private static long record(CampaignState state, long patronId,
+                               int marketId,
+                               PatronEngagementOutcome outcome, int day) {
+        ContractState terminal;
+        switch (outcome) {
+            case COMPLETED: terminal = ContractState.COMPLETED; break;
+            case FAILED: terminal = ContractState.FAILED; break;
+            case WITHDREW: terminal = ContractState.ABANDONED; break;
+            case EMPLOYER_BREACHED: terminal = ContractState.DEFAULTED; break;
+            default: throw new IllegalArgumentException(outcome.name());
+        }
+        long contractId = state.addContract(patronId, -1L, -1L,
+                ContractType.STRIKE, terminal, day, -1, -1,
+                (byte) 1, -1, marketId, -1, 1_000, 0,
+                (byte) 25, (byte) 25, (byte) 100);
+        PatronEngagementMemory.record(state, contractId, outcome, day);
+        return contractId;
     }
 
     private static final class Fixture {

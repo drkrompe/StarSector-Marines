@@ -90,18 +90,21 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
-- **Battle radio** *(v1 shipped)* — marine infantry squads now emit quiet,
-  positional visual-contact and fallback calls from real squad-state
-  transitions, plus globally throttled acknowledgements during sustained
-  engagements. The standalone battle and vanilla-combat bridge share one
-  presentation-only cue policy, so audio never perturbs sim determinism. An
-  in-game mix/content feel pass remains queued. See
+- **Battle radio** *(expanded event slice shipped)* — 214 standard-pilot clips
+  now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
+  enemy-down, and sparse sustained-combat calls. Friendly warnings follow
+  landed rounds, mech calls require current squad LOS, and every pool shares
+  one global voice budget. The standalone battle and vanilla-combat bridge
+  share one presentation-only cue policy, so audio never perturbs sim
+  determinism. An in-game mix/content feel pass remains queued. See
   [`battle-radio/`](battle-radio/overview.md).
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
   -5 and -15 rack classes and profile-aware physical geometry. Hound and
-  Sirocco now have dedicated hull silhouettes, with shoulder racks externally
-  occluded instead of painted over the torso. Production encounters remain
+  Sirocco now have role-specific swapped/flipped hull silhouettes: Hound has a
+  nose chaingun and single SRM, while Sirocco has paired LRMs and a new heavy
+  anti-armor cannon. Bulwark's racks are exposed above the hull and its
+  chainguns are narrower. Production encounters remain
   Bulwark-only pending manual tuning; a scout follows only when recon behavior
   can make it meaningful. See [`mechs/`](mechs/overview.md).
 
@@ -158,12 +161,12 @@ universe over time, not retrofitted into intel slots.
    validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Campaign narrative follow-through** — S1 patron engagement memory and S2
-   relationship-pattern callbacks are shipped (`1b950e48`, `cbfebaef`): real
-   terminal outcomes persist exactly once beyond compaction, and the comms
-   officer can recognize the newest valid result or a factual two-engagement
-   sequence. Contract the next narrative story before adding patron evolution,
-   captain observations, or cross-patron references. See
+3. **Campaign narrative follow-through** — S1 patron engagement memory, S2
+   relationship-pattern callbacks, and S3 local cross-patron echoes are shipped
+   (`1b950e48`, `cbfebaef`, `53cda364`). The comms officer now prioritizes
+   direct history, then may ground a first-time patron in one measured recent
+   same-market engagement. Contract the next narrative story before adding
+   patron evolution, captain observations, or Chronicle-linked references. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
 4. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual

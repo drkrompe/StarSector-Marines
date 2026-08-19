@@ -78,6 +78,8 @@ import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -283,6 +285,8 @@ public class BattleSimulation implements BattleControl {
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
     private final LongList deathsThisFrame = new LongArrayList();
+    /** Marine squad ids whose members were actually hit by friendly rounds during the last {@link #advance(float)} call. */
+    private final IntList friendlyFireSquadsThisFrame = new IntArrayList();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
@@ -677,6 +681,8 @@ public class BattleSimulation implements BattleControl {
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     public LongList getDeathsThisFrame()         { return deathsThisFrame; }
+    /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
+    public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
@@ -978,6 +984,7 @@ public class BattleSimulation implements BattleControl {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
         shots.beginFrame();
         deathsThisFrame.clear();
+        friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         if (complete) return;
         tickAccumulator += dt;
@@ -1240,7 +1247,16 @@ public class BattleSimulation implements BattleControl {
         // than re-queuing for a drain that already ran this tick.
         shots.tickImpacts(TICK_DT, impact -> {
             if (!rosterService.isAliveById(impact.victimId)) return;
+            int friendlyFireSquad = Squad.NO_SQUAD;
+            if (impact.friendly
+                    && rosterService.identity().faction(impact.victimId) == Faction.MARINE
+                    && rosterService.squad().hasSquad(impact.victimId)) {
+                friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
+            }
             damageService.applyDamage(impact.victimId, impact.damage, impact.vsTurretMult, impact.moraleImpact);
+            if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
+                friendlyFireSquadsThisFrame.add(friendlyFireSquad);
+            }
             hitResponse.rollFallbackOnHit(impact.victimId);
             hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
         });
