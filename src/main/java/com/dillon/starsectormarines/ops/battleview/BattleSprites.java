@@ -489,9 +489,11 @@ public class BattleSprites {
                 foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
         LayeredSpriteCache alienFoot = loadLayeredSprite(
                 "graphics/battle/alien-modular-topdown/foot.png");
+        LayeredSpriteCache alienForeClaw = loadLayeredSprite(
+                "graphics/battle/alien-modular-topdown/fore-claw.png");
         loadLayeredFamilyAt(LayeredArmorFamily.XENO,
                 "graphics/battle/alien-modular-topdown/",
-                alienFoot, rifle, laser, smg, dmr, rocket, flash,
+                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, flash,
                 surplusRifle, masterworkDmr);
     }
 
@@ -529,7 +531,8 @@ public class BattleSprites {
                                    LayeredSpriteCache surplusRifle,
                                    LayeredSpriteCache masterworkDmr) {
         loadLayeredFamilyAt(familyId, MODULAR_ROOT + "armor/" + family + "/",
-                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+                foot, null, rifle, laser, smg, dmr, rocket, flash,
+                surplusRifle, masterworkDmr);
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
@@ -542,15 +545,31 @@ public class BattleSprites {
                                      LayeredSpriteCache flash,
                                      LayeredSpriteCache surplusRifle,
                                      LayeredSpriteCache masterworkDmr) {
+        loadLayeredFamilyAt(familyId, familyRoot, foot, null, rifle, laser, smg, dmr,
+                rocket, flash, surplusRifle, masterworkDmr);
+    }
+
+    private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
+                                     LayeredSpriteCache foot,
+                                     LayeredSpriteCache foreClaw,
+                                     LayeredSpriteCache rifle,
+                                     LayeredSpriteCache laser,
+                                     LayeredSpriteCache smg,
+                                     LayeredSpriteCache dmr,
+                                     LayeredSpriteCache rocket,
+                                     LayeredSpriteCache flash,
+                                     LayeredSpriteCache surplusRifle,
+                                     LayeredSpriteCache masterworkDmr) {
         LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
         LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
-        if (body == null || head == null || foot == null) {
+        if (body == null || head == null || foot == null
+                || (familyId == LayeredArmorFamily.XENO && foreClaw == null)) {
             LOG.warn("BattleSprites: modular family " + familyId
                     + " incomplete; actors using it keep their legacy sheet");
             return;
         }
         layeredUnitSprites.put(familyId,
-                new LayeredUnitAssets(body, head, foot, rifle, laser, smg, dmr,
+                new LayeredUnitAssets(body, head, foot, foreClaw, rifle, laser, smg, dmr,
                         rocket, flash, surplusRifle, masterworkDmr));
     }
 

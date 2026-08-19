@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LayeredAppearanceTest {
@@ -39,6 +40,24 @@ public class LayeredAppearanceTest {
         assertEquals(0f, LayeredAppearance.recoilSw(LayeredAppearance.POSE_FIRING, 1f), 0.001f);
         assertTrue(LayeredAppearance.recoilSw(LayeredAppearance.POSE_ROCKET_FIRE, 0.5f)
                 > LayeredAppearance.recoilSw(LayeredAppearance.POSE_FIRING, 0.5f));
+    }
+
+    @Test
+    public void meleeSwipeStartsAtImpactAndRetractsSmoothly() {
+        assertEquals(0f, LayeredAppearance.meleeSwipe(LayeredAppearance.POSE_IDLE, 0f),
+                0.001f);
+        assertEquals(1f, LayeredAppearance.meleeSwipe(LayeredAppearance.POSE_FIRING, 0f),
+                0.001f);
+        assertTrue(LayeredAppearance.meleeSwipe(LayeredAppearance.POSE_FIRING, 0.5f) > 0f);
+        assertEquals(0f, LayeredAppearance.meleeSwipe(LayeredAppearance.POSE_FIRING, 1f),
+                0.001f);
+    }
+
+    @Test
+    public void strikingClawAlternatesAcrossTheWrappedLocomotionCycle() {
+        assertTrue(LayeredAppearance.leftClawStrikes(0.25f));
+        assertTrue(LayeredAppearance.leftClawStrikes(1.25f));
+        assertFalse(LayeredAppearance.leftClawStrikes(0.75f));
     }
 
     @Test
