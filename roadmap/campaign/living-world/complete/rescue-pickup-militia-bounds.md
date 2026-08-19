@@ -2,7 +2,7 @@
 
 **Status:** CODE COMPLETE (2026-08-19)
 
-**Implemented:** `2395397f`
+**Implemented:** `2395397f`, `b6b0dd6f`
 
 ## Outcome
 
@@ -12,9 +12,17 @@
 - Boarding removes each representative from the ground roster, records it in
   the shuttle's passenger count, and releases the craft for departure only
   after every representative is evacuated or lost.
-- Eight local allied militia begin in two fixed pickup-perimeter squads. Their
-  rescue-guard identity keeps them out of the mobile escort command and out of
-  the shelter-relief lead-squad election.
+- The pickup footprint stays empty through a twelve-second opening grace period
+  so the player's force can enter and draw swarm pressure before the position
+  becomes active. The civilian Valkyrie and first militia Aeroshuttle then
+  launch, with the remaining defender sorties staggered four seconds apart.
+- Eight local allied militia arrive as two physical four-person Aeroshuttle
+  drops and form fixed pickup-perimeter squads. Their rescue-guard identity
+  keeps them out of the mobile escort command and out of the shelter-relief
+  lead-squad election.
+- A Valkyrie between those militia drops delivers one local heavy mech. Battle
+  seed parity chooses a Bulwark armored backstop or Sirocco long-range support
+  unit, and the mech's own rescue-guard squad remains anchored to the pickup.
 - When fewer than five pickup guards remain, an unarmed Aeroshuttle sortie
   restores up to four militia without letting live plus inbound guards exceed
   the eight-unit cap. A twelve-second cadence prevents repeated dispatches,
@@ -30,13 +38,15 @@
 ## Verification
 
 - Focused tests cover landed-before-boarding behavior, passenger accounting,
-  engaged timed bounds, non-regression, fixed pickup assignments, shelter-lead
-  exclusion, initial militia strength, and casualty-triggered capped sorties.
-- The full root `gradlew test` suite passes, including map, rendering, air,
-  evacuation, and asset-pipeline regressions.
+  the empty opening grace period, staged militia/mech cargo, deterministic mech
+  choice, engaged timed bounds, fixed pickup assignments, shelter-lead
+  exclusion, and casualty-triggered capped sorties.
+- The full root `gradlew test` suite passes 1,765 root tests and the
+  asset-pipeline test, including map, rendering, air, and evacuation regressions.
 
 ## Manual follow-up
 
 Play LOW/MEDIUM/HIGH rescue missions to tune the five-second/two-cell bound,
-eight/five/four militia population policy, twelve-second reserve cadence, and
-the visual spacing between the pickup Valkyrie and militia Aeroshuttle LZ.
+eight/five/four militia population policy, twelve-second opening and reserve
+cadences, four-second arrival spacing, mech variant mix, and the visual spacing
+between the pickup Valkyrie and support LZ.

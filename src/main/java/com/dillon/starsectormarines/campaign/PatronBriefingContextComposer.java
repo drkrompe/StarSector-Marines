@@ -12,6 +12,10 @@ public final class PatronBriefingContextComposer {
         String direct = PatronMemoryComposer.compose(state, patronHouseId,
                 currentContractId, patronDisplayName);
         if (direct != null) return direct;
+        String chronicle = PatronChronicleComposer.compose(state,
+                patronHouseId, currentContractId, currentOfferDay,
+                patronDisplayName);
+        if (chronicle != null) return chronicle;
         return PatronLocalEchoComposer.compose(state, patronHouseId, marketId,
                 currentContractId, currentOfferDay);
     }

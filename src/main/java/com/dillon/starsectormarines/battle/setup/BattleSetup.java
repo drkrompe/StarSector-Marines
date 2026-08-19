@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -630,7 +631,7 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-            installRescuePickup(sim, payload.placement, payload.size(),
+            installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
                     scale.width, scale.height);
             SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
                     sim, payload.placement, swarmCount, battleSeed);
@@ -1237,7 +1238,7 @@ public final class BattleSetup {
     /** Installs the physical evac craft and the local defense-line reserve. */
     private static void installRescuePickup(
             BattleSimulation sim, CivilianEvacuationPlacement placement,
-            int evacueeCount, int gridW, int gridH) {
+            int evacueeCount, long seed, int gridW, int gridH) {
         LandingPad.Approach approach = nearestEdgeApproach(
                 placement.liftX, placement.liftY, gridW, gridH);
         float pickupX = placement.liftX + 0.5f;
@@ -1248,7 +1249,8 @@ public final class BattleSetup {
                 ShuttleType.VALKYRIE, Faction.CIVILIAN,
                 pickupX, pickupY,
                 pickupEntry[0], pickupEntry[1],
-                pickupEntry[2], pickupEntry[3], 0f);
+                pickupEntry[2], pickupEntry[3],
+                RescuePickupSupportSystem.INITIAL_ARRIVAL_DELAY_SECONDS);
         ShuttleMission pickup = sim.world().mission(pickupId);
         pickup.marinesRemaining = 0;
         pickup.awaitingEvacuees = true;
@@ -1271,7 +1273,7 @@ public final class BattleSetup {
         if (!sim.configureRescuePickupSupport(
                 placement, supportX, supportY,
                 supportEntry[0], supportEntry[1],
-                supportEntry[2], supportEntry[3])) {
+                supportEntry[2], supportEntry[3], seed)) {
             throw new IllegalStateException(
                     "civilian rescue pickup support configuration failed");
         }

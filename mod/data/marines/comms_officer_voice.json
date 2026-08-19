@@ -287,5 +287,48 @@
 			"The recent local ledger records broken terms on {otherPatron}'s side of a {otherContract}.",
 			"Different client, same market: {otherPatron} broke terms on a {otherContract} {age}."
 		]
+	},
+
+	# Confirmed Chronicle facts linked directly to the current patron. These
+	# callbacks never interpret why the fact matters to the offered contract.
+	# Supported tokens are {patron}, {otherHouse}, {chronicleOutcome},
+	# {daysAgo}, and the formatted {age}.
+	"chronicleReference": {
+		"CHAIN_ACTOR": [
+			"Chronicle note: {patron}'s move against {otherHouse} was recorded as {chronicleOutcome} {age}.",
+			"The Chronicle closed {patron}'s campaign against {otherHouse} as {chronicleOutcome}.",
+			"One confirmed item on {patron}: their action against {otherHouse} ended {chronicleOutcome} {age}.",
+			"The file cross-references a Chronicle entry — {patron} against {otherHouse}, {chronicleOutcome}."
+		],
+		"CHAIN_TARGET": [
+			"Chronicle note: {otherHouse}'s move against {patron} was recorded as {chronicleOutcome} {age}.",
+			"The Chronicle closed {otherHouse}'s campaign against {patron} as {chronicleOutcome}.",
+			"One confirmed item on {patron}: {otherHouse}'s action against them ended {chronicleOutcome} {age}.",
+			"The file cross-references a Chronicle entry — {otherHouse} against {patron}, {chronicleOutcome}."
+		],
+		"THRONE_CLAIMANT": [
+			"Chronicle note: {patron} displaced {otherHouse} in a confirmed faction transfer {age}.",
+			"The Chronicle records {patron}'s accession over {otherHouse}.",
+			"One confirmed item on {patron}: they displaced {otherHouse} {age}.",
+			"The file cross-references the faction transfer from {otherHouse} to {patron}."
+		],
+		"THRONE_DISPLACED": [
+			"Chronicle note: {otherHouse} displaced {patron} in a confirmed faction transfer {age}.",
+			"The Chronicle records {otherHouse}'s accession over {patron}.",
+			"One confirmed item on {patron}: {otherHouse} displaced them {age}.",
+			"The file cross-references the faction transfer from {patron} to {otherHouse}."
+		],
+		"TESTAMENT_CLAIMANT": [
+			"Chronicle note: a testament from {otherHouse} followed {patron}'s accession {age}.",
+			"The Chronicle records {otherHouse}'s testament after {patron} took power.",
+			"One confirmed item on {patron}: their accession was followed by {otherHouse}'s testament.",
+			"The file cross-references the testament sealed after {patron} displaced {otherHouse}."
+		],
+		"TESTAMENT_DEPOSED": [
+			"Chronicle note: {patron}'s testament followed {otherHouse}'s accession {age}.",
+			"The Chronicle records {patron}'s testament after {otherHouse} took power.",
+			"One confirmed item on {patron}: their displacement was followed by a sealed testament.",
+			"The file cross-references the testament sealed after {otherHouse} displaced {patron}."
+		]
 	}
 }
