@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -106,7 +108,7 @@ public class HoldPositionTest {
     }
 
     @Test
-    public void survivorHoldsHomeAndAuthorsStancedOpportunityFire() {
+    public void noCoverFallbackHoldsHomeAndAuthorsStancedOpportunityFire() {
         BattleSimulation sim = openSim();
         Squad squad = brokenRemnant(node(true));
         long survivor = sim.spawn(new EntitySpec("last", Faction.DEFENDER, UnitType.MARINE, 4, 4)
@@ -117,6 +119,50 @@ public class HoldPositionTest {
 
         assertEquals(ActionStatus.RUNNING, LastStandHold.INSTANCE.execute(survivor, squad, sim));
         assertTrue(Paths.isEmpty(sim.world().path(survivor)), "holding clears movement");
+        assertTrue(InfantryUnitPrep.tryOpportunityPrimary(survivor, sim));
+        assertEquals(enemy, sim.combat().fireTargetId(survivor));
+        assertEquals(FireStance.STANCED.ordinal(),
+                sim.getRoster().entityWorld().getInt(survivor, sim.getRoster().components().COMBAT,
+                        BattleComponents.COMBAT_FIRE_STANCE));
+    }
+
+    @Test
+    public void exposedSurvivorClaimsDoodadCoverInsideObjectiveLeash() {
+        BattleSimulation sim = openSim();
+        Squad squad = brokenRemnant(node(true));
+        long survivor = sim.spawn(new EntitySpec("last", Faction.DEFENDER, UnitType.MARINE, 4, 4)
+                .home(4, 4));
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.MARINE, UnitType.MARINE, 10, 4));
+        sim.world().setTargetId(survivor, enemy);
+        sim.addDoodad(new Doodad(6, 4, new TileManifest.TileFrame(4, 7),
+                false, Doodad.COVER_HEAVY));
+
+        LastStandHold.INSTANCE.execute(survivor, squad, sim);
+
+        int[] path = sim.world().path(survivor);
+        assertFalse(Paths.isEmpty(path), "exposed survivor should move instead of freezing at home");
+        assertEquals(5, Paths.destX(path),
+                "cell west of the doodad is heavy cover against the eastern threat");
+        assertEquals(4, Paths.destY(path));
+    }
+
+    @Test
+    public void survivorAlreadyBehindDoodadCoverPlantsAndFires() {
+        BattleSimulation sim = openSim();
+        Squad squad = brokenRemnant(node(true));
+        sim.addDoodad(new Doodad(6, 4, new TileManifest.TileFrame(4, 7),
+                false, Doodad.COVER_HEAVY));
+        long survivor = sim.spawn(new EntitySpec("last", Faction.DEFENDER, UnitType.MARINE, 5, 4)
+                .home(4, 4));
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.MARINE, UnitType.MARINE, 10, 4));
+        sim.world().setTargetId(survivor, enemy);
+        sim.world().setAttackRange(survivor, 10f);
+        sim.setPath(survivor, new int[]{4, 4});
+
+        LastStandHold.INSTANCE.execute(survivor, squad, sim);
+
+        assertTrue(Paths.isEmpty(sim.world().path(survivor)),
+                "directional cover facing the threat is a valid planted hold");
         assertTrue(InfantryUnitPrep.tryOpportunityPrimary(survivor, sim));
         assertEquals(enemy, sim.combat().fireTargetId(survivor));
         assertEquals(FireStance.STANCED.ordinal(),
