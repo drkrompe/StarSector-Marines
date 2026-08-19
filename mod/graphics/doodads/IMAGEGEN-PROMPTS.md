@@ -117,3 +117,41 @@ Per-asset primary requests:
   blue-gray civic conference table with an inset cyan presentation/map screen,
   tidy document pads, dark gunmetal trim, and subtle amber status lights; long
   axis horizontal, no chairs or people.
+
+## Industrial-facility additions
+
+The large-factory set used the built-in ImageGen tool in `stylized-concept`
+mode. The generated PNGs contain genuine alpha; untouched RGBA outputs are
+preserved under `imagegen-raw/` and copied to `sources/` for atlas normalization.
+
+Shared rendering contract:
+
+```text
+Asset type: a single 32x32-ready top-down tactical-game doodad sprite.
+Scene/backdrop: genuinely transparent background with clean alpha.
+Style/medium: pixelated-realistic strict top-down game sprite, crisp clustered
+pixels, restrained detail that survives reduction to 32x32, matching a gritty
+blue-gray, olive, and hazard-yellow sci-fi urban tileset and the existing
+industrial doodad atlas.
+Composition: orthographic 90-degree top-down, centered, generous even padding,
+full object visible.
+Lighting: subtle overhead upper-left object-local highlights only.
+Constraints: exactly one isolated asset; no floor, base tile, cast shadow,
+people, readable text, logo, watermark, scenery, or magenta; no isometric or
+perspective view.
+```
+
+Per-asset primary requests:
+
+- `industrial-machine-tool.png`: one compact heavy industrial machine tool, a
+  squat rectangular gunmetal and hazard-yellow automated press/CNC cell with a
+  dense central work head, side motor housings, guarded feed bed, small cyan
+  status screen, and amber warning lights; long axis horizontal, no operator.
+- `industrial-fluid-tank.png`: one compact tall industrial pressure vessel or
+  fluid tank, a large circular blue-gray steel tank with reinforced rim,
+  central inspection cap, valve manifold, short pipe stubs, hazard-yellow
+  bands, and tiny cyan/amber gauges; dense, solid, and opaque.
+- `industrial-control-console.png`: one compact civilian industrial control
+  console, a low angular blue-gray and gunmetal operator panel with three cyan
+  process screens, amber emergency indicators, chunky switches, cable ports,
+  and hazard-yellow edge rails; no chair or operator.

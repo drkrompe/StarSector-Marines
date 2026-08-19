@@ -23,19 +23,21 @@ final class PartitionLayout {
     final boolean tacticalCommercial;
     /** True when the partitioner carved and labeled the multi-room civic plan. */
     final boolean tacticalCivic;
+    /** True when the partitioner carved and labeled the large industrial plan. */
+    final boolean tacticalIndustrial;
     /** Large stores require a public entrance and an opposed service entrance. */
     final boolean forceOpposedPerimeterDoorways;
     /** Preferred coordinate along the frontage/rear walls, or -1 for random. */
     final int preferredPerimeterDoorAlong;
 
     PartitionLayout(Orient orient, int[] axes) {
-        this(orient, axes, false, false, false, -1);
+        this(orient, axes, false, false, false, false, -1);
     }
 
     PartitionLayout(Orient orient, int[] axes,
                     boolean tacticalCommercial,
                     boolean forceOpposedPerimeterDoorways) {
-        this(orient, axes, tacticalCommercial, false,
+        this(orient, axes, tacticalCommercial, false, false,
                 forceOpposedPerimeterDoorways, -1);
     }
 
@@ -44,10 +46,21 @@ final class PartitionLayout {
                     boolean tacticalCivic,
                     boolean forceOpposedPerimeterDoorways,
                     int preferredPerimeterDoorAlong) {
+        this(orient, axes, tacticalCommercial, tacticalCivic, false,
+                forceOpposedPerimeterDoorways, preferredPerimeterDoorAlong);
+    }
+
+    PartitionLayout(Orient orient, int[] axes,
+                    boolean tacticalCommercial,
+                    boolean tacticalCivic,
+                    boolean tacticalIndustrial,
+                    boolean forceOpposedPerimeterDoorways,
+                    int preferredPerimeterDoorAlong) {
         this.orient = orient;
         this.axes = axes;
         this.tacticalCommercial = tacticalCommercial;
         this.tacticalCivic = tacticalCivic;
+        this.tacticalIndustrial = tacticalIndustrial;
         this.forceOpposedPerimeterDoorways = forceOpposedPerimeterDoorways;
         this.preferredPerimeterDoorAlong = preferredPerimeterDoorAlong;
     }
