@@ -239,8 +239,11 @@ silhouette now includes reused left/right fore-claws and an alternating
 foreground contact swipe (`20d3bcb0`). Swarm pressure now opportunistically
 ranks sensed marines and exposed evacuees together, with modest target leeway
 and immediate rerouting so soldiers can peel attackers off the objective
-(`4fedb34a`). Manual roster, swipe readability, and post-rebalance feel
-validation remain queued.
+(`4fedb34a`). Rescue pressure now replenishes depleted runner populations with
+bounded, safe perimeter waves, while each civilian independently leashes to its
+nearest marine and seeks the screened side of that escort near visible threats
+(`ad11debf`). Manual reinforcement cadence, swipe readability, and
+post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free
 

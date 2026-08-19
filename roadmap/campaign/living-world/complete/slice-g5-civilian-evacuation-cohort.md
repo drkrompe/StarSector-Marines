@@ -85,3 +85,11 @@ that measures evacuation rather than combat victory or civilian survival.
 Add the swarm faction, roster, approach/attack behavior, and held art as the
 threat payload. The evacuation objective and writeback no longer need to change
 to support that content.
+
+## Escort-screen follow-up
+
+`ad11debf` replaces the cohort-wide escort permission with an independent
+five-cell leash for each evacuee. Civilians cannot lead their nearest marine by
+more than two cells toward the lift, and visible nearby enemies make them seek a
+walkable position behind that marine relative to the threat. See
+[`swarm-reinforcement-civilian-screen.md`](swarm-reinforcement-civilian-screen.md).
