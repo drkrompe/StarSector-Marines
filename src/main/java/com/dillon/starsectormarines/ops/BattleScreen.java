@@ -39,8 +39,10 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
+import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -202,7 +204,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
-    private final com.dillon.starsectormarines.ops.battleview.BattleRenderer renderer = new com.dillon.starsectormarines.ops.battleview.BattleRenderer(sprites);
+    private final BattleRenderer renderer = new BattleRenderer(sprites);
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -522,9 +524,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // render ordering match the rest of the debug panels.
         DebugTogglesPanel debugPanel = new DebugTogglesPanel(this);
         debugPanel.addToggle("Docking paths",
-                () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
-                () -> com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
-                        !com.dillon.starsectormarines.ops.battleview.BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
+                () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
+                () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
+                        !BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
         debugPanel.addDial("Parallax",
                 () -> renderer.getGroundParallax().parallaxStrength(),
                 value -> renderer.getGroundParallax().setParallaxStrength((float) value),
@@ -722,14 +724,12 @@ public class BattleScreen implements Screen, BattleUiContext {
      * Emits impact FX (and HE impact sounds) keyed off the sim's per-frame
      * shot lists. Two emit windows:
      * <ul>
-     *   <li>{@code shotsThisFrame} for null-kind shots (marine / militia / alien
-     *       rifle fire). The line tracer is drawn full-length the moment a
-     *       shot fires, so the impact should appear immediately at the endpoint
-     *       too — otherwise the puff lags ~150ms behind a visually-instant tracer.</li>
-     *   <li>{@code shotsExpiredThisFrame} for turret shots (non-null kind). The
-     *       projectile sprite travels visibly over its lifetime; the impact
-     *       should appear when the sprite reaches the endpoint, not when the
-     *       turret fires.</li>
+     *   <li>{@code shotsThisFrame} for full-line {@link ShotFx.Tracer} bodies.
+     *       The line covers its whole path immediately, so its impact belongs at
+     *       launch too.</li>
+     *   <li>{@code shotsExpiredThisFrame} for traveling {@link ShotFx.Sprite}
+     *       and {@link ShotFx.Bolt} bodies. Their impact belongs at the endpoint
+     *       arrival, not at launch.</li>
      * </ul>
      *
      * <p>HE shells (mortar) additionally play a positional explosion clip at
@@ -741,8 +741,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         Vector2f zeroVel = new Vector2f(0f, 0f);
         NavigationGrid grid = sim.getGrid();
         // Line-tracer shots spawn their impact at fire — the line covers the
-        // whole travel instantly. Anything with a projectile sprite (turret,
-        // rocket, SMG bullet) waits for arrival in the second pass.
+        // whole travel instantly. Traveling bodies (sprites and bolts) wait
+        // for arrival in the second pass.
         for (ShotEvent s : sim.getShotsThisFrame()) {
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).
@@ -769,8 +769,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
-            boolean projectile = hasProjectileSprite(s);
-            if (projectile) continue;
+            if (ShotFx.of(s).travels()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
                     ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
@@ -778,7 +777,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
-            if (!hasProjectileSprite(s)) continue;
+            if (!ShotFx.of(s).travels()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile;
             if (s.turretKind != null) {
@@ -825,14 +824,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
-    }
-
-    /** True when the shot is rendered as a traveling sprite (turret kinetic, marine rocket, SMG bullet, any mech round) rather than an instant line tracer — drives whether impact FX fire at launch or arrival. */
-    private static boolean hasProjectileSprite(ShotEvent s) {
-        return s.turretKind != null
-                || s.marineSecondary != null
-                || (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null)
-                || (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null);
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
