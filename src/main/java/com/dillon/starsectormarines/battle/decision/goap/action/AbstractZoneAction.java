@@ -30,9 +30,10 @@ import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
  * room from the doorway instead of pushing in.
  *
  * <p>The one tactical knob between members of the family is whether the
- * advance <em>halts</em> at contact. {@link EnterZone} is the approach step:
- * it halts so an engagement-tier goal (a morale break routing to BreakContact)
- * can preempt before the squad commits. {@link ClearZone}/{@link HoldZone} are
+ * advance may <em>commit</em> to contact. {@link EnterZone} is the approach
+ * step: it scores local force, retreat posture, and distance from the advance
+ * axis every tick, then either presses with shots of opportunity or fights
+ * inside a bounded off-axis leash. {@link ClearZone}/{@link HoldZone} are
  * commitment steps: the squad is taking the room, so they push through contact
  * while firing suppressively instead of freezing at the threshold. That's the
  * {@code haltOnContact} flag, not duplicated movement code.
@@ -49,6 +50,14 @@ abstract class AbstractZoneAction implements Action {
      * on the {@code haltOnContact} path.
      */
     protected static final float CONTACT_HALT_REPLAN_THROTTLE = 1.0f;
+    /** Raw threat weight that flips a pressing squad into committed contact. */
+    static final float ADVANCE_COMMIT_THRESHOLD = 0.55f;
+    /** Lower threshold that releases a committed squad back onto the objective route. */
+    static final float ADVANCE_RELEASE_THRESHOLD = 0.30f;
+    /** Minimum useful off-axis firing-position radius once the squad commits. */
+    static final float ADVANCE_LEASH_MIN = 4f;
+    /** Maximum off-axis firing-position radius at full threat weight. */
+    static final float ADVANCE_LEASH_MAX = 12f;
 
     protected final int targetZoneId;
 
@@ -79,16 +88,32 @@ abstract class AbstractZoneAction implements Action {
      * {@link TacticalScoring#findBestTarget}, so a member that fixated on the
      * approach doesn't walk past fresh shooters.
      *
-     * @param haltOnContact when true (approach semantics), a visible in-range
-     *        enemy stops the advance so the member fights in place and the
-     *        squad replan is accelerated (throttled) to let an engagement-tier
-     *        goal take over; when false (commitment semantics), the member
-     *        keeps pushing into the zone while firing.
+     * @param haltOnContact when true (approach semantics), the squad's
+     *        threat-scored advance leash may stop the member to prosecute a
+     *        route contact; when false (commitment semantics), the member keeps
+     *        pushing into the zone while firing.
      */
     protected final void advanceIntoZone(long member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
+        boolean committed = false;
+        float engageLeash = 0f;
+        long advanceThreat = 0L;
+        int threatAnchorX = -1;
+        int threatAnchorY = -1;
+        if (haltOnContact) {
+            updateAdvanceThreat(squad, sim, destX, destY);
+            committed = squad.advanceEngageCommitted;
+            engageLeash = squad.advanceEngageLeash;
+            advanceThreat = squad.advanceThreatId;
+            threatAnchorX = squad.advanceThreatAnchorX;
+            threatAnchorY = squad.advanceThreatAnchorY;
+        }
+
         long target = sim.targetOf(member);
-        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+        if (committed && sim.resolveUnit(advanceThreat) != 0L) {
+            target = advanceThreat;
+            sim.world().setTargetId(member, target);
+        } else if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
@@ -104,7 +129,7 @@ abstract class AbstractZoneAction implements Action {
 
         if (inContact) {
             sim.combat().setFireIntent(member, target,
-                    haltOnContact ? FireStance.STANCED : FireStance.MOVING, false);
+                    committed ? FireStance.STANCED : FireStance.MOVING, false);
         } else {
             // Opportunistic return fire while advancing. The pursuit target
             // is out of range/LoS (or absent) — across the open approach
@@ -121,7 +146,7 @@ abstract class AbstractZoneAction implements Action {
             }
         }
 
-        if (haltOnContact && inContact) {
+        if (committed && inContact) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
                 squad.timeSinceReplan = Planner.REPLAN_PERIOD;
@@ -129,11 +154,60 @@ abstract class AbstractZoneAction implements Action {
             return;
         }
 
+        if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
+            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
+                    member, target, threatAnchorX, threatAnchorY, engageLeash);
+            if (firingPos != null) {
+                if (sim.movement().mayRepath(member)) {
+                    sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                            sim.world().cellX(member), sim.world().cellY(member),
+                            firingPos[0], firingPos[1], sim.getOccupancyMap()));
+                }
+                sim.advanceMovement(member);
+                return;
+            }
+        }
+
         if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
+    }
+
+    /**
+     * Recomputes the squad-level route threat at most once per sim tick and
+     * applies commit/release hysteresis. The synchronized section is required
+     * because members of one squad can execute in parallel; the tally itself
+     * is member-independent, so whichever member arrives first may author the
+     * cache without making behavior order-dependent.
+     */
+    private static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
+        int tick = sim.getSimTickIndex();
+        if (squad.advanceThreatTick == tick) return;
+        synchronized (squad.lock) {
+            if (squad.advanceThreatTick == tick) return;
+            TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
+                    .assessAdvanceThreat(squad, destX, destY);
+            squad.advanceEngageWeight = threat.weight();
+            squad.advanceEngageCommitted = shouldCommitAdvance(
+                    squad.advanceEngageCommitted, threat.weight());
+            squad.advanceEngageLeash = squad.advanceEngageCommitted
+                    ? Math.max(ADVANCE_LEASH_MIN, ADVANCE_LEASH_MAX * threat.weight())
+                    : 0f;
+            squad.advanceThreatId = threat.primaryThreatId();
+            squad.advanceThreatFoes = threat.foes();
+            squad.advanceThreatFriends = threat.friends();
+            squad.advanceThreatAnchorX = threat.axisAnchorX();
+            squad.advanceThreatAnchorY = threat.axisAnchorY();
+            squad.advanceThreatRetreating = threat.primaryRetreating();
+            squad.advanceThreatTick = tick;
+        }
+    }
+
+    static boolean shouldCommitAdvance(boolean wasCommitted, float weight) {
+        return wasCommitted ? weight >= ADVANCE_RELEASE_THRESHOLD
+                : weight >= ADVANCE_COMMIT_THRESHOLD;
     }
 
     /**
