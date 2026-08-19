@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -54,10 +56,12 @@ public class LayeredMechAppearanceTest {
         long mech = sim.spawn(new EntitySpec("mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 5, 5));
         long target = sim.spawn(new EntitySpec("target", Faction.MARINE, UnitType.MARINE, 8, 5));
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT);
-        loadout.chaingunBurstRemaining = 4;
-        loadout.chaingunBurstTimer = loadout.chaingun.burstSpacing * 0.5f;
-        loadout.srmSalvoRemaining = 2;
-        loadout.srmSalvoTimer = loadout.srmPod.burstSpacing * 0.25f;
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        arms.burstRemaining = 4;
+        arms.burstTimer = arms.weapon().burstSpacing * 0.5f;
+        srm.burstRemaining = 2;
+        srm.burstTimer = srm.weapon().burstSpacing * 0.25f;
         sim.world().attachMechLoadout(mech, loadout);
         sim.setPath(mech, new int[]{5, 5, 5, 6});
         // The moving flag comes from the velocity the mover applied this tick,

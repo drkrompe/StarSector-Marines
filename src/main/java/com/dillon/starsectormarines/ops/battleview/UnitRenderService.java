@@ -243,7 +243,7 @@ public final class UnitRenderService implements RenderSystem {
                         % frames.frames.length;
                 SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-                float scaledSize = unitSize * app.renderScale;
+                float scaledSize = unitSize * ctx.sim.getRoster().renderScale(t.entityAt(r));
                 float targetW, targetH;
                 if (f.w >= f.h) {
                     targetW = scaledSize;
@@ -384,13 +384,14 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_RIGHT_SHOULDER).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
+                long entityId = t.entityAt(r);
                 // Gate 1: a released-but-not-yet-transmuted row (see the method doc
                 // above) — the visibility gate can never filter these, so this
                 // check is load-bearing wherever it sits.
                 if (hp[r] <= 0f) continue;
 
                 // Gate 2: visibility, keyed by this row's dense roster slot.
-                int denseIdx = roster.indexOf(t.entityAt(r));
+                int denseIdx = roster.indexOf(entityId);
                 byte uv = vis.getUnitVisibility(denseIdx);
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float unitAlpha = alphaMult;
@@ -404,7 +405,7 @@ public final class UnitRenderService implements RenderSystem {
                     float cy = cam.cellToScreenY(ry[r]);
                     // Chassis width is the single sizing unit. Total appendage
                     // overhang remains close to the legacy 1.6-cell silhouette.
-                    float hullWidth = unitSize * type.renderScale * 0.82f
+                    float hullWidth = unitSize * roster.renderScale(entityId) * 0.82f
                             * LAYERED_MECH_SCALE;
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
