@@ -183,7 +183,10 @@ public class BattleRenderer {
     private final DecalAccumulator decalAccumulator =
             new DecalAccumulator(DevConfig.DECAL_FBO_PX_PER_CELL);
 
-    /** S2 (surface-relief) ground FBO + offset-limited-parallax composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
+    /** S3 render-side event lights consumed by the surface-relief composite. */
+    private final GroundLightService groundLights = new GroundLightService();
+
+    /** S2/S3 ground FBO + parallax/bump-light composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
     private final GroundParallaxPipeline groundParallax;
 
     /** Ground-combat impact FX engine. */
@@ -205,7 +208,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
-        this.groundParallax = new GroundParallaxPipeline(sprites);
+        this.groundParallax = new GroundParallaxPipeline(sprites, groundLights);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -341,12 +344,13 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.advance()} — pulse compound markers on wall-clock. */
     public CompoundMarkerRenderer getCompoundMarkers() { return compoundMarkers; }
 
-    /** Accessor for {@code BattleScreen.advance()} — tick transient lights + retain persistent halos. */
+    /** Accessor for the host's combat-event presentation pass. */
+    public GroundLightService getGroundLights() { return groundLights; }
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }
 
-    /** Accessor for {@code BattleScreen.detach()} — release the S2 ground-parallax FBO pair. */
+    /** Accessor for {@code BattleScreen.detach()} — release the S2/S3 ground FBO set. */
     public GroundParallaxPipeline getGroundParallax() { return groundParallax; }
 
     @DebugOnly
@@ -785,7 +789,7 @@ public class BattleRenderer {
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             if (layer == RenderLayer.GROUND && parallax) {
-                // S2: redirect GROUND through the FBO pair + parallax composite instead
+                // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to
                 // drainLayer(GROUND) itself (a plain Runnable) on any failure, so this
                 // call always ends up painting the layer exactly once.

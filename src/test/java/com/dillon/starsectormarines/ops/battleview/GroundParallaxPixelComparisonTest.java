@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pure-CPU pixel oracle for {@link GroundParallaxPipeline}'s GLSL 1.20
- * composite. It creates a representative 16:9 battle-ground FBO from the real
+ * Pure-CPU pixel oracle for the S2 portion of {@link GroundParallaxPipeline}'s
+ * GLSL 1.20 composite. It creates a representative 16:9 battle-ground FBO from the real
  * terrain assets, builds the matching macro/micro/water/shore metadata target,
  * and evaluates the shader equations with bilinear texture sampling.
  *
@@ -107,7 +107,7 @@ class GroundParallaxPixelComparisonTest {
         System.out.println("[parallax-pixel] wrote " + output.toAbsolutePath());
     }
 
-    /** Mirrors the fragment shader from normalized UV through its final bilinear color lookup. */
+    /** Mirrors the parallax/water portion from normalized UV through its bilinear color lookup. */
     private static Warp warp(Scene scene, float structureStrength, float surfaceStrength,
                              float waterWaveAmplitude, float waveTime) {
         BufferedImage output = new BufferedImage(VIEW_W, VIEW_H, BufferedImage.TYPE_INT_ARGB);
