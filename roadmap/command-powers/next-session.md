@@ -50,6 +50,10 @@ grants are off, so fleet/employer sourcing is now the observed default.
   filtering, and at-use CP/supply readouts (`499b9d15`).
 - S8 Slice B-2 — member-level power-source commitment; the exact selected ship
   objects feed `PowerCatalog`, and one ship may supply several capabilities.
+- S8 debug transport follow-on — debug briefings now select an exact shuttle
+  type/count roster (including civilian-rescue debug missions); generated
+  employer lift is ignored only for debug sources, while production co-sourcing
+  remains covered by regression tests.
 
 ## Docs in this dir
 

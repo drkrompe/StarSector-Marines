@@ -85,10 +85,10 @@ public final class DetachmentResolver {
      * Number of physical employer Aeroshuttles for a mission — the employer still
      * delivers {@code m.employerShuttles} drops total, spread across at most
      * {@link #EMPLOYER_PHYSICAL_CAP} cycling ships. Returns 0 when the employer
-     * contributes nothing.
+     * contributes nothing or when a debug briefing owns the complete manifest.
      */
     public static int employerPhysicalShipCount(Mission m) {
-        if (m.employerShuttles <= 0) return 0;
+        if (m.source.isDebug() || m.employerShuttles <= 0) return 0;
         return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
     }
 
@@ -102,10 +102,13 @@ public final class DetachmentResolver {
      * {@code floor(D/N)}. Player ships are priority-sorted, so a Valkyrie works
      * harder than a Mudskipper when the math is uneven.
      *
+     * <p>Debug missions are the exception to employer co-sourcing: their briefing
+     * picker owns the complete manifest, so the generated employer roll is ignored
+     * and the selected type/count covers all required drops.
+     *
      * <p>When the player commits zero transports and the employer doesn't cover
-     * all the drops, the manifest only covers the employer's portion — the
-     * briefing gate blocks before that's an issue, but the function doesn't assume
-     * gate enforcement.
+     * all the drops, the fallback pads with one-cycle Aeroshuttles. The briefing
+     * gate normally blocks before that path is reachable.
      */
     public static List<ShuttleAssignment> buildShuttleManifest(Mission m, List<ShuttleType> playerShuttles) {
         List<ShuttleAssignment> out = new ArrayList<>();
@@ -115,14 +118,18 @@ public final class DetachmentResolver {
             int eBase = employerDrops / employerPhysical;
             int eExtra = employerDrops % employerPhysical;
             // Employer flies unarmed Aeroshuttles (the "token force" flavor — the
-            // player supplies heavy lift). To test armed Valkyries, seed the
-            // player fleet via DevConfig.DEBUG_SEED_PLAYER_VALKYRIES instead.
+            // player supplies heavy lift). Debug missions bypass this branch and
+            // source their complete roster from the briefing picker instead.
             for (int i = 0; i < employerPhysical; i++) {
                 int cycles = eBase + (i < eExtra ? 1 : 0);
                 out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, cycles));
             }
         }
-        int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);
+        // Debug briefings own the complete manifest through their type/count
+        // picker. Ignore the generated employer roll so the configured number
+        // is the exact set of physical transports that appears in battle.
+        int employerDrops = m.source.isDebug() ? 0 : m.employerShuttles;
+        int playerDrops = Math.max(0, m.requiredDrops - employerDrops);
         if (playerDrops == 0) return out;
         int transportsUsed = Math.min(playerDrops, playerShuttles.size());
         if (transportsUsed == 0) {

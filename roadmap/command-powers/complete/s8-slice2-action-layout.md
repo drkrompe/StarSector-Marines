@@ -67,3 +67,20 @@ distinguishes the otherwise-identical seeded-Valkyrie rows at a glance.
   (1–3 transports) sit comfortably.
 - `SalvageSliderWidget` remains orphaned (the screen uses −/+ buttons) — still a
   pending cleanup from Slice 1.
+
+## Follow-on: exact debug transport picker — 2026-08-19
+
+Debug missions now replace the real-fleet transport rows with a compact
+type/count selector. The selection is the complete physical shuttle roster:
+the resolver ignores the debug generator's employer-lift roll, distributes all
+required drops across exactly the selected hulls, and treats count zero as an
+intentionally blocked deployment. Both `DEBUG` and `DEBUG_CIVILIAN_RESCUE`
+sources use the same path; production missions retain player-fleet commitment,
+employer Aeroshuttle co-sourcing, and the existing transport gate unchanged.
+
+The old `DevConfig.DEBUG_SEED_PLAYER_VALKYRIES` fixture and
+`PlayerFleetShuttles.queryAvailable(boolean)` overload were removed because the
+interactive picker supersedes them. Focused manifest tests cover ordinary
+debug missions, debug civilian rescue, and the unchanged production path.
+Full `gradlew.bat build` is green; in-game control density/feel remains part of
+the general S8 manual verification queue.
