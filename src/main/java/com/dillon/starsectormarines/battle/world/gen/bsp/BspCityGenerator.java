@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseBlockFiller;
@@ -117,6 +118,7 @@ public final class BspCityGenerator implements MapGenerator {
         }
         register(new BuildingResidentialFiller());
         register(new BuildingCommercialFiller());
+        register(new BuildingCivicFiller());
         register(new BuildingIndustrialFiller());
         register(new FortifiedPostFiller());
         register(new LandingZoneFiller());

@@ -5,6 +5,10 @@ build/
 !**/src/test/**/build/
 .kotlin
 
+### Python asset tooling ###
+__pycache__/
+*.py[cod]
+
 ### Starsector mod build artifacts ###
 mod/jars/*.jar
 mod/sounds/**

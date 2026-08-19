@@ -8,12 +8,11 @@ package com.dillon.starsectormarines.battle.world.model;
  * chamber is this cell in?" by direct lookup instead of reverse-engineering
  * via {@link com.dillon.starsectormarines.battle.nav.zone.ZoneGraph}.
  *
- * <p>The current keep label set names the three chambers a fortress-style
- * COMMAND_POST sub-building may carve (entry / inner / throne). Other map
- * types will extend this enum with their own purposes (HANGAR, HABITATION,
- * COMMAND, CORRIDOR for stations; LAB, CRYOBAY, BRIDGE for ship interiors)
- * — the storage layer treats {@link #ordinal()} as opaque so adding values
- * is non-breaking.
+ * <p>Purpose sets currently cover fortress keeps, commercial shops, military
+ * compounds, station corridors, and civic headquarters. Future map types can
+ * extend this enum with their own purposes (HANGAR, HABITATION, LAB, CRYOBAY,
+ * BRIDGE); the storage layer treats {@link #ordinal()} as opaque so adding
+ * values is non-breaking.
  *
  * <p>{@code GENERIC} is the explicit "this room exists but has no special
  * tactical role" value; carvers that label rooms but have no specific
@@ -50,4 +49,14 @@ public enum RoomPurpose {
     ARMORY,
     /** Military compound — open service floor for vehicles and field equipment. */
     VEHICLE_BAY,
+    /** Civic headquarters — public-facing lobby around the primary entrance. */
+    CIVIC_RECEPTION,
+    /** Civic headquarters — two-cell circulation spine joining public and service entrances. */
+    OFFICE_CORRIDOR,
+    /** Civic headquarters — enclosed administrative workspace. */
+    CIVIC_OFFICE,
+    /** Civic headquarters — enclosed planning and meeting room. */
+    CONFERENCE_ROOM,
+    /** Civic headquarters — secured data room whose racks block line of sight. */
+    SERVER_ROOM,
 }

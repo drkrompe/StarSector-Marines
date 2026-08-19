@@ -27,12 +27,18 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
  * {@link #LANDING_ZONE_MIN_SIDE}. Smaller leaves get demoted to
  * {@link BlockKind#PLAZA} — a tiny striped pad wedged between building leaves
  * reads visually as "courtyard inside the buildings" rather than as an open
- * landing apron.
+ * landing apron. Civic headquarters require a genuinely large lot so their
+ * two-cell spine and four side rooms remain useful at infantry scale; smaller
+ * civic rolls become ordinary commercial buildings.
  */
 public final class LabelLeavesStage implements GenStage {
 
     /** Minimum dimension a LANDING_ZONE leaf must have on both axes to keep that kind — smaller leaves get demoted to PLAZA, since tiny LZ pads tucked between big buildings read as "courtyard interior" rather than open touchdown apron. */
     private static final int LANDING_ZONE_MIN_SIDE = 5;
+    /** Minimum long footprint dimension for a multi-room civic headquarters. */
+    public static final int CIVIC_MIN_LONG_DIM = 13;
+    /** Minimum short footprint dimension for a multi-room civic headquarters. */
+    public static final int CIVIC_MIN_SHORT_DIM = 11;
 
     @Override
     public void run(GenContext ctx) {
@@ -44,12 +50,21 @@ public final class LabelLeavesStage implements GenStage {
                     ? biomeMap.themeAt(leaf.centerX(), leaf.centerY())
                     : districtMap.themeAt(leaf.centerX(), leaf.centerY());
             leaf.kind = theme.pickBlockKind(ctx.rng);
-            if ((leaf.kind == BlockKind.LANDING_ZONE || leaf.kind == BlockKind.SPACEPORT_PAD)
-                    && (leaf.width() < LANDING_ZONE_MIN_SIDE
-                        || leaf.height() < LANDING_ZONE_MIN_SIDE)) {
-                leaf.kind = BlockKind.PLAZA;
-            }
+            leaf.kind = constrainKindForSize(leaf.kind, leaf.width(), leaf.height());
         }
 
+    }
+
+    static BlockKind constrainKindForSize(BlockKind kind, int width, int height) {
+        if ((kind == BlockKind.LANDING_ZONE || kind == BlockKind.SPACEPORT_PAD)
+                && (width < LANDING_ZONE_MIN_SIDE || height < LANDING_ZONE_MIN_SIDE)) {
+            return BlockKind.PLAZA;
+        }
+        if (kind == BlockKind.BUILDING_CIVIC
+                && (Math.max(width, height) < CIVIC_MIN_LONG_DIM
+                    || Math.min(width, height) < CIVIC_MIN_SHORT_DIM)) {
+            return BlockKind.BUILDING_COMMERCIAL;
+        }
+        return kind;
     }
 }

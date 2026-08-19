@@ -33,6 +33,7 @@ class AssetSpec:
     source: Path
     asset_id: str
     cover: str
+    ballistic_half_height: float | None
     name: str
     description: str
     order: float
@@ -125,6 +126,13 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
             raise ValueError(
                 f"{path.name}: cover must be one of {sorted(VALID_COVER)}, got {cover!r}"
             )
+        ballistic_half_height = item.get("ballisticHalfHeight")
+        if ballistic_half_height is not None:
+            ballistic_half_height = float(ballistic_half_height)
+            if not math.isfinite(ballistic_half_height) or ballistic_half_height < 0:
+                raise ValueError(
+                    f"{path.name}: ballisticHalfHeight must be finite and non-negative"
+                )
         padding = int(item.get("padding", options.padding))
         if padding < 0 or padding * 2 >= options.cell_size:
             raise ValueError(f"{path.name}: padding {padding} leaves no drawable cell area")
@@ -137,6 +145,7 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 source=path,
                 asset_id=asset_id,
                 cover=cover,
+                ballistic_half_height=ballistic_half_height,
                 name=str(item.get("name", path.stem)),
                 description=str(item.get("description", "")),
                 order=float(item.get("order", math.inf)),
@@ -227,9 +236,15 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
             normalize_asset(spec, options),
             (col * options.cell_size, row * options.cell_size),
         )
-        doodads.append(
-            {"id": spec.asset_id, "col": col, "row": row, "cover": spec.cover}
-        )
+        doodad: dict[str, Any] = {
+            "id": spec.asset_id,
+            "col": col,
+            "row": row,
+            "cover": spec.cover,
+        }
+        if spec.ballistic_half_height is not None:
+            doodad["ballisticHalfHeight"] = spec.ballistic_half_height
+        doodads.append(doodad)
         cell: dict[str, Any] = {"col": col, "row": row, "name": spec.name}
         if spec.description:
             cell["description"] = spec.description
