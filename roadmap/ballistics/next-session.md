@@ -37,7 +37,16 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Next up: contract S4 — direct-fire unification
+## Active: S3b — target-plane accuracy
+
+Contract: [`stories/s3b-target-plane-accuracy.md`](stories/s3b-target-plane-accuracy.md).
+Replace the locked target's invisible contact roll with one authored target-
+plane aim result: lateral error changes the physical XY ray, elevation error
+gates contacts against per-type vertical silhouettes, and visible rounds project
+that Z axis into screen Y. Overshoots expire without false impact FX. Preserve
+existing accuracy probabilities, incidental grazes, cover, and damage tuning.
+
+## After S3b: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-

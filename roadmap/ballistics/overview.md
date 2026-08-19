@@ -17,7 +17,7 @@ contact solve, shooter lead, per-weapon `roundVelocity`; landed as specced).
 bolts on the real flight clock, shared arrival-timed impact semantics). **S3a
 shipped 2026-08-19** (`complete/s3a-weapon-fx-families.md` — reuse-first pulse,
 rail, and drone projectile silhouettes). S4 (direct-fire unification) is next —
-see `next-session.md`.
+after the active S3b target-plane accuracy follow-up; see `next-session.md`.
 
 ## Why
 
@@ -180,6 +180,10 @@ expansion margin of `maxUnitSpeed × maxFlightTime + maxRadius`).
   pipeline now gives pulse, rail, and drone fire distinct silhouettes by
   reusing vanilla assets before generating new art. See
   [`complete/s3a-weapon-fx-families.md`](complete/s3a-weapon-fx-families.md).
+- **S3b — target-plane accuracy.** Active follow-up: roll intended accuracy
+  once into lateral/elevation aim error, gate contacts against a lightweight
+  vertical silhouette, and project high/low flight through visible rounds.
+  Story: [`stories/s3b-target-plane-accuracy.md`](stories/s3b-target-plane-accuracy.md).
 - **S4 — direct-fire unification.** Mech chaingun + turret spray kinds
   adopt the resolver; retire `ShotRaycast` and `ShotEndpoint`'s miss ring;
   near-miss morale goes path-proximity.

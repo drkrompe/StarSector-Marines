@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  * Emitted on every fire — hit or miss — so the renderer can draw the resolved
  * round body even when no damage lands. The endpoint is the physical stop
  * selected by the ballistic resolver (unit, cover, wall, or overshoot).
+ * Lightweight {@code fromZ}/{@code toZ} offsets project into screen Y so a
+ * miss can visibly fly high or low without introducing full 3D physics.
  *
  * <p>{@link #turretKind} is the bridge between the sim's faction-only
  * abstraction and the renderer's per-weapon FX. When the shooter is a
@@ -30,8 +32,10 @@ public class ShotEvent {
 
     public final float fromX;
     public final float fromY;
+    public final float fromZ;
     public final float toX;
     public final float toY;
+    public final float toZ;
     public final boolean hit;
     public final Faction shooterFaction;
     /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. */
@@ -55,6 +59,8 @@ public class ShotEvent {
      * false for callers that don't thread a resolved victim.
      */
     public final boolean struckUnit;
+    /** Resolver stop kind for physical rounds; null for legacy/direct visual events. */
+    public final BallisticResolver.StopKind stopKind;
 
     public float lifetime;
     /** Initial lifetime — fixed at construction. Renderer uses this (not the global shot-lifetime constant) to compute fade-out alpha and projectile travel progress, so per-weapon flight times scale correctly. */
@@ -99,10 +105,24 @@ public class ShotEvent {
                      TurretKind turretKind, MarineWeapon marineWeapon,
                      MarineSecondary marineSecondary, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit) {
+        this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                moraleImpact, struckUnit, null);
+    }
+
+    public ShotEvent(float fromX, float fromY, float fromZ,
+                     float toX, float toY, float toZ,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     float moraleImpact, boolean struckUnit,
+                     BallisticResolver.StopKind stopKind) {
         this.fromX = fromX;
         this.fromY = fromY;
+        this.fromZ = fromZ;
         this.toX = toX;
         this.toY = toY;
+        this.toZ = toZ;
         this.hit = hit;
         this.shooterFaction = shooterFaction;
         this.lifetime = lifetime;
@@ -113,5 +133,21 @@ public class ShotEvent {
         this.mechWeapon = mechWeapon;
         this.moraleImpact = moraleImpact;
         this.struckUnit = struckUnit;
+        this.stopKind = stopKind;
+    }
+
+    /** Screen-space map Y after applying the lightweight elevation offset. */
+    public float visualFromY() {
+        return fromY + fromZ;
+    }
+
+    /** Screen-space map Y after applying the lightweight elevation offset. */
+    public float visualToY() {
+        return toY + toZ;
+    }
+
+    /** Whether expiry represents a physical impact rather than free-flight overshoot. */
+    public boolean impacts() {
+        return stopKind != BallisticResolver.StopKind.OVERSHOOT;
     }
 }

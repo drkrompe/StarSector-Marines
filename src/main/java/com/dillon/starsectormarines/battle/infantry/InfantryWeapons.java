@@ -203,8 +203,10 @@ public class InfantryWeapons {
         // that victim was the locked target — near-miss morale must not
         // double-drain a round that actually connected.
         boolean struckUnit = res.victimId() != 0L;
-        shots.postShot(new ShotEvent(fromX, fromY, res.endX(), res.endY(), res.hitIntended(), shooterFaction, lifetime,
-                tk, weapon, null, null, moraleImpact, struckUnit));
+        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                res.endX(), res.endY(), res.endZ(),
+                res.hitIntended(), shooterFaction, lifetime,
+                tk, weapon, null, null, moraleImpact, struckUnit, res.kind()));
     }
 
     /**

@@ -34,7 +34,8 @@ public final class ShotRenderService implements RenderSystem {
     static final float BOLT_FADE_IN_FRACTION = 0.10f;
 
     /** Pure cell-space result for the traveling-bolt sweep, exposed package-locally for headless kinematics tests. */
-    record BoltPose(float headX, float headY, float tailX, float tailY,
+    record BoltPose(float headX, float headY, float headZ,
+                    float tailX, float tailY, float tailZ,
                     float visibleLength, float fadeIn) {}
 
     private final BattleSprites sprites;
@@ -65,8 +66,8 @@ public final class ShotRenderService implements RenderSystem {
                     ? tracer.color()
                     : ShotFx.defaultTracerColor(s.shooterFaction);
             out.addLine(RenderLayer.SHOTS,
-                    cam.cellToScreenX(s.fromX), cam.cellToScreenY(s.fromY),
-                    cam.cellToScreenX(s.toX),   cam.cellToScreenY(s.toY),
+                    cam.cellToScreenX(s.fromX), cam.cellToScreenY(s.visualFromY()),
+                    cam.cellToScreenX(s.toX),   cam.cellToScreenY(s.visualToY()),
                     TRACER_WIDTH,
                     c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, lifeT * alphaMult);
         }
@@ -82,13 +83,16 @@ public final class ShotRenderService implements RenderSystem {
             if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
 
             float centerX = (pose.headX() + pose.tailX()) * 0.5f;
-            float centerY = (pose.headY() + pose.tailY()) * 0.5f;
-            float pxH = pose.visibleLength() * cellPx;
+            float projectedHeadY = pose.headY() + pose.headZ();
+            float projectedTailY = pose.tailY() + pose.tailZ();
+            float centerY = (projectedHeadY + projectedTailY) * 0.5f;
+            float pxH = dist(pose.headX(), projectedHeadY, pose.tailX(), projectedTailY) * cellPx;
             float pxW = boltWidthCells(pose, bolt) * cellPx;
             Color color = bolt.color() != null ? bolt.color() : Color.WHITE;
             out.addSprite(RenderLayer.SHOTS, boltSprite.sprite,
                     cam.cellToScreenX(centerX), cam.cellToScreenY(centerY),
-                    pxW, pxH, bearingDeg(s.fromX, s.fromY, s.toX, s.toY),
+                    pxW, pxH, bearingDeg(pose.tailX(), projectedTailY,
+                            pose.headX(), projectedHeadY),
                     color.getRed() / 255f, color.getGreen() / 255f,
                     color.getBlue() / 255f, pose.fadeIn() * alphaMult);
         }
@@ -103,15 +107,17 @@ public final class ShotRenderService implements RenderSystem {
             float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress;
+            float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
+            float py = s.fromY + (s.toY - s.fromY) * progress + pz;
             float bearing;
             float arcH = fx.arcHeight();
             if (arcH > 0f) {
                 py += arcH * 4f * progress * (1f - progress);
-                float tangentDy = (s.toY - s.fromY) + arcH * 4f * (1f - 2f * progress);
+                float tangentDy = (s.visualToY() - s.visualFromY())
+                        + arcH * 4f * (1f - 2f * progress);
                 bearing = bearingDeg(0f, 0f, s.toX - s.fromX, tangentDy);
             } else {
-                bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
+                bearing = bearingDeg(s.fromX, s.visualFromY(), s.toX, s.visualToY());
             }
             float pxH = sprite.visualCells() * cellPx;
             float pxW = pxH * cache.aspect;
@@ -137,12 +143,15 @@ public final class ShotRenderService implements RenderSystem {
         float shotLength = (float) Math.sqrt(dx * dx + dy * dy);
         float headX = shot.fromX + dx * progress;
         float headY = shot.fromY + dy * progress;
+        float headZ = shot.fromZ + (shot.toZ - shot.fromZ) * progress;
         float visibleLength = Math.min(Math.max(0f, bolt.lengthCells()), progress * shotLength);
         float invLength = shotLength > 1e-6f ? 1f / shotLength : 0f;
-        float tailX = headX - dx * invLength * visibleLength;
-        float tailY = headY - dy * invLength * visibleLength;
+        float tailProgress = Math.max(0f, progress - visibleLength * invLength);
+        float tailX = shot.fromX + dx * tailProgress;
+        float tailY = shot.fromY + dy * tailProgress;
+        float tailZ = shot.fromZ + (shot.toZ - shot.fromZ) * tailProgress;
         float fadeIn = Math.min(1f, progress / BOLT_FADE_IN_FRACTION);
-        return new BoltPose(headX, headY, tailX, tailY, visibleLength, fadeIn);
+        return new BoltPose(headX, headY, headZ, tailX, tailY, tailZ, visibleLength, fadeIn);
     }
 
     /** Width grows with the emerging streak so a bolt never spawns as a sideways muzzle blob. */
@@ -157,5 +166,11 @@ public final class ShotRenderService implements RenderSystem {
         float dy = toY - fromY;
         if (dx == 0f && dy == 0f) return 0f;
         return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+    }
+
+    private static float dist(float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 }

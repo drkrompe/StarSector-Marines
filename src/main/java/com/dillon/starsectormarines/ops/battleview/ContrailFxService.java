@@ -75,7 +75,8 @@ public final class ContrailFxService {
             float linearProgress = 1f - clamp01(s.lifetime / Math.max(0.001f, s.lifetimeMax));
             float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress;
+            float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
+            float py = s.fromY + (s.toY - s.fromY) * progress + pz;
             float arcH = fx.arcHeight();
             if (arcH > 0f) py += arcH * 4f * progress * (1f - progress);
             ContrailTrail trail = live.get(s);

@@ -17,7 +17,7 @@ import java.util.Random;
 /**
  * Resolves one round's full flight in a single space-time raycast at fire
  * time — the ballistics swap's core: a ray from the shooter toward a
- * lead-and-spread-jittered aim point, hard-capped at the first wall, walked
+ * lead-and-target-plane-sampled aim point, hard-capped at the first wall, walked
  * against doodad block rolls and time-domain unit-radius contacts in time
  * order. Damage/FX application is scheduled by the caller on the returned
  * {@link Resolution#flightTime()}; this class only decides <em>where the
@@ -28,6 +28,8 @@ import java.util.Random;
  * contact solve" and "Shooter lead" sections {@link #resolve} implements
  * step for step; S1's static-world solve, which the {@code w = 0} case
  * collapses to exactly, is {@code stories/s1-resolver-core.md}).
+ * Target-plane aim and the lightweight vertical silhouette are specified in
+ * {@code roadmap/ballistics/stories/s3b-target-plane-accuracy.md}.
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
@@ -76,21 +78,23 @@ public final class BallisticResolver {
     public enum StopKind { UNIT_HIT, COVER_CLIP, WALL, DOODAD_BLOCK, OVERSHOOT }
 
     /**
-     * The outcome of one resolved round. {@code endX}/{@code endY} is where
-     * the round physically stopped (visual endpoint); {@code flightTime} =
+     * The outcome of one resolved round. {@code endX}/{@code endY}/{@code endZ}
+     * is where the round physically stopped (visual endpoint); {@code flightTime} =
      * {@code stopDist / roundVelocity}, the delay before damage/FX apply;
      * {@code victimId} is 0 unless {@code kind == UNIT_HIT}; {@code
      * hitIntended} is true only when the recorded victim is the locked
      * target (drives {@code ShotEvent.hit}); {@code friendlyHit} is true
      * when the recorded victim shares the shooter's faction.
      */
-    public record Resolution(float endX, float endY, float flightTime,
+    public record Resolution(float endX, float endY, float endZ, float flightTime,
                               long victimId, boolean hitIntended,
                               boolean friendlyHit, StopKind kind) {}
 
     /**
      * One contact candidate along the ray, in time order. Doodad crossings
-     * roll a flat block chance; unit contacts roll cover-clip then hit.
+     * roll a flat block chance; unit contacts roll cover-clip, then incidental
+     * contacts retain their graze roll. Intended accuracy was already
+     * committed when the target-plane aim was sampled.
      * {@code victimCellX}/{@code victimCellY} (unit events only) is the
      * victim's OWN extrapolated cell at contact time, floor(U(t)) — the
      * cover edge-clip lookup's cell, distinct from {@code x}/{@code y} (the
@@ -102,18 +106,20 @@ public final class BallisticResolver {
         final boolean doodad;
         final float x;
         final float y;
+        final float z;
         final int doodadLevel;
         final long unitId;
         final boolean friendly;
         final int victimCellX;
         final int victimCellY;
 
-        private Event(float t, boolean doodad, float x, float y, int doodadLevel,
+        private Event(float t, boolean doodad, float x, float y, float z, int doodadLevel,
                        long unitId, boolean friendly, int victimCellX, int victimCellY) {
             this.t = t;
             this.doodad = doodad;
             this.x = x;
             this.y = y;
+            this.z = z;
             this.doodadLevel = doodadLevel;
             this.unitId = unitId;
             this.friendly = friendly;
@@ -121,13 +127,13 @@ public final class BallisticResolver {
             this.victimCellY = victimCellY;
         }
 
-        static Event doodad(float t, float x, float y, int level) {
-            return new Event(t, true, x, y, level, 0L, false, 0, 0);
+        static Event doodad(float t, float x, float y, float z, int level) {
+            return new Event(t, true, x, y, z, level, 0L, false, 0, 0);
         }
 
-        static Event unit(float t, float x, float y, long unitId, boolean friendly,
+        static Event unit(float t, float x, float y, float z, long unitId, boolean friendly,
                            int victimCellX, int victimCellY) {
-            return new Event(t, false, x, y, 0, unitId, friendly, victimCellX, victimCellY);
+            return new Event(t, false, x, y, z, 0, unitId, friendly, victimCellX, victimCellY);
         }
     }
 
@@ -155,9 +161,9 @@ public final class BallisticResolver {
      * velocity collapses both the lead and the contact solve to S1's
      * static-world math exactly. {@code finalAccuracy} is the full accuracy
      * stack with cover already removed (cover is re-expressed here as
-     * physical interception); {@code effectiveSpread} is the distance-scaled
-     * lateral jitter radius (0 for pinpoint weapons), applied around the LED
-     * aim point; {@code roundVelocity} is cells/sec, already resolved by the
+     * physical interception); {@code effectiveSpread} broadens the sampled
+     * lateral/elevation miss clearance in the target plane; {@code
+     * roundVelocity} is cells/sec, already resolved by the
      * caller (see {@link #DEFAULT_ROUND_VELOCITY}). Reads only — safe to
      * call from a parallel dispatch.
      */
@@ -190,14 +196,22 @@ public final class BallisticResolver {
         float leadX = targetX + wTargetX * tLead;
         float leadY = targetY + wTargetY * tLead;
 
-        // Step 2: ray. Aim = led target position plus a radius-uniform lateral
-        // offset sampled from effectiveSpread (mirrors ShotEndpoint's hit-jitter
-        // sampling; this replaces the miss ring entirely). Jitter applies
-        // around the LED point, not the raw target position.
-        float angle = rng.nextFloat() * (float) (Math.PI * 2);
-        float offsetR = rng.nextFloat() * effectiveSpread;
-        float aimX = leadX + (float) Math.cos(angle) * offsetR;
-        float aimY = leadY + (float) Math.sin(angle) * offsetR;
+        // Step 2: commit accuracy once in the target plane. Lateral error
+        // rotates the real ground ray; elevation error becomes a linear Z
+        // slope. An authored miss therefore visibly clears the intended
+        // silhouette instead of crossing it and failing a hidden second roll.
+        UnitType targetType = roster.identity().type(target);
+        TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
+                finalAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
+                targetType.radius, targetType.hitHalfHeight, rng);
+        float baseDx = leadX - fromX;
+        float baseDy = leadY - fromY;
+        float baseDist = (float) Math.sqrt(baseDx * baseDx + baseDy * baseDy);
+        float baseDirX = baseDist > 1e-6f ? baseDx / baseDist : 1f;
+        float baseDirY = baseDist > 1e-6f ? baseDy / baseDist : 0f;
+        float aimX = leadX - baseDirY * aim.lateral();
+        float aimY = leadY + baseDirX * aim.lateral();
+        float zSlope = aim.elevation() / Math.max(baseDist, 1e-6f);
 
         float aimDx = aimX - fromX;
         float aimDy = aimY - fromY;
@@ -238,7 +252,7 @@ public final class BallisticResolver {
         // skipping the shooter's own cell. Doodads are static, so this stays
         // the S1 distance-domain math verbatim.
         walkDoodadCrossings(shooterCellX, shooterCellY, rayEndCellX, rayEndCellY,
-                fromX, fromY, roundVelocity, events);
+                fromX, fromY, roundVelocity, zSlope, events);
 
         // Step 4: unit contacts over the (wall-capped) ray, solved in the
         // TIME domain against each candidate's own extrapolated motion. The
@@ -313,6 +327,12 @@ public final class BallisticResolver {
             float rayDistAtEntry = roundVelocity * sEntry;
             if (rayDistAtEntry > rayLen) continue; // beyond the wall-capped ray
 
+            // The ground ray may cross a body circle while the round passes
+            // over its head or below its feet. This light Z gate is the only
+            // vertical collision volume; walls/doodads remain full-height.
+            float contactZ = zSlope * rayDistAtEntry;
+            if (Math.abs(contactZ) > candidateType.hitHalfHeight) continue;
+
             Faction candidateFaction = roster.identity().faction(candidateId);
             boolean friendly = candidateFaction == shooterFaction;
             if (friendly && rayDistAtEntry < FRIENDLY_MUZZLE_CLEARANCE) continue;
@@ -326,7 +346,8 @@ public final class BallisticResolver {
             float contactY = fromY + dirY * rayDistAtEntry;
             int victimCellX = (int) Math.floor(ux + wx * sEntry);
             int victimCellY = (int) Math.floor(uy + wy * sEntry);
-            events.add(Event.unit(sEntry, contactX, contactY, candidateId, friendly, victimCellX, victimCellY));
+            events.add(Event.unit(sEntry, contactX, contactY, contactZ,
+                    candidateId, friendly, victimCellX, victimCellY));
         }
 
         // Step 5: walk events sorted by t; first stop wins. A wall (when
@@ -339,7 +360,7 @@ public final class BallisticResolver {
             if (e.doodad) {
                 float blockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
                 if (rng.nextFloat() < blockChance) {
-                    return new Resolution(e.x, e.y, e.t, 0L, false, false, StopKind.DOODAD_BLOCK);
+                    return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.DOODAD_BLOCK);
                 }
                 continue; // fly on
             }
@@ -350,25 +371,29 @@ public final class BallisticResolver {
             int coverLevel = grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
             if (rng.nextFloat() < coverBlockChance) {
-                return new Resolution(e.x, e.y, e.t, 0L, false, false, StopKind.COVER_CLIP);
+                return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.COVER_CLIP);
             }
 
             boolean isLockedTarget = victim == target;
-            float hitChance = (isLockedTarget ? finalAccuracy : INCIDENTAL_HIT_CHANCE)
-                    * world.incomingAccuracyMult(victim);
+            if (isLockedTarget) {
+                if (!aim.onTarget()) continue;
+                return new Resolution(e.x, e.y, e.z, e.t, victim, true, e.friendly, StopKind.UNIT_HIT);
+            }
+            float hitChance = INCIDENTAL_HIT_CHANCE * world.incomingAccuracyMult(victim);
             if (rng.nextFloat() < hitChance) {
-                return new Resolution(e.x, e.y, e.t, victim, isLockedTarget, e.friendly, StopKind.UNIT_HIT);
+                return new Resolution(e.x, e.y, e.z, e.t, victim, false, e.friendly, StopKind.UNIT_HIT);
             }
             // else fly on
         }
 
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
-        return new Resolution(rayEndX, rayEndY, rayLen / roundVelocity, 0L, false, false, finalKind);
+        return new Resolution(rayEndX, rayEndY, zSlope * rayLen, rayLen / roundVelocity,
+                0L, false, false, finalKind);
     }
 
     /** Bresenham cell walk from the shooter's cell to the ray-end cell, emitting a doodad-crossing {@link Event} for every non-start cell with direction-agnostic doodad cover &gt; 0. */
     private void walkDoodadCrossings(int x0, int y0, int x1, int y1,
-                                      float fromX, float fromY, float roundVelocity,
+                                      float fromX, float fromY, float roundVelocity, float zSlope,
                                       List<Event> out) {
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
@@ -385,7 +410,7 @@ public final class BallisticResolver {
                     float cx = x + 0.5f;
                     float cy = y + 0.5f;
                     float t = dist(fromX, fromY, cx, cy) / roundVelocity;
-                    out.add(Event.doodad(t, cx, cy, level));
+                    out.add(Event.doodad(t, cx, cy, zSlope * roundVelocity * t, level));
                 }
             }
             first = false;

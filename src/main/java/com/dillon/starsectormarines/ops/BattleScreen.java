@@ -770,19 +770,21 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
             if (ShotFx.of(s).travels()) continue;
+            if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
                     ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
-            renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
+            renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(s).travels()) continue;
+            if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile;
             if (s.turretKind != null) {
                 profile = s.turretKind.impactProfile();
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
+                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 // Any HE-profile turret round (mortar, grenade launcher,
                 // LOCUST artillery) pairs the flame plume with the explosion
                 // clip — matches the mech HE branch below. Previously gated
@@ -797,7 +799,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
             } else if (s.marineSecondary != null) {
                 profile = s.marineSecondary.impactProfile();
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
+                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
@@ -805,13 +807,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId, pitch, 0.70f, loc, zeroVel);
             } else if (s.marineWeapon != null) {
                 profile = s.marineWeapon.impactProfile;
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
+                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
                 // clip on arrival; chainguns are kinetic, no extra audio (the
                 // burst itself is loud enough at fire time).
                 profile = s.mechWeapon.impactProfile;
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.toY, isWall);
+                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 if (profile == ImpactProfile.HE) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
