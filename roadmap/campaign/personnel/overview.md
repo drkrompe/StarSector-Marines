@@ -55,9 +55,18 @@ one deterministic `IDEALIST` or `CYNICAL` outlook from choices witnessed during
 their tenure, without exposing moral scores or adding combat modifiers. The
 outlook persists exactly once and is readable on the shared captain row.
 
+## Active — captain discovery
+
+[`stories/captain-discovery.md`](stories/captain-discovery.md) establishes the
+canonical path for finding new captains as cryo-pod survivors aboard eligible
+derelicts. Slice 1 is shipped: personnel now owns persistent source-keyed
+candidates and admits them atomically, with full-roster and replay safety. The
+next slice connects that authority to vanilla salvage without changing ordinary
+salvage rewards.
+
 ## Complete — named stationing
 
-[`stories/named-stationing.md`](stories/named-stationing.md) replaces the old
+[`complete/named-stationing.md`](complete/named-stationing.md) replaces the old
 captain-plus-anonymous-count stationing model with whole persistent fireteams.
 Campaign/personnel owns binding, availability, casualties, and exactly-once
 return; stationing battles only consume and report frozen identities. Named

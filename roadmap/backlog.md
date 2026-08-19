@@ -19,9 +19,9 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **Mission resolution** — consume marines (from cargo and/or captain's
   squad), apply trait bonuses, award XP, roll for injury/death on bad
   outcomes. Hooks into `MarineRosterScript`.
-- **Captain discovery system** — cryo-pod recovery from salvageable
-  derelicts as the canonical in-universe acquisition path. Hook into
-  vanilla salvage events.
+- **Captain discovery system — ACTIVE** — cryo-pod recovery from salvageable
+  derelicts as the canonical in-universe acquisition path. Persistent candidate
+  intake is shipped in `055abb97`; the next slice hooks vanilla salvage events.
 - **Roster cap scaling** — replace hardcoded 10 with `f(playerLevel)`.
 - **Trait mechanics** — currently placeholder enums (`SIEGE_SPECIALIST`,
   `SAPPER`, etc). Wire to mission resolution modifiers.

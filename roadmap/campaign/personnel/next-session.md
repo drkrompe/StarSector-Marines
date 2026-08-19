@@ -52,7 +52,7 @@ isolated Gradle build passed.
 The deployment-reachability correction is shipped and recorded in
 [`complete/deployment-readiness.md`](complete/deployment-readiness.md).
 The named-stationing lifecycle is complete in
-[`stories/named-stationing.md`](stories/named-stationing.md). New stationing
+[`complete/named-stationing.md`](complete/named-stationing.md). New stationing
 offers bind named, rank-bounded fireteams without cargo mutation; incidents
 freeze and settle their identities; every completion, withdrawal, failure, and
 default-extraction path resolves exactly once. Anonymous saves retain their
@@ -67,10 +67,24 @@ captain-local and deterministic, and the shared captain row presents readable
 pass. Manual UI/balance validation remains queued, as requested for the current
 automated-only session.
 
-There is no active personnel story after this closure. Select and contract a
-new story before extending outlooks into combat modifiers, reversals, transfers,
-dialog, or interpersonal conflict; those remain intentional non-goals rather
-than implied follow-up work.
+## Active — captain discovery
+
+The contract is locked in
+[`stories/captain-discovery.md`](stories/captain-discovery.md). Slice 1 is
+shipped (`ecf70b58`, `055abb97`): `MarineRoster` now persists one immutable
+candidate per normalized namespaced campaign source and resolves offers through
+capacity-safe accept/decline operations. Acceptance freezes the future captain
+identity and is replay-safe; legacy repair backfills the collection, drops bad
+or duplicate rows, adopts an already-present matching captain, and never
+recreates a dangling accepted one. Focused intake tests and the full root
+automated suite pass.
+
+Slice 2 is the next bounded task: locate and hook the canonical vanilla salvage
+completion seam, define eligible salvageable derelicts, and publish one
+deterministic cryo-pod candidate per source without replacing or duplicating
+normal salvage rewards. Presentation and player accept/decline choices remain
+Slice 3. Outlook combat modifiers, reversals, transfers, dialog, and
+interpersonal conflict remain intentional non-goals.
 
 ## Commit chain
 
@@ -99,3 +113,5 @@ than implied follow-up work.
 - `a31e9a2a` / `0039f9b5` / `c05999e2` — close the named release lifecycle.
 - `492864ef` / `1a2fc58e` / `9e4c1ac2` — freeze and settle battle identities.
 - `721372d8` / `a8b72598` / `496cea19` — close compaction, repair, and debrief.
+- `ecf70b58` — lock the captain-discovery acquisition contract.
+- `055abb97` — persist source-keyed candidates and exactly-once roster intake.
