@@ -254,7 +254,11 @@ field-mech movement goals (`bdfd5bf8`). Timed contact advance now owns one
 route/timer state per squad, preventing a nearby alien from slowing unrelated
 formations, and lift selection requires a clear outdoor, non-doorway 5x5 trigger
 footprint (`5a0da48d`). Manual reinforcement cadence, swipe readability, and
-post-rebalance feel validation remain queued.
+post-rebalance feel validation remain queued. The current pressure pass raises
+canonical LOW/MEDIUM/HIGH openings from 12/24/40 to 20/40/64 and runner health
+from 1.5 to 2.5 HP. DEBUG now offers a production-shaped HIGH/four-drop rescue
+alongside the retained force-scaled LOW/MEDIUM/HIGH stress fights
+([`complete/canonical-rescue-pressure-pass.md`](complete/canonical-rescue-pressure-pass.md)).
 
 ## Two payoffs that fall out for free
 

@@ -4,6 +4,10 @@
 
 **Implemented:** `15a11674`
 
+> Historical checkpoint: the later
+> [canonical rescue pressure pass](canonical-rescue-pressure-pass.md) raises
+> runners to 2.5 HP while leaving generic aliens at 1.875 HP.
+
 ## Outcome
 
 - Generic `ALIEN` health is halved from 3.75 to 1.875 HP.

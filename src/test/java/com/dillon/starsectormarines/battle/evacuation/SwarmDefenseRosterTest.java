@@ -20,6 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SwarmDefenseRosterTest {
 
     @Test
+    void canonicalRunnerCountsAreRaisedAcrossEveryRiskTier() {
+        assertEquals(20, SwarmDefenseRoster.countFor(RiskLevel.LOW));
+        assertEquals(40, SwarmDefenseRoster.countFor(RiskLevel.MEDIUM));
+        assertEquals(64, SwarmDefenseRoster.countFor(RiskLevel.HIGH));
+    }
+
+    @Test
     void riskScalesCompleteRunnerOnlyRostersOutsideProtectedZones() {
         for (RiskLevel risk : RiskLevel.values()) {
             Fixture fixture = openFixture();
@@ -97,6 +104,26 @@ class SwarmDefenseRosterTest {
                     - fixture.payload.placement.shelterY);
             assertTrue(distance
                     >= SwarmDefenseRoster.DEBUG_SHELTER_APPROACH_DISTANCE);
+        }
+    }
+
+    @Test
+    void explicitCanonicalRosterUsesProductionApproachBand() {
+        Fixture fixture = openFixture();
+
+        SwarmDefenseRoster roster = SwarmDefenseRoster.installCanonical(
+                fixture.sim, fixture.payload.placement, 64, 714L);
+
+        assertNotNull(roster);
+        assertEquals(64, roster.size());
+        for (int i = 0; i < roster.size(); i++) {
+            long entity = roster.entityId(i);
+            int distance = Math.abs(fixture.sim.world().cellX(entity)
+                    - fixture.payload.placement.shelterX)
+                    + Math.abs(fixture.sim.world().cellY(entity)
+                    - fixture.payload.placement.shelterY);
+            assertTrue(distance
+                    >= SwarmDefenseRoster.PRODUCTION_SHELTER_APPROACH_DISTANCE);
         }
     }
 

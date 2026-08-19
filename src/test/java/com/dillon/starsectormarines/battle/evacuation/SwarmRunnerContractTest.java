@@ -35,20 +35,21 @@ class SwarmRunnerContractTest {
         assertTrue(runner.attackDamage > 0f);
         assertTrue(runner.drawnAsSheet());
         assertTrue(runner.drawnAsLayers());
-        assertEquals(1.5f, runner.maxHp, 0.001f);
+        assertEquals(2.5f, runner.maxHp, 0.001f);
         assertEquals(1.875f, UnitType.ALIEN.maxHp, 0.001f);
-        assertEquals(UnitType.ALIEN.maxHp * 0.8f, runner.maxHp, 0.001f);
+        assertTrue(runner.maxHp > UnitType.ALIEN.maxHp);
         assertTrue(!runner.drawsLayeredWeapon());
     }
 
     @Test
     void serviceGradeMarineWeaponsHaveDeliberateSwarmBreakpoints() {
-        for (UnitType alien : new UnitType[]{
-                UnitType.ALIEN, UnitType.SWARM_RUNNER}) {
-            assertEquals(2, hitsToKill(alien, MarineWeapon.PULSE_RIFLE));
-            assertEquals(3, hitsToKill(alien, MarineWeapon.SMG));
-            assertEquals(1, hitsToKill(alien, MarineWeapon.DMR));
-        }
+        assertEquals(2, hitsToKill(UnitType.ALIEN, MarineWeapon.PULSE_RIFLE));
+        assertEquals(3, hitsToKill(UnitType.ALIEN, MarineWeapon.SMG));
+        assertEquals(1, hitsToKill(UnitType.ALIEN, MarineWeapon.DMR));
+
+        assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.PULSE_RIFLE));
+        assertEquals(4, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.SMG));
+        assertEquals(1, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.DMR));
     }
 
     private static int hitsToKill(UnitType target, MarineWeapon weapon) {

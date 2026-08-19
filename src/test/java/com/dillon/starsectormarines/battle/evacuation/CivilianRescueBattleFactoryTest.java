@@ -101,6 +101,21 @@ class CivilianRescueBattleFactoryTest {
     }
 
     @Test
+    void canonicalFactoryUsesRaisedHighRiskPopulation() {
+        BattleSimulation sim = BattleSetup.createCivilianRescue(
+                5_008L, Collections.emptyList(), false, RiskLevel.HIGH);
+
+        int defenders = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long entity = sim.liveUnitAt(i);
+            if (sim.identity().faction(entity) == Faction.DEFENDER) defenders++;
+        }
+        assertEquals(SwarmDefenseRoster.HIGH_COUNT, defenders);
+        assertEquals(SwarmDefenseRoster.HIGH_COUNT,
+                sim.swarmTargetPopulation());
+    }
+
+    @Test
     void forceScaledDebugBattleHasAnOpeningBeforeCivilianDefeat() {
         List<ShuttleAssignment> manifest = new ArrayList<>();
         for (int i = 0; i < 8; i++) {

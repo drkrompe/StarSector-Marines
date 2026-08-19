@@ -11,8 +11,10 @@ package com.dillon.starsectormarines.ops;
  *       committed to a stationing contract.</li>
  *   <li>{@link #CAMPAIGN_EVENT} — non-contract black-swan work carrying its own
  *       stable event lineage.</li>
- *   <li>{@link #DEBUG_CIVILIAN_RESCUE} — picker-only swarm rescue with no
- *       campaign-event lineage or writeback.</li>
+ *   <li>{@link #DEBUG_CANONICAL_CIVILIAN_RESCUE} — picker-only production-shaped
+ *       rescue with no campaign-event lineage or writeback.</li>
+ *   <li>{@link #DEBUG_CIVILIAN_RESCUE} — picker-only force-scaled swarm stress
+ *       test with no campaign-event lineage or writeback.</li>
  *   <li>{@link #DEBUG} — ordinary picker-only mission with fixture personnel
  *       and no campaign writeback.</li>
  * </ul>
@@ -27,13 +29,19 @@ public enum MissionSource {
     /** Direct debug-picker swarm rescue; never resolves a campaign event. */
     DEBUG_CIVILIAN_RESCUE,
     /** Ordinary debug-picker mission; never mutates campaign state. */
-    DEBUG;
+    DEBUG,
+    /** Production-shaped debug rescue; append-only to preserve prior ordinals. */
+    DEBUG_CANONICAL_CIVILIAN_RESCUE;
 
     public boolean isCivilianRescue() {
-        return this == CAMPAIGN_EVENT || this == DEBUG_CIVILIAN_RESCUE;
+        return this == CAMPAIGN_EVENT
+                || this == DEBUG_CANONICAL_CIVILIAN_RESCUE
+                || this == DEBUG_CIVILIAN_RESCUE;
     }
 
     public boolean isDebug() {
-        return this == DEBUG || this == DEBUG_CIVILIAN_RESCUE;
+        return this == DEBUG
+                || this == DEBUG_CANONICAL_CIVILIAN_RESCUE
+                || this == DEBUG_CIVILIAN_RESCUE;
     }
 }

@@ -172,8 +172,11 @@ universe over time, not retrofitted into intel slots.
    into that body at a 100% base catch chance (`5f2c083d`). The star now spans
    25x25 cells around a fifteen-cell-inset LZ, and allied infantry apply a
    density-aware avoidance steer to hostile aliens inside five cells
-   (`c6589910`). Alien health is now halved once more to 1.875/1.5 HP—two
-   service pulse hits, three SMG hits, or one DMR hit (`15a11674`). Marine
+   (`c6589910`). Generic alien health remains 1.875 HP, while rescue runners
+   now carry 2.5 HP—three service pulse hits, four SMG hits, or one DMR hit.
+   Canonical rescue openings rise to 20/40/64 runners, and DEBUG now exposes a
+   production-shaped HIGH/four-drop launch beside the retained force-scaled
+   stress fights. Marine
    direct fire now ignores civilian bodies, alien avoidance cannot raise a
    marine above its movement-speed stat, and the five militia squads retain
    their authored perimeter posts instead of collapsing onto the LZ center

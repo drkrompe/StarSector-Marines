@@ -563,7 +563,7 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk) {
         return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk,
-                SwarmDefenseRoster.countFor(risk), TargetProfile.NEUTRAL);
+                SwarmDefenseRoster.countFor(risk), TargetProfile.NEUTRAL, false);
     }
 
     /** Civilian rescue with an explicit initial swarm size. */
@@ -579,6 +579,19 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile) {
+        return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk,
+                swarmCount, profile, true);
+    }
+
+    /**
+     * Civilian rescue with explicit pressure and deployment semantics. Stress
+     * tests retain the wider debug approach band; canonical launches use the
+     * same opening distance as the campaign mission.
+     */
+    public static BattleSimulation createCivilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
+            TargetProfile profile, boolean stressTest) {
         for (int attempt = 0; attempt < 8; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = MapScale.forRisk(risk);
@@ -633,8 +646,11 @@ public final class BattleSetup {
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
             installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
                     risk, scale.width, scale.height);
-            SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
-                    sim, payload.placement, swarmCount, battleSeed);
+            SwarmDefenseRoster swarm = stressTest
+                    ? SwarmDefenseRoster.install(
+                            sim, payload.placement, swarmCount, battleSeed)
+                    : SwarmDefenseRoster.installCanonical(
+                            sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
             if (!sim.configureSwarmReinforcements(
                     payload.placement, swarm.size(), battleSeed)) {

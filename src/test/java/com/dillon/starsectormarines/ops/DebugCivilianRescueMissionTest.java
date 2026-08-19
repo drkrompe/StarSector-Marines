@@ -13,14 +13,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DebugCivilianRescueMissionTest {
 
     @Test
-    void debugCatalogAddsOneZeroEconomySwarmRescuePerRiskTier() {
+    void debugCatalogAddsCanonicalRescueThenOneStressTestPerRiskTier() {
         List<Mission> missions = MissionGenerator.debugCivilianRescueMissions(
                 "Test Colony", new Random(71L), 15);
 
-        assertEquals(RiskLevel.values().length, missions.size());
-        for (int i = 0; i < missions.size(); i++) {
+        assertEquals(RiskLevel.values().length + 1, missions.size());
+        Mission canonical = missions.get(0);
+        assertEquals("SWARM RESCUE — CANONICAL", canonical.name);
+        assertEquals(MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE,
+                canonical.source);
+        assertEquals(RiskLevel.HIGH, canonical.risk);
+        assertEquals(4, canonical.requiredDrops);
+        assertEquals(0, canonical.employerShuttles);
+        assertTrue(canonical.source.isDebug());
+        assertTrue(MissionLaunch.isCivilianRescueBattle(canonical));
+
+        for (int i = 1; i < missions.size(); i++) {
             Mission mission = missions.get(i);
-            assertEquals(RiskLevel.values()[i], mission.risk);
+            assertEquals(RiskLevel.values()[i - 1], mission.risk);
+            assertEquals("SWARM RESCUE STRESS — " + mission.risk.name(),
+                    mission.name);
             assertEquals(MissionType.EXTRACTION, mission.type);
             assertEquals(MissionSource.DEBUG_CIVILIAN_RESCUE,
                     mission.source);
