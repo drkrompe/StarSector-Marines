@@ -23,8 +23,10 @@ class Variant:
     subtitle: str
     chassis: str
     arms: str
-    left_pod: str
-    right_pod: str
+    arm_layout: str
+    left_pod: str | None
+    right_pod: str | None
+    pod_layout: str
     render_scale: float
     loadout: str
 
@@ -35,8 +37,10 @@ VARIANTS = (
         "HEAVY ALL-RANGE ANCHOR",
         "chassis.png",
         "chaingun-arm.png",
+        "dual-narrow",
         "lrm-pod.png",
         "lrm-pod.png",
+        "top-pair",
         1.60,
         "DUAL CHAINGUNS  /  SRM-15  /  LRM-15",
     ),
@@ -45,20 +49,24 @@ VARIANTS = (
         "FAST CLOSE-ASSAULT STRIDER",
         "chassis-hound.png",
         "chaingun-arm.png",
+        "nose",
         "srm-pod.png",
-        "srm-pod.png",
+        None,
+        "top-single",
         1.35,
-        "DUAL CHAINGUNS  /  SRM-5  /  SRM-5",
+        "NOSE CHAINGUN  /  SRM-5",
     ),
     Variant(
         "SIROCCO",
         "MOBILE LONG-RANGE SUPPORT",
         "chassis-sirocco.png",
-        "linear-cannon-variant.png",
+        "heavy-cannon.png",
+        "nose-heavy",
         "srm-pod.png",
         "srm-pod.png",
+        "under-pair",
         1.35,
-        "DUAL LINEAR CANNONS  /  LRM-5  /  LRM-5",
+        "HEAVY CANNON  /  LRM-5  /  LRM-5",
     ),
 )
 
@@ -103,19 +111,30 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
     foot = scaled_sprite("foot.png", hull_width)
     arms = scaled_sprite(variant.arms, hull_width)
     chassis = scaled_sprite(variant.chassis, hull_width)
-    left_pod = scaled_sprite(variant.left_pod, hull_width)
-    right_pod = scaled_sprite(variant.right_pod, hull_width)
+    left_pod = scaled_sprite(variant.left_pod, hull_width) if variant.left_pod else None
+    right_pod = scaled_sprite(variant.right_pod, hull_width) if variant.right_pod else None
 
     # Runtime draw order and zero-motion anchors from LayeredMechComposer.
     centered(canvas, foot, origin, hull_width, -0.17, -0.28)
     centered(canvas, foot, origin, hull_width, 0.17, -0.28)
-    rear_pivot(canvas, arms, origin, hull_width, -0.37, -0.15)
-    rear_pivot(canvas, arms, origin, hull_width, 0.37, -0.15)
-    # Racks are external shoulder equipment beneath the body layer. Their
-    # inboard casing is buried; only the outboard rack changes the silhouette.
-    rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
-    rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
+    if variant.arm_layout == "dual-narrow":
+        narrow = arms.resize((max(1, arms.width // 2), arms.height), Image.Resampling.LANCZOS)
+        rear_pivot(canvas, narrow, origin, hull_width, -0.37, -0.15)
+        rear_pivot(canvas, narrow, origin, hull_width, 0.37, -0.15)
+    elif variant.arm_layout == "nose":
+        rear_pivot(canvas, arms, origin, hull_width, 0.0, -0.02)
+    elif variant.arm_layout == "nose-heavy":
+        rear_pivot(canvas, arms, origin, hull_width, 0.0, -0.05)
+
+    if variant.pod_layout == "under-pair":
+        rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
+        rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
     centered(canvas, chassis, origin, hull_width, 0.0, 0.0)
+    if variant.pod_layout == "top-pair":
+        rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
+        rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
+    elif variant.pod_layout == "top-single":
+        rear_pivot(canvas, left_pod, origin, hull_width, 0.0, -0.30)
     return canvas
 
 

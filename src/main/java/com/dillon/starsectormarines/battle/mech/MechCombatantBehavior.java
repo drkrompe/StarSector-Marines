@@ -99,7 +99,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         }
     }
 
-    /** Arms-track compatibility entry point; it may carry chainguns or linear cannons. */
+    /** Arms-track compatibility entry point; it may carry any installed direct-fire arm weapon. */
     public static void tryFireChaingun(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         tryFireMount(u, m, m.mount(MechMountSlot.ARMS), target, dist, sim, hasLos);
     }
