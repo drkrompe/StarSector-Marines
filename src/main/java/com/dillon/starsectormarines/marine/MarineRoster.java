@@ -35,6 +35,7 @@ public class MarineRoster implements Serializable {
     private Set<String> completedStoryIds = new HashSet<>();
     private List<MarineSoldier> soldiers = new ArrayList<>();
     private List<MarineSquad> squads = new ArrayList<>();
+    private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
     private int nextSoldierNumber = 1;
     private int nextSquadNumber = 1;
@@ -105,6 +106,80 @@ public class MarineRoster implements Serializable {
 
     public boolean hasRoom() {
         return captains.size() < capacity;
+    }
+
+    /**
+     * Records one immutable candidate for a stable campaign source. Replays return the
+     * original offer without allowing later callers to rewrite its authored details.
+     */
+    public CaptainCandidate discoverCaptainCandidate(
+            String sourceKey, String name, String portraitSprite,
+            Rank startingRank, Trait startingTrait, float currentDay) {
+        String normalizedSource = normalizeSourceKey(sourceKey);
+        if (normalizedSource == null) return null;
+        CaptainCandidate existing = captainCandidateBySource(normalizedSource);
+        if (existing != null) return existing;
+
+        CaptainCandidate candidate = new CaptainCandidate(
+                normalizedSource, name, portraitSprite,
+                startingRank, startingTrait, currentDay);
+        if (!candidate.valid()) return null;
+        captainCandidates.add(candidate);
+        return candidate;
+    }
+
+    public CaptainCandidate captainCandidateBySource(String sourceKey) {
+        String normalizedSource = normalizeSourceKey(sourceKey);
+        if (normalizedSource == null) return null;
+        for (CaptainCandidate candidate : captainCandidates) {
+            if (normalizedSource.equals(candidate.sourceKey())) return candidate;
+        }
+        return null;
+    }
+
+    public List<CaptainCandidate> captainCandidates() {
+        return Collections.unmodifiableList(captainCandidates);
+    }
+
+    public List<CaptainCandidate> availableCaptainCandidates() {
+        List<CaptainCandidate> available = new ArrayList<>();
+        for (CaptainCandidate candidate : captainCandidates) {
+            if (candidate.state() == CaptainCandidateState.AVAILABLE) {
+                available.add(candidate);
+            }
+        }
+        return Collections.unmodifiableList(available);
+    }
+
+    /** Atomically admits an available candidate, or returns the prior admission on replay. */
+    public MarineCaptain acceptCaptainCandidate(String sourceKey) {
+        CaptainCandidate candidate = captainCandidateBySource(sourceKey);
+        if (candidate == null || !candidate.valid()
+                || candidate.state() == CaptainCandidateState.DECLINED) {
+            return null;
+        }
+
+        MarineCaptain existing = byId(candidate.id());
+        if (candidate.state() == CaptainCandidateState.ACCEPTED) return existing;
+        if (existing != null) {
+            candidate.markAccepted();
+            return existing;
+        }
+        if (!hasRoom()) return null;
+
+        MarineCaptain captain = candidate.createCaptain();
+        captains.add(captain);
+        candidate.markAccepted();
+        return captain;
+    }
+
+    public boolean declineCaptainCandidate(String sourceKey) {
+        CaptainCandidate candidate = captainCandidateBySource(sourceKey);
+        if (candidate == null || candidate.state() != CaptainCandidateState.AVAILABLE) {
+            return false;
+        }
+        candidate.markDeclined();
+        return true;
     }
 
     public boolean hasCompletedStory(String storyId) {
@@ -751,6 +826,7 @@ public class MarineRoster implements Serializable {
         if (completedStoryIds == null) completedStoryIds = new HashSet<>();
         if (soldiers == null) soldiers = new ArrayList<>();
         if (squads == null) squads = new ArrayList<>();
+        if (captainCandidates == null) captainCandidates = new ArrayList<>();
         if (armory == null) armory = new MarineArmory();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
@@ -760,7 +836,29 @@ public class MarineRoster implements Serializable {
         }
         repairSquadCommands();
         repairStationingBindings();
+        repairCaptainCandidates();
         return this;
+    }
+
+    private void repairCaptainCandidates() {
+        Set<String> sources = new HashSet<>();
+        List<CaptainCandidate> repaired = new ArrayList<>();
+        for (CaptainCandidate candidate : captainCandidates) {
+            if (candidate == null || !candidate.valid()
+                    || !sources.add(candidate.sourceKey())) continue;
+            if (candidate.state() == CaptainCandidateState.AVAILABLE
+                    && byId(candidate.id()) != null) {
+                candidate.markAccepted();
+            }
+            repaired.add(candidate);
+        }
+        captainCandidates = repaired;
+    }
+
+    private static String normalizeSourceKey(String sourceKey) {
+        if (sourceKey == null) return null;
+        String normalized = sourceKey.trim();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     private boolean isStationed(String soldierId) {
