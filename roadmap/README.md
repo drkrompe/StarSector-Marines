@@ -126,15 +126,17 @@ universe over time, not retrofitted into intel slots.
    Letter choice surface (`4d50805d`, `33b073bd`). Next is the dedicated
    expedition mission lineage, survivor/archive objectives, and automated-threat
    reveal.
-   Keep swarm tuning deferred until manual playtesting resumes. See
+   The first swarm-feel correction now quarters alien HP and prefers a
+   marine-style layered top-down actor over the fallback sheet (`bccbbe16`);
+   manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
 4. **Manual verification queue (deferred this session)** — the loot loop's
-   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster/stat
-   tuning remain pending. See
+   visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster plus
+   post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
 5. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
