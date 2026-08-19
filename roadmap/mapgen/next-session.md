@@ -421,7 +421,7 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,745-test root suite green.
+- `gradlew.bat :test` — full 1,764-test merged root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `python mod/graphics/doodads/test_stitch_atlas.py` — all four atlas stitcher
   tests green.

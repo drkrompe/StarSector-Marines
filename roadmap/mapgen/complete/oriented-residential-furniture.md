@@ -54,7 +54,7 @@ tileset manifest. The doodad atlas now contains 42 assets.
 - `build/zone-previews/residential-courtyard-compound.png` was inspected at
   sprite resolution and shows beds and sofas correctly backed against each
   room's walls.
-- Full root suite: 1,745 tests green. Asset-pipeline suite green. All legacy,
+- Full merged root suite: 1,764 tests green. Asset-pipeline suite green. All legacy,
   conquest, and station validation batches retain one connected walkable
   component and valid deployment.
 
