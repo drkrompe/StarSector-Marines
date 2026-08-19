@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
@@ -17,20 +17,19 @@ import java.util.concurrent.ThreadLocalRandom;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 /**
- * Chassis-mounted weapons on motorized / heavy units. Today that's just the
- * HEAVY_MECH walker's three-weapon loadout (chaingun + SRM pod + LRM
- * artillery); future tanks, hovercraft, and additional mech chassis hook in
- * here through the same {@link MechLoadoutComponent} state bag.
+ * Chassis-mounted weapons on motorized / heavy units. Modular mech hardpoints
+ * use it today; future tanks and hovercraft can hook in through the same
+ * {@link MechLoadoutComponent} state bag.
  *
  * <p>The split from {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons} is along the unit's character —
  * handheld squad weapons vs vehicle-mounted hardpoints — not along weapon
  * class. A future "infantry rocket launcher" would still live in infantry;
  * a hypothetical mech-mounted rifle would live here.
  *
- * <p>Three concurrent firing tracks per mech: chaingun and SRM pod resolve as
- * modeled ground-level rounds, while LRM artillery retains its indirect
- * scatter/projectile procedure. Continuation pumps all queued bursts / salvos
- * at per-weapon spacing in {@link #tick}.
+ * <p>Every installed mount owns an independent firing track. Direct weapons
+ * and SRMs resolve as modeled ground-level rounds, while LRM artillery retains
+ * its indirect scatter/projectile procedure. Continuation pumps every queued
+ * burst or salvo at per-component spacing in {@link #tick}.
  *
  * <p>Smoking-wreck spawn for dead mechs is no longer here — it moved to the
  * {@code MechWreckSystem} death-event handler, so it reacts to the one death
@@ -65,7 +64,7 @@ public class HeavyWeapons {
         this.detonations = detonations;
     }
 
-    /** Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech. */
+    /** Per-tick pass: drains queued rounds from every installed mech mount. */
     public void tick() {
         advanceMechWeapons();
     }
@@ -81,8 +80,8 @@ public class HeavyWeapons {
     /**
      * Fires one round of a mech chassis weapon. Damage / accuracy / vsTurret
      * pull from the {@link MechWeapon} parameter rather than the shooter's
-     * baked Entity stats — a single mech runs three concurrent weapon tracks
-     * with very different numbers, so the weapon's profile drives the math.
+     * baked Entity stats — concurrent mounts can carry very different numbers,
+     * so the weapon's profile drives the math.
      * Caller is responsible for cooldown / ammo / range gating before calling.
      *
      * <p>{@code accuracyMult} scales the weapon's base accuracy at the hit
@@ -104,8 +103,7 @@ public class HeavyWeapons {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
-        UnitType shooterType = roster.identity().type(shooter);
-        float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
+        float moraleImpact = roster.moraleImpact(shooter);
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
@@ -156,8 +154,7 @@ public class HeavyWeapons {
                                    float accuracyMult) {
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
-        UnitType shooterType = roster.identity().type(shooter);
-        float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
+        float moraleImpact = roster.moraleImpact(shooter);
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
@@ -220,70 +217,33 @@ public class HeavyWeapons {
             if (!roster.isAliveById(u)) continue; // killed earlier in this same pass
             MechLoadoutComponent m = world.mechLoadout(u);
 
-            if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;
-            if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;
-            if (m.lrmCooldown      > 0f) m.lrmCooldown      -= BattleSimulation.TICK_DT;
+            for (MechWeaponMount mount : m.mounts()) {
+                if (mount == null) continue;
+                if (mount.cooldown > 0f) mount.cooldown -= BattleSimulation.TICK_DT;
+                if (mount.burstRemaining <= 0) continue;
+                mount.burstTimer -= BattleSimulation.TICK_DT;
+                if (mount.burstTimer > 0f) continue;
 
-            // Chaingun burst continuation. isLive folds a released (or 0L = none)
-            // target into the drop-the-lock branch without an isAlive() on a
-            // dangling ref.
-            if (m.chaingunBurstRemaining > 0) {
-                m.chaingunBurstTimer -= BattleSimulation.TICK_DT;
-                if (m.chaingunBurstTimer <= 0f) {
-                    long cgTarget = m.chaingunBurstTargetId;
-                    if (!roster.isLive(cgTarget)) {
-                        m.chaingunBurstRemaining = 0;
-                        m.chaingunBurstTargetId = 0L;
-                    } else if (m.isAimedAt(cgTarget)) {
-                        fireMechWeapon(u, cgTarget, m.chaingun);
-                        m.chaingunBurstRemaining--;
-                        m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                        if (m.chaingunBurstRemaining == 0) m.chaingunBurstTargetId = 0L;
-                    }
+                long target = mount.burstTargetId;
+                if (!roster.isLive(target)) {
+                    mount.burstRemaining = 0;
+                    mount.burstTargetId = 0L;
+                    continue;
                 }
-            }
+                if (!m.isAimedAt(target)) continue;
 
-            // SRM salvo continuation.
-            if (m.srmSalvoRemaining > 0) {
-                m.srmSalvoTimer -= BattleSimulation.TICK_DT;
-                if (m.srmSalvoTimer <= 0f) {
-                    long srmTarget = m.srmSalvoTargetId;
-                    if (!roster.isLive(srmTarget)) {
-                        m.srmSalvoRemaining = 0;
-                        m.srmSalvoTargetId = 0L;
-                    } else if (m.isAimedAt(srmTarget)) {
-                        fireMechWeapon(u, srmTarget, m.srmPod);
-                        m.srmSalvoRemaining--;
-                        m.srmSalvoTimer = m.srmPod.burstSpacing;
-                        if (m.srmSalvoRemaining == 0) m.srmSalvoTargetId = 0L;
-                    }
+                MechWeapon weapon = mount.weapon();
+                float accuracyMult = 1f;
+                if (weapon == MechWeapon.LRM_ARTILLERY) {
+                    boolean hasLos = grid.hasLineOfSight(
+                            world.cellX(u), world.cellY(u),
+                            world.cellX(target), world.cellY(target));
+                    accuracyMult = hasLos ? 1f : MechWeapon.LRM_NO_LOS_ACC_MULT;
                 }
-            }
-
-            // LRM salvo continuation — same pattern as SRM. Locked target is
-            // held across the whole 5-rocket wave so a single salvo reads as
-            // one coordinated barrage instead of scatter fire across enemies.
-            // LOS is recomputed per rocket: if marines pop into LOS mid-salvo,
-            // the later rockets get full accuracy; if LOS drops mid-salvo, the
-            // remaining rockets eat the indirect-fire penalty.
-            if (m.lrmSalvoRemaining > 0) {
-                m.lrmSalvoTimer -= BattleSimulation.TICK_DT;
-                if (m.lrmSalvoTimer <= 0f) {
-                    long lrmTarget = m.lrmSalvoTargetId;
-                    if (!roster.isLive(lrmTarget)) {
-                        m.lrmSalvoRemaining = 0;
-                        m.lrmSalvoTargetId = 0L;
-                    } else if (m.isAimedAt(lrmTarget)) {
-                        boolean hasLos = grid.hasLineOfSight(
-                                world.cellX(u), world.cellY(u),
-                                world.cellX(lrmTarget), world.cellY(lrmTarget));
-                        float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
-                        fireMechWeapon(u, lrmTarget, m.lrmArtillery, accMult);
-                        m.lrmSalvoRemaining--;
-                        m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                        if (m.lrmSalvoRemaining == 0) m.lrmSalvoTargetId = 0L;
-                    }
-                }
+                fireMechWeapon(u, target, weapon, accuracyMult);
+                mount.burstRemaining--;
+                mount.burstTimer = weapon.burstSpacing;
+                if (mount.burstRemaining == 0) mount.burstTargetId = 0L;
             }
         }
     }
