@@ -304,29 +304,36 @@ morale. Movement away from threat is what the player needs to see.
 
 ## Status
 
-**Direct squad-belief vertical shipped; audio and commander layers parked.**
+**Direct and audio squad-belief verticals shipped; commander layer parked.**
 The four near-term cheap wins above are complete. Story 25 (`db69ed73`) adds
 the id-keyed direct-LOS contact map, alert-aligned decay, belief-backed GOAP
 predicates and Story 24 density, legacy last-seen projection, overlay, and dump
-diagnostics. Story 19's objective-advance leash still consumes its explicitly
-omniscient enemy tally (`14d646a`). Noise/audio contacts, cross-squad sharing,
-and the commander heatmap remain deliberately unscheduled.
+diagnostics. Story 26 (`63ffdb6a`) adds one-time shot/detonation noise,
+wall-agnostic deterministic hearing, imperfect lower-confidence localization,
+and anonymous indirect launch/impact bearings. Story 19's objective-advance
+leash still consumes its explicitly omniscient enemy tally (`14d646a`).
+Cross-squad sharing and the commander heatmap remain deliberately unscheduled.
 
 When ready to implement (rough order):
 
-1. `NoiseEvent` bus + producer-side wiring at every shot /
-   detonation / loud event in `BattleSimulation`.
+1. ~~`NoiseEvent` bus + producer-side wiring at every shot /
+   detonation / loud event in `BattleSimulation`.~~ Shipped for every shot and
+   resolved detonation in Story 26 (`63ffdb6a`); the post surface accepts future
+   loud world events.
 2. ~~`BelievedContact` + id-keyed believed-enemy map on `Squad`.
    Population from direct LoS replaces the authoritative role of the current
    `lastSeenEnemy` field.~~ Shipped in Story 25 (`db69ed73`); the legacy fields
    remain as a compatibility projection during consumer migration.
-3. Audio detection roll per squad per noise event.
+3. ~~Audio detection roll per squad per noise event.~~ Shipped in Story 26,
+   including stable rolls, localization error, faction-neutral filtering, and
+   indirect-fire secrecy.
 4. ~~Decay tick — per replan or per N ticks.~~ Shipped per sim tick in Story 25.
 5. ~~Swap `WorldStateBuilder` predicates + Story 24's named
    `TacticalScoring` density seam to read believed contacts.~~ Shipped in
    Story 25; other tactical ground-truth consumers remain explicit migrations.
-6. ~~Debug overlays for squad belief.~~ Shipped for the selected squad in
-   Story 25, alongside unversioned dump fields.
+6. ~~Debug overlays for squad belief.~~ Shipped for direct contacts in Story
+   25 and audio provenance/bearings in Story 26, alongside unversioned dump
+   fields.
 7. Tactical-grid downsampler + BFS propagation.
 8. Two-channel commander field (`friendly_influence`,
    `hostile_believed`) computed from one commander's aggregated
