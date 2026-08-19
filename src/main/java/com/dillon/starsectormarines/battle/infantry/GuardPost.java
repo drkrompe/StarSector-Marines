@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -17,8 +18,9 @@ import java.util.List;
  * <p>{@link Priority#MISSION} — outranks {@link EliminateEnemiesGoal} so the
  * squad doesn't abandon its post to chase a visible enemy. Loses to
  * {@link GarrisonAmbush} (same bucket, registered earlier so it wins the
- * tie) for chokepoint-shaped zones, and to {@link SurviveContact} (higher
- * SURVIVAL priority) when morale breaks.
+ * tie) for chokepoint-shaped zones. Yields on morale break so
+ * {@link SurviveContact} can take over; Story H's {@link HoldPosition} is the
+ * explicit must-hold exception.
  *
  * <p>Custom-plan: for a squad still linked to a live turret emplacement
  * ({@link Squad#defensePost} set — turrets standing), a {@link GuardPostPatrol}
@@ -45,6 +47,7 @@ public final class GuardPost implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         if (!squad.holdsFireUntilKillZone) return 0f;
         // Yield to GarrisonCompound for the primary node of a multi-building
         // compound — that squad patrols the whole base instead of leashing to
