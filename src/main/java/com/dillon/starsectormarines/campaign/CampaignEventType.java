@@ -4,7 +4,8 @@ package com.dillon.starsectormarines.campaign;
 public enum CampaignEventType {
     NONE,
     CIVILIAN_RESCUE,
-    DEFECTOR_ASYLUM;
+    DEFECTOR_ASYLUM,
+    SILENT_COLONY;
 
     private static final CampaignEventType[] VALUES = values();
 
