@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.intel.CivilianRescueIntel;
+import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -44,6 +45,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureMarineRoster();
         ensureCampaignState();
         ensureCivilianRescueIntel();
+        ensureDefectorAsylumIntel();
         if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
             ensureCampaignDebugIntel();
         }
@@ -126,6 +128,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (mgr.getFirstIntel(CivilianRescueIntel.class) != null) return;
         mgr.addIntel(new CivilianRescueIntel(), true);
         LOG.info("Starsector Marines: Distress Net intel registered");
+    }
+
+    private static void ensureDefectorAsylumIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(DefectorAsylumIntel.class) != null) return;
+        mgr.addIntel(new DefectorAsylumIntel(), true);
+        LOG.info("Starsector Marines: Encrypted Channel intel registered");
     }
 
     private static void logRosterContents() {
