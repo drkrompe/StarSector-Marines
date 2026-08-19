@@ -170,10 +170,10 @@ Channel copy remains durable; and debug intel can force both stages through the
 production lifecycle. Focused replay/load coverage and the full root automated
 suite pass. Manual UI validation and swarm tuning remain deferred as requested.
 
-## Active — G9 Silent Colony
+## Completed — G9 Silent Colony
 
-The third black-swan archetype is now contracted in
-[`stories/g9-silent-colony.md`](stories/g9-silent-colony.md). A dead colony's
+The third black-swan archetype is complete in
+[`complete/slice-g9-silent-colony.md`](complete/slice-g9-silent-colony.md). A dead colony's
 automated burst asks the company to fund a blind expedition; a later dedicated
 mission will reveal stranded survivors, a sealed archive, and the colony's own
 dormant automated threat only after commitment.
@@ -204,14 +204,20 @@ map, and placement independently of the ordinary battle seed. Results reports
 survivor and archive facts separately, and an unfinished battle cannot invent
 archive loss. Existing civilian rescue remains on its biological-swarm path.
 
-Next is Slice 4: add a strict Silent Colony outcome resolver and dispatch it
-separately from `CivilianRescueMissionResolution`; atomically close the matching
-committed row exactly once from the explicit survivor/archive report; retain a
-terminal Dead Letter; emit the Chronicle report; and add production-shaped
-debug/replay/save-load reachability. Until that bridge lands, the mission report
-is intentionally battle-local and the campaign event remains committed. Do not
-grant archive cargo or infer moral intent from victory, casualties, or archive
-loss.
+Slice 4 is shipped in `43bd3693`. Silent Colony now dispatches through its own
+strict resolver, which binds the explicit survivor/archive report to the frozen
+event key, market, cohort, threat seed, and zero-economy mission envelope. The
+first valid report closes the event and creates one immutable Chronicle
+snapshot; committed saves can still resolve, while terminal save/load or mission
+replay cannot replace the facts or duplicate the dispatch. Dead Letter retains
+the terminal report, and debug intel can force an eligible local site through
+production terms. Archive evidence remains narrative-only, and no moral row is
+recorded because the mission never asks the player to state a priority or make a
+promise.
+
+No living-world story is currently active. Contract the next black-swan or
+political follow-through slice before implementation; manual UI validation and
+swarm tuning remain in the shared deferred queue.
 
 ## Open forks still unresolved (design)
 
@@ -334,3 +340,5 @@ loss.
   (`33b073bd`).
 - G9 Slice 3 — dedicated expedition mission, autonomous threat, survivor cohort,
   physical archive, and dual debrief report (`9a87c85b`).
+- G9 Slice 4 — strict event closure, immutable Chronicle report, durable Dead
+  Letter facts, and debug/save/replay reachability (`43bd3693`).
