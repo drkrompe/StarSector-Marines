@@ -1,43 +1,34 @@
 # next-session — continuous-positions
 
-## Separation steering (2026-08-13) — S1+S2 shipped, awaiting merge + playtest
+## State of play (2026-08-19) — track complete
 
-The first deferred follow-up is implemented on branch
-`worktree-separation-steering` (commits `f2fc6ab0`, `acda9fc7` on top of
-main's `a8adf910` design doc): `battle/sim/SeparationSystem` — post-movement
-soft-collision relaxation (radius² inverse-mass, immovable emplacements via
-`isStatic()`, wall-slide guard, velocity fold-in for facing), 8 headless
-tests incl. a production-tick-loop integration test, full suite green. See
-`stories/separation-steering.md` § Shipped for the critique-pass record.
-**Next:** merge the branch to main when the main tree is quiet, then the S3
-playtest knobs pass (pose-twitch deadband, chokepoint feel, swarm-spread
-balance) — fold it into the playtest checklist below.
+The continuous-position migration and its first follow-up, unit-unit
+separation steering, are complete. The locked convention (see `overview.md`):
+POSITION is continuous floats in cell space, cell `(cx, cy)` spans
+`[cx, cx+1)`, center at `cx + 0.5`; `cellX(id) = floor(x)`;
+`renderX/renderY` are tolerant center-based reads for render/audio; ints
+survive only at genuine grid boundaries (LoS, zones, A*, occupancy, fog).
 
-## State of play (2026-08-12)
+Separation S1+S2 shipped as `f2fc6ab0` + `acda9fc7`, merged by `9b8eaf2e`.
+The pose-twitch playtest correction shipped as `a952a392`. S3 is closed by
+`4973fc91`: deterministic one-cell chokepoint flow and coincident eight-runner
+melee-pressure regressions both pass without changing the separation
+constants. The full 1503-test suite is green. See
+`complete/separation-steering.md` for the implementation, critique, and S3
+record.
 
-**Code migration COMPLETE.** All phases landed in worktree branch
-`worktree-continuous-positions`. Every commit built green with the full
-test suite; each phase got an adversarial critique pass whose real
-findings were fixed in follow-up commits. Main's rescue/shelter work
-(c167e2f8) is already merged INTO the branch (conflict in
-SwarmPressureBehavior resolved: shelter-gating structure + float
-distances), so the merge back to main is a clean fast-forward:
+This handoff branch is `codex/continuous-positions-s3`. From the clean main
+checkout, merge it with:
 
-    git merge worktree-continuous-positions   # from the main checkout
+    git merge codex/continuous-positions-s3
 
-It was blocked at handoff time only by a sibling session's uncommitted
-edits to six infantry files — run it once the main tree is clean there.
+No continuous-positions story remains active. The candidates at the bottom of
+this file are deliberately unscheduled.
 
-The locked convention (see `overview.md`): POSITION is continuous floats
-in cell space, cell `(cx, cy)` spans `[cx, cx+1)`, center at
-`cx + 0.5`; `cellX(id) = floor(x)`; `renderX/renderY` are tolerant
-center-based reads for render/audio; ints survive only at genuine grid
-boundaries (LoS, zones, A*, occupancy, fog).
+## Non-blocking in-game verification queue
 
-## Remaining: in-game verification
-
-The mod is deployed (`deployMod`) — next game launch runs the migrated
-code. Playtest checklist:
+These broad migration checks remain useful whenever manual playtesting resumes;
+they no longer block the completed separation story:
 
 - Movement smoothness: no per-cell stutter, no walk-pose strobe, mechs
   pivot-then-walk without stutter-stepping, drones orbit smoothly.
@@ -55,7 +46,7 @@ code. Playtest checklist:
 All in `complete/` — each records design + critique findings:
 phase-1-storage-flip, phase-2b-arrival-semantics (ran before 2a),
 phase-2a-continuous-mover, phase-2c-spatial-boundaries + worklist
-(includes follow-up candidates + balance notes).
+(includes follow-up candidates + balance notes), separation-steering.
 
 ## Commit chain (worktree branch)
 
@@ -72,6 +63,11 @@ phase-2a-continuous-mover, phase-2c-spatial-boundaries + worklist
 - 9e7c9cf8 2a critique follow-ups (gunfire-alert floor, setPath doc)
 - 29c1f774 2c critique fixes (findBestTarget float chain, centroid
   convention closure, round->floor)
+- f2fc6ab0 separation S1: relaxation pass + tick slot
+- acda9fc7 separation S2: mass, immovables, velocity fold-in + critique fixes
+- 9b8eaf2e merge separation S1+S2 to main
+- a952a392 S3 pose-twitch deadband from playtest
+- 4973fc91 S3 chokepoint + swarm-spread regression closure
 
 ## Follow-up candidates (logged, not scheduled)
 
