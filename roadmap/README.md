@@ -100,8 +100,10 @@ universe over time, not retrofitted into intel slots.
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
   -5 and -15 rack classes and profile-aware physical geometry. Hound and
-  Sirocco now have dedicated hull silhouettes, with shoulder racks externally
-  occluded instead of painted over the torso. Production encounters remain
+  Sirocco now have role-specific swapped/flipped hull silhouettes: Hound has a
+  nose chaingun and single SRM, while Sirocco has paired LRMs and a new heavy
+  anti-armor cannon. Bulwark's racks are exposed above the hull and its
+  chainguns are narrower. Production encounters remain
   Bulwark-only pending manual tuning; a scout follows only when recon behavior
   can make it meaningful. See [`mechs/`](mechs/overview.md).
 
