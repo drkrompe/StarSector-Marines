@@ -7,6 +7,8 @@
 **Superseded tuning:** The ten-cell inset and seven-cell star were widened in
 `c6589910`; see
 [`marine-swarm-avoidance-and-wide-perimeter.md`](marine-swarm-avoidance-and-wide-perimeter.md).
+The one-eighth health pools were halved again in `15a11674`; see
+[`sixteenth-health-aliens.md`](sixteenth-health-aliens.md).
 
 ## Outcome
 
