@@ -82,6 +82,9 @@ public class DoodadMappingParityTest {
         assertEquals(0.60f, reg.doodad("doodad.industrial-crate-stack").ballisticHalfHeight, 1e-6f);
         assertEquals(0.25f, reg.doodad("doodad.military-bunk").ballisticHalfHeight, 1e-6f);
         assertEquals(0.75f, reg.doodad("doodad.military-radar-dish").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.45f, reg.doodad("doodad.office-workstation-bank").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.75f, reg.doodad("doodad.office-server-rack").ballisticHalfHeight, 1e-6f);
+        assertEquals(0.38f, reg.doodad("doodad.office-conference-table").ballisticHalfHeight, 1e-6f);
     }
 
     private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {

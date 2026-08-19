@@ -80,3 +80,40 @@ Per-asset primary requests:
 - `military-bunk.png`: one compact military barracks bunk or field cot seen
   directly from above, dark metal frame, neatly rolled olive blanket, muted tan
   pillow, and a small folded kit at the foot; long axis vertical and no person.
+
+## Civic-headquarters additions
+
+The civic office set also used the built-in ImageGen tool in
+`stylized-concept` mode with genuinely transparent backgrounds. Untouched RGBA
+outputs are preserved under `imagegen-raw/` and copied to `sources/`; the atlas
+builder performs the only crop/scale operation needed for runtime use.
+
+Shared rendering contract:
+
+```text
+Asset type: a single 32x32-ready top-down tactical-game doodad sprite.
+Scene/backdrop: genuinely transparent background with clean alpha.
+Style/medium: pixelated-realistic strict top-down game sprite, crisp clustered
+pixels, restrained detail that survives reduction to 32x32, matching a gritty
+blue-gray sci-fi urban tileset and the existing doodad atlas.
+Composition: orthographic 90-degree top-down, centered, generous even padding,
+full object visible.
+Lighting: subtle overhead upper-left object-local highlights only.
+Constraints: exactly one isolated asset; no floor, base tile, cast shadow,
+people, readable text, logo, watermark, scenery, or magenta; no isometric or
+perspective view.
+```
+
+Per-asset primary requests:
+
+- `office-workstation-bank.png`: one compact civilian workstation bank, a low
+  L-shaped blue-gray desk with slim cyan terminal, keyboard, paperwork tray,
+  short muted-teal cubicle panel, gunmetal trim, and small amber indicators;
+  no chair or person.
+- `office-server-rack.png`: one compact civilian data-center cabinet, a tall
+  rectangular blue-gray/gunmetal rack with vented top panels, cable ports, and
+  cyan/amber status-light rows; opaque and dense at tiny game scale.
+- `office-conference-table.png`: one compact oval or softly rounded rectangular
+  blue-gray civic conference table with an inset cyan presentation/map screen,
+  tidy document pads, dark gunmetal trim, and subtle amber status lights; long
+  axis horizontal, no chairs or people.

@@ -21,20 +21,35 @@ final class PartitionLayout {
     final int[] axes;
     /** True when this plan is the purpose-built sales-floor + stockroom layout. */
     final boolean tacticalCommercial;
+    /** True when the partitioner carved and labeled the multi-room civic plan. */
+    final boolean tacticalCivic;
     /** Large stores require a public entrance and an opposed service entrance. */
     final boolean forceOpposedPerimeterDoorways;
+    /** Preferred coordinate along the frontage/rear walls, or -1 for random. */
+    final int preferredPerimeterDoorAlong;
 
     PartitionLayout(Orient orient, int[] axes) {
-        this(orient, axes, false, false);
+        this(orient, axes, false, false, false, -1);
     }
 
     PartitionLayout(Orient orient, int[] axes,
                     boolean tacticalCommercial,
                     boolean forceOpposedPerimeterDoorways) {
+        this(orient, axes, tacticalCommercial, false,
+                forceOpposedPerimeterDoorways, -1);
+    }
+
+    PartitionLayout(Orient orient, int[] axes,
+                    boolean tacticalCommercial,
+                    boolean tacticalCivic,
+                    boolean forceOpposedPerimeterDoorways,
+                    int preferredPerimeterDoorAlong) {
         this.orient = orient;
         this.axes = axes;
         this.tacticalCommercial = tacticalCommercial;
+        this.tacticalCivic = tacticalCivic;
         this.forceOpposedPerimeterDoorways = forceOpposedPerimeterDoorways;
+        this.preferredPerimeterDoorAlong = preferredPerimeterDoorAlong;
     }
 
     /**

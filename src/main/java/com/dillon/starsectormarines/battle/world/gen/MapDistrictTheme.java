@@ -78,10 +78,11 @@ public enum MapDistrictTheme {
                 .build();
 
         CIVIC.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_COMMERCIAL,  22)
+                .add(BlockKind.BUILDING_CIVIC,       18)
+                .add(BlockKind.BUILDING_COMMERCIAL,  12)
                 .add(BlockKind.PLAZA,                20)
                 .add(BlockKind.PARK,                 14)
-                .add(BlockKind.BUILDING_RESIDENTIAL, 13)
+                .add(BlockKind.BUILDING_RESIDENTIAL, 10)
                 .add(BlockKind.DENSE_BLOCK,          10)  // downtown bazaar / shop alleys
                 .add(BlockKind.LANDING_ZONE,          7)
                 .add(BlockKind.DENSE_QUARTER,         5)  // downtown skyscraper district
@@ -94,6 +95,7 @@ public enum MapDistrictTheme {
                 .add(BlockKind.BUILDING_RESIDENTIAL, 18)
                 .add(BlockKind.BUILDING_COMMERCIAL,  13)
                 .add(BlockKind.BUILDING_INDUSTRIAL,  10)
+                .add(BlockKind.BUILDING_CIVIC,        3)
                 .add(BlockKind.PLAZA,                10)
                 .add(BlockKind.PARK,                  8)
                 .add(BlockKind.DENSE_BLOCK,           8)  // occasional dense pocket

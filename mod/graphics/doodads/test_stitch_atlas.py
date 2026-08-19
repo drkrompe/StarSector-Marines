@@ -24,6 +24,7 @@ class StitchAtlasTest(unittest.TestCase):
                             "bravo.png": {
                                 "id": "doodad.bravo-custom",
                                 "cover": "heavy",
+                                "ballisticHalfHeight": 0.57,
                                 "order": 1,
                             }
                         }
@@ -50,6 +51,7 @@ class StitchAtlasTest(unittest.TestCase):
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual("doodad.bravo-custom", manifest["doodads"][0]["id"])
             self.assertEqual("heavy", manifest["doodads"][0]["cover"])
+            self.assertEqual(0.57, manifest["doodads"][0]["ballisticHalfHeight"])
             self.assertEqual([0, 0], [manifest["doodads"][0]["col"], manifest["doodads"][0]["row"]])
             self.assertEqual("doodad.alpha", manifest["doodads"][1]["id"])
             self.assertEqual([1, 0], [manifest["doodads"][1]["col"], manifest["doodads"][1]["row"]])

@@ -22,6 +22,9 @@ public enum BlockKind {
     /** Hollow building with striped-safety-floor interior + crate/grate doodads. Larger footprints; warehouse / depot use. */
     BUILDING_INDUSTRIAL,
 
+    /** Large municipal headquarters with a public lobby, central circulation spine, offices, conference room, and opaque server infrastructure. */
+    BUILDING_CIVIC,
+
     /** Hardened post with turret-wall 3×3 perimeter and striped-floor interior. Hosts a single heavy turret POI (the eventual #3 turret apron lands inside this kind). */
     FORTIFIED_POST,
 

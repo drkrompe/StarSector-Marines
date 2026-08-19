@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
@@ -92,6 +93,14 @@ public class BuildingZonePreviewTest {
             new BuildingVariant("wide 9x6",    9, 6,  42L),
             new BuildingVariant("tall 6x9",    6, 9, 100L),
             new BuildingVariant("large 15x11", 15, 11, 777L),
+    };
+
+    /** Civic plans deliberately require larger lots for their two-cell spine and four rooms. */
+    private static final BuildingVariant[] CIVIC_VARIANTS = {
+            new BuildingVariant("minimum 13x11", 13, 11, 11L),
+            new BuildingVariant("wide 15x11",    15, 11, 31L),
+            new BuildingVariant("tall 11x15",    11, 15, 47L),
+            new BuildingVariant("large 17x13",   17, 13, 83L),
     };
 
     /**
@@ -455,6 +464,11 @@ public class BuildingZonePreviewTest {
     }
 
     @Test
+    void renderCivicHeadquartersVariants() throws Exception {
+        renderBuildingBatch(new BuildingCivicFiller(), "civic-headquarters", CIVIC_VARIANTS);
+    }
+
+    @Test
     void renderIndustrialVariants() throws Exception {
         renderBuildingBatch(new BuildingIndustrialFiller(), "industrial");
     }
@@ -470,6 +484,11 @@ public class BuildingZonePreviewTest {
     }
 
     private void renderBuildingBatch(BlockFiller filler, String kindLabel) throws Exception {
+        renderBuildingBatch(filler, kindLabel, VARIANTS);
+    }
+
+    private void renderBuildingBatch(BlockFiller filler, String kindLabel,
+                                     BuildingVariant[] variants) throws Exception {
         Files.createDirectories(OUT_DIR);
         BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
         BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
@@ -480,9 +499,9 @@ public class BuildingZonePreviewTest {
         assertNotNull(floors, "failed to load " + FLOORS_SHEET);
         assertNotNull(generatedDoodads, "failed to load " + DOODAD_SHEET);
 
-        BufferedImage[] panels = new BufferedImage[VARIANTS.length];
-        for (int i = 0; i < VARIANTS.length; i++) {
-            panels[i] = renderVariant(filler, VARIANTS[i], urban, road, floors,
+        BufferedImage[] panels = new BufferedImage[variants.length];
+        for (int i = 0; i < variants.length; i++) {
+            panels[i] = renderVariant(filler, variants[i], urban, road, floors,
                     generatedDoodads, kindLabel);
         }
 

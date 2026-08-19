@@ -16,9 +16,9 @@ import java.util.Queue;
 import java.util.Random;
 
 /**
- * Shared carving helper for the three building BSP fillers
+ * Shared carving helper for the building BSP fillers
  * ({@link BuildingResidentialFiller}, {@link BuildingCommercialFiller},
- * {@link BuildingIndustrialFiller}). Encapsulates the perimeter wall + interior
+ * {@link BuildingIndustrialFiller}, {@link BuildingCivicFiller}). Encapsulates the perimeter wall + interior
  * partition + perimeter doorway logic lifted from the legacy
  * {@code UrbanMapGenerator.placeBuilding} pipeline so the fillers only differ
  * in ground kind, doodad pool, and POI tag.
@@ -34,7 +34,7 @@ import java.util.Random;
  *       interior cells only.</li>
  * </ul>
  *
- * <p>Package-private — only the three sibling fillers consume this. Stateless.
+ * <p>Package-private — only sibling building fillers consume this. Stateless.
  */
 final class BuildingShellCore {
 
@@ -365,20 +365,24 @@ final class BuildingShellCore {
         int doorX, doorY;
         switch (side) {
             case 0:  // top
-                doorX = pickAlongRange(bl + 1, br - 1, excluded, rng);
+                doorX = pickAlongRange(bl + 1, br - 1, excluded,
+                        layout.preferredPerimeterDoorAlong, rng);
                 doorY = bt;
                 break;
             case 1:  // bottom
-                doorX = pickAlongRange(bl + 1, br - 1, excluded, rng);
+                doorX = pickAlongRange(bl + 1, br - 1, excluded,
+                        layout.preferredPerimeterDoorAlong, rng);
                 doorY = bb;
                 break;
             case 2:  // left
                 doorX = bl;
-                doorY = pickAlongRange(bt + 1, bb - 1, excluded, rng);
+                doorY = pickAlongRange(bt + 1, bb - 1, excluded,
+                        layout.preferredPerimeterDoorAlong, rng);
                 break;
             default: // right
                 doorX = br;
-                doorY = pickAlongRange(bt + 1, bb - 1, excluded, rng);
+                doorY = pickAlongRange(bt + 1, bb - 1, excluded,
+                        layout.preferredPerimeterDoorAlong, rng);
                 break;
         }
         grid.setWalkable(doorX, doorY, true);
@@ -396,7 +400,11 @@ final class BuildingShellCore {
     }
 
     /** Uniformly-random int in {@code [min, max]} skipping any values in {@code excludes}. */
-    private static int pickAlongRange(int min, int max, int[] excludes, Random rng) {
+    private static int pickAlongRange(int min, int max, int[] excludes,
+                                      int preferred, Random rng) {
+        if (preferred >= min && preferred <= max && !contains(excludes, preferred)) {
+            return preferred;
+        }
         int excludeCount = 0;
         for (int e : excludes) {
             if (e >= min && e <= max) excludeCount++;
@@ -408,6 +416,13 @@ final class BuildingShellCore {
             if (e >= min && e <= max && pick >= e) pick++;
         }
         return pick;
+    }
+
+    private static boolean contains(int[] values, int value) {
+        for (int candidate : values) {
+            if (candidate == value) return true;
+        }
+        return false;
     }
 
     /**

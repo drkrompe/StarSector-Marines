@@ -7,63 +7,63 @@
       "col": 0,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-straight-n",
       "col": 1,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-corner-ne",
       "col": 2,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-straight-w",
       "col": 3,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-straight-e",
       "col": 4,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-corner-sw",
       "col": 5,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-straight-s",
       "col": 6,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.sandbag-corner-se",
       "col": 7,
       "row": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.industrial-crate-stack",
       "col": 0,
       "row": 1,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.60
+      "ballisticHalfHeight": 0.6
     },
     {
       "id": "doodad.industrial-drum-cluster",
@@ -77,7 +77,7 @@
       "col": 2,
       "row": 1,
       "cover": "med",
-      "ballisticHalfHeight": 0.40
+      "ballisticHalfHeight": 0.4
     },
     {
       "id": "doodad.industrial-generator",
@@ -91,7 +91,7 @@
       "col": 4,
       "row": 1,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.50
+      "ballisticHalfHeight": 0.5
     },
     {
       "id": "doodad.industrial-pipe-bundle",
@@ -105,7 +105,7 @@
       "col": 6,
       "row": 1,
       "cover": "med",
-      "ballisticHalfHeight": 0.30
+      "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.industrial-scrap-pile",
@@ -141,6 +141,27 @@
       "row": 2,
       "cover": "light",
       "ballisticHalfHeight": 0.25
+    },
+    {
+      "id": "doodad.office-workstation-bank",
+      "col": 4,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45
+    },
+    {
+      "id": "doodad.office-server-rack",
+      "col": 5,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75
+    },
+    {
+      "id": "doodad.office-conference-table",
+      "col": 6,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38
     }
   ],
   "cells": [
@@ -255,6 +276,24 @@
       "row": 2,
       "name": "Barracks bunk",
       "description": "Compact field cot with stowed kit."
+    },
+    {
+      "col": 4,
+      "row": 2,
+      "name": "Office workstation bank",
+      "description": "Low municipal workstation with terminal and privacy panel."
+    },
+    {
+      "col": 5,
+      "row": 2,
+      "name": "Office server rack",
+      "description": "Dense municipal data cabinet with status lights."
+    },
+    {
+      "col": 6,
+      "row": 2,
+      "name": "Civic conference table",
+      "description": "Administrative planning table with inset presentation display."
     }
   ]
 }

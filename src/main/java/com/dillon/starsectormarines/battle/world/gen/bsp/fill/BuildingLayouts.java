@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -87,6 +88,8 @@ final class BuildingLayouts {
         ARMORY,
         /** Military vehicle bay. Service equipment hugs one wall and leaves the bay center open. */
         VEHICLE_BAY,
+        /** Civic headquarters. Purpose-labeled offices flank a public-to-service circulation spine. */
+        CIVIC_HEADQUARTERS,
     }
 
     // ---- Public API ----
@@ -119,6 +122,8 @@ final class BuildingLayouts {
             case BARRACKS:       applyBarracks(grid, topology, bl, bt, br, bb, doodads); break;
             case ARMORY:         applyArmory(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case VEHICLE_BAY:    applyVehicleBay(grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case CIVIC_HEADQUARTERS: applyCivicHeadquarters(
+                    grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case SHED:
             default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
         }
@@ -453,12 +458,90 @@ final class BuildingLayouts {
         wallLineMix(grid, bl, bt, br, bb, utilityWall, utility, 4, doodads, rng);
     }
 
+    /**
+     * Gives every enclosed office one workstation, adds a low lobby desk and
+     * conference table, and makes the server cabinet the plan's opaque LOS
+     * blocker. The corridor itself remains entirely clear.
+     */
+    private static void applyCivicHeadquarters(NavigationGrid grid, CellTopology topology,
+                                                PartitionLayout partition,
+                                                int bl, int bt, int br, int bb,
+                                                List<Doodad> doodads, Random rng) {
+        if (!partition.tacticalCivic) return;
+        DoodadDef workstation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
+        DoodadDef conference = TileRegistry.installed().doodad("doodad.office-conference-table");
+        DoodadDef serverRack = TileRegistry.installed().doodad("doodad.office-server-rack");
+        DoodadDef receptionDesk = TileRegistry.installed().doodad("doodad.desk-1");
+
+        stampOneFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CIVIC_OFFICE, workstation, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CIVIC_RECEPTION, receptionDesk, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CONFERENCE_ROOM, conference, doodads, rng, true);
+        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.SERVER_ROOM, serverRack, doodads, rng, false);
+    }
+
+    /** Stamps one fixture into each disconnected region carrying {@code purpose}. */
+    private static void stampOneFixturePerPurposeRoom(NavigationGrid grid, CellTopology topology,
+                                                       int bl, int bt, int br, int bb,
+                                                       RoomPurpose purpose, DoodadDef prop,
+                                                       List<Doodad> doodads, Random rng,
+                                                       boolean seeThrough) {
+        boolean[] visited = new boolean[grid.getWidth() * grid.getHeight()];
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int y = bt + 1; y <= bb - 1; y++) {
+            for (int x = bl + 1; x <= br - 1; x++) {
+                int startIndex = y * grid.getWidth() + x;
+                if (visited[startIndex] || topology.getRoomPurpose(x, y) != purpose) continue;
+                ArrayDeque<int[]> queue = new ArrayDeque<>();
+                List<int[]> candidates = new ArrayList<>();
+                queue.add(new int[]{x, y});
+                visited[startIndex] = true;
+                while (!queue.isEmpty()) {
+                    int[] cell = queue.removeFirst();
+                    if (grid.isWalkable(cell[0], cell[1])
+                            && !grid.isDoorway(cell[0], cell[1])
+                            && !isNearDoorway(grid, cell[0], cell[1])
+                            && !isOccupied(cell[0], cell[1], doodads)) {
+                        candidates.add(cell);
+                    }
+                    for (int[] direction : directions) {
+                        int nx = cell[0] + direction[0];
+                        int ny = cell[1] + direction[1];
+                        if (nx <= bl || nx >= br || ny <= bt || ny >= bb) continue;
+                        int index = ny * grid.getWidth() + nx;
+                        if (visited[index] || topology.getRoomPurpose(nx, ny) != purpose) continue;
+                        visited[index] = true;
+                        queue.addLast(new int[]{nx, ny});
+                    }
+                }
+                if (!candidates.isEmpty()) {
+                    int[] cell = candidates.get(rng.nextInt(candidates.size()));
+                    stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
+                }
+            }
+        }
+    }
+
     private static void stampPurposeFixture(NavigationGrid grid, CellTopology topology,
                                             int bl, int bt, int br, int bb,
                                             RoomPurpose purpose, DoodadDef prop,
                                             List<Doodad> doodads, Random rng) {
         int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb, purpose, doodads, rng);
         if (cell != null) stampFixture(grid, topology, cell[0], cell[1], prop, doodads);
+    }
+
+    private static void stampPurposeFixture(NavigationGrid grid, CellTopology topology,
+                                            int bl, int bt, int br, int bb,
+                                            RoomPurpose purpose, DoodadDef prop,
+                                            List<Doodad> doodads, Random rng,
+                                            boolean seeThrough) {
+        int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb, purpose, doodads, rng);
+        if (cell != null) {
+            stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
+        }
     }
 
     private static void fixtureWallLine(NavigationGrid grid, CellTopology topology,
@@ -483,13 +566,19 @@ final class BuildingLayouts {
         }
     }
 
-    /** Fixture props block bodies, remain transparent to fire, and never masquerade as structure. */
+    /** Fixture props block bodies, default to transparent to fire, and never masquerade as structure. */
     private static void stampFixture(NavigationGrid grid, CellTopology topology,
                                      int x, int y, DoodadDef prop, List<Doodad> doodads) {
+        stampFixture(grid, topology, x, y, prop, doodads, true);
+    }
+
+    private static void stampFixture(NavigationGrid grid, CellTopology topology,
+                                     int x, int y, DoodadDef prop, List<Doodad> doodads,
+                                     boolean seeThrough) {
         if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
         if (grid.isDoorway(x, y) || isNearDoorway(grid, x, y) || isOccupied(x, y, doodads)) return;
         grid.setWalkable(x, y, false);
-        grid.setSeeThrough(x, y, true);
+        grid.setSeeThrough(x, y, seeThrough);
         topology.setWall(x, y, false);
         topology.setFixture(x, y, true);
         doodads.add(new Doodad(x, y, prop));
