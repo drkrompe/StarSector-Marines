@@ -115,9 +115,9 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
     right_pod = scaled_sprite(variant.right_pod, hull_width) if variant.right_pod else None
 
     # Runtime draw order and zero-motion anchors from LayeredMechComposer.
-    hound = variant.name == "HOUND"
-    foot_x = 0.32 if hound else 0.17
-    foot_y = -0.20 if hound else -0.28
+    light_chassis = variant.name in ("HOUND", "SIROCCO")
+    foot_x = 0.22 if light_chassis else 0.17
+    foot_y = -0.05 if light_chassis else -0.28
     centered(canvas, foot, origin, hull_width, -foot_x, foot_y)
     centered(canvas, foot, origin, hull_width, foot_x, foot_y)
     if variant.arm_layout == "dual-narrow":

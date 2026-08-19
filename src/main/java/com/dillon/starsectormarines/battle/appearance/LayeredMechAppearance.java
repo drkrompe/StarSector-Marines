@@ -85,12 +85,16 @@ public final class LayeredMechAppearance {
 
     /** Hull-width-relative lateral foot anchor for the authored chassis silhouette. */
     public static float footLateralOffset(int chassis) {
-        return chassis == CHASSIS_HOUND ? 0.32f : 0.17f;
+        return isLightChassis(chassis) ? 0.22f : 0.17f;
     }
 
     /** Hull-width-relative rearward foot anchor for the authored chassis silhouette. */
     public static float footRearOffset(int chassis) {
-        return chassis == CHASSIS_HOUND ? -0.20f : -0.28f;
+        return isLightChassis(chassis) ? -0.05f : -0.28f;
+    }
+
+    private static boolean isLightChassis(int chassis) {
+        return chassis == CHASSIS_HOUND || chassis == CHASSIS_SIROCCO;
     }
 
     private static float clamp01(float value) {
