@@ -108,6 +108,13 @@ public enum BlockKind {
     DENSE_QUARTER,
 
     /**
+     * Multi-leaf industrial site: one large factory, a fenced service/tank
+     * yard, and a utility warehouse facing a shared striped loading apron.
+     * Failed claims demote to an ordinary {@link #BUILDING_INDUSTRIAL}.
+     */
+    INDUSTRIAL_COMPOUND,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.world.gen.BlockFiller}

@@ -70,4 +70,17 @@ public final class LayeredAppearance {
         float peak = pose == POSE_ROCKET_FIRE ? 0.055f : 0.025f;
         return peak * (float) Math.sin(t * Math.PI);
     }
+
+    /** Contact claw extension: fully forward on impact, then a smooth retraction. */
+    public static float meleeSwipe(int pose, float phase) {
+        if (pose != POSE_FIRING) return 0f;
+        float t = Math.max(0f, Math.min(1f, phase));
+        float smooth = t * t * (3f - 2f * t);
+        return 1f - smooth;
+    }
+
+    /** Alternates the striking claw from the locomotion cycle without extra ECS state. */
+    public static boolean leftClawStrikes(float locomotionPhase) {
+        return locomotionPhase(locomotionPhase) < 0.5f;
+    }
 }

@@ -353,6 +353,9 @@ movement preserve swarm pressure. Both types now carry the same presentation-onl
 layered animation component as marines, with continuous facing, independent head
 look, and alternating feet; weapon layers are explicitly suppressed. Manual
 playtesting still owns roster size and post-rebalance time-to-contact (`bccbbe16`).
+The composed actor now reuses one generated forearm/claw layer twice: both arms
+sit beneath the torso at rest, while contact fire alternates a forward claw
+above the body and retracts it over the existing firing pose (`20d3bcb0`).
 
 ### Outcome closure — first checkpoint
 
@@ -393,12 +396,14 @@ produces a costly asylum request and a delayed buyout, forcing the player to
 keep or explicitly break a promise. This adds an honest integrity source and a
 two-stage event lifecycle without cloning the rescue battle.
 
-The third archetype is active as **Silent Colony** in
-[`living-world/stories/g9-silent-colony.md`](living-world/stories/g9-silent-colony.md).
-Its first two slices persist the blind expedition promise, select one-shot live
-decivilized/abandoned/ruins sites deterministically, and reconstruct exact-cost
-choices through the registered Dead Letter. The dedicated survivor/archive
-mission and automated-threat reveal remain later slices.
+The third archetype is complete as **Silent Colony** in
+[`living-world/complete/slice-g9-silent-colony.md`](living-world/complete/slice-g9-silent-colony.md).
+It persists a blind expedition promise, selects one-shot live
+decivilized/abandoned/ruins sites deterministically, and reconstructs exact-cost
+choices through the registered Dead Letter. Its dedicated mission reveals a
+hidden-seed automated threat, exact survivor cohort, and physical archive;
+strict lineage-bound closure preserves the measured report in Dead Letter and
+Chronicle exactly once across save and replay.
 
 ## Open questions (parked)
 

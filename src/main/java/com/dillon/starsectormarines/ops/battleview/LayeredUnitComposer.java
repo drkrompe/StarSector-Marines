@@ -17,6 +17,7 @@ final class LayeredUnitComposer {
     private static final float ROCKET_PIVOT_Y = 84f;
     private static final float FLASH_PIVOT_X = 16f;
     private static final float FLASH_PIVOT_Y = 28f;
+    private static final float CLAW_PIVOT_Y_FRACTION = 0.92f;
 
     private LayeredUnitComposer() {}
 
@@ -47,6 +48,24 @@ final class LayeredUnitComposer {
         emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
                 0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
 
+        float swipe = LayeredAppearance.meleeSwipe(pose, weaponPhase);
+        boolean leftStrikes = LayeredAppearance.leftClawStrikes(locomotionPhase);
+        ClawTransform leftClaw = clawTransform(true, leftStrikes ? swipe : 0f,
+                actorX, actorY, pxPerSw, facingDeg);
+        ClawTransform rightClaw = clawTransform(false, leftStrikes ? 0f : swipe,
+                actorX, actorY, pxPerSw, facingDeg);
+
+        if (assets.foreClaw != null) {
+            // Both appendages tuck under the carapace at rest. During contact,
+            // leave the striking claw for the foreground pass below.
+            if (!leftStrikes || swipe <= 0f) {
+                emitClaw(out, assets.foreClaw, leftClaw, pxPerSw, alpha);
+            }
+            if (leftStrikes || swipe <= 0f) {
+                emitClaw(out, assets.foreClaw, rightClaw, pxPerSw, alpha);
+            }
+        }
+
         WeaponTransform wt = drawWeaponLayers
                 ? weaponTransform(weapon, weaponFamily, rocket, pose, weaponPhase,
                     actorX, actorY, pxPerSw, facingDeg)
@@ -59,6 +78,11 @@ final class LayeredUnitComposer {
         // Body and helmet have independent rotations but share the actor pivot.
         float[] bodyCenter = worldPoint(actorX, actorY, 0f, -0.12f, pxPerSw, facingDeg);
         emitSprite(out, assets.body, bodyCenter[0], bodyCenter[1], pxPerSw, facingDeg, alpha);
+
+        if (assets.foreClaw != null && swipe > 0f) {
+            emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
+                    pxPerSw, alpha);
+        }
 
         // Rocket firing deliberately changes occlusion: body -> weapon -> head.
         if (drawWeaponLayers && overShoulder) {
@@ -86,6 +110,30 @@ final class LayeredUnitComposer {
                 offsetXSw + pivotToCenterX, offsetYSw + pivotToCenterY,
                 swPx, facingDeg);
         emitSprite(out, foot, center[0], center[1], swPx, facingDeg, alpha);
+    }
+
+    private static ClawTransform clawTransform(boolean left, float swipe,
+                                                float actorX, float actorY,
+                                                float swPx, float facingDeg) {
+        float side = left ? -1f : 1f;
+        float offsetX = lerp(0.30f, 0.23f, swipe) * side;
+        float offsetY = lerp(0.02f, 0.22f, swipe);
+        float restingAngle = left ? 20f : -20f;
+        float impactAngle = left ? -8f : 8f;
+        float[] pivot = worldPoint(actorX, actorY, offsetX, offsetY, swPx, facingDeg);
+        return new ClawTransform(pivot[0], pivot[1],
+                facingDeg + lerp(restingAngle, impactAngle, swipe));
+    }
+
+    private static void emitClaw(DrawList out, LayeredSpriteCache claw,
+                                 ClawTransform transform, float swPx, float alpha) {
+        float pivotX = claw.pxWidth * 0.5f;
+        float pivotY = claw.pxHeight * CLAW_PIVOT_Y_FRACTION;
+        float centerX = (claw.pxWidth * 0.5f - pivotX) / SOURCE_SHOULDER_PX * swPx;
+        float centerY = -(claw.pxHeight * 0.5f - pivotY) / SOURCE_SHOULDER_PX * swPx;
+        float[] centerOffset = rotate(centerX, centerY, transform.angleDeg);
+        emitSprite(out, claw, transform.pivotX + centerOffset[0],
+                transform.pivotY + centerOffset[1], swPx, transform.angleDeg, alpha);
     }
 
     private static WeaponTransform weaponTransform(
@@ -197,6 +245,17 @@ final class LayeredUnitComposer {
             this.pivotX = pivotX;
             this.pivotY = pivotY;
             this.pivotYPx = pivotYPx;
+            this.angleDeg = angleDeg;
+        }
+    }
+
+    private static final class ClawTransform {
+        final float pivotX, pivotY;
+        final float angleDeg;
+
+        ClawTransform(float pivotX, float pivotY, float angleDeg) {
+            this.pivotX = pivotX;
+            this.pivotY = pivotY;
             this.angleDeg = angleDeg;
         }
     }

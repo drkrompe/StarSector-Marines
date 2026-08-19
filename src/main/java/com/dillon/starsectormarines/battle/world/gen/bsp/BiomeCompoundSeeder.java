@@ -29,7 +29,8 @@ public final class BiomeCompoundSeeder {
             BiomeKind.PORT, BiomeKind.CITY, BiomeKind.FORTRESS_DISTRICT);
 
     private static final Set<BlockKind> EXISTING_COMPOUND_SEEDS = EnumSet.of(
-            BlockKind.MILITARY_BASE, BlockKind.GATED_HOUSING, BlockKind.DENSE_QUARTER);
+            BlockKind.MILITARY_BASE, BlockKind.GATED_HOUSING, BlockKind.DENSE_QUARTER,
+            BlockKind.INDUSTRIAL_COMPOUND);
 
     private static final Set<BlockKind> INELIGIBLE_FOR_FORCE_SEED = EnumSet.of(
             BlockKind.COMPOUND_MEMBER, BlockKind.WATERFRONT, BlockKind.LANDING_ZONE,
