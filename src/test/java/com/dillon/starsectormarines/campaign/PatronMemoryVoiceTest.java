@@ -4,6 +4,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +22,16 @@ class PatronMemoryVoiceTest {
         assertEquals(PatronEngagementOutcome.values().length, parsed.size());
         assertEquals("COMPLETED line", parsed.get(
                 PatronEngagementOutcome.COMPLETED)[0]);
+    }
+
+    @Test
+    void parsesEveryContinuityPool() throws Exception {
+        Map<PatronRelationshipPattern, String[]> parsed =
+                PatronMemoryVoice.parseContinuity(validRoot());
+
+        assertEquals(PatronRelationshipPattern.values().length, parsed.size());
+        assertEquals("SUCCESS_STREAK line", parsed.get(
+                PatronRelationshipPattern.SUCCESS_STREAK)[0]);
     }
 
     @Test
@@ -43,6 +56,44 @@ class PatronMemoryVoiceTest {
                 () -> PatronMemoryVoice.parse(invalid));
     }
 
+    @Test
+    void rejectsMalformedContinuityPools() throws Exception {
+        JSONObject missing = validRoot();
+        missing.getJSONObject(PatronMemoryVoice.CONTINUITY_KEY)
+                .remove(PatronRelationshipPattern.RECOVERY.name());
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseContinuity(missing));
+
+        JSONObject empty = validRoot();
+        empty.getJSONObject(PatronMemoryVoice.CONTINUITY_KEY).put(
+                PatronRelationshipPattern.MUTUAL_TROUBLE.name(),
+                new JSONArray());
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseContinuity(empty));
+
+        JSONObject invalid = validRoot();
+        invalid.getJSONObject(PatronMemoryVoice.CONTINUITY_KEY).put(
+                PatronRelationshipPattern.SUCCESS_STREAK.name(),
+                new JSONArray().put(false));
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseContinuity(invalid));
+    }
+
+    @Test
+    void authoredVoiceFileContainsValidMemoryAndContinuityPools()
+            throws Exception {
+        Path path = Path.of("mod", "data", "marines",
+                "comms_officer_voice.json");
+        String authored = Files.readString(path, StandardCharsets.UTF_8)
+                .replaceAll("(?m)^\\s*#.*$", "");
+        JSONObject root = new JSONObject(authored);
+
+        assertEquals(PatronEngagementOutcome.values().length,
+                PatronMemoryVoice.parse(root).size());
+        assertEquals(PatronRelationshipPattern.values().length,
+                PatronMemoryVoice.parseContinuity(root).size());
+    }
+
     private static JSONObject validRoot() throws Exception {
         JSONObject root = new JSONObject();
         JSONObject memory = new JSONObject();
@@ -52,6 +103,13 @@ class PatronMemoryVoiceTest {
                     new JSONArray().put(outcome.name() + " line"));
         }
         root.put(PatronMemoryVoice.MEMORY_KEY, memory);
+        JSONObject continuity = new JSONObject();
+        for (PatronRelationshipPattern pattern
+                : PatronRelationshipPattern.values()) {
+            continuity.put(pattern.name(),
+                    new JSONArray().put(pattern.name() + " line"));
+        }
+        root.put(PatronMemoryVoice.CONTINUITY_KEY, continuity);
         return root;
     }
 }

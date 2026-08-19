@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -101,6 +102,21 @@ class MilitaryCompoundLayoutTest {
                 "armory racks should preserve a two-cell fire lane");
         assertTrue(hasThreeByThreeOpenArea(ctx.grid, inset(VEHICLE_BAY)),
                 "vehicle bay should retain an open service floor");
+    }
+
+    @Test
+    void onlyGeneratedCommandPostIsMustHold() {
+        GenContext ctx = filled(37L);
+        TacticalNode command = ctx.tactical.stream()
+                .filter(n -> n.kind == TacticalNode.Kind.COMMAND_POST)
+                .findFirst()
+                .orElseThrow();
+
+        assertTrue(command.mustHold);
+        assertTrue(ctx.tactical.stream()
+                        .filter(n -> n != command)
+                        .noneMatch(n -> n.mustHold),
+                "barracks, armory, and vehicle-bay nodes remain ordinary");
     }
 
     private static GenContext filled(long seed) {

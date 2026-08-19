@@ -173,7 +173,8 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                 default          -> { continue; }
             }
             TacticalNode node = new TacticalNode(kind, anchorX, anchorY,
-                    m.left, m.top, m.right, m.bottom, Faction.DEFENDER, priority, garrison);
+                    m.left, m.top, m.right, m.bottom, Faction.DEFENDER, priority, garrison,
+                    kind == TacticalNode.Kind.COMMAND_POST);
             // Garrison footprint = the whole compound (all member buildings +
             // parade ground), so a squad holding this node patrols the base
             // rather than its single wing. See TacticalNode#compoundLeft.

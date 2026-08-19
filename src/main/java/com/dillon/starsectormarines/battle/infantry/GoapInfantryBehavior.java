@@ -47,6 +47,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties within a bucket (see {@link Goal#pickMostRelevant}). */
     public static final List<Goal> INFANTRY_GOALS = List.of(
+            HoldPosition.INSTANCE,
             CordonForPlant.INSTANCE,
             SecureObjectiveZone.INSTANCE,
             SecureCompoundGoal.INSTANCE,

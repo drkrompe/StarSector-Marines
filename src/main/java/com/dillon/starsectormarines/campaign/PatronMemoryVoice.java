@@ -15,8 +15,11 @@ public final class PatronMemoryVoice {
     private static final Logger LOG = Global.getLogger(PatronMemoryVoice.class);
 
     static final String MEMORY_KEY = "memory";
+    static final String CONTINUITY_KEY = "continuity";
 
     private static volatile Map<PatronEngagementOutcome, String[]> cache;
+    private static volatile Map<PatronRelationshipPattern, String[]>
+            continuityCache;
 
     private PatronMemoryVoice() {}
 
@@ -28,6 +31,18 @@ public final class PatronMemoryVoice {
         }
         String[] pool = cache.get(outcome);
         return pool != null ? pool : placeholderFor(outcome);
+    }
+
+    public static String[] forPattern(PatronRelationshipPattern pattern) {
+        if (continuityCache == null) {
+            synchronized (PatronMemoryVoice.class) {
+                if (continuityCache == null) {
+                    continuityCache = loadContinuityOrEmpty();
+                }
+            }
+        }
+        String[] pool = continuityCache.get(pattern);
+        return pool != null ? pool : new String[0];
     }
 
     public static Map<PatronEngagementOutcome, String[]> parse(
@@ -65,10 +80,55 @@ public final class PatronMemoryVoice {
         return result;
     }
 
+    public static Map<PatronRelationshipPattern, String[]> parseContinuity(
+            JSONObject root) {
+        if (root == null) {
+            throw new IllegalStateException(
+                    "patron continuity voice: null root");
+        }
+        JSONObject continuity = root.optJSONObject(CONTINUITY_KEY);
+        if (continuity == null) {
+            throw new IllegalStateException("patron continuity voice: missing '"
+                    + CONTINUITY_KEY + "' object");
+        }
+        Map<PatronRelationshipPattern, String[]> result =
+                new EnumMap<>(PatronRelationshipPattern.class);
+        for (PatronRelationshipPattern pattern
+                : PatronRelationshipPattern.values()) {
+            JSONArray array = continuity.optJSONArray(pattern.name());
+            if (array == null || array.length() == 0) {
+                throw new IllegalStateException("patron continuity voice: '"
+                        + pattern.name() + "' is missing or empty");
+            }
+            String[] pool = new String[array.length()];
+            for (int i = 0; i < array.length(); i++) {
+                Object value = array.opt(i);
+                if (!(value instanceof String)
+                        || ((String) value).trim().isEmpty()) {
+                    throw new IllegalStateException(
+                            "patron continuity voice: '" + pattern.name()
+                                    + "' variant " + i
+                                    + " is empty or not a string");
+                }
+                pool[i] = (String) value;
+            }
+            result.put(pattern, pool);
+        }
+        return result;
+    }
+
     static void loadForTest(
             Map<PatronEngagementOutcome, String[]> injected) {
         synchronized (PatronMemoryVoice.class) {
             cache = injected != null ? new HashMap<>(injected) : null;
+        }
+    }
+
+    static void loadContinuityForTest(
+            Map<PatronRelationshipPattern, String[]> injected) {
+        synchronized (PatronMemoryVoice.class) {
+            continuityCache = injected != null
+                    ? new HashMap<>(injected) : null;
         }
     }
 
@@ -91,6 +151,24 @@ public final class PatronMemoryVoice {
                 fallback.put(outcome, placeholderFor(outcome));
             }
             return fallback;
+        }
+    }
+
+    private static Map<PatronRelationshipPattern, String[]>
+            loadContinuityOrEmpty() {
+        try {
+            JSONObject root = Global.getSettings().loadJSON(
+                    CommsOfficerVoice.CONTENT_PATH, true);
+            Map<PatronRelationshipPattern, String[]> parsed =
+                    parseContinuity(root);
+            LOG.info("PatronMemoryVoice: loaded " + parsed.size()
+                    + " continuity pools from "
+                    + CommsOfficerVoice.CONTENT_PATH);
+            return parsed;
+        } catch (Throwable failure) {
+            LOG.warn("PatronMemoryVoice: continuity load failed — using S1 "
+                    + "callbacks: " + failure.getMessage());
+            return new EnumMap<>(PatronRelationshipPattern.class);
         }
     }
 
