@@ -104,7 +104,7 @@ class EscortAssignedCiviliansGoalTest {
         guard.rescuePickupGuard = true;
         Squad mobile = sim.getSquad(sim.squad().squadId(addMarine(sim, 2, 6)));
 
-        assertEquals(EscortAssignedCivilians.ESCORT_RADIUS,
+        assertEquals(EscortAssignedCivilians.PICKUP_GUARD_RADIUS,
                 EscortAssignedCivilians.standoffRadius(guard, sim));
         assertEquals(EscortAssignedCivilians.RELIEF_RADIUS,
                 EscortAssignedCivilians.standoffRadius(mobile, sim));

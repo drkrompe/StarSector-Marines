@@ -77,4 +77,16 @@ public enum RoomPurpose {
     APARTMENT_LIVING,
     /** Residential compound — private sleeping room with a low bed fixture. */
     BEDROOM,
+    /** Medical campus — public intake and waiting space at the primary entrance. */
+    MEDICAL_RECEPTION,
+    /** Medical campus — two-cell clear circulation spine joining public and service doors. */
+    MEDICAL_CORRIDOR,
+    /** Medical campus — first-assessment room adjacent to reception. */
+    TRIAGE,
+    /** Medical campus — enclosed clinical procedure and stabilization room. */
+    TREATMENT_ROOM,
+    /** Medical campus — recovery ward furnished with wall-oriented patient beds. */
+    PATIENT_WARD,
+    /** Medical campus — secured drug and consumable storage room. */
+    PHARMACY,
 }

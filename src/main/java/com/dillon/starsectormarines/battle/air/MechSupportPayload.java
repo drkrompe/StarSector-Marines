@@ -26,6 +26,10 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 Squad guard = context.squad(context.mission.squadId);
                 if (guard != null) {
                     guard.rescuePickupGuard = true;
+                    guard.rescuePickupMech = true;
+                    guard.rescuePatrolCells = context.mission.rescuePatrolCells != null
+                            ? context.mission.rescuePatrolCells.clone() : null;
+                    guard.rescuePatrolIndex = -1;
                     guard.assignedObjective = ObjectiveAssignment.escort(
                             guard.id, context.mission.rescueGuardX,
                             context.mission.rescueGuardY);

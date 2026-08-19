@@ -118,8 +118,10 @@ horizontal-radius × vertical-half-height silhouette. Failed aim lies beyond
 that silhouette with a clearance widened by `effectiveSpread`. Lateral error
 changes the physical XY ray; elevation becomes a lightweight linear Z path
 projected into screen Y. The intended target never makes a second invisible
-hit roll. Enemy incidental contacts retain their flat graze chance; nearby
-friendly contacts receive the S4a proximity scale.
+hit roll. Enemy incidental contacts now use a 100% base catch chance so an
+authored miss that physically crosses another hostile transfers into that
+body; the victim's incoming-accuracy modifier still applies. Nearby friendly
+contacts retain their 35% base chance and receive the S4a proximity scale.
 
 ### 6. Committed outcomes, walk-in-order
 
@@ -172,10 +174,12 @@ movers can enter the corridor before contact.
    endpoint lands far downrange). `SquadMoraleSystem.squadHitByMiss`
    switches from point-to-endpoint to point-to-segment distance — small
    change, same 1.5-cell threshold.
-3. **Incidental contacts roll a flat graze chance**
-   (`INCIDENTAL_HIT_CHANCE = 0.35`); only the intended target uses the full
-   accuracy stack. Enemy interveners retain this flat chance. S4a attenuates
-   only friendly incidental contacts near the muzzle.
+3. **Incidental contacts distinguish hostiles from friendlies.** A secondary
+   hostile uses `HOSTILE_INCIDENTAL_HIT_CHANCE = 1.0`, multiplied by its
+   incoming-accuracy modifier, so dense formations catch physically
+   intersecting missed rays. Friendly interveners retain
+   `FRIENDLY_INCIDENTAL_HIT_CHANCE = 0.35`; S4a attenuates only those friendly
+   contacts near the muzzle.
 4. **Probabilistic catches ramp with muzzle distance.** S4a keeps catch scale
    at zero through 2 cells, smoothsteps to full strength at 8 cells, and applies
    it to doodads, directional edge cover, and friendly incidental contacts.

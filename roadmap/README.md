@@ -164,10 +164,13 @@ universe over time, not retrofitted into intel slots.
    boards the cohort while eight fixed local militia receive capped Aeroshuttle
    replacements, and engaged escorts advance in two-cell timed bounds instead
    of freezing (`2395397f`). The entire pickup footprint now waits through a
-   twelve-second opening grace period, then arrives in staggered physical
-   sorties with one deterministic Bulwark or Sirocco supporting the militia
-   (`b6b0dd6f`). Manual cadence, spacing, and post-rebalance feel validation
-   remain queued.
+   twelve-second opening grace period. The follow-up moves that pickup inward,
+   expands the line to five randomized four-person militia squads in a star,
+   reinforces its weakest point and center mech, and gives the mech a quiet-state
+   perimeter patrol. Alien health is halved again to one eighth of its original
+   pools, while missed direct-fire rays that cross another hostile now transfer
+   into that body at a 100% base catch chance (`5f2c083d`). Manual cadence,
+   spacing, and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through

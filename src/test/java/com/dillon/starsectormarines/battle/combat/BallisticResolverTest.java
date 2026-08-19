@@ -262,7 +262,7 @@ class BallisticResolverTest {
         long farTarget = spawn(sim, Faction.DEFENDER, 12);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // No cover roll at level 0; incidental hit roll (0 < INCIDENTAL_HIT_CHANCE).
+        // No cover roll at level 0; the hostile incidental contact is guaranteed.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
 
@@ -378,6 +378,27 @@ class BallisticResolverTest {
         assertEquals(0L, res.victimId());
         assertTrue(Math.abs(res.endY() - rowCenter()) > UnitType.MARINE.radius,
                 "the authored miss must visibly pass outside the target's lateral silhouette");
+    }
+
+    @Test
+    void authoredMissAlwaysHitsAnotherHostileBodyAlongItsDeviatedRay() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long locked = spawn(sim, Faction.DEFENDER, 10);
+        long secondary = sim.spawn(new EntitySpec(
+                "secondary", Faction.DEFENDER, UnitType.MARINE, 10, ROW + 1));
+        sim.world().setPos(secondary, cellCenter(10), rowCenter() + 0.5f);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, locked, 0f, 0f, VEL,
+                new QueueRandom(0.5f, 0f, 0f, 0.99f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(secondary, result.victimId());
+        assertFalse(result.hitIntended());
     }
 
     // ---- cover-clip uses grid cover only; a doodad next to the victim must not double-roll ----
@@ -737,8 +758,8 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         // On-target commit + centered axes, then candidate's cover roll (no grid cover
-        // anywhere here), candidate's hit roll (INCIDENTAL_HIT_CHANCE=0.35;
-        // it is not the locked target). The candidate's contact time (~1.0s)
+        // anywhere here), candidate's guaranteed hostile contact roll (it is
+        // not the locked target). The candidate's contact time (~1.0s)
         // is well before the far target's (~3.5s), so the round never
         // reaches the far target's event — no rolls queued for it.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);

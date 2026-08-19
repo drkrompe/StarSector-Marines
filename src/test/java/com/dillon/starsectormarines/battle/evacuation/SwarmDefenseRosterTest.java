@@ -102,24 +102,21 @@ class SwarmDefenseRosterTest {
 
     @Test
     void incompletePlacementLeavesSimulationUntouched() {
-        NavigationGrid grid = new NavigationGrid(20, 20);
-        for (int y = 5; y <= 15; y++) {
-            for (int x = 5; x <= 15; x++) {
-                if (Math.abs(x - 10) + Math.abs(y - 10) <= 5) {
-                    grid.setWalkableFloor(x, y);
-                }
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                grid.setWalkableFloor(x, y);
             }
         }
-        for (int x = 0; x <= 10; x++) grid.setWalkableFloor(x, 10);
         BattleSimulation sim = new BattleSimulation(
-                grid, new CellTopology(20, 20));
+                grid, new CellTopology(40, 40));
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(homeAt(10, 10)), 5L);
+                sim, List.of(homeAt(20, 20)), 5L);
         assertNotNull(payload);
         int before = sim.liveUnitCount();
 
         assertNull(SwarmDefenseRoster.install(
-                sim, payload.placement, RiskLevel.HIGH, 5L));
+                sim, payload.placement, 10_000, 5L));
         assertEquals(before, sim.liveUnitCount());
     }
 

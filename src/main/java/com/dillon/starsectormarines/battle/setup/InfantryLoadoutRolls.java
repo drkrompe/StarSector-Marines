@@ -40,6 +40,21 @@ public final class InfantryLoadoutRolls {
         return roster;
     }
 
+    /** Builds a standard randomized local/defender fireteam without player-only secondaries. */
+    public static MarineLoadout[] defenderSquad(int capacity, UnitType type,
+                                                 RiskLevel risk, Random rng) {
+        MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
+        RiskLevel resolvedRisk = risk != null ? risk : RiskLevel.LOW;
+        for (int i = 0; i < roster.length; i++) {
+            roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
+                    defenderPrimary(type, rng),
+                    defenderEquipmentGrade(type, resolvedRisk, rng),
+                    defenderProfile(type, resolvedRisk, rng),
+                    null, 0);
+        }
+        return roster;
+    }
+
     /** Weighted player primary roll: pulse workhorse, evenly split specialist slots. */
     public static MarineWeapon playerPrimary(Random rng) {
         int r = rng.nextInt(4);

@@ -73,6 +73,8 @@ public final class ShuttleMission {
     public boolean rescuePickupMechTransport;
     /** Optional physical mech variant carried by a mech-support sortie. */
     public MechVariant mechVariant;
+    /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
+    public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */
     public int rescueGuardX = -1;
     public int rescueGuardY = -1;

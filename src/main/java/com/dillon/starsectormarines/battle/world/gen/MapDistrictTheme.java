@@ -87,6 +87,7 @@ public enum MapDistrictTheme {
                 .add(BlockKind.DENSE_BLOCK,          10)  // downtown bazaar / shop alleys
                 .add(BlockKind.LANDING_ZONE,          7)
                 .add(BlockKind.DENSE_QUARTER,         5)  // downtown skyscraper district
+                .add(BlockKind.MEDICAL_CAMPUS,        7)  // clinic + support + ambulance court
                 .add(BlockKind.FORTIFIED_POST,        4)
                 .add(BlockKind.BUILDING_INDUSTRIAL,   2)
                 .add(BlockKind.WASTELAND_RUBBLE,      3)
@@ -107,6 +108,7 @@ public enum MapDistrictTheme {
                 .add(BlockKind.GATED_HOUSING,         2)  // walled subdivision in mixed zones
                 .add(BlockKind.DENSE_QUARTER,         2)  // small downtown pocket
                 .add(BlockKind.INDUSTRIAL_COMPOUND,   1)  // rare integrated works
+                .add(BlockKind.MEDICAL_CAMPUS,        2)  // public-service campus
                 .add(BlockKind.MILITARY_BASE,         2)  // rare base in mixed zones
                 .add(BlockKind.LANDING_ZONE,          2)
                 // No WATERFRONT / NATURE_WETLAND in MIXED — interior water looks wrong.

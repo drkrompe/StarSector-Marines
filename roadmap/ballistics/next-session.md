@@ -61,9 +61,16 @@
   [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
   Post-integration: all 35 focused ballistics/direct-fire tests pass; full
   suite 1643 tests green.
+- **Swarm through-fire tuning SHIPPED** in `5f2c083d`. Secondary hostile
+  contacts now use a 100% base catch chance, still multiplied by the victim's
+  incoming-accuracy modifier, so a missed ray physically crossing another
+  enemy transfers into it. Friendly contacts retain their 35% base chance,
+  proximity ramp, and half damage. The full repository suite passes 1,787
+  tests.
 - Design record: [`overview.md`](overview.md). Owner decisions all
-  resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
-  graze). NOTE one design-doc drift, corrected in the complete/ record:
+  resolved (friendly fire 0.5×, path-proximity near-miss, 100% hostile / 35%
+  friendly incidental base catches). NOTE one design-doc drift, corrected in
+  the complete/ record:
   ballistics uses the pre-existing `UnitType.radius` as its contact
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
@@ -82,6 +89,7 @@ defined. Do not route current flyby-overlay attacks through the ground resolver.
 
 Manual playtest remains useful after S4a: friendly-fire feel
 (`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, proximity catch ramp 2–8 cells),
+hostile through-fire strength in dense swarms and wide bursts,
 suppression feel under path-proximity near-miss, and how visible the S2
 lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
