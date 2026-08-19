@@ -138,19 +138,26 @@ universe over time, not retrofitted into intel slots.
    with generated fore-claws that alternate a foreground contact swipe
    (`20d3bcb0`); manual roster and post-rebalance feel validation remain queued. See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
-3. **Command Powers S8 B-2** — add member-level commitment for power-source
+3. **Campaign narrative follow-through** — S1 patron engagement memory is
+   shipped (`1b950e48`): real terminal contract outcomes now persist exactly
+   once beyond compaction and the comms officer can acknowledge the newest
+   valid shared history in a returning patron's briefing. Contract the next
+   narrative story before adding richer callbacks, patron evolution, or
+   cross-patron references. See
+   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+4. **Command Powers S8 B-2** — add member-level commitment for power-source
    ships so the canonical briefing narrows `PowerCatalog` to the actual
    detachment. Then S8 C can add the command-deck slot budget. See
    [`command-powers/next-session.md`](command-powers/next-session.md).
-4. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
+5. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, tune their
    identities, then approve budgeted production defender composition. See
    [`mechs/next-session.md`](mechs/next-session.md).
-5. **Manual verification queue (deferred this session)** — the loot loop's
+6. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm roster plus
    post-rebalance combat feel remain pending. See
    [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
-6. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+7. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See
