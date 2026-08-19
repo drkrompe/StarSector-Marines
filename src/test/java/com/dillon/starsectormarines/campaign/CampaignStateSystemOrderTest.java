@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
+import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
@@ -70,6 +71,7 @@ class CampaignStateSystemOrderTest {
         int captainDrift = indexOf(systems, CaptainTraitDriftSystem.class);
         int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
         int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
+        int silentColony = indexOf(systems, SilentColonySpawnSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
 
         assertTrue(defaults < retainers);
@@ -99,6 +101,8 @@ class CampaignStateSystemOrderTest {
         assertTrue(civilWarConsequences < moralCompass);
         assertTrue(eventLifecycle < moralCompass);
         assertTrue(eventLifecycle < rescueSpawn);
+        assertTrue(eventLifecycle < silentColony);
+        assertTrue(defectorAsylum < silentColony);
         assertTrue(rescueSpawn < moralCompass);
         assertTrue(moralCompass < kingmakerTestament);
         assertTrue(kingmakerTestament < discovery);
