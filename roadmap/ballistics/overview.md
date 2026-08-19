@@ -22,7 +22,9 @@ visible lateral/high/low flight, vertical silhouettes). **S3c shipped
 2026-08-19** (`complete/s3c-obstacle-catch-heights.md` — data-driven doodad
 silhouettes and height-gated directional edge cover). **S4 shipped 2026-08-19**
 (`complete/s4-direct-fire-unification.md` — shared source seam and modeled
-direct fire for mech, handheld rocket, and ground burst-turret paths).
+direct fire for mech, handheld rocket, and ground burst-turret paths). **S4a
+is active** (`stories/s4a-proximity-catch-ramp.md` — muzzle-distance attenuation
+for probabilistic cover and friendly incidental catches).
 
 ## Why
 
@@ -171,7 +173,12 @@ movers can enter the corridor before contact.
    change, same 1.5-cell threshold.
 3. **Incidental contacts roll a flat graze chance**
    (`INCIDENTAL_HIT_CHANCE = 0.35`); only the intended target uses the full
-   accuracy stack. Chord-depth scaling deferred until feel says otherwise.
+   accuracy stack. Enemy interveners retain this flat chance. S4a attenuates
+   only friendly incidental contacts near the muzzle.
+4. **Probabilistic catches ramp with muzzle distance.** S4a keeps catch scale
+   at zero through 2 cells, smoothsteps to full strength at 8 cells, and applies
+   it to doodads, directional edge cover, and friendly incidental contacts.
+   Structural walls and enemy incidental contacts remain unscaled.
 
 ## Stories
 
@@ -201,6 +208,10 @@ movers can enter the corridor before contact.
   handheld rockets, and ground burst-turret spray now adopt the resolver;
   abstract cover and direct-fire wall-snap/miss-ring paths are retired. See
   [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
+- **S4a — proximity catch ramp.** Active: nearby probabilistic cover and
+  friendly interveners gain a smooth muzzle-distance attenuation while
+  downrange values remain unchanged. See
+  [`stories/s4a-proximity-catch-ramp.md`](stories/s4a-proximity-catch-ramp.md).
 
 Future hooks (post-S4, backlog): doodad HP / cover erosion; lead error by
 aptitude; point defense generalization (`Projectile.intercepted` reserved);

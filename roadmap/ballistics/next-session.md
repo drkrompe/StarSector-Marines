@@ -60,20 +60,20 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active work
+## Active: S4a — proximity catch ramp
 
-The contracted ballistics queue through S4 is complete. No implementation story
-is active. The next useful ballistics work is an in-game feel pass before adding
-new structure: friendly-fire and suppression tuning, visibility of lead and
-high/low/wide trajectories, and whether each weapon family reads clearly at its
-derived velocity.
+Contract: [`stories/s4a-proximity-catch-ramp.md`](stories/s4a-proximity-catch-ramp.md).
+Add one shared smoothstep catch scale: zero through 2 cells from the muzzle,
+full at 8 cells. Apply it to doodad and directional edge-cover block rolls and
+friendly incidental contacts. Enemy interveners, intended-target accuracy, and
+structural walls remain unchanged.
 
 Fighter high/low/wide fire remains an explicit follow-up in air story 4f, after
 fighter attacks compose the real air entity and airborne Z/roof/wall policy is
 defined. Do not route current flyby-overlay attacks through the ground resolver.
 
-Manual playtest remains useful before post-S4 tuning: friendly-fire feel
-(`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, `FRIENDLY_MUZZLE_CLEARANCE = 2.0`),
+Manual playtest remains useful after S4a: friendly-fire feel
+(`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, proximity catch ramp 2–8 cells),
 suppression feel under path-proximity near-miss, and how visible the S2
 lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
