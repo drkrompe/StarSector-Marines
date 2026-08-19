@@ -90,12 +90,13 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
-- **Battle radio** *(v1 shipped)* — marine infantry squads now emit quiet,
-  positional visual-contact and fallback calls from real squad-state
-  transitions, plus globally throttled acknowledgements during sustained
-  engagements. The standalone battle and vanilla-combat bridge share one
-  presentation-only cue policy, so audio never perturbs sim determinism. An
-  in-game mix/content feel pass remains queued. See
+- **Battle radio** *(expanded event slice shipped)* — 214 standard-pilot clips
+  now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
+  enemy-down, and sparse sustained-combat calls. Friendly warnings follow
+  landed rounds, mech calls require current squad LOS, and every pool shares
+  one global voice budget. The standalone battle and vanilla-combat bridge
+  share one presentation-only cue policy, so audio never perturbs sim
+  determinism. An in-game mix/content feel pass remains queued. See
   [`battle-radio/`](battle-radio/overview.md).
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
