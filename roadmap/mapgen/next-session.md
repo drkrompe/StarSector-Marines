@@ -36,7 +36,8 @@ e8ad9c4b  mapgen: add tactical industrial facilities
 7296aeec  mapgen: add industrial works compounds
 444e0f97  mapgen: add residential courtyard compounds
 fc212e56  mapgen: support multi-cell residential doodads
-8e7a4815  mapgen: orient residential furniture to room walls  ← latest mapgen work
+8e7a4815  mapgen: orient residential furniture to room walls
+d4595b97  mapgen: add standalone apartments and firing windows  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -129,6 +130,13 @@ findings) in
   now preserved from atlas source through runtime doodads, and the existing
   masters deterministically produce all four orientations. See
   [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md).
+- **Standalone apartments and firing windows shipped (`d4595b97`).** Ordinary
+  12x10+ residential lots now face a roomed apartment plan toward their
+  strongest adjacent street edge; smaller lots remain compact homes. Apartment
+  living rooms and bedrooms gain cyan, non-traversable firing apertures that
+  pass sight and projectiles, provide directional wall cover, and retain a
+  clear interior firing cell. See
+  [`complete/standalone-apartments.md`](complete/standalone-apartments.md).
 
 ## Next up (priority order)
 
@@ -198,9 +206,11 @@ reused verbatim. Candidate next tracks (priority order):
    shipped (`444e0f97`)**: two roomed apartment blocks and a utility building
    orient around a tactical shared courtyard, with generated domestic and
    exterior cover. Beds and sofas now use true two-cell doodad footprints
-   (`fc212e56`) and wall-aware cardinal orientation (`8e7a4815`). Next: reuse
-   the apartment planner on qualifying standalone residential lots, then tackle
-   public-service or medical campuses.
+   (`fc212e56`) and wall-aware cardinal orientation (`8e7a4815`). **Standalone
+   apartment reuse is now shipped (`d4595b97`)**: qualifying 12x10+ ordinary
+   lots orient the same room plan toward adjacent streets, while apartment
+   facades gain non-traversable, shoot-through firing windows with clear
+   interior cover positions. Next: tackle a public-service or medical campus.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
@@ -212,7 +222,8 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/industrial-compound.md`](complete/industrial-compound.md),
    [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md),
    [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md),
-   and [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md).
+   [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md),
+   and [`complete/standalone-apartments.md`](complete/standalone-apartments.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`

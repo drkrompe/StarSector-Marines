@@ -72,7 +72,10 @@ universe over time, not retrofitted into intel slots.
   buildings toward shared circulation. Military sites add bunk/rack/service/C2
   fixture plans plus an outdoor radar silhouette. Large civic lots now add
   frontage-aware headquarters with a two-cell lobby/service spine, two offices,
-  conference and server rooms, and distinct low-versus-opaque office cover. See
+  conference and server rooms, and distinct low-versus-opaque office cover.
+  Qualifying standalone residential lots now become street-facing apartment
+  blocks, and apartment facades add non-traversable firing windows that preserve
+  sight, shots, and directional cover. See
   [`mapgen/`](mapgen/).
 - **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
   tile definitions and their gen→tile mappings out of hardcoded Java
