@@ -30,7 +30,8 @@ c447104  mapgen: concentric "onion" station layout — defensive rings around a 
 f04c2d5  mapgen: diamond defense station — cardinal ports converging inward
 d14ce6a8  mapgen: tactical commercial interiors
 7bb9b4f2  mapgen: orient coherent commercial compounds
-fa0533ee  mapgen: tactical military compound interiors  ← latest mapgen work
+fa0533ee  mapgen: tactical military compound interiors
+4d929309  mapgen: add civic headquarters interiors  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -88,6 +89,12 @@ findings) in
   the 0.3-cell marine radius; vehicle bays retain a 3x3 open service floor. Four
   new transparent ImageGen doodads landed in the generated atlas. See
   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md).
+- **Ground tactical structures — civic headquarters shipped (`4d929309`).**
+  Qualifying 13x11-or-larger civic lots now carve a frontage-aware public lobby,
+  an aligned two-cell public-to-service spine, two offices, a conference room,
+  and an opaque server room. Three new office doodads landed, and the atlas
+  stitcher now preserves authored ballistic heights from `_atlas.json`. See
+  [`complete/civic-headquarters.md`](complete/civic-headquarters.md).
 
 ## Next up (priority order)
 
@@ -145,16 +152,18 @@ reused verbatim. Candidate next tracks (priority order):
   See the section below for what each resolution was.
 
 1. **Ground tactical-structure track** — tactical commercial interiors
-   (`d14ce6a8`), coherent commercial compounds (`7bb9b4f2`), and tactical
-   military compounds (`fa0533ee`) are shipped. Next: generalize the
-   placement-aware floor-plan artifact to offices and larger multi-room civic
-   buildings, or deepen armories/vehicle bays with dedicated weapon-rack and
-   vehicle-maintenance art. A true fused multi-lot structure remains gated on
+   (`d14ce6a8`), coherent commercial compounds (`7bb9b4f2`), tactical military
+   compounds (`fa0533ee`), and multi-room civic headquarters (`4d929309`) are
+   shipped. Next: apply the same frontage/room-purpose discipline to large
+   industrial buildings: loading/service spine, production floor,
+   supervisor/control room, parts cage, and opaque machinery/tank fixtures.
+   A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
    [`complete/tactical-commercial-interiors.md`](complete/tactical-commercial-interiors.md),
-   [`complete/commercial-compound.md`](complete/commercial-compound.md), and
-   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md).
+   [`complete/commercial-compound.md`](complete/commercial-compound.md),
+   [`complete/military-compound-interiors.md`](complete/military-compound-interiors.md), and
+   [`complete/civic-headquarters.md`](complete/civic-headquarters.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
