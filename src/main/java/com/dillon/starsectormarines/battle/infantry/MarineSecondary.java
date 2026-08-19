@@ -46,7 +46,7 @@ public enum MarineSecondary {
     public final int startingAmmo;
     /** Projectile visual size in cells (long axis). Aspect comes from the loaded PNG. */
     public final float projectileVisualCells;
-    /** Sim-seconds the projectile spends in flight (and visible) before reaching its endpoint. Longer than the default {@code SHOT_LIFETIME} so a rocket reads as a slow heavy munition rather than a flash. */
+    /** Former maximum-range flight timing, now the anchor for {@link #roundVelocity()}. Keeps rockets visibly slower than tracer rounds. */
     public final float flightSec;
     /** Sim-seconds the marine is frozen in the aim pose before the shot launches. The actual fire happens at the midpoint of this window — first half is the aim-up, second half is the launcher held out as the rocket departs. */
     public final float aimDuration;
@@ -95,4 +95,13 @@ public enum MarineSecondary {
 
     /** Secondary shots are full detonations — fire burst + smoke + explosion sound. Same recipe the heavy mortar uses. */
     public ImpactProfile impactProfile() { return ImpactProfile.HE; }
+
+    /**
+     * Modeled direct-fire velocity in cells/sec. Derived from the pre-S4
+     * maximum-range visual timing so the long shot keeps its familiar pace
+     * while close shots arrive sooner.
+     */
+    public float roundVelocity() {
+        return range / flightSec;
+    }
 }

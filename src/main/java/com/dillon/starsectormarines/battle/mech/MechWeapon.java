@@ -43,8 +43,8 @@ public enum MechWeapon {
      * arms, then a 2-second cooldown. Rounds scatter across a 1.2-cell
      * pattern and each detonates with a small AoE on landing, so a clustered
      * squad eats multiple rounds via splash — anti-cluster suppression, not
-     * single-target precision. Ground-mounted, so scattered rounds raycast
-     * against walls and splatter rather than peppering marines behind cover.
+     * single-target precision. Ground-mounted, so high/low/wide rounds resolve
+     * against walls and cover rather than peppering marines through obstacles.
      * The chip wallDamage means a sustained chaingun lock-on grinds through
      * building walls over a few bursts. KINETIC impact for the punchier
      * visual flash that fits a heavy auto-cannon.
@@ -68,7 +68,7 @@ public enum MechWeapon {
              12, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
              0f, 1.2f, false,
-             0.6f, 3, /*wallDmgRadius*/ 0f, /*raycastShots*/ true),
+             0.6f, 3, /*wallDmgRadius*/ 0f),
 
     /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
@@ -183,19 +183,6 @@ public enum MechWeapon {
      * (kinetic burst, not a crater).
      */
     public final float wallDamageRadius;
-    /**
-     * When {@code true}, each scattered round raycasts from origin to endpoint
-     * through the nav grid; if a wall sits in the path, the endpoint snaps to
-     * that wall cell (the round "hits" the wall instead of passing through).
-     * Used by ground-deployed area-spread weapons so wide scatter can't pepper
-     * units behind cover — mirrors the turret-side
-     * {@link TurretKind#raycastShots}
-     * convention. Rocket-class mech weapons (SRM_POD, LRM_ARTILLERY) leave
-     * this off — rockets travel in their own arc and don't ground-snap.
-     */
-    public final boolean raycastShots;
-
-    /** Legacy constructor — defaults {@link #raycastShots} to false. Used by every entry except CHAINGUN. */
     MechWeapon(String displayName, String fireSoundId, Color tracerColor,
                float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                ImpactProfile impactProfile,
@@ -203,22 +190,6 @@ public enum MechWeapon {
                String projectileSpritePath, float projectileVisualCells, float flightSec,
                float arcHeight, float hitSpread, boolean engineTrail,
                float aoeRadius, int wallDamage, float wallDamageRadius) {
-        this(displayName, fireSoundId, tracerColor,
-                range, damage, accuracy, cooldown, vsTurretMult,
-                impactProfile,
-                burstCount, burstSpacing,
-                projectileSpritePath, projectileVisualCells, flightSec,
-                arcHeight, hitSpread, engineTrail,
-                aoeRadius, wallDamage, wallDamageRadius, /*raycastShots*/ false);
-    }
-
-    MechWeapon(String displayName, String fireSoundId, Color tracerColor,
-               float range, float damage, float accuracy, float cooldown, float vsTurretMult,
-               ImpactProfile impactProfile,
-               int burstCount, float burstSpacing,
-               String projectileSpritePath, float projectileVisualCells, float flightSec,
-               float arcHeight, float hitSpread, boolean engineTrail,
-               float aoeRadius, int wallDamage, float wallDamageRadius, boolean raycastShots) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.tracerColor = tracerColor;
@@ -239,6 +210,15 @@ public enum MechWeapon {
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
         this.wallDamageRadius = wallDamageRadius;
-        this.raycastShots = raycastShots;
+    }
+
+    /**
+     * Modeled direct-fire velocity in cells/sec. Derived from the pre-S4
+     * maximum-range visual timing. Meaningful only for level-flight weapons;
+     * indirect LRM artillery retains its legacy projectile timing.
+     */
+    public float roundVelocity() {
+        if (!(flightSec > 0f)) return 60f;
+        return range / flightSec;
     }
 }

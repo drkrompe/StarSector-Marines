@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -36,7 +37,7 @@ import java.util.Random;
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
  * snapshot, roster by-id reads); all randomness flows through the caller's
- * {@link Random}, mirroring {@link ShotEndpoint}'s testability contract. No
+ * {@link Random}, mirroring the combat samplers' testability contract. No
  * mutable instance state, so a single shared resolver instance is safe to
  * call concurrently from the parallel UPDATE_UNITS dispatch — every local
  * (event list, gather buffer) is call-scoped. The one intentionally
@@ -80,6 +81,22 @@ public final class BallisticResolver {
     public enum StopKind { UNIT_HIT, COVER_CLIP, WALL, DOODAD_BLOCK, OVERSHOOT }
 
     /**
+     * General fire origin for entity and non-entity mounts. {@code entityId}
+     * is zero when the source does not live in the ground-unit roster; a
+     * non-zero id excludes the shooter's own body from the contact gather.
+     * {@code z} is the lightweight target-plane origin used by future
+     * airborne adopters; every S4 ground source supplies zero.
+     */
+    public record Source(long entityId, float x, float y, float z, Faction faction) {
+        public Source {
+            Objects.requireNonNull(faction, "faction");
+            if (!Float.isFinite(x) || !Float.isFinite(y) || !Float.isFinite(z)) {
+                throw new IllegalArgumentException("Ballistic source coordinates must be finite");
+            }
+        }
+    }
+
+    /**
      * The outcome of one resolved round. {@code endX}/{@code endY}/{@code endZ}
      * is where the round physically stopped (visual endpoint); {@code flightTime} =
      * {@code stopDist / roundVelocity}, the delay before damage/FX apply;
@@ -90,7 +107,12 @@ public final class BallisticResolver {
      */
     public record Resolution(float endX, float endY, float endZ, float flightTime,
                               long victimId, boolean hitIntended,
-                              boolean friendlyHit, StopKind kind) {}
+                              boolean friendlyHit, StopKind kind) {
+        /** True when the round reached a physical contact rather than leaving the modeled segment. */
+        public boolean impacts() {
+            return kind != StopKind.OVERSHOOT;
+        }
+    }
 
     /**
      * One contact candidate along the ray, in time order. Doodad crossings
@@ -173,11 +195,29 @@ public final class BallisticResolver {
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, Random rng) {
         World world = roster.world();
-        MovementService movement = roster.movement();
-        Faction shooterFaction = roster.identity().faction(shooter);
+        return resolve(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
+                        0f, roster.identity().faction(shooter)),
+                target, finalAccuracy, effectiveSpread, roundVelocity, rng);
+    }
 
-        float fromX = world.renderX(shooter);
-        float fromY = world.renderY(shooter);
+    /**
+     * Resolves a round from an explicit source. This is the shared entry point
+     * for static mounts and other callers that already own a float muzzle
+     * position rather than needing it read from a roster entity.
+     */
+    public Resolution resolve(Source source, long target,
+                               float finalAccuracy, float effectiveSpread,
+                               float roundVelocity, Random rng) {
+        if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
+            throw new IllegalArgumentException("roundVelocity must be finite and positive");
+        }
+        World world = roster.world();
+        MovementService movement = roster.movement();
+        Faction shooterFaction = source.faction();
+
+        float fromX = source.x();
+        float fromY = source.y();
+        float fromZ = source.z();
         float targetX = world.renderX(target);
         float targetY = world.renderY(target);
 
@@ -213,7 +253,7 @@ public final class BallisticResolver {
         float baseDirY = baseDist > 1e-6f ? baseDy / baseDist : 0f;
         float aimX = leadX - baseDirY * aim.lateral();
         float aimY = leadY + baseDirX * aim.lateral();
-        float zSlope = aim.elevation() / Math.max(baseDist, 1e-6f);
+        float zSlope = (aim.elevation() - fromZ) / Math.max(baseDist, 1e-6f);
 
         float aimDx = aimX - fromX;
         float aimDy = aimY - fromY;
@@ -254,7 +294,7 @@ public final class BallisticResolver {
         // skipping the shooter's own cell. Doodads are static, so this stays
         // the S1 distance-domain math verbatim.
         walkDoodadCrossings(shooterCellX, shooterCellY, rayEndCellX, rayEndCellY,
-                fromX, fromY, roundVelocity, zSlope, events);
+                fromX, fromY, fromZ, roundVelocity, zSlope, events);
 
         // Step 4: unit contacts over the (wall-capped) ray, solved in the
         // TIME domain against each candidate's own extrapolated motion. The
@@ -266,7 +306,7 @@ public final class BallisticResolver {
         unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
-            if (candidateId == shooter) continue;
+            if (candidateId == source.entityId()) continue;
             if (!roster.isAliveById(candidateId)) continue;
 
             // The same physical body circle SeparationSystem shoves apart and
@@ -333,7 +373,7 @@ public final class BallisticResolver {
             // over its head or below its feet. Doodads and target-edge cover
             // apply their own Z gates at their respective event sites;
             // structural walls alone remain full-height.
-            float contactZ = zSlope * rayDistAtEntry;
+            float contactZ = fromZ + zSlope * rayDistAtEntry;
             if (Math.abs(contactZ) > candidateType.hitHalfHeight) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
@@ -393,13 +433,14 @@ public final class BallisticResolver {
         }
 
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
-        return new Resolution(rayEndX, rayEndY, zSlope * rayLen, rayLen / roundVelocity,
+        return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
                 0L, false, false, finalKind);
     }
 
     /** Bresenham cell walk from the shooter's cell to the ray-end cell, emitting a doodad-crossing {@link Event} for every non-start cell whose physical doodad silhouette contains the round's Z. */
     private void walkDoodadCrossings(int x0, int y0, int x1, int y1,
-                                      float fromX, float fromY, float roundVelocity, float zSlope,
+                                      float fromX, float fromY, float fromZ,
+                                      float roundVelocity, float zSlope,
                                       List<Event> out) {
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
@@ -414,7 +455,7 @@ public final class BallisticResolver {
                 float cx = x + 0.5f;
                 float cy = y + 0.5f;
                 float t = dist(fromX, fromY, cx, cy) / roundVelocity;
-                float z = zSlope * roundVelocity * t;
+                float z = fromZ + zSlope * roundVelocity * t;
                 int level = doodads.getDoodadLevelOnCell(x, y, z);
                 if (level > 0) {
                     out.add(Event.doodad(t, cx, cy, z, level));

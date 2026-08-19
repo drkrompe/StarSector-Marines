@@ -1,25 +1,24 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.combat.ShotRaycast;
-import com.dillon.starsectormarines.battle.combat.CoverAccuracyResolver;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.Random;
 
 /**
- * Turret-kind fire procedure — accuracy roll, scatter, wall raycast, damage
- * application, detonation/projectile queuing, and shot-event posting. Extracted
- * from {@code BattleSimulation.fireShotFrom} so the sim doesn't own weapon
- * logic. Implements {@link TurretFireSink} so consumers (AirSystem,
+ * Turret-kind fire procedure. Ground-level burst mounts resolve physical
+ * rounds; aerial and indirect mounts retain their existing accuracy/scatter
+ * procedures. The system owns payload queuing and shot-event posting. Extracted
+ * from {@code BattleSimulation.fireShotFrom} so the sim doesn't own weapon logic.
+ * Implements {@link TurretFireSink} so consumers (AirSystem,
  * GroundSystem, TurretBehavior) receive the same functional interface they
  * already depend on.
  *
@@ -39,38 +38,36 @@ public final class TurretFireSystem implements TurretFireSink {
     private static final float MISS_OFFSET_MAX = 2.0f;
 
     private final Random rng;
-    private final NavigationGrid grid;
     private final CellTopology topology;
     private final ShotService shots;
     private final DamageService damageService;
     private final DetonationSink detonationSink;
     private final HitResponseSystem hitResponse;
     private final World world;
-    private final CoverAccuracyResolver coverAccuracy;
+    private final BallisticResolver resolver;
 
     @FunctionalInterface
     public interface DetonationSink {
         void queue(PendingDetonation det);
     }
 
-    public TurretFireSystem(Random rng, NavigationGrid grid, CellTopology topology,
+    public TurretFireSystem(Random rng, CellTopology topology,
                             ShotService shots, DamageService damageService,
                             DetonationSink detonationSink,
                             HitResponseSystem hitResponse, World world,
-                            CoverAccuracyResolver coverAccuracy) {
+                            BallisticResolver resolver) {
         this.rng = rng;
-        this.grid = grid;
         this.topology = topology;
         this.shots = shots;
         this.damageService = damageService;
         this.detonationSink = detonationSink;
         this.hitResponse = hitResponse;
         this.world = world;
-        this.coverAccuracy = coverAccuracy;
+        this.resolver = resolver;
     }
 
     @Override
-    public void fire(float fromX, float fromY, Faction shooterFaction,
+    public void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
                      TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
@@ -84,12 +81,10 @@ public final class TurretFireSystem implements TurretFireSink {
             float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
         }
-        // Ground-level direct fire reads the target's facing toward the
-        // muzzle. Arc and aerial attacks bypass cardinal cover.
-        if (!aerialShooter && kind.arcHeight <= 0f) {
-            effectiveAccuracy = coverAccuracy.apply(effectiveAccuracy,
-                    tcx, tcy,
-                    (int) Math.floor(fromX), (int) Math.floor(fromY));
+        if (!aerialShooter && kind.arcHeight <= 0f && kind.cellsPerSec() <= 0f) {
+            fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
+                    kind, target, distToTarget, effectiveAccuracy);
+            return;
         }
 
         if (kind.cellsPerSec() > 0f) {
@@ -121,12 +116,6 @@ public final class TurretFireSystem implements TurretFireSink {
             toY = tcy + 0.5f + (float) Math.sin(angle) * spread;
         }
 
-        ShotRaycast.Result snapped = ShotRaycast.resolve(
-                grid, kind.raycastShots, fromX, fromY, toX, toY, hit);
-        toX = snapped.toX();
-        toY = snapped.toY();
-        hit = snapped.hit();
-
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
                 damageService.applyDamage(target, kind.damage, 1f, 1f);
@@ -145,6 +134,42 @@ public final class TurretFireSystem implements TurretFireSink {
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
                 lifetime, kind, null, null));
+    }
+
+    /** Modeled ground-level path for Vulcan/Heavy-MG bursts and any future direct mount. */
+    private void fireGroundDirect(long shooterId, float fromX, float fromY,
+                                  Faction shooterFaction, TurretKind kind,
+                                  long target, float distToTarget,
+                                  float effectiveAccuracy) {
+        float effectiveSpread = kind.hitSpread
+                * Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+        BallisticResolver.Source source = new BallisticResolver.Source(
+                shooterId, fromX, fromY, 0f, shooterFaction);
+        BallisticResolver.Resolution res = resolver.resolve(
+                source, target, effectiveAccuracy, effectiveSpread,
+                kind.directRoundVelocity(), rng);
+
+        if (kind.aoeRadius > 0f && res.impacts()) {
+            detonationSink.queue(new PendingDetonation(
+                    res.endX(), res.endY(), res.flightTime(),
+                    kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                    kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
+                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                    /*friendlyFireImmune*/ false));
+        } else if (kind.aoeRadius <= 0f && res.victimId() != 0L) {
+            float appliedDamage = res.friendlyHit()
+                    ? kind.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : kind.damage;
+            shots.queueImpact(new ShotService.PendingImpact(
+                    res.victimId(), shooterId, res.flightTime(), appliedDamage,
+                    /*vsTurretMult*/ 1f, /*moraleImpact*/ 1f, res.friendlyHit()));
+        }
+
+        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                res.endX(), res.endY(), res.endZ(),
+                res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
+                kind, null, null, null, /*moraleImpact*/ 1f,
+                res.victimId() != 0L, res.kind()));
     }
 
     private void spawnProjectile(float fromX, float fromY, Faction shooterFaction,

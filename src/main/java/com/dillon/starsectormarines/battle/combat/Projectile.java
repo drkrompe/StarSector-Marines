@@ -4,13 +4,12 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * Simulated in-flight projectile — owns position over time and the AoE
+ * Simulated in-flight projectile — owns position over time and an optional AoE
  * detonation that fires on arrival. Replaces the parallel
  * {@link ShotEvent} + {@link PendingDetonation} pair for slow-flight AoE
  * kinds: turret-class rockets / mortars (locust, grenade launcher with
- * {@code cellsPerSec > 0}) AND marine handheld rockets (whose flight
- * time is a per-weapon constant — same Projectile shape, different
- * spawner). Carries only the primitive visual params it needs
+ * {@code cellsPerSec > 0}) and direct rockets (marine launcher and mech SRM).
+ * Carries only the primitive visual params it needs
  * ({@link #hasBoostRamp}, {@link #arcHeight}) so the spawner can be
  * either weapon family without coupling Projectile to TurretKind.
  *
@@ -25,26 +24,24 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * incoming projectile can flip {@link #intercepted} and the sim removes the
  * projectile without detonating.
  *
- * <h2>No hit/miss</h2>
- * AoE kinds don't roll hit/miss. {@link #toX}/{@link #toY} is the scatter
- * endpoint (target cell plus accuracy-scaled offset). The AoE radius
- * decides who gets hurt — whatever's in radius at detonation takes damage,
- * regardless of whether it was the locked target. Cleaner and matches real
- * artillery: rounds don't "miss," they just land somewhere and what's in
- * the splash decides the outcome.
+ * <h2>Endpoints and payloads</h2>
+ * Indirect kinds use a scattered landing point. Modeled direct rockets use
+ * the resolver's physical stop and may carry a null payload when they
+ * overshoot into free flight. At a real contact, the AoE radius decides who
+ * gets hurt at arrival regardless of which body originally stopped the round.
  *
  * <h2>Lifecycle</h2>
- * Born in {@code BattleSimulation.fireShotFrom} when the firing kind has
- * {@code cellsPerSec > 0}. Advances every tick via
- * {@code BattleSimulation.advanceProjectiles}. On expiration, fires
- * {@link #onArrival} through {@code Detonations.detonateNow} and is removed.
- * Renderer reads {@link #currentX()}/{@link #currentY()} each frame.
+ * Born in turret, infantry-secondary, or mech firing procedures. Advances
+ * every tick through {@link ShotService#tickProjectiles}. On expiration, a
+ * non-null {@link #onArrival} fires through the detonation sink; a payloadless
+ * overshoot simply disappears. Renderer reads {@link #currentX()}/{@link
+ * #currentY()} each frame.
  */
 public final class Projectile {
 
     public final float fromX;
     public final float fromY;
-    /** Scatter endpoint — where the projectile detonates on arrival. Computed at fire time from target cell + accuracy-scaled scatter. */
+    /** Fire-time endpoint: an indirect scatter point or a modeled direct-round stop. */
     public final float toX;
     public final float toY;
     /** True for rocket-class projectiles whose visual position grows quadratically over the boost-ramp window (accelerate from rest, then cruise). False for chemical-charge shells (mortars / grenades) that exit at terminal velocity. */
@@ -54,11 +51,11 @@ public final class Projectile {
     public final Faction shooterFaction;
     /** True when delivered from above (arc shots, shuttle mounts). Threaded into {@link #onArrival} for the roof-shield rule + the renderer's flight FX. */
     public final boolean aerialDelivery;
-    /** Total flight time at construction — {@code dist / kind.cellsPerSec()}. Used by the renderer to compute {@link #progress()}. */
+    /** Total flight time at construction. Modeled direct rounds and velocity-based projectiles use {@code dist / cellsPerSec}. */
     public final float totalFlightTime;
-    /** Sim-seconds until arrival. Decremented per tick by {@code advanceProjectiles}; arrival fires {@link #onArrival}. */
+    /** Sim-seconds until arrival. Decremented by {@link ShotService#tickProjectiles}; arrival fires a non-null {@link #onArrival}. */
     public float remainingTime;
-    /** AoE damage payload fired when the projectile arrives. Owned by the projectile — when point defense cancels via {@link #intercepted}, this payload is dropped automatically (no parallel queue to clean up). */
+    /** AoE damage payload fired when the projectile arrives. Null for a resolved direct-fire overshoot that visibly flies out without a physical impact. Owned by the projectile — when point defense cancels via {@link #intercepted}, this payload is dropped automatically (no parallel queue to clean up). */
     public final PendingDetonation onArrival;
     /** When set, the projectile is removed on the next tick without detonating. Reserved for the point-defense intercept path — not yet wired. */
     public boolean intercepted;
