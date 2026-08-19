@@ -276,10 +276,12 @@ rewrite two-sided win checks, fog colors, targeting, reinforcement, and command
 assumptions.
 
 The held `alien.png` seven-frame live sheet and `alien-dead.png` four-pose corpse
-sheet become the visual source for a new `SWARM_RUNNER` `UnitType`. The existing
-generic `ALIEN` value stays intact for compatibility. The runner is a fast,
-close-range biological attacker with no weapon, squad GOAP, morale, equipment,
-reinforcement, or ranged projectile semantics.
+sheet originally supplied the new `SWARM_RUNNER` `UnitType`. The existing generic
+`ALIEN` value stays intact for compatibility. The runner is a fast, close-range
+biological attacker with no weapon, squad GOAP, morale, equipment, reinforcement,
+or ranged projectile semantics. Live aliens now prefer a generated true-overhead
+body/head/foot composition on the marine layered runtime; the held sheets remain
+the all-or-nothing load fallback and corpse source (`bccbbe16`).
 
 A dedicated `SWARM_PRESSURE` role owns its behavior:
 
@@ -343,6 +345,14 @@ marine seats: 2:1 at LOW, 3:1 at MEDIUM, and 4:1 at HIGH (`8b2af722`,
 so they remain reinforcement depth; debug runners also begin at least 24 cells
 from the shelter. This preserves a large opening swarm without changing
 production event balance.
+
+The first stat/art feel pass quarters both alien archetypes' HP: generic
+`ALIEN` falls from 30 to 7.5 and `SWARM_RUNNER` from 24 to 6. This deliberately
+lets marine fire delete individual bodies while roster count and implacable
+movement preserve swarm pressure. Both types now carry the same presentation-only
+layered animation component as marines, with continuous facing, independent head
+look, and alternating feet; weapon layers are explicitly suppressed. Manual
+playtesting still owns roster size and post-rebalance time-to-contact (`bccbbe16`).
 
 ### Outcome closure — first checkpoint
 

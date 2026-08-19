@@ -229,18 +229,13 @@ on the other axes (`facfa007`, `6765eac6`, `2a1924e7`). The second real source
 family is now shipped too: trigger-unique civilian-rescue events persist exact
 costs, stakes, choices, and outcomes; explicit refusal and positive rescue move
 mercy/stewardship exactly once while expiry and zero rescue remain neutral
-(`cf8b717b`, `5fd8969d`, `1b2afcb4`). Trigger/presentation and the later swarm
-battle remain separate slices; reactive surfaces and capstone testimony are
-still withheld. Trigger/presentation is now shipped as its own vertical: a
-deterministic sparse producer selects eligible markets, Distress Net
-offers the exact cost-shaped choice without reward previews, and debug intel can
-force the same production-shaped call (`34cf0654`, `5572c538`, `24ba5bdc`). The
-committed-event mission bridge is now shipped as an intentionally gated
-foundation: `CAMPAIGN_EVENT` mission/outcome lineage carries event id, market,
-and stakes; a pure factory creates no-economy rescue snapshots; and strict
-writeback requires an explicit evacuation count before resolution
-(`0d49d30e`, `fdfb0aef`). The battle-side cohort metric and mission emission
-remain next, followed by the swarm payload.
+(`cf8b717b`, `5fd8969d`, `1b2afcb4`). Its full vertical now ships: deterministic
+production and Distress Net presentation, explicit event mission lineage,
+registered evacuation cohort/objective, risk-scaled swarm payload, strict outcome
+writeback, and durable debrief dispatch. The first combat-feel pass quarters alien
+HP and moves live aliens onto the marine-style layered top-down runtime while
+retaining the held sheet as fallback/corpse art (`bccbbe16`). Manual roster and
+post-rebalance feel validation remain queued.
 
 ## Two payoffs that fall out for free
 

@@ -17,7 +17,9 @@ public enum LayeredArmorFamily {
     /** Reinforced industrial workwear and a sealed hazard helmet. */
     ENGINEER,
     /** Worn field-lab clothing and a compact research headset. */
-    SCIENTIST;
+    SCIENTIST,
+    /** Dark chitinous body, skull carapace, and digitigrade feet for alien actors. */
+    XENO;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {
@@ -27,6 +29,8 @@ public enum LayeredArmorFamily {
             case CIVILIAN: return CIVILIAN_COLONIST;
             case ENGINEER: return ENGINEER;
             case SCIENTIST: return SCIENTIST;
+            case ALIEN:
+            case SWARM_RUNNER: return XENO;
             case MARINE:
             default: return CHARCOAL;
         }
