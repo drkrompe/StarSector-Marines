@@ -31,5 +31,10 @@ class SwarmRunnerContractTest {
         assertTrue(runner.attackRange <= 1.5f);
         assertTrue(runner.attackDamage > 0f);
         assertTrue(runner.drawnAsSheet());
+        assertTrue(runner.drawnAsLayers());
+        assertEquals(6f, runner.maxHp, 0.001f);
+        assertEquals(7.5f, UnitType.ALIEN.maxHp, 0.001f);
+        assertEquals(UnitType.ALIEN.maxHp * 0.8f, runner.maxHp, 0.001f);
+        assertTrue(!runner.drawsLayeredWeapon());
     }
 }

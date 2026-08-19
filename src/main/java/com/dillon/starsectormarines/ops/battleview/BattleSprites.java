@@ -487,6 +487,12 @@ public class BattleSprites {
         loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
                 "graphics/battle/colonist-modular-topdown/scientist/",
                 foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        LayeredSpriteCache alienFoot = loadLayeredSprite(
+                "graphics/battle/alien-modular-topdown/foot.png");
+        loadLayeredFamilyAt(LayeredArmorFamily.XENO,
+                "graphics/battle/alien-modular-topdown/",
+                alienFoot, rifle, laser, smg, dmr, rocket, flash,
+                surplusRifle, masterworkDmr);
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
@@ -538,7 +544,7 @@ public class BattleSprites {
                                      LayeredSpriteCache masterworkDmr) {
         LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
         LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
-        if (body == null || head == null) {
+        if (body == null || head == null || foot == null) {
             LOG.warn("BattleSprites: modular family " + familyId
                     + " incomplete; actors using it keep their legacy sheet");
             return;
