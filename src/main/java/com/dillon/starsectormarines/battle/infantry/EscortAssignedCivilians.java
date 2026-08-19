@@ -96,10 +96,12 @@ public final class EscortAssignedCivilians implements Action {
     }
 
     static int standoffRadius(Squad squad, BattleView sim) {
+        if (squad.rescuePickupGuard) return ESCORT_RADIUS;
         if (sim.isCivilianEvacuationTriggered()) return ESCORT_RADIUS;
         int leadSquadId = Integer.MAX_VALUE;
         for (Squad candidate : sim.getSquads()) {
-            if (candidate.faction != squad.faction || candidate.aliveMembers <= 0) continue;
+            if (candidate.faction != squad.faction || candidate.aliveMembers <= 0
+                    || candidate.rescuePickupGuard) continue;
             leadSquadId = Math.min(leadSquadId, candidate.id);
         }
         return squad.id == leadSquadId ? RELIEF_RADIUS : ESCORT_RADIUS;

@@ -9,13 +9,14 @@ Bulwark exclusively.
 The battle debug panel now exposes **Spawn mech family**, which creates:
 
 - Bulwark: unchanged heavy, with SRM-15 and LRM-15 racks;
-- Hound: fast chaingun/paired-SRM-5 breacher with no LRM;
-- Sirocco: fragile linear-cannon/paired-LRM-5 support with no SRM.
+- Hound: fast nose-chaingun/single-SRM-5 breacher with no LRM;
+- Sirocco: fragile heavy-cannon/paired-LRM-5 support with no SRM.
 
-Hound and Sirocco now use dedicated hull sprites rather than sharing the
-socketed Bulwark body. Missile racks render beneath and outside the chassis, so
-their inboard casing is occluded and their role is read from the silhouette
-instead of a box pasted over the torso.
+Hound now uses the narrow pointed hull and Sirocco the broader wedge, both
+flipped to face their intended direction. Hound's one SRM and Bulwark's heavy
+racks are visible above their chassis layers; Sirocco's paired LRMs tuck under
+its hull. Hound's two feet sit farther outside its thin centerline so its gait
+is readable, while Bulwark's chainguns are horizontally compressed by half.
 
 A reproducible static contact sheet is available at
 [`previews/layered-mech-variants.png`](previews/layered-mech-variants.png). It
@@ -31,22 +32,22 @@ real recon/spotting behavior.
 Review the revised static contact sheet, then run an ordinary debug battle,
 expand the battle debug panel, and click **Spawn mech family**. Confirm the new
 hulls and external racks remain readable while moving and turning; then compare
-range behavior, time-to-kill, missile density, and whether Sirocco's linear
-cannons remain a fallback rather than a second primary role.
+range behavior, time-to-kill, missile density, and whether Sirocco's heavy
+cannon remains an anti-armor fallback rather than a second primary role.
 
 ## What shipped
 
 1. Stable `MechVariant` chassis profiles without multiplying `UnitType`.
 2. Generic swappable arm/left-shoulder/right-shoulder weapon components and
    per-mount live state.
-3. `LINEAR_CANNON`, SRM/LRM -5 and -15 rack classes, profile/component-driven
+3. `LINEAR_CANNON`, `HEAVY_CANNON`, SRM/LRM -5 and -15 rack classes, profile/component-driven
    layered appearance, and component-aware resupply.
 4. Profile stats and physical dimensions shared by rendering, picking,
    separation, ballistics, and AoE.
 5. Deterministic in-battle family comparison plus focused tests; full build
    passed before integration.
-6. Dedicated Hound/Sirocco hull silhouettes and externally occluded shoulder
-   rack composition.
+6. Dedicated Hound/Sirocco hull silhouettes, per-chassis rack layering, a
+   centerline weapon mounting mode, and a generated heavy-cannon module.
 
 After the comparison is accepted, tune the profile/component numbers and then
 adopt the budgeted mixed-lance rules in S1.
@@ -76,3 +77,5 @@ adopt the budgeted mixed-lance rules in S1.
   is higher.
 - Do not make the Sirocco's backup cannon strong enough to erase its close-range
   weakness.
+- Bulwark's rockets are retained for comparison; removing them for a pure
+  frontline-tank identity remains an explicit playtest decision.

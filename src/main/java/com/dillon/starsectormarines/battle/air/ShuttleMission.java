@@ -17,8 +17,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * data.
  *
  * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
- * entry to LZ) → LANDED (deboarding marines) → optional HOVER_STATION (armed
- * fire-support loiter) → DEPARTING (steering to exit) → GONE. With
+ * entry to LZ) → LANDED (deboarding marines or awaiting rescue passengers) →
+ * optional HOVER_STATION (armed fire-support loiter) → DEPARTING (steering to
+ * exit) → GONE. With
  * {@link #totalCycles} &gt; 1 the shuttle re-enters PENDING after DEPARTING and
  * flies another sortie.
  */
@@ -52,6 +53,24 @@ public final class ShuttleMission {
      * from 0 rather than from {@code capacity − marinesRemaining}. Reset to 0 at each sortie.
      */
     public int deboardedThisSortie;
+
+    /**
+     * Rescue pickup craft remain on the ground after arriving with an empty
+     * hold. The evacuation system clears this flag after the last active
+     * civilian is either aboard or lost, allowing the ordinary departure leg
+     * to take over.
+     */
+    public boolean awaitingEvacuees;
+    /** Number of rescued civilians represented aboard this craft. */
+    public int evacueesAboard;
+    /** Maximum representative civilians this craft was dispatched to collect. */
+    public int evacueeCapacity;
+
+    /** Marks a local-militia reinforcement sortie for rescue-mission accounting. */
+    public boolean rescueMilitiaTransport;
+    /** Fixed perimeter anchor assigned to the militia squad when it deboards. */
+    public int rescueGuardX = -1;
+    public int rescueGuardY = -1;
 
     /** LZ touchdown point (cells). */
     public final float lzX, lzY;

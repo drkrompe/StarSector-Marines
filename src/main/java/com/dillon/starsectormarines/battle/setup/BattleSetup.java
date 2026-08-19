@@ -71,6 +71,8 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
@@ -628,6 +630,8 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            installRescuePickup(sim, payload.placement, payload.size(),
+                    scale.width, scale.height);
             SwarmDefenseRoster swarm = SwarmDefenseRoster.install(
                     sim, payload.placement, swarmCount, battleSeed);
             if (swarm == null) continue;
@@ -1228,6 +1232,67 @@ public final class BattleSetup {
                 return new float[]{lzCenterX, gridH + SHUTTLE_OFFMAP_Y,
                         lzCenterX, gridH + SHUTTLE_OFFMAP_Y + 4f};
         }
+    }
+
+    /** Installs the physical evac craft and the local defense-line reserve. */
+    private static void installRescuePickup(
+            BattleSimulation sim, CivilianEvacuationPlacement placement,
+            int evacueeCount, int gridW, int gridH) {
+        LandingPad.Approach approach = nearestEdgeApproach(
+                placement.liftX, placement.liftY, gridW, gridH);
+        float pickupX = placement.liftX + 0.5f;
+        float pickupY = placement.liftY + 0.5f;
+        float[] pickupEntry = shuttleEntryFor(
+                pickupX, pickupY, gridW, gridH, approach);
+        long pickupId = sim.spawnShuttle(
+                ShuttleType.VALKYRIE, Faction.CIVILIAN,
+                pickupX, pickupY,
+                pickupEntry[0], pickupEntry[1],
+                pickupEntry[2], pickupEntry[3], 0f);
+        ShuttleMission pickup = sim.world().mission(pickupId);
+        pickup.marinesRemaining = 0;
+        pickup.awaitingEvacuees = true;
+        pickup.evacueeCapacity = evacueeCount;
+        if (!sim.attachCivilianPickupShuttle(pickupId)) {
+            throw new IllegalStateException(
+                    "civilian rescue pickup shuttle attachment failed");
+        }
+
+        int[] route = GridPathfinder.findPath(sim.getGrid(),
+                placement.liftX, placement.liftY,
+                placement.shelterApproachX, placement.shelterApproachY);
+        int supportCell = Math.min(7, Paths.cellCount(route) - 1);
+        float supportX = Paths.isEmpty(route)
+                ? pickupX : Paths.cellX(route, supportCell) + 0.5f;
+        float supportY = Paths.isEmpty(route)
+                ? pickupY : Paths.cellY(route, supportCell) + 0.5f;
+        float[] supportEntry = shuttleEntryFor(
+                supportX, supportY, gridW, gridH, approach);
+        if (!sim.configureRescuePickupSupport(
+                placement, supportX, supportY,
+                supportEntry[0], supportEntry[1],
+                supportEntry[2], supportEntry[3])) {
+            throw new IllegalStateException(
+                    "civilian rescue pickup support configuration failed");
+        }
+    }
+
+    private static LandingPad.Approach nearestEdgeApproach(
+            int x, int y, int width, int height) {
+        int nearest = y;
+        LandingPad.Approach approach = LandingPad.Approach.SOUTH;
+        if (height - 1 - y < nearest) {
+            nearest = height - 1 - y;
+            approach = LandingPad.Approach.NORTH;
+        }
+        if (x < nearest) {
+            nearest = x;
+            approach = LandingPad.Approach.WEST;
+        }
+        if (width - 1 - x < nearest) {
+            approach = LandingPad.Approach.EAST;
+        }
+        return approach;
     }
 
     /**

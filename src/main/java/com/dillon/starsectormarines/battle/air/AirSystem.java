@@ -384,7 +384,8 @@ public class AirSystem {
                         }
                         mission.deboardCountdown = type.deboardInterval;
                     }
-                    if (mission.marinesRemaining == 0) {
+                    if (mission.marinesRemaining == 0
+                            && !mission.awaitingEvacuees) {
                         if (shouldHoverLoiter(id, mission)) {
                             // Lift off the LZ and station-keep above the squad
                             // for the type's fire-support window. Initial hover

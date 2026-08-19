@@ -35,6 +35,16 @@ class PatronMemoryVoiceTest {
     }
 
     @Test
+    void parsesEveryLocalEchoPool() throws Exception {
+        Map<PatronEngagementOutcome, String[]> parsed =
+                PatronMemoryVoice.parseLocalEcho(validRoot());
+
+        assertEquals(PatronEngagementOutcome.values().length, parsed.size());
+        assertEquals("COMPLETED local line", parsed.get(
+                PatronEngagementOutcome.COMPLETED)[0]);
+    }
+
+    @Test
     void rejectsMissingEmptyAndNonStringPools() throws Exception {
         JSONObject missing = validRoot();
         missing.getJSONObject(PatronMemoryVoice.MEMORY_KEY)
@@ -80,6 +90,28 @@ class PatronMemoryVoiceTest {
     }
 
     @Test
+    void rejectsMalformedLocalEchoPools() throws Exception {
+        JSONObject missing = validRoot();
+        missing.getJSONObject(PatronMemoryVoice.LOCAL_ECHO_KEY)
+                .remove(PatronEngagementOutcome.FAILED.name());
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseLocalEcho(missing));
+
+        JSONObject empty = validRoot();
+        empty.getJSONObject(PatronMemoryVoice.LOCAL_ECHO_KEY).put(
+                PatronEngagementOutcome.WITHDREW.name(), new JSONArray());
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseLocalEcho(empty));
+
+        JSONObject invalid = validRoot();
+        invalid.getJSONObject(PatronMemoryVoice.LOCAL_ECHO_KEY).put(
+                PatronEngagementOutcome.EMPLOYER_BREACHED.name(),
+                new JSONArray().put(4));
+        assertThrows(IllegalStateException.class,
+                () -> PatronMemoryVoice.parseLocalEcho(invalid));
+    }
+
+    @Test
     void authoredVoiceFileContainsValidMemoryAndContinuityPools()
             throws Exception {
         Path path = Path.of("mod", "data", "marines",
@@ -92,6 +124,8 @@ class PatronMemoryVoiceTest {
                 PatronMemoryVoice.parse(root).size());
         assertEquals(PatronRelationshipPattern.values().length,
                 PatronMemoryVoice.parseContinuity(root).size());
+        assertEquals(PatronEngagementOutcome.values().length,
+                PatronMemoryVoice.parseLocalEcho(root).size());
     }
 
     private static JSONObject validRoot() throws Exception {
@@ -110,6 +144,13 @@ class PatronMemoryVoiceTest {
                     new JSONArray().put(pattern.name() + " line"));
         }
         root.put(PatronMemoryVoice.CONTINUITY_KEY, continuity);
+        JSONObject localEcho = new JSONObject();
+        for (PatronEngagementOutcome outcome
+                : PatronEngagementOutcome.values()) {
+            localEcho.put(outcome.name(),
+                    new JSONArray().put(outcome.name() + " local line"));
+        }
+        root.put(PatronMemoryVoice.LOCAL_ECHO_KEY, localEcho);
         return root;
     }
 }

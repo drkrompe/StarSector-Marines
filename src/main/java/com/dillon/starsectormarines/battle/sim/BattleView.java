@@ -173,4 +173,7 @@ public interface BattleView {
 
     /** Whether a marine has physically reached the civilian shelter entrance. */
     boolean isCivilianEvacuationTriggered();
+
+    /** Whether boarding is gated by a physical rescue shuttle. */
+    boolean hasCivilianPickupShuttle();
 }

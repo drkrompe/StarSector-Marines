@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
@@ -16,8 +17,16 @@ public final class RescueEscortCommand implements MissionCommand {
 
     /** Keeps the firing line ahead of the cohort instead of holding behind it. */
     public static final int ADVANCE_SCREEN_CELLS = 5;
+    /** Engaged columns ratchet their screen ahead by this many route cells. */
+    public static final int ENGAGED_BOUND_CELLS = 2;
+    /** Sim ticks between forced bounds: five seconds at the fixed 30 Hz rate. */
+    public static final int ENGAGED_BOUND_TICKS = 150;
 
     private final CivilianEvacuationPlacement placement;
+    private int[] evacuationRoute = GridPathfinder.EMPTY_PATH;
+    private int cohortRouteCell;
+    private int screenRouteCell = -1;
+    private int nextEngagedBoundTick = -1;
 
     public RescueEscortCommand(CivilianEvacuationPlacement placement) {
         if (placement == null) {
@@ -40,17 +49,15 @@ public final class RescueEscortCommand implements MissionCommand {
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
+            if (squad.rescuePickupGuard) {
+                assignEscort(squad, placement.liftX, placement.liftY);
+                continue;
+            }
             if (target == null) {
                 squad.assignedObjective = null;
                 continue;
             }
-            ObjectiveAssignment current = squad.assignedObjective;
-            if (current == null || current.kind() != AssignmentKind.ESCORT
-                    || current.targetCellX() != target[0]
-                    || current.targetCellY() != target[1]) {
-                squad.assignedObjective = ObjectiveAssignment.escort(
-                        squad.id, target[0], target[1]);
-            }
+            assignEscort(squad, target[0], target[1]);
         }
     }
 
@@ -63,13 +70,77 @@ public final class RescueEscortCommand implements MissionCommand {
     private int[] forwardEscortTarget(BattleView sim) {
         int[] center = activeCohortCenter(sim);
         if (center == null) return null;
-        int[] route = GridPathfinder.findPath(sim.getGrid(), center[0], center[1],
-                placement.liftX, placement.liftY);
-        if (Paths.isEmpty(route)) return center;
-        int routeCell = Math.min(ADVANCE_SCREEN_CELLS,
-                Paths.cellCount(route) - 1);
-        return new int[]{Paths.cellX(route, routeCell),
-                Paths.cellY(route, routeCell)};
+        if (Paths.isEmpty(evacuationRoute)) {
+            evacuationRoute = GridPathfinder.findPath(sim.getGrid(),
+                    center[0], center[1], placement.liftX, placement.liftY);
+            if (Paths.isEmpty(evacuationRoute)) return center;
+        }
+
+        cohortRouteCell = Math.max(cohortRouteCell,
+                nearestRouteCell(center[0], center[1]));
+        boolean engaged = mobileEscortEngaged(sim);
+        if (screenRouteCell < 0) {
+            screenRouteCell = cohortRouteCell + (engaged
+                    ? ENGAGED_BOUND_CELLS : ADVANCE_SCREEN_CELLS);
+            if (engaged) {
+                nextEngagedBoundTick = sim.getSimTickIndex()
+                        + ENGAGED_BOUND_TICKS;
+            }
+        } else if (engaged) {
+            if (nextEngagedBoundTick < 0) {
+                nextEngagedBoundTick = sim.getSimTickIndex()
+                        + ENGAGED_BOUND_TICKS;
+            }
+            while (sim.getSimTickIndex() >= nextEngagedBoundTick) {
+                screenRouteCell += ENGAGED_BOUND_CELLS;
+                nextEngagedBoundTick += ENGAGED_BOUND_TICKS;
+            }
+        } else {
+            screenRouteCell = Math.max(screenRouteCell,
+                    cohortRouteCell + ADVANCE_SCREEN_CELLS);
+            nextEngagedBoundTick = -1;
+        }
+        screenRouteCell = Math.min(screenRouteCell,
+                Paths.cellCount(evacuationRoute) - 1);
+        return new int[]{Paths.cellX(evacuationRoute, screenRouteCell),
+                Paths.cellY(evacuationRoute, screenRouteCell)};
+    }
+
+    private int nearestRouteCell(int x, int y) {
+        int best = cohortRouteCell;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int i = cohortRouteCell, n = Paths.cellCount(evacuationRoute);
+             i < n; i++) {
+            int dx = Paths.cellX(evacuationRoute, i) - x;
+            int dy = Paths.cellY(evacuationRoute, i) - y;
+            int distance = dx * dx + dy * dy;
+            if (distance < bestDistance) {
+                best = i;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private static boolean mobileEscortEngaged(BattleView sim) {
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction == Faction.MARINE && squad.aliveMembers > 0
+                    && !squad.rescuePickupGuard
+                    && squad.alertLevel == SquadAlertLevel.ENGAGED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void assignEscort(Squad squad, int x, int y) {
+        ObjectiveAssignment current = squad.assignedObjective;
+        if (current == null || current.kind() != AssignmentKind.ESCORT
+                || current.targetCellX() != x
+                || current.targetCellY() != y) {
+            squad.assignedObjective = ObjectiveAssignment.escort(
+                    squad.id, x, y);
+        }
     }
 
     /** Picks the active representative nearest the cohort centroid. */
