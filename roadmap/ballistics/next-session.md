@@ -36,6 +36,14 @@
   overshoots expire without false impacts. Full record:
   [`complete/s3b-target-plane-accuracy.md`](complete/s3b-target-plane-accuracy.md).
   Post-merge: 1536 tests green (1535 root + 1 asset-pipeline).
+- **S3c SHIPPED** on `session/ballistics-obstacle-heights`, implementation
+  commit `139fcb3b`. Doodad JSON now authors ballistic half-heights;
+  `DoodadService` preserves stacked profiles by cover level; directional
+  wall-edge cover carries a paired catch band. The resolver rolls either
+  obstacle only after vertical overlap while structural walls stay full-height.
+  Full record:
+  [`complete/s3c-obstacle-catch-heights.md`](complete/s3c-obstacle-catch-heights.md).
+  1541 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -43,15 +51,7 @@
   circle (shared with SeparationSystem/Detonations/WorldPicker), NOT a
   new per-type stat.
 
-## Active: S3c — obstacle catch heights
-
-Contract: [`stories/s3c-obstacle-catch-heights.md`](stories/s3c-obstacle-catch-heights.md).
-Keep structural wall ray stops full-height, but gate doodad crossing and
-directional wall-edge block rolls on the S3b round Z intersecting an authored
-catch band. Doodad heights are data-driven; existing block percentages become
-conditional probabilities rather than changing value.
-
-## After S3c: contract S4 — direct-fire unification
+## Next: contract S4 — direct-fire unification
 
 S4 is outlined in `overview.md` but does not yet have a story contract. Write
 that contract before implementation. Scope: mech chaingun and turret direct-
@@ -68,7 +68,7 @@ lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the
 completed S3 structure.
 
-## Where things live (post-S3b)
+## Where things live (post-S3c)
 
 - `battle/combat/BallisticResolver.java` — the fire-time ray walk,
   solved in the time domain against each candidate's extrapolated
@@ -85,8 +85,10 @@ completed S3 structure.
   drained in `BattleSimulation`'s serial SHOTS phase (sink guards
   `isAliveById`).
 - `UnitSpatialIndex.gatherAlongSegment` — ray gather; call-local dedupe,
-  parallel-safe. `DoodadService.getDoodadLevelOnCell` — own-cell doodad
-  level for crossings.
+  parallel-safe. `DoodadDef.ballisticHalfHeight` carries the authored prop
+  silhouette; `DoodadService.getDoodadLevelOnCell(x, y, z)` resolves stacked
+  own-cell profiles for crossings. `NavigationGrid` pairs directional cover
+  levels with edge-clip catch half-heights.
 - `CoverAccuracyResolver` still lives — mech (`HeavyWeapons`) and
   infantry `fireSecondary` paths use it until S4 unifies direct fire.
 - `ops/battleview/ShotFx.java` — `Bolt` texture/length/width recipes + shared

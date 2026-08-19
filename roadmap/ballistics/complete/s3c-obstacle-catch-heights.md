@@ -1,5 +1,19 @@
 # S3c — obstacle catch heights
 
+> **Shipped 2026-08-19** on `session/ballistics-obstacle-heights`,
+> implementation commit `139fcb3b`. Probabilistic doodad crossings and
+> directional wall-edge cover now test the round's Z against a data-driven
+> catch band before rolling their unchanged block chance. Structural walls
+> remain full-height hard stops. Full suite: 1541 tests green.
+>
+> **Landed vs. planned deviations:** none. Level-zero and vertically cleared
+> cover contacts no longer consume a random value, which is the specified
+> two-stage interception order and keeps deterministic queues honest.
+
+Original contract below, kept for the record.
+
+---
+
 > Let visible high/low fire interact honestly with cover. Structural walls
 > remain full-height hard stops; probabilistic doodad and wall-edge cover rolls
 > occur only when the round's target-plane Z intersects an authored catch band.
