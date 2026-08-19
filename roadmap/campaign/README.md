@@ -44,7 +44,7 @@ Each thread is a sub-directory with its own `overview.md`, `stories/`
 | [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
 | [`loot/`](loot/overview.md) | **active** | Manifest + picker + capacity-aware settlement are code-complete; in-game shipping check and recovery modifiers are next. Consumes the contract salvage entitlement. Highest user value. |
 | [`infrastructure/`](infrastructure/overview.md) | designed | Buildings that modulate garrison default rates and house power; the mitigation side of scale inefficiency. |
-| [`narrative/`](narrative/overview.md) | **S1–S3 shipped** | Comms-officer narration with exact-once patron history, two-engagement patterns, and bounded local cross-patron echoes. |
+| [`narrative/`](narrative/overview.md) | **S1–S4 shipped** | Comms-officer narration with exact-once patron history, two-engagement patterns, bounded local echoes, and confirmed patron-linked Chronicle callbacks. |
 | [`t3-endgame/`](t3-endgame/overview.md) | **shipped** | Tier-4 faction-flip handoff and complete kingmaker Last Testament capstone. The only System allowed to write back to vanilla state. |
 
 [`flavors/`](flavors/README.md) is an authoring bucket (one file per
