@@ -87,9 +87,10 @@ public enum BlockKind {
     /**
      * Multi-leaf compound — gated residential block claimed from 2-3
      * adjacent leaves. Lighter feel than {@link #MILITARY_BASE}: lower-HP
-     * INDOOR wall ring, GRASS-yard interior, a single main gate. Sub-
-     * buildings carved as residential dwellings. Reads as "walled-off
-     * neighborhood" — suburban gated community in space.
+     * INDOOR wall ring, paved shared courtyard, and a single main gate.
+     * Qualifying sub-buildings become courtyard-facing apartment blocks with
+     * lobbies, two-cell halls, living rooms, and bedrooms. Reads as a
+     * "walled-off neighborhood" — suburban gated community in space.
      *
      * <p>Demoted to {@link #BUILDING_RESIDENTIAL} if the claim pass fails
      * to grow it.
