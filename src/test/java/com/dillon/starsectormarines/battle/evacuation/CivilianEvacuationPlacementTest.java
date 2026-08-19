@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,8 @@ class CivilianEvacuationPlacementTest {
 
         CivilianEvacuationPlacement placement =
                 CivilianEvacuationPlacement.find(
-                        grid, List.of(lab, home), 77L);
+                        grid, new CellTopology(40, 32),
+                        List.of(lab, home), 77L);
 
         assertNotNull(placement);
         assertEquals(10, placement.shelterX);
@@ -84,10 +86,12 @@ class CivilianEvacuationPlacementTest {
 
         CivilianEvacuationPlacement a =
                 CivilianEvacuationPlacement.find(
-                        grid, List.of(first, second), 941L);
+                        grid, new CellTopology(24, 18),
+                        List.of(first, second), 941L);
         CivilianEvacuationPlacement b =
                 CivilianEvacuationPlacement.find(
-                        grid, List.of(second, first), 941L);
+                        grid, new CellTopology(24, 18),
+                        List.of(second, first), 941L);
 
         assertNotNull(a);
         assertNotNull(b);
@@ -105,13 +109,55 @@ class CivilianEvacuationPlacementTest {
     void invalidOrIncompleteMapsProduceNoPartialPlacement() {
         NavigationGrid open = openGrid(12, 12);
         assertNull(CivilianEvacuationPlacement.find(
-                open, List.of(poi(PointOfInterest.Kind.DEPOT, 6, 6)), 1L));
+                open, new CellTopology(12, 12),
+                List.of(poi(PointOfInterest.Kind.DEPOT, 6, 6)), 1L));
 
         NavigationGrid tinyPocket = new NavigationGrid(12, 12);
         tinyPocket.setWalkableFloor(6, 6);
         tinyPocket.setWalkableFloor(0, 0);
         assertNull(CivilianEvacuationPlacement.find(tinyPocket,
+                new CellTopology(12, 12),
                 List.of(poi(PointOfInterest.Kind.RESIDENTIAL, 6, 6)), 1L));
+    }
+
+    @Test
+    void pickupCenterRequiresAClearOutdoorFiveByFiveFootprint() {
+        NavigationGrid grid = openGrid(40, 32);
+        CellTopology topology = new CellTopology(40, 32);
+        PointOfInterest home = poi(PointOfInterest.Kind.RESIDENTIAL, 10, 8);
+        CivilianEvacuationPlacement first = CivilianEvacuationPlacement.find(
+                grid, topology, List.of(home), 412L);
+        assertNotNull(first);
+        for (int y = first.liftY - CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+             y <= first.liftY + CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+             y++) {
+            for (int x = first.liftX - CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+                 x <= first.liftX + CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+                 x++) {
+                topology.setBuildingId(x, y, 7);
+            }
+        }
+
+        CivilianEvacuationPlacement replacement =
+                CivilianEvacuationPlacement.find(grid, topology,
+                        List.of(home), 412L);
+
+        assertNotNull(replacement);
+        assertTrue(replacement.liftX != first.liftX
+                || replacement.liftY != first.liftY);
+        for (int y = replacement.liftY
+                     - CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+             y <= replacement.liftY
+                     + CivilianEvacuationPlacement.LIFT_ZONE_RADIUS; y++) {
+            for (int x = replacement.liftX
+                         - CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+                 x <= replacement.liftX
+                         + CivilianEvacuationPlacement.LIFT_ZONE_RADIUS; x++) {
+                assertTrue(grid.isWalkable(x, y));
+                assertEquals(0, topology.getBuildingId(x, y),
+                        "every cell in the 5x5 pickup trigger must be outdoors");
+            }
+        }
     }
 
     private static NavigationGrid openGrid(int width, int height) {

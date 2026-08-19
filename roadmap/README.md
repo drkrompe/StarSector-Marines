@@ -184,8 +184,11 @@ universe over time, not retrofitted into intel slots.
    to distinct cells around each squad rally instead of racing for the same
    deferred occupancy claim. The pickup mech also retains its center/five-point
    LZ patrol during contact, fires from that route, and cannot wander into a
-   generic field-overwatch or infantry-backstop assignment (`bdfd5bf8`). Manual
-   cadence and post-rebalance feel validation remain queued.
+   generic field-overwatch or infantry-backstop assignment (`bdfd5bf8`). The
+   escort's timed advance is now tracked per squad, so one locally pressured
+   unit no longer stutter-steps the entire marine force. Lift placement now
+   requires a fully walkable, outdoor, non-doorway 5x5 objective footprint
+   (`5a0da48d`). Manual cadence and post-rebalance feel validation remain queued.
    See
    [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
 3. **Campaign narrative follow-through** — S1 patron engagement memory through

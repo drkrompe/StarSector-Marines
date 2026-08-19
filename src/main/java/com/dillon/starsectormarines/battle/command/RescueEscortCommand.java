@@ -12,24 +12,28 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Marine commander for civilian rescue: rally the mobile force on the bunker
  * entrance, then continuously retarget it to the moving cohort. Mobile squads
  * occupy distinct line-and-depth slots around that moving screen instead of
- * converging on one shared stop circle. Pickup guards retain their authored
- * perimeter posts.
+ * converging on one shared stop circle. Each squad slows independently while
+ * locally pressured; pickup guards retain their authored perimeter posts.
  */
 public final class RescueEscortCommand implements MissionCommand {
 
     /** Keeps the firing line ahead of the cohort instead of holding behind it. */
     public static final int ADVANCE_SCREEN_CELLS = 5;
-    /** Engaged columns ratchet their screen ahead by this many route cells. */
+    /** Locally pressured squads ratchet their screen ahead by this many route cells. */
     public static final int ENGAGED_BOUND_CELLS = 2;
     /** Sim ticks between forced bounds: five seconds at the fixed 30 Hz rate. */
     public static final int ENGAGED_BOUND_TICKS = 150;
-    /** An engaged alert only slows the column while a live attacker is locally relevant. */
+    /** An engaged alert only slows its squad while a live attacker is locally relevant. */
     public static final int ENGAGED_SLOW_RADIUS = 12;
     /** Four support squads fit across each echelon without occupying the lead lane. */
     static final int SQUADS_PER_ECHELON = 4;
@@ -45,8 +49,15 @@ public final class RescueEscortCommand implements MissionCommand {
     private final CivilianEvacuationPlacement placement;
     private int[] evacuationRoute = GridPathfinder.EMPTY_PATH;
     private int cohortRouteCell;
-    private int screenRouteCell = -1;
-    private int nextEngagedBoundTick = -1;
+    private final Map<Integer, SquadAdvanceState> squadAdvance =
+            new HashMap<>();
+
+    private static final class SquadAdvanceState {
+        private int screenRouteCell = -1;
+        private int nextEngagedBoundTick = -1;
+    }
+
+    private record EscortScreen(int[] target, int routeCell) {}
 
     public RescueEscortCommand(CivilianEvacuationPlacement placement) {
         if (placement == null) {
@@ -63,11 +74,12 @@ public final class RescueEscortCommand implements MissionCommand {
     @Override
     public void tick(BattleView sim) {
         List<Squad> mobile = mobileSquads(sim);
+        discardMissingSquadState(mobile);
         boolean evacuationTriggered = sim.isCivilianEvacuationTriggered();
-        int[] target = evacuationTriggered
-                ? forwardEscortTarget(sim)
-                : new int[]{placement.shelterApproachX,
-                placement.shelterApproachY};
+        EscortScreen screen = evacuationTriggered
+                ? forwardEscortScreen(sim)
+                : new EscortScreen(new int[]{placement.shelterApproachX,
+                placement.shelterApproachY}, -1);
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
@@ -77,17 +89,19 @@ public final class RescueEscortCommand implements MissionCommand {
                 }
             }
         }
-        if (target == null) {
+        if (screen == null) {
             for (Squad squad : mobile) squad.assignedObjective = null;
             return;
         }
 
-        int[] forward = escortDirection(target, evacuationTriggered,
-                mobile);
+        int[] forward = escortDirection(screen.target(), screen.routeCell(),
+                evacuationTriggered, mobile);
         List<int[]> claimed = new ArrayList<>();
         for (int slot = 0; slot < mobile.size(); slot++) {
             Squad squad = mobile.get(slot);
-            int[] rally = formationRally(target, forward, slot,
+            int[] squadTarget = screen.routeCell() >= 0
+                    ? squadEscortTarget(squad, sim) : screen.target();
+            int[] rally = formationRally(squadTarget, forward, slot,
                     squad, claimed, sim);
             assignEscort(squad, rally[0], rally[1]);
         }
@@ -105,10 +119,17 @@ public final class RescueEscortCommand implements MissionCommand {
         return result;
     }
 
-    private int[] escortDirection(int[] target, boolean evacuationTriggered,
+    private void discardMissingSquadState(List<Squad> mobile) {
+        Set<Integer> active = new HashSet<>();
+        for (Squad squad : mobile) active.add(squad.id);
+        squadAdvance.keySet().removeIf(id -> !active.contains(id));
+    }
+
+    private int[] escortDirection(int[] target, int targetRouteCell,
+                                   boolean evacuationTriggered,
                                    List<Squad> mobile) {
         if (evacuationTriggered && !Paths.isEmpty(evacuationRoute)) {
-            int from = Math.max(0, screenRouteCell - 1);
+            int from = Math.max(0, targetRouteCell - 1);
             int dx = target[0] - Paths.cellX(evacuationRoute, from);
             int dy = target[1] - Paths.cellY(evacuationRoute, from);
             if (dx != 0 || dy != 0) return cardinalDirection(dx, dy);
@@ -223,43 +244,57 @@ public final class RescueEscortCommand implements MissionCommand {
      * without allowing every squad to settle behind civilians whose own
      * forward leash is deliberately much shorter.
      */
-    private int[] forwardEscortTarget(BattleView sim) {
+    private EscortScreen forwardEscortScreen(BattleView sim) {
         int[] center = activeCohortCenter(sim);
         if (center == null) return null;
         if (Paths.isEmpty(evacuationRoute)) {
             evacuationRoute = GridPathfinder.findPath(sim.getGrid(),
                     center[0], center[1], placement.liftX, placement.liftY);
-            if (Paths.isEmpty(evacuationRoute)) return center;
+            if (Paths.isEmpty(evacuationRoute)) {
+                return new EscortScreen(center, -1);
+            }
         }
 
         cohortRouteCell = Math.max(cohortRouteCell,
                 nearestRouteCell(center[0], center[1]));
-        boolean engaged = mobileEscortUnderPressure(sim);
-        if (screenRouteCell < 0) {
-            screenRouteCell = cohortRouteCell + (engaged
+        int normalScreenRouteCell = Math.min(
+                cohortRouteCell + ADVANCE_SCREEN_CELLS,
+                Paths.cellCount(evacuationRoute) - 1);
+        return new EscortScreen(new int[]{
+                Paths.cellX(evacuationRoute, normalScreenRouteCell),
+                Paths.cellY(evacuationRoute, normalScreenRouteCell)},
+                normalScreenRouteCell);
+    }
+
+    private int[] squadEscortTarget(Squad squad, BattleView sim) {
+        SquadAdvanceState state = squadAdvance.computeIfAbsent(squad.id,
+                ignored -> new SquadAdvanceState());
+        boolean engaged = squadUnderPressure(squad, sim);
+        if (state.screenRouteCell < 0) {
+            state.screenRouteCell = cohortRouteCell + (engaged
                     ? ENGAGED_BOUND_CELLS : ADVANCE_SCREEN_CELLS);
             if (engaged) {
-                nextEngagedBoundTick = sim.getSimTickIndex()
+                state.nextEngagedBoundTick = sim.getSimTickIndex()
                         + ENGAGED_BOUND_TICKS;
             }
         } else if (engaged) {
-            if (nextEngagedBoundTick < 0) {
-                nextEngagedBoundTick = sim.getSimTickIndex()
+            if (state.nextEngagedBoundTick < 0) {
+                state.nextEngagedBoundTick = sim.getSimTickIndex()
                         + ENGAGED_BOUND_TICKS;
             }
-            while (sim.getSimTickIndex() >= nextEngagedBoundTick) {
-                screenRouteCell += ENGAGED_BOUND_CELLS;
-                nextEngagedBoundTick += ENGAGED_BOUND_TICKS;
+            while (sim.getSimTickIndex() >= state.nextEngagedBoundTick) {
+                state.screenRouteCell += ENGAGED_BOUND_CELLS;
+                state.nextEngagedBoundTick += ENGAGED_BOUND_TICKS;
             }
         } else {
-            screenRouteCell = Math.max(screenRouteCell,
+            state.screenRouteCell = Math.max(state.screenRouteCell,
                     cohortRouteCell + ADVANCE_SCREEN_CELLS);
-            nextEngagedBoundTick = -1;
+            state.nextEngagedBoundTick = -1;
         }
-        screenRouteCell = Math.min(screenRouteCell,
+        state.screenRouteCell = Math.min(state.screenRouteCell,
                 Paths.cellCount(evacuationRoute) - 1);
-        return new int[]{Paths.cellX(evacuationRoute, screenRouteCell),
-                Paths.cellY(evacuationRoute, screenRouteCell)};
+        return new int[]{Paths.cellX(evacuationRoute, state.screenRouteCell),
+                Paths.cellY(evacuationRoute, state.screenRouteCell)};
     }
 
     private int nearestRouteCell(int x, int y) {
@@ -278,25 +313,23 @@ public final class RescueEscortCommand implements MissionCommand {
         return best;
     }
 
-    private static boolean mobileEscortUnderPressure(BattleView sim) {
+    private static boolean squadUnderPressure(Squad squad, BattleView sim) {
+        if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0
+                || squad.rescuePickupGuard
+                || squad.alertLevel != SquadAlertLevel.ENGAGED) return false;
         LongBucket nearby = new LongBucket();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction == Faction.MARINE && squad.aliveMembers > 0
-                    && !squad.rescuePickupGuard
-                    && squad.alertLevel == SquadAlertLevel.ENGAGED) {
-                for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                    long member = sim.liveUnitAt(i);
-                    if (!sim.squad().hasSquad(member)
-                            || sim.squad().squadId(member) != squad.id) {
-                        continue;
-                    }
-                    sim.getUnitIndex().gather(sim.world().x(member),
-                            sim.world().y(member), ENGAGED_SLOW_RADIUS,
-                            nearby);
-                    for (int k = 0, count = nearby.size; k < count; k++) {
-                        if (sim.identity().faction(nearby.ids[k])
-                                == Faction.DEFENDER) return true;
-                    }
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long member = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(member)
+                    || sim.squad().squadId(member) != squad.id) {
+                continue;
+            }
+            sim.getUnitIndex().gather(sim.world().x(member),
+                    sim.world().y(member), ENGAGED_SLOW_RADIUS, nearby);
+            for (int k = 0, count = nearby.size; k < count; k++) {
+                if (sim.identity().faction(nearby.ids[k])
+                        == Faction.DEFENDER) {
+                    return true;
                 }
             }
         }
