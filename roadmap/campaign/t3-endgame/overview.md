@@ -1,13 +1,14 @@
 # Campaign T3 endgame — the faction flip
 
-**Status:** ownership/rank/diplomacy/player-reputation path CODE COMPLETE
-(2026-08-12); player-facing capstone narrative remains.
+**Status:** ownership/rank/diplomacy/player-reputation path + kingmaker
+testimony foundation CODE COMPLETE (2026-08-19); capstone editorial and
+player-facing delivery remain.
 
 **Implemented:** `76c7579a`, `49f057ad`, `9bf2356b`, `bdb45f7b`,
 `35ec0ccf`, `77657bb8`, `51fad0ca`, `42f00725`, `ae35056d`, `870d5b96`,
 `5174f44c`, `ad6ff5fd`, `527535fb`, `d7be2649`, `31be86ed`, `926047e8`,
 `4332927f`, `50591863`, `3610923d`, `487134ae`, `551081ab`, `4f6afb8b`,
-`753f3969`, `0ef347d3`, `03422b15`
+`753f3969`, `0ef347d3`, `03422b15`, `946262b2`
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
@@ -144,8 +145,9 @@ claim is `PREPARED`, then renders the concrete faction transition exactly once.
 - The kingmaker capstone — see the locked
   [Last Testament story](stories/kingmaker-capstone.md) and
   [moral compass](../moral-compass.md) for the multi-axis reveal that pays off at
-  this tier. Its hidden ledger foundation and three meaningful source families
-  are shipped; the first persisted testimony slice is in progress.
+  this tier. Its hidden ledger foundation, three meaningful source families,
+  and persisted testimony snapshot are shipped; deterministic evidence editing
+  and player-facing delivery remain.
 
 ## Related
 
