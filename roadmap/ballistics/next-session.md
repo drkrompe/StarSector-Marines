@@ -67,6 +67,11 @@
   enemy transfers into it. Friendly contacts retain their 35% base chance,
   proximity ramp, and half damage. The full repository suite passes 1,787
   tests.
+- **Civilian direct-fire protection SHIPPED** in `bf6fdd64`. Marine ballistic
+  sources now omit civilian-faction bodies from intended and incidental unit
+  contacts, while defender sources retain ordinary civilian targeting and
+  collision. This is a direct-fire rule; it does not redefine civilians as a
+  marine faction or suppress alien damage.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 100% hostile / 35%
   friendly incidental base catches). NOTE one design-doc drift, corrected in

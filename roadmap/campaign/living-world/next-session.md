@@ -170,9 +170,12 @@ a direct advance, while clustered pressure can force a bounded backstep without
 discarding the squad route (`c6589910`). The latest health pass halves both
 aliens again to one sixteenth of their original pools: 1.875 HP for generic
 aliens and 1.5 HP for runners. Service-grade fire now needs two pulse hits,
-three SMG hits, or one DMR hit on either target (`15a11674`). Pickup timing,
-avoidance feel, militia cadence, mech mix, through-fire strength, and engaged
-bounds remain manual.
+three SMG hits, or one DMR hit on either target (`15a11674`). The latest rescue
+playtest correction excludes civilians from marine direct-fire contacts,
+clamps authored movement plus alien avoidance to the mover's speed stat, and
+preserves each delivered militia squad's authored star point instead of
+collapsing all five onto the lift center (`bf6fdd64`). Pickup timing, militia
+cadence, mech mix, through-fire strength, and engaged bounds remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -397,6 +400,9 @@ swarm tuning remain in the shared deferred queue.
   (`c6589910`).
 - G6 sixteenth-health follow-up — 1.875/1.5 HP aliens with explicit
   service-grade pulse/SMG/DMR hit-count contracts (`15a11674`).
+- G5/G6 rescue playtest correction — marine direct-fire civilian immunity,
+  combined movement/avoidance speed cap, and persistent militia perimeter
+  posts (`bf6fdd64`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
