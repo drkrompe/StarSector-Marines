@@ -91,7 +91,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
                         sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget), sim.world().cellY(currentBurstTarget));
-                sim.fireShotFrom(sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, currentBurstTarget,
+                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
@@ -106,10 +106,10 @@ public final class TurretBehavior implements UnitBehavior {
 
         if (s.fireThisTick) {
             if (kind.burstCount > 1) {
-                // Burst kinds route through fireShotFrom so the scatter / AoE /
-                // raycast pipeline applies. Latch the remaining rounds for the
-                // pump to drain.
-                sim.fireShotFrom(sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, s.target,
+                // Burst kinds route through fireShotFrom so their modeled
+                // round / AoE procedure applies. Latch the remaining rounds
+                // for the pump to drain.
+                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
                 if (s.target != 0L) {

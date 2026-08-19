@@ -3,28 +3,15 @@ package com.dillon.starsectormarines.battle.combat;
 import java.util.Random;
 
 /**
- * Single source of truth for where a fired round ends up visually, around a
- * target. Shared across {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireShot},
- * {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireSecondary}, and
- * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
+ * Legacy target-relative scatter for indirect LRM artillery. Ground direct
+ * fire uses {@link TargetPlaneAim} through {@link BallisticResolver}; this
+ * helper intentionally remains only for the indirect procedure.
  *
- * <ul>
- *   <li><b>Targeting</b> uses the target's smooth center position ({@code
- *       World.renderX}/{@code renderY}, the tolerant center-based reads,
- *       passed in by the caller), not the logical {@code cellX}/{@code
- *       cellY}. Tracers terminate on the sprite, not on the cell the sprite
- *       is lerping toward.</li>
- *   <li><b>Hits</b> land near the target with a universal
- *       {@link #HIT_JITTER_BASELINE} plus the weapon's distance-scaled
- *       {@code effectiveSpread}. Damage was already applied against the
- *       target's {@code Entity} reference — this is pure visual, so even
- *       tight-spread weapons (DMR, militia single-shot) get organic
- *       near-center variance instead of robotic dead-center hits.</li>
- *   <li><b>Misses</b> scatter in the {@link #MISS_OFFSET_MIN}..
- *       {@link #MISS_OFFSET_MAX} ring around the target, additively widened
- *       by {@code effectiveSpread} so a stray long-range round wanders
- *       further than a stray close-range one.</li>
- * </ul>
+ * <p>Targeting uses the target's smooth center position supplied by the
+ * caller. Hits land within a small organic baseline plus distance-scaled
+ * spread; misses land in the {@link #MISS_OFFSET_MIN}..
+ * {@link #MISS_OFFSET_MAX} ring, widened by that same spread. The returned
+ * point is both the projectile endpoint and its eventual detonation center.
  */
 public final class ShotEndpoint {
 
@@ -38,7 +25,7 @@ public final class ShotEndpoint {
      * any weapon-specific spread — keeps DMR shots from being pixel-perfect
      * lock-ons every time.
      */
-    public static final float HIT_JITTER_BASELINE = 0.20f;
+    private static final float HIT_JITTER_BASELINE = 0.20f;
 
     /** Resolved endpoint pair. Returned as a record so callers stay readable; JIT scalar-replaces these on the hot path. */
     public record Endpoint(float x, float y) {}

@@ -203,10 +203,10 @@ public final class ShotService {
     /**
      * Advances every in-flight {@link Projectile} by {@code dt}. Intercepted
      * projectiles (point-defense future hook) are removed without detonating;
-     * expired ones fire their {@link Projectile#onArrival} payload via the
-     * supplied {@code sink} and land in {@link #projectilesArrivedThisFrame}
-     * for the renderer's impact-FX dispatch. Reverse iteration for in-place
-     * removal.
+     * expired ones with a non-null {@link Projectile#onArrival} payload fire
+     * it via the supplied {@code sink} and land in
+     * {@link #projectilesArrivedThisFrame} for renderer impact FX. Payloadless
+     * direct-fire overshoots simply expire. Reverse iteration for in-place removal.
      */
     public void tickProjectiles(float dt, ProjectileArrivalSink sink) {
         for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
@@ -218,8 +218,10 @@ public final class ShotService {
             }
             p.remainingTime -= dt;
             if (p.remainingTime <= 0f) {
-                sink.detonate(p.onArrival);
-                projectilesArrivedThisFrame.add(p);
+                if (p.onArrival != null) {
+                    sink.detonate(p.onArrival);
+                    projectilesArrivedThisFrame.add(p);
+                }
                 activeProjectiles.remove(i);
             }
         }

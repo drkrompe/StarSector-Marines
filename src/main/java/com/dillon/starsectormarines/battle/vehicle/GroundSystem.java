@@ -283,7 +283,8 @@ public class GroundSystem {
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
                 if (gt.burstTimer <= 0f && currentBurstTarget != 0L && world.isAlive(gt.burstTargetId)) {
-                    fireSink.fire(mountWorldX, mountWorldY, faction, kind, currentBurstTarget, false);
+                    fireSink.fire(id, mountWorldX, mountWorldY, faction, kind,
+                            currentBurstTarget, /*aerialShooter*/ false, /*hasLos*/ true);
                     gt.ammo--;
                     gt.burstRemaining--;
                     gt.burstTimer = kind.burstSpacing;
@@ -317,7 +318,7 @@ public class GroundSystem {
             gt.targetId = aim.target;
 
             if (aim.fireThisTick && aim.target != 0L) {
-                fireSink.fire(mountWorldX, mountWorldY, faction, kind, aim.target,
+                fireSink.fire(id, mountWorldX, mountWorldY, faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 gt.ammo--;
                 if (kind.burstCount > 1 && world.isAlive(aim.target)) {
