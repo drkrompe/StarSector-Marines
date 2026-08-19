@@ -13,8 +13,12 @@ public enum MechWeaponComponent {
 
     DUAL_CHAINGUNS("Dual chainguns", MountFamily.ARMS, MechWeapon.CHAINGUN,
             12, -1, LayeredMechAppearance.ARMS_CHAINGUN),
+    NOSE_CHAINGUN("Nose chaingun", MountFamily.ARMS, MechWeapon.CHAINGUN,
+            6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
     DUAL_LINEAR_CANNONS("Dual linear cannons", MountFamily.ARMS, MechWeapon.LINEAR_CANNON,
             2, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
+    SINGLE_HEAVY_CANNON("Heavy cannon", MountFamily.ARMS, MechWeapon.HEAVY_CANNON,
+            1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
 
     SRM_5("SRM-5", MountFamily.SHOULDER, MechWeapon.SRM_POD,
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),

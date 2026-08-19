@@ -14,7 +14,7 @@ The implementation landed:
 - physical `ARMS`, `LEFT_SHOULDER`, and `RIGHT_SHOULDER` hardpoints;
 - generic installed-component state with independent cooldown, representative
   burst/salvo, target lock, ammunition, and resupply behavior per mount;
-- dual chaingun and dual linear-cannon arm components;
+- dual/nose chaingun, dual linear-cannon, and single heavy-cannon arm components;
 - SRM-5, SRM-15, LRM-5, and LRM-15 shoulder components;
 - persistent Bulwark, Hound, and Sirocco chassis profiles with profile-driven
   health, speed, accuracy, vision, render scale, morale weight, radius, hit
@@ -30,7 +30,7 @@ to simulate every physical tube as a projectile. Small -5 racks emit a two-shot
 representative packet. Bulwark's -15 racks preserve the exact old four-SRM and
 five-LRM packets and ammunition capacities, avoiding a stealth balance change.
 
-Hound now uses paired SRM-5 shoulders; Sirocco uses paired LRM-5 shoulders. A
+Hound now uses one dorsal SRM-5; Sirocco uses paired LRM-5 shoulders. A
 public authored-loadout constructor can independently replace the arms and
 either shoulder component, and appearance follows the installed hardware.
 
@@ -58,8 +58,8 @@ The following values are tuning seeds, not final balance promises.
 | Profile | HP | Speed | Render scale | Body radius | Vision | Weapons | Default doctrine |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
 | Bulwark | 540 | 1.15 | 1.60 | 0.60 | 55 | Chaingun, SRM, LRM | Either current role |
-| Hound | 300 | 1.70 | 1.35 | 0.50 | 50 | Chainguns, paired SRM-5 | `ARMORED_SUPPORT` initially |
-| Sirocco | 230 | 1.45 | 1.35 | 0.48 | 55 | Linear cannons, paired LRM-5 | `LR_SUPPORT` |
+| Hound | 300 | 1.70 | 1.35 | 0.50 | 50 | Nose chaingun, one SRM-5 | `ARMORED_SUPPORT` initially |
+| Sirocco | 230 | 1.45 | 1.35 | 0.48 | 55 | Heavy cannon, paired LRM-5 | `LR_SUPPORT` |
 
 ### Bulwark — heavy control
 
@@ -69,7 +69,7 @@ by the player's existing Mech Support command power.
 
 ### Hound — breach strider
 
-The Hound uses chaingun arms and paired compact SRM-5 shoulders. Higher speed lets it
+The Hound uses a single centerline nose chaingun and one compact dorsal SRM-5. Higher speed lets it
 cross a road, exploit a broken wall, or reinforce a contested compound before
 the heavy could arrive. Its smaller health pool makes that commitment risky.
 With no LRM track, open ground and disciplined standoff fire are real counters.
@@ -80,13 +80,14 @@ already work and remain legible without that behavior expansion.
 
 ### Sirocco — missile strider
 
-The Sirocco uses the existing twin-linear-cannon arm art as a modest direct-fire
+The Sirocco uses a single heavy cannon as a modest anti-armor direct-fire
 backup and carries paired compact LRM-5 shoulders. It has neither the heavy's health nor an SRM
 panic button. Its `LR_SUPPORT` doctrine should keep it behind friendly bodies,
 while flanking or overrunning it meaningfully shuts down its advantage.
 
-This story adds a `LINEAR_CANNON` weapon definition with restrained direct-fire
-output. It should help the Sirocco disengage, not erase the weakness created by
+Its `HEAVY_CANNON` fires one accurate kinetic shell for modest infantry damage
+and triple damage against hardened targets. Its 26-cell band keeps the paired
+LRMs primary at standoff range and avoids erasing the weakness created by
 removing close missiles.
 
 ## Architecture decision
@@ -144,14 +145,14 @@ installed components so custom authored configurations render correctly.
 The first comparison used existing assets, but the shared socketed hull failed
 the immediate-recognition criterion. The revised visual contract is:
 
-- Bulwark: current clean chassis and full heavy pods;
-- Hound: dedicated compact wedge chassis, chaingun arms, compact SRM treatment,
-  no LRM pod;
-- Sirocco: dedicated narrow long-spine chassis, linear-cannon arms, compact LRM
-  treatment, no SRM pod.
+- Bulwark: current clean chassis, exposed heavy pods, and half-width chainguns;
+- Hound: flipped narrow pointed chassis, nose chaingun, one top-layer SRM-5,
+  and no LRM pod;
+- Sirocco: flipped broad wedge chassis, generated centerline heavy cannon,
+  paired compact LRM treatment, and no SRM pod.
 
-Shoulder racks are external silhouette layers drawn beneath the chassis. Their
-inboard casing is occluded by the body rather than pasted over the torso art.
+Rack layer order is part of each hull: Bulwark and Hound expose their racks
+above the body, while Sirocco's pair remains tucked beneath its wedge.
 
 Exact left/right pod symmetry can be chosen during the comparison-fixture pass.
 The criterion is immediate visual recognition, not adherence to a fixed socket
