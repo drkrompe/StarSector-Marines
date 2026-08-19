@@ -1,11 +1,11 @@
 # Moral compass — the silent track
 
-**Status:** THREE SOURCE FAMILIES + FIRST DIEGETIC REACTION CODE COMPLETE
-(2026-08-19). See
+**Status:** THREE SOURCE FAMILIES + DIEGETIC REACTION + CAPSTONE DELIVERY CODE
+COMPLETE (2026-08-19). See
 [`personnel/complete/captain-trait-drift.md`](personnel/complete/captain-trait-drift.md).
 
 **Implemented:** `facfa007`, `6765eac6`, `2a1924e7`, `cf8b717b`,
-`5fd8969d`, `1b2afcb4`, `946262b2`
+`5fd8969d`, `1b2afcb4`, `946262b2`, `15c017e`, `379d8989`
 
 > The hidden foundation is a locked spec; later reaction surfaces remain design
 > discussion. The discipline here (never surface the numbers) is load-bearing —
