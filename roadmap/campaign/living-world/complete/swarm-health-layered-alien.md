@@ -2,6 +2,10 @@
 
 Shipped in `bccbbe16`.
 
+The health values below were the first feel pass. `5f2c083d` halves them again
+to 3.75/3 HP; see
+[`rescue-five-point-star-and-through-fire.md`](rescue-five-point-star-and-through-fire.md).
+
 ## What landed
 
 - Quartered the two alien health pools: generic `ALIEN` 30 → 7.5 HP and

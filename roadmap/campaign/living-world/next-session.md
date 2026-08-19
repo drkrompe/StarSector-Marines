@@ -156,10 +156,15 @@ Aeroshuttle replacements when fewer than five remain. Mobile escorts preserve
 the clear-contact five-cell screen but, while engaged, ratchet it forward two
 cells every five seconds instead of either pushing at full speed or stopping
 (`2395397f`). The pickup Valkyrie and standing defense now remain off-map for a
-twelve-second opening grace period, after which two four-person militia drops
-and a single seed-selected Bulwark/Sirocco arrive as four-second-staggered
-physical sorties (`b6b0dd6f`). The combined pickup timing, spacing, militia
-cadence, mech mix, and engaged-bound feel remain manual.
+twelve-second opening grace period (`b6b0dd6f`). The next correction moves the
+pickup to a ten-cell inset, surrounds it with five randomized four-person
+militia squads, restores the weakest point below sixteen defenders, and replaces
+a lost center Bulwark/Sirocco. That mech cycles the five star points whenever
+contact behavior does not take priority. Alien health is now one eighth of its
+original pools, and missed direct-fire rays use a 100% base catch chance when
+they physically cross a secondary hostile, making wide bursts productive into
+dense swarms (`5f2c083d`). The combined pickup timing, spacing, militia cadence,
+mech mix, through-fire strength, and engaged-bound feel remain manual.
 
 Outcome closure has its first checkpoint too. The debug client offers direct
 LOW/MEDIUM/HIGH swarm-rescue scenarios without campaign writeback; controlled
@@ -376,6 +381,9 @@ swarm tuning remain in the shared deferred queue.
 - G5/G6 staged-pickup follow-up — twelve-second opening grace, staggered
   physical defender arrivals, and one deterministic Bulwark/Sirocco pickup
   backstop (`b6b0dd6f`).
+- G5/G6 five-point-star follow-up — inset pickup, five randomized militia
+  squads, weakest-point and center-mech replacements, quiet-state mech patrol,
+  eighth-health aliens, and hostile through-fire for missed rays (`5f2c083d`).
 - Slice G7b — debug-safe zero/partial/full outcome bridge (`a27064fc`).
 - Slice G7c — representative/scaled evacuation debrief (`cf442e11`).
 - Slice G7d — durable Distress Net resolution dispatch (`9e0417aa`).
