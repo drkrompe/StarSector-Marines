@@ -573,10 +573,11 @@ public class BattleSimulation implements BattleControl {
     public boolean configureRescuePickupSupport(
             CivilianEvacuationPlacement placement,
             float reinforcementLzX, float reinforcementLzY,
-            float entryX, float entryY, float exitX, float exitY) {
+            float entryX, float entryY, float exitX, float exitY,
+            long seed) {
         return rescuePickupSupport.configure(placement,
                 reinforcementLzX, reinforcementLzY,
-                entryX, entryY, exitX, exitY, this);
+                entryX, entryY, exitX, exitY, seed, this);
     }
     public boolean isRescuePickupSupportConfigured() {
         return rescuePickupSupport.isConfigured();

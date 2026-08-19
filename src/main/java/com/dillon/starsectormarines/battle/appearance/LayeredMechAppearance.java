@@ -93,6 +93,11 @@ public final class LayeredMechAppearance {
         return isLightChassis(chassis) ? -0.05f : -0.28f;
     }
 
+    /** Maximum rearward stride in hull widths; exposed bones support longer light-mech steps. */
+    public static float footStepReach(int chassis) {
+        return isLightChassis(chassis) ? 0.16f : 0.055f;
+    }
+
     private static boolean isLightChassis(int chassis) {
         return chassis == CHASSIS_HOUND || chassis == CHASSIS_SIROCCO;
     }

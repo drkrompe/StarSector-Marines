@@ -90,6 +90,10 @@ public final class AirDeliveryContext {
         roster.world().attachMechLoadout(unit, MechLoadoutComponent.defaultLoadout(role));
     }
 
+    public void attachMechLoadout(long unit, MechLoadoutComponent loadout) {
+        roster.world().attachMechLoadout(unit, loadout);
+    }
+
     public void deployResupplyCache(int cellX, int cellY) {
         resupply.add(new ResupplyCache(cellX, cellY, faction));
     }
