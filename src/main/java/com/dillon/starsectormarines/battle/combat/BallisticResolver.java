@@ -51,12 +51,14 @@ public final class BallisticResolver {
 
     /** Missed rounds fly this far past the (spread-jittered) aim point before the ray's raw length is computed. */
     public static final float OVERSHOOT_CELLS = 3f;
-    /** Hit-roll chance for a contact that is NOT the locked target — a flat graze chance rather than the full accuracy stack. */
+    /** Base hit chance for a contact that is not the locked target. Enemies use it flat; nearby friendlies receive the proximity catch scale. */
     public static final float INCIDENTAL_HIT_CHANCE = 0.35f;
     /** Damage multiplier applied by the caller (queue time) when a round's victim shares the shooter's faction. Declared here as the tuning surface; not consumed inside {@link #resolve}. */
     public static final float FRIENDLY_FIRE_DAMAGE_MULT = 0.5f;
-    /** Friendly contacts closer than this (along-ray cells from the shooter) are skipped entirely — "shooting around" a squadmate at your shoulder. Never applied to enemy contacts. */
-    public static final float FRIENDLY_MUZZLE_CLEARANCE = 2.0f;
+    /** Probabilistic cover and friendly contacts at or inside this muzzle distance have zero catch chance. */
+    public static final float PROXIMITY_CATCH_ZERO_DISTANCE = 2.0f;
+    /** Probabilistic cover and friendly contacts at or beyond this muzzle distance use their full authored chance. */
+    public static final float PROXIMITY_CATCH_FULL_DISTANCE = 8.0f;
     /** Round speed (cells/sec) used when the firing weapon carries no velocity of its own. Declared here as the tuning surface; the per-shot velocity is resolved by the caller before calling {@link #resolve}. */
     public static final float DEFAULT_ROUND_VELOCITY = 60f;
     /** Block-roll chance by cover level, index = level (capped at 3 = {@link NavigationGrid#MAX_COVER}). Tuning-neutral anchor: today's 0.85/0.70/0.55 accuracy multipliers for levels 1/2/3. */
@@ -118,9 +120,9 @@ public final class BallisticResolver {
 
     /**
      * One contact candidate along the ray, in time order. Doodad crossings
-     * roll a flat block chance; unit contacts roll cover-clip, then incidental
-     * contacts retain their graze roll. Intended accuracy was already
-     * committed when the target-plane aim was sampled.
+     * roll their level chance, unit contacts roll cover-clip then incidental
+     * graze; proximity attenuation is applied while walking these events.
+     * Intended accuracy was already committed when target-plane aim was sampled.
      * {@code victimCellX}/{@code victimCellY} (unit events only) is the
      * victim's OWN extrapolated cell at contact time, floor(U(t)) — the
      * cover edge-clip lookup's cell, distinct from {@code x}/{@code y} (the
@@ -365,9 +367,9 @@ public final class BallisticResolver {
                 if (sEntry < 0f) sEntry = 0f; // shooter inside the collision radius, or the circle straddles s=0
             }
 
-            // Wall cap and muzzle clearance stay DISTANCE tests — the wall
-            // is static, so distance-along-ray is the correct cap even for
-            // a moving contact.
+            // Wall cap and friendly proximity stay DISTANCE tests — the wall
+            // is static, and distance-along-ray is also the round's actual
+            // traveled distance at this moving contact's predicted time.
             float rayDistAtEntry = roundVelocity * sEntry;
             if (rayDistAtEntry > rayLen) continue; // beyond the wall-capped ray
 
@@ -380,7 +382,7 @@ public final class BallisticResolver {
 
             Faction candidateFaction = roster.identity().faction(candidateId);
             boolean friendly = candidateFaction == shooterFaction;
-            if (friendly && rayDistAtEntry < FRIENDLY_MUZZLE_CLEARANCE) continue;
+            if (friendly && rayDistAtEntry < PROXIMITY_CATCH_ZERO_DISTANCE) continue;
 
             // Contact-position split: the FX endpoint is where the ROUND is,
             // P(sEntry); the cover edge-clip lookup (step 5) uses the
@@ -402,9 +404,12 @@ public final class BallisticResolver {
         // stop is exactly "nothing stopped it before the wall/ray end".
         events.sort((a, b) -> Float.compare(a.t, b.t));
         for (Event e : events) {
+            float proximityScale = proximityCatchScale(e.t * roundVelocity);
             if (e.doodad) {
-                float blockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
-                if (rng.nextFloat() < blockChance) {
+                float blockChance = BLOCK_CHANCE_BY_LEVEL[
+                        Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                        * proximityScale;
+                if (blockChance > 0f && rng.nextFloat() < blockChance) {
                     return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.DOODAD_BLOCK);
                 }
                 continue; // fly on
@@ -417,8 +422,10 @@ public final class BallisticResolver {
             float coverCatchHalfHeight = grid.getCoverCatchHalfHeight(
                     e.victimCellX, e.victimCellY, fromDx, fromDy);
             if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
-            float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)];
-            if (coverLevel > 0 && rng.nextFloat() < coverBlockChance) {
+            float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[
+                    Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                    * proximityScale;
+            if (coverBlockChance > 0f && rng.nextFloat() < coverBlockChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.COVER_CLIP);
             }
 
@@ -428,7 +435,8 @@ public final class BallisticResolver {
                 return new Resolution(e.x, e.y, e.z, e.t, victim, true, e.friendly, StopKind.UNIT_HIT);
             }
             float hitChance = INCIDENTAL_HIT_CHANCE * world.incomingAccuracyMult(victim);
-            if (rng.nextFloat() < hitChance) {
+            if (e.friendly) hitChance *= proximityScale;
+            if (hitChance > 0f && rng.nextFloat() < hitChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, victim, false, e.friendly, StopKind.UNIT_HIT);
             }
             // else fly on
@@ -437,6 +445,18 @@ public final class BallisticResolver {
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
         return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
                 0L, false, false, finalKind);
+    }
+
+    /**
+     * Smooth muzzle-distance attenuation shared by probabilistic cover and
+     * friendly incidental contacts. Package-visible for exact curve tests.
+     */
+    static float proximityCatchScale(float distanceFromMuzzle) {
+        if (distanceFromMuzzle <= PROXIMITY_CATCH_ZERO_DISTANCE) return 0f;
+        if (distanceFromMuzzle >= PROXIMITY_CATCH_FULL_DISTANCE) return 1f;
+        float x = (distanceFromMuzzle - PROXIMITY_CATCH_ZERO_DISTANCE)
+                / (PROXIMITY_CATCH_FULL_DISTANCE - PROXIMITY_CATCH_ZERO_DISTANCE);
+        return x * x * (3f - 2f * x);
     }
 
     /** Bresenham cell walk from the shooter's cell to the ray-end cell, emitting a doodad-crossing {@link Event} for every non-start cell whose physical doodad silhouette contains the round's Z. */

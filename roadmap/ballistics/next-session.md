@@ -53,6 +53,14 @@
   artillery scatter. Full record:
   [`complete/s4-direct-fire-unification.md`](complete/s4-direct-fire-unification.md).
   Post-integration full suite: 1619 tests green.
+- **S4a SHIPPED** on `session/ballistics-proximity-catch`, implementation commit
+  `6ab24cbb`. Probabilistic doodad/edge-cover catches and friendly incidental
+  contacts now smoothstep from zero at 2 cells to full chance at 8 cells;
+  enemies, intended targets, structural walls, and downrange base odds remain
+  unchanged. Full record:
+  [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
+  Post-integration: all 35 focused ballistics/direct-fire tests pass; full
+  suite 1643 tests green.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 0.35 incidental
   graze). NOTE one design-doc drift, corrected in the complete/ record:
@@ -62,18 +70,18 @@
 
 ## Active work
 
-The contracted ballistics queue through S4 is complete. No implementation story
-is active. The next useful ballistics work is an in-game feel pass before adding
-new structure: friendly-fire and suppression tuning, visibility of lead and
-high/low/wide trajectories, and whether each weapon family reads clearly at its
-derived velocity.
+The contracted ballistics queue through S4a is complete. No implementation
+story is active. The next useful ballistics step is an in-game feel pass: watch
+units fire from immediately behind low cover, dense squad firing lanes, and
+midfield/target-side cover to calibrate whether the 2–8-cell transition reads
+naturally without making downrange cover feel weak.
 
 Fighter high/low/wide fire remains an explicit follow-up in air story 4f, after
 fighter attacks compose the real air entity and airborne Z/roof/wall policy is
 defined. Do not route current flyby-overlay attacks through the ground resolver.
 
-Manual playtest remains useful before post-S4 tuning: friendly-fire feel
-(`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, `FRIENDLY_MUZZLE_CLEARANCE = 2.0`),
+Manual playtest remains useful after S4a: friendly-fire feel
+(`FRIENDLY_FIRE_DAMAGE_MULT = 0.5`, proximity catch ramp 2–8 cells),
 suppression feel under path-proximity near-miss, and how visible the S2
 lead/extrapolation and S3a projectile silhouettes read at the tuned per-weapon
 velocities. Treat those as tuning observations, not a reason to reopen the

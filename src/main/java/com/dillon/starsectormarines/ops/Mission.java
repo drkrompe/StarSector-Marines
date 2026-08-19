@@ -79,6 +79,8 @@ public final class Mission {
     public final int campaignEventMarketId;
     /** Frozen civilian stakes for rescue missions; zero otherwise. */
     public final int civiliansAtRisk;
+    /** Frozen automated-threat authority for Silent Colony; {@code -1} otherwise. */
+    public final long campaignEventThreatSeed;
 
     /** Salvage % cap baked into the contract (0..255). 0 for non-contract missions. */
     public final byte salvageBaseline;
@@ -231,6 +233,44 @@ public final class Mission {
                    byte contractSalvageBaseline,
                    byte contractSalvageNegotiated,
                    List<String> employerPowerIds) {
+        this(id, name, type, source, payout, risk, requirements, flavor,
+                normalizedX, normalizedY, clientFighterSupport,
+                enemyFighterSupport, requiredDrops, employerShuttles,
+                targetPlanetName, targetIndustryId, targetFactionId,
+                contractId, campaignEventId, campaignEventMarketId,
+                civiliansAtRisk, -1L, salvageBaseline, salvageNegotiated,
+                cashMultiplier, contractSalvageBaseline,
+                contractSalvageNegotiated, employerPowerIds);
+    }
+
+    public Mission(String id,
+                   String name,
+                   MissionType type,
+                   MissionSource source,
+                   int payout,
+                   RiskLevel risk,
+                   String requirements,
+                   String flavor,
+                   float normalizedX,
+                   float normalizedY,
+                   FlybyRoster clientFighterSupport,
+                   FlybyRoster enemyFighterSupport,
+                   int requiredDrops,
+                   int employerShuttles,
+                   String targetPlanetName,
+                   String targetIndustryId,
+                   String targetFactionId,
+                   long contractId,
+                   long campaignEventId,
+                   int campaignEventMarketId,
+                   int civiliansAtRisk,
+                   long campaignEventThreatSeed,
+                   byte salvageBaseline,
+                   byte salvageNegotiated,
+                   byte cashMultiplier,
+                   byte contractSalvageBaseline,
+                   byte contractSalvageNegotiated,
+                   List<String> employerPowerIds) {
         this.id           = id;
         this.name         = name;
         this.type         = type;
@@ -257,6 +297,9 @@ public final class Mission {
                 ? Math.max(-1, campaignEventMarketId) : -1;
         this.civiliansAtRisk = this.source.isCivilianRescue()
                 ? Math.max(0, civiliansAtRisk) : 0;
+        this.campaignEventThreatSeed = this.campaignEventId > 0L
+                && campaignEventThreatSeed >= 0L
+                ? campaignEventThreatSeed : -1L;
         this.salvageBaseline   = salvageBaseline;
         this.salvageNegotiated = salvageNegotiated;
         this.cashMultiplier    = cashMultiplier;
