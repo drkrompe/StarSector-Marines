@@ -134,6 +134,17 @@ final class BuildingShellCore {
                                  List<Doodad> doodads,
                                  Random rng,
                                  BuildingConfig config) {
+        return carve(leaf, grid, topology, doodads, rng, config, BuildingPlacement.DEFAULT);
+    }
+
+    /** Placement-aware carve used when a compound supplies a shared frontage. */
+    static PointOfInterest carve(BlockLeaf leaf,
+                                 NavigationGrid grid,
+                                 CellTopology topology,
+                                 List<Doodad> doodads,
+                                 Random rng,
+                                 BuildingConfig config,
+                                 BuildingPlacement placement) {
         int bl = leaf.left;
         int bt = leaf.top;
         int br = leaf.right;
@@ -200,8 +211,9 @@ final class BuildingShellCore {
         // top/bottom doors), giving each room its own exterior access when
         // the building scores a 2nd doorway.
         PartitionLayout layout = config.partitionStrategy.partition(
-                grid, topology, bl, bt, br, bb, rng, config.interiorGround);
-        punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, rng, config.interiorGround);
+                grid, topology, bl, bt, br, bb, rng, config.interiorGround, placement);
+        punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, placement,
+                rng, config.interiorGround);
 
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
@@ -310,24 +322,32 @@ final class BuildingShellCore {
     /** Picks 1 or 2 perimeter doorways for a hollow building. Lifted verbatim from legacy. */
     private static void punchPerimeterDoorways(NavigationGrid grid, CellTopology topology,
                                                int bl, int bt, int br, int bb,
-                                               PartitionLayout layout, Random rng, GroundKind interiorGround) {
+                                               PartitionLayout layout, BuildingPlacement placement,
+                                               Random rng, GroundKind interiorGround) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
                 && h >= SECOND_DOORWAY_MIN_DIM
                 && (layout.forceOpposedPerimeterDoorways
+                    || placement.forceOpposedDoorways
                     || rng.nextFloat() < SECOND_DOORWAY_CHANCE);
 
         if (!twoDoors) {
-            punchDoorwayOnSide(grid, topology, bl, bt, br, bb, rng.nextInt(4), layout, rng, interiorGround);
+            int side = placement.frontage == null
+                    ? rng.nextInt(4) : placement.frontage.doorwayCode;
+            punchDoorwayOnSide(grid, topology, bl, bt, br, bb, side, layout, rng, interiorGround);
             return;
         }
 
         int firstSide;
-        switch (layout.orient) {
-            case VERTICAL:   firstSide = rng.nextBoolean() ? 2 : 3; break;
-            case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
-            default:         firstSide = rng.nextInt(4);            break;
+        if (placement.frontage != null) {
+            firstSide = placement.frontage.doorwayCode;
+        } else {
+            switch (layout.orient) {
+                case VERTICAL:   firstSide = rng.nextBoolean() ? 2 : 3; break;
+                case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
+                default:         firstSide = rng.nextInt(4);            break;
+            }
         }
         punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide,     layout, rng, interiorGround);
         punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide ^ 1, layout, rng, interiorGround);

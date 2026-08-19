@@ -531,7 +531,10 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> renderer.getGroundParallax().parallaxStrength(),
                 value -> renderer.getGroundParallax().setParallaxStrength((float) value),
                 GroundParallaxPipeline.MIN_STRENGTH,
-                GroundParallaxPipeline.MAX_STRENGTH);
+                GroundParallaxPipeline.MAX_STRENGTH,
+                // Cubic response keeps sub-0.1 tuning usable despite the
+                // intentionally unconstrained high-end experiment range.
+                3.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
