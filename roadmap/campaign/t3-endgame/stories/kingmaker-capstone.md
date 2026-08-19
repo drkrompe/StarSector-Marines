@@ -1,6 +1,8 @@
 # T3 — the last testament
 
-**Status:** LOCKED; Slice 1 in progress (2026-08-19)
+**Status:** SLICE 1 CODE COMPLETE (2026-08-19)
+
+**Implemented:** `946262b2`
 
 ## Purpose
 
@@ -94,9 +96,11 @@ contracts, houses, chains, markets, or factions.
 
 ## Slices
 
-1. **Sealed testimony authority** — append the persistent snapshot table,
+1. ~~**Sealed testimony authority** — append the persistent snapshot table,
    legacy backfill, source-unique producer after the moral pass, and replay/order
-   tests.
+   tests.~~ Shipped in `946262b2`; the producer runs immediately after the moral
+   pass, requires an exact handoff-day claimant ledger row, and freezes identities,
+   axes, contribution, and the exclusive ledger boundary exactly once.
 2. **Evidence editor** — deterministic pure selection from the frozen ledger
    prefix, source-family diversity, mixed-character synthesis, and exhaustive
    prose tests without numeric leakage.
