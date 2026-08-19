@@ -79,8 +79,8 @@ the optional Phase 2 extensions:
   disk-loaded registry via an auto-registered JUnit extension.
 - Mapping JSON names code fillers; carve algorithms stay in Java. **No
   scripting layer.**
-- `.catalog.json` promoted in place (folded into each `.tileset.json`), the
-  in-game catalog editor deleted; `TilesetDebugScreen` is a read-only viewer.
+- `.catalog.json` promoted in place (folded into each `.tileset.json`); the
+  in-game catalog editor and its read-only debug viewer are deleted.
 - Nests under `GenRecipe` (recipe = stage order; mapping = tile/param content).
 
 ## Phase 3 (when a real submod exists)

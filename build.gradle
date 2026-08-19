@@ -76,6 +76,12 @@ dependencies {
             new File(starsectorCore, 'json.jar'),
             new File(starsectorCore, 'log4j-1.2.9.jar'),
     )
+    // Campaign API interfaces expose LWJGL vector types in method signatures.
+    // Keep them available to reflection-based API fakes without bundling them.
+    testRuntimeOnly files(
+            new File(starsectorCore, 'lwjgl.jar'),
+            new File(starsectorCore, 'lwjgl_util.jar'),
+    )
 }
 
 test {

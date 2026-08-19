@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,8 @@ import java.util.List;
 public final class StoryMissionRegistry {
 
     private static final List<StoryMissionDef> DEFS = Arrays.<StoryMissionDef>asList(
+            new OpeningOperationStory(OpeningOperationKind.RELIEF),
+            new OpeningOperationStory(OpeningOperationKind.COUNTERATTACK),
             new VeteransJobStory()
     );
 

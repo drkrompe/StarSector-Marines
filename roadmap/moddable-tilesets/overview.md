@@ -100,11 +100,11 @@ track **explicitly punts** (see Non-goals).
 
 ## The existing seed: `.catalog.json`
 
-We are not starting from zero. `tools/tilesets/TilesetCatalog.java`
-already loads a per-sheet `data/tilesets/<basename>.catalog.json`
-(`{col,row,name,description}` entries) at runtime — read by the in-game
-`TilesetDebugScreen`, written to `saves/common` and pulled back by a
-Gradle task. Today these are *human labels*, not consumed by gen/render.
+We did not start from zero. `tools/tilesets/TilesetCatalog.java` originally
+loaded a per-sheet `data/tilesets/<basename>.catalog.json`
+(`{col,row,name,description}` entries) at runtime for an in-game tileset
+viewer and a Gradle export task. These were *human labels*, not consumed by
+gen/render.
 Phase 1 is largely **promoting the catalog from notes to authoritative
 tile defs**: add slicing/layout/semantic fields, keep the same load path
 (which already respects the [[starsector_script_sandbox]] no-`java.io`
@@ -218,9 +218,8 @@ chosen mapping is bound into the per-`BlockKind` filler dispatch.
 
 - Phase 1 is **behavior-preserving**: the JSON must reproduce the current
   enum/`TileManifest` output exactly. Lock against the existing
-  `BspMapPreviewTest` seed renders (same seed → same grid) and the
-  `TilesetDebugScreen` visual A/B. A diff in any preview PNG is a
-  regression.
+  `BspMapPreviewTest` seed renders (same seed → same grid). A diff in any
+  preview PNG is a regression.
 - A registry self-check at load: every built-in `tileset.json` must
   resolve, and slice/grid frame counts must match the sheet (the count
   guard the `*Tileset` loaders do today, moved into the registry).

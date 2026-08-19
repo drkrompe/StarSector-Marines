@@ -38,7 +38,11 @@ public class MarineCaptain implements Serializable {
     private int moralOutlookDay = -1;
 
     public MarineCaptain(String name, String portraitSprite, Rank rank, float currentDay) {
-        this.id = UUID.randomUUID().toString();
+        this(UUID.randomUUID().toString(), name, portraitSprite, rank, currentDay);
+    }
+
+    MarineCaptain(String id, String name, String portraitSprite, Rank rank, float currentDay) {
+        this.id = id;
         this.name = name;
         this.portraitSprite = portraitSprite;
         this.rank = rank;
