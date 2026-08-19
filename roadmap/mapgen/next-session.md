@@ -389,7 +389,7 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat test -x :asset-pipeline:test` — full 1,634-test root suite green.
+- `gradlew.bat test -x :asset-pipeline:test` — full 1,665-test root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
   all hard invariants hold.
