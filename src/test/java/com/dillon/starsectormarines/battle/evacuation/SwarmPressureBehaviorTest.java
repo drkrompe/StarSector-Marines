@@ -38,18 +38,30 @@ class SwarmPressureBehaviorTest {
     }
 
     @Test
-    void activeRegisteredEvacueeOutranksCloserMarineAndAmbientCivilian() {
+    void closerMarinePeelsRunnerAwayFromEvacueeAndAmbientCivilian() {
         BattleSimulation sim = simulation();
         long runner = runner(sim, 2, 2);
         long ambient = civilian(sim, "ambient", 3, 2);
-        marine(sim, 4, 2);
+        long marine = marine(sim, 4, 2);
         long evacuee = civilian(sim, "evacuee", 10, 2);
         sim.getCivilianEvacuationTracker().register(evacuee);
 
         long target = SwarmPressureBehavior.selectTarget(runner, sim);
 
-        assertEquals(evacuee, target);
+        assertEquals(marine, target);
         assertFalse(target == ambient);
+    }
+
+    @Test
+    void closerExposedEvacueeStillDrawsOpportunisticPressure() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        marine(sim, 10, 2);
+        long evacuee = civilian(sim, "evacuee", 5, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+
+        assertEquals(evacuee,
+                SwarmPressureBehavior.selectTarget(runner, sim));
     }
 
     @Test
@@ -81,15 +93,55 @@ class SwarmPressureBehaviorTest {
     }
 
     @Test
-    void runnerRemembersEvacueeAfterInitialDiscovery() {
+    void substantiallyCloserMarineBreaksRememberedEvacueeAggro() {
         BattleSimulation sim = simulation();
         long runner = runner(sim, 2, 2);
-        marine(sim, 4, 2);
+        long marine = marine(sim, 4, 2);
         long evacuee = civilian(sim, "discovered evacuee", 10, 2);
         sim.getCivilianEvacuationTracker().register(evacuee);
-        assertEquals(evacuee,
-                SwarmPressureBehavior.selectTarget(runner, sim));
 
+        sim.combat().setTargetId(runner, evacuee);
+        sim.getGrid().setWalkable(6, 2, false);
+
+        assertEquals(marine,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
+    void currentTargetKeepsModestLeewayAgainstMarginallyCloserCandidate() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long current = marine(sim, 7, 2);
+        marine(sim, 6, 2);
+        sim.combat().setTargetId(runner, current);
+
+        assertEquals(current,
+                SwarmPressureBehavior.selectTarget(runner, sim));
+    }
+
+    @Test
+    void opportunisticTargetChangeImmediatelyReplacesCivilianPath() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long evacuee = civilian(sim, "evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
+        SwarmPressureBehavior.INSTANCE.update(runner, sim);
+        assertEquals(10, Paths.destX(sim.movement().path(runner)));
+
+        long marine = marine(sim, 4, 2);
+        SwarmPressureBehavior.INSTANCE.update(runner, sim);
+
+        assertEquals(marine, sim.combat().targetId(runner));
+        assertEquals(4, Paths.destX(sim.movement().path(runner)));
+        assertEquals(2, Paths.destY(sim.movement().path(runner)));
+    }
+
+    @Test
+    void runnerRemembersDiscoveredEvacueeWhenNothingLocalIsSensed() {
+        BattleSimulation sim = simulation();
+        long runner = runner(sim, 2, 2);
+        long evacuee = civilian(sim, "discovered evacuee", 10, 2);
+        sim.getCivilianEvacuationTracker().register(evacuee);
         sim.combat().setTargetId(runner, evacuee);
         sim.getGrid().setWalkable(6, 2, false);
 
