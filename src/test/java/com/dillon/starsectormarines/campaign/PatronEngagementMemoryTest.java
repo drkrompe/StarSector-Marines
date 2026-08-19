@@ -34,6 +34,7 @@ class PatronEngagementMemoryTest {
         assertEquals(fixture.patronId, memory.houseId);
         assertEquals(ContractType.GARRISON, memory.contractType);
         assertEquals(fixture.marketId, memory.marketId);
+        assertEquals(fixture.marketId, memory.targetMarketId);
         assertEquals(PatronEngagementOutcome.WITHDREW, memory.outcome);
         assertEquals(40, memory.happenedTick);
         assertEquals(1, memory.priorEngagementCount);
@@ -70,6 +71,38 @@ class PatronEngagementMemoryTest {
                 contractId, PatronEngagementOutcome.COMPLETED, 21));
         assertEquals(contractId, PatronEngagementMemory.latest(
                 fixture.state, fixture.patronId).sourceContractId);
+    }
+
+    @Test
+    void freezesMissionTargetMarketAndLeavesInvalidTargetUnknown() {
+        Fixture fixture = fixture();
+        int targetMarketId = fixture.state.marketRegistry.intern("kazeron");
+        long targetHouseId = fixture.state.addHouse(targetMarketId, 1,
+                HouseFlavor.FEUDAL, HouseRank.TIER_2, HouseStatus.ACTIVE,
+                PatronArchetype.FALLEN_NOBLE, "House Target");
+        long contractId = fixture.state.addContract(fixture.patronId,
+                targetHouseId, -1L, ContractType.STRIKE,
+                ContractState.COMPLETED, 10, -1, -1, (byte) 1, -1,
+                fixture.marketId, -1, 1_000, 0,
+                (byte) 25, (byte) 25, (byte) 100);
+        PatronEngagementMemory.record(fixture.state, contractId,
+                PatronEngagementOutcome.COMPLETED, 20);
+        fixture.state.houseMarketId[
+                fixture.state.houseIndex(targetHouseId)] = fixture.marketId;
+
+        PatronEngagementMemory.Snapshot frozen =
+                PatronEngagementMemory.latest(fixture.state,
+                        fixture.patronId);
+        assertEquals(targetMarketId, frozen.targetMarketId);
+
+        long malformed = fixture.state.addContract(fixture.patronId,
+                999L, -1L, ContractType.ESCORT, ContractState.FAILED,
+                30, -1, -1, (byte) 1, -1, fixture.marketId, -1,
+                1_000, 0, (byte) 25, (byte) 25, (byte) 100);
+        PatronEngagementMemory.record(fixture.state, malformed,
+                PatronEngagementOutcome.FAILED, 30);
+        assertEquals(-1, PatronEngagementMemory.latest(fixture.state,
+                fixture.patronId).targetMarketId);
     }
 
     @Test
@@ -216,6 +249,7 @@ class PatronEngagementMemoryTest {
         assertNotNull(memory);
         assertEquals(PatronEngagementOutcome.EMPLOYER_BREACHED,
                 memory.outcome);
+        assertEquals(fixture.marketId, memory.targetMarketId);
         assertEquals(1, restored.patronEngagementCount);
         assertEquals(memory.id, PatronEngagementMemory.record(restored,
                 contractId, PatronEngagementOutcome.EMPLOYER_BREACHED, 60));
@@ -269,6 +303,8 @@ class PatronEngagementMemoryTest {
         assertEquals(-1L, fixture.state.patronEngagementSourceContractId[20]);
         assertEquals(-1L, fixture.state.patronEngagementHouseId[20]);
         assertEquals(-1, fixture.state.patronEngagementMarketId[20]);
+        assertEquals(-1,
+                fixture.state.patronEngagementTargetMarketId[20]);
         assertEquals(-1, fixture.state.patronEngagementHappenedTick[20]);
 
         CampaignState legacy = new CampaignState();
@@ -277,6 +313,7 @@ class PatronEngagementMemoryTest {
         legacy.patronEngagementHouseId = null;
         legacy.patronEngagementContractType = null;
         legacy.patronEngagementMarketId = null;
+        legacy.patronEngagementTargetMarketId = null;
         legacy.patronEngagementOutcome = null;
         legacy.patronEngagementHappenedTick = null;
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
@@ -287,6 +324,7 @@ class PatronEngagementMemoryTest {
         assertEquals(-1L, legacy.patronEngagementSourceContractId[0]);
         assertEquals(-1L, legacy.patronEngagementHouseId[0]);
         assertEquals(-1, legacy.patronEngagementMarketId[0]);
+        assertEquals(-1, legacy.patronEngagementTargetMarketId[0]);
         assertEquals(-1, legacy.patronEngagementHappenedTick[0]);
         assertNull(PatronEngagementMemory.latest(legacy, 1L));
     }
