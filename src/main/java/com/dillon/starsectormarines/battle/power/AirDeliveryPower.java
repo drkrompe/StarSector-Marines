@@ -63,7 +63,11 @@ abstract class AirDeliveryPower extends CommandPower {
         mission.payload = payload;
         mission.marinesRemaining = payload.unitsPerSortie(carrier);
         mission.totalCycles = 1;
+        configureMission(mission, carrier);
     }
+
+    /** Payload-specific mission setup after the physical carrier is spawned. */
+    protected void configureMission(ShuttleMission mission, ShuttleType carrier) {}
 
     private int[] landingZoneNear(int cellX, int cellY, BattleView battle) {
         if (battle == null || !battle.getGrid().inBounds(cellX, cellY)) return null;

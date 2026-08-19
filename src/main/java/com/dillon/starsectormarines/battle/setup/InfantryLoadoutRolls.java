@@ -2,10 +2,13 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.Random;
@@ -14,6 +17,36 @@ import java.util.Random;
 public final class InfantryLoadoutRolls {
 
     private InfantryLoadoutRolls() {}
+
+    /**
+     * Builds the standard player-shuttle squad: randomized primary family,
+     * equipment grade, and soldier profile, plus one launcher specialist when
+     * the carrier has room. Shared by mission-start shuttles and the live
+     * Marine Drop power so neither path falls back to an untagged line weapon.
+     */
+    public static MarineLoadout[] playerSquad(int capacity, Random rng) {
+        MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
+        int rocketSlot = capacity > 1 ? capacity - 1 : -1;
+        for (int i = 0; i < roster.length; i++) {
+            MarineWeapon primary = playerPrimary(rng);
+            EquipmentGrade grade = playerEquipmentGrade(rng);
+            SoldierProfile profile = playerProfile(rng);
+            MarineSecondary secondary = i == rocketSlot
+                    ? MarineSecondary.ROCKET_LAUNCHER : null;
+            int ammo = secondary != null ? secondary.startingAmmo : 0;
+            roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
+                    primary, grade, profile, secondary, ammo);
+        }
+        return roster;
+    }
+
+    /** Weighted player primary roll: pulse workhorse, evenly split specialist slots. */
+    public static MarineWeapon playerPrimary(Random rng) {
+        int r = rng.nextInt(4);
+        if (r == 0) return MarineWeapon.SMG;
+        if (r == 1) return MarineWeapon.DMR;
+        return MarineWeapon.PULSE_RIFLE;
+    }
 
     public static EquipmentGrade playerEquipmentGrade(Random rng) {
         int r = rng.nextInt(100);
