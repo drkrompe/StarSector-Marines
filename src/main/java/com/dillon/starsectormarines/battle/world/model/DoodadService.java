@@ -29,13 +29,13 @@ public final class DoodadService {
      * {@link #addDoodad}; never decreases during a battle. Lazy-initialized —
      * the array is allocated on first {@code addDoodad} call.
      *
-     * <p>A doodad at (cx, cy) contributes cover two ways:
+     * <p>Each cell in a doodad's authored footprint contributes cover two ways:
      * <ol>
-     *   <li><b>Isotropic on its own cell.</b> All four facings of (cx, cy)
+     *   <li><b>Isotropic on its occupied cell.</b> All four facings
      *       gain the doodad's cover level — a marine standing on the crate
      *       cell is "co-located with the cover," counted as covered from any
      *       angle.</li>
-     *   <li><b>Per-facing on each cardinal neighbor.</b> The doodad at (cx, cy)
+     *   <li><b>Per-facing on each cardinal neighbor.</b> An occupied cell
      *       sits between the neighbor at (cx, cy-1) and threats further north,
      *       so that neighbor gains S-facing cover (threat south = doodad is
      *       between). Same for the other three cardinals — the doodad blocks
@@ -52,7 +52,7 @@ public final class DoodadService {
     private byte[] doodadCoverByFacing;
 
     /**
-     * Per-cell doodad ballistic half-height by cover level — own-cell only,
+     * Per-cell doodad ballistic half-height by cover level — footprint only,
      * no cardinal-neighbor bleed (unlike {@link #doodadCoverByFacing}). Indexed
      * as {@code grid.index(x, y) * (MAX_COVER + 1) + level}. Lazily allocated
      * on the first {@link #addDoodad} call with {@code cover > 0}; each level's
@@ -75,7 +75,6 @@ public final class DoodadService {
     public void addDoodad(Doodad d) {
         doodads.add(d);
         if (d.cover <= 0) return;
-        if (!grid.inBounds(d.cellX, d.cellY)) return;
         if (doodadCoverByFacing == null) {
             doodadCoverByFacing = new byte[grid.getWidth() * grid.getHeight() * NavigationGrid.FACING_COUNT];
         }
@@ -83,27 +82,32 @@ public final class DoodadService {
             doodadHalfHeightByLevelOnCell = new float[
                     grid.getWidth() * grid.getHeight() * (NavigationGrid.MAX_COVER + 1)];
         }
-        // Isotropic on own cell — a marine standing on the crate cell counts
-        // as covered from any angle. Max-merge with existing so stacked
-        // doodads use the heaviest cover.
-        maxMergeDoodadFacing(d.cellX, d.cellY, NavigationGrid.FACING_N, d.cover);
-        maxMergeDoodadFacing(d.cellX, d.cellY, NavigationGrid.FACING_E, d.cover);
-        maxMergeDoodadFacing(d.cellX, d.cellY, NavigationGrid.FACING_S, d.cover);
-        maxMergeDoodadFacing(d.cellX, d.cellY, NavigationGrid.FACING_W, d.cover);
-        // Cardinal neighbors gain cover toward the doodad — the marine on
-        // (cx, cy-1) reads S-facing cover because the doodad sits between them
-        // and any southward threat. Same logic in the other three cardinals.
-        maxMergeDoodadFacing(d.cellX, d.cellY - 1, NavigationGrid.FACING_S, d.cover);
-        maxMergeDoodadFacing(d.cellX, d.cellY + 1, NavigationGrid.FACING_N, d.cover);
-        maxMergeDoodadFacing(d.cellX - 1, d.cellY, NavigationGrid.FACING_E, d.cover);
-        maxMergeDoodadFacing(d.cellX + 1, d.cellY, NavigationGrid.FACING_W, d.cover);
-        // Own-cell-only ballistic silhouette, no neighbor bleed. Keep one
-        // maximum height per cover level so stacked props cannot accidentally
-        // combine a short heavy level with a tall light silhouette.
-        int idx = grid.index(d.cellX, d.cellY);
-        int slot = idx * (NavigationGrid.MAX_COVER + 1) + d.cover;
+        for (int dy = 0; dy < d.footprintCellsY; dy++) {
+            for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                addFootprintCell(d.cellX + dx, d.cellY + dy,
+                        d.cover, d.ballisticHalfHeight);
+            }
+        }
+    }
+
+    private void addFootprintCell(int cellX, int cellY, int cover, float ballisticHalfHeight) {
+        if (!grid.inBounds(cellX, cellY)) return;
+        // Isotropic on each occupied cell. Max-merge with existing props.
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_N, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_E, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_S, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_W, cover);
+        // Cardinal neighbors gain cover toward this occupied cell. Internal
+        // footprint neighbors merely max-merge the same value.
+        maxMergeDoodadFacing(cellX, cellY - 1, NavigationGrid.FACING_S, cover);
+        maxMergeDoodadFacing(cellX, cellY + 1, NavigationGrid.FACING_N, cover);
+        maxMergeDoodadFacing(cellX - 1, cellY, NavigationGrid.FACING_E, cover);
+        maxMergeDoodadFacing(cellX + 1, cellY, NavigationGrid.FACING_W, cover);
+        // Ballistic silhouette is physical-footprint-only, with no neighbor bleed.
+        int idx = grid.index(cellX, cellY);
+        int slot = idx * (NavigationGrid.MAX_COVER + 1) + cover;
         doodadHalfHeightByLevelOnCell[slot] = Math.max(
-                doodadHalfHeightByLevelOnCell[slot], d.ballisticHalfHeight);
+                doodadHalfHeightByLevelOnCell[slot], ballisticHalfHeight);
     }
 
     /** Writes {@code level} to a cell+facing slot if higher than the current value. Out-of-bounds calls are no-ops so callers don't need to bounds-check the four neighbor writes around an edge doodad. */
@@ -132,7 +136,7 @@ public final class DoodadService {
      * {@link #getDoodadCoverAt(int, int)}, which also reads the bled facing
      * cover on a doodad's four neighbors). Ballistic ray crossings must key
      * on this: a round's ray only rolls a block chance against a cell it
-     * physically passes through a doodad's own footprint, never a neighbor
+     * physically passes through a doodad's footprint, never a neighbor
      * that's merely adjacent to one. 0 if no doodad occupies this cell.
      */
     public int getDoodadLevelOnCell(int x, int y) {

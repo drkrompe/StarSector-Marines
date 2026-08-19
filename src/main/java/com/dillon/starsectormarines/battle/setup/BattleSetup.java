@@ -1711,7 +1711,7 @@ public final class BattleSetup {
                     if (insideBerth) continue;
                     boolean onProp = false;
                     for (Doodad doodad : map.doodads) {
-                        if (doodad.cellX == x && doodad.cellY == y) {
+                        if (doodad.occupiesCell(x, y)) {
                             onProp = true;
                             break;
                         }
@@ -2026,7 +2026,7 @@ public final class BattleSetup {
                 }
                 if (allowApron) {
                     for (Doodad doodad : map.doodads) {
-                        if (doodad.cellX == cx && doodad.cellY == cy) return false;
+                        if (doodad.occupiesCell(cx, cy)) return false;
                     }
                 }
             }

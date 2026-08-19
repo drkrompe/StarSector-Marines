@@ -852,8 +852,7 @@ public class BuildingZonePreviewTest {
         for (Doodad d : doodads) {
             TileSink sink = TileManifest.DOODAD_SHEET.equals(d.sheetPath)
                     ? doodadSink : d.fromRoadSheet ? roadSink : urbanSink;
-            stampCell(drawer, sink, d.tile, d.cellX, d.cellY, gridH,
-                    FixedGridTileDrawer.OVERLAY_INSET_PX);
+            stampDoodad(drawer, sink, d, gridH);
         }
 
         drawLabel(g, gridW, gridH, label);
@@ -868,6 +867,18 @@ public class BuildingZonePreviewTest {
         float dstCx = gridX * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
         float dstCy = (gridH - 1 - gridY) * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
         drawer.draw(sink, f, dstCx, dstCy, DISPLAY_CELL_PX, DISPLAY_CELL_PX, 1f, insetPx);
+    }
+
+    private static void stampDoodad(FixedGridTileDrawer drawer, TileSink sink,
+                                    Doodad doodad, int gridH) {
+        float dstW = DISPLAY_CELL_PX * doodad.footprintCellsX;
+        float dstH = DISPLAY_CELL_PX * doodad.footprintCellsY;
+        float dstCx = (doodad.cellX + doodad.footprintCellsX * 0.5f) * DISPLAY_CELL_PX;
+        float dstCy = (gridH - doodad.cellY - doodad.footprintCellsY * 0.5f)
+                * DISPLAY_CELL_PX;
+        drawer.drawSpan(sink, doodad.tile,
+                doodad.footprintCellsX, doodad.footprintCellsY,
+                dstCx, dstCy, dstW, dstH, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
     }
 
     /** Floor-pass wall test: OOB is treated as open (not-wall) to match BattleScreen.isInBoundsWall. */

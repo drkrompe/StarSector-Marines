@@ -170,7 +170,8 @@ final class BuildingLayouts {
         // building has a non-seating prop type.
         int clusterPicks = 1 + rng.nextInt(2);
         for (int i = 0; i < clusterPicks; i++) {
-            int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
+            int[] cell = pickFreeInteriorCell(
+                    grid, bl, bt, br, bb, chests[0], doodads, rng);
             if (cell == null) break;
             doodads.add(new Doodad(cell[0], cell[1], chests[rng.nextInt(chests.length)]));
         }
@@ -299,7 +300,7 @@ final class BuildingLayouts {
         int stockProps = 2 + rng.nextInt(3);
         for (int i = 0; i < stockProps; i++) {
             int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb,
-                    RoomPurpose.STOCKROOM, doodads, rng);
+                    RoomPurpose.STOCKROOM, crates[0], doodads, rng);
             if (cell == null) break;
             doodads.add(new Doodad(cell[0], cell[1], crates[rng.nextInt(crates.length)]));
         }
@@ -405,13 +406,13 @@ final class BuildingLayouts {
     private static int[] pickFreePurposeCell(NavigationGrid grid, CellTopology topology,
                                              int bl, int bt, int br, int bb,
                                              RoomPurpose purpose,
+                                             DoodadDef prop,
                                              List<Doodad> doodads, Random rng) {
         List<int[]> free = new ArrayList<>();
         for (int y = bt + 1; y <= bb - 1; y++) {
             for (int x = bl + 1; x <= br - 1; x++) {
-                if (topology.getRoomPurpose(x, y) != purpose) continue;
-                if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)) continue;
-                if (isNearDoorway(grid, x, y) || isOccupied(x, y, doodads)) continue;
+                if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
+                if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
                 free.add(new int[]{x, y});
             }
         }
@@ -610,17 +611,12 @@ final class BuildingLayouts {
                 int startIndex = y * grid.getWidth() + x;
                 if (visited[startIndex] || topology.getRoomPurpose(x, y) != purpose) continue;
                 ArrayDeque<int[]> queue = new ArrayDeque<>();
-                List<int[]> candidates = new ArrayList<>();
+                List<int[]> roomCells = new ArrayList<>();
                 queue.add(new int[]{x, y});
                 visited[startIndex] = true;
                 while (!queue.isEmpty()) {
                     int[] cell = queue.removeFirst();
-                    if (grid.isWalkable(cell[0], cell[1])
-                            && !grid.isDoorway(cell[0], cell[1])
-                            && !isNearDoorway(grid, cell[0], cell[1])
-                            && !isOccupied(cell[0], cell[1], doodads)) {
-                        candidates.add(cell);
-                    }
+                    roomCells.add(cell);
                     for (int[] direction : directions) {
                         int nx = cell[0] + direction[0];
                         int ny = cell[1] + direction[1];
@@ -631,6 +627,16 @@ final class BuildingLayouts {
                         queue.addLast(new int[]{nx, ny});
                     }
                 }
+                List<int[]> candidates = new ArrayList<>();
+                for (int[] cell : roomCells) {
+                    if (!grid.isWalkable(cell[0], cell[1])
+                            || grid.isDoorway(cell[0], cell[1])) continue;
+                    if (!footprintHasPurpose(topology, cell[0], cell[1], prop, purpose)) continue;
+                    if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
+                    if (!preservesRoomConnectivity(
+                            grid, topology, purpose, roomCells, cell[0], cell[1], prop)) continue;
+                    candidates.add(cell);
+                }
                 if (!candidates.isEmpty()) {
                     int[] cell = candidates.get(rng.nextInt(candidates.size()));
                     stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
@@ -639,11 +645,59 @@ final class BuildingLayouts {
         }
     }
 
+    /** A multi-cell fixture cannot create a sealed pocket inside its owning room. */
+    private static boolean preservesRoomConnectivity(NavigationGrid grid,
+                                                     CellTopology topology,
+                                                     RoomPurpose purpose,
+                                                     List<int[]> roomCells,
+                                                     int fixtureX, int fixtureY,
+                                                     DoodadDef prop) {
+        int remaining = 0;
+        int[] start = null;
+        for (int[] cell : roomCells) {
+            if (!grid.isWalkable(cell[0], cell[1])) continue;
+            if (insideFootprint(cell[0], cell[1], fixtureX, fixtureY, prop)) continue;
+            remaining++;
+            if (start == null) start = cell;
+        }
+        if (remaining == 0 || start == null) return false;
+
+        boolean[] seen = new boolean[grid.getWidth() * grid.getHeight()];
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        queue.add(start);
+        seen[start[1] * grid.getWidth() + start[0]] = true;
+        int reached = 0;
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int[] cell = queue.removeFirst();
+            reached++;
+            for (int[] direction : directions) {
+                int nx = cell[0] + direction[0];
+                int ny = cell[1] + direction[1];
+                if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny)) continue;
+                if (topology.getRoomPurpose(nx, ny) != purpose) continue;
+                if (insideFootprint(nx, ny, fixtureX, fixtureY, prop)) continue;
+                int index = ny * grid.getWidth() + nx;
+                if (seen[index]) continue;
+                seen[index] = true;
+                queue.addLast(new int[]{nx, ny});
+            }
+        }
+        return reached == remaining;
+    }
+
+    private static boolean insideFootprint(int x, int y, int fixtureX, int fixtureY,
+                                           DoodadDef prop) {
+        return x >= fixtureX && x < fixtureX + prop.footprintCellsX
+                && y >= fixtureY && y < fixtureY + prop.footprintCellsY;
+    }
+
     private static void stampPurposeFixture(NavigationGrid grid, CellTopology topology,
                                             int bl, int bt, int br, int bb,
                                             RoomPurpose purpose, DoodadDef prop,
                                             List<Doodad> doodads, Random rng) {
-        int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb, purpose, doodads, rng);
+        int[] cell = pickFreePurposeCell(
+                grid, topology, bl, bt, br, bb, purpose, prop, doodads, rng);
         if (cell != null) stampFixture(grid, topology, cell[0], cell[1], prop, doodads);
     }
 
@@ -652,7 +706,8 @@ final class BuildingLayouts {
                                             RoomPurpose purpose, DoodadDef prop,
                                             List<Doodad> doodads, Random rng,
                                             boolean seeThrough) {
-        int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb, purpose, doodads, rng);
+        int[] cell = pickFreePurposeCell(
+                grid, topology, bl, bt, br, bb, purpose, prop, doodads, rng);
         if (cell != null) {
             stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
         }
@@ -689,12 +744,17 @@ final class BuildingLayouts {
     private static void stampFixture(NavigationGrid grid, CellTopology topology,
                                      int x, int y, DoodadDef prop, List<Doodad> doodads,
                                      boolean seeThrough) {
-        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
-        if (grid.isDoorway(x, y) || isNearDoorway(grid, x, y) || isOccupied(x, y, doodads)) return;
-        grid.setWalkable(x, y, false);
-        grid.setSeeThrough(x, y, seeThrough);
-        topology.setWall(x, y, false);
-        topology.setFixture(x, y, true);
+        if (!canPlaceDoodad(grid, x, y, prop, doodads)) return;
+        for (int dy = 0; dy < prop.footprintCellsY; dy++) {
+            for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+                int cellX = x + dx;
+                int cellY = y + dy;
+                grid.setWalkable(cellX, cellY, false);
+                grid.setSeeThrough(cellX, cellY, seeThrough);
+                topology.setWall(cellX, cellY, false);
+                topology.setFixture(cellX, cellY, true);
+            }
+        }
         doodads.add(new Doodad(x, y, prop));
     }
 
@@ -823,11 +883,7 @@ final class BuildingLayouts {
     /** Stamps {@code prop} at {@code (x, y)} if the cell is walkable, not a doorway, not too close to one, and not already occupied. */
     private static void tryStamp(NavigationGrid grid, int x, int y,
                                  DoodadDef prop, List<Doodad> doodads) {
-        if (!grid.inBounds(x, y)) return;
-        if (!grid.isWalkable(x, y)) return;
-        if (grid.isDoorway(x, y)) return;
-        if (isNearDoorway(grid, x, y)) return;
-        if (isOccupied(x, y, doodads)) return;
+        if (!canPlaceDoodad(grid, x, y, prop, doodads)) return;
         doodads.add(new Doodad(x, y, prop));
     }
 
@@ -847,22 +903,47 @@ final class BuildingLayouts {
     /** True if a doodad already exists at {@code (x, y)} — avoids stamping a counter on top of an earlier wall-line prop. */
     private static boolean isOccupied(int x, int y, List<Doodad> doodads) {
         for (Doodad d : doodads) {
-            if (d.cellX == x && d.cellY == y) return true;
+            if (d.occupiesCell(x, y)) return true;
         }
         return false;
+    }
+
+    private static boolean canPlaceDoodad(NavigationGrid grid, int x, int y,
+                                          DoodadDef prop, List<Doodad> doodads) {
+        for (int dy = 0; dy < prop.footprintCellsY; dy++) {
+            for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+                int cellX = x + dx;
+                int cellY = y + dy;
+                if (!grid.inBounds(cellX, cellY) || !grid.isWalkable(cellX, cellY)) return false;
+                if (grid.isDoorway(cellX, cellY) || isNearDoorway(grid, cellX, cellY)) return false;
+                if (isOccupied(cellX, cellY, doodads)) return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean footprintHasPurpose(CellTopology topology, int x, int y,
+                                               DoodadDef prop, RoomPurpose purpose) {
+        for (int dy = 0; dy < prop.footprintCellsY; dy++) {
+            for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+                int cellX = x + dx;
+                int cellY = y + dy;
+                if (!topology.inBounds(cellX, cellY)
+                        || topology.getRoomPurpose(cellX, cellY) != purpose) return false;
+            }
+        }
+        return true;
     }
 
     /** Returns a random walkable, non-doorway, non-occupied interior cell, or {@code null} if no candidate exists. */
     private static int[] pickFreeInteriorCell(NavigationGrid grid,
                                               int bl, int bt, int br, int bb,
+                                              DoodadDef prop,
                                               List<Doodad> doodads, Random rng) {
         List<int[]> free = new ArrayList<>();
         for (int y = bt + 1; y <= bb - 1; y++) {
             for (int x = bl + 1; x <= br - 1; x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                if (grid.isDoorway(x, y)) continue;
-                if (isNearDoorway(grid, x, y)) continue;
-                if (isOccupied(x, y, doodads)) continue;
+                if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
                 free.add(new int[]{x, y});
             }
         }
@@ -881,7 +962,8 @@ final class BuildingLayouts {
         if (tiny && rng.nextFloat() >= TINY_PROP_CHANCE) return;
         int picks = tiny ? 1 : (1 + rng.nextInt(2));
         for (int i = 0; i < picks; i++) {
-            int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
+            int[] cell = pickFreeInteriorCell(
+                    grid, bl, bt, br, bb, pool.get(0), doodads, rng);
             if (cell == null) break;
             doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
         }

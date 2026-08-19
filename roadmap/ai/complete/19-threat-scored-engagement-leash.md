@@ -193,7 +193,7 @@ threat-input method when the belief layer lands.
   a firing cell inside a weight-scaled 4–12-cell leash around the threat's
   projection onto the advance axis. Pressing members keep the objective path
   and fire moving shots of opportunity.
-- `SquadStateDumper` schema v6 surfaces weight, commitment, leash, primary
+- `SquadStateDumper` surfaces weight, commitment, leash, primary
   contact, raw force counts, axis anchor, retreat posture, and score tick.
 - `AdvanceThreatLeashTest` covers route/flank weighting, retreat discount,
   threshold hysteresis, moving-fire press, stanced commit, bounded prosecution,

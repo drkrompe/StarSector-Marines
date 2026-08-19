@@ -231,39 +231,55 @@
       "col": 0,
       "row": 4,
       "cover": "light",
-      "ballisticHalfHeight": 0.28
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        2,
+        1
+      ]
     },
     {
       "id": "doodad.residential-bed-v",
-      "col": 1,
+      "col": 2,
       "row": 4,
       "cover": "light",
-      "ballisticHalfHeight": 0.28
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        1,
+        2
+      ]
     },
     {
       "id": "doodad.residential-sofa-h",
-      "col": 2,
-      "row": 4,
-      "cover": "med",
-      "ballisticHalfHeight": 0.42
-    },
-    {
-      "id": "doodad.residential-sofa-v",
       "col": 3,
       "row": 4,
       "cover": "med",
-      "ballisticHalfHeight": 0.42
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-v",
+      "col": 5,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [
+        1,
+        2
+      ]
     },
     {
       "id": "doodad.residential-planter-h",
-      "col": 4,
+      "col": 6,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.residential-planter-v",
-      "col": 5,
+      "col": 7,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.55
@@ -461,31 +477,31 @@
       "description": "Low civilian bed aligned east-west."
     },
     {
-      "col": 1,
+      "col": 2,
       "row": 4,
       "name": "Residential bed vertical",
       "description": "Low civilian bed aligned north-south."
     },
     {
-      "col": 2,
+      "col": 3,
       "row": 4,
       "name": "Residential sofa horizontal",
       "description": "Low two-seat civilian sofa aligned east-west."
     },
     {
-      "col": 3,
+      "col": 5,
       "row": 4,
       "name": "Residential sofa vertical",
       "description": "Low two-seat civilian sofa aligned north-south."
     },
     {
-      "col": 4,
+      "col": 6,
       "row": 4,
       "name": "Courtyard planter horizontal",
       "description": "Raised concrete shrub planter aligned east-west."
     },
     {
-      "col": 5,
+      "col": 7,
       "row": 4,
       "name": "Courtyard planter vertical",
       "description": "Raised concrete shrub planter aligned north-south."

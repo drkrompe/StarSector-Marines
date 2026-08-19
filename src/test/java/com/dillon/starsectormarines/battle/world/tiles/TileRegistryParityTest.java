@@ -186,6 +186,27 @@ public class TileRegistryParityTest {
     }
 
     @Test
+    void doodadFootprintsDefaultToOneCellAndRejectInvalidSpans() throws Exception {
+        JSONObject root = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.one\", \"col\": 0, \"row\": 0, \"cover\": \"light\" },"
+                + " { \"id\": \"x.wide\", \"col\": 1, \"row\": 0, \"cover\": \"med\","
+                + "   \"footprintCells\": [2, 1] } ] }");
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(root);
+        assertEquals(1, registry.doodad("x.one").footprintCellsX);
+        assertEquals(1, registry.doodad("x.one").footprintCellsY);
+        assertEquals(2, registry.doodad("x.wide").footprintCellsX);
+        assertEquals(1, registry.doodad("x.wide").footprintCellsY);
+
+        JSONObject invalid = new JSONObject(
+                "{ \"sheet\": \"graphics/tilesets/x.png\", \"doodads\": ["
+                + " { \"id\": \"x.bad\", \"col\": 0, \"row\": 0, \"cover\": \"med\","
+                + "   \"footprintCells\": [0, 2] } ] }");
+        assertThrows(IllegalStateException.class, () -> new TileRegistry().ingestSheet(invalid));
+    }
+
+    @Test
     void unknownLayerTokenFailsLoud() throws Exception {
         JSONObject root = new JSONObject(
                 "{ \"sheet\": \"graphics/tilesets/x.png\", \"tiles\": ["
