@@ -133,7 +133,10 @@ tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
 tasks.register('deployMod', Sync) {
     group = 'starsector'
     description = "Copy the mod folder into the Starsector mods directory ($starsectorModsDir)"
-    dependsOn tasks.named('shadowJar')
+    // mod/sounds is generated and gitignored. Always materialize the audio
+    // manifest before Sync snapshots mod/, otherwise a newly-added sound ID
+    // can deploy without its matching Ogg and make Starsector fail at startup.
+    dependsOn tasks.named('shadowJar'), ':asset-pipeline:processAudio'
     from modOutputDir
     into new File(starsectorModsDir, modName)
     preserve {
