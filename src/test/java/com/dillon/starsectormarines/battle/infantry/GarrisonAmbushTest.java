@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
@@ -129,6 +130,19 @@ public class GarrisonAmbushTest {
 
         assertTrue(GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "garrison-routed squad in a zone with portals + visible enemy → goal fires");
+    }
+
+    @Test
+    public void relevanceZeroWhenMoraleBreaks() {
+        BattleSimulation sim = singlePortalRoom();
+        Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6)
+                .squad(squad.id));
+        sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        WorldState broken = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
+
+        assertEquals(0f, GarrisonAmbush.INSTANCE.relevance(broken, squad, sim),
+                "ordinary ambush garrisons must yield to SurviveContact");
     }
 
     @Test

@@ -41,8 +41,8 @@ import java.util.Map;
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. v7: bounding-overwatch phase and destinations. */
-    private static final int SCHEMA_VERSION = 7;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v4: {@code selectedMemberId} is now the numeric entityId (was the string unit name), per identity-collapse Phase A. v5: {@code moveProgress} replaced by boolean {@code settled}, per the continuous-positions mover swap. v6: threat-scored advance-leash diagnostics. v7: bounding-overwatch phase and destinations. v8: must-hold node authoring. */
+    private static final int SCHEMA_VERSION = 8;
 
     private SquadStateDumper() {}
 
@@ -106,6 +106,7 @@ public final class SquadStateDumper {
         long leaderUnit = sim.resolveUnit(squad.leaderId);
         o.put("leaderId", leaderUnit != 0L ? sim.identity().name(leaderUnit) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
+        o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", buildAssignmentJson(squad.assignedObjective));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
         o.put("holdsFireUntilKillZone", squad.holdsFireUntilKillZone);
