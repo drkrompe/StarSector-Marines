@@ -25,6 +25,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SwarmPressureBehaviorTest {
 
     @Test
+    void targetlessProtectedSwarmRovesWithoutEnteringOpeningZones() {
+        BattleSimulation sim = simulation(40, 30);
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        16, 10, 24, 18, 20, 14, 20, 14)), 10L);
+        assertNotNull(payload);
+        long runner = runner(sim, 34, 4);
+
+        SwarmPressureBehavior.INSTANCE.update(runner, sim);
+
+        assertEquals(0L, sim.combat().targetId(runner));
+        int[] path = sim.movement().path(runner);
+        assertFalse(Paths.isEmpty(path),
+                "the pre-touchdown swarm should already be visibly roving");
+        for (int i = 0; i < Paths.cellCount(path); i++) {
+            assertFalse(sim.isInsideRescueOpeningProtectedZone(
+                    Paths.cellX(path, i), Paths.cellY(path, i)),
+                    "roaming must preserve the shelter and pickup opening space");
+        }
+    }
+
+    @Test
     void sealedShelterRedirectsVisibleSwarmPressureToMarines() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
@@ -284,11 +307,15 @@ class SwarmPressureBehaviorTest {
     }
 
     private static BattleSimulation simulation() {
-        NavigationGrid grid = new NavigationGrid(16, 12);
-        for (int y = 0; y < 12; y++) {
-            for (int x = 0; x < 16; x++) grid.setWalkableFloor(x, y);
+        return simulation(16, 12);
+    }
+
+    private static BattleSimulation simulation(int width, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
-        return new BattleSimulation(grid, new CellTopology(16, 12));
+        return new BattleSimulation(grid, new CellTopology(width, height));
     }
 
     private static long runner(BattleSimulation sim, int x, int y) {

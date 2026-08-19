@@ -55,9 +55,20 @@ one deterministic `IDEALIST` or `CYNICAL` outlook from choices witnessed during
 their tenure, without exposing moral scores or adding combat modifiers. The
 outlook persists exactly once and is readable on the shared captain row.
 
+## Complete — captain discovery
+
+[`complete/captain-discovery.md`](complete/captain-discovery.md) establishes the
+canonical path for finding new captains as cryo-pod survivors aboard eligible
+derelicts. Slice 1 is shipped: personnel now owns persistent source-keyed
+candidates and admits them atomically, with full-roster and replay safety.
+Slice 2 observes vanilla's pre-loot callback, filters ordinary non-mission
+wrecks through a stable rarity/profile policy, and publishes without touching
+salvage cargo or completion. Slice 3 presents and resolves the survivor after
+loot, while deferred/full-roster offers remain actionable in Personnel.
+
 ## Complete — named stationing
 
-[`stories/named-stationing.md`](stories/named-stationing.md) replaces the old
+[`complete/named-stationing.md`](complete/named-stationing.md) replaces the old
 captain-plus-anonymous-count stationing model with whole persistent fireteams.
 Campaign/personnel owns binding, availability, casualties, and exactly-once
 return; stationing battles only consume and report frozen identities. Named

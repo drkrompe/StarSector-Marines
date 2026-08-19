@@ -444,6 +444,46 @@ class BallisticResolverTest {
         assertFalse(result.hitIntended());
     }
 
+    @Test
+    void assaultMechBodyPhysicallyScreensFriendlyInfantryFromDirectFire() {
+        BattleSimulation screenedSim = openArena();
+        DoodadService screenedDoodads = new DoodadService(screenedSim.getGrid());
+        long shooter = spawn(screenedSim, Faction.DEFENDER, 2);
+        long screen = screenedSim.spawn(new EntitySpec(
+                "screen", Faction.MARINE, UnitType.HEAVY_MECH, 8, ROW));
+        long infantry = spawn(screenedSim, Faction.MARINE, 12);
+        BallisticResolver screenedResolver = new BallisticResolver(
+                screenedSim.getGrid(), screenedDoodads,
+                screenedSim.getUnitIndex(), screenedSim.getRoster());
+
+        BallisticResolver.Resolution screened = screenedResolver.resolve(
+                shooter, infantry, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.99f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, screened.kind());
+        assertEquals(screen, screened.victimId(),
+                "the first hostile body on the physical ray catches the infantry-bound round");
+        assertFalse(screened.hitIntended());
+
+        BattleSimulation exposedSim = openArena();
+        DoodadService exposedDoodads = new DoodadService(exposedSim.getGrid());
+        long exposedShooter = spawn(exposedSim, Faction.DEFENDER, 2);
+        exposedSim.spawn(new EntitySpec(
+                "off-axis-screen", Faction.MARINE, UnitType.HEAVY_MECH, 8, ROW + 2));
+        long exposedInfantry = spawn(exposedSim, Faction.MARINE, 12);
+        BallisticResolver exposedResolver = new BallisticResolver(
+                exposedSim.getGrid(), exposedDoodads,
+                exposedSim.getUnitIndex(), exposedSim.getRoster());
+
+        BallisticResolver.Resolution exposed = exposedResolver.resolve(
+                exposedShooter, exposedInfantry, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(exposedInfantry, exposed.victimId(),
+                "moving the chassis off the ray restores the intended infantry hit");
+        assertTrue(exposed.hitIntended());
+    }
+
     // ---- cover-clip uses grid cover only; a doodad next to the victim must not double-roll ----
 
     @Test

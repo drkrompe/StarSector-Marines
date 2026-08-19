@@ -395,6 +395,21 @@ public final class Squad {
     /** Last tick that tried to start or flip a bound; prevents every sibling retrying the same failed search. */
     public volatile int boundingAttemptTick = -1;
 
+    // ---- Story 23: mech-screened objective advance ----
+
+    /** Friendly assault mech currently walking point for this infantry squad, or {@code 0L}. */
+    public volatile long screeningMechId = 0L;
+    /** Current threat-relative pocket shape around {@link #screeningMechId}. */
+    public volatile MechScreenMode mechScreenMode = MechScreenMode.NONE;
+    /** Contact defining the screen axis, or {@code 0L} while the objective itself defines it. */
+    public volatile long mechScreenThreatId = 0L;
+    /** Tick on which the dynamic member-to-cell formation was rebuilt. */
+    public volatile int mechScreenTick = -1;
+    /** Member-to-cell assignment replaced atomically under {@link #lock}. */
+    public volatile long[] mechScreenMemberIds = new long[0];
+    public volatile int[] mechScreenTargetXs = new int[0];
+    public volatile int[] mechScreenTargetYs = new int[0];
+
     /**
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
@@ -451,6 +466,19 @@ public final class Squad {
             boundingTargetXs = new int[0];
             boundingTargetYs = new int[0];
             boundingAttemptTick = -1;
+        }
+    }
+
+    /** Clears the transient unit-anchored formation when its mech or advance is no longer usable. */
+    public void clearMechScreen() {
+        synchronized (lock) {
+            screeningMechId = 0L;
+            mechScreenMode = MechScreenMode.NONE;
+            mechScreenThreatId = 0L;
+            mechScreenTick = -1;
+            mechScreenMemberIds = new long[0];
+            mechScreenTargetXs = new int[0];
+            mechScreenTargetYs = new int[0];
         }
     }
 
