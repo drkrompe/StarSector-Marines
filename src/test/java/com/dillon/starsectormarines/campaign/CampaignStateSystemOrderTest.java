@@ -101,6 +101,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(eventLifecycle < rescueSpawn);
         assertTrue(rescueSpawn < moralCompass);
         assertTrue(moralCompass < kingmakerTestament);
+        assertTrue(kingmakerTestament < discovery);
         assertTrue(kingmakerTestament < captainDrift);
         assertTrue(moralCompass < captainDrift);
         assertTrue(civilWarParticipation < discovery);

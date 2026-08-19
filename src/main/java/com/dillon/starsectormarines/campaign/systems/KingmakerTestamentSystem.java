@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.CivilWarAllegiance;
 import com.dillon.starsectormarines.campaign.CivilWarPlayerConsequenceState;
 import com.dillon.starsectormarines.campaign.MoralChoiceSource;
+import com.dillon.starsectormarines.campaign.KingmakerTestamentState;
 import com.dillon.starsectormarines.campaign.ThroneClaimState;
 
 import java.util.EnumSet;
@@ -26,26 +27,29 @@ public final class KingmakerTestamentSystem implements CampaignSystem {
     public EnumSet<CampaignTable> reads() {
         return EnumSet.of(CampaignTable.THRONE_CLAIMS, CampaignTable.CHAINS,
                 CampaignTable.HOUSES, CampaignTable.MORAL_COMPASS,
-                CampaignTable.KINGMAKER_TESTAMENTS);
+                CampaignTable.KINGMAKER_TESTAMENTS, CampaignTable.CHRONICLE);
     }
 
     @Override
     public EnumSet<CampaignTable> writes() {
-        return EnumSet.of(CampaignTable.KINGMAKER_TESTAMENTS);
+        return EnumSet.of(CampaignTable.KINGMAKER_TESTAMENTS,
+                CampaignTable.CHRONICLE);
     }
 
     @Override
     public void tick(CampaignState state, int day) {
         if (state == null || day < 0) return;
         for (int claimRow = 0; claimRow < state.throneClaimCount; claimRow++) {
-            if (state.kingmakerTestamentIndexForClaim(
-                    state.throneClaimId[claimRow]) >= 0) {
+            int testamentRow = state.kingmakerTestamentIndexForClaim(
+                    state.throneClaimId[claimRow]);
+            if (testamentRow >= 0) {
+                ensureChronicleDispatch(state, testamentRow, day);
                 continue;
             }
             int chainRow = qualifyingChainRow(state, claimRow);
             if (chainRow < 0) continue;
 
-            state.sealKingmakerTestament(
+            long testamentId = state.sealKingmakerTestament(
                     state.throneClaimId[claimRow],
                     state.throneClaimSourceChainId[claimRow],
                     state.throneClaimHouseId[claimRow],
@@ -60,7 +64,31 @@ public final class KingmakerTestamentSystem implements CampaignSystem {
                     state.moralInstitutionalism,
                     state.moralChoiceCount,
                     day);
+            testamentRow = state.kingmakerTestamentIndex(testamentId);
+            ensureChronicleDispatch(state, testamentRow, day);
         }
+    }
+
+    private static void ensureChronicleDispatch(CampaignState state,
+                                                int testamentRow,
+                                                int learnedTick) {
+        if (testamentRow < 0) return;
+        KingmakerTestamentState testamentState = KingmakerTestamentState.fromByte(
+                state.kingmakerTestamentState[testamentRow]);
+        if (testamentState != KingmakerTestamentState.SEALED
+                && testamentState != KingmakerTestamentState.REVEALED) {
+            return;
+        }
+        state.addChronicleKingmakerTestament(
+                state.kingmakerTestamentId[testamentRow],
+                state.kingmakerTestamentSourceChainId[testamentRow],
+                state.kingmakerTestamentClaimantHouseId[testamentRow],
+                state.kingmakerTestamentDeposedHouseId[testamentRow],
+                state.kingmakerTestamentSourceFactionId[testamentRow],
+                state.kingmakerTestamentResultFactionId[testamentRow],
+                state.kingmakerTestamentMarketId[testamentRow],
+                state.kingmakerTestamentSealedTick[testamentRow],
+                learnedTick);
     }
 
     private static int qualifyingChainRow(CampaignState state, int claimRow) {

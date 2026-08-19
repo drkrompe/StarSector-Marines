@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
+import com.dillon.starsectormarines.campaign.systems.DebugKingmakerTestamentSpawner;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
@@ -70,6 +71,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
     private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
+    private static final String BTN_SPAWN_TESTAMENT = "spawn-kingmaker-testament";
     private static final String BTN_ADVANCE_DEFECTOR = "advance-defector-followup";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
@@ -189,6 +191,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
         ui.addButton("Spawn discovered-chain defector", BTN_SPAWN_DEFECTOR,
+                320f, 24f, 8f);
+        ui.addButton("Spawn kingmaker testament", BTN_SPAWN_TESTAMENT,
                 320f, 24f, 8f);
         ui.addButton("Advance committed defector to follow-up",
                 BTN_ADVANCE_DEFECTOR, 320f, 24f, 8f);
@@ -338,6 +342,11 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             event = "FACTION FLIP — " + actor + " displaced " + target
                     + " — " + sourceFaction + " → " + resultFaction;
             location = market;
+        } else if (eventType == ChronicleEventType.KINGMAKER_TESTAMENT) {
+            event = "TESTAMENT #" + s.chronicleTestamentId[row] + " — "
+                    + target + " addressed the kingmaker after "
+                    + actor + "'s accession";
+            location = market;
         } else {
             event = outcome.name() + " — " + actor + " vs " + target;
             location = industry + " @ " + market;
@@ -452,6 +461,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnLocalRescue(s);
         } else if (BTN_SPAWN_DEFECTOR.equals(buttonId)) {
             spawnDefector(s);
+        } else if (BTN_SPAWN_TESTAMENT.equals(buttonId)) {
+            spawnKingmakerTestament(s);
         } else if (BTN_ADVANCE_DEFECTOR.equals(buttonId)) {
             advanceDefector(s);
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
@@ -556,6 +567,13 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 ? (int) Global.getSector().getClock().getDay()
                 : Math.max(0, state.lastTickDay);
         DebugDefectorAsylumSpawner.spawn(state, day);
+    }
+
+    private static void spawnKingmakerTestament(CampaignState state) {
+        int day = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay()
+                : Math.max(0, state.lastTickDay);
+        DebugKingmakerTestamentSpawner.spawn(state, day);
     }
 
     private static void advanceDefector(CampaignState state) {

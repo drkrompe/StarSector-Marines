@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.CivilWarAllegiance;
 import com.dillon.starsectormarines.campaign.CivilWarPlayerConsequenceState;
+import com.dillon.starsectormarines.campaign.ChronicleEventType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -53,6 +54,11 @@ class KingmakerTestamentSystemTest {
         assertEquals(KingmakerTestamentState.SEALED,
                 KingmakerTestamentState.fromByte(
                         fixture.state.kingmakerTestamentState[row]));
+        assertEquals(1, fixture.state.chronicleCount);
+        assertEquals(ChronicleEventType.KINGMAKER_TESTAMENT,
+                ChronicleEventType.fromByte(fixture.state.chronicleEventType[0]));
+        assertEquals(fixture.state.kingmakerTestamentId[row],
+                fixture.state.chronicleTestamentId[0]);
 
         MoralChoiceRecorder.record(fixture.state,
                 MoralChoiceSource.CIVILIAN_RESCUE_REFUSED, 90L,
@@ -64,6 +70,26 @@ class KingmakerTestamentSystemTest {
         assertEquals(10, fixture.state.kingmakerTestamentStewardship[row]);
         assertEquals(3,
                 fixture.state.kingmakerTestamentMoralChoiceCount[row]);
+        assertEquals(1, fixture.state.chronicleCount);
+    }
+
+    @Test
+    void existingTestamentRecoversOneMissingChronicleDispatch() {
+        Fixture fixture = new Fixture(60, true);
+        fixture.recordClaimantChoice();
+        KingmakerTestamentSystem system = new KingmakerTestamentSystem();
+        system.tick(fixture.state, 82);
+        long testament = fixture.state.kingmakerTestamentId[0];
+
+        fixture.state.chronicleCount = 0;
+        system.tick(fixture.state, 90);
+        system.tick(fixture.state, 91);
+
+        assertEquals(1, fixture.state.kingmakerTestamentCount);
+        assertEquals(1, fixture.state.chronicleCount);
+        assertEquals(testament, fixture.state.chronicleTestamentId[0]);
+        assertEquals(82, fixture.state.chronicleHappenedTick[0]);
+        assertEquals(90, fixture.state.chronicleLearnedTick[0]);
     }
 
     @Test
