@@ -16,7 +16,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -148,6 +150,83 @@ class EscortAssignedCiviliansGoalTest {
     }
 
     @Test
+    void pickupGuardSquadSpreadsAcrossAFiveByFiveTacticalPocket() {
+        BattleSimulation sim = simulation(24, 14);
+        List<Long> members = addSquad(sim, 8, 2, 6);
+        Squad squad = sim.getSquad(sim.squad().squadId(members.get(0)));
+        squad.rescuePickupGuard = true;
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 14, 6);
+        assignEscortPlan(members, squad, sim);
+
+        Set<Long> destinations = executeAndCollectDestinations(
+                members, squad, sim);
+
+        assertEquals(8, destinations.size());
+        assertTrue(destinations.stream().anyMatch(cell -> {
+            int dx = Math.abs(cellX(cell) - 14);
+            int dy = Math.abs(cellY(cell) - 6);
+            return dx == EscortAssignedCivilians.PICKUP_GUARD_RADIUS
+                    || dy == EscortAssignedCivilians.PICKUP_GUARD_RADIUS;
+        }), "pickup members should use cells outside the old 3x3 ring");
+        assertTrue(destinations.stream().allMatch(cell ->
+                Math.abs(cellX(cell) - 14)
+                        <= EscortAssignedCivilians.PICKUP_GUARD_RADIUS
+                        && Math.abs(cellY(cell) - 6)
+                        <= EscortAssignedCivilians.PICKUP_GUARD_RADIUS));
+    }
+
+    @Test
+    void movingEscortUsesTheSameWidePocketAfterRelief() {
+        BattleSimulation sim = simulation(32, 22);
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        9, 6, 13, 10, 11, 8, 11, 8)), 713L);
+        assertNotNull(payload);
+        List<Long> members = addSquad(sim, 8,
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.isCivilianEvacuationTriggered());
+        Squad squad = sim.getSquad(sim.squad().squadId(members.get(0)));
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 20, 12);
+        assignEscortPlan(members, squad, sim);
+
+        Set<Long> destinations = executeAndCollectDestinations(
+                members, squad, sim);
+
+        assertEquals(8, destinations.size());
+        assertTrue(destinations.stream().anyMatch(cell ->
+                Math.abs(cellX(cell) - 20)
+                        == EscortAssignedCivilians.ESCORT_RADIUS
+                        || Math.abs(cellY(cell) - 12)
+                        == EscortAssignedCivilians.ESCORT_RADIUS),
+                "moving escorts should use cells outside the old 3x3 ring");
+    }
+
+    @Test
+    void tacticalPocketPrefersNearbyDoodadCover() {
+        BattleSimulation sim = simulation(24, 14);
+        long marine = addMarine(sim, 2, 6);
+        Squad squad = sim.getSquad(sim.squad().squadId(marine));
+        squad.rescuePickupGuard = true;
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 14, 6);
+        sim.addDoodad(new Doodad(16, 8,
+                new TileManifest.TileFrame(4, 7), false,
+                Doodad.COVER_HEAVY));
+        List<Long> members = List.of(marine);
+        assignEscortPlan(members, squad, sim);
+
+        EscortAssignedCivilians.INSTANCE.execute(marine, squad, sim);
+        int[] path = sim.movement().path(marine);
+
+        assertFalse(Paths.isEmpty(path));
+        assertTrue(sim.getDoodadCoverAt(Paths.destX(path), Paths.destY(path))
+                        > 0,
+                "the squad pocket should spend its leeway on nearby prop cover");
+    }
+
+    @Test
     void unitFormationMovesWithAnUpdatedSquadRallyCell() {
         BattleSimulation sim = simulation();
         List<Long> members = addSquad(sim, 4, 2, 4);
@@ -262,8 +341,37 @@ class EscortAssignedCiviliansGoalTest {
         return members;
     }
 
+    private static void assignEscortPlan(List<Long> members, Squad squad,
+                                         BattleSimulation sim) {
+        SquadPlan plan = new SquadPlan(List.of(new SquadPlan.Step(
+                EscortAssignedCivilians.INSTANCE)));
+        plan.currentStep().assignments.putAll(RoleAssigner.assign(members,
+                EscortAssignedCivilians.INSTANCE.roles(squad, sim)));
+        squad.currentPlan = plan;
+    }
+
+    private static Set<Long> executeAndCollectDestinations(
+            List<Long> members, Squad squad, BattleSimulation sim) {
+        Set<Long> destinations = new HashSet<>();
+        for (long member : members) {
+            EscortAssignedCivilians.INSTANCE.execute(member, squad, sim);
+            int[] path = sim.movement().path(member);
+            assertFalse(Paths.isEmpty(path));
+            destinations.add(cellKey(Paths.destX(path), Paths.destY(path)));
+        }
+        return destinations;
+    }
+
     private static long cellKey(int x, int y) {
         return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    private static int cellX(long cell) {
+        return (int) (cell >> 32);
+    }
+
+    private static int cellY(long cell) {
+        return (int) cell;
     }
 
     private static BattleSimulation simulation() {

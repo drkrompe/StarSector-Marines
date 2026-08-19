@@ -13,7 +13,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Moving rally posture used by the rescue commander before and during evacuation. */
 public final class EscortAssignedCivilians implements Action {
@@ -22,21 +24,17 @@ public final class EscortAssignedCivilians implements Action {
             new EscortAssignedCivilians();
     /** The lead squad must enter the shelter's physical relief trigger. */
     static final int RELIEF_RADIUS = 2;
-    /** Each squad forms locally around its distinct commander-authored screen slot. */
+    /** Each moving squad uses a 5x5 tactical pocket around its screen slot. */
     static final int ESCORT_RADIUS = 2;
+    /** Each pickup squad uses the same 5x5 pocket around its star point. */
     static final int PICKUP_GUARD_RADIUS = 2;
     private static final String SLOT_PREFIX = "escort:";
     private static final String OVERFLOW_SLOT = SLOT_PREFIX + "overflow";
-    /**
-     * Common four- and eight-person squads occupy the one-cell ring first.
-     * The anchor and two-cell cardinal posts are fallbacks for larger squads
-     * or terrain-obstructed rings.
-     */
-    private static final int[][] FORMATION_OFFSETS = {
-            {0, -1}, {-1, 0}, {1, 0}, {0, 1},
-            {-1, -1}, {1, -1}, {-1, 1}, {1, 1},
-            {0, 0}, {0, -2}, {-2, 0}, {2, 0}, {0, 2}
-    };
+    private static final int COVER_PRIORITY = 1_536;
+    private static final int SPACING_PRIORITY = 32;
+    private static final int RADIUS_PRIORITY = 8;
+
+    private record FormationCell(int dx, int dy, int cover, int variation) {}
 
     private EscortAssignedCivilians() {}
 
@@ -48,9 +46,9 @@ public final class EscortAssignedCivilians implements Action {
 
     /**
      * Binds each squadmate to one distinct cell around the squad's commander-
-     * authored rally anchor. Slot identity is an offset-list index rather than
-     * an absolute cell, so the formation moves immediately when the escort
-     * screen advances without waiting for the next periodic replan.
+     * authored rally anchor. Slot identity is a relative offset rather than an
+     * absolute cell, so the formation moves immediately when the escort screen
+     * advances without waiting for the next periodic replan.
      */
     @Override
     public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
@@ -59,18 +57,24 @@ public final class EscortAssignedCivilians implements Action {
             return List.of(new RoleAssigner.Slot<>(OVERFLOW_SLOT,
                     Math.max(1, squad.aliveMembers), candidate -> 0f));
         }
-        List<int[]> cells = formationCells(assignment.targetCellX(),
-                assignment.targetCellY(), standoffRadius(squad, sim), sim);
-        int distinctSlots = Math.min(squad.aliveMembers, cells.size());
+        int radius = standoffRadius(squad, sim);
+        boolean tacticalPocket = usesTacticalPocket(squad, sim);
+        List<FormationCell> cells = formationCells(assignment.targetCellX(),
+                assignment.targetCellY(), radius, tacticalPocket, squad, sim);
+        Set<String> selected = selectFormationSlots(cells,
+                squad.aliveMembers);
         List<RoleAssigner.Slot<Long>> slots = new ArrayList<>(
-                distinctSlots + 1);
-        for (int slot = 0; slot < distinctSlots; slot++) {
-            int offsetIndex = cells.get(slot)[2];
-            int cellX = cells.get(slot)[0];
-            int cellY = cells.get(slot)[1];
-            slots.add(new RoleAssigner.Slot<>(slotName(offsetIndex), 1,
-                    candidate -> -cellDistanceSquared(candidate, cellX,
-                            cellY, sim)));
+                (radius * 2 + 1) * (radius * 2 + 1) + 1);
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                String name = slotName(dx, dy);
+                int cellX = assignment.targetCellX() + dx;
+                int cellY = assignment.targetCellY() + dy;
+                slots.add(new RoleAssigner.Slot<>(name,
+                        selected.contains(name) ? 1 : 0,
+                        candidate -> -cellDistanceSquared(candidate, cellX,
+                                cellY, sim)));
+            }
         }
         slots.add(new RoleAssigner.Slot<>(OVERFLOW_SLOT,
                 Math.max(1, squad.aliveMembers), candidate -> -1_000_000f));
@@ -92,10 +96,12 @@ public final class EscortAssignedCivilians implements Action {
         int[] rally = assignedFormationCell(member, squad, tx, ty,
                 standoffRadius, sim);
         if (rally == null) {
-            rally = retainedFallbackCell(member, tx, ty, standoffRadius, sim);
+            rally = retainedFallbackCell(member, squad, tx, ty,
+                    standoffRadius, sim);
         }
         if (rally == null) {
-            rally = nearestOpenRallyCell(member, tx, ty, standoffRadius, sim);
+            rally = nearestOpenRallyCell(member, squad, tx, ty,
+                    standoffRadius, sim);
         }
         if (rally == null) {
             PatrolMotion.hold(member, sim);
@@ -131,8 +137,13 @@ public final class EscortAssignedCivilians implements Action {
         return RELIEF_RADIUS;
     }
 
-    private static String slotName(int offsetIndex) {
-        return SLOT_PREFIX + offsetIndex;
+    private static boolean usesTacticalPocket(Squad squad, BattleView sim) {
+        return squad != null && (squad.rescuePickupGuard
+                || sim.isCivilianEvacuationTriggered());
+    }
+
+    private static String slotName(int dx, int dy) {
+        return SLOT_PREFIX + dx + ":" + dy;
     }
 
     private static float cellDistanceSquared(long member, int cellX,
@@ -145,15 +156,14 @@ public final class EscortAssignedCivilians implements Action {
     private static int[] assignedFormationCell(long member, Squad squad,
                                                 int tx, int ty, int radius,
                                                 BattleView sim) {
-        int offsetIndex = assignedOffsetIndex(member, squad);
-        if (offsetIndex < 0 || offsetIndex >= FORMATION_OFFSETS.length) {
-            return null;
-        }
-        int x = tx + FORMATION_OFFSETS[offsetIndex][0];
-        int y = ty + FORMATION_OFFSETS[offsetIndex][1];
-        int dx = x - tx;
-        int dy = y - ty;
-        if (dx * dx + dy * dy > radius * radius
+        int[] offset = assignedOffset(member, squad);
+        if (offset == null) return null;
+        int dx = offset[0];
+        int dy = offset[1];
+        int x = tx + dx;
+        int y = ty + dy;
+        if (!insideFormationPocket(dx, dy, radius,
+                usesTacticalPocket(squad, sim))
                 || !sim.getGrid().inBounds(x, y)
                 || !sim.getGrid().isWalkable(x, y)) {
             return null;
@@ -161,53 +171,136 @@ public final class EscortAssignedCivilians implements Action {
         return new int[]{x, y};
     }
 
-    private static int assignedOffsetIndex(long member, Squad squad) {
+    private static int[] assignedOffset(long member, Squad squad) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete()
                 ? plan.currentStep() : null;
         String name = step != null ? step.slotOf(member) : null;
-        if (name == null || !name.startsWith(SLOT_PREFIX)) return -1;
+        if (name == null || !name.startsWith(SLOT_PREFIX)
+                || OVERFLOW_SLOT.equals(name)) return null;
+        String[] parts = name.substring(SLOT_PREFIX.length()).split(":", -1);
+        if (parts.length != 2) return null;
         try {
-            return Integer.parseInt(name.substring(SLOT_PREFIX.length()));
+            return new int[]{Integer.parseInt(parts[0]),
+                    Integer.parseInt(parts[1])};
         } catch (NumberFormatException ex) {
-            return -1;
+            return null;
         }
     }
 
     /** Keeps an overflow/unslotted member's legal in-flight destination. */
-    private static int[] retainedFallbackCell(long member, int tx, int ty,
-                                               int radius, BattleView sim) {
+    private static int[] retainedFallbackCell(long member, Squad squad,
+                                               int tx, int ty, int radius,
+                                               BattleView sim) {
         int[] path = sim.movement().path(member);
         if (sim.movement().pathIdx(member) >= Paths.cellCount(path)) return null;
         int x = Paths.destX(path);
         int y = Paths.destY(path);
         int dx = x - tx;
         int dy = y - ty;
-        if (dx * dx + dy * dy > radius * radius) return null;
+        if (!insideFormationPocket(dx, dy, radius,
+                usesTacticalPocket(squad, sim))) return null;
         return sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y)
                 ? new int[]{x, y} : null;
     }
 
-    /** Ordered walkable formation cells as {@code [x, y, offsetIndex]}. */
-    private static List<int[]> formationCells(int tx, int ty, int radius,
-                                               BattleView sim) {
-        List<int[]> cells = new ArrayList<>(FORMATION_OFFSETS.length);
-        for (int offsetIndex = 0; offsetIndex < FORMATION_OFFSETS.length;
-             offsetIndex++) {
-            int dx = FORMATION_OFFSETS[offsetIndex][0];
-            int dy = FORMATION_OFFSETS[offsetIndex][1];
-            if (dx * dx + dy * dy > radius * radius) continue;
-            int x = tx + dx;
-            int y = ty + dy;
-            if (!sim.getGrid().inBounds(x, y)
-                    || !sim.getGrid().isWalkable(x, y)) continue;
-            cells.add(new int[]{x, y, offsetIndex});
+    /** Walkable cells in a stable per-squad, cover-aware tactical pocket. */
+    private static List<FormationCell> formationCells(
+            int tx, int ty, int radius, boolean tacticalPocket,
+            Squad squad, BattleView sim) {
+        List<FormationCell> cells = new ArrayList<>(
+                (radius * 2 + 1) * (radius * 2 + 1));
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                if (!insideFormationPocket(dx, dy, radius,
+                        tacticalPocket)) continue;
+                int x = tx + dx;
+                int y = ty + dy;
+                if (!sim.getGrid().inBounds(x, y)
+                        || !sim.getGrid().isWalkable(x, y)) continue;
+                int cover = sim.getGrid().getCoverAt(x, y)
+                        + sim.getDoodadCoverAt(x, y);
+                cells.add(new FormationCell(dx, dy, cover,
+                        deterministicVariation(squad.id, dx, dy)));
+            }
         }
         return cells;
     }
 
-    private static int[] nearestOpenRallyCell(long member, int tx, int ty,
-                                               int radius, BattleView sim) {
+    /**
+     * Greedily selects distinct cells. Cover dominates, then separation, with
+     * a small deterministic per-squad variation so open-ground formations do
+     * not all stamp the same silhouette. The variation excludes the moving
+     * anchor, keeping relative slots stable as the escort screen advances.
+     */
+    private static Set<String> selectFormationSlots(
+            List<FormationCell> candidates, int memberCount) {
+        List<FormationCell> remaining = new ArrayList<>(candidates);
+        List<FormationCell> selectedCells = new ArrayList<>();
+        Set<String> selected = new HashSet<>();
+        int wanted = Math.min(memberCount, remaining.size());
+        while (selectedCells.size() < wanted) {
+            FormationCell best = null;
+            int bestScore = Integer.MIN_VALUE;
+            for (FormationCell candidate : remaining) {
+                int minSpacing = minimumSpacingSquared(candidate,
+                        selectedCells);
+                int radiusSquared = candidate.dx() * candidate.dx()
+                        + candidate.dy() * candidate.dy();
+                int score = candidate.cover() * COVER_PRIORITY
+                        + minSpacing * SPACING_PRIORITY
+                        + radiusSquared * RADIUS_PRIORITY
+                        + candidate.variation();
+                if (best == null || score > bestScore
+                        || (score == bestScore
+                        && compareCell(candidate, best) < 0)) {
+                    best = candidate;
+                    bestScore = score;
+                }
+            }
+            selectedCells.add(best);
+            selected.add(slotName(best.dx(), best.dy()));
+            remaining.remove(best);
+        }
+        return selected;
+    }
+
+    private static int minimumSpacingSquared(FormationCell candidate,
+                                              List<FormationCell> selected) {
+        if (selected.isEmpty()) return 0;
+        int minimum = Integer.MAX_VALUE;
+        for (FormationCell other : selected) {
+            int dx = candidate.dx() - other.dx();
+            int dy = candidate.dy() - other.dy();
+            minimum = Math.min(minimum, dx * dx + dy * dy);
+        }
+        return minimum;
+    }
+
+    private static int compareCell(FormationCell left, FormationCell right) {
+        int byY = Integer.compare(left.dy(), right.dy());
+        return byY != 0 ? byY : Integer.compare(left.dx(), right.dx());
+    }
+
+    private static int deterministicVariation(int squadId, int dx, int dy) {
+        int hash = squadId * 0x45D9F3B;
+        hash ^= (dx + 17) * 0x119DE1F3;
+        hash ^= (dy + 29) * 0x3449B1;
+        hash ^= hash >>> 16;
+        hash *= 0x45D9F3B;
+        hash ^= hash >>> 16;
+        return hash & 127;
+    }
+
+    private static boolean insideFormationPocket(int dx, int dy, int radius,
+                                                   boolean tacticalPocket) {
+        if (Math.abs(dx) > radius || Math.abs(dy) > radius) return false;
+        return tacticalPocket || dx * dx + dy * dy <= radius * radius;
+    }
+
+    private static int[] nearestOpenRallyCell(long member, Squad squad,
+                                               int tx, int ty, int radius,
+                                               BattleView sim) {
         int mx = sim.world().cellX(member);
         int my = sim.world().cellY(member);
         byte[] occupied = sim.getOccupancyMap();
@@ -218,7 +311,8 @@ public final class EscortAssignedCivilians implements Action {
             for (int x = tx - radius; x <= tx + radius; x++) {
                 int ex = x - tx;
                 int ey = y - ty;
-                if (ex * ex + ey * ey > radius * radius) continue;
+                if (!insideFormationPocket(ex, ey, radius,
+                        usesTacticalPocket(squad, sim))) continue;
                 if (!sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)) continue;
                 if ((x != mx || y != my)
                         && occupied[sim.getGrid().index(x, y)] != 0) continue;
