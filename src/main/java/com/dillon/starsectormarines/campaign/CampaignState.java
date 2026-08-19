@@ -167,6 +167,10 @@ public final class CampaignState implements Serializable {
     public int[] eventFollowupDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] eventCreditsOffered = new int[INITIAL_CAPACITY];
     public byte[] eventDefectorOutcome = new byte[INITIAL_CAPACITY];
+    /** Hidden deterministic threat seed for Silent Colony expeditions. */
+    public long[] eventColonyThreatSeed = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Explicit archive result for Silent Colony expeditions. */
+    public byte[] eventColonyArchiveOutcome = new byte[INITIAL_CAPACITY];
     public int eventCount = 0;
 
     // ---------- chronicle[] (learned events only) ----------
@@ -798,6 +802,9 @@ public final class CampaignState implements Serializable {
         eventFollowupDeadlineTick[i] = -1;
         eventCreditsOffered[i] = 0;
         eventDefectorOutcome[i] = DefectorAsylumOutcome.NONE.toByte();
+        eventColonyThreatSeed[i] = -1L;
+        eventColonyArchiveOutcome[i] =
+                AbandonedColonyArchiveOutcome.NONE.toByte();
         eventIndexById.put(id, i);
         return id;
     }
@@ -1147,6 +1154,10 @@ public final class CampaignState implements Serializable {
         Arrays.fill(eventFollowupDeadlineTick, oldLength, n, -1);
         eventCreditsOffered = Arrays.copyOf(eventCreditsOffered, n);
         eventDefectorOutcome = Arrays.copyOf(eventDefectorOutcome, n);
+        eventColonyThreatSeed = Arrays.copyOf(eventColonyThreatSeed, n);
+        Arrays.fill(eventColonyThreatSeed, oldLength, n, -1L);
+        eventColonyArchiveOutcome = Arrays.copyOf(
+                eventColonyArchiveOutcome, n);
     }
 
     /**
@@ -1476,6 +1487,12 @@ public final class CampaignState implements Serializable {
         }
         if (eventDefectorOutcome == null) {
             eventDefectorOutcome = new byte[eventCapacity];
+        }
+        if (eventColonyThreatSeed == null) {
+            eventColonyThreatSeed = filledLongs(eventCapacity, -1L);
+        }
+        if (eventColonyArchiveOutcome == null) {
+            eventColonyArchiveOutcome = new byte[eventCapacity];
         }
         if (eventIndexById == null) eventIndexById = new LongIntMap();
         eventIndexById.clear();
