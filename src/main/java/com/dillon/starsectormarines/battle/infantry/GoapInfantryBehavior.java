@@ -100,6 +100,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     public void update(long unit, BattleSimulation sim) {
         Squad squad = sim.squadOf(unit);
         if (squad == null) return;
+        if (protectedShelterGuard(squad, sim)) {
+            sim.combat().setTargetId(unit, 0L);
+            sim.clearPath(unit);
+            return;
+        }
 
         // Consult the assigned action before the preparation hook so a
         // move-only role cannot initiate an opportunity rocket and then skip
@@ -188,6 +193,13 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.aliveMembersAtLastPlan = 0;
             return;
         }
+        if (protectedShelterGuard(squad, sim)) {
+            squad.currentPlan = null;
+            squad.currentGoal = null;
+            squad.timeSinceReplan = 0f;
+            squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            return;
+        }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
         // Incoming fire is a tactical interrupt, not something infantry should
@@ -262,6 +274,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
+    }
+
+    private static boolean protectedShelterGuard(
+            Squad squad, BattleSimulation sim) {
+        return squad.rescueShelterGuard && sim.isCivilianShelterProtected();
     }
 
     private static boolean continuesBoundingAdvance(SquadPlan plan, Squad squad) {
