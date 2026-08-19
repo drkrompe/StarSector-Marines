@@ -103,6 +103,14 @@ public class BuildingZonePreviewTest {
             new BuildingVariant("large 17x13",   17, 13, 83L),
     };
 
+    /** Industrial facilities keep small warehouses and add qualifying factory plans. */
+    private static final BuildingVariant[] INDUSTRIAL_VARIANTS = {
+            new BuildingVariant("legacy 13x9",   13, 9,  7L),
+            new BuildingVariant("minimum 15x12", 15, 12, 41L),
+            new BuildingVariant("tall 12x15",    12, 15, 53L),
+            new BuildingVariant("large 17x13",   17, 13, 89L),
+    };
+
     /**
      * Installs a disk-loaded {@link TileRegistry} so {@link #renderScene} can
      * resolve fixed-grid blocks via {@link TileRegistry#installed()} — the same
@@ -470,7 +478,7 @@ public class BuildingZonePreviewTest {
 
     @Test
     void renderIndustrialVariants() throws Exception {
-        renderBuildingBatch(new BuildingIndustrialFiller(), "industrial");
+        renderBuildingBatch(new BuildingIndustrialFiller(), "industrial", INDUSTRIAL_VARIANTS);
     }
 
     @Test

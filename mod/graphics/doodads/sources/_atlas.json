@@ -129,6 +129,33 @@
       "scale": 0.92,
       "order": 37
     },
+    "industrial-machine-tool.png": {
+      "id": "doodad.industrial-machine-tool",
+      "name": "Industrial machine tool",
+      "description": "Dense automated press and machining cell.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.68,
+      "scale": 0.94,
+      "order": 38
+    },
+    "industrial-fluid-tank.png": {
+      "id": "doodad.industrial-fluid-tank",
+      "name": "Industrial fluid tank",
+      "description": "Tall reinforced process tank with valve manifold.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.82,
+      "scale": 0.90,
+      "order": 39
+    },
+    "industrial-control-console.png": {
+      "id": "doodad.industrial-control-console",
+      "name": "Industrial control console",
+      "description": "Low civilian process-control operator station.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "scale": 0.94,
+      "order": 40
+    },
     "military-radar-dish.png": {
       "id": "doodad.military-radar-dish",
       "name": "Military radar dish",
