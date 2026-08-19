@@ -111,7 +111,7 @@ public final class GroundParallaxPipeline {
 
     /** UV-space offset per unit of (biased height × eye.xy). Keeps peak offset in the few-screen-pixel range the paper calls for. */
     public static final float MIN_STRENGTH = 0f;
-    public static final float MAX_STRENGTH = 0.020f;
+    public static final float MAX_STRENGTH = 5.0f;
     public static final float DEFAULT_STRENGTH = 0.006f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
