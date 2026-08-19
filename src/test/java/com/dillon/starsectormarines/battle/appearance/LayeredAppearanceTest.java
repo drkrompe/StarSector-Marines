@@ -18,6 +18,16 @@ public class LayeredAppearanceTest {
     }
 
     @Test
+    public void approachFacingUsesBoundedShortestArc() {
+        assertEquals(-174f, LayeredAppearance.approachFacing(
+                180f, -90f, 6f), 0.001f);
+        assertEquals(174f, LayeredAppearance.approachFacing(
+                -180f, 90f, 6f), 0.001f);
+        assertEquals(12f, LayeredAppearance.approachFacing(
+                10f, 12f, 6f), 0.001f);
+    }
+
+    @Test
     public void helmetLookUsesShortestArcAndPlausibleClamp() {
         assertEquals(20f, LayeredAppearance.headLookDegrees(170f, -170f), 0.001f);
         assertEquals(-20f, LayeredAppearance.headLookDegrees(-170f, 170f), 0.001f);

@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -48,7 +50,12 @@ class RescueEscortCommandTest {
 
         command.tick(sim);
 
-        assertEscortTarget(squad, 15, 8);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
+                payload.placement.liftX, payload.placement.liftY);
+        int targetCell = Math.min(RescueEscortCommand.ADVANCE_SCREEN_CELLS,
+                Paths.cellCount(route) - 1);
+        assertEscortTarget(squad, Paths.cellX(route, targetCell),
+                Paths.cellY(route, targetCell));
     }
 
     @Test

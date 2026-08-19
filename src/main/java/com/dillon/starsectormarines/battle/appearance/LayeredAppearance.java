@@ -41,6 +41,15 @@ public final class LayeredAppearance {
         return wrapped - 180f;
     }
 
+    /** Advances toward a facing on the shortest arc without exceeding one step. */
+    public static float approachFacing(float current, float target,
+                                       float maximumStep) {
+        float delta = wrapDegrees(target - current);
+        float step = Math.max(0f, maximumStep);
+        if (Math.abs(delta) <= step) return wrapDegrees(target);
+        return wrapDegrees(current + Math.copySign(step, delta));
+    }
+
     /** Target look relative to the torso, clamped to a plausible neck turn. */
     public static float headLookDegrees(float torsoFacing, float targetFacing) {
         float delta = wrapDegrees(targetFacing - torsoFacing);
