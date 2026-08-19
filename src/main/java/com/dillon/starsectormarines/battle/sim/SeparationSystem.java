@@ -229,11 +229,11 @@ public final class SeparationSystem {
     private boolean participates(long id) {
         return roster.isAliveById(id)
                 && !world.hasKinematics(id)
-                && roster.identity().type(id).radius > 0f;
+                && roster.radius(id) > 0f;
     }
 
     private float radiusOf(long id) {
-        return roster.identity().type(id).radius;
+        return roster.radius(id);
     }
 
     /**

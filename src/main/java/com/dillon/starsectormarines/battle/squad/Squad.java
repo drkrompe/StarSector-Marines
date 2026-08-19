@@ -352,6 +352,28 @@ public final class Squad {
     /** Sim tick at which the cached score was computed. Prevents N members from repeating one squad-level tally in the same tick. */
     public volatile int advanceThreatTick = -1;
 
+    // ---- Story 20: bounding overwatch during a committed advance ----
+
+    /** True while EnterZone is executing a two-team bound against the committed route threat. */
+    public volatile boolean boundingActive = false;
+    /** Monotonic bound number. Even: team A overwatches; odd: team B overwatches. */
+    public volatile int boundingPhase = 0;
+    /** EnterZone identity carried as data so stale state cannot leak into the next zone step. */
+    public volatile int boundingTargetZoneId = -1;
+    public volatile int boundingDestX = -1;
+    public volatile int boundingDestY = -1;
+    /** Threat this phase is covering, or {@code 0L} while inactive. */
+    public volatile long boundingThreatId = 0L;
+    /** Forward-axis anchor used to ensure each phase leapfrogs beyond the previous one. */
+    public volatile int boundingStrideX = -1;
+    public volatile int boundingStrideY = -1;
+    /** Frozen member-to-cell assignment for the currently moving half. Arrays are replaced atomically under {@link #lock}. */
+    public volatile long[] boundingMemberIds = new long[0];
+    public volatile int[] boundingTargetXs = new int[0];
+    public volatile int[] boundingTargetYs = new int[0];
+    /** Last tick that tried to start or flip a bound; prevents every sibling retrying the same failed search. */
+    public volatile int boundingAttemptTick = -1;
+
     /**
      * Entity id of the hub this squad's drones launched from, or {@code 0L} for
      * marine / defender squads. Set when
@@ -387,6 +409,29 @@ public final class Squad {
      * that touch multiple squads must sort by {@link #id} before locking.
      */
     public final Object lock = new Object();
+
+    /**
+     * Clears every Story 20 phase field atomically. Called when EnterZone
+     * releases its route threat, reaches the zone, or a replan switches to a
+     * different action. Reentrant on {@link #lock}, so a phase-transition
+     * failure may call it from an already-guarded section.
+     */
+    public void clearBoundingOverwatch() {
+        synchronized (lock) {
+            boundingActive = false;
+            boundingPhase = 0;
+            boundingTargetZoneId = -1;
+            boundingDestX = -1;
+            boundingDestY = -1;
+            boundingThreatId = 0L;
+            boundingStrideX = -1;
+            boundingStrideY = -1;
+            boundingMemberIds = new long[0];
+            boundingTargetXs = new int[0];
+            boundingTargetYs = new int[0];
+            boundingAttemptTick = -1;
+        }
+    }
 
     public Squad(int id, Faction faction) {
         this.id = id;

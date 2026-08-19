@@ -33,7 +33,7 @@ public enum UnitType {
     MILITIA    ("graphics/battle/militia.png",     "graphics/battle/militia-dead.png",     true,  15f, 1.5f, 2.0f, 0.22f, 1.2f, 18.0f, 28.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.4f, 0.3f, 0.45f),
     /** Hostile fauna / xeno boarder. Aggressive glass-cannon brawler — low HP, high damage, slightly faster, mid accuracy. Above-baseline morale impact (animal panic). */
     ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true, 7.5f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f, 0.45f),
-    /** Walker mech with chaingun arms and rocket-pod shoulders. Defender elite that shows up when the target planet has industries producing or demanding heavy armaments (Heavy Industry, Orbital Works, Ground Defenses, Heavy Batteries). High HP, three-weapon chassis loadout ({@link MechLoadoutComponent}) fired concurrently. Dead sheet has 4 prone hulks; the sim also spawns a {@link com.dillon.starsectormarines.battle.combat.fx.SmokingWreck} on death so the corpse smolders. Renders ~1.6× cell so it visually dominates infantry. Base {@code attackRange} is set to the LRM range so target acquisition reaches across the grid; base {@code attackDamage}/{@code attackCooldown} are unused on mechs (weapons read from {@link MechLoadoutComponent} instead) but kept non-zero as a defensive fallback. High morale impact — eating fire from a walker mech rattles a squad fast. */
+    /** Compatibility archetype for modular strider mechs. The persistent {@link com.dillon.starsectormarines.battle.mech.MechVariant} supplies each body's actual stats, geometry, and installed {@link MechLoadoutComponent}; an unspecified profile defaults to the stock heavy Bulwark. Defender mechs show up when the target planet produces or demands heavy armaments. */
     HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true, 540f, 4.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
     CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
@@ -64,25 +64,24 @@ public enum UnitType {
     public final float visionRange;
     /** Frame indexing convention of {@link #spritePath}. Drives the renderer's facing→frame mapping. */
     public final FrameLayout frameLayout;
-    /** Multiplier on the renderer's per-cell sprite size. 1.0 = sprite height fills one cell; &gt;1 = unit visually overhangs adjacent cells (used by {@link #HEAVY_MECH} so the mech reads as bigger than infantry). */
+    /** Base multiplier on the renderer's per-cell sprite size; mech profiles override it per entity. */
     public final float renderScale;
-    /** Scales the morale drain this unit's shots inflict on targets. 1.0 = baseline (a marine shooting a marine). MILITIA = 0.4 so a horde of conscripts doesn't insta-break a marine squad; HEAVY_MECH = 1.5 so mech fire rattles fast; ALIEN = 1.2. Applied to both hit drain (via {@code BattleSimulation.applyDamage}'s {@code moraleImpact} param) and near-miss drain (via {@code ShotEvent.moraleImpact}). */
+    /** Base morale drain weight of outgoing fire; mech profiles override it per entity. */
     public final float moraleImpact;
     /**
-     * Collision/AoE footprint radius, in cells — the continuous-positions
-     * migration's per-type extent (infantry/civilian-family 0.3, drone 0.35,
-     * turret 0.45, hub 0.5, mech 0.6). Consumed by {@code Detonations}
+     * Base collision/AoE footprint radius, in cells. Mech profiles override it
+     * per entity through {@code UnitRosterService}. Consumed by {@code Detonations}
      * (widens a unit's AoE hit test beyond the raw blast radius to cover its
      * physical extent), {@code WorldPicker} (widens a unit's click pick
      * radius so bigger units are easier to select), {@code SeparationSystem}
      * (soft-collision body + inverse-mass {@code radius²}), and
      * {@code BallisticResolver} (unit-contact circle for ballistic rays) —
-     * one physical body circle per type, shared by every consumer.
+     * one physical body circle per entity, shared by every consumer.
      */
     public final float radius;
     /**
      * Half-height of the target-plane combat silhouette around Z=0, in
-     * cells. This is deliberately independent of {@link #renderScale}: the
+     * cells. Mech profiles override it per entity. This is deliberately independent of {@link #renderScale}: the
      * resolver combines it with {@link #radius} to decide whether a visible
      * high/low round intersects the body.
      */

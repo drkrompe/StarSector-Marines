@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 /**
  * Mech parity action — the GOAP-side equivalent of the legacy
  * {@code MechCombatantBehavior.update} loop. Picks
- * a target, fires all three weapon tracks at whichever bands their targets
+ * a target, fires all installed weapon tracks at whichever bands their targets
  * sit in, and advances toward a firing position when not already in close
  * engagement. No role gating — every mech runs this regardless of doctrine.
  *
@@ -68,12 +68,11 @@ public final class EngageAtCurrentBand implements Action {
             MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
         }
 
-        // Close engagement = in chaingun range with LOS. Outside that, the
+        // Close engagement = in the preferred supplied direct band with LOS. Outside that, the
         // mech advances toward a firing position so it can re-acquire LOS for
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
-        float preferredDirectRange = m.srmAmmoSalvos > 0
-                ? m.srmPod.range : m.chaingun.range;
+        float preferredDirectRange = m.preferredDirectRange();
         boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
         if (!closeEngagement && sim.movement().mayRepath(u)) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
