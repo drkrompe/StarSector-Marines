@@ -35,7 +35,8 @@ fa0533ee  mapgen: tactical military compound interiors
 e8ad9c4b  mapgen: add tactical industrial facilities
 7296aeec  mapgen: add industrial works compounds
 444e0f97  mapgen: add residential courtyard compounds
-fc212e56  mapgen: support multi-cell residential doodads  ← latest mapgen work
+fc212e56  mapgen: support multi-cell residential doodads
+8e7a4815  mapgen: orient residential furniture to room walls  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -122,6 +123,12 @@ findings) in
   remaining floor into disconnected pockets. The atlas/manifest seam is
   reusable by future large props; legacy doodads still default to 1x1. See
   [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md).
+- **Orientation-aware residential furniture shipped (`8e7a4815`).** Beds put
+  their head against a physical wall; sofas put their back against a wall and
+  face open same-room floor. Optional cardinal `preferredWallSide` metadata is
+  now preserved from atlas source through runtime doodads, and the existing
+  masters deterministically produce all four orientations. See
+  [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md).
 
 ## Next up (priority order)
 
@@ -191,8 +198,9 @@ reused verbatim. Candidate next tracks (priority order):
    shipped (`444e0f97`)**: two roomed apartment blocks and a utility building
    orient around a tactical shared courtyard, with generated domestic and
    exterior cover. Beds and sofas now use true two-cell doodad footprints
-   (`fc212e56`). Next: reuse the apartment planner on qualifying standalone
-   residential lots, then tackle public-service or medical campuses.
+   (`fc212e56`) and wall-aware cardinal orientation (`8e7a4815`). Next: reuse
+   the apartment planner on qualifying standalone residential lots, then tackle
+   public-service or medical campuses.
    A true fused multi-lot structure remains gated on
    an earlier footprint-plan stage that can safely suppress/replan road-graph
    edges. See
@@ -203,7 +211,8 @@ reused verbatim. Candidate next tracks (priority order):
    [`complete/industrial-facilities.md`](complete/industrial-facilities.md),
    [`complete/industrial-compound.md`](complete/industrial-compound.md),
    [`complete/residential-courtyard-compound.md`](complete/residential-courtyard-compound.md),
-   and [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md).
+   [`complete/multicell-residential-doodads.md`](complete/multicell-residential-doodads.md),
+   and [`complete/oriented-residential-furniture.md`](complete/oriented-residential-furniture.md).
 
 2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
@@ -412,9 +421,9 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat :test` — full 1,742-test merged root suite green.
+- `gradlew.bat :test` — full 1,745-test root suite green.
 - `gradlew.bat :asset-pipeline:test` — asset-pipeline suite green.
-- `python mod/graphics/doodads/test_stitch_atlas.py` — all three atlas stitcher
+- `python mod/graphics/doodads/test_stitch_atlas.py` — all four atlas stitcher
   tests green.
 - `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
   all hard invariants hold.
