@@ -6,6 +6,7 @@ Starsector, while retaining the variants' relative in-battle render scales.
 """
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -104,11 +105,31 @@ def rear_pivot(canvas: Image.Image, sprite: Image.Image, origin: tuple[int, int]
                                     round(pivot_y - sprite.height)))
 
 
-def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int]) -> Image.Image:
+def connection(canvas: Image.Image, sprite: Image.Image, origin: tuple[int, int],
+               hull_width: int, local_x: float, local_y: float) -> None:
+    """Mirror the runtime waist-to-foot rotation and longitudinal stretching."""
+    distance = math.hypot(local_x, local_y)
+    visible_length = max(0.01, distance - 0.08)
+    endpoint_ratio = visible_length / distance
+    end_x = local_x * endpoint_ratio
+    end_y = local_y * endpoint_ratio
+    length = max(1, round(visible_length * hull_width))
+    stretched = sprite.resize((sprite.width, length), Image.Resampling.LANCZOS)
+    local_angle = math.degrees(math.atan2(-local_x, local_y))
+    rotated = stretched.rotate(local_angle, resample=Image.Resampling.BICUBIC, expand=True)
+    midpoint_x = origin[0] + end_x * hull_width * 0.5
+    midpoint_y = origin[1] - end_y * hull_width * 0.5
+    canvas.alpha_composite(rotated, (round(midpoint_x - rotated.width / 2),
+                                     round(midpoint_y - rotated.height / 2)))
+
+
+def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int],
+                gait_sample: bool = False) -> Image.Image:
     canvas = Image.new("RGBA", canvas_size)
     origin = (canvas_size[0] // 2, canvas_size[1] // 2)
 
     foot = scaled_sprite("foot.png", hull_width)
+    thigh_bone = scaled_sprite("thigh-bone.png", hull_width)
     arms = scaled_sprite(variant.arms, hull_width)
     chassis = scaled_sprite(variant.chassis, hull_width)
     left_pod = scaled_sprite(variant.left_pod, hull_width) if variant.left_pod else None
@@ -118,8 +139,11 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
     light_chassis = variant.name in ("HOUND", "SIROCCO")
     foot_x = 0.22 if light_chassis else 0.17
     foot_y = -0.05 if light_chassis else -0.28
-    centered(canvas, foot, origin, hull_width, -foot_x, foot_y)
-    centered(canvas, foot, origin, hull_width, foot_x, foot_y)
+    step_reach = 0.16 if light_chassis else 0.055
+    left_foot_y = foot_y - (step_reach if gait_sample else 0.0)
+    right_foot_y = foot_y
+    centered(canvas, foot, origin, hull_width, -foot_x, left_foot_y)
+    centered(canvas, foot, origin, hull_width, foot_x, right_foot_y)
     if variant.arm_layout == "dual-narrow":
         narrow = arms.resize((max(1, arms.width // 2), arms.height), Image.Resampling.LANCZOS)
         rear_pivot(canvas, narrow, origin, hull_width, -0.37, -0.15)
@@ -133,6 +157,9 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int])
         rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
         rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
     centered(canvas, chassis, origin, hull_width, 0.0, 0.0)
+    if light_chassis:
+        connection(canvas, thigh_bone, origin, hull_width, -foot_x, left_foot_y)
+        connection(canvas, thigh_bone, origin, hull_width, foot_x, right_foot_y)
     if variant.pod_layout == "top-pair":
         rear_pivot(canvas, left_pod, origin, hull_width, -0.40, -0.30)
         rear_pivot(canvas, right_pod, origin, hull_width, 0.40, -0.30)
@@ -156,7 +183,8 @@ def centered_text(draw: ImageDraw.ImageDraw, center_x: int, y: int, value: str,
 
 
 def card(sheet: Image.Image, variant: Variant, index: int, top: int,
-         hull_width: int, image_height: int, caption: bool) -> None:
+         hull_width: int, image_height: int, caption: bool,
+         gait_sample: bool = False) -> None:
     draw = ImageDraw.Draw(sheet)
     left = 45 + index * 510
     right = left + 490
@@ -165,7 +193,7 @@ def card(sheet: Image.Image, variant: Variant, index: int, top: int,
                            fill=(25, 31, 35), outline=(67, 81, 87), width=2)
     draw_grid(draw, (left + 1, top + 1, right - 1, top + image_height))
 
-    render = render_mech(variant, hull_width, (470, image_height - 8))
+    render = render_mech(variant, hull_width, (470, image_height - 8), gait_sample)
     sheet.alpha_composite(render, (left + 10, top + 4))
 
     if caption:
@@ -185,16 +213,17 @@ def main() -> None:
     draw.text((45, 30), "LAYERED MECH VARIANT PREVIEW", font=font(38, bold=True),
               fill=(232, 237, 236))
     draw.text((47, 78),
-              "Runtime layer order and anchor math at idle / facing north / zero recoil",
+              "Runtime layer order and anchor math / facing north / zero recoil",
               font=font(17), fill=(148, 164, 169))
 
-    draw.text((45, 124), "GAMEPLAY-RELATIVE SILHOUETTES", font=font(20, bold=True),
+    draw.text((45, 124), "GAMEPLAY-RELATIVE GAIT SAMPLE", font=font(20, bold=True),
               fill=(225, 181, 81))
-    draw.text((405, 127), "Bulwark 1.60x  /  Hound + Sirocco 1.35x", font=font(16),
+    draw.text((405, 127), "left foot extended  /  Bulwark 1.60x  /  light mechs 1.35x", font=font(16),
               fill=(148, 164, 169))
     for index, variant in enumerate(VARIANTS):
         hull_width = round(160 * variant.render_scale)
-        card(sheet, variant, index, 158, hull_width, 390, caption=True)
+        card(sheet, variant, index, 158, hull_width, 390, caption=True,
+             gait_sample=True)
 
     draw.text((45, 690), "NORMALIZED SPRITE INSPECTION", font=font(20, bold=True),
               fill=(225, 181, 81))

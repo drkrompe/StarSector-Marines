@@ -7,6 +7,7 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache houndChassis;
     public final LayeredSpriteCache siroccoChassis;
     public final LayeredSpriteCache foot;
+    public final LayeredSpriteCache thighBone;
     public final LayeredSpriteCache chaingunArm;
     public final LayeredSpriteCache linearCannon;
     public final LayeredSpriteCache heavyCannon;
@@ -17,7 +18,8 @@ public final class LayeredMechAssets {
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
                              LayeredSpriteCache houndChassis,
                              LayeredSpriteCache siroccoChassis,
-                             LayeredSpriteCache foot, LayeredSpriteCache chaingunArm,
+                             LayeredSpriteCache foot, LayeredSpriteCache thighBone,
+                             LayeredSpriteCache chaingunArm,
                              LayeredSpriteCache linearCannon, LayeredSpriteCache heavyCannon,
                              LayeredSpriteCache srmPod,
                              LayeredSpriteCache lrmPod, LayeredSpriteCache muzzleFlash) {
@@ -26,6 +28,7 @@ public final class LayeredMechAssets {
         this.houndChassis = houndChassis;
         this.siroccoChassis = siroccoChassis;
         this.foot = foot;
+        this.thighBone = thighBone;
         this.chaingunArm = chaingunArm;
         this.linearCannon = linearCannon;
         this.heavyCannon = heavyCannon;

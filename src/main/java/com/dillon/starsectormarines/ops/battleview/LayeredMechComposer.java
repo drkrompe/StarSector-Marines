@@ -27,15 +27,18 @@ final class LayeredMechComposer {
         float rightStep = stepping
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, true) : 0f;
 
-        // Feet and arm anchors are below the hull in draw order. The light
-        // chassis plant their feet near the mid-body so alternating extension
-        // remains legible; the Bulwark retains its mostly-hidden heavy stance.
+        // The light chassis expose articulated bones between their waist and
+        // feet. Each bone rotates and stretches to the live foot anchor;
+        // Bulwark keeps the older tucked treatment without visible leg bones.
         float footX = LayeredMechAppearance.footLateralOffset(chassis);
         float footY = LayeredMechAppearance.footRearOffset(chassis);
+        float footStepReach = LayeredMechAppearance.footStepReach(chassis);
+        float leftFootY = footY - footStepReach * leftStep;
+        float rightFootY = footY - footStepReach * rightStep;
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                -footX, footY - 0.055f * leftStep, 0f, alpha);
+                -footX, leftFootY, 0f, alpha);
         emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                footX, footY - 0.055f * rightStep, 0f, alpha);
+                footX, rightFootY, 0f, alpha);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
         emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
@@ -55,6 +58,16 @@ final class LayeredMechComposer {
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
         emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
                 0f, 0f, 0f, alpha);
+
+        // Surface linkages originate at the waist and stop one foot-radius
+        // short of the pad, preserving the pad's lower layer and clean outline.
+        if (chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO) {
+            emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
+                    -footX, leftFootY, alpha);
+            emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
+                    footX, rightFootY, alpha);
+        }
 
         // Bulwark's racks are exposed above its armor; Hound carries one dorsal
         // SRM rack. Sirocco's paired LRMs stay beneath its broader hull.
@@ -215,6 +228,27 @@ final class LayeredMechComposer {
                 actorX + offset[0], actorY + offset[1],
                 sprite.pxWidth * scale, sprite.pxHeight * scale,
                 facingDeg + relativeAngle, 1f, 1f, 1f, alpha);
+    }
+
+    /** Rotates and length-scales a north-authored sprite from the waist to an endpoint. */
+    private static void emitConnection(DrawList out, LayeredSpriteCache sprite,
+                                       float actorX, float actorY, float hullWidth,
+                                       float facingDeg, float localX, float localY,
+                                       float alpha) {
+        float distance = (float) Math.sqrt(localX * localX + localY * localY);
+        float visibleLength = Math.max(0.01f, distance - 0.08f);
+        float endpointRatio = visibleLength / distance;
+        float endX = localX * endpointRatio;
+        float endY = localY * endpointRatio;
+        float length = visibleLength * hullWidth;
+        float localAngle = (float) Math.toDegrees(Math.atan2(-localX, localY));
+        float[] midpoint = rotate(endX * hullWidth * 0.5f,
+                endY * hullWidth * 0.5f, facingDeg);
+        float scale = hullWidth / 208f;
+        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+                actorX + midpoint[0], actorY + midpoint[1],
+                sprite.pxWidth * scale, length,
+                facingDeg + localAngle, 1f, 1f, 1f, alpha);
     }
 
     /** Places the sprite's south/rear edge at a pivot hidden under the hull. */
