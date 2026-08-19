@@ -27,10 +27,9 @@ import java.util.function.Function;
  * same boundary {@link RenderAppearance} keeps with {@code UnitType}. Built once
  * per enum value into per-enum tables; {@link #of(ShotEvent)} dispatches.
  *
- * <p><b>F2 (this slice)</b> stands up the record + derivation + its pinning test;
- * no pass change. The {@code ShotRenderService} sweeps that consume it — and the
- * path-keyed projectile-sprite cache {@link Sprite#spritePath} enables — land in
- * F3. See {@code roadmap/battle-render/stories/fx-shots-command-model.md}.
+ * <p>The {@code ShotRenderService} sweeps consume this composition directly;
+ * the path-keyed projectile-sprite cache {@link Sprite#spritePath} enables is
+ * shared by ordinary sprites and the generated {@link Bolt} texture.
  *
  * @param body       projectile sprite vs. hitscan tracer
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
@@ -42,8 +41,11 @@ import java.util.function.Function;
 public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                      boolean engineTrail, boolean smokeTrail, ContrailStyle contrail) {
 
-    /** A shot's body: a traveling projectile sprite, or a hitscan tracer line. */
-    public sealed interface Body permits Sprite, Tracer {}
+    /** Shared white-base bolt texture; {@link Bolt#color} supplies the weapon hue at draw time. */
+    public static final String BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
+
+    /** A shot's body: a traveling projectile sprite, traveling bolt, or hitscan tracer line. */
+    public sealed interface Body permits Sprite, Bolt, Tracer {}
 
     /**
      * Projectile sprite identified by its <em>texture path</em> — carrier-agnostic,
@@ -51,6 +53,12 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
      * path-keyed cache). {@code visualCells} is the per-weapon long-axis size.
      */
     public record Sprite(String spritePath, float visualCells) implements Body {}
+
+    /**
+     * Traveling tinted streak. {@code lengthCells} is the maximum head-to-tail
+     * length; the render sweep grows it out of the muzzle during early flight.
+     */
+    public record Bolt(Color color, float lengthCells) implements Body {}
 
     /**
      * Hitscan tracer line. {@code color} {@code null} → the sweep resolves the
@@ -88,6 +96,11 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return NO_SOURCE;
     }
 
+    /** True when the body advances on the shot clock and its impact FX belongs at arrival. */
+    public boolean travels() {
+        return body instanceof Sprite || body instanceof Bolt;
+    }
+
     private static ShotFx deriveTurret(TurretKind k) {
         // The one render-side per-kind mapping: which turrets ribbon (and its
         // style). A future contrail-bearing weapon opts in here — the sweep stays
@@ -105,9 +118,19 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
 
     private static ShotFx derivePrimary(MarineWeapon w) {
         Body body = w.projectileSpritePath != null
-                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)  // SMG
-                : new Tracer(w.tracerColor);                                    // pulse rifle / DMR / drone pulse
+                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)
+                : new Bolt(w.tracerColor, boltLength(w));
         return new ShotFx(body, 0f, false, false, false, null);
+    }
+
+    private static float boltLength(MarineWeapon w) {
+        return switch (w) {
+            case PULSE_RIFLE -> 1.0f;
+            case DMR -> 1.8f;
+            case DRONE_PULSE -> 0.8f;
+            case FIELD_RIFLE, SMG -> throw new IllegalArgumentException(
+                    "sprite-backed primary cannot derive a bolt length: " + w);
+        };
     }
 
     private static ShotFx deriveSecondary(MarineSecondary w) {
