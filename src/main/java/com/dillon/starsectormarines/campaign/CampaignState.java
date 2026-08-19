@@ -640,6 +640,14 @@ public final class CampaignState implements Serializable {
         return -1;
     }
 
+    /** Finds a testament by its stable id, or {@code -1}. */
+    public int kingmakerTestamentIndex(long testamentIdValue) {
+        for (int row = 0; row < kingmakerTestamentCount; row++) {
+            if (kingmakerTestamentId[row] == testamentIdValue) return row;
+        }
+        return -1;
+    }
+
     /** Seals one immutable testimony snapshot per source throne claim. */
     public long sealKingmakerTestament(long throneClaimIdValue,
                                        long sourceChainId,

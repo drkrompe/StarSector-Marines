@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.intel.CivilianRescueIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
+import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -46,6 +47,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCampaignState();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
+        ensureLastTestamentIntel();
         if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
             ensureCampaignDebugIntel();
         }
@@ -135,6 +137,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (mgr.getFirstIntel(DefectorAsylumIntel.class) != null) return;
         mgr.addIntel(new DefectorAsylumIntel(), true);
         LOG.info("Starsector Marines: Encrypted Channel intel registered");
+    }
+
+    private static void ensureLastTestamentIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(LastTestamentIntel.class) != null) return;
+        mgr.addIntel(new LastTestamentIntel(), false);
+        LOG.info("Starsector Marines: Last Testament intel registered");
     }
 
     private static void logRosterContents() {
