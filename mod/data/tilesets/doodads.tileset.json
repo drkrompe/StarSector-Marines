@@ -115,51 +115,72 @@
       "ballisticHalfHeight": 0.45
     },
     {
-      "id": "doodad.military-radar-dish",
+      "id": "doodad.industrial-machine-tool",
       "col": 0,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.68
+    },
+    {
+      "id": "doodad.industrial-fluid-tank",
+      "col": 1,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.82
+    },
+    {
+      "id": "doodad.industrial-control-console",
+      "col": 2,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45
+    },
+    {
+      "id": "doodad.military-radar-dish",
+      "col": 3,
       "row": 2,
       "cover": "heavy",
       "ballisticHalfHeight": 0.75
     },
     {
       "id": "doodad.military-command-console",
-      "col": 1,
+      "col": 4,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.military-tactical-table",
-      "col": 2,
+      "col": 5,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.38
     },
     {
       "id": "doodad.military-bunk",
-      "col": 3,
+      "col": 6,
       "row": 2,
       "cover": "light",
       "ballisticHalfHeight": 0.25
     },
     {
       "id": "doodad.office-workstation-bank",
-      "col": 4,
+      "col": 7,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.45
     },
     {
       "id": "doodad.office-server-rack",
-      "col": 5,
-      "row": 2,
+      "col": 0,
+      "row": 3,
       "cover": "heavy",
       "ballisticHalfHeight": 0.75
     },
     {
       "id": "doodad.office-conference-table",
-      "col": 6,
-      "row": 2,
+      "col": 1,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.38
     }
@@ -256,42 +277,60 @@
     {
       "col": 0,
       "row": 2,
+      "name": "Industrial machine tool",
+      "description": "Dense automated press and machining cell."
+    },
+    {
+      "col": 1,
+      "row": 2,
+      "name": "Industrial fluid tank",
+      "description": "Tall reinforced process tank with valve manifold."
+    },
+    {
+      "col": 2,
+      "row": 2,
+      "name": "Industrial control console",
+      "description": "Low civilian process-control operator station."
+    },
+    {
+      "col": 3,
+      "row": 2,
       "name": "Military radar dish",
       "description": "Armored field radar on a rotating pedestal."
     },
     {
-      "col": 1,
+      "col": 4,
       "row": 2,
       "name": "Command console",
       "description": "Three-screen command-and-control operator station."
     },
     {
-      "col": 2,
+      "col": 5,
       "row": 2,
       "name": "Tactical planning table",
       "description": "Armored illuminated battlefield planning table."
     },
     {
-      "col": 3,
+      "col": 6,
       "row": 2,
       "name": "Barracks bunk",
       "description": "Compact field cot with stowed kit."
     },
     {
-      "col": 4,
+      "col": 7,
       "row": 2,
       "name": "Office workstation bank",
       "description": "Low municipal workstation with terminal and privacy panel."
     },
     {
-      "col": 5,
-      "row": 2,
+      "col": 0,
+      "row": 3,
       "name": "Office server rack",
       "description": "Dense municipal data cabinet with status lights."
     },
     {
-      "col": 6,
-      "row": 2,
+      "col": 1,
+      "row": 3,
       "name": "Civic conference table",
       "description": "Administrative planning table with inset presentation display."
     }
