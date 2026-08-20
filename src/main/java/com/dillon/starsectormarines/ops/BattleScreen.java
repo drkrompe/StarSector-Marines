@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
@@ -217,6 +218,10 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Debug toggle (Z) — tints each navigation zone with a stable per-id color so the partitioning + new portals from wall breaches are eyeball-verifiable. */
     @DebugOnly
     private boolean debugZonesVisible;
+    private boolean debugMarineFriendlyInfluence;
+    private boolean debugMarineHostileInfluence;
+    private boolean debugDefenderFriendlyInfluence;
+    private boolean debugDefenderHostileInfluence;
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
@@ -470,6 +475,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // green cells track members as they move; clears itself when the
         // selection drops or the squad is wiped out.
         SelectionHighlightPublisher.publish(selection, sim, highlights);
+        CommanderInfluenceOverlayPublisher.publish(sim, highlights,
+                debugMarineFriendlyInfluence, debugMarineHostileInfluence,
+                debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
@@ -538,6 +546,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
                         !BattleRenderer.DEBUG_RENDER_DOCKING_PATHS);
+        debugPanel.addToggle("Marine friendly field",
+                () -> debugMarineFriendlyInfluence,
+                () -> debugMarineFriendlyInfluence = !debugMarineFriendlyInfluence);
+        debugPanel.addToggle("Marine hostile field",
+                () -> debugMarineHostileInfluence,
+                () -> debugMarineHostileInfluence = !debugMarineHostileInfluence);
+        debugPanel.addToggle("Defender friendly field",
+                () -> debugDefenderFriendlyInfluence,
+                () -> debugDefenderFriendlyInfluence = !debugDefenderFriendlyInfluence);
+        debugPanel.addToggle("Defender hostile field",
+                () -> debugDefenderHostileInfluence,
+                () -> debugDefenderHostileInfluence = !debugDefenderHostileInfluence);
         debugPanel.addDial("Structure relief",
                 () -> renderer.getGroundParallax().parallaxStrength(),
                 value -> renderer.getGroundParallax().setParallaxStrength((float) value),

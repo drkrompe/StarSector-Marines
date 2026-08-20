@@ -39,6 +39,10 @@ public final class HighlightOverlay {
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
     public static final String SRC_HEARD_NOISE      = "heard-noise";
+    public static final String SRC_MARINE_FRIENDLY_INFLUENCE = "marine-friendly-influence";
+    public static final String SRC_MARINE_HOSTILE_INFLUENCE = "marine-hostile-influence";
+    public static final String SRC_DEFENDER_FRIENDLY_INFLUENCE = "defender-friendly-influence";
+    public static final String SRC_DEFENDER_HOSTILE_INFLUENCE = "defender-hostile-influence";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan
