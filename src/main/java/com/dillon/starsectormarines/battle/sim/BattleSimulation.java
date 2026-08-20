@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -223,6 +225,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
+    /** Read-only per-faction belief aggregation and topology-aware tactical fields. */
+    private final CommanderInfluenceService commanderInfluence;
 
     /** Player command-power layer — the in-battle activation economy (command-point pool + per-power cooldowns), the UI-requested activation queue, and in-flight transient effects. State owner, ticked by {@link #commandPowerSystem} in the command tier. The available-power roster is injected at battle setup via {@link #setCommandPowers} from the detachment resolver ({@code ops.detachment}); it starts empty. {@link #getCommandPowerService} below exposes it to the UI + the view-layer fog projection. */
     private final com.dillon.starsectormarines.battle.power.CommandPowerService commandPowers =
@@ -373,6 +377,7 @@ public class BattleSimulation implements BattleControl {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
+        this.commanderInfluence = new CommanderInfluenceService(grid, rosterService);
         this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
                 resupply, rosterService);
         // The entity world + component registrations are owned by the roster
@@ -945,6 +950,11 @@ public class BattleSimulation implements BattleControl {
         return commanders.getCommander(faction);
     }
 
+    @Override
+    public CommanderInfluenceSnapshot getCommanderInfluence(Faction faction) {
+        return commanderInfluence.snapshot(faction);
+    }
+
     /** Reinforcement service for trigger / means registration. {@code BattleSetup} populates this per mission. */
     public com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService getReinforcementService() {
         return reinforcement;
@@ -1075,6 +1085,7 @@ public class BattleSimulation implements BattleControl {
         // visible to garrison dispatch this same tick).
         squadFallback.tick();
         tickProfile.lap(TickProfile.Phase.SQUAD_FALLBACK);
+        commanderInfluence.tick(simTickIndex);
         // Commander-tier slow tick — runs before per-squad replan so any
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.

@@ -27,7 +27,7 @@ import java.util.List;
  */
 public final class HighlightRenderer {
 
-    /** Fill alpha on top of the source color (palette colors are opaque). 64/255 reads against terrain without obscuring the tile. */
+    /** Maximum fill alpha before the source color's own alpha is applied. */
     private static final float FILL_ALPHA = 0x40 / 255f;
     private static final float OUTLINE_ALPHA = 0xE0 / 255f;
     private static final float OUTLINE_WIDTH = 1.5f;
@@ -42,9 +42,10 @@ public final class HighlightRenderer {
             for (CellHighlight h : list) {
                 float x0 = camera.cellToScreenX(h.cellX);
                 float y0 = camera.cellToScreenY(h.cellY);
-                out.addSolidRect(RenderLayer.HIGHLIGHTS, x0, y0, x0 + cell, y0 + cell,
+                out.addSolidRect(RenderLayer.HIGHLIGHTS, x0, y0,
+                        x0 + cell * h.width, y0 + cell * h.height,
                         h.color.getRed() / 255f, h.color.getGreen() / 255f, h.color.getBlue() / 255f,
-                        FILL_ALPHA * alphaMult);
+                        FILL_ALPHA * colorAlpha(h) * alphaMult);
             }
         }
 
@@ -53,15 +54,19 @@ public final class HighlightRenderer {
             for (CellHighlight h : list) {
                 float x0 = camera.cellToScreenX(h.cellX);
                 float y0 = camera.cellToScreenY(h.cellY);
-                float x1 = x0 + cell;
-                float y1 = y0 + cell;
+                float x1 = x0 + cell * h.width;
+                float y1 = y0 + cell * h.height;
                 float r = h.color.getRed() / 255f, g = h.color.getGreen() / 255f, b = h.color.getBlue() / 255f;
-                float a = OUTLINE_ALPHA * alphaMult;
+                float a = OUTLINE_ALPHA * colorAlpha(h) * alphaMult;
                 out.addLine(RenderLayer.HIGHLIGHTS, x0, y0, x1, y0, OUTLINE_WIDTH, r, g, b, a);
                 out.addLine(RenderLayer.HIGHLIGHTS, x1, y0, x1, y1, OUTLINE_WIDTH, r, g, b, a);
                 out.addLine(RenderLayer.HIGHLIGHTS, x1, y1, x0, y1, OUTLINE_WIDTH, r, g, b, a);
                 out.addLine(RenderLayer.HIGHLIGHTS, x0, y1, x0, y0, OUTLINE_WIDTH, r, g, b, a);
             }
         }
+    }
+
+    private static float colorAlpha(CellHighlight highlight) {
+        return highlight.color.getAlpha() / 255f;
     }
 }
