@@ -132,6 +132,11 @@ universe over time, not retrofitted into intel slots.
   The same belief layer now hears one-time shot and detonation events through
   walls (`63ffdb6a`) with deterministic inexact localization, lower confidence,
   and anonymous indirect-fire bearings for both attacker and defender squads.
+  Independent Marine and Defender commander pictures now roll those identified
+  beliefs into honest hostile fields beside known friendly presence
+  (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
+  and expose four read-only debug heatmaps. No commander assignments consume
+  the fields yet.
 
 ## Immediate next-up
 

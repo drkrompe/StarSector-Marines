@@ -169,11 +169,11 @@ cell per channel. Updated at 1–4 Hz.
   deaths.
 - `supply` / `cover_density` — terrain-derived.
 
-**Propagation:** BFS from each source with per-step attenuation
-(e.g. `value *= 0.85` per cell). Closed-form distance is wrong in
-urban terrain; influence shouldn't leak through buildings.
-Computed lazily — re-propagate only when sources move significantly
-or when staleness exceeds a threshold.
+**Propagation:** Story 27 ships BFS from each source with `0.85` attenuation
+per 8×8-block transition and a `0.05` cutoff. Fine-grid walkable components
+remain distinct until after propagation, so coarse cells do not leak through
+buildings or walls. Both faction snapshots rebuild at a fixed 2 Hz; lazy
+source-delta updates remain a future optimization if profiling requires them.
 
 ## What the higher-tier behaviors compute on the field
 
@@ -304,7 +304,8 @@ morale. Movement away from threat is what the player needs to see.
 
 ## Status
 
-**Direct and audio squad-belief verticals shipped; commander layer parked.**
+**Direct/audio squad belief and the read-only commander field ship; action
+consumers remain parked.**
 The four near-term cheap wins above are complete. Story 25 (`db69ed73`) adds
 the id-keyed direct-LOS contact map, alert-aligned decay, belief-backed GOAP
 predicates and Story 24 density, legacy last-seen projection, overlay, and dump
@@ -312,7 +313,10 @@ diagnostics. Story 26 (`63ffdb6a`) adds one-time shot/detonation noise,
 wall-agnostic deterministic hearing, imperfect lower-confidence localization,
 and anonymous indirect launch/impact bearings. Story 19's objective-advance
 leash still consumes its explicitly omniscient enemy tally (`14d646a`).
-Cross-squad sharing and the commander heatmap remain deliberately unscheduled.
+Story 27 (`4e7089d0`) adds independent Marine/Defender aggregation, immutable
+friendly/hostile snapshots, topology-aware coarse propagation, and four debug
+heatmaps. Cross-squad sharing, field analysis, and commander decisions remain
+deliberately unscheduled.
 
 When ready to implement (rough order):
 
@@ -334,12 +338,14 @@ When ready to implement (rough order):
 6. ~~Debug overlays for squad belief.~~ Shipped for direct contacts in Story
    25 and audio provenance/bearings in Story 26, alongside unversioned dump
    fields.
-7. Tactical-grid downsampler + BFS propagation.
-8. Two-channel commander field (`friendly_influence`,
+7. ~~Tactical-grid downsampler + BFS propagation.~~ Shipped in Story 27 with
+   fine-connectivity components retained inside each coarse block.
+8. ~~Two-channel commander field (`friendly_influence`,
    `hostile_believed`) computed from one commander's aggregated
-   beliefs.
+   beliefs.~~ Shipped independently for Marine and Defender in Story 27.
 9. Frontline / bulge / breakthrough analyzers.
-10. Heatmap debug overlay.
+10. ~~Heatmap debug overlay.~~ Story 27 ships four independently toggled
+    faction/channel overlays through the ordinary highlight pipeline.
 11. Wire commander decisions (assignment changes) to use the
     heatmap.
 
