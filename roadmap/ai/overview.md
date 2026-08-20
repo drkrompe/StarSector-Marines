@@ -173,7 +173,12 @@ speed-scaled fallback scans, ranged LoS, and the last-seen threat-set gate on
 `HAS_LOS_TO_TARGET` (`5f12ac03`, `09bf4f70`, `6dd1e63c`, `04e3f814`). The
 threat-scored objective-advance leash now ships on that tactical seam too
 (`14d646a`; [story 19](complete/19-threat-scored-engagement-leash.md)). The
-commander aggregation, influence grid, and briefing loop remain parked.
+read-only commander substrate now ships as well (`4e7089d0`; [story
+27](complete/27-commander-influence-substrate.md)): Marine and Defender each
+receive an independent, immutable two-channel field built from honest friendly
+presence and only their squads' identified contacts, with topology-aware 8×8
+propagation and four debug heatmaps. Frontline analysis, assignment consumers,
+and the briefing loop remain parked.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 

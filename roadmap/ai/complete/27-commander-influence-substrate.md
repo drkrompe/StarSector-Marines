@@ -1,5 +1,7 @@
 # 27 — Read-only commander influence substrate
 
+**Shipped 2026-08-19 in `4e7089d0`.**
+
 ## Player-visible contract
 
 This slice does not change squad orders. It gives each side an honest,
@@ -95,3 +97,16 @@ scales fill/outline opacity.
 - Anonymous bearing fusion, objective pull, casualty, supply, and cover
   channels.
 - Persistence or a versioned debug schema.
+
+## Verification
+
+- `CommanderInfluenceServiceTest` covers independent faction pictures,
+  belief-only hostile sources, combatant-only friendly sources, deterministic
+  report merging, fixed cadence, snapshot immutability, and safe world bounds.
+- `InfluenceFieldBuilderTest` proves that a fine-grid wall inside one tactical
+  block cannot leak into the next block, while a real opening propagates with
+  the contracted attenuation.
+- `CellHighlightTest` protects existing one-cell callers and the new coarse
+  rectangle footprint.
+- Focused influence/highlight tests and the full `gradlew.bat test` suite
+  passed before documentation closeout.

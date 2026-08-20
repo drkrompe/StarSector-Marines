@@ -97,32 +97,36 @@ selected-squad overlays plus unversioned dumps expose the contacts. Story 26
 adds the audio vertical (`63ffdb6a`): shots and detonations publish one-time
 noise events, squads hear them through walls with deterministic localization
 error and lower confidence, and indirect launches plus every explosion stay
-anonymous. Audio never satisfies direct LOS. Cross-squad sharing and commander
-influence remain parked.
+anonymous. Audio never satisfies direct LOS. Story 27 (`4e7089d0`) adds the
+read-only commander substrate: independent Marine/Defender snapshots aggregate
+only their squads' identified beliefs, add honest friendly combatant presence,
+and propagate both channels through fine-connectivity-aware 8×8 tactical
+blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 
 ## Immediate next
 
-1. **Tactical playtest pass** — exercise Stories 19–26 together: objective
+1. **Tactical playtest pass** — exercise Stories 19–27 together: objective
    press/commit, bounding, last stands, difficulty-scaled assault mechs,
    mech-screen formations, and clustered-runner release into covered
    overwatch. Confirm magenta direct ghosts, amber audio contacts, and yellow
    noise bearings remain distinct; heard gunfire should pull squads through
-   walls without revealing an indirect launcher.
+   walls without revealing an indirect launcher. Inspect all four commander
+   fields around walls, doorways, and disconnected rooms.
    Tune the density threshold, three-cell cover-settle radius, and twelve-cell
    cohesion leash only from visible battle results.
-2. **Next perception slice: commander influence substrate** — contract the
-   commander-owned threat roll-up plus coarse tactical-grid downsampler/BFS
-   propagation from `stories/15-perception-and-influence.md`. Keep the first
-   slice read-only and diagnostic: no assignment changes or cross-squad
-   briefing pushes until the field's ownership and stale-intel behavior are
-   proven.
+2. **Next perception slice: read-only frontline analysis** — derive a signed
+   local balance/frontline diagnostic from Story 27's immutable snapshots and
+   make the result inspectable. Keep commander assignments, reserve commits,
+   and cross-squad briefing pushes out until the analyzer is deterministic and
+   topology behavior is visible in battle.
 
 ## Parked but design-complete
 
 - **Perception & influence remainder** (`stories/15-perception-and-influence.md`)
-  — cross-squad sharing and commander heatmap. Direct plus audio squad belief
-  is shipped; ground-truth threat reads in guard-post and
-  objective-advance leashes remain explicit later swap sites.
+  — frontline/bulge/breakthrough analysis, cross-squad sharing, and commander
+  decisions. Direct/audio belief and the read-only commander heatmaps ship;
+  ground-truth threat reads in guard-post and objective-advance leashes remain
+  explicit later swap sites.
 - **Commander improvements** (`stories/12-squad-of-squads.md` §
   Improvement path) — contour-aware target picking, cross-strip
   reallocation, defender-side commanders. All gated on doc 15.
@@ -165,5 +169,8 @@ influence remain parked.
 - `complete/26-audio-contact-belief.md` — shipped one-time shot/detonation
   noise bus, deterministic imperfect hearing, contact provenance, indirect
   secrecy, overlay, and unversioned dump diagnostics (`63ffdb6a`)
+- `complete/27-commander-influence-substrate.md` — shipped independent
+  per-faction belief aggregation, topology-aware two-channel tactical fields,
+  immutable snapshots, and four read-only debug heatmaps (`4e7089d0`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
