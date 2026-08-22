@@ -113,10 +113,16 @@ mechanism; the two would fight.
 - A late arrival paths to its squad without soloing into contact, and
   behaves normally once it arrives.
 - Militia, walk-in reinforcement, and employer spawns are unchanged.
-- **Balance check:** raising the floor increases every early-game lift by
-  50–100%. Re-derive the opening missions' seat math and deployment
-  capacity, and verify the two Independent opening jobs still field the
-  intended force. This is a live balance surface — see
+- **Balance re-tune, decided up front.** *Settled 2026-08-22: take the
+  capacity change now and re-tune around it.* Raising the floor increases
+  every early-game lift by 50–100%, and the two Independent opening jobs
+  are mid-playtest against today's seats — so their force ratios get
+  re-derived after this lands, not before. The reasoning is that the floor
+  is not only a readability fix: fewer, whole squads per lift is one of the
+  two governors keeping the meta game away from a hundred-squad state that
+  neither the UI nor the campaign layer can carry (the other being the
+  officer rank cap, [C7](c7-organization-and-ranks.md)). Tuning against a
+  seat count we intend to change would be wasted work. Flagged in
   [`campaign/early-operations/next-session.md`](../../campaign/early-operations/next-session.md).
 
 ## Files touched

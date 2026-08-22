@@ -79,6 +79,23 @@ company — which is exactly the merc-company-becomes-an-institution arc the
 campaign is already telling. One card per officer stays coherent at every
 size.
 
+### The officer cap is the scale governor
+
+The rank cap is not only a progression gate — it is what keeps the game
+from ever asking the player to think about a hundred squads at once. Two
+governors stack:
+
+- **Rank** bounds the squads one officer can field in one battle (3 at
+  Lieutenant, 6 at Captain).
+- **Lift capacity** bounds how many of those actually land per wave
+  ([C8](c8-lift-capacity-and-multi-pass-drops.md)).
+
+So the battle HUD's realistic worst case is a dozen squads, not fifty. The
+*roster* may grow far past that as the organization becomes a battalion,
+which is why the fleet view — not the battle view — is the surface that has
+to paginate. Pick future cap numbers with that in mind: a rank whose cap
+outruns what the player can read is a rank that made the game worse.
+
 ### Squad leaders
 
 - `MarineSquad` gains `leaderSoldierId`.
@@ -91,27 +108,20 @@ size.
   player thinks is in charge — and so a leader death in battle is a named
   event rather than an invisible id swap.
 
-### Save compatibility — do this first
+### Save compatibility — not a constraint
 
-`MarineCaptain.rank` is a persisted enum. xstream writes enums **by name**,
-so deleting `PRIVATE` / `CORPORAL` / `SERGEANT` / `GENERAL` from `Rank`
-makes an existing save fail to deserialize the roster. Options, in
-preference order:
+**Settled 2026-08-22: nothing is shipped to anyone and there are no saves
+to preserve.** Edit `Rank` freely — delete constants, renumber caps, no
+legacy alias map, no migration step.
 
-1. **Legacy alias map on load** — keep the old names resolvable and map
-   them to the nearest new officer rank (`PRIVATE`/`CORPORAL`/`SERGEANT` →
-   `LIEUTENANT`), applied once when the roster script loads.
-2. **Accept a save break** if the user is happy to start fresh — cheapest,
-   and honest for a mod still in development.
-
-The new `MarineSoldier` rank field is additive: an old save simply has no
-element for it, so it must tolerate null and backfill (`MARINE` for
-everyone, `CORPORAL` for whoever becomes the squad leader).
+The mechanism is still worth knowing for later: `MarineCaptain.rank` is a
+persisted enum and xstream writes enums **by name**, so once real saves
+exist, deleting a constant breaks roster deserialization. Adding a field
+(the new `MarineSoldier` rank) is the safe direction — an older save simply
+has no element for it and the field stays null.
 
 ## Slices
 
-0. **Save-compat decision + mechanism.** Nothing else lands until this is
-   settled, because it determines whether the enum can be edited freely.
 1. **Officer ladder in squads.** New constants, caps denominated in squads,
    `fireteamCap()` retired. Consumers: `MarineRoster` (four call sites),
    `CaptainDeploymentPolicy`, `ArmoryScreen`, `BriefingScreen`,
@@ -127,11 +137,11 @@ everyone, `CORPORAL` for whoever becomes the squad leader).
 
 - No rank is used outside the role it names: officers command, NCOs lead
   squads, marines fill them.
-- A loaded pre-change save either migrates cleanly or fails loudly at a
-  known point with a stated decision behind it — never silently drops a
-  captain.
 - Command caps still gate deployment exactly as `CaptainDeploymentPolicy`
   gates it today; only the unit of measure changes.
+- The caps hold as a **scale governor**: the squads a player can field in
+  one battle stays bounded by the commanding officer's rank (3 at
+  Lieutenant, 6 at Captain), not by how many marines the roster holds.
 - Losing a squad leader promotes a successor deterministically, and the
   same person leads in the next battle.
 - The starting officer can command the starting complement without the cap
