@@ -20,37 +20,49 @@ retains its own acceptance contract and implementation commit in `complete/`.
 
 ## Active story
 
-Two contracted, neither started. They close the same gap from opposite ends:
-stationing events currently arm silently *and* cost nothing to ignore.
+[`stories/g32-player-event-popup.md`](stories/g32-player-event-popup.md) —
+presentation. A `PlayerEventInbox` projection over the persisted payloads, a
+persisted exactly-once acknowledgement, and a self-triggered
+`CustomVisualDialogDelegate` popup with our own chrome, so an armed event
+reaches the player instead of waiting to be found at the market.
 
-1. [`stories/g31-stationing-response-deadlines.md`](stories/g31-stationing-response-deadlines.md)
-   — domain only. A pending Garrison defense or Cadre incident gets a response
-   deadline; letting it lapse fails the assignment through the shipped
-   resolution policies and costs more reputation than losing the fight. Also
-   adds the invariant that a stationing term can never COMPLETE with a live
-   payload. Headless-testable, and worth shipping on its own.
-2. [`stories/g32-player-event-popup.md`](stories/g32-player-event-popup.md)
-   — presentation. A `PlayerEventInbox` projection over the persisted payloads,
-   a persisted exactly-once acknowledgement, and a self-triggered
-   `CustomVisualDialogDelegate` popup with our own chrome. Depends on G31 for
-   the countdown and for its "write them off" option.
+Its dependency **G31 is shipped** (`e25fa582`,
+[`complete/g31-stationing-response-deadlines.md`](complete/g31-stationing-response-deadlines.md)):
+pending Garrison defenses and Cadre incidents now carry a persisted response
+deadline, lapse into a failed assignment through the shipped resolution
+policies, cost -20 employer / -10 MRB, and can no longer be laundered into a
+completed term. The popup's countdown is a direct read of
+`contractResponseDeadlineTick`.
 
-Take G31 first. The open questions in [`overview.md`](overview.md) remain
-design prompts, not pre-approved work.
+The open questions in [`overview.md`](overview.md) remain design prompts, not
+pre-approved work.
 
-### Why these two, and why they are separate
+## Blocking question surfaced by G31
 
-Investigation on 2026-08-22 confirmed both halves of the gap in shipped code:
+`Global.getSector().getClock().getDay()` looks like a **day-of-month** value
+(1–30), not the monotonic day counter the entire campaign tick layer assumes
+across 28 call sites. Vanilla gates on `getClock().getDay() == 15` and `== 28`.
+If confirmed in game, retainer months, default checkpoints, incident cadence,
+offer expiry, injury recovery, and G31's new deadlines all reset roughly
+monthly. See the priority follow-up in
+[`complete/g31-stationing-response-deadlines.md`](complete/g31-stationing-response-deadlines.md).
+Worth settling before investing further in time-based campaign mechanics.
 
-- **Ignoring an event is free.** `StationingAssignmentService` sets
-  `contractPhasesTotal = 0`, so `ContractLifecycleSystem` COMPLETES a stationing
-  row at term expiry regardless of a live payload, and `ContractRetainerSystem`
-  pays through `IN_PROGRESS`. Take the retainer, never answer, collect
-  tier-scaled MRB credibility.
+## Why these two, and why they are separate
+
+Investigation on 2026-08-22 confirmed both halves of the same gap in shipped
+code. G31 closed the first; G32 is contracted for the second.
+
+- ~~**Ignoring an event is free.**~~ **Fixed** (`e25fa582`). Was:
+  `StationingAssignmentService` sets `contractPhasesTotal = 0`, so
+  `ContractLifecycleSystem` COMPLETED a stationing row at term expiry
+  regardless of a live payload while `ContractRetainerSystem` paid through
+  `IN_PROGRESS`.
 - **Nothing tells the player.** No `MessageIntel`, no `addMessage`, no per-event
   `addIntel` in the campaign layer. The five intel plugins are registered once
   in `onGameLoad` as mutating singletons, so even the two passing
-  `forceNoMessage = false` only ever notify at creation.
+  `forceNoMessage = false` only ever notify at creation. Still true — this is
+  G32's job.
 
 They are two stories rather than one because G31 is fully headless-testable
 domain work and G32 is a UI surface whose shipping gate is in-game smoke —
@@ -73,11 +85,13 @@ unless the user asks to resume the manual queue.
    [`overview.md`](overview.md).
 2. Read [`complete/contracts-loop.md`](complete/contracts-loop.md) and the
    specific completed stories adjacent to the proposed extension.
-3. Read the two active stories above; G31 before G32.
+3. Read [`stories/g32-player-event-popup.md`](stories/g32-player-event-popup.md)
+   and its shipped dependency
+   [`complete/g31-stationing-response-deadlines.md`](complete/g31-stationing-response-deadlines.md).
 4. Preserve the shared contract eligibility, exact-once result, and Garrison
-   trigger boundaries rather than adding type-specific side paths. Both active
-   stories are deliberately written as new *callers* of shipped policy, not as
-   new policy.
+   trigger boundaries rather than adding type-specific side paths. G31 and G32
+   are both deliberately written as new *callers* of shipped policy, not as new
+   policy.
 
 ## Last roadmap maintenance
 
@@ -89,3 +103,8 @@ unless the user asks to resume the manual queue.
   follow-ups on G31: Cadre incident failure applies no reputation, stationing
   retainer economics are far below mission payouts, and Tier-1 stationing is
   unimplemented versus the `overview.md` rank table.
+- 2026-08-22: shipped G31 (`e25fa582`) and moved it to `complete/`, recording
+  two deviations from its contracted rules (persisted deadline column instead of
+  a derived deadline; `FAILED` engagement outcome instead of a withdrawal-shaped
+  one) plus the priority `getClock().getDay()` finding. G32 remains the only
+  active story.
