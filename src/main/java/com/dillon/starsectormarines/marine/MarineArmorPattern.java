@@ -5,17 +5,17 @@ public enum MarineArmorPattern {
     ARMORLESS("Armorless fatigues", 1, "graphics/ui/armory/armor-tier-1-field-kit.png",
             0f, 0f, 1.08f, 0.92f),
     CHARCOAL("Charcoal combat armor", 3, "graphics/ui/armory/armor-tier-3-combat.png",
-            0.12f, 5f, 0.96f, 0.96f),
+            0.22f, 5f, 0.96f, 0.96f),
     BLUE_SCOUT("Navy scout armor", 2, "graphics/ui/armory/armor-tier-2-scout.png",
-            0.06f, 2f, 1.06f, 0.88f),
+            0.08f, 2f, 1.06f, 0.88f),
     RED_ELITE("Crimson elite armor", 4, "graphics/ui/armory/armor-tier-4-heavy.png",
-            0.20f, 8f, 0.86f, 0.98f),
+            0.48f, 10f, 0.86f, 0.98f),
     OUTLAW("Outlaw plate", 2, "graphics/ui/armory/armor-tier-2-scout.png",
-            0.08f, 3f, 1.02f, 0.94f),
+            0.12f, 3f, 1.02f, 0.94f),
     ARMY_GREEN("Army-green armor", 3, "graphics/ui/armory/armor-tier-3-combat.png",
-            0.14f, 4f, 0.94f, 0.97f),
+            0.24f, 5f, 0.94f, 0.97f),
     MILITIA("Militia kit", 2, "graphics/ui/armory/armor-tier-2-scout.png",
-            0.07f, 2f, 1.00f, 0.96f);
+            0.09f, 2f, 1.00f, 0.96f);
 
     public final String displayName;
     public final int tier;

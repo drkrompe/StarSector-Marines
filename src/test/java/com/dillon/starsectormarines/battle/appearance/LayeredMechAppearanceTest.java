@@ -34,8 +34,8 @@ public class LayeredMechAppearanceTest {
         long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 7, 5));
         assertTrue(sim.getEntityWorld().has(mech, c.MECH_LAYERED_ANIMATION));
         assertTrue(sim.getEntityWorld().has(mech, c.MECH_LOCOMOTION));
-        assertEquals(540f, sim.world().hp(mech), 0.001f);
-        assertEquals(540f, sim.world().maxHp(mech), 0.001f);
+        assertEquals(4860f, sim.world().hp(mech), 0.001f);
+        assertEquals(4860f, sim.world().maxHp(mech), 0.001f);
         assertEquals(12, com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN.burstCount);
         assertEquals(30f, com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN.range,
                 0.001f);
