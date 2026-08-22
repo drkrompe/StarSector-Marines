@@ -137,16 +137,19 @@ universe over time, not retrofitted into intel slots.
   (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
   and expose four read-only debug heatmaps. No commander assignments consume
   the fields yet.
-- **Progression** *(design stage)* — a new cross-tier track covering the
+- **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned
   per-soldier experience, the fabrication parts economy, and the legibility
-  of all of it. [`progression/audit.md`](progression/audit.md) measures the
-  baseline; the short version is that the plumbing is shipped but the
-  content is thin — the entire upgrade ladder moves damage 8-13%, a marine
-  takes ~20 s to kill, four authored armor patterns are unreachable, the
-  unlock ladder ends at mission five, parts have exactly one source
-  (winning), XP is flat per survivor, and six of eleven traits are inert
-  enums with no UI. Ten stories (S1-S10) are contracted and unstarted. See
+  of all of it. [`progression/audit.md`](progression/audit.md) measured the
+  baseline: the plumbing is shipped but the content is thin — four authored
+  armor patterns are unreachable, the unlock ladder ends at mission five,
+  parts have exactly one source (winning), XP is flat per survivor, and six
+  of eleven traits are inert enums with no UI. **S1 is shipped** (`3a307354`,
+  `fdc49c36`, plus the grade spread): a TTK harness that drives the real
+  firing pipeline, then the two numeric passes it made arguable. A marine
+  now dies in 3.4 s rather than 30, and the equipment ladder spans 4.3x in
+  measured time-to-kill rather than 1.75x. S2-S10 are contracted and
+  unstarted, and S1's own last acceptance item is an in-game feel pass. See
   [`progression/`](progression/overview.md).
 - **Company view** *(design stage)* — the player's force as one legible
   hierarchy, company → squad → marine, in the fleet and in the field.
@@ -170,14 +173,14 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-> **Recommended pickup: progression S1 — lethality floor and tier spread**
-> ([`progression/stories/s1-lethality-and-tier-spread.md`](progression/stories/s1-lethality-and-tier-spread.md)).
-> No dependencies, no new systems, and the single change that most alters
-> how the game feels; every other progression story is a reward layered on
-> combat that should be worth rewarding first. Note it is a cross-cutting
-> numeric change — alien/swarm, mech, turret, wall, and rocket values share
-> the same damage scale and must be re-derived with it. The numbered list
-> below is the pre-existing queue.
+> **Recommended pickup: play a mission, then progression S3 — per-soldier
+> telemetry**
+> ([`progression/stories/s3-per-soldier-telemetry.md`](progression/stories/s3-per-soldier-telemetry.md)).
+> S1 just rewrote every combat number in the mod and its last acceptance
+> item is an in-game feel pass, so a mission or two is worth more than any
+> further tuning. S3 then unblocks S4, S8 and S9, and it is what would let
+> S1's claims be checked against real missions instead of a synthetic
+> two-unit harness. The numbered list below is the pre-existing queue.
 
 1. **Early-operations playtest** — the two-job Independent opening ladder is
    code-complete: one-player-sortie relief followed by a two-sortie joint
