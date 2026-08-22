@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
-import com.dillon.starsectormarines.campaign.StationingNoForceResolution;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
 import com.dillon.starsectormarines.campaign.systems.StationingContractTerms;
 import com.dillon.starsectormarines.campaign.systems.StationingWithdrawalService;
@@ -394,47 +393,17 @@ public final class StationingScreen implements Screen {
     }
 
     private void onRespond(StationingIncidentPayload payload) {
-        if (payload == null || ctx.planet == null) return;
-        if (payload.activeSeats == 0 && !payload.fireteamIds.isEmpty()) {
-            if (StationingNoForceResolution.apply(
-                    state(), payload, roster(), currentDay()) != null) finishResponse();
-            else rebuild();
-            return;
-        }
-        String factionId = ctx.market != null && ctx.market.getFaction() != null
-                ? ctx.market.getFaction().getId() : null;
-        Mission mission = StationingIncidentMissionFactory.create(
-                payload, ctx.planet.getName(), factionId);
-        if (mission == null) {
-            rebuild();
-            return;
-        }
-        ctx.setSelectedCaptainId(payload.captainId);
-        ctx.setSelectedMission(mission);
-        ctx.replaceMarineSquadSelection(payload.fireteamIds);
-        ctx.goTo(ScreenId.BRIEFING);
+        applyResponse(StationingResponseLaunch.respond(ctx, payload));
     }
 
     private void onRespond(GarrisonDefensePayload payload) {
-        if (payload == null || ctx.planet == null) return;
-        if (payload.activeSeats == 0 && !payload.fireteamIds.isEmpty()) {
-            if (StationingNoForceResolution.apply(
-                    state(), payload, roster(), currentDay()) != null) finishResponse();
-            else rebuild();
-            return;
-        }
-        String factionId = ctx.market != null && ctx.market.getFaction() != null
-                ? ctx.market.getFaction().getId() : null;
-        Mission mission = GarrisonDefenseMissionFactory.create(
-                payload, ctx.planet.getName(), factionId);
-        if (mission == null) {
-            rebuild();
-            return;
-        }
-        ctx.setSelectedCaptainId(payload.captainId);
-        ctx.setSelectedMission(mission);
-        ctx.replaceMarineSquadSelection(payload.fireteamIds);
-        ctx.goTo(ScreenId.BRIEFING);
+        applyResponse(StationingResponseLaunch.respond(ctx, payload));
+    }
+
+    /** BRIEFING already routed the context; the other two outcomes stay on this screen. */
+    private void applyResponse(StationingResponseLaunch.Result result) {
+        if (result == StationingResponseLaunch.Result.NO_FORCE_RESOLVED) finishResponse();
+        else if (result == StationingResponseLaunch.Result.UNAVAILABLE) rebuild();
     }
 
     private void finishResponse() {
@@ -443,10 +412,6 @@ public final class StationingScreen implements Screen {
         ctx.setSelectedStationingContractId(-1L);
         ctx.setSelectedCaptainId(null);
         ctx.goTo(ScreenId.MISSION_SELECT);
-    }
-
-    private static int currentDay() {
-        return Global.getSector() != null ? CampaignClock.day() : 0;
     }
 
     private void selectFirstActiveCaptain() {

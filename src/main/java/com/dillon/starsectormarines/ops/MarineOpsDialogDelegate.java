@@ -8,6 +8,8 @@ import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import org.apache.log4j.Logger;
 
+import java.util.function.Consumer;
+
 /**
  * Delegate for {@link InteractionDialogAPI#showCustomVisualDialog}. Unlike the
  * {@code CustomDialogDelegate} variant, this one does NOT force confirm/cancel
@@ -21,18 +23,34 @@ import org.apache.log4j.Logger;
  *
  * <p>Holds a reference to the parent interaction dialog so {@link #reportDismissed}
  * can restore the text/visual panels {@code MarineOpsCMD} hid on open, keeping
- * the planet menu intact when the player backs out.
+ * the planet menu intact when the player backs out. A self-triggered opener has no
+ * menu to go back to, so it supplies its own {@code onDismissed} that closes the
+ * whole interaction instead — restoring empty panels there would leave the player in
+ * a dialog with no options and no exit.
  */
 public class MarineOpsDialogDelegate implements CustomVisualDialogDelegate {
 
     private static final Logger LOG = Global.getLogger(MarineOpsDialogDelegate.class);
 
-    private final InteractionDialogAPI parent;
     private final MarineOpsPanelPlugin panel;
+    private final Runnable onDismissed;
 
     public MarineOpsDialogDelegate(InteractionDialogAPI parent, PlanetAPI planet) {
-        this.parent = parent;
-        this.panel = new MarineOpsPanelPlugin(planet);
+        this(planet, null, () -> {
+            parent.showTextPanel();
+            parent.showVisualPanel();
+        });
+    }
+
+    /**
+     * @param seed        applied to the fresh {@link MarineOpsContext}; see
+     *                    {@link MarineOpsPanelPlugin#MarineOpsPanelPlugin(PlanetAPI, Consumer)}
+     * @param onDismissed what to do with the parent interaction once our panel closes
+     */
+    public MarineOpsDialogDelegate(PlanetAPI planet, Consumer<MarineOpsContext> seed,
+                                   Runnable onDismissed) {
+        this.panel = new MarineOpsPanelPlugin(planet, seed);
+        this.onDismissed = onDismissed;
     }
 
     @Override
@@ -59,8 +77,7 @@ public class MarineOpsDialogDelegate implements CustomVisualDialogDelegate {
     @Override
     public void reportDismissed(int option) {
         panel.dismiss();
-        parent.showTextPanel();
-        parent.showVisualPanel();
+        if (onDismissed != null) onDismissed.run();
         LOG.info("MarineOps: dialog dismissed");
     }
 }

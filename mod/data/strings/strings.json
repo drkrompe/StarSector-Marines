@@ -92,6 +92,19 @@
 		"garrisonDefenseUnknown": "Unclassified threat to the protected market",
 		"garrisonDefenseResolveFirst": "Resolve Defense",
 
+		# Self-triggered campaign event popup
+		"eventPopupLocationFmt":  "Location: {0}",
+		"eventPopupDeadlineFmt":  "Response window: {0} days remaining",
+		"eventPopupDeadlineToday": "Response window closes today",
+		"eventPopupNoForce":      "No one on site is fit to fight.",
+		"eventPopupDeploy":       "Deploy Now",
+		"eventPopupHold":         "Hold",
+		"eventPopupWriteOff":     "Write Them Off",
+		"eventPopupDeployUnavailable": "No landing site here — this assignment cannot be fought.",
+		"eventPopupWriteOffWarning": "Abandoning the response fails the contract: employer rep -20, MRB rep -10.",
+		"eventPopupConfirm":      "Confirm",
+		"eventPopupCancel":       "Cancel",
+
 		# Battle screen
 		"battleSpeedPause":       "Pause",
 		"battleSpeed1x":          "1x",

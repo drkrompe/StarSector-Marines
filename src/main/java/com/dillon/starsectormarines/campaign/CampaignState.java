@@ -356,6 +356,20 @@ public final class CampaignState implements Serializable {
      * deadline layer first sees it.
      */
     public int[]   contractResponseDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
+    /**
+     * Identity of the pending response most recently pushed at the player as an event
+     * popup — the Garrison defense event key, or the Cadre incident's due day widened
+     * to a long. A contract row is either GARRISON or CADRE, never both, so one column
+     * covers both sources without ambiguity. Meaningless while
+     * {@link #contractNoticeAckStage} is 0.
+     */
+    public long[]  contractNoticeAckKey = new long[INITIAL_CAPACITY];
+    /**
+     * How far the player-facing presentation of {@link #contractNoticeAckKey} has got:
+     * 0 = never shown, 1 = the arrival popup was shown, 2 = the deadline reminder was
+     * also shown. Bounded at 2 so a deferred notice can never loop.
+     */
+    public byte[]  contractNoticeAckStage = new byte[INITIAL_CAPACITY];
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -994,6 +1008,8 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerHouseId[i] = -1L;
         contractDefenseAttackerFactionId[i] = -1;
         contractResponseDeadlineTick[i] = -1;
+        contractNoticeAckKey[i]     = 0L;
+        contractNoticeAckStage[i]   = 0;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -1804,6 +1820,14 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractResponseDeadlineTick = filledInts(n, -1);
         }
+        if (contractNoticeAckKey == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractNoticeAckKey = new long[n];
+        }
+        if (contractNoticeAckStage == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractNoticeAckStage = new byte[n];
+        }
         return this;
     }
 
@@ -1859,6 +1883,8 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
         contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
+        contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);
+        contractNoticeAckStage = Arrays.copyOf(contractNoticeAckStage, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
