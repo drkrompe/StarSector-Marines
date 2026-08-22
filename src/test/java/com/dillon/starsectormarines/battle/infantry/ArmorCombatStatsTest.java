@@ -31,11 +31,11 @@ class ArmorCombatStatsTest {
         assertEquals(30f, sim.world().hp(marine), 1e-6f);
         assertEquals(UnitType.MARINE.moveSpeed * 0.96f,
                 sim.world().moveSpeed(marine), 1e-6f);
-        assertEquals(0.88f, sim.world().damageTakenMult(marine), 1e-6f);
+        assertEquals(0.78f, sim.world().damageTakenMult(marine), 1e-6f);
         assertEquals(0.96f, sim.world().incomingAccuracyMult(marine), 1e-6f);
 
         sim.applyDamage(marine, 10f, 1f, 0f);
-        assertEquals(21.2f, sim.world().hp(marine), 1e-6f);
+        assertEquals(22.2f, sim.world().hp(marine), 1e-6f);
     }
 
     @Test

@@ -16,13 +16,14 @@ and internal market flips. Individual shipped records live in
 [`complete/`](complete/); the consolidated implementation history is
 [`complete/contracts-loop.md`](complete/contracts-loop.md).
 
-Two numbered stories are contracted and not yet started:
-[`stories/g31-stationing-response-deadlines.md`](stories/g31-stationing-response-deadlines.md)
+Both stories opened on 2026-08-22 have shipped.
+[`complete/g31-stationing-response-deadlines.md`](complete/g31-stationing-response-deadlines.md)
 gives a pending Garrison defense or Cadre incident a response deadline with real
 lapse consequences, and
-[`stories/g32-player-event-popup.md`](stories/g32-player-event-popup.md) pushes
+[`complete/g32-player-event-popup.md`](complete/g32-player-event-popup.md) pushes
 those events at the player through a self-triggered popup with our own chrome
-instead of leaving them to be discovered at the market. G31 first.
+instead of leaving them to be discovered at the market. G32's in-game smoke pass
+is still outstanding.
 
 The open questions below remain design prompts, not an implementation queue.
 See [`next-session.md`](next-session.md) for the cold-start handoff and the

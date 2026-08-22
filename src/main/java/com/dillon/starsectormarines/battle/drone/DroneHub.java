@@ -45,7 +45,7 @@ public final class DroneHub {
     public static final float VISUAL_CELLS = 1.6f;
 
     /** Hub HP — between MEDIUM (65) and LARGE (85) turret HP. Substantial enough to outlive a few mag dumps but pushable down with focus fire. */
-    public static final float HUB_MAX_HP = 80f;
+    public static final float HUB_MAX_HP = 720f;
 
     /** Cap on simultaneously-airborne drones from a single hub. Three is the sweet spot for a screen that justifies the stamper: enough that the swarm can fan out around a target on different bearings (vs. a duo always stacking), small enough that two hubs on the same map don't carpet the area with drones. */
     public static final int MAX_ACTIVE_DRONES = 3;

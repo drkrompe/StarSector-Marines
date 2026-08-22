@@ -75,7 +75,7 @@ class MechVariantTest {
                 sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertEquals(5f, MechWeapon.HEAVY_CANNON.damage, 0.001f);
+        assertEquals(45f, MechWeapon.HEAVY_CANNON.damage, 0.001f);
         assertEquals(3f, MechWeapon.HEAVY_CANNON.vsTurretMult, 0.001f);
         assertEquals(26f, MechWeapon.HEAVY_CANNON.range, 0.001f);
         assertSame(ImpactProfile.CANNON_HE, MechWeapon.HEAVY_CANNON.impactProfile);

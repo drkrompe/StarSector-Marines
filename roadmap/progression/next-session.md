@@ -2,16 +2,16 @@
 
 ## State of play
 
-**S1 Slice 0 is shipped; no game numbers have changed yet.** The track's
-documents are:
+**S1 Slices 0 and 1 are shipped. Combat lethality has changed across the
+board and wants a play pass.** The track's documents are:
 
 - [`audit.md`](audit.md) — the source-read baseline for all four progression
   axes as of 2026-08-22. Numbers were read from source, not estimated.
 - [`overview.md`](overview.md) — concept, eight locked design commitments,
   and the ten-story decomposition.
 - [`stories/`](stories/) — S1 through S10, each with scope, out-of-scope,
-  acceptance, and open questions. S1 Slice 0 has shipped; the rest are
-  **contracted but unstarted**.
+  acceptance, and open questions. S1 Slices 0 and 1 have shipped; the rest
+  are **contracted but unstarted**.
 
 **S1 Slice 0 (TTK harness) shipped.** `TtkHarness` + `TtkReportTest` under
 `src/test/java/.../battle/balance/` drive the real firing pipeline —
@@ -39,12 +39,41 @@ Cover was measured at 3.1x from open to hard, which is already the strongest
 lever in the game and needs no widening. The problem is the floor it
 multiplies.
 
+**S1 Slice 1 (lethality budget) shipped.** Anti-personnel damage scaled by 9
+and hardened-class HP by the same factor, so infantry fights resolve nine
+times faster while rifle-vs-mech, rocket-vs-turret and mech-vs-mech are
+bit-for-bit unchanged. All three target bands are hit: 3.40 s on an unarmored
+marine, 5.13 s at T3, 8.90 s at T4. The full before/after table and every
+hand-correction are in the story under "What shipped".
+
+Two things worth carrying forward:
+
+- **The uniform scale was wrong for aliens and swarm runners, and the
+  existing contract test caught it.** Those two were already tuned to the
+  target TTK, so preserving them meant scaling their *HP* and leaving their
+  *damage* alone. Measured after: 1.73 s and 2.90 s, against 1.77 s and
+  2.92 s before. When a later pass moves this scale again, that asymmetry has
+  to be re-applied deliberately.
+- **The grade ladder got narrower, not wider.** Surplus → Masterwork was
+  1.75x before and measures 1.46x now, with Milspec and Masterwork inside
+  each other's error bars against an unarmored target. Higher damage means
+  fewer rounds per kill, and fewer rounds quantizes away the accuracy and
+  cooldown advantages that carried most of grade's value. That makes Slice 2
+  necessary rather than optional — it is the direct answer to "tier upgrades
+  feel too light".
+
+**This needs a play pass**, and two things in particular cannot be checked
+from tests: risk-scaled defender rosters (a T4 defender is now 2.7x an
+unarmored one, up from 1.65x) and the living-world rescue scenarios.
+
 ## What the audit found
 
-Ordered by how badly it hurts:
+Ordered by how badly it hurts. This is the 2026-08-22 record; item 1 is
+fixed by S1 Slice 1 and item 2 is what Slice 2 addresses.
 
-1. **Lethality is far too low.** A 25 HP marine takes ~20 s to drop under
-   sustained pulse-rifle fire. Firefights are attrition, not decisions.
+1. ~~**Lethality is far too low.** A 25 HP marine takes ~20 s to drop under
+   sustained pulse-rifle fire. Firefights are attrition, not decisions.~~
+   Measured at 30 s, and now 3.4 s.
 2. **The upgrade ladder moves damage 8-13% end to end.** Masterwork is a 3%
    damage step over Milspec. Nothing reads as a power tier.
 3. **Four armor patterns are authored and unreachable**, including
@@ -62,20 +91,25 @@ Ordered by how badly it hurts:
 
 ## Recommended pickup
 
-**Continue S1 at Slice 1 — the lethality budget**
+**Continue S1 at Slice 2 — the grade spread**
 ([`stories/s1-lethality-and-tier-spread.md`](stories/s1-lethality-and-tier-spread.md)).
-The instrument is built and the baseline is on the record; what remains is
-choosing the target TTK and solving the numbers for it. Every other story in
+The floor is fixed and the instrument is in place; what remains is making a
+grade step read as a power tier. Every other story in
 this track is a reward layered on combat — that combat should be worth
 rewarding first.
 
-Two things to know before starting the tuning:
+Three things to know before starting it:
 
-- It is a **cross-cutting numeric change**. Alien/swarm HP (currently
-  1.875, runners 2.5) was tuned across several living-world passes against
-  *today's* damage values and will invert if damage moves. Mech, turret,
-  wall, and rocket numbers share the same scale. S1 lists the full
-  re-derivation set.
+- **Slice 2's proposed multiplier table predates the measurements.** It was
+  authored against the audit's "8-13% end to end" damage reading. Grade
+  actually spanned 1.75x in TTK before Slice 1 and spans 1.46x now, so the
+  table needs re-deriving against the current report rather than applying as
+  written.
+- **Grade fights quantization now.** With 2-4 landed rounds per kill, an
+  accuracy or cooldown advantage often buys nothing because the round count
+  does not change. Grade's spread against T4 armor is already 1.84x while
+  against an unarmored target it is 1.46x, for exactly this reason. Damage
+  per round is the lever that still moves cleanly.
 - **Re-run the report before and after**, and diff the two. The harness is
   statistical, not seeded, so read the standard-error column and compare
   bands — a 3% move between runs is noise, not a result.
@@ -168,5 +202,8 @@ the blueprint reframe and patron rewards real flavor.
   docs, handoff.
 - `e338ac31` — resolve the font floor into a type scale plus S8 Slice 0 (UI
   scale mult), and add factional equipment identity as S6 Slice 3.
-- *(this session)* — S1 Slice 0: TTK harness, measured baseline, and the
+- `3a307354` — S1 Slice 0: TTK harness, measured baseline, and the
   three findings that re-scope Slices 1 and 2.
+- *(this session)* — S1 Slice 1: the lethality budget. Anti-personnel damage
+  x9, hardened HP x9, alien/swarm re-derived HP-side, DMR and Field Rifle
+  ratio corrections, widened armor tiers.

@@ -24,7 +24,7 @@ public enum MarineSecondary {
                     "graphics/missiles/missile_annihilator.png",
                     "marines_explosion",
                     "graphics/battle/marine-rocket.png",
-                    32f, 18f, 0.85f, 3.0f, 3.50f, 3, 0.50f, 0.70f, 0.65f,
+                    32f, 162f, 0.85f, 3.0f, 3.50f, 3, 0.50f, 0.70f, 0.65f,
                     1.5f, 50, 1.5f);
 
     public final String displayName;
