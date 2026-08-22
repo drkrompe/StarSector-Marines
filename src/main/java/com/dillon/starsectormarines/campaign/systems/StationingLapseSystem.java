@@ -29,9 +29,9 @@ import java.util.EnumSet;
 public final class StationingLapseSystem implements CampaignSystem {
 
     /** Days to answer an armed Garrison defense before the market is written off. */
-    static final int GARRISON_RESPONSE_DAYS = 7;
+    public static final int GARRISON_RESPONSE_DAYS = 7;
     /** Days to answer an armed Cadre incident. Longer — an incident is not an assault. */
-    static final int CADRE_RESPONSE_DAYS = 14;
+    public static final int CADRE_RESPONSE_DAYS = 14;
 
     interface RosterSource {
         MarineRoster roster();
@@ -116,7 +116,7 @@ public final class StationingLapseSystem implements CampaignSystem {
      * gets a full window instead of failing retroactively. Clamped to the term: an event
      * armed five days before expiry gets five days, not the full window.
      */
-    static int armDeadline(int armedDay, int observedDay, int windowDays, int expiresTick) {
+    public static int armDeadline(int armedDay, int observedDay, int windowDays, int expiresTick) {
         long anchor = Math.max(armedDay, observedDay);
         long deadline = anchor + windowDays;
         if (expiresTick >= 0) deadline = Math.min(deadline, expiresTick);
