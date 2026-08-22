@@ -27,6 +27,25 @@ screen in the mod.
 A tightly composed roster view where the player can compare marines at a
 glance, drill into one, and understand what a captain's traits mean.
 
+## Slice 0 — Honor the UI scale setting
+
+**Prerequisite, and arguably a latent bug independent of this story.**
+
+`getScreenScaleMult()` is never called anywhere in the mod. Every font-size
+judgement the project has made was made at one unknown scale setting.
+
+- Query the scale mult and express the readable floor in **physical**
+  pixels.
+- Optionally select the type-scale step from it — Insignia 15 at scale
+  >= 1.25, Insignia 17 below.
+- Verify at 1.0x, 1.25x, and 1.5x. Note the existing manual
+  `Display.getWidth() / getScreenWidth()` computations in `BattleScreen`,
+  `GroundParallaxPipeline`, and `BridgeRenderer` are deriving the same
+  quantity by hand; consider consolidating rather than adding a fourth.
+
+This slice is small, benefits every screen in the mod, and should land
+before any density work is tuned by eye.
+
 ## Slice 1 — Comparable roster rows
 
 A compact per-marine row carrying, at minimum:
@@ -44,17 +63,88 @@ Design decisions worth making deliberately:
 - Sorting and filtering by aptitude, experience, kit, and status — the
   point of the view is comparison.
 
-### The font-floor tension
+### The font floor — resolved
 
-This is the real design constraint and should be confronted up front, not
-discovered mid-implementation. The project has a hard **Orbitron 20px
-minimum** ([[ui_font_minimum]], established after a playtest that removed
-the 10px face). "Tightly composed" and a 20px floor are in genuine
-tension.
+"Tightly composed" and the standing **Orbitron 20** minimum
+([[ui_font_minimum]]) look like a hard conflict. Investigating the actual
+font infrastructure showed they are not, for three reasons. This section
+supersedes the old floor for this track's surfaces.
 
-The resolution is to make bars and icons carry density instead of text:
-a skill bar communicates at any size, an 8-character stat label does not.
-Budget the text, spend the space on graphics.
+**1. It is a typeface problem, not a size problem.** Orbitron is a
+geometric *display* face — wide, low x-height, built for headings. All 224
+of our text call sites use it. The 20px floor is really the floor *for
+Orbitron*. Vanilla ships several genuine text faces that are smaller *and*
+more legible. Measured from the `.fnt` metrics, as relative area per
+character:
+
+| Font | lineHeight | avg advance | area/char | notes |
+| --- | --- | --- | --- | --- |
+| `orbitron20aa` | 20 | 11.04 | **1.00** | today's floor |
+| `insignia17LTaa` | 17 | 8.64 | **0.67** | AA'd; Starsector's own text face |
+| `uni16` | 19 | 7.81 | 0.67 | narrow, good x-height |
+| `arial14` | 16 | 7.66 | **0.56** | most legible small; tabular digits |
+| `insignia15LTaa` | 15 | 7.36 | **0.50** | already shipping in this mod |
+| `victor14` | 13 | 6.66 | 0.39 | pixel font, no AA |
+| `victor10` | 9 | 4.72 | 0.19 | the face that failed playtest |
+
+`Fonts.INSIGNIA_15_AA` already ships and is used by the GOAP debug overlay
+— proven in-engine at half the area of Orbitron 20.
+
+Note what the original playtest actually rejected: Victor **10**, a
+9px-lineHeight pixel font with antialiasing off (`aa=1, smooth=0`) — the
+smallest, lowest-fidelity option in the catalog. That verdict is sound for
+Victor 10 and says nothing about Insignia 17 or Arial 14, which were never
+tried. **Re-run the test against those rather than re-testing Victor 10's
+conclusion.**
+
+**2. The floor is expressed in the wrong unit.** `SettingsAPI.getScreenScaleMult()`
+exists and we **never call it**. Our UI ortho spans
+`getScreenWidth()`/`getScreenHeight()`, which the API documents as
+*virtual* pixels — already divided by the scale mult. So Orbitron 20 is 20
+virtual px, rendering as 30 physical px at a 1.5x UI scale and 20 at 1.0x.
+Whatever scale the original playtest ran at silently set the "20", and
+players on other settings get a materially different experience. See
+Slice 0.
+
+**3. Tabular figures matter more than size here.** For stat columns, digit
+advance uniformity is what makes numbers line up:
+
+- `arial14`: `8 8 8 8 8 8 8 8 8 8` — perfectly tabular
+- `orbitron20aa`: `13 11 13 13…` — narrow `1`, columns wobble
+- `insignia15` / `victor14`: `7 5 7 7…` — same problem
+
+Arial 14 is the only genuinely tabular option in vanilla's set.
+
+### Resolution: a type scale, not a floor
+
+The deeper problem is that one font serves every purpose. Adopt a scale:
+
+| Role | Font |
+| --- | --- |
+| Display | `orbitron24aabold` |
+| Header | `orbitron20aa` / bold — keeps the brand identity |
+| Body | `insignia17LTaa` |
+| Dense data rows | `insignia15LTaa` |
+| Numeric columns | `arial14` (tabular digits) |
+
+Two rules survive from the old floor and are not relaxed: **bars and icons
+carry density before text does** — a skill bar communicates at any size, an
+8-character stat label does not — and **no gameplay surface goes below the
+body step** without a playtest backing it.
+
+Deferred, in preference order, if the scale proves insufficient:
+
+- **Scale support in `BitmapFont`.** There is none today: `drawString` has
+  no scale parameter and `emitLineQuads` uses glyph metrics 1:1. Adding a
+  multiplier is mechanically easy (scale `w/h/xoffset/yoffset/xadvance`
+  and `lineHeight`) but downscaling a bitmap atlas without mipmaps looks
+  bad and breaks the pixel-grid alignment that keeps text crisp. Useful for
+  honoring the scale mult; not a substitute for the right atlas.
+- **Ship our own `.fnt`.** The mod ships **zero** fonts today — we are
+  entirely on vanilla's set. BMFont/Hiero produce `.fnt` + `.png` and
+  `mod/graphics/` already ships. Best ceiling (a condensed Orbitron-adjacent
+  text face at 14-15 would keep brand identity at data density) and the
+  most work. Defer until the vanilla set is proven inadequate.
 
 ## Slice 2 — Career readout
 
@@ -98,7 +188,12 @@ Captains carry traits; nothing shows them.
 - A player can rank their company by quality without arithmetic.
 - Every axis the sim reads (aptitude, experience, grade, armor) is legible
   somewhere in this view.
-- Orbitron 20 floor respected throughout; no exceptions carved for density.
+- The type scale is applied per role, not one font everywhere. No gameplay
+  surface sits below the body step (`insignia17LTaa`) without a playtest
+  backing it.
+- Readability verified at UI scale 1.0x, 1.25x, and 1.5x — not at one
+  unstated setting, which is how the old floor was set.
+- Numeric columns align; digits do not wobble between rows.
 - Sprite handling follows the shipped pattern — cache the `SpriteAPI` per
   screen and load textures before measuring ([[sprite_lazy_load]]).
 - GL state discipline: the bracket pattern around every draw

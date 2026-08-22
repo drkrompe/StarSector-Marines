@@ -55,6 +55,17 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 
 ## Bugs
 
+- **UI ignores `getScreenScaleMult()`** — the mod never calls it. Our UI
+  ortho spans `getScreenWidth()`/`getScreenHeight()`, which the API
+  documents as *virtual* pixels (already divided by the scale mult), so
+  every font-size and layout judgement the project has made was made at one
+  unstated UI scale — Orbitron 20 is 30 physical px at 1.5x and 20 at 1.0x.
+  Affects every screen, not just one. `BattleScreen`,
+  `GroundParallaxPipeline`, and `BridgeRenderer` each derive the same
+  quantity by hand as `Display.getWidth() / getScreenWidth()`; consolidate
+  rather than adding a fourth. Scoped as
+  [`progression/stories/s8-roster-legibility.md`](progression/stories/s8-roster-legibility.md)
+  Slice 0, but worth landing independently.
 - ~~**`HoldPost` double-ticks the attack cooldown**~~ — **FIXED `b418d835`
   (2026-07-01, FiringSystem sweep)**, along with two more instances the epic's
   audit found (`GuardPostPatrol.engage`, `PatrolMotion.fireIfAble`). Direction

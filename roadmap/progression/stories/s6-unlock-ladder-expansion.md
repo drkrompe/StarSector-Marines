@@ -30,6 +30,11 @@ Then flat, forever. Consequences:
 A ladder that stays alive for 30+ missions, reaches every authored asset,
 and gates on things the player recognizes as achievements.
 
+And — the part that decides whether this is interesting rather than merely
+long — a ladder that is **lateral as well as vertical**. Slice 3 makes
+faction the second axis, so progression is about *character* of kit, not
+only tier of kit.
+
 ## Slice 1 — Close the stranded assets
 
 The smallest correct fix, shippable on its own:
@@ -69,7 +74,71 @@ story/special mission, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
 
-## Slice 3 — Multi-axis gating
+## Slice 3 — Factional equipment identity
+
+**The direction that makes this story worth doing.** Slices 1 and 2 make
+the ladder longer; this makes it *lateral*.
+
+A purely vertical ladder — tier 1 to tier 2 to tier 3 — gets boring no
+matter how many rungs it has. Factional gear turns rungs into **side-grades
+with identity**, so the interesting question stops being "what tier am I
+on" and becomes "who do I work for, and where do I fight".
+
+Starsector's factions differ enormously and the mod should read that:
+
+| Flavor | Gear character |
+| --- | --- |
+| Hegemony | Rugged, ballistic, cheap to keep running, unglamorous |
+| Tri-Tachyon | Energy-based, high ceiling, finicky and expensive |
+| Luddic Path | Crude, brutal, dangerous to the user as well as the target |
+| Pirate / outlaw | Unreliable with a nasty edge; erratic grade quality |
+| Independent / MRB | The neutral baseline the company starts on |
+
+Why this fits the mod's existing commitments:
+
+- It makes the ladder **world-reactive** — what you can field depends on
+  where you have operated and who has employed you
+  ([[feedback_world_reactive_over_expressive]]).
+- It gives Slice 2's blueprint reframe somewhere much better to go. A
+  schematic recovered from a Hegemony armory is a *specific* thing, not a
+  generic unlock token.
+- It gives patron contract rewards real flavor, and pairs with the shipped
+  house-flavor work in
+  [`../../campaign/themes.md`](../../campaign/themes.md) (Corporate /
+  Feudal / Underworld / Sectarian) rather than inventing a second axis.
+- It gives [S7](s7-grade-visual-identity.md) far more to signal than grade
+  alone.
+
+### The two hard problems
+
+**1. Combinatorial blowup.** Faction x family x grade is a large cross
+product, and most cells would be filler. **Recommended: faction is a thin
+modifier layer over the existing family, not a full cross product.** A
+faction supplies a stat skew, a visual treatment, and an availability
+source — the same shape `EquipmentGrade` already has, composed alongside
+it in `InfantryCombatStats` rather than duplicating `MarineWeapon` entries.
+A small number of genuinely faction-exclusive families can then exist as
+real chase items without the catalog exploding.
+
+**2. Coherence versus mongrel.** Can the player field a matched
+single-faction kit, or are they always running whatever they scavenged?
+Both are defensible and they produce different games:
+
+- *Coherent* invites a set-bonus/identity fantasy ("we are a Hegemony-
+  pattern outfit") and gives the player a long-term goal.
+- *Mongrel* is more honest to a merc company scraping by, and pairs with
+  the debt-start pressure the campaign economy already applies
+  ([[feedback_hard_failure_preference]]).
+
+Leaning: **mongrel by default, coherence as an achievable late aspiration**
+— which is also the arc the rest of the campaign tier tells.
+
+### Out of scope for this slice
+
+Faction-specific *mechs* and vehicles. The mech roster has its own track
+and its own identity work in flight; do not front-run it.
+
+## Slice 4 — Multi-axis gating
 
 Where a milestone gate is still the right tool, gate on more than a count:
 
@@ -117,3 +186,11 @@ Where a milestone gate is still the right tool, gate on more than a count:
   coexist, with milestones covering the guaranteed early ladder and
   schematics covering everything above it — so no player is ever hard-stuck
   behind a drop that did not come.
+- **Coherent versus mongrel factional kit** (Slice 3). Leaning mongrel by
+  default with coherence as a late aspiration, but this decides whether
+  set bonuses exist at all, and that in turn shapes the whole armory UI.
+  Worth answering before Slice 3 implementation.
+- Does factional identity attach to the **weapon family** or to the
+  **grade**? Attaching to grade composes with the existing resolver almost
+  for free; attaching to family is more expressive and more work. Leaning
+  grade-side, with a handful of faction-exclusive families on top.

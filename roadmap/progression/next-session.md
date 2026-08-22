@@ -84,6 +84,39 @@ one:
   roster row must reserve. Worth an answer before S8 layout work.
 - **Advanced components as physical cargo (S5)** — leaning yes; makes the
   chase legible and losable, but it is a bigger integration than a counter.
+- **Coherent vs mongrel factional kit (S6 Slice 3)** — decides whether set
+  bonuses exist, which shapes the whole armory UI. Leaning mongrel by
+  default with coherence as a late aspiration.
+- **Faction attaches to grade or to family (S6 Slice 3)** — grade-side
+  composes with the existing resolver almost for free; family-side is more
+  expressive and more work. Leaning grade-side plus a few faction-exclusive
+  families.
+
+## Resolved this session
+
+**The font floor.** It looked like a hard blocker on S8's dense roster
+view; it is not. Recorded in full in
+[`stories/s8-roster-legibility.md`](stories/s8-roster-legibility.md) under
+"The font floor — resolved". Three findings:
+
+1. It is a **typeface** problem. Orbitron is a display face used at all 224
+   text call sites. Vanilla ships text faces that are smaller *and* more
+   legible — `insignia17LTaa` at 0.67x area per character, `insignia15LTaa`
+   at 0.50x, `arial14` at 0.56x with the only tabular digits in the set.
+   `Fonts.INSIGNIA_15_AA` already ships and is proven in the GOAP overlay.
+2. The original playtest rejected **Victor 10** — a 9px pixel font with AA
+   off, the lowest-fidelity option available. That verdict does not
+   generalize to Insignia 17 or Arial 14, which were never tried.
+3. `getScreenScaleMult()` is **never called** in the mod. The UI ortho is
+   in virtual pixels, so Orbitron 20 renders at 30 physical px on a 1.5x
+   scale and 20 on 1.0x — the floor was set in the wrong unit at one
+   unstated setting. **S8 Slice 0** fixes this and benefits every screen in
+   the mod, not just the roster view; it is small and worth landing early
+   regardless of when the rest of S8 runs.
+
+**Factional equipment** is now S6 Slice 3 — the change that makes the
+unlock ladder lateral rather than merely longer, and the thing that gives
+the blueprint reframe and patron rewards real flavor.
 
 ## Cross-track coordination
 
@@ -102,5 +135,8 @@ one:
 
 ## Commit chain
 
-- *(this session)* — establish the progression track: audit, overview,
-  ten story docs, handoff.
+- `55e6c32f` — establish the progression track: audit, overview, ten story
+  docs, handoff.
+- *(this session)* — resolve the font floor into a type scale plus S8
+  Slice 0 (UI scale mult), and add factional equipment identity as S6
+  Slice 3.
