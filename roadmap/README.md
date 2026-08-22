@@ -308,22 +308,23 @@ universe over time, not retrofitted into intel slots.
    marine-side compound supply, defender positive win condition. Blocked
    on AI commander richness. See
    [`conquest/central-keep.md`](conquest/central-keep.md) § V2.
-9. **Stationing events the player can actually see and lose** — the contracts
-   thread reopened on 2026-08-22. **G31 is shipped** (`e25fa582`): a pending
-   Garrison defense or Cadre incident now carries a persisted response deadline,
-   lapses into a failed assignment through the shipped resolution policies at
-   -20 employer / -10 MRB, and can no longer be laundered into a completed term.
-   **G32 is next** — a Garrison defense still arms *silently* (no message, no
-   intel, discoverable only by flying to the market and opening Marine Ops), so
-   it pushes the event at the player as a self-triggered popup with our own
-   chrome, reusing the `showCustomVisualDialog` takeover Marine Ops already
-   ships. G31 also surfaced — and this session **fixed** — a tier-wide clock
-   bug: the campaign layer measured every duration from `getClock().getDay()`,
-   a calendar component that wraps monthly, so retainers, default checkpoints,
-   incident cadence, offer expiry, and injury recovery all failed silently
-   across month boundaries. `CampaignClock` replaces it with a monotonic
-   counter anchored so existing saves keep their numbering; **an in-game
-   confirmation pass is queued**. See
+9. ~~**Stationing events the player can actually see and lose**~~ — **shipped**
+   (G31 `e25fa582`, G32 `89ad8bac`). A pending Garrison defense or Cadre incident
+   now carries a persisted response deadline, lapses into a failed assignment
+   through the shipped resolution policies at -20 employer / -10 MRB, and can no
+   longer be laundered into a completed term. It also pushes itself at the player
+   as a modal card with our own chrome — a `PlayerEventInbox` projection over the
+   persisted payloads, a persisted exactly-once acknowledgement, and a
+   self-triggered `showCustomVisualDialog`. Deploy Now answers it from anywhere in
+   the sector through the same seam the local Manage → Respond button uses.
+   **G32's manual smoke pass is outstanding** — the dialog half is not verifiable
+   headlessly. This thread also surfaced and fixed a tier-wide clock bug: the
+   campaign layer measured every duration from `getClock().getDay()`, a calendar
+   component that wraps monthly, so retainers, default checkpoints, incident
+   cadence, offer expiry, and injury recovery all failed silently across month
+   boundaries. `CampaignClock` replaces it with a monotonic counter anchored so
+   existing saves keep their numbering; **an in-game confirmation pass is queued**.
+   See
    [`campaign/framework/complete/monotonic-campaign-clock.md`](campaign/framework/complete/monotonic-campaign-clock.md)
    and [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
 
