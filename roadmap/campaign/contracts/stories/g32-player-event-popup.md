@@ -1,8 +1,12 @@
 # G32 — Player event inbox and self-triggered event popup
 
 **Status:** CONTRACTED — not started (2026-08-22)
-**Depends on:** [G31](g31-stationing-response-deadlines.md) for the response
-deadline the popup counts down to and for the "write them off" resolution path.
+**Depends on:** G31, now shipped (`e25fa582`, recorded in
+[`../complete/g31-stationing-response-deadlines.md`](../complete/g31-stationing-response-deadlines.md)).
+It supplies the response deadline the popup counts down to and the
+`StationingLapseResolution` path behind "write them off". The countdown is a
+direct read of `contractResponseDeadlineTick`; G31 shipped it as a persisted
+column rather than deriving it, so the popup does not recompute anything.
 
 ## Goal
 
@@ -113,9 +117,9 @@ not require the player to fly there:
   stack wholesale; the popup adds no second battle path.
 - **Hold** — dismiss. The notice stays pending and re-pops once at deadline
   minus two days. No state mutation.
-- **Write them off** — the G31 lapse resolution, applied immediately, behind a
-  confirm. Explicitly choosing the bad outcome now rather than letting the clock
-  choose it.
+- **Write them off** — `StationingLapseResolution.apply(...)`, applied
+  immediately, behind a confirm. Explicitly choosing the bad outcome now rather
+  than letting the clock choose it.
 
 The card shows the trigger source, the bound captain, the committed detachment,
 and the days remaining, so all three options are informed.

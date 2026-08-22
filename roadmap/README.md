@@ -287,14 +287,17 @@ universe over time, not retrofitted into intel slots.
    on AI commander richness. See
    [`conquest/central-keep.md`](conquest/central-keep.md) § V2.
 9. **Stationing events the player can actually see and lose** — the contracts
-   thread reopened on 2026-08-22 with two contracted stories. Today a Garrison
-   defense or Cadre incident arms silently (no message, no intel, discoverable
-   only by flying to the market and opening Marine Ops) *and* costs nothing to
-   ignore, because stationing rows carry zero phases and complete at term expiry
-   regardless of a live payload. G31 adds response deadlines and lapse
-   consequences; G32 pushes the event at the player as a self-triggered popup
-   with our own chrome, reusing the `showCustomVisualDialog` takeover that
-   Marine Ops already ships. G31 first. See
+   thread reopened on 2026-08-22. **G31 is shipped** (`e25fa582`): a pending
+   Garrison defense or Cadre incident now carries a persisted response deadline,
+   lapses into a failed assignment through the shipped resolution policies at
+   -20 employer / -10 MRB, and can no longer be laundered into a completed term.
+   **G32 is next** — a Garrison defense still arms *silently* (no message, no
+   intel, discoverable only by flying to the market and opening Marine Ops), so
+   it pushes the event at the player as a self-triggered popup with our own
+   chrome, reusing the `showCustomVisualDialog` takeover Marine Ops already
+   ships. G31 also surfaced a **blocking question**: vanilla treats
+   `getClock().getDay()` as day-of-month, while this mod's whole campaign tick
+   layer uses it as a monotonic day counter across 28 call sites. See
    [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
 
 *(Shipped since this list was written: **offer expiry + patron archetypes** —
