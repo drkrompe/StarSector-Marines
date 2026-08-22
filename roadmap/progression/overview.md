@@ -73,6 +73,18 @@ Locked before the stories were written; change these here, not in a story.
    with [[feedback_world_reactive_over_expressive]] and
    [[feedback_hard_failure_preference]] — the market is a floor, not a
    ladder.
+7. **Progression is lateral as well as vertical.** Factional equipment
+   identity (S6 Slice 3) is the second axis: gear has *character*, not only
+   tier, so the question becomes "who do I work for and where do I fight"
+   rather than "what tier am I on". Faction is a thin modifier layer over
+   the weapon family, not a faction x family x grade cross product.
+8. **The font floor is a type scale, not a single size.** Investigation
+   (recorded in S8) found the Orbitron 20 minimum is really a floor for
+   *Orbitron* — a display face used at all 224 text call sites — and that
+   the mod never reads `getScreenScaleMult()`, so the floor was set in the
+   wrong unit at one unstated UI scale. Display/header keep Orbitron;
+   body and data use vanilla's actual text faces. Bars and icons still
+   carry density before text does.
 
 ## Story decomposition
 
