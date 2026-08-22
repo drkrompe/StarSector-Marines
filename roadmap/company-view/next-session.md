@@ -3,8 +3,8 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. **Design stage: six stories contracted
-(C1–C6), none started, no code written.**
+commander ("squad of squads") tiers. **Design stage: eight stories
+contracted (C1–C8), none started, no code written.**
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -35,16 +35,59 @@ unblocked and can land in parallel; it is the prerequisite for all three UI
 stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
 visible change) is a safe proof.
 
-## Decisions to make before the UI stories
+[C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
+unblocked and is worth doing early: it settles the language and the command
+scope every UI story renders, and doing it *after* the cards exist means
+rewriting them. With no saves to preserve it is now a clean edit — the
+enum can change outright.
 
-1. **Is one card a captain's command, or the whole company?** The overview
-   commits to *captain's command*; the alternative is one card with the
-   captain as a fireteam badge, which is better for a one-captain early
-   game. C2 models both so this stays a C3 rendering decision.
-2. **Split-lift teams: one battle squad or two?** C1 leans one squad per
-   (fireteam, landing zone), with `(A)`/`(B)` suffixes across LZs, because
-   a single squad spanning two landings would let leader-pull cohesion drag
-   members across the map.
+## Decisions taken (2026-08-22)
+
+1. **A card is one officer's command — the company.** The named officer
+   commands the company; its squads are led by NCOs who are not modelled as
+   officers. The rank ladder is incoherent for that role today (a Private
+   capped at 5 marines, a starting Sergeant capped at 42 because seven
+   six-marine teams had to fit), so it changes: officer ranks denominated
+   in squads, a separate enlisted ladder, and an explicit squad leader.
+   That is [C7](stories/c7-organization-and-ranks.md).
+2. **A lift carries at least one whole squad, and a split squad stays one
+   squad.** Capacity is denominated in squads with a floor of six; larger
+   hulls carry multiple squads or a squad plus equipment; late arrivals
+   join their squad and catch up rather than forming a new unit. That is
+   [C8](stories/c8-lift-capacity-and-multi-pass-drops.md), and it settles
+   C1's open split-lift question.
+3. **Squad size stays 6.** Between a real fire team (4) and a real rifle
+   squad (12+); chosen so the group count stays readable and every
+   transport can carry one.
+4. **Large organizations degrade, never get forbidden.** Past ~8 squads the
+   UI compacts, past ~20 it paginates within the officer grouping, and the
+   off-screen count is always stated. C3 and C5 carry the tiers.
+
+5. **Save compatibility is not a constraint.** Nothing is shipped to
+   anyone and there are no saves to preserve, so `Rank` can be edited
+   freely — no legacy alias map, no migration slice. (The mechanism still
+   matters once saves exist: xstream writes enums by name, so deleting a
+   constant is the breaking direction; adding a field is the safe one.)
+6. **Take C8's capacity change now, re-tune after.** The opening ladder's
+   force ratios are mid-playtest against today's seats, and raising the
+   floor moves them 50–100% — tuning against numbers we intend to replace
+   is wasted work. Flagged in
+   [`../campaign/early-operations/next-session.md`](../campaign/early-operations/next-session.md).
+
+### Consequences worth knowing before starting
+
+- **Scale is governed at the source, not by the UI.** The officer rank cap
+  and the lift capacity together bound what reaches one battle — a dozen
+  squads, realistically. Hundreds of squads is a state neither the meta
+  game nor the HUD can carry, so future cap numbers get picked with that
+  ceiling in mind. The *roster* still outgrows it, which is why the fleet
+  view paginates and the battle view does not need to.
+- `AirSystem.java:471` resets `mission.squadId` per cycle today, so every
+  reinforcement wave currently mints an unrelated squad. C8 slice 2 scopes
+  that; C5 must not paper over it with display-only grouping.
+- The rejoin behaviour C8 needs is mostly already there —
+  `RegroupPosture` + `InfantryCohesion.cohesionOverride`. Extend that
+  layer; a second cohesion mechanism would fight the first.
 
 ## Boundaries worth restating
 

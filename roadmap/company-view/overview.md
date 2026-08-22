@@ -9,11 +9,11 @@
 
 ## Concept
 
-One consistent three-level object — **company → fireteam → marine** —
+One consistent three-level object — **company → squad → marine** —
 readable everywhere the player looks at their own force: in the fleet
 between contracts, on the pre-battle deployment screen, in the battle HUD,
-and in the after-action. Larger cards per deployed formation, each card
-made of its fireteams, each fireteam expandable to its individuals.
+and in the after-action. One card per officer's command, each card made of
+its squads, each squad expandable to its individuals.
 
 The point is *grouping for comprehension*, not new mechanics. The player
 should be able to answer "what shape is my army in right now, and where is
@@ -103,7 +103,11 @@ player has to remember which teams are out.
   individuals (C3).
 - Whereabouts and deployed state on the card (C4).
 - The same three levels in the battle HUD (C5).
-- After-action attributed per fireteam (C6).
+- After-action attributed per squad (C6).
+- The organization itself: squad leaders, a coherent officer ladder, and
+  one word for the six-marine unit (C7).
+- Transport capacity denominated in squads, and squads that arrive across
+  passes staying one squad (C8).
 
 **Out:**
 
@@ -118,24 +122,37 @@ player has to remember which teams are out.
   [S8](../progression/stories/s8-roster-legibility.md). This track owns the
   *grouping*; S8 owns the *contents* of the leaf row. C3 reuses S8's type
   scale and leaves room for its row rather than re-litigating it.
-- Changing fireteam size, rank caps, or the deployment-selection rules
-  (`CaptainDeploymentPolicy` is consumed as-is).
-- New persisted state. The roster stays the single source of truth; every
-  rollup here is derived (and therefore xstream-free).
+- Changing the six-marine squad size, or the deployment-selection *rules*.
+  C7 re-denominates the rank caps (marines → squads) and adds enlisted
+  ranks, but `CaptainDeploymentPolicy`'s logic — whole-squad selection,
+  capped by the commanding officer — is consumed as-is.
+- New persisted state *for the view*. The roster stays the single source of
+  truth and every rollup here is derived (and therefore xstream-free). The
+  one exception is C7's two genuine pieces of organizational data — a
+  marine's enlisted rank and a squad's leader.
 
 ## Design commitments
 
-1. **The fireteam is the persistent unit of organization; the battle squad
+1. **The squad is the persistent unit of organization; the battle squad
    is its in-battle instance.** One id maps them. Everything else in this
-   track follows from that.
-2. **A card is a captain's command.** "Deployed company cards" (plural)
-   maps onto the thing the game already deploys: a captain plus the
-   rank-capped set of fireteams they lead. A company-wide band sits above
-   the cards. See Open questions — the alternative is one card for the
-   whole roster.
-3. **Company is derived, never persisted.** Built from `MarineRoster` on
-   demand with deterministic ordering. No save-format change, no xstream
-   surface, nothing to migrate.
+   track follows from that. (The six-marine element is a *squad* led by an
+   NCO — see [C7](stories/c7-organization-and-ranks.md); "fireteam" retires
+   from the display language.)
+2. **A card is one officer's command — the company.** *Settled
+   2026-08-22.* The named officer is the company commander; the squads
+   under them are led by NCOs who are not officers. Early game that is one
+   officer with two or three squads; as the organization grows past a
+   company, a second officer means a second card, which is the merc-company-
+   becomes-an-institution arc the campaign already tells. Where the current
+   rank ladder makes this incoherent — a Private capped at five marines, a
+   Sergeant capped at forty-two — the ladder changes
+   ([C7](stories/c7-organization-and-ranks.md)).
+3. **The company rollup is derived, never persisted.** Built from
+   `MarineRoster` on demand with deterministic ordering. No cached view
+   state. (C7's enlisted rank and squad leader are persisted roster
+   *facts*, not rollups. Nothing is shipped and there are no saves to
+   preserve, so neither carries a migration burden — see
+   [C7](stories/c7-organization-and-ranks.md).)
 4. **Read-only first.** Every story here ships a view. Mutation stays where
    it already lives (armory transfers, deployment toggles, stationing).
 5. **One selection model, two hosts.** Company → fireteam → marine behaves
@@ -151,6 +168,20 @@ player has to remember which teams are out.
    string across the seam — never a roster reference, never a lookup from
    inside `battle/`. Same rule the campaign→battle bridge already follows
    with `TargetProfile`.
+8. **A lift carries at least one whole squad.** *Settled 2026-08-22.*
+   Transport capacity is denominated in squads, not arbitrary seats, with a
+   floor of six; larger hulls carry multiple squads or a squad plus
+   equipment. Where a squad still arrives across passes, the later arrivals
+   join the same squad and catch up rather than forming a second unit
+   ([C8](stories/c8-lift-capacity-and-multi-pass-drops.md)).
+9. **Scale is governed at the source, and the view degrades rather than
+   forbids.** Hundreds of squads is not a state the meta game or the UI can
+   carry, so the officer rank cap and the lift capacity bound what reaches
+   one battle (a dozen squads, realistically) — that is the governor, not a
+   UI limit. The *roster* still grows past that as the organization becomes
+   a battalion, so the fleet view compacts and paginates within the officer
+   grouping. Silent truncation is never acceptable; the off-screen count is
+   always stated.
 
 ## Stories
 
@@ -162,9 +193,14 @@ player has to remember which teams are out.
 | [C4](stories/c4-whereabouts-and-deployed-state.md) | Whereabouts: where every team actually is | C2, C3 |
 | [C5](stories/c5-battle-hud-company-rollup.md) | Battle HUD company rollup | C1, C2 |
 | [C6](stories/c6-after-action-by-fireteam.md) | After-action by fireteam | C1 |
+| [C7](stories/c7-organization-and-ranks.md) | Organization and ranks | — |
+| [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in squads, multi-pass drops | pairs with C1 |
 
-C1 and C2 are independent and can land in either order. C1 is the enabling
-slice for anything that shows a *deployed* force under its real names.
+C1, C2, and C7 are independent and can land in any order. C1 is the
+enabling slice for anything that shows a *deployed* force under its real
+names; C8 is what makes the deployed force match the one the player
+selected; C7 settles the language and the command scope the UI stories
+render.
 
 ## Cross-refs
 
@@ -179,21 +215,21 @@ slice for anything that shows a *deployed* force under its real names.
 - [`../command-powers/overview.md`](../command-powers/overview.md) — the
   other player-agency track; shares the battle HUD's bottom dock.
 
+## Settled questions
+
+- **What is one card?** One officer's command — the company. Squads under
+  it are led by NCOs, and the rank ladder changes to make that coherent.
+  See design commitment 2 and [C7](stories/c7-organization-and-ranks.md).
+- **Is a squad split across lifts one battle squad or two?** One. The
+  capacity floor makes the split rare, and where it still happens the later
+  arrivals join the same squad and catch up. See commitment 8 and
+  [C8](stories/c8-lift-capacity-and-multi-pass-drops.md).
+- **How big is a squad?** Six — a deliberate middle between a four-marine
+  fire team and a twelve-plus rifle squad, chosen so the group count stays
+  readable and every transport can carry one whole squad.
+
 ## Open questions
 
-- **What is one card — a captain's command, or the whole roster?** The
-  design commitment above picks *captain's command*, because that is what
-  `CaptainDeploymentPolicy` already gates and what "cards" (plural)
-  implies. The alternative — one company card for the whole roster, with
-  the captain as a badge on each fireteam — is simpler and better for a
-  one-captain early game. Decide before C3; C2 models both, so the captain
-  grouping is a level that can be collapsed.
-- **When a fireteam is split across two lifts, is it one battle squad or
-  two?** C1 has to answer this. One squad keeps the name honest but lets
-  leader-pull cohesion drag members across the map between two landings;
-  two instances (`1st Fireteam (A)` / `(B)`) keep the AI honest and the
-  name ugly. Leaning: one squad per fireteam **per landing zone**, joined
-  across lifts that share an LZ.
 - **Does the reserve pool get a card?** It is a `MarineSquad` with
   `reserve() == true` and no captain, currently filtered out of the
   deployment list. Probably a distinct band, not a card.

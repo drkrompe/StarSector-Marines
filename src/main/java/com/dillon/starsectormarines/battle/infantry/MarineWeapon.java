@@ -31,15 +31,20 @@ import java.awt.Color;
  */
 public enum MarineWeapon {
     /**
-     * Cheap recruit issue — a slow, unremarkable ballistic rifle whose single
-     * shots reward closing distance and taking a stable firing posture. It is
-     * deliberately worse than the pulse rifle in cadence, accuracy and burst
-     * pressure so the first energy-weapon upgrade is immediately meaningful.
+     * Cheap recruit issue — a heavy, slow ballistic rifle whose single shots
+     * reward closing distance and taking a stable firing posture. It is
+     * deliberately worse than the pulse rifle in cadence, accuracy, falloff
+     * and burst pressure so the first energy-weapon upgrade is immediately
+     * meaningful; its one advantage is a heavier round, because a single-shot
+     * weapon that also loses on per-round damage cannot function at all
+     * against a 3-round burst (measured: it could not kill a marine even
+     * once in 120 trials before the S1 pass). Around 3x the pulse rifle's
+     * time-to-kill today.
      */
     FIELD_RIFLE("Field Rifle",
                 "light_autocannon_fire",
                 new Color(0xFF, 0xD0, 0x88),
-                22f, 0.85f, 0.28f, 1.45f, 0.25f,
+                22f, 14.0f, 0.28f, 1.15f, 0.25f,
                 ImpactProfile.RIFLE,
                 1, 0f, "graphics/missiles/shell_small_yellow.png", 0.18f,
                 0.42f, 0.75f, 48f),
@@ -62,7 +67,7 @@ public enum MarineWeapon {
     PULSE_RIFLE("Pulse Rifle",
                 "pulse_laser_fire",
                 new Color(0x80, 0xFF, 0x80),
-                24f, 1.0f, 0.35f, 1.0f, 0.30f,
+                24f, 9.0f, 0.35f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
                 3, 0.09f, null, 0f,
                 0.30f, 0.4f, 55f),
@@ -80,7 +85,7 @@ public enum MarineWeapon {
     SMG        ("Light Machine Gun",
                 "light_machinegun_fire",
                 new Color(0xFF, 0xE8, 0xC0),
-                16f, 0.7f, 0.50f, 0.50f, 0.30f,
+                16f, 5.4f, 0.50f, 0.50f, 0.30f,
                 ImpactProfile.RIFLE,
                 3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f,
                 0.60f, 1.4f, 45f),
@@ -96,7 +101,7 @@ public enum MarineWeapon {
     DMR        ("Railgun",
                 "railgun_fire",
                 new Color(0xE0, 0xF0, 0xFF),
-                32f, 4.0f, 0.55f, 1.80f, 0.40f,
+                32f, 18.0f, 0.55f, 1.10f, 0.40f,
                 ImpactProfile.KINETIC,
                 1, 0f, null, 0f,
                 0.10f, 0.15f, 110f),
@@ -117,7 +122,7 @@ public enum MarineWeapon {
     DRONE_PULSE("Drone Pulse Laser",
                 "pulse_laser_fire",
                 new Color(0x60, 0xCF, 0xFF),
-                26f, 0.8f, 0.40f, 1.0f, 0.30f,
+                26f, 7.2f, 0.40f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
                 2, 0.10f, null, 0f,
                 0.35f, 0.5f, 55f);
