@@ -10,6 +10,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Thin router behind the Marine Ops custom dialog. Owns the shared
@@ -52,6 +53,17 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private boolean intelAudioActive;
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
+        this(planet, null);
+    }
+
+    /**
+     * @param seed applied to the fresh context before the first screen attaches, so a
+     *             caller that already knows what the player is here to do (an event
+     *             popup answering a stationing response) can open directly on it
+     *             instead of making them navigate back to it. Null for the ordinary
+     *             planet-menu entry, which starts at mission select.
+     */
+    public MarineOpsPanelPlugin(PlanetAPI planet, Consumer<MarineOpsContext> seed) {
         this.ctx = new MarineOpsContext(planet);
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.ARMORY,        new ArmoryScreen());
@@ -61,6 +73,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.BATTLE,         new BattleScreen());
         screens.put(ScreenId.RESULTS,        new ResultsScreen());
         screens.put(ScreenId.LOOT,           new LootScreen());
+        if (seed != null) seed.accept(ctx);
     }
 
     public void setOnBack(Runnable dismissDialog) {
