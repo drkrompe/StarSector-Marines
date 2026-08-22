@@ -699,6 +699,15 @@ public class BattleSimulation implements BattleControl {
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
+    /**
+     * The shot / projectile / pending-impact service, for callers that drive a
+     * sub-phase of the tick directly instead of running {@link #tick()}. Today
+     * that is the balance TTK harness, which fires through
+     * {@link #fireShot(long, long, FireStance)} and then drains the round's
+     * delayed damage itself so a measurement isn't perturbed by AI, movement,
+     * or morale. Same service-direct exposure as {@link #getRoster()}.
+     */
+    public ShotService getShots() { return shots; }
     public LongList getDeathsThisFrame()         { return deathsThisFrame; }
     /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
