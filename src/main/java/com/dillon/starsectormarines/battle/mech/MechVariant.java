@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 /** Stable chassis profiles built from swappable {@link MechWeaponComponent}s. */
 public enum MechVariant {
 
-    BULWARK("bulwark", "Bulwark", 540f, 1.15f, 0.40f, 55f,
+    BULWARK("bulwark", "Bulwark", 4860f, 1.15f, 0.40f, 55f,
             1.60f, 1.50f, 0.60f, 0.80f,
             LayeredMechAppearance.CHASSIS_CLEAN,
             MechWeaponComponent.DUAL_CHAINGUNS,
@@ -15,7 +15,7 @@ public enum MechVariant {
             MechWeaponComponent.LRM_15,
             MechRole.ARMORED_SUPPORT),
 
-    HOUND("hound", "Hound", 300f, 1.70f, 0.42f, 50f,
+    HOUND("hound", "Hound", 2700f, 1.70f, 0.42f, 50f,
             1.35f, 1.20f, 0.50f, 0.67f,
             LayeredMechAppearance.CHASSIS_HOUND,
             MechWeaponComponent.NOSE_CHAINGUN,
@@ -23,7 +23,7 @@ public enum MechVariant {
             null,
             MechRole.ASSAULT),
 
-    SIROCCO("sirocco", "Sirocco", 230f, 1.45f, 0.45f, 55f,
+    SIROCCO("sirocco", "Sirocco", 2070f, 1.45f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f,
             LayeredMechAppearance.CHASSIS_SIROCCO,
             MechWeaponComponent.SINGLE_HEAVY_CANNON,

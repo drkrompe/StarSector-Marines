@@ -73,8 +73,12 @@ class CommanderInfluenceServiceTest {
         BattleSimulation sim = openSim(24, 12);
         int squad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         spawnStill(sim, "first", Faction.MARINE, UnitType.MARINE, 5, 5, squad);
+        // Deliberately unkillable inside the 16-tick measurement window. The
+        // marines have line of sight and open fire immediately, and a battle
+        // that ends stops the tick counter this test reads — at shipped
+        // lethality a stock MARINE_RED dies to two hits.
         spawnStill(sim, "enemy", Faction.DEFENDER,
-                UnitType.MARINE_RED, 20, 5, Squad.NO_SQUAD);
+                UnitType.MARINE_RED, 20, 5, Squad.NO_SQUAD, 10_000f);
         sim.advance(BattleSimulation.TICK_DT);
         CommanderInfluenceSnapshot initial = sim.getCommanderInfluence(Faction.MARINE);
         assertEquals(1, initial.updatedTick());
@@ -115,9 +119,16 @@ class CommanderInfluenceServiceTest {
 
     private static long spawnStill(BattleSimulation sim, String name, Faction faction,
                                    UnitType type, int x, int y, int squadId) {
+        return spawnStill(sim, name, faction, type, x, y, squadId, -1f);
+    }
+
+    /** {@code maxHp <= 0} keeps the archetype's own pool; a positive value overrides it. */
+    private static long spawnStill(BattleSimulation sim, String name, Faction faction,
+                                   UnitType type, int x, int y, int squadId, float maxHp) {
         EntitySpec spec = new EntitySpec(name, faction, type, x, y);
         spec.moveSpeed = 0f;
         if (squadId != Squad.NO_SQUAD) spec.squad(squadId);
+        if (maxHp > 0f) spec.health(maxHp);
         return sim.spawn(spec);
     }
 }
