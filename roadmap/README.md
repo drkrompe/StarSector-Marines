@@ -148,6 +148,20 @@ universe over time, not retrofitted into intel slots.
   (winning), XP is flat per survivor, and six of eleven traits are inert
   enums with no UI. Ten stories (S1-S10) are contracted and unstarted. See
   [`progression/`](progression/overview.md).
+- **Company view** *(design stage)* — the player's force as one legible
+  hierarchy, company → fireteam → marine, in the fleet and in the field.
+  The mod already models captains, persistent six-marine fireteams, and
+  named soldiers, but every surface renders them as a flat list and the
+  organization is destroyed at deployment: `CampaignMarineDeployment.freeze`
+  flattens fireteams into a seat list carrying no fireteam id, and
+  `InfantryPayload` mints one battle squad per *shuttle mission*, so a
+  battle squad is "whoever rode this dropship" (a 4-seat Aeroshuttle
+  against a 6-marine team splits it by arithmetic). Six stories (C1-C6)
+  are contracted and unstarted: the identity seam, a derived formation
+  model, the card stack, whereabouts, a battle-HUD company rollup, and
+  after-action by fireteam. Read-only throughout — in-battle orders are
+  explicitly out of scope. Adjacent to progression S8, which owns what a
+  single marine row says. See [`company-view/`](company-view/overview.md).
 
 ## Immediate next-up
 
