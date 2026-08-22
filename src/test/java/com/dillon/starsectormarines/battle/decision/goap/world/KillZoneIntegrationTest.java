@@ -149,6 +149,13 @@ public class KillZoneIntegrationTest {
         // via postShot below — but the marine has to exist so the
         // EliminateFactionObjective doesn't auto-complete the battle.
         long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 17, 5));
+        // Tank the marine for the same reason the defender is tanked, from
+        // the other side: the tanked defender shoots back, and at shipped
+        // lethality it drops a stock 25 HP marine in two hits. A dead marine
+        // completes EliminateFactionObjective, which ends the battle and
+        // freezes the accumulator part-way.
+        sim.world().setHp(marine, 1_000_000f);
+        sim.world().setMaxHp(marine, 1_000_000f);
 
         float dt = 1.0f / 30f;
         int totalTicks = (int) Math.ceil((SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);
