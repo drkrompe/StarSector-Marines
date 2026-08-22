@@ -2,16 +2,42 @@
 
 ## State of play
 
-**Design stage. Nothing implemented.** This session established the track:
+**S1 Slice 0 is shipped; no game numbers have changed yet.** The track's
+documents are:
 
-- [`audit.md`](audit.md) — the measured baseline for all four progression
+- [`audit.md`](audit.md) — the source-read baseline for all four progression
   axes as of 2026-08-22. Numbers were read from source, not estimated.
-- [`overview.md`](overview.md) — concept, six locked design commitments,
+- [`overview.md`](overview.md) — concept, eight locked design commitments,
   and the ten-story decomposition.
 - [`stories/`](stories/) — S1 through S10, each with scope, out-of-scope,
-  acceptance, and open questions. All ten are **contracted but unstarted**.
+  acceptance, and open questions. S1 Slice 0 has shipped; the rest are
+  **contracted but unstarted**.
 
-No code has changed.
+**S1 Slice 0 (TTK harness) shipped.** `TtkHarness` + `TtkReportTest` under
+`src/test/java/.../battle/balance/` drive the real firing pipeline —
+`FiringSystem`, burst continuation, the pending-impact drain — against two
+spawned units until one dies, and emit
+`build/reports/balance/ttk-baseline.md`. The one production change is a
+`BattleSimulation.getShots()` accessor, in the same service-direct style as
+`getRoster()`. Full findings are in
+[`stories/s1-lethality-and-tier-spread.md`](stories/s1-lethality-and-tier-spread.md)
+under "Measured baseline"; the three that change what S1 does next:
+
+1. **The floor is worse than the audit estimated.** Pulse rifle vs an
+   unarmored marine is **30 s**, not ~20. Against T4 armor, **47 s**.
+2. **The Field Rifle cannot kill a marine at all** — 0 of 120 trials inside a
+   two-minute timeout, 18 of 120 against militia. Recruit issue is
+   non-functional, not merely weak, and a uniform global damage scale will
+   not fix it. Its *ratio* to the pulse rifle needs correcting.
+3. **Grade and soldier ladders are equally strong, and both are ~1.75x** in
+   measured TTK — far more than the audit's damage-multiplier reading of
+   8-13%. S1 Slice 2's proposed spread is therefore a much bigger change than
+   it was scoped as, and it would make equipment dominate who the soldier is.
+   Decide that deliberately.
+
+Cover was measured at 3.1x from open to hard, which is already the strongest
+lever in the game and needs no widening. The problem is the floor it
+multiplies.
 
 ## What the audit found
 
@@ -36,20 +62,23 @@ Ordered by how badly it hurts:
 
 ## Recommended pickup
 
-**Start with S1** ([`stories/s1-lethality-and-tier-spread.md`](stories/s1-lethality-and-tier-spread.md)).
-It has no dependencies, needs no new systems, and is the single change that
-most alters how the game feels. Every other story in this track is a reward
-layered on combat — that combat should be worth rewarding first.
+**Continue S1 at Slice 1 — the lethality budget**
+([`stories/s1-lethality-and-tier-spread.md`](stories/s1-lethality-and-tier-spread.md)).
+The instrument is built and the baseline is on the record; what remains is
+choosing the target TTK and solving the numbers for it. Every other story in
+this track is a reward layered on combat — that combat should be worth
+rewarding first.
 
-Two things to know before opening S1:
+Two things to know before starting the tuning:
 
 - It is a **cross-cutting numeric change**. Alien/swarm HP (currently
   1.875, runners 2.5) was tuned across several living-world passes against
   *today's* damage values and will invert if damage moves. Mech, turret,
   wall, and rocket numbers share the same scale. S1 lists the full
   re-derivation set.
-- The **TTK harness is a deliverable**, not a scratch script. It is what
-  makes this tuning pass and every later one reviewable.
+- **Re-run the report before and after**, and diff the two. The harness is
+  statistical, not seeded, so read the standard-error column and compare
+  bands — a 3% move between runs is noise, not a result.
 
 **Then S3** ([`stories/s3-per-soldier-telemetry.md`](stories/s3-per-soldier-telemetry.md)),
 which unblocks S4, S8, and S9 and starts accumulating the data S1's tuning
@@ -137,6 +166,7 @@ the blueprint reframe and patron rewards real flavor.
 
 - `55e6c32f` — establish the progression track: audit, overview, ten story
   docs, handoff.
-- *(this session)* — resolve the font floor into a type scale plus S8
-  Slice 0 (UI scale mult), and add factional equipment identity as S6
-  Slice 3.
+- `e338ac31` — resolve the font floor into a type scale plus S8 Slice 0 (UI
+  scale mult), and add factional equipment identity as S6 Slice 3.
+- *(this session)* — S1 Slice 0: TTK harness, measured baseline, and the
+  three findings that re-scope Slices 1 and 2.
