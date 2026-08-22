@@ -35,8 +35,8 @@ class SwarmRunnerContractTest {
         assertTrue(runner.attackDamage > 0f);
         assertTrue(runner.drawnAsSheet());
         assertTrue(runner.drawnAsLayers());
-        assertEquals(2.5f, runner.maxHp, 0.001f);
-        assertEquals(1.875f, UnitType.ALIEN.maxHp, 0.001f);
+        assertEquals(20f, runner.maxHp, 0.001f);
+        assertEquals(15f, UnitType.ALIEN.maxHp, 0.001f);
         assertTrue(runner.maxHp > UnitType.ALIEN.maxHp);
         assertTrue(!runner.drawsLayeredWeapon());
     }
@@ -49,7 +49,7 @@ class SwarmRunnerContractTest {
 
         assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.PULSE_RIFLE));
         assertEquals(4, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.SMG));
-        assertEquals(1, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.DMR));
+        assertEquals(2, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.DMR));
     }
 
     private static int hitsToKill(UnitType target, MarineWeapon weapon) {

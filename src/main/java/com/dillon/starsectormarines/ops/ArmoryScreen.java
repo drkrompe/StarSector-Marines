@@ -876,18 +876,42 @@ public final class ArmoryScreen implements Screen {
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
         float y = top - 380f;
-        addStatRow("DAMAGE BLOCK", pct(armor.damageReduction), armor.damageReduction / 0.20f,
+        addStatRow("DAMAGE BLOCK", pct(armor.damageReduction),
+                armor.damageReduction / armorLadderMax(p -> p.damageReduction),
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
-        addStatRow("BONUS HEALTH", "+" + Math.round(armor.bonusHp), armor.bonusHp / 8f,
+        addStatRow("BONUS HEALTH", "+" + Math.round(armor.bonusHp),
+                armor.bonusHp / armorLadderMax(p -> p.bonusHp),
                 labelX, barX, y, barW, GOOD);
         y -= 30f;
-        addStatRow("MOVE SPEED", pct(armor.moveSpeedMult), armor.moveSpeedMult / 1.08f,
+        addStatRow("MOVE SPEED", pct(armor.moveSpeedMult),
+                armor.moveSpeedMult / armorLadderMax(p -> p.moveSpeedMult),
                 labelX, barX, y, barW, RANGE_BAR);
         y -= 30f;
         float evade = 1f - armor.incomingAccuracyMult;
-        addStatRow("EVASION", "+" + pct(evade), evade / 0.12f,
+        addStatRow("EVASION", "+" + pct(evade),
+                evade / armorLadderMax(p -> 1f - p.incomingAccuracyMult),
                 labelX, barX, y, barW, ACCURACY_BAR);
+    }
+
+    /**
+     * Largest value of one armor stat across the whole pattern ladder, so a
+     * dossier bar fills at the best available package instead of at a
+     * hand-copied constant. The constants this replaced were authored against
+     * the pre-S1 ladder and silently overflowed their bars when the tier gap
+     * widened.
+     */
+    private static float armorLadderMax(ToFloat<MarineArmorPattern> stat) {
+        float max = 0f;
+        for (MarineArmorPattern pattern : MarineArmorPattern.values()) {
+            max = Math.max(max, stat.of(pattern));
+        }
+        return max > 0f ? max : 1f;
+    }
+
+    /** One float field of {@code T}; lets {@link #armorLadderMax} take a field reference. */
+    private interface ToFloat<T> {
+        float of(T value);
     }
 
     private void buildSpecialDossier(float x, float top, float width) {

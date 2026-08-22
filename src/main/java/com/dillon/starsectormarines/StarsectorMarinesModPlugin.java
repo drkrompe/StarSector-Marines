@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.intel.CivilianRescueIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
+import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -51,6 +52,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCampaignState();
         ensureMarineRoster();
         ensureCaptainDiscoverySalvageListener();
+        ensurePlayerEventPresenter();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
         ensureDeadLetterIntel();
@@ -132,6 +134,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (state.houseCount == 0) {
             HouseSeeder.seed(state);
         }
+    }
+
+    private static void ensurePlayerEventPresenter() {
+        SectorAPI sector = Global.getSector();
+        if (PlayerEventPresenter.getInstance() != null) return;
+        sector.addScript(new PlayerEventPresenter());
+        LOG.info("Starsector Marines: PlayerEventPresenter registered");
     }
 
     private static void ensureCampaignDebugIntel() {

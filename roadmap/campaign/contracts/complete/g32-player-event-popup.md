@@ -1,7 +1,7 @@
 # G32 — Player event inbox and self-triggered event popup
 
-**Status:** CONTRACTED — not started (2026-08-22)
-**Depends on:** G31, now shipped (`e25fa582`, recorded in
+**Status:** SHIPPED — `89ad8bac` (2026-08-22)
+**Depends on:** G31, shipped (`e25fa582`, recorded in
 [`../complete/g31-stationing-response-deadlines.md`](../complete/g31-stationing-response-deadlines.md)).
 It supplies the response deadline the popup counts down to and the
 `StationingLapseResolution` path behind "write them off". The countdown is a
@@ -184,3 +184,100 @@ precedent where in-game smoke is the shipping gate.
   shaped for this, but doing it is its own story.
 - Consider a lightweight event-history record so the player can review a popup
   they dismissed in a hurry.
+
+---
+
+## Shipped
+
+`89ad8bac`. `gradlew.bat build` green; 24 new assertions across four suites plus the
+extended compactor suite.
+
+### What landed
+
+**Domain (`campaign/`)**
+
+- `PlayerEventNotice` — immutable value type. Carries a `Strings` *key*, not resolved
+  text, so the projection stays free of `Global` and a translation mod still wins at
+  draw time.
+- `PlayerEventInbox` — static projection: `pending`, `nextToPresent`, `acknowledge`,
+  `isAcknowledged`. Derives everything from `GarrisonDefensePayload` /
+  `StationingIncidentPayload`; stores nothing.
+- `CampaignState.contractNoticeAckKey` / `contractNoticeAckStage`, with `addContract`
+  reset, `readResolve` backfill, `ensureContractCapacity` growth, and
+  `ContractTableCompactor` row copy.
+
+**Presentation (`ops/event/`)**
+
+- `PlayerEventPresenter` — `EveryFrameScript` registered from
+  `StarsectorMarinesModPlugin.ensurePlayerEventPresenter`.
+- `PlayerEventDialogPlugin` / `PlayerEventDialogDelegate` / `PlayerEventCard` — the
+  modal card, built on the existing widget kit.
+- `PlayerEventTarget` — market-slot → live `MarketAPI` / `PlanetAPI` / display name.
+
+**Shared seam (`ops/`)**
+
+- `StationingResponseLaunch` — extracted verbatim from `StationingScreen.onRespond`,
+  now the single route from a pending response to its briefing, plus `writeOff`.
+- `MarineOpsDialogPlugin` — opens the Marine Ops takeover as an interaction of its own.
+- `MarineOpsPanelPlugin` / `MarineOpsDialogDelegate` gained a context `seed` and a
+  caller-supplied dismissal.
+
+### Deviations from the contracted rules
+
+**Two ack columns, but a different two.** The story specified "the defense event key
+shown, and the incident due day shown" — one column per source. Shipped instead as one
+identity column plus one stage column. Same column count, and it is strictly better on
+two counts: a contract row is `GARRISON` or `CADRE` and never both, so one identity
+column already covers both sources unambiguously; and the per-source shape had no room
+at all for the locked one-re-pop rule, which needs to distinguish "shown" from
+"reminded". Encoding that stage in a spare bit of an event key would have been a hack.
+The source-agnostic pair also takes the black-swan `PENDING_CHOICE` rows later with no
+schema change.
+
+**The presenter runs while paused.** The story listed the suppression conditions as
+dialog / combat / core tab / menu; paused was never on that list, and `runWhilePaused`
+returning false turned out to be actively wrong here. Interaction dialogs pause the
+campaign, so a Deploy hand-off queued from inside the popup would never have opened if
+the player came back from the dialog still paused. Events now also reach a player who
+paused to think, which is the CK3 behaviour the story was chasing anyway.
+
+**Deploy is withheld when the market has no planet.** Not contemplated by the story. A
+stationing contract on an orbital station has no `getPlanetEntity()`, so there is
+nowhere for a ground battle to happen. The button disables itself with
+`eventPopupDeployUnavailable` rather than opening a Marine Ops screen that cannot
+launch anything; Hold and Write Them Off still work.
+
+### Notes for the next reader
+
+- The Deploy hand-off is a two-step: the card calls
+  `PlayerEventPresenter.requestDeployment` and dismisses, and the presenter opens
+  Marine Ops on a later frame. It cannot be done inline —
+  `showInteractionDialog` refuses while the popup is still up.
+- Both self-triggered dialog plugins dismiss their host interaction on panel close,
+  attempted immediately and retried from `advance`. Restoring the vanilla text/visual
+  panels the way `MarineOpsCMD` does would leave the player in an option-less dialog
+  with no exit, because there is no planet menu underneath.
+- The interaction target for both is the player's fleet, never the remote planet — the
+  detachment fights with local transport and the player's position is fictionally
+  irrelevant, so there is no reason to involve a distant entity.
+
+### Manual smoke — the shipping gate, not yet run
+
+Per the G5 / G13 precedent the dialog half ships on in-game verification:
+
+- popup layout and legibility at several resolutions;
+- all three buttons, including the confirm step on **Write Them Off**;
+- remote **Deploy Now** into a real battle, and that its detachment matches the local
+  **Manage → Respond** path;
+- that no popup, and no Marine Ops dialog opened from one, can strand the player in a
+  dialog with no exit;
+- save/reload mid-notice, confirming no re-pop.
+
+### Follow-ups this opened
+
+- Move the living-world `PENDING_CHOICE` events onto `PlayerEventInbox` so the Distress
+  Net and Encrypted Channel decisions push as well. The columns already accommodate it.
+- A lightweight event-history record so a popup dismissed in a hurry can be reviewed.
+- `StationingScreen` still owns its own `incidentLabel` / `defenseLabel` switches
+  alongside `PlayerEventInbox`'s key mapping. Two switches over the same enums; worth
+  collapsing when one of them next changes.

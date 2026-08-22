@@ -38,7 +38,8 @@ visible change) is a safe proof.
 [C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
 unblocked and is worth doing early: it settles the language and the command
 scope every UI story renders, and doing it *after* the cards exist means
-rewriting them. Its slice 0 needs a user decision on save compatibility.
+rewriting them. With no saves to preserve it is now a clean edit — the
+enum can change outright.
 
 ## Decisions taken (2026-08-22)
 
@@ -62,17 +63,25 @@ rewriting them. Its slice 0 needs a user decision on save compatibility.
    UI compacts, past ~20 it paginates within the officer grouping, and the
    off-screen count is always stated. C3 and C5 carry the tiers.
 
+5. **Save compatibility is not a constraint.** Nothing is shipped to
+   anyone and there are no saves to preserve, so `Rank` can be edited
+   freely — no legacy alias map, no migration slice. (The mechanism still
+   matters once saves exist: xstream writes enums by name, so deleting a
+   constant is the breaking direction; adding a field is the safe one.)
+6. **Take C8's capacity change now, re-tune after.** The opening ladder's
+   force ratios are mid-playtest against today's seats, and raising the
+   floor moves them 50–100% — tuning against numbers we intend to replace
+   is wasted work. Flagged in
+   [`../campaign/early-operations/next-session.md`](../campaign/early-operations/next-session.md).
+
 ### Consequences worth knowing before starting
 
-- **C7 slice 0 is a save-compatibility decision**, not code. `Rank` is a
-  persisted enum and xstream writes enums by name, so deleting constants
-  breaks existing saves. Either alias the legacy names on load or take a
-  deliberate save break — decide with the user first.
-- **C8 slice 1 is a live balance change.** Raising the capacity floor lifts
-  every early-game transport by 50–100%; the two Independent opening jobs
-  are mid-playtest and their force ratios assume today's seats. Read
-  [`../campaign/early-operations/next-session.md`](../campaign/early-operations/next-session.md)
-  before touching capacities.
+- **Scale is governed at the source, not by the UI.** The officer rank cap
+  and the lift capacity together bound what reaches one battle — a dozen
+  squads, realistically. Hundreds of squads is a state neither the meta
+  game nor the HUD can carry, so future cap numbers get picked with that
+  ceiling in mind. The *roster* still outgrows it, which is why the fleet
+  view paginates and the battle view does not need to.
 - `AirSystem.java:471` resets `mission.squadId` per cycle today, so every
   reinforcement wave currently mints an unrelated squad. C8 slice 2 scopes
   that; C5 must not paper over it with display-only grouping.
