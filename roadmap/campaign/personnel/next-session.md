@@ -94,7 +94,15 @@ trait, source, and discovery day. Another salvage flow's continuation is never
 taken over. The focused interaction matrix and merged full root automated suite
 pass; manual in-game layout validation remains deferred as requested.
 
-There is no active personnel story. Contract a new one before extending captain
+The **progression side** of personnel is now contracted in the cross-tier
+[`../../progression/`](../../progression/overview.md) track — per-soldier
+combat telemetry and career records (S3), performance-derived experience
+(S4), roster legibility for aptitude/career/traits (S8), and trait
+mechanics plus acquisition (S10). Those stories add progression *on top of*
+the identities this thread owns; `MarineRoster` stays the single roster
+authority and must not be forked.
+
+There is no active personnel *lifecycle* story. Contract a new one before extending captain
 discovery into tavern hiring, markets, wages, dismissal, or trading, or moral
 outlooks into combat modifiers, reversals, transfers, dialog, or interpersonal
 conflict. Those remain intentional non-goals.

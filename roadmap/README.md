@@ -137,8 +137,28 @@ universe over time, not retrofitted into intel slots.
   (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
   and expose four read-only debug heatmaps. No commander assignments consume
   the fields yet.
+- **Progression** *(design stage)* — a new cross-tier track covering the
+  meta-progression axes: weapon lethality and equipment tiering, earned
+  per-soldier experience, the fabrication parts economy, and the legibility
+  of all of it. [`progression/audit.md`](progression/audit.md) measures the
+  baseline; the short version is that the plumbing is shipped but the
+  content is thin — the entire upgrade ladder moves damage 8-13%, a marine
+  takes ~20 s to kill, four authored armor patterns are unreachable, the
+  unlock ladder ends at mission five, parts have exactly one source
+  (winning), XP is flat per survivor, and six of eleven traits are inert
+  enums with no UI. Ten stories (S1-S10) are contracted and unstarted. See
+  [`progression/`](progression/overview.md).
 
 ## Immediate next-up
+
+> **Recommended pickup: progression S1 — lethality floor and tier spread**
+> ([`progression/stories/s1-lethality-and-tier-spread.md`](progression/stories/s1-lethality-and-tier-spread.md)).
+> No dependencies, no new systems, and the single change that most alters
+> how the game feels; every other progression story is a reward layered on
+> combat that should be worth rewarding first. Note it is a cross-cutting
+> numeric change — alien/swarm, mech, turret, wall, and rocket values share
+> the same damage scale and must be re-derived with it. The numbered list
+> below is the pre-existing queue.
 
 1. **Early-operations playtest** — the two-job Independent opening ladder is
    code-complete: one-player-sortie relief followed by a two-sortie joint
