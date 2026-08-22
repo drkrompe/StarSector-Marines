@@ -347,6 +347,15 @@ public final class CampaignState implements Serializable {
     public long[]  contractDefenseAttackerHouseId = filledLongs(INITIAL_CAPACITY, -1L);
     /** Attacking faction registry slot, or -1 when unknown. */
     public int[]   contractDefenseAttackerFactionId = filledInts(INITIAL_CAPACITY, -1);
+    /**
+     * Day by which the player must answer the currently pending Garrison defense or
+     * Cadre incident; -1 when no response is outstanding. Armed by
+     * {@code StationingLapseSystem} on first observation of a pending payload and
+     * cleared by it once the payload resolves, so a legacy save carrying an
+     * already-armed event still gets a full response window from the day the
+     * deadline layer first sees it.
+     */
+    public int[]   contractResponseDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
     /** Salvage % cap for this contract (0..255). Per-type default at offer. */
     public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
     /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
@@ -969,6 +978,7 @@ public final class CampaignState implements Serializable {
         contractDefenseTriggerType[i] = GarrisonDefenseTriggerType.NONE.toByte();
         contractDefenseAttackerHouseId[i] = -1L;
         contractDefenseAttackerFactionId[i] = -1;
+        contractResponseDeadlineTick[i] = -1;
         contractSalvageBaseline[i]  = salvageBaseline;
         contractSalvageNegotiated[i] = salvageNegotiated;
         contractCashMultiplier[i]   = cashMultiplier;
@@ -1775,6 +1785,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractDefenseAttackerFactionId = filledInts(n, -1);
         }
+        if (contractResponseDeadlineTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractResponseDeadlineTick = filledInts(n, -1);
+        }
         return this;
     }
 
@@ -1828,6 +1842,8 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractDefenseAttackerHouseId, oldLength, n, -1L);
         contractDefenseAttackerFactionId = Arrays.copyOf(contractDefenseAttackerFactionId, n);
         Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
+        contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
+        Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);

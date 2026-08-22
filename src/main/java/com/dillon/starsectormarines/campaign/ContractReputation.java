@@ -7,6 +7,14 @@ public final class ContractReputation {
     public static final int ABANDONED_MRB_DELTA = -10;
     public static final int EMPLOYER_BREACH_HOUSE_DELTA = -10;
     public static final int FAILED_MRB_DELTA = -1;
+    /**
+     * Taking a retainer and never answering the attack costs more with the employer
+     * than an honest early withdrawal ({@link #ABANDONED_HOUSE_DELTA}) and far more
+     * than fighting and losing. MRB matches abandonment: to the industry, a lapse is
+     * a walked-away contract.
+     */
+    public static final int LAPSED_HOUSE_DELTA = -20;
+    public static final int LAPSED_MRB_DELTA = -10;
 
     private ContractReputation() {}
 
@@ -51,6 +59,20 @@ public final class ContractReputation {
         applyForContract(state, contractId, patronId(state, contractId),
                 ABANDONED_HOUSE_DELTA, ABANDONED_MRB_DELTA, day,
                 false, true, PatronEngagementOutcome.WITHDREW);
+    }
+
+    /**
+     * A stationing assignment whose pending response was never answered. Carries
+     * {@link PatronEngagementOutcome#FAILED} because a lapse leaves the contract
+     * FAILED, and {@link PatronEngagementMemory} only records an outcome whose
+     * terminal state matches the row — recording is also what arms the exactly-once
+     * guard. What separates a lapse from an ordinary loss is the deltas, not the
+     * outcome discriminator.
+     */
+    public static void lapsedForContract(CampaignState state, long contractId, int day) {
+        applyForContract(state, contractId, patronId(state, contractId),
+                LAPSED_HOUSE_DELTA, LAPSED_MRB_DELTA, day,
+                false, true, PatronEngagementOutcome.FAILED);
     }
 
     public static void employerBreachedForContract(CampaignState state,

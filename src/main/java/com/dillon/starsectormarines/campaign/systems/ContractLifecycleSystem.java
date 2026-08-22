@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractReputation;
+import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
+import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 
 import java.util.EnumSet;
 
@@ -68,7 +71,7 @@ public final class ContractLifecycleSystem implements CampaignSystem {
             if (expires != -1 && day >= expires) {
                 int phasesDone  = state.contractPhasesDone[i] & 0xFF;
                 int phasesTotal = state.contractPhasesTotal[i] & 0xFF;
-                if (phasesDone >= phasesTotal) {
+                if (phasesDone >= phasesTotal && !hasPendingResponse(state, i)) {
                     state.contractState[i] = ContractState.COMPLETED.toByte();
                     ContractReputation.completedForContract(
                             state, state.contractId[i], +1, day);
@@ -79,6 +82,19 @@ public final class ContractLifecycleSystem implements CampaignSystem {
                 }
             }
         }
+    }
+
+    /**
+     * Backstop for the G31 invariant: a stationing term can never be laundered into a
+     * successful completion while the player still owes a response.
+     * {@link StationingLapseSystem} normally resolves the payload first, but this holds
+     * even if the deadline layer is bypassed or races the term boundary.
+     */
+    private static boolean hasPendingResponse(CampaignState state, int row) {
+        if (!ContractType.fromByte(state.contractType[row]).isStationing()) return false;
+        long contractId = state.contractId[row];
+        return GarrisonDefensePayload.from(state, contractId) != null
+                || StationingIncidentPayload.from(state, contractId) != null;
     }
 
 }
