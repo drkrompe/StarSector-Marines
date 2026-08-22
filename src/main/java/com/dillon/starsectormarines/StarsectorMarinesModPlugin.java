@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
@@ -45,9 +46,11 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     public void onGameLoad(boolean newGame) {
         LOG.info("Starsector Marines: game loaded (newGame=" + newGame + ")");
         ensureBridgeIntel();
+        // Before the roster: CampaignClock anchors its day counter on CampaignState, and
+        // starter-captain creation stamps a day.
+        ensureCampaignState();
         ensureMarineRoster();
         ensureCaptainDiscoverySalvageListener();
-        ensureCampaignState();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
         ensureDeadLetterIntel();
@@ -97,7 +100,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         }
         MarineRoster roster = script.roster();
         if (roster.size() == 0) {
-            float currentDay = sector.getClock().getDay();
+            float currentDay = CampaignClock.dayFloat();
             MarineCaptain starter = new MarineCaptain(
                     "Mira Hale",
                     "graphics/portraits/portrait_mercenary01.png",

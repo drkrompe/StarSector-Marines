@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -245,7 +246,7 @@ public final class MissionResolver {
                 promotedTo = simulatePromotion(captain.rank(), captain.xp(), xpGained);
             } else {
                 float currentDay = Global.getSector() != null
-                        ? Global.getSector().getClock().getDay()
+                        ? CampaignClock.dayFloat()
                         : 0f;
                 if (marinesLost >= marinesEngaged) {
                     // FoB overrun — roll fate. Deterministic per (captain, mission) so
@@ -474,7 +475,7 @@ public final class MissionResolver {
 
     private static int currentDayInt() {
         return Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : 0;
     }
 

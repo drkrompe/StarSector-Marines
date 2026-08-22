@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CommsOfficerSummary;
@@ -108,7 +109,7 @@ public class OfficerHeaderWidget extends BaseWidget {
 
     private static int currentSectorDay(CampaignState state) {
         if (Global.getSector() != null && Global.getSector().getClock() != null) {
-            return (int) Global.getSector().getClock().getDay();
+            return CampaignClock.day();
         }
         return state.lastTickDay;
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -212,7 +213,7 @@ public final class StationingScreen implements Screen {
         String captainId = captainSlot >= 0 ? state.captainRegistry.get(captainSlot) : null;
         MarineCaptain captain = captainById(captainId);
         String captainName = captain != null ? captain.name() : Strings.get("stationingUnknownCaptain");
-        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
         int daysRemaining = Math.max(0, state.contractExpiresTick[row] - day);
 
         float y = top - 52f;
@@ -357,7 +358,7 @@ public final class StationingScreen implements Screen {
         MarineCaptain captain = ctx.getSelectedCaptain();
         MarineRoster roster = roster();
         if (state == null || roster == null || captain == null) return;
-        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
         if (StationingAssignmentService.acceptNamed(
                 state, ctx.getSelectedStationingContractId(), roster, captain,
                 selectedSquadIds, requestedMonths, day)) {
@@ -381,7 +382,7 @@ public final class StationingScreen implements Screen {
     private void onWithdraw() {
         CampaignState state = state();
         if (state == null) return;
-        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
         if (StationingWithdrawalService.withdraw(
                 state, ctx.getSelectedStationingContractId(), day)) {
             ctx.setSelectedStationingContractId(-1L);
@@ -445,7 +446,7 @@ public final class StationingScreen implements Screen {
     }
 
     private static int currentDay() {
-        return Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        return Global.getSector() != null ? CampaignClock.day() : 0;
     }
 
     private void selectFirstActiveCaptain() {

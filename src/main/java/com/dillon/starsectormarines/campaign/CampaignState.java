@@ -391,6 +391,21 @@ public final class CampaignState implements Serializable {
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
 
+    /**
+     * Anchor for {@link CampaignClock}'s monotonic day counter. {@code 0} means unset;
+     * it is stamped once, on the first call after a new game or after the save is first
+     * opened by a build that has this field.
+     *
+     * <p>Every persisted {@code *Tick} / {@code *Day} value in this state, and the day
+     * fields on the personnel graph, are expressed in the counter anchored here. The
+     * anchor exists so the counter can continue the scale a legacy save was already
+     * using instead of jumping to an absolute epoch, which would strand every stored
+     * timer thousands of days in the past.
+     */
+    public long clockEpochTimestamp = 0L;
+    /** Day number that {@link #clockEpochTimestamp} corresponds to. */
+    public int clockEpochDay = 0;
+
     /** MRB / industry-credibility rep — see contracts/overview.md §"MRB reputation track". */
     public int playerMrbRep = 0;
 

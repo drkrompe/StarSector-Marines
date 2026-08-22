@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -314,7 +315,7 @@ public final class DefectorAsylumIntel extends BaseIntelPlugin {
 
     private static int currentDay(CampaignState state) {
         return Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : Math.max(0, state.lastTickDay);
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -398,7 +399,7 @@ public class ResultsScreen implements Screen {
         switch (status) {
             case INJURED: {
                 float currentDay = Global.getSector() != null
-                        ? Global.getSector().getClock().getDay()
+                        ? CampaignClock.dayFloat()
                         : 0f;
                 int days = Math.max(1, (int) Math.ceil(outcome.injuredUntilDay - currentDay));
                 return outcome.captainName + " — " + MessageFormat.format(

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 
@@ -37,7 +38,7 @@ public class MarineRosterScript implements EveryFrameScript {
     @Override
     public void advance(float amount) {
         if (Global.getSector() == null) return;
-        float day = Global.getSector().getClock().getDay();
+        float day = CampaignClock.dayFloat();
         for (MarineCaptain c : roster.all()) {
             if (c.status() == Status.INJURED && day >= c.injuredUntilDay()) {
                 c.setStatus(Status.ACTIVE);
