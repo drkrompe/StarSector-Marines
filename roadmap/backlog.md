@@ -24,8 +24,11 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   persistent intake, vanilla salvage publication, interaction resolution, and
   deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`).
 - **Roster cap scaling** — replace hardcoded 10 with `f(playerLevel)`.
-- **Trait mechanics** — currently placeholder enums (`SIEGE_SPECIALIST`,
-  `SAPPER`, etc). Wire to mission resolution modifiers.
+- ~~**Trait mechanics**~~ — **absorbed into the progression track** as
+  [`progression/stories/s10-trait-mechanics.md`](progression/stories/s10-trait-mechanics.md),
+  which also covers the missing trait UI and the level-up acquisition path
+  the `Trait` Javadoc already promises. Six of eleven traits are still
+  inert enums.
 - **Captain rank promotion** — XP threshold, ranks unlock larger squad
   capacities (already encoded in `Rank` enum).
 - **Injury recovery** — periodic tick in `MarineRosterScript.advance` to
