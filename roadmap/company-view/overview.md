@@ -128,9 +128,8 @@ player has to remember which teams are out.
   capped by the commanding officer — is consumed as-is.
 - New persisted state *for the view*. The roster stays the single source of
   truth and every rollup here is derived (and therefore xstream-free). The
-  one exception is C7, which persists two genuine pieces of organizational
-  data — a marine's enlisted rank and a squad's leader — and carries the
-  save-compatibility work that implies.
+  one exception is C7's two genuine pieces of organizational data — a
+  marine's enlisted rank and a squad's leader.
 
 ## Design commitments
 
@@ -150,9 +149,10 @@ player has to remember which teams are out.
    ([C7](stories/c7-organization-and-ranks.md)).
 3. **The company rollup is derived, never persisted.** Built from
    `MarineRoster` on demand with deterministic ordering. No cached view
-   state, nothing to migrate. (C7's enlisted rank and squad leader are
-   persisted roster *facts*, not rollups — and they carry their own
-   save-compat slice.)
+   state. (C7's enlisted rank and squad leader are persisted roster
+   *facts*, not rollups. Nothing is shipped and there are no saves to
+   preserve, so neither carries a migration burden — see
+   [C7](stories/c7-organization-and-ranks.md).)
 4. **Read-only first.** Every story here ships a view. Mutation stays where
    it already lives (armory transfers, deployment toggles, stationing).
 5. **One selection model, two hosts.** Company → fireteam → marine behaves
@@ -174,10 +174,14 @@ player has to remember which teams are out.
    equipment. Where a squad still arrives across passes, the later arrivals
    join the same squad and catch up rather than forming a second unit
    ([C8](stories/c8-lift-capacity-and-multi-pass-drops.md)).
-9. **The view degrades, never forbids.** A player who fields twenty-plus
-   squads gets a tighter list and pagination, not a cap. Grouping by
-   officer is what keeps the large case readable; silent truncation is
-   never acceptable.
+9. **Scale is governed at the source, and the view degrades rather than
+   forbids.** Hundreds of squads is not a state the meta game or the UI can
+   carry, so the officer rank cap and the lift capacity bound what reaches
+   one battle (a dozen squads, realistically) — that is the governor, not a
+   UI limit. The *roster* still grows past that as the organization becomes
+   a battalion, so the fleet view compacts and paginates within the officer
+   grouping. Silent truncation is never acceptable; the off-screen count is
+   always stated.
 
 ## Stories
 
