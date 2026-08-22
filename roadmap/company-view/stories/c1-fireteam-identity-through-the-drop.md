@@ -80,9 +80,19 @@ Replace the "one squad per shuttle mission" rule for player marines with
 - Members arriving on a later lift to the same LZ join the existing squad
   and bump `originalSize`, so morale ratios stay honest.
 - A team that lands at two different LZs becomes two squads, labelled
-  `1st Fireteam (A)` / `(B)`. That keeps leader-pull cohesion from dragging
+  `2nd Squad (A)` / `(B)`. That keeps leader-pull cohesion from dragging
   members across the map between landings — the alternative (one squad
   spanning LZs) is a known cohesion hazard.
+
+**Decided (2026-08-22): the split case is a fallback, not the norm.**
+[C8](c8-lift-capacity-and-multi-pass-drops.md) raises every transport's
+capacity floor to one whole squad, so a squad normally rides one lift. When
+it still cannot — a heavy hull flying multiple passes, a reinforcement wave
+— later arrivals **join the existing squad and catch up** rather than
+forming a second unit. The `(A)`/`(B)` labelling survives only for the
+genuinely-two-landing-zones case. Note `AirSystem` currently resets
+`mission.squadId` on each cycle (`AirSystem.java:471`), so today every wave
+mints a new squad; scoping that reset is C8's slice 2.
 
 Note `originalSize` is currently incremented per deboard, and morale caps
 on `aliveMembers / originalSize`; joining a second lift into an existing

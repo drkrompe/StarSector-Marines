@@ -2,8 +2,8 @@
 
 > Firefights should resolve. Upgrades should be felt.
 
-**Status:** Slice 0 (TTK harness) is shipped and the baseline is measured —
-see "Measured baseline" below. Slices 1 and 2 are not started.
+**Status:** Slice 0 (TTK harness) and Slice 1 (lethality budget) are shipped.
+Slice 2 (grade spread) is not started.
 
 ## Problem
 
@@ -133,7 +133,7 @@ is already true in ratio. What is broken is the floor it multiplies: 3x of
 job; the cover curve itself needs no widening**, and may need narrowing once
 the floor drops.
 
-## Slice 1 — Lethality budget
+## Slice 1 — Lethality budget *(shipped)*
 
 Define target time-to-kill as the authored contract, then solve the numbers
 for it rather than nudging constants.
@@ -182,6 +182,101 @@ Recommended approach: pick **one global infantry damage scale factor**,
 apply it uniformly, then hand-correct the handful of entries whose *ratio*
 to small arms should change. A uniform scale keeps every existing
 relationship intact by construction and makes the diff auditable.
+
+### What shipped
+
+The approach held: one global scale, then hand-corrections where a *ratio*
+had to change. HP stayed the readable currency and damage moved, so armor
+packages, wall HP and the UI health readouts kept their meaning.
+
+**Scale S = 9, applied to anti-personnel damage.** To keep every non-infantry
+relationship intact by construction, hardened-class HP moved by the same
+factor rather than dividing eight `vsTurretMult` values into unreadable
+decimals. Net effect: infantry-vs-infantry resolves 9x faster, and
+rifle-vs-mech, rocket-vs-turret and mech-vs-mech are all bit-for-bit
+unchanged.
+
+| Where | Before | After |
+| --- | --- | --- |
+| `MarineWeapon` damage — pulse / SMG / drone | 1.0 / 0.7 / 0.8 | 9.0 / 5.4 / 7.2 |
+| `MarineSecondary.ROCKET_LAUNCHER.damage` | 18 | 162 |
+| `UnitType.attackDamage` — marine / militia | 2.0 / 1.5 | 18.0 / 13.5 |
+| `MechWeapon` damage (all five) | 1.5 – 9 | 13.5 – 81 |
+| `TurretKind` damage (all eight) | 1.2 – 9.0 | 10.8 – 81.0 |
+| `TurretKind.maxHp` (all eight) | 50 – 85 | 450 – 765 |
+| `MechVariant.maxHp` — Bulwark / Hound / Sirocco | 540 / 300 / 230 | 4860 / 2700 / 2070 |
+| `DroneHub.HUB_MAX_HP` | 80 | 720 |
+
+Untouched, deliberately: `wallDamage` and wall HP (a separate currency that
+never meets infantry HP), every `vsTurretMult`, and `Drone.DRONE_MAX_HP` — a
+drone is a soft peer combatant, so scaling both sides' damage already
+preserves the exchange.
+
+**Hand-corrections, and why each was needed.**
+
+- **Alien and swarm-runner HP, not their damage.** The uniform scale was
+  *wrong* here and the shipped contract test caught it. Those two were already
+  tuned to the target: a marine killed an alien in 1.77 s and a runner in
+  2.92 s before this pass. Preserving that means scaling their HP (1.875 → 15,
+  2.5 → 20) so marines still need the same round count, and leaving their
+  damage alone (3.0, 5.0) because marine HP did not move. Scaling their damage
+  too would have made aliens nine times deadlier while staying equally
+  killable, which would have inverted every hand-tuned rescue scenario.
+  Measured after: alien 1.73 s, runner 2.90 s — unchanged, as intended.
+- **Swarm breakpoints re-derived.** `SwarmRunnerContractTest` pins deliberate
+  hits-to-kill values. At the new HP they hold exactly — alien 2/3/1 and
+  runner 3/4 for pulse/SMG/DMR — except the DMR now takes **two** rounds on a
+  runner instead of one, a direct consequence of the DMR change below.
+- **The DMR could not stay at 4x a pulse round.** At 36 damage it one-shot
+  every infantry target including T4 armor, which collapsed the armor ladder
+  into "one round or two" and made armor meaningless against it. Cut to 18
+  with a faster 1.10 s cycle (from 1.80 s): still the heaviest single round,
+  still the longest reach, but armor now scales against it smoothly.
+- **The Field Rifle needed its identity changed, not its scale.** The
+  measured finding was that it could not kill a marine at all. It cannot be
+  worse than a 3-round burst weapon on cadence, accuracy, falloff, burst
+  count *and* per-round damage — that stacks to roughly 4x the pulse rifle's
+  TTK at the very best, which is the attritional mush this story exists to
+  remove. It now fires a **heavier** round (14.0) on a slower 1.15 s cycle and
+  keeps every other disadvantage. Measured: 9.98 s vs the pulse rifle's
+  3.40 s — clearly inferior, unmistakably functional, and a large, legible
+  payoff for the first weapon upgrade.
+- **Armor tiers widened** so T4 could reach its target band. Effective HP
+  (pool ÷ damage taken) now runs 25 unarmored → 39.5 at T3 → 67.3 at T4, up
+  from 25 → 33.7 → 41.25. `RED_ELITE` carries the biggest change: +8 HP / 20%
+  block became +10 / 48%.
+- **`ArmoryScreen` armor bars** normalized against the live pattern ladder
+  instead of hand-copied maxima (0.20 block, 8 HP), which the widened tiers
+  overflowed.
+
+**Measured result** — pulse rifle, Service, Regular/Steady, 50% range, open:
+
+| Target | Before | After | Target band |
+| --- | ---: | ---: | --- |
+| Militia | 16.10 s | 1.86 s | 2.5 – 4 s |
+| Unarmored marine | 29.49 s | 3.40 s | 2.5 – 4 s ✓ |
+| T3 armor | 38.67 s | 5.13 s | 4 – 6 s ✓ |
+| T4 armor | 47.50 s | 8.90 s | 7 – 10 s ✓ |
+| Alien | 1.77 s | 1.73 s | unchanged by design |
+| Swarm runner | 2.92 s | 2.90 s | unchanged by design |
+
+Cover, same shooter and target, at 50% range: open 3.53 s → hard 12.99 s, a
+**3.7x** span against the story's "2-3x" intent. Left as measured rather than
+narrowed — the ratio was never the problem, and narrowing it is a separate
+decision now that the floor it multiplies is sane.
+
+**Still open, and not satisfiable from tests:**
+
+- Defender rosters roll `EquipmentGrade` and armor per risk tier
+  (`InfantryLoadoutRolls`, `DefenderRoster`). A T4-armored defender is now
+  2.7x an unarmored one rather than 1.65x, so HIGH-risk compositions swing
+  harder. Needs a play pass.
+- Living-world rescue and early-operations scenarios. The alien and swarm
+  exchange rates were preserved exactly, which is the specific thing that
+  would have broken them, but the surrounding fights are 9x faster.
+- A rocket now does 162 to soft targets, so friendly-fire splash on a
+  clustered fireteam is close to lethal. That matches the authored intent
+  ("the squad pays the price for clustering") but is a large behavioral swing.
 
 ## Slice 2 — Grade spread
 

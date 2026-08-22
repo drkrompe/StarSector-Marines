@@ -14,8 +14,16 @@ public class InfantryCombatStatsTest {
     public void fieldRifleIsARealDowngradeFromPulseIssue() {
         assertTrue(MarineWeapon.FIELD_RIFLE.cooldown > MarineWeapon.PULSE_RIFLE.cooldown);
         assertTrue(MarineWeapon.FIELD_RIFLE.accuracy < MarineWeapon.PULSE_RIFLE.accuracy);
-        assertTrue(MarineWeapon.FIELD_RIFLE.damage < MarineWeapon.PULSE_RIFLE.damage);
+        assertTrue(MarineWeapon.FIELD_RIFLE.accuracyFalloff > MarineWeapon.PULSE_RIFLE.accuracyFalloff);
         assertEquals(1, MarineWeapon.FIELD_RIFLE.burstCount);
+        // The downgrade is in sustained output, not per-round damage: recruit
+        // issue fires a heavier round precisely because a single-shot weapon
+        // that also lost on damage could not kill anything (S1 measured 0
+        // kills in 120 trials against an unarmored marine).
+        assertTrue(InfantryCombatStats.estimatedDps(MarineWeapon.FIELD_RIFLE,
+                        EquipmentGrade.SERVICE, SoldierProfile.REGULAR)
+                < InfantryCombatStats.estimatedDps(MarineWeapon.PULSE_RIFLE,
+                        EquipmentGrade.SERVICE, SoldierProfile.REGULAR));
     }
 
     @Test
@@ -55,9 +63,9 @@ public class InfantryCombatStatsTest {
 
     @Test
     public void comparisonStatsRepresentBurstOutputAndRangeFalloff() {
-        assertEquals(3f, InfantryCombatStats.volleyDamage(
+        assertEquals(27f, InfantryCombatStats.volleyDamage(
                 MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(3f, InfantryCombatStats.estimatedDps(
+        assertEquals(27f, InfantryCombatStats.estimatedDps(
                 MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
 
         float near = InfantryCombatStats.accuracyAtRangeFraction(
