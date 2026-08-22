@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtraction
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
+import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
@@ -63,6 +64,7 @@ class CampaignStateSystemOrderTest {
         int retainers = indexOf(systems, ContractRetainerSystem.class);
         int training = indexOf(systems, CadreTrainingSystem.class);
         int incidents = indexOf(systems, StationingIncidentSystem.class);
+        int lapse = indexOf(systems, StationingLapseSystem.class);
         int lifecycle = indexOf(systems, ContractLifecycleSystem.class);
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
@@ -95,6 +97,12 @@ class CampaignStateSystemOrderTest {
         assertTrue(retainers < lifecycle);
         assertTrue(training < lifecycle);
         assertTrue(incidents < lifecycle);
+        // G31: an event armed this tick is never lapsed on the tick that arms it, and a
+        // deadline on the term's final day resolves as a lapse, not a completed term.
+        assertTrue(raidDefense < lapse);
+        assertTrue(flipDefense < lapse);
+        assertTrue(incidents < lapse);
+        assertTrue(lapse < lifecycle);
         assertTrue(lifecycle < civilWarParticipation);
         assertTrue(throneResolution < civilWarConsequences);
         assertTrue(civilWarParticipation < civilWarConsequences);

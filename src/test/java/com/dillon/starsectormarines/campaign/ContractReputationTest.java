@@ -73,6 +73,25 @@ class ContractReputationTest {
         assertEquals(20, state.patronEngagementHappenedTick[0]);
     }
 
+    @Test
+    void lapseCostsMoreThanAWithdrawalAndReplaysAsNoOp() {
+        CampaignState state = state(HouseRank.TIER_2);
+        int marketId = state.marketRegistry.intern("jangala");
+        long contractId = state.addContract(state.houseId[0], -1L, -1L,
+                ContractType.GARRISON, ContractState.FAILED, 10, 100, -1,
+                (byte) 0, -1, marketId, -1, 0, 1_000,
+                (byte) 25, (byte) 25, (byte) 100);
+
+        ContractReputation.lapsedForContract(state, contractId, 60);
+        ContractReputation.lapsedForContract(state, contractId, 61);
+
+        assertEquals(ContractReputation.LAPSED_HOUSE_DELTA, state.repValue[0]);
+        assertEquals(ContractReputation.LAPSED_MRB_DELTA, state.playerMrbRep);
+        assertEquals(1, state.repContractsFailed[0] & 0xFFFF);
+        assertEquals(1, state.patronEngagementCount);
+        assertEquals(60, state.patronEngagementHappenedTick[0]);
+    }
+
     private static void assertCompletionReward(HouseRank rank, int expectedMrb) {
         CampaignState state = state(rank);
         ContractReputation.completed(state, state.houseId[0], 1, 20);

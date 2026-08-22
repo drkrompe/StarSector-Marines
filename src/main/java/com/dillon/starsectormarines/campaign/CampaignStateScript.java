@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSyst
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
+import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
@@ -97,6 +98,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ContractRetainerSystem(),
                 new CadreTrainingSystem(),
                 new StationingIncidentSystem(),
+                new StationingLapseSystem(),
                 new ContractLifecycleSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),

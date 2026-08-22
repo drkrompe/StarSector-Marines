@@ -41,6 +41,7 @@ class CampaignStateStationingColumnsTest {
                 GarrisonDefenseTriggerType.fromByte(state.contractDefenseTriggerType[19]));
         assertEquals(-1L, state.contractDefenseAttackerHouseId[19]);
         assertEquals(-1, state.contractDefenseAttackerFactionId[19]);
+        assertEquals(-1, state.contractResponseDeadlineTick[19]);
     }
 
     @Test
@@ -64,6 +65,7 @@ class CampaignStateStationingColumnsTest {
         state.contractDefenseTriggerType = null;
         state.contractDefenseAttackerHouseId = null;
         state.contractDefenseAttackerFactionId = null;
+        state.contractResponseDeadlineTick = null;
 
         Method readResolve = CampaignState.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
@@ -87,6 +89,7 @@ class CampaignStateStationingColumnsTest {
         assertNotNull(state.contractDefenseTriggerType);
         assertNotNull(state.contractDefenseAttackerHouseId);
         assertNotNull(state.contractDefenseAttackerFactionId);
+        assertNotNull(state.contractResponseDeadlineTick);
         assertEquals(state.contractId.length, state.contractMarinesCommitted.length);
         assertEquals(state.contractId.length, state.contractLastRetainerTick.length);
         assertEquals(-1, state.contractLastRetainerTick[0]);
@@ -105,5 +108,6 @@ class CampaignStateStationingColumnsTest {
         assertEquals(-1, state.contractDefenseTriggeredTick[0]);
         assertEquals(-1L, state.contractDefenseAttackerHouseId[0]);
         assertEquals(-1, state.contractDefenseAttackerFactionId[0]);
+        assertEquals(-1, state.contractResponseDeadlineTick[0]);
     }
 }

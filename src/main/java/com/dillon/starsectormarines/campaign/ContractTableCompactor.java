@@ -87,6 +87,7 @@ public final class ContractTableCompactor {
         state.contractDefenseTriggerType[to] = state.contractDefenseTriggerType[from];
         state.contractDefenseAttackerHouseId[to] = state.contractDefenseAttackerHouseId[from];
         state.contractDefenseAttackerFactionId[to] = state.contractDefenseAttackerFactionId[from];
+        state.contractResponseDeadlineTick[to] = state.contractResponseDeadlineTick[from];
         state.contractSalvageBaseline[to] = state.contractSalvageBaseline[from];
         state.contractSalvageNegotiated[to] = state.contractSalvageNegotiated[from];
         state.contractCashMultiplier[to] = state.contractCashMultiplier[from];
