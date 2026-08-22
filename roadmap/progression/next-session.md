@@ -82,6 +82,16 @@ measured TTK (from 1.46x), and every step is felt: 6.09 s / 3.42 s / 2.54 s
   Deliberate, and S4 is where the soldier side catches up. If S4 slips,
   veterans will read as a rounding error next to kit.
 
+**Three existing tests implicitly depended on low lethality** and were
+fixed as part of this work: `CommanderInfluenceServiceTest` and
+`KillZoneIntegrationTest` both ran a measurement window long enough that a
+combatant now dies inside it, which ends the battle and freezes the counter
+under test; `SwarmRunnerContractTest` pinned deliberate hits-to-kill
+breakpoints. Expect the same shape from any test that spawns two hostile
+units in line of sight and then advances the sim for a while — give the
+unit that must survive an explicit pool rather than relying on the
+archetype's.
+
 **What still needs a play pass** — neither is checkable from tests: the
 living-world rescue scenarios (the alien and swarm exchange rates were
 preserved exactly, which is the specific thing that would have broken them,
