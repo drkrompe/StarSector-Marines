@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -521,7 +522,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
      *  script's lastTickDay guard so multiple presses in one day still advance. */
     private static void forceTick(CampaignStateScript script, CampaignState s) {
         int day = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : s.lastTickDay + 1;
         List<CampaignSystem> list = script.systems();
         for (int i = 0; i < list.size(); i++) {
@@ -542,7 +543,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         if (system == null) return;
         Set<Integer> localMarketSlots = collectLocalMarketSlots(s, system);
         if (localMarketSlots.isEmpty()) return;
-        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
 
         for (int i = 0; i < s.houseCount; i++) {
             if (HouseStatus.fromByte(s.houseStatus[i]) != HouseStatus.ACTIVE) continue;
@@ -572,7 +573,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             }
         }
         if (selectedMarket == null) return;
-        int day = (int) Global.getSector().getClock().getDay();
+        int day = CampaignClock.day();
         DebugCivilianRescueSpawner.spawn(
                 state, selectedSlot, selectedMarket.getSize(), day);
     }
@@ -601,28 +602,28 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         }
         if (selected == null) return;
         int marketSlot = state.marketRegistry.intern(selected.getId());
-        int day = (int) Global.getSector().getClock().getDay();
+        int day = CampaignClock.day();
         DebugSilentColonySpawner.spawn(
                 state, marketSlot, selectedTier, day);
     }
 
     private static void spawnDefector(CampaignState state) {
         int day = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : Math.max(0, state.lastTickDay);
         DebugDefectorAsylumSpawner.spawn(state, day);
     }
 
     private static void spawnKingmakerTestament(CampaignState state) {
         int day = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : Math.max(0, state.lastTickDay);
         DebugKingmakerTestamentSpawner.spawn(state, day);
     }
 
     private static void advanceDefector(CampaignState state) {
         int day = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : Math.max(0, state.lastTickDay);
         DebugDefectorAsylumSpawner.advanceCommitted(state, day);
     }
@@ -640,7 +641,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ContractType type = ContractType.fromByte(s.contractType[row]);
         if (type.isStationing() || type == ContractType.EXTRACTION) return;
         int day = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay()
+                ? CampaignClock.day()
                 : s.contractAcceptedTick[row];
         if (CivilWarOfferAcceptance.isParticipation(s, id)) {
             CivilWarOfferAcceptance.acceptMission(s, id, day);
@@ -679,7 +680,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static void bumpPatronRep(CampaignState s, long patronId, int repDelta, boolean completed) {
         int repRow = s.ensureRepRow(patronId);
         s.repValue[repRow] = Math.max(-100, Math.min(100, s.repValue[repRow] + repDelta));
-        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
         s.repLastContractTick[repRow] = day;
         if (completed) {
             int n = (s.repContractsCompleted[repRow] & 0xFFFF) + 1;

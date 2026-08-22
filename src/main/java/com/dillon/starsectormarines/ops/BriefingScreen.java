@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -1016,7 +1017,7 @@ public class BriefingScreen implements Screen {
             }
             if (civilWarParticipation) {
                 int day = Global.getSector() != null
-                        ? (int) Global.getSector().getClock().getDay() : 0;
+                        ? CampaignClock.day() : 0;
                 if (!CivilWarOfferAcceptance.acceptMission(
                         campaignScript.state(), m.contractId, day)) {
                     rebuild();
@@ -1043,7 +1044,7 @@ public class BriefingScreen implements Screen {
                         ? java.util.Collections.emptyList() : committedPowerSourceMembers());
         if (m.contractId >= 0L && campaignScript != null) {
             int day = Global.getSector() != null
-                    ? (int) Global.getSector().getClock().getDay() : 0;
+                    ? CampaignClock.day() : 0;
             RivalStrikeGarrisonService.armForContractLaunch(
                     campaignScript.state(), m.contractId, day);
         }

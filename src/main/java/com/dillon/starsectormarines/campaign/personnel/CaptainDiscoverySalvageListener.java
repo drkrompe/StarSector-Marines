@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.personnel;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CaptainCandidate;
 import com.dillon.starsectormarines.marine.CaptainCandidateState;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -71,6 +72,6 @@ public final class CaptainDiscoverySalvageListener implements ShowLootListener {
     }
 
     private static double currentDay() {
-        return Global.getSector().getClock().getDay();
+        return CampaignClock.dayFloat();
     }
 }

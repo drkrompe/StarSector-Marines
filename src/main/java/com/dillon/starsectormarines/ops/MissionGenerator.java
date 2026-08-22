@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.campaign.BriefingComposer;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -223,7 +224,7 @@ public final class MissionGenerator {
 
         int emitted = 0;
         int currentDay = Global.getSector() != null
-                ? (int) Global.getSector().getClock().getDay() : 0;
+                ? CampaignClock.day() : 0;
         for (int i = 0; i < state.contractCount && emitted < MAX_MISSIONS; i++) {
             if (!contractMissionAvailable(state, i, currentDay)) continue;
             if (state.contractPatronHouseId[i] != client.patronHouseId) continue;

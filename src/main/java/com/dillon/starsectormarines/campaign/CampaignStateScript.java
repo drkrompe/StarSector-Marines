@@ -130,7 +130,7 @@ public class CampaignStateScript implements EveryFrameScript {
     @Override
     public void advance(float amount) {
         if (Global.getSector() == null) return;
-        int day = (int) Global.getSector().getClock().getDay();
+        int day = CampaignClock.day();
         if (day == state.lastTickDay) return;
         state.lastTickDay = day;
         onDailyTick(day);
