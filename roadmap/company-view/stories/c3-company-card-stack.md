@@ -27,6 +27,11 @@ change.
 
 ### Three levels, one screen
 
+> Language note: [C7](c7-organization-and-ranks.md) settles the six-marine
+> unit as a **squad** led by an NCO, and the card as **one officer's
+> command**. Where this doc says "fireteam row", read "squad row" — the
+> class has always been `MarineSquad`; only the UI string changes.
+
 **Company band (top).** Strength / ready / wounded / recovering, fireteams
 deployable vs. rank cap, seats required vs. filled for this sortie. This is
 the `READY SEATS … COMPANY … SHORT … FIRETEAMS n/cap` line that exists
@@ -64,6 +69,23 @@ Build the fireteam card on that vocabulary rather than a new container
 model. Keep the flat widget tree — it is a deliberate constraint of
 `WidgetRoot`, and `ExpandedCardWidget` documents why.
 
+### Density tiers — the view must survive a big company
+
+A card per squad stops working somewhere past twenty squads. The player is
+allowed to field that many; the UI has to degrade gracefully rather than
+forbid it.
+
+| Squads shown | Treatment |
+| --- | --- |
+| ≤ 8 | Full cards, expandable to marines. |
+| 9–20 | Compact rows — pips + readiness bar + chip, expansion on demand only. |
+| > 20 | Paginate (or virtualize) within the formation grouping, with a page/scroll indicator that states the total. |
+
+The grouping is what makes the large case readable: twenty-four squads
+under four officers is four cards, not twenty-four rows. Never let the list
+length drive the screen height, and never silently truncate — if rows are
+off-page, the count says so.
+
 ### Typography and density
 
 Per the overview's commitment and S8's measured table: header
@@ -96,8 +118,10 @@ pre-battle flow.
 - Every selection behavior of today's screen is preserved: whole-fireteam
   toggle, rank-capped `COMMAND LIMIT` block, reserve exclusion, the two
   navigation buttons.
-- A seven-team company is readable without scrolling past the fold at
+- A seven-squad company is readable without scrolling past the fold at
   1920×1080, and scrolls cleanly at smaller viewports.
+- A twenty-four-squad organization is still navigable: grouped, compacted,
+  and honest about what is off-page.
 - Member state is readable from the collapsed row — the player does not
   have to expand a team to learn it lost someone.
 - Numeric columns align between rows.
@@ -116,10 +140,6 @@ pre-battle flow.
 
 ## Open questions
 
-- **Card = captain's command, or card = the whole company?** See the
-  overview. Slice 3 is where this gets decided; slices 1–2 are neutral, so
-  the decision can wait until the rows are on screen and the early-game
-  one-captain case can be felt.
 - Does the expanded state persist across screen navigation? Probably yes,
   on `MarineOpsContext` beside the selection set, so returning from the
   armory does not collapse everything.

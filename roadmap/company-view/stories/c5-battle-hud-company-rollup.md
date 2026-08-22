@@ -21,9 +21,14 @@ What is missing:
 - **The tier above.** With six or seven squads on a Conquest map, the
   overview list is a wall of rows with no summary. There is no "how is my
   force doing" line anywhere in the battle.
-- **Reinforcement waves fragment the list.** A cycling shuttle mints new
-  squads per sortie, so the same fireteam can appear as multiple unrelated
-  rows over the course of a battle.
+- **Reinforcement waves fragment the list.** `AirSystem` resets
+  `mission.squadId` on each cycle (`AirSystem.java:471`), so a cycling
+  shuttle mints a new squad per sortie and the same squad appears as
+  several unrelated rows over the course of a battle.
+  [C8](c8-lift-capacity-and-multi-pass-drops.md) fixes the cause; this
+  story must not paper over it with display-only grouping.
+- **It has to hold twenty-plus squads.** The player may field a large
+  organization, and the overview list is a fixed-row scroll today.
 
 ## Goal
 
@@ -52,6 +57,17 @@ walk-in reinforcements, employer forces). Squads sharing a fireteam id —
 the split-lift case from C1 — group under one entry with their `(A)`/`(B)`
 suffixes visible on expansion.
 
+### Density at scale
+
+`SquadListViewport` already fits a whole number of fixed-height rows below
+the header and scrolls the remainder — the right hook for the large case.
+Add a compact row height once the list passes roughly a dozen squads
+(drop the weapon summary, keep name + pips + alert dot + morale bar), and
+make the scroll indicator state the total so a player with twenty-four
+squads knows how many are below the fold. Grouping by officer is the real
+answer at that size; the company band is what makes the collapsed state
+useful.
+
 ### Selection stays view-only
 
 `Selection` already carries squad id + optional pinned unit id, and the
@@ -77,8 +93,10 @@ Untouched. The overview panel already filters to the player's faction.
 - The player can read force state from one line without scanning rows.
 - Every row that came from campaign personnel shows its fireteam name;
   every other row is unchanged.
-- Reinforcement waves that rejoin an existing fireteam do not create a
+- Reinforcement waves that rejoin an existing squad do not create a
   second unrelated row.
+- Twenty-four player squads render legibly: compacted, grouped, and with
+  the off-screen count stated rather than silently clipped.
 - No change to `Selection` semantics, no new input claims, no interference
   with `CommandPowerPanel`'s targeting flow (it is registered after
   `WorldPicker` specifically to claim clicks first — do not disturb that
