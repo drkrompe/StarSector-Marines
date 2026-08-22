@@ -17,6 +17,15 @@ dev-gated `CampaignDebugIntel` for playtest forcing.
 See [`complete/skeleton-and-systems-framework.md`](complete/skeleton-and-systems-framework.md)
 for what actually landed.
 
+Since then, the tick loop gained a correct day source. Every duration in the
+campaign tier used to be measured from `getClock().getDay()`, which is a
+*calendar component* that wraps monthly, not a counter — so retainers, default
+checkpoints, incident cadence, offer expiry, and injury recovery all failed
+silently across month boundaries. `CampaignClock` replaces it with a monotonic
+counter anchored so existing saves keep their numbering. See
+[`complete/monotonic-campaign-clock.md`](complete/monotonic-campaign-clock.md);
+it still wants an in-game confirmation pass.
+
 ## Why it's its own thread
 
 Under the epic's sharded-history model, each sub-feature owns its

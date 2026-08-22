@@ -295,10 +295,15 @@ universe over time, not retrofitted into intel slots.
    intel, discoverable only by flying to the market and opening Marine Ops), so
    it pushes the event at the player as a self-triggered popup with our own
    chrome, reusing the `showCustomVisualDialog` takeover Marine Ops already
-   ships. G31 also surfaced a **blocking question**: vanilla treats
-   `getClock().getDay()` as day-of-month, while this mod's whole campaign tick
-   layer uses it as a monotonic day counter across 28 call sites. See
-   [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
+   ships. G31 also surfaced — and this session **fixed** — a tier-wide clock
+   bug: the campaign layer measured every duration from `getClock().getDay()`,
+   a calendar component that wraps monthly, so retainers, default checkpoints,
+   incident cadence, offer expiry, and injury recovery all failed silently
+   across month boundaries. `CampaignClock` replaces it with a monotonic
+   counter anchored so existing saves keep their numbering; **an in-game
+   confirmation pass is queued**. See
+   [`campaign/framework/complete/monotonic-campaign-clock.md`](campaign/framework/complete/monotonic-campaign-clock.md)
+   and [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
 
 *(Shipped since this list was written: **offer expiry + patron archetypes** —
 offers now lapse per archetype-driven windows (`ContractGenerator` +

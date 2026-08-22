@@ -37,16 +37,19 @@ completed term. The popup's countdown is a direct read of
 The open questions in [`overview.md`](overview.md) remain design prompts, not
 pre-approved work.
 
-## Blocking question surfaced by G31
+## Clock question surfaced by G31 — resolved
 
-`Global.getSector().getClock().getDay()` looks like a **day-of-month** value
-(1–30), not the monotonic day counter the entire campaign tick layer assumes
-across 28 call sites. Vanilla gates on `getClock().getDay() == 15` and `== 28`.
-If confirmed in game, retainer months, default checkpoints, incident cadence,
-offer expiry, injury recovery, and G31's new deadlines all reset roughly
-monthly. See the priority follow-up in
-[`complete/g31-stationing-response-deadlines.md`](complete/g31-stationing-response-deadlines.md).
-Worth settling before investing further in time-based campaign mechanics.
+`getClock().getDay()` was indeed a calendar component, not a day counter, so
+every duration in the campaign tier — retainer months, default checkpoints,
+incident cadence, offer expiry, injury recovery, and G31's own deadlines —
+failed silently across month boundaries. Fixed by `CampaignClock`, a monotonic
+counter anchored so existing saves keep their numbering; all 28 call sites now
+read it. See
+[`../framework/complete/monotonic-campaign-clock.md`](../framework/complete/monotonic-campaign-clock.md).
+
+**It still wants an in-game confirmation pass** — the diagnosis came from
+vanilla source, not a live run. Confirm the counter advances one per day and
+crosses a month boundary before leaning further on time-based mechanics.
 
 ## Why these two, and why they are separate
 

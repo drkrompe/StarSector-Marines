@@ -113,27 +113,16 @@ the outcome discriminator.
 
 ## Follow-ups
 
-### Priority — `getClock().getDay()` is day-of-month, not a day counter
+### Resolved — `getClock().getDay()` was not a day counter
 
-Found while validating the deadline arithmetic. The whole campaign tick layer
-treats `Global.getSector().getClock().getDay()` as a monotonic day counter — 28
-call sites, and `getTimestamp()` / `getElapsedDaysSince()` are used nowhere.
-Vanilla's own code shows it is a **day-of-month** value: `RemnantStationFleetManager`
-gates on `getClock().getDay() == 15` and `KantaCMD` on `== 28`, alongside
-`getCycle()` / `getMonth()` / `getHour()` on the same interface.
-
-If that reading is right, every time-based campaign mechanic resets roughly
-monthly: retainer months, stationing default checkpoints, the 24–36 day incident
-cadence, offer expiry windows, injury recovery, and these new response
-deadlines. A deadline of `day + 7` armed on day 27 would simply never be
-reached.
-
-G31 is written consistently with the rest of the layer, so it is no more broken
-than its neighbours — but this wants its own story: introduce an absolute-day
-helper derived from `getCycle()`/`getMonth()`/`getDay()` or from
-`getTimestamp()`, migrate the call sites, and decide how to reinterpret already
-persisted tick values in existing saves. **Verify in-game first** — the reading
-is from vanilla source, not from a live run.
+Found while validating the deadline arithmetic here, and since **fixed**: the
+whole campaign tick layer measured durations from a calendar component that
+wraps monthly, so a 7-day window armed on calendar day 27 targeted day 34 and
+was never reached. `CampaignClock` now supplies a monotonic counter, anchored so
+existing saves keep their numbering, and all 28 call sites read it. See
+[`../../framework/complete/monotonic-campaign-clock.md`](../../framework/complete/monotonic-campaign-clock.md).
+G31's deadlines needed no change — they were already written against whatever
+`day` the tick loop supplies. An in-game confirmation pass is still queued.
 
 ### Carried forward from the contracted story
 
