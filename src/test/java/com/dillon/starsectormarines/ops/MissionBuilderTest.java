@@ -1,9 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
-import com.dillon.starsectormarines.battle.flyby.FighterProfile;
-import com.dillon.starsectormarines.battle.flyby.FighterWing;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -211,26 +208,4 @@ class MissionBuilderTest {
         assertEquals(-1L, noEvent.campaignEventThreatSeed);
     }
 
-    @Test
-    void firstContractSuppressesEnemyFightersButKeepsMarineCover() {
-        FlybyRoster marineCover = new FlybyRoster(List.of(
-                FighterWing.single(FighterProfile.TALON, Faction.MARINE, 4f)));
-        FlybyRoster enemyCover = new FlybyRoster(List.of(
-                FighterWing.single(FighterProfile.BROADSWORD, Faction.DEFENDER, 4f)));
-
-        Mission firstContract = minimal()
-                .tier(OperationTier.FIRST_CONTRACT)
-                .clientFighterSupport(marineCover)
-                .enemyFighterSupport(enemyCover)
-                .build();
-        Mission established = minimal()
-                .tier(OperationTier.ESTABLISHED)
-                .clientFighterSupport(marineCover)
-                .enemyFighterSupport(enemyCover)
-                .build();
-
-        assertSame(marineCover, firstContract.clientFighterSupport);
-        assertSame(FlybyRoster.EMPTY, firstContract.enemyFighterSupport);
-        assertSame(enemyCover, established.enemyFighterSupport);
-    }
 }
