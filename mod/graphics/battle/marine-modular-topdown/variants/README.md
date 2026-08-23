@@ -20,6 +20,7 @@ Weapons:
 - `weapons/laser-gun.png`
 - `weapons/smg.png` — compact light-machine-gun silhouette.
 - `weapons/dmr.png` — extended precision rail/marksman silhouette.
+- `weapons/anti-materiel-rifle.png` — long heavy coil-rifle special-equipment layer.
 - `weapons/grades/surplus/rifle.png` — battered field-maintained grade-I exemplar.
 - `weapons/grades/masterwork/dmr.png` — fleet-printed grade-IV exemplar.
 
@@ -40,6 +41,7 @@ Current landmarks:
 - Standard rifle/laser length: `0.6533 sw`.
 - SMG length: `0.52 sw`.
 - DMR length: `0.82 sw`.
+- Anti-materiel rifle length: `0.96 sw`.
 - Standard aimed offset: `(0.1733 sw, -0.12 sw)`.
 - Rocket launcher size: `(0.4267 sw, 1.04 sw)`.
 - Rocket aimed offset: `(0.3333 sw, -0.12 sw)`, placing its centerline approximately

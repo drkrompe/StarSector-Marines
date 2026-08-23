@@ -23,6 +23,8 @@ public final class MarineSoldier implements Serializable {
     private MarineWeapon primary;
     private EquipmentGrade primaryGrade;
     private MarineSecondary secondary;
+    /** Stable special-equipment identity; {@link #secondary} is legacy save input only. */
+    private String specialEquipmentId;
     private MarineArmorPattern armor;
     /**
      * Lifetime service record. Never null after construction or
@@ -58,7 +60,11 @@ public final class MarineSoldier implements Serializable {
     public float unavailableUntilDay() { return unavailableUntilDay; }
     public MarineWeapon primary() { return primary; }
     public EquipmentGrade primaryGrade() { return primaryGrade; }
-    public MarineSecondary secondary() { return secondary; }
+    public MarineSecondary secondary() {
+        MarineSecondary resolved = SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentId);
+        return resolved != null ? resolved : secondary;
+    }
+    public String specialEquipmentId() { return specialEquipmentId; }
     public MarineArmorPattern armor() { return armor; }
 
     /** Lifetime service record — missions, rounds, damage, kills. Never null. */
@@ -77,7 +83,10 @@ public final class MarineSoldier implements Serializable {
         enlistedRank = value != null ? value : EnlistedRank.MARINE;
     }
 
-    void setSecondary(MarineSecondary value) { secondary = value; }
+    void setSecondary(MarineSecondary value) {
+        specialEquipmentId = value != null ? value.specialEquipmentId : null;
+        secondary = null;
+    }
     void setArmor(MarineArmorPattern value) {
         armor = value != null ? value : MarineArmorPattern.ARMORLESS;
     }
@@ -99,6 +108,10 @@ public final class MarineSoldier implements Serializable {
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;
         if (armor == null) armor = MarineArmorPattern.ARMORLESS;
         if (career == null) career = new SoldierCareer();
+        if (specialEquipmentId == null && secondary != null) {
+            specialEquipmentId = secondary.specialEquipmentId;
+        }
+        secondary = null;
         experienceXp = Math.max(0, experienceXp);
         unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;

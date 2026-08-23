@@ -1160,6 +1160,7 @@ public class BattleSimulation implements BattleControl {
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
         squadAlert.tick(TICK_DT, simTickIndex);
+        tacticalScoring.updateContactPictures(simTickIndex);
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from SquadAlertSystem: a squad out of contact this tick

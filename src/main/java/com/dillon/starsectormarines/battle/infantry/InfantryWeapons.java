@@ -270,7 +270,7 @@ public class InfantryWeapons {
         if (ammo <= 0) return;
         world.setSecondaryAmmo(shooterId, ammo - 1);
         roster.telemetry().recordSecondaryUsed(shooterId);
-        float secondaryAccuracy = Math.min(1f, sec.accuracy
+        float secondaryAccuracy = Math.min(1f, sec.accuracy()
                 * InfantryCombatStats.shooterAccuracyMult(
                         roster.combat().soldierProfile(shooter)));
         // Rocket launches from the marine's current sprite position so the
@@ -282,6 +282,25 @@ public class InfantryWeapons {
         float fromY = world.renderY(shooter);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 secondaryAccuracy, 0f, sec.roundVelocity(), rng);
+        roster.telemetry().recordRoundFired(shooter);
+        if (sec.activation() == com.dillon.starsectormarines.marine.SpecialActivation.DIRECT_PRECISION) {
+            if (res.victimId() != 0L) {
+                float damage = res.friendlyHit()
+                        ? sec.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                        : sec.damage();
+                shots.queueImpact(new ShotService.PendingImpact(
+                        res.victimId(), shooter, res.flightTime(), damage,
+                        sec.vsTurretMult(), roster.identity().type(shooter).moraleImpact,
+                        res.friendlyHit(), sec));
+            }
+            shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                    res.endX(), res.endY(), res.endZ(),
+                    res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
+                    null, null, sec, null, 1f,
+                    res.victimId() != 0L, res.kind(), shooter));
+            return;
+        }
+
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever
         // it physically contacts. A free-flight overshoot keeps its visible
         // projectile entity but carries no phantom ground detonation.
@@ -289,9 +308,9 @@ public class InfantryWeapons {
                 ? new PendingDetonation(
                         shooter,
                         res.endX(), res.endY(), res.flightTime(),
-                        sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                        sec.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                        sec.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                        sec.aoeRadius(), sec.damage(), sec.vsTurretMult(),
+                        sec.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
+                        sec.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                         /*friendlyFireImmune*/ false)
                 : null;
         // hasBoostRamp=true: marine rocket is a launched missile with a

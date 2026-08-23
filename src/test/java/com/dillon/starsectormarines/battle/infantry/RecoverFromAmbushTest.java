@@ -180,7 +180,8 @@ public class RecoverFromAmbushTest {
         assertTrue(squad._alertLevelChangedThisTick);
         assertNotSame(oldPlan, squad.currentPlan,
                 "new direct contact must replace a fresh quiet-state plan in the same tick");
-        assertSame(EliminateEnemiesGoal.INSTANCE, squad.currentGoal);
+        assertSame(HoldEngagementLineGoal.INSTANCE, squad.currentGoal,
+                "a lone marine taking an even-strength flank contact should plant and return fire");
     }
 
     @Test
@@ -190,6 +191,9 @@ public class RecoverFromAmbushTest {
         Squad squad = sim.getSquad(squadId);
         long marine = sim.spawn(inert("m", Faction.MARINE,
                 UnitType.MARINE, 5, 5).squad(squadId));
+        sim.spawn(inert("ally-1", Faction.MARINE, UnitType.MARINE, 5, 6));
+        sim.spawn(inert("ally-2", Faction.MARINE, UnitType.MARINE, 5, 7));
+        sim.spawn(inert("ally-3", Faction.MARINE, UnitType.MARINE, 5, 8));
         sim.spawn(inert("anchor", Faction.DEFENDER,
                 UnitType.MARINE, 12, 5));
 
@@ -204,6 +208,8 @@ public class RecoverFromAmbushTest {
                 "the additional hostile still joins the shared squad belief");
         assertFalse(squad._directContactStartedThisTick,
                 "another identity during continuous direct LOS is not a new contact episode");
+        assertFalse(squad._contactDoctrineChangedThisTick,
+                "the stable local force balance keeps this test isolated from doctrine interrupts");
         assertSame(sentinel, squad.currentPlan,
                 "continuous contact must leave the fresh plan for the periodic convergence path");
     }
