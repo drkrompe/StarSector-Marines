@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
@@ -30,5 +31,22 @@ class ShotEventTest {
 
         assertEquals(5.25f, shot.visualToY());
         assertFalse(shot.impacts());
+    }
+
+    @Test
+    void antiMaterielReportLocalizesTheShotWithoutRevealingAnUnseenCarrier() {
+        ShotEvent amr = specialShot(MarineSecondary.ANTI_MATERIEL_RIFLE, 42L);
+        ShotEvent rocket = specialShot(MarineSecondary.ROCKET_LAUNCHER, 42L);
+
+        assertEquals(0L, amr.audibleSourceUnitId());
+        assertEquals(42L, rocket.audibleSourceUnitId(),
+                "the existing visible direct-fire rocket attribution stays unchanged");
+    }
+
+    private static ShotEvent specialShot(MarineSecondary special, long shooterId) {
+        return new ShotEvent(1f, 2f, 0f, 3f, 4f, 0f,
+                true, Faction.MARINE, 0.2f,
+                null, null, special, null, 1f, true,
+                BallisticResolver.StopKind.UNIT_HIT, shooterId);
     }
 }

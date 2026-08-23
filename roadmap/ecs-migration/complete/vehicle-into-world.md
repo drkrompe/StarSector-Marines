@@ -6,8 +6,7 @@
 > 4d-1 `80d2e55d` → 4d-2 `f1ad8753` (the deletion) → javadoc sweep `35840353`. Both 4d
 > critiques cleared clean. This folded the live convoy `Vehicle` — the **last non-ECS
 > storage space** in the battle tier — into the one archetype `EntityWorld`, following the
-> shipped **air-into-world** template
-> ([`../../air/air-entities-into-world.md`](../../air/air-entities-into-world.md)).
+> shipped Air world-entity template now described by `air-nouns.md`.
 > Read [`../overview.md`](../overview.md) for the arc framing and
 > [`../archetype-storage.md`](../archetype-storage.md) for the engine.
 
@@ -238,8 +237,7 @@ than air, where `AirSystem` conflated owner + processor.
 
 ## Cross-references
 
-- [`../../air/air-entities-into-world.md`](../../air/air-entities-into-world.md) — the
-  shipped template this mirrors phase-for-phase (all forks decided there).
+- `air-nouns.md` — the shipped template this mirrors phase-for-phase.
 - [`../overview.md`](../overview.md) — the arc; this is its last storage gap.
 - [`../archetype-storage.md`](../archetype-storage.md) — the `EntityWorld`/`Query` engine.
 - Memory: [[air_vehicle_kinematics]] (GroundBody/AirBody sibling abstraction),

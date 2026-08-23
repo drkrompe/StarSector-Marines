@@ -4,7 +4,7 @@ Status: READY — implementation is shipped; manual play acceptance remains.
 
 Written: 2026-08-13
 
-Updated: 2026-08-23 — first landed at `c92d5b9a`; manual acceptance remains.
+Updated: 2026-08-23 — traveling bolt lights joined the landed event set; manual acceptance remains.
 
 Read `surface-relief-nouns.md` before completing this story.
 
@@ -21,8 +21,9 @@ the offset coordinate, then N·L against each light.
 - `GroundLightService` owns short-lived cell-space lights, merges repeated
   co-located events, culls outside the camera, and uploads at most the eight
   nearest visible lights.
-- Sources are existing presentation events: weapon-colored muzzle flashes,
-  rifle/kinetic/HE impacts, heavy support impacts, and burning-wreck fire.
+- Sources are existing presentation events: weapon-colored muzzle flashes and
+  traveling bolt bodies, rifle/kinetic/HE impacts, heavy support impacts, and
+  burning-wreck fire.
 - The S2 composite samples the normal at the final parallax/water coordinate,
   decodes it into world +Y-up space, and applies squared radial falloff plus
   Lambert `N·L`. Lighting is additive over the accepted S2 image.

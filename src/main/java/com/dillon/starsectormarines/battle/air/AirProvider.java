@@ -9,17 +9,16 @@ package com.dillon.starsectormarines.battle.air;
  * vanilla ships flying in the {@code CombatEngineAPI} layer above the ground sim.
  *
  * <ul>
- *   <li><b>{@link #INTERNAL}</b> (default) — the sim's own {@code AirSystem} ticks
- *       {@code Shuttle}s through the deboard state machine, and flyby passes draw
- *       from the installed {@code FlybyRoster}. The standalone {@code BattleScreen}
- *       host. All {@code createX} factories and tests run in this mode.</li>
+ *   <li><b>{@link #INTERNAL}</b> (default) — the sim's own {@code AirSystem}
+ *       ticks composed shuttle entities through their mission state, and flyby
+ *       passes draw from the installed {@code FlybyRoster}. The standalone
+ *       {@code BattleScreen} host. All {@code createX} factories and tests run
+ *       in this mode.</li>
  *   <li><b>{@link #EXTERNAL}</b> — the host owns the air. The internal air tick is
  *       skipped, and installing internal air ({@code spawnShuttle} / {@code attachAirTurrets}
  *       / {@code setFlybyRoster}) is a contract violation that fails loud. External
- *       air-to-ground arrives as events: strafing via
- *       {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#applyExternalDamage},
- *       and (future, S3d) marine delivery via an EXTERNAL-asserting {@code deliverSquad}
- *       entry point — the inverse of the internal deboard.</li>
+ *       air-to-ground damage arrives as events via
+ *       {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#applyExternalDamage}.</li>
  * </ul>
  *
  * <p>The flag declares an invariant at the seam; it does not branch sim behavior

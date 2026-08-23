@@ -51,11 +51,12 @@ then samples ground color and normal at that same coordinate. It adds the
 selected event lights after the accepted ground image; units, shots, effects,
 and UI draw later on their ordinary paths.
 
-Battle presentation translates muzzle flashes, impacts, heavy impacts, and
-fire bursts into ground lights. Their lifetime follows scaled battle time, so
-pause and time-speed authority remains outside this feature. The debug dials
-only tune presentation strengths for the current screen; they do not alter
-map data or simulation.
+Battle presentation translates muzzle flashes, traveling bolt bodies, impacts,
+heavy impacts, and fire bursts into ground lights. Bolt lights follow the live
+render-side shot pose until arrival; every light lifetime follows scaled battle
+time, so pause and time-speed authority remains outside this feature. The debug
+dials only tune presentation strengths for the current screen; they do not
+alter map data or simulation.
 
 ## Laws
 

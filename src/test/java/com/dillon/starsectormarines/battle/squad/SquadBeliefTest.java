@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadBeliefTest {
@@ -60,6 +61,28 @@ class SquadBeliefTest {
         assertEquals(11, squad.believedContact(first).lastSeenCellX());
         assertEquals(sim.simTickIndex,
                 squad.believedContact(first).lastSeenTick());
+    }
+
+    @Test
+    void directObservationUsesPerMemberVisionRangeAcrossBucketBoundary() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long observer = sim.spawn(new EntitySpec("observer", Faction.MARINE,
+                UnitType.MARINE, 15, 5).squad(squadId).visionRange(3f));
+        long inside = sim.spawn(new EntitySpec("inside", Faction.DEFENDER,
+                UnitType.MARINE, 18, 5));
+        long outside = sim.spawn(new EntitySpec("outside", Faction.DEFENDER,
+                UnitType.MARINE, 19, 5));
+        sim.world().setPos(observer, 15.01f, 5.5f);
+        sim.world().setPos(inside, 18.99f, 5.5f);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertNotNull(squad.believedContact(inside),
+                "cell-range visibility survives a bucket seam and opposing subcell offsets");
+        assertNull(squad.believedContact(outside),
+                "open line of sight does not reveal a target beyond the observer's vision range");
     }
 
     @Test

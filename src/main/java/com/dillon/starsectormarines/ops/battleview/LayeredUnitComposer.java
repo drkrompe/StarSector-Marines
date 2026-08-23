@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
@@ -23,6 +24,7 @@ final class LayeredUnitComposer {
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      MarineWeapon primary, boolean drawWeaponLayers,
+                     MarineSecondary special,
                      EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
@@ -31,12 +33,17 @@ final class LayeredUnitComposer {
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
                 || pose == LayeredAppearance.POSE_ROCKET_FIRE;
+        boolean amr = pose == LayeredAppearance.POSE_AMR_AIM
+                || pose == LayeredAppearance.POSE_AMR_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
         LayeredWeaponFamily weaponFamily = drawWeaponLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
         LayeredSpriteCache weapon = drawWeaponLayers
-                ? (rocket ? assets.rocketLauncher : assets.weapon(weaponFamily, equipmentGrade))
+                ? (rocket ? assets.rocketLauncher
+                        : amr && special == MarineSecondary.ANTI_MATERIEL_RIFLE
+                                ? assets.antiMaterielRifle
+                                : assets.weapon(weaponFamily, equipmentGrade))
                 : null;
 
         // Feet always exist underneath the actor. At rest both offsets keep them
@@ -67,7 +74,7 @@ final class LayeredUnitComposer {
         }
 
         WeaponTransform wt = drawWeaponLayers
-                ? weaponTransform(weapon, weaponFamily, rocket, pose, weaponPhase,
+                ? weaponTransform(weapon, weaponFamily, rocket, amr, pose, weaponPhase,
                     actorX, actorY, pxPerSw, facingDeg)
                 : null;
 
@@ -138,7 +145,7 @@ final class LayeredUnitComposer {
 
     private static WeaponTransform weaponTransform(
             LayeredSpriteCache weapon, LayeredWeaponFamily weaponFamily,
-            boolean rocket, int pose, float phase,
+            boolean rocket, boolean amr, int pose, float phase,
             float actorX, float actorY, float swPx, float facingDeg) {
         float t = smoothstep(clamp01(phase));
 
@@ -149,8 +156,11 @@ final class LayeredUnitComposer {
         float aimFactor;
         if (pose == LayeredAppearance.POSE_ROCKET_AIM) {
             aimFactor = t;
+        } else if (pose == LayeredAppearance.POSE_AMR_AIM) {
+            aimFactor = t;
         } else if (pose == LayeredAppearance.POSE_FIRING
-                || pose == LayeredAppearance.POSE_ROCKET_FIRE) {
+                || pose == LayeredAppearance.POSE_ROCKET_FIRE
+                || pose == LayeredAppearance.POSE_AMR_FIRE) {
             aimFactor = 1f;
         } else if (pose == LayeredAppearance.POSE_AIMED) {
             // Primary fire is observed after the shot. Hold fully aimed through
@@ -172,6 +182,7 @@ final class LayeredUnitComposer {
 
         float pivotX = weapon.pxWidth * 0.5f;
         float pivotY = rocket ? ROCKET_PIVOT_Y
+                : amr ? weapon.pxHeight * 0.75f
                 : weaponFamilyPivotY(weaponFamily, weapon);
         float centerX = (weapon.pxWidth * 0.5f - pivotX) / SOURCE_SHOULDER_PX * swPx;
         float centerY = -(weapon.pxHeight * 0.5f - pivotY) / SOURCE_SHOULDER_PX * swPx;

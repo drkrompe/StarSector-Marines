@@ -14,14 +14,14 @@ package com.dillon.starsectormarines.battle.air;
  * and we do <em>not</em> author a per-hull length: a hull's render length is
  * derived from its sprite/{@code .ship} pixel extent times this one factor.
  *
- * <p>See {@code roadmap/air/hull-extraction.md} § Scale and
- * {@code roadmap/air/stories/global-pixel-density-scale.md}.
+ * <p>See {@code air-nouns.md}.
  *
  * <h2>Scope</h2>
- * <p>This is the <em>footprint</em> factor only — it sizes the rendered hull and
- * the geometry derived from sprite pixels (engine slots, and later collision
- * bounds). Kinematic feel (speed/accel, vanilla {@code su} → cells) is a
- * separate, independent scale and is not governed here.
+ * <p>This factor owns the rendered footprint and geometry derived from sprite
+ * pixels. Linear kinematic conversion currently uses the same density as its
+ * calibration seed before applying an atmosphere multiplier, so re-dialing it
+ * requires both visual and motion review; per-hull footprint remains distinct
+ * from movement tuning.
  */
 public final class AirScale {
 

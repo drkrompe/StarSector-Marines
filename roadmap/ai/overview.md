@@ -54,7 +54,10 @@ execution.
 - Plan invalidated (a queued action's precondition stopped holding)
 - Goal achieved (plan ran to completion)
 - Squad member died
+- Squad-wide direct-LOS episode started (first contact, or reacquisition after
+  a tick with no direct sighting)
 - `SquadAlertLevel` transitioned
+- Incoming-fire onset or morale broken-state transition
 - Periodic ~2 sim-seconds fallback
 
 ## Persistence
@@ -183,8 +186,11 @@ presence and only their squads' identified contacts, with topology-aware 8×8
 propagation and four debug heatmaps. Frontline analysis, assignment consumers,
 and the briefing loop remain parked. Story 32
 (`32-contact-reaction-doctrine.md`) is the active local-reaction slice: contact
-and morale interrupts, belief-gated advance/guard threat reads, and
-fireteam-scoped ambush recovery.
+and morale interrupts, belief-gated threat reads, fireteam-scoped ambush
+recovery, and one immutable contact picture that selects sticky
+advance/hold/disengage doctrine from threat sector, fresh motion, and local
+odds. Automated implementation acceptance is green; player-facing threshold
+tuning remains deferred.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 
