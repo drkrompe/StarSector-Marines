@@ -15,12 +15,10 @@ import java.util.Set;
  * <p><b>No game API here, by contract.</b> {@code battle.world.gen} must compile
  * and run headless (every generator/taxonomy test drives it without a sector),
  * so the bridge carries primitives + an interned faction id, never a
- * {@code MarketAPI}. See {@code roadmap/campaign-battle-bridge/overview.md}.
+ * {@code MarketAPI}. See {@code campaign-battle-bridge-nouns.md}.
  *
- * <p>Extracted <em>whole</em> even though the first consumer reads only
- * {@link #defenseLevel} — the extraction is written once and later consumers
- * (urban composition, hard installations) opt into fields without re-touching
- * the resolver.
+ * <p>Extracted as one whole snapshot so defense, urban-composition, port, and
+ * later consumers opt into stable fields without re-touching the resolver.
  *
  * @param marketSize    vanilla market size (~0–10, population/urbanization
  *                      proxy); {@code 0} when no market backs the battle.

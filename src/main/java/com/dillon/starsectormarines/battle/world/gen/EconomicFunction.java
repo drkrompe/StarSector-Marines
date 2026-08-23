@@ -13,8 +13,8 @@ package com.dillon.starsectormarines.battle.world.gen;
  *
  * <p>Presence-only for now (an {@code EnumSet} on the profile); per-function
  * weight from industry size / upgrade tier is a later refinement. The selection
- * layer consumes the set via {@link EconomicZoning}. See
- * {@code roadmap/economic-districts/overview.md}.
+ * layer consumes the set via {@link EconomicZoning}. The economic-districts
+ * feature owns the terrain-content program built on this vocabulary.
  */
 public enum EconomicFunction {
 
