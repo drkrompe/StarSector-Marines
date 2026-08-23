@@ -49,7 +49,7 @@ ladder's remainder-carry semantics. Suppression floors at zero.
 ## Throne claim — handoff contract locked
 
 `CLAIM_THRONE` now drives the append-only handoff producer fixed in
-[`../t3-endgame/overview.md`](../t3-endgame/overview.md):
+`t3-endgame-nouns.md`:
 
 - ordinary progress caps at Tier 3 / 1000;
 - a 180-day civil war targets the strongest same-faction rival and claimant home

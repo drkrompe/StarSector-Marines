@@ -167,7 +167,7 @@ Tightens the per-rank table from
 | **Tier 1** (Baron / Manager / Capo / Cell Leader) | Strike (small sub-types), Garrison (single market, 1 month max) |
 | **Tier 2** (Count / Director / Boss / Coordinator) | + Escort, Cadre, Garrison (cross-planet, longer terms) |
 | **Tier 3** (Duke / VP / Don / Diocese) | + Planetary Assault, Strike (large sub-types incl. Decapitation) |
-| **Tier 4** (Crown Claimant / CEO / Kingpin / Patriarch) | + chain-only T3-endgame contracts (faction civil war — see [`../t3-endgame/overview.md`](../t3-endgame/overview.md)) |
+| **Tier 4** (Crown Claimant / CEO / Kingpin / Patriarch) | + chain-only T3-endgame contracts (faction civil war — see `t3-endgame-nouns.md`) |
 
 Working with low-tier patrons is how unproven mercs get hired; the
 player grows alongside their patrons via the chain progression
@@ -453,7 +453,7 @@ chain's narrative momentum depends on the player following through.
   buildings that modulate garrison default rates and per-house power.
   Defensive infra reduces Garrison default rolls; intel infra surfaces
   hidden pretenders sooner.
-- [`../t3-endgame/overview.md`](../t3-endgame/overview.md) — the Tier-4
+- `t3-endgame-nouns.md` — the Tier-4
   contracts. Where this doc's "future" bracket actually lives.
 - [`../narrative/overview.md`](../narrative/overview.md) — the patron
   tapestry: comms-officer narrator, archetype content axis, procedural
