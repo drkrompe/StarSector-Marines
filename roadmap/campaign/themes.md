@@ -283,7 +283,7 @@ sector scale (a few thousand rows).
   stakes, relationships, chains, player reputation), tick loop,
   rank-ladder visibility, stake-transfer mechanics, hidden-heir
   layer. **Drafted.**
-- [`contracts/overview.md`](contracts/overview.md) — contract types
+- `contracts-nouns.md` — contract types
   (Strike, Garrison, Cadre, Escort, Planetary Assault), their
   time-commitment semantics, salvage and payment terms, the
   merc-registry reputation track. **Drafted + loop playable.**

@@ -332,7 +332,7 @@ Designed in a follow-up once Genesis + drift exist to react against.
   sector-wide-simulation framing.
 - `narrative-nouns.md` — the voice
   machinery the Chronicle composes through.
-- [`../contracts/overview.md`](../contracts/overview.md) — player chains
+- `contracts-nouns.md` — player chains
   feed contracts feed missions; the accelerant path.
 - `t3-endgame-nouns.md` — where
   `CLAIM_THRONE` ambitions lead.

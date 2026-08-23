@@ -109,7 +109,7 @@ transitively, the indices remain valid across save/load.
 
 ## Followups this doc gates
 
-- [`contracts/overview.md`](contracts/overview.md) — contract resolution
+- `contracts-nouns.md` — contract resolution
   writes to `STAKES`, `HOUSES` (promotion progress), `PLAYER_REP`.
   Landed as `ContractLifecycleSystem`.
 - `infrastructure-nouns.md` — future location-bound investments expose

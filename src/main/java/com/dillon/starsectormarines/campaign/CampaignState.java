@@ -280,11 +280,11 @@ public final class CampaignState implements Serializable {
     public byte[] kingmakerTestamentState = new byte[INITIAL_CAPACITY];
     public int kingmakerTestamentCount = 0;
 
-    // ---------- contracts[] (sixth table — see contracts/overview.md §"contracts[]") ----------
+    // ---------- contracts[] (sixth table — see roadmap/campaign/contracts/design/contracts-nouns.md) ----------
 
     public long[]  contractId            = new long[INITIAL_CAPACITY];
     public long[]  contractPatronHouseId = new long[INITIAL_CAPACITY];
-    /** Target house id for strikes/decapitations; -1 for stationing/escort/extraction. */
+    /** Target house id for targeted work; -1 when the contract has no opposing house target. */
     public long[]  contractTargetHouseId = new long[INITIAL_CAPACITY];
     /** Parent chain id, or -1 for one-off contracts. */
     public long[]  contractChainId       = new long[INITIAL_CAPACITY];
@@ -420,7 +420,7 @@ public final class CampaignState implements Serializable {
     /** Day number that {@link #clockEpochTimestamp} corresponds to. */
     public int clockEpochDay = 0;
 
-    /** MRB / industry-credibility rep — see contracts/overview.md §"MRB reputation track". */
+    /** MRB / industry-credibility rep — see roadmap/campaign/contracts/design/contracts-nouns.md. */
     public int playerMrbRep = 0;
 
     // ---------- Debug overrides (not persisted intentionally? keep persisted — small) ----------
@@ -959,7 +959,7 @@ public final class CampaignState implements Serializable {
     /**
      * Appends a contract. Returns the new contract id. Salvage / cash columns
      * default to the per-type baseline at the negotiated value; callers should
-     * overwrite at acceptance time per <code>contracts/overview.md</code> §"Salvage layers".
+     * overwrite at acceptance time per <code>roadmap/campaign/contracts/design/contracts-nouns.md</code>.
      */
     public long addContract(long patronHouseIdValue, long targetHouseIdValue, long chainIdValue,
                             ContractType type, ContractState state, int acceptedTick, int expiresTick,

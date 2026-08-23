@@ -420,8 +420,8 @@ universe over time, not retrofitted into intel slots.
    boundaries. `CampaignClock` replaces it with a monotonic counter anchored so
    existing saves keep their numbering; **an in-game confirmation pass is queued**.
    See `campaign-framework-nouns.md`,
-   `monotonic-clock-live-acceptance.md`, and
-   [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
+   `monotonic-clock-live-acceptance.md`, `contracts-nouns.md`, and
+   `contracts-live-acceptance.md`.
 
 *(Shipped since this list was written: **offer expiry + patron archetypes** —
 offers now lapse per archetype-driven windows (`ContractGenerator` +

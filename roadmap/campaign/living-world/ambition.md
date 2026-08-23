@@ -179,7 +179,7 @@ the *named system* to actually key off traits:
   on you more often, so knowing it shifts your *payment-structure* choice
   (demand lump-sum upfront; avoid stationing exposure). Needs the
   default/breach mechanics
-  ([`../contracts/overview.md`](../contracts/overview.md) §Default) to
+  (`contracts-nouns.md`) to
   scale by trait.
 - **Where to invest a chain** — backing a `CRAVEN` patron's war wastes
   captain-months on a house that folds; an `AMBITIOUS` one follows

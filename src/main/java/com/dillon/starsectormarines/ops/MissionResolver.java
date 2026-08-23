@@ -200,7 +200,7 @@ public final class MissionResolver {
                 : rawMarinesLost;
 
         // Cash multiplier applies the salvage-traded-for-cash bump from briefing
-        // acceptance (see contracts/overview.md §"Salvage Layer 2"). 100 = baseline.
+        // acceptance (see roadmap/campaign/contracts/design/contracts-nouns.md). 100 = baseline.
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
@@ -562,14 +562,14 @@ public final class MissionResolver {
      * script is registered yet (skeleton path — predates the campaign script's
      * install).
      *
-     * <p>Resolution rules (per contracts/overview.md §Lifecycle):
+     * <p>Resolution rules (per roadmap/campaign/contracts/design/contracts-nouns.md):
      * <ul>
      *   <li>Victory advances {@code phasesDone}; on {@code phasesDone >= phasesTotal}
-     *       the state flips ACTIVE/IN_PROGRESS → COMPLETED.</li>
+     *       the current non-terminal state flips to COMPLETED.</li>
      *   <li>Defeat flips the state to FAILED immediately (mission-mode contracts
      *       are short and terminal on failure; stationing failure paths are the
      *       lifecycle system's concern).</li>
-     *   <li>First phase resolution transitions ACTIVE → IN_PROGRESS.</li>
+     *   <li>A successful non-terminal phase transitions the contract to IN_PROGRESS.</li>
      * </ul>
      */
     private static void applyContractBridge(MissionOutcome outcome, MarineRoster roster) {

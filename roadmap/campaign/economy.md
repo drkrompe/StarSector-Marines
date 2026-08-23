@@ -331,7 +331,7 @@ with it, the player feels the world acting on them.
 - [`mechanics.md`](mechanics.md) — data model the economy operates
   on (houses, stakes, reputation, chains, mission → stake-transfer
   resolution).
-- [`contracts/overview.md`](contracts/overview.md) — full contract-type
+- `contracts-nouns.md` — full contract-type
   specifications (Strike, Garrison, Cadre, Escort, Planetary Assault)
   with their terms, salvage rights, time commitments, and how each maps
   to direct contracts vs. background-sim garrison contracts.
