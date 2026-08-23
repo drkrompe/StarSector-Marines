@@ -2,13 +2,18 @@
 
 ## State of play
 
-A DEBUG-only player mech-drop picker shipped in `53a365ae`. Debug briefings
-default to three randomized Bulwark/Hound/Sirocco
-chassis, allow zero through eight plus reroll, show the resulting makeup, and
-turn that roster into real targeted Mech Support charges delivered by
-Valkyries. Production-sourced Mech Support remains one Bulwark. Focused tests
-and the full build pass; an in-game briefing-layout and Conquest feel check is
-still queued.
+The DEBUG player drop follow-up is code-complete on the current session branch:
+Mech Support now batches the selected total into four-chassis lances, with one
+Valkyrie and one mech squad per activation plus a partial final lance. The
+picker defaults to four, caps at 100, and has +/-10 controls. Focused tests pass;
+the full build and in-game smoke remain.
+
+A DEBUG-only player mech-drop picker shipped in `53a365ae`. Its first slice
+defaulted to three randomized Bulwark/Hound/Sirocco chassis and delivered one
+per targeted Valkyrie charge; the lance follow-up above supersedes that count
+and batching while retaining the stable rerollable makeup. Production-sourced
+Mech Support remains one Bulwark. An in-game briefing-layout and Conquest feel
+check is still queued.
 
 The modular hardpoint substrate and first specialist family shipped in
 `2d3f044b`. Production defender integration shipped in `1ef74f23`: LOW fields
@@ -57,6 +62,11 @@ Needle, a fast unpodded scout, is documented but deferred until it can ship with
 real recon/spotting behavior.
 
 ## First action
+
+In the queued DEBUG Conquest smoke, start with four mechs and confirm one power
+activation unloads one four-member mech squad. Then try five (4+1 across two
+charges) and a larger stress roster using the +/-10 controls before continuing
+the UI-layout and battlefield-feel checks below.
 
 Open a DEBUG Conquest briefing and smoke the new **MECH DEBUG — player
 support** picker at normal UI scale. Confirm its rows fit above the command

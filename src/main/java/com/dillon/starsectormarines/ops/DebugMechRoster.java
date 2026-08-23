@@ -13,8 +13,8 @@ import java.util.Random;
 /** Immutable briefing-selected mech family roster used only by debug missions. */
 public final class DebugMechRoster {
 
-    public static final int DEFAULT_COUNT = 3;
-    public static final int MAX_COUNT = 8;
+    public static final int DEFAULT_COUNT = MechSupport.LANCE_SIZE;
+    public static final int MAX_COUNT = 100;
 
     private static final MechVariant[] FAMILY = {
             MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO

@@ -97,12 +97,73 @@ public class MechSupportTest {
     }
 
     @Test
-    public void configuredSupportAssignsOneVariantPerPostCommitChargeCount() {
+    public void configuredSupportPartitionsVariantsIntoFourMechLances() {
         MechSupport power = new MechSupport(List.of(
-                MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK));
+                MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK,
+                MechVariant.HOUND, MechVariant.SIROCCO));
 
-        assertEquals(MechVariant.HOUND, power.variantForRemainingCharges(2));
-        assertEquals(MechVariant.SIROCCO, power.variantForRemainingCharges(1));
-        assertEquals(MechVariant.BULWARK, power.variantForRemainingCharges(0));
+        assertEquals(2, power.maxCharges);
+        assertEquals(List.of(MechVariant.HOUND, MechVariant.SIROCCO,
+                MechVariant.BULWARK, MechVariant.HOUND),
+                power.lanceForRemainingCharges(1));
+        assertEquals(List.of(MechVariant.SIROCCO),
+                power.lanceForRemainingCharges(0));
+    }
+
+    @Test
+    public void configuredActivationUnloadsOneFourMechSquad() {
+        BattleSimulation sim = openSim();
+        sim.spawn(new EntitySpec("defender", Faction.DEFENDER, UnitType.MILITIA, 25, 25)
+                .health(100_000f).attackDamage(0f));
+        MechSupport power = new MechSupport(List.of(
+                MechVariant.HOUND, MechVariant.SIROCCO,
+                MechVariant.BULWARK, MechVariant.HOUND));
+        sim.setCommandPowers(List.of(power));
+        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(1, sim.getAirEntityIds().length);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(4, mission.marinesRemaining);
+        assertEquals(List.of(MechVariant.HOUND, MechVariant.SIROCCO,
+                        MechVariant.BULWARK, MechVariant.HOUND),
+                List.of(mission.mechVariants));
+
+        int mechCount = 0;
+        int mechSquad = Squad.NO_SQUAD;
+        for (int i = 0; i < 800 && mechCount < 4; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            mechCount = 0;
+            for (int u = 0; u < sim.liveUnitCount(); u++) {
+                long candidate = sim.liveUnitAt(u);
+                if (sim.identity().faction(candidate) != Faction.MARINE
+                        || sim.identity().type(candidate) != UnitType.HEAVY_MECH) continue;
+                int squadId = sim.squad().squadId(candidate);
+                if (mechSquad == Squad.NO_SQUAD) mechSquad = squadId;
+                assertEquals(mechSquad, squadId);
+                mechCount++;
+            }
+        }
+
+        assertEquals(4, mechCount);
+        Squad squad = sim.getSquad(mechSquad);
+        assertNotNull(squad);
+        assertEquals(4, squad.originalSize);
+
+        int hounds = 0;
+        int siroccos = 0;
+        int bulwarks = 0;
+        for (int u = 0; u < sim.liveUnitCount(); u++) {
+            long candidate = sim.liveUnitAt(u);
+            if (sim.identity().faction(candidate) != Faction.MARINE
+                    || sim.identity().type(candidate) != UnitType.HEAVY_MECH) continue;
+            MechVariant variant = sim.identity().mechVariant(candidate);
+            if (variant == MechVariant.HOUND) hounds++;
+            else if (variant == MechVariant.SIROCCO) siroccos++;
+            else if (variant == MechVariant.BULWARK) bulwarks++;
+        }
+        assertEquals(2, hounds);
+        assertEquals(1, siroccos);
+        assertEquals(1, bulwarks);
     }
 }
