@@ -328,6 +328,12 @@ public final class Squad {
      */
     public boolean _engagedThisTick = false;
     public boolean _suspiciousThisTick = false;
+    /** True on the first tick of a direct contact or a direct re-acquisition. */
+    public boolean _directContactStartedThisTick = false;
+    /** True when the finalized alert level differs from the previous tick. */
+    public boolean _alertLevelChangedThisTick = false;
+    /** True when morale hysteresis enters or leaves the broken state. */
+    public boolean _moraleBrokenChangedThisTick = false;
     /**
      * Per-tick transient set by {@code SquadAlertSystem}:
      * true if any squadmate sighted a close (within {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_RANGE_CELLS}
@@ -577,11 +583,20 @@ public final class Squad {
         }
     }
 
-    /** Records one authoritative direct-LOS observation at full confidence. */
-    void observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
+    /**
+     * Records one authoritative direct-LOS observation at full confidence.
+     * Returns true when this starts (or re-acquires) direct contact rather
+     * than continuing an uninterrupted sighting from the preceding tick.
+     */
+    boolean observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
+        BelievedContact old = contactMemory.get(unitId);
+        boolean started = old == null
+                || old.source() != BeliefSource.DIRECT
+                || old.lastSeenTick() < simTick - 1;
         contactMemory.put(unitId,
                 new BelievedContact(unitId, cellX, cellY, simTick, 1f,
                         BeliefSource.DIRECT));
+        return started;
     }
 
     /** True when another member already established this contact this tick. */

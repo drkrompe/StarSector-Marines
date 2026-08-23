@@ -11,6 +11,13 @@ package com.dillon.starsectormarines;
 public final class DevConfig {
 
     /**
+     * Exposes the retained UI workbench beside Back on Company HQ. The screen
+     * is a host/layout/input proof, not a player-facing management surface.
+     */
+    @DebugOnly
+    public static final boolean DEBUG_UI_WORKBENCH = true;
+
+    /**
      * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
      * for every <em>debug-generated</em> mission to this value. Clamps both the mission's
      * authored drop count and the employer's coverage roll, so the briefing

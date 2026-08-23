@@ -166,6 +166,13 @@ universe over time, not retrofitted into intel slots.
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
+- **Retained UI foundation** *(active — U1 implementation ready for live acceptance)* —
+  Marine Ops is growing a retained document layer inside the existing full-canvas
+  Starsector host. U1 adds the first Java tree, top-left document coordinates,
+  row/column/stack layout, shared paint/hit boxes, and a dev workbench reachable
+  from Company HQ. Clipping/focus/canvas input, themes/transitions, and MoonLight-style
+  `.mlx` components remain ordered follow-ons under `roadmap/ui/`; Fleet Armory is
+  the first planned production conversion.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and

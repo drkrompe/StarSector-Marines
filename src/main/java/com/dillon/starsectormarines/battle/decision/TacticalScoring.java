@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -1077,26 +1078,49 @@ public final class TacticalScoring {
     }
 
     /**
+     * Confidence-weighted hostile presence remembered by {@code squad} within
+     * {@code radius} of a cell. Geometry comes exclusively from believed
+     * contact cells; the live roster is consulted only to discard dead or
+     * non-combatant identities, never for a hidden current position.
+     */
+    public float believedHostilePresenceWithin(Squad squad, int cx, int cy,
+                                                float radius) {
+        float presence = 0f;
+        for (BelievedContact contact : squad.believedContacts()) {
+            long id = contact.unitId();
+            if (!roster.isAliveById(id)) continue;
+            if (roster.identity().faction(id) == squad.faction) continue;
+            if (!roster.identity().type(id).combatant) continue;
+            if (cellDistance(cx, cy, contact.lastSeenCellX(),
+                    contact.lastSeenCellY()) <= radius) {
+                presence += contact.confidence();
+            }
+        }
+        return presence;
+    }
+
+    /**
      * Cheap, local commit-vs-press read for a squad advancing toward
      * {@code (destX, destY)}. Enemy combatants contribute according to their
      * distance from the near-term advance segment; a contact on the route is
      * full weight, a flank contact fades to zero by
-     * {@link #ADVANCE_THREAT_ROUTE_OUTER}. A contact whose current path ends
-     * materially farther from the squad is discounted as retreating.
+     * {@link #ADVANCE_THREAT_ROUTE_OUTER}. A freshly direct-observed contact
+     * whose current path ends materially farther from the squad is discounted
+     * as retreating; stale and audio contacts never expose hidden posture.
      * Weighted hostile force is normalized against nearby friendly combatants,
      * saturating when enemies reach half the friendly force.
      *
-     * <p>The result intentionally carries the perception debt documented in
-     * AI stories 15 and 19: the enemy gather reads ground truth. The method is
-     * the localized swap seam for the future {@code hostile_believed} field;
-     * friendly positions are legitimate faction knowledge and stay unchanged.
+     * <p>Enemy geometry is belief-authoritative: confidence scales each
+     * contribution and unremembered enemies contribute nothing. Friendly
+     * positions are legitimate faction knowledge and remain exact.
      *
      * <p>The returned primary threat is the highest-contributing contact, with
      * nearer contacts winning ties. {@code axisAnchorX/Y} is the closest point
      * on the advance segment to that contact; the zone action centers its
      * off-axis firing-position leash there.
      */
-    public AdvanceThreat assessAdvanceThreat(Squad squad, int destX, int destY) {
+    public AdvanceThreat assessAdvanceThreat(Squad squad, int destX, int destY,
+                                              int currentTick) {
         float startX = squad.centroidX;
         float startY = squad.centroidY;
         float fullDx = destX + 0.5f - startX;
@@ -1108,13 +1132,7 @@ public final class TacticalScoring {
         float endX = startX + fullDx / fullLen * segmentLen;
         float endY = startY + fullDy / fullLen * segmentLen;
 
-        LongBucket nearby = new LongBucket();
-        unitIndex.gatherAlongSegment(startX, startY, endX, endY,
-                ADVANCE_THREAT_ROUTE_OUTER, nearby);
-
         World world = roster.world();
-        Faction enemyFaction = squad.faction == Faction.MARINE
-                ? Faction.DEFENDER : Faction.MARINE;
         float weightedFoes = 0f;
         int rawFoes = 0;
         long primary = 0L;
@@ -1124,13 +1142,14 @@ public final class TacticalScoring {
         float primaryAnchorY = startY;
         boolean primaryRetreating = false;
 
-        for (int i = 0, n = nearby.size; i < n; i++) {
-            long contact = nearby.ids[i];
-            if (roster.identity().faction(contact) != enemyFaction) continue;
+        for (BelievedContact belief : squad.believedContacts()) {
+            long contact = belief.unitId();
+            if (!roster.isAliveById(contact)) continue;
+            if (roster.identity().faction(contact) == squad.faction) continue;
             if (!roster.identity().type(contact).combatant) continue;
 
-            float contactX = world.x(contact);
-            float contactY = world.y(contact);
+            float contactX = belief.lastSeenCellX() + 0.5f;
+            float contactY = belief.lastSeenCellY() + 0.5f;
             SegmentProjection projection = projectOntoSegment(
                     contactX, contactY, startX, startY, endX, endY);
             if (projection.distance >= ADVANCE_THREAT_ROUTE_OUTER) continue;
@@ -1139,8 +1158,11 @@ public final class TacticalScoring {
                     ? 1f
                     : 1f - (projection.distance - ADVANCE_THREAT_ROUTE_INNER)
                     / (ADVANCE_THREAT_ROUTE_OUTER - ADVANCE_THREAT_ROUTE_INNER);
-            boolean retreating = isRetreatingFrom(contact, startX, startY, world);
-            float contribution = routeWeight * (retreating ? ADVANCE_THREAT_RETREAT_MULT : 1f);
+            boolean retreating = belief.source() == BeliefSource.DIRECT
+                    && belief.observedOnTick(currentTick)
+                    && isRetreatingFrom(contact, startX, startY, world);
+            float contribution = routeWeight * belief.confidence()
+                    * (retreating ? ADVANCE_THREAT_RETREAT_MULT : 1f);
             weightedFoes += contribution;
             rawFoes++;
 
