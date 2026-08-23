@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageLi
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -41,6 +42,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Generation mapping (moddable-tilesets Phase 2) — pools/dispatch as data.
         // After TileRegistry so its doodad-id pools resolve against installed tiles.
         GenMappingRegistry.loadBuiltins();
+        // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
+        // tile registries this is NOT self-defensive: a weapon whose stats failed to
+        // load would read zero range and zero damage, so a bad catalog must stop
+        // startup rather than produce a silently unwinnable battle. Must precede any
+        // consumer that walks the catalog at load time — BattleSprites preloads every
+        // primary's projectile sprite through it.
+        WeaponRegistry.loadBuiltins();
     }
 
     @Override

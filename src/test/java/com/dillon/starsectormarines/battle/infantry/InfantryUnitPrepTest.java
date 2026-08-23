@@ -44,7 +44,7 @@ public class InfantryUnitPrepTest {
         sim.combat().setPrimaryWeapon(u, MarineWeapon.PULSE_RIFLE);
         // attackRange is a Group-S registry-backed stat — set after the unit is
         // registered (the accessor is fail-loud pre-allocate).
-        sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range);
+        sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range());
         return u;
     }
 

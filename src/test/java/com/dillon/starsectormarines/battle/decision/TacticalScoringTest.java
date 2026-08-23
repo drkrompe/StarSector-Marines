@@ -616,7 +616,7 @@ public class TacticalScoringTest {
     private static long rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         long u = unit(sim, f, x, y);
         sim.combat().setPrimaryWeapon(u, MarineWeapon.PULSE_RIFLE);
-        sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range);
+        sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range());
         sim.world().attachSecondaryWeapon(u, MarineSecondary.ROCKET_LAUNCHER,
                 MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
         return u;

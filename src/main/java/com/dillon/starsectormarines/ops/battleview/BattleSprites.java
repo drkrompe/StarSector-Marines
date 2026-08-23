@@ -390,23 +390,23 @@ public class BattleSprites {
         // Primary projectile sprites (field-rifle / SMG shells today). Skip
         // weapons whose projectile path is null — those share the tinted bolt.
         for (MarineWeapon w : MarineWeapon.values()) {
-            if (w.projectileSpritePath == null) continue;
+            if (w.projectileSpritePath() == null) continue;
             try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                Global.getSettings().loadTexture(w.projectileSpritePath());
+                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath());
                 if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
+                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath());
                     continue;
                 }
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                projectileSpriteByPath.put(w.projectileSpritePath, cache);
-                LOG.info("BattleSprites: loaded " + w.projectileSpritePath
+                projectileSpriteByPath.put(w.projectileSpritePath(), cache);
+                LOG.info("BattleSprites: loaded " + w.projectileSpritePath()
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath, e);
+                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath(), e);
             }
         }
         // Bolt families may use mod or vanilla textures. The derived path set

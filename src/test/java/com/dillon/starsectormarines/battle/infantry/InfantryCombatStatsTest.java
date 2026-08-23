@@ -12,10 +12,10 @@ public class InfantryCombatStatsTest {
 
     @Test
     public void fieldRifleIsARealDowngradeFromPulseIssue() {
-        assertTrue(MarineWeapon.FIELD_RIFLE.cooldown > MarineWeapon.PULSE_RIFLE.cooldown);
-        assertTrue(MarineWeapon.FIELD_RIFLE.accuracy < MarineWeapon.PULSE_RIFLE.accuracy);
-        assertTrue(MarineWeapon.FIELD_RIFLE.accuracyFalloff > MarineWeapon.PULSE_RIFLE.accuracyFalloff);
-        assertEquals(1, MarineWeapon.FIELD_RIFLE.burstCount);
+        assertTrue(MarineWeapon.FIELD_RIFLE.cooldown() > MarineWeapon.PULSE_RIFLE.cooldown());
+        assertTrue(MarineWeapon.FIELD_RIFLE.accuracy() < MarineWeapon.PULSE_RIFLE.accuracy());
+        assertTrue(MarineWeapon.FIELD_RIFLE.accuracyFalloff() > MarineWeapon.PULSE_RIFLE.accuracyFalloff());
+        assertEquals(1, MarineWeapon.FIELD_RIFLE.burstCount());
         // The downgrade is in sustained output, not per-round damage: recruit
         // issue fires a heavier round precisely because a single-shot weapon
         // that also lost on damage could not kill anything (S1 measured 0
@@ -31,15 +31,15 @@ public class InfantryCombatStatsTest {
         MarineWeapon family = MarineWeapon.PULSE_RIFLE;
         SoldierProfile regular = SoldierProfile.REGULAR;
 
-        assertEquals(family.range,
+        assertEquals(family.range(),
                 InfantryCombatStats.range(family, EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(family.damage,
+        assertEquals(family.damage(),
                 InfantryCombatStats.damage(family, EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(family.accuracy,
+        assertEquals(family.accuracy(),
                 InfantryCombatStats.accuracy(family, EquipmentGrade.SERVICE, regular), 1e-6f);
-        assertEquals(family.cooldown,
+        assertEquals(family.cooldown(),
                 InfantryCombatStats.cooldown(family, EquipmentGrade.SERVICE, regular), 1e-6f);
-        assertEquals(family.hitSpread,
+        assertEquals(family.hitSpread(),
                 InfantryCombatStats.spread(family, EquipmentGrade.SERVICE, regular), 1e-6f);
     }
 
