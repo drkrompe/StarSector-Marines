@@ -360,7 +360,8 @@ public final class BattleSetup {
         }
 
         allocateDefenders(sim, map, DefenderRoster.forMission(
-                MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor), rng);
+                MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
+                BattleForceScore.attackers(assignments)), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         // Marine commander: routes non-planter squads toward the closest
@@ -579,7 +580,8 @@ public final class BattleSetup {
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
         allocateDefenders(sim, map, DefenderRoster.forMission(
-                type, tier, risk, enemyHasHeavyArmor), rng);
+                type, tier, risk, enemyHasHeavyArmor,
+                BattleForceScore.attackers(assignments)), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, null);
@@ -1022,7 +1024,8 @@ public final class BattleSetup {
         }
 
         allocateDefenders(sim, map, DefenderRoster.forMission(
-                MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor), rng);
+                MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
+                BattleForceScore.attackers(assignments)), rng);
         linkGuardpostSquads(sim, map.defensePosts);
         spawnAmbientCivilians(sim, map, rng);
         // Marine commander: lateral-strip partition perpendicular to the
