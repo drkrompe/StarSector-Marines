@@ -95,7 +95,7 @@ in [`stories/`](stories/).
 | --- | --- | --- |
 | [S1 — Lethality floor and tier spread](stories/s1-lethality-and-tier-spread.md) | 1 | — |
 | [S2 — Weapon catalog expansion](stories/s2-weapon-catalog-expansion.md) | 1 | S1 |
-| [S3 — Per-soldier combat telemetry](stories/s3-per-soldier-telemetry.md) | 2 | — |
+| S3 — Per-soldier combat telemetry (`s3-per-soldier-telemetry.md`) | 2 | — |
 | [S4 — Performance-derived experience](stories/s4-performance-derived-experience.md) | 2 | S3 |
 | [S5 — Parts acquisition channels](stories/s5-parts-acquisition-channels.md) | 3 | — |
 | [S6 — Unlock ladder expansion](stories/s6-unlock-ladder-expansion.md) | 3 | S5, S2 |

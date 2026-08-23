@@ -3,9 +3,11 @@
 > Track what each marine actually did, so progression can be earned and
 > balance can be measured instead of guessed.
 
-**Status:** slice 1 shipped (in-battle recording + attribution + debug
-readout). Slices 2 (crossing the seam) and 3 (career record) remain. No
-dependencies. **Unblocks S4, S8, and S9** — the
+**Status:** shipped. All three slices landed: in-battle recording and
+attribution, the crossing onto `MissionOutcome`, and the persisted
+`SoldierCareer`. One field of the designed record, `daysInService`, is
+deliberately deferred (see below). No dependencies. **Unblocks S4, S8, and
+S9** — the
 highest-leverage story in the track after S1.
 
 ## Problem
@@ -177,6 +179,64 @@ balance artifact the acceptance asks for.
   `IDENTITY_CAMPAIGN_SOLDIER_ID`**, for the survivor / casualty tally. Slice
   2's gather is the same walk, so it should join that one rather than open a
   second.
+
+## What shipped — slices 2 and 3
+
+**Slice 2 — crossing the seam.** `MissionResolver.compute` gathers once and
+feeds two consumers: the whole set goes to the log as the balance artifact,
+and the rows whose `campaignSoldierId` is non-null are frozen onto
+`MissionOutcome.soldierTelemetry`. The boundary invariant holds by
+construction rather than by a filter anyone has to maintain — only
+`CampaignMarineDeployment` ever supplies a `campaignSoldierId`, so employer
+militia and defenders cannot acquire a career record even though they are
+recorded in battle and appear in the debug table.
+
+`MissionOutcome` gained a canonical constructor with the telemetry map; the
+previous canonical signature is now a one-line delegate passing an empty map,
+so none of the other five overloads or their callers changed. The map is
+defensively copied and unmodifiable, for the same replay-determinism reason
+as the rest of the class.
+
+**Correction to the slice-1 handoff.** It said slice 2's gather should join
+the casualty-tally walk instead of opening a second one. On inspection that
+is wrong and the two are deliberately separate: the tally defines survival as
+"in the live roster", the telemetry gather as "not yet transmuted to a
+corpse". They agree at mission end, but folding them together would silently
+put the second definition behind the first, and one extra column walk over a
+hundred entities costs nothing.
+
+**Slice 3 — the career record.** `SoldierCareer` is a plain serializable held
+by `MarineSoldier`, backfilled in `readResolve` like every other persisted
+marine field, so a save written before it existed loads with a zeroed record.
+`MarineRoster.applySoldierOutcome` gained an overload taking the telemetry map
+and the victory flag; the old four-argument one delegates with an empty map
+and `victory = false`, so existing callers keep working.
+
+The distinction that shapes the accumulation: **`outcomes` is the deployment
+manifest, telemetry is the evidence.** Every marine in the manifest gets a
+deployment counted, whether or not the battle recorded anything for them — a
+marine who never got a shot off was still there. Only the ones with a row get
+counters.
+
+### Deferred deliberately
+
+- **`daysInService` is not shipped.** Nothing records an enlistment date:
+  `MarineRoster.createRecruit` has no campaign day in hand, and adding one is
+  its own change. The field would have had to be faked or left permanently
+  zero. Follow-up: put an enlisted-day stamp on `MarineSoldier` at
+  recruitment, then derive service length from `CampaignClock`.
+- **Per-mission history.** Lifetime totals only, as the design says. If the
+  debrief ever wants a timeline, that is a new shape, not a widening of this
+  one.
+
+### Follow-up worth recording
+
+`MissionOutcome` now has **six constructors and thirty-six positional
+parameters** on the canonical one. Adding the telemetry map kept the blast
+radius to two edits, but the class is past the point where a positional
+constructor is readable, and the next field added will be worse. A builder,
+or grouping the frozen battle report into its own value object, is the
+obvious fix — out of scope here, but it should not be put off much longer.
 
 ## Out of scope
 

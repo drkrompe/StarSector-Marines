@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  *
  * <p>Immutable and free of entity handles by design. The battle world is
  * ephemeral and never serializes
- * ({@code roadmap/progression/stories/s3-per-soldier-telemetry.md}), so this
+ * ({@code s3-per-soldier-telemetry.md}), so this
  * is what crosses to the campaign: rows whose {@link #campaignSoldierId} is
  * non-null belong to marines the campaign roster knows and accumulate into a
  * career record; every other row (defenders, employer militia, turrets) is a

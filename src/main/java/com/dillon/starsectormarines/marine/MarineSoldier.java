@@ -24,6 +24,12 @@ public final class MarineSoldier implements Serializable {
     private EquipmentGrade primaryGrade;
     private MarineSecondary secondary;
     private MarineArmorPattern armor;
+    /**
+     * Lifetime service record. Never null after construction or
+     * {@link #readResolve}; a save written before careers existed repairs to
+     * a zeroed one.
+     */
+    private SoldierCareer career;
 
     public MarineSoldier(String name, SoldierAptitude aptitude) {
         this(UUID.randomUUID().toString(), name, aptitude);
@@ -39,6 +45,7 @@ public final class MarineSoldier implements Serializable {
         this.primary = MarineWeapon.FIELD_RIFLE;
         this.primaryGrade = EquipmentGrade.SERVICE;
         this.armor = MarineArmorPattern.ARMORLESS;
+        this.career = new SoldierCareer();
     }
 
     public String id() { return id; }
@@ -53,6 +60,9 @@ public final class MarineSoldier implements Serializable {
     public EquipmentGrade primaryGrade() { return primaryGrade; }
     public MarineSecondary secondary() { return secondary; }
     public MarineArmorPattern armor() { return armor; }
+
+    /** Lifetime service record — missions, rounds, damage, kills. Never null. */
+    public SoldierCareer career() { return career; }
 
     public void addExperience(int amount) {
         experienceXp = Math.max(0, experienceXp + amount);
@@ -88,6 +98,7 @@ public final class MarineSoldier implements Serializable {
         if (primary == null) primary = MarineWeapon.FIELD_RIFLE;
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;
         if (armor == null) armor = MarineArmorPattern.ARMORLESS;
+        if (career == null) career = new SoldierCareer();
         experienceXp = Math.max(0, experienceXp);
         unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;

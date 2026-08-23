@@ -4,7 +4,7 @@
 > Traits have no UI at all.
 
 **Status:** not started. Depends on
-[S3](s3-per-soldier-telemetry.md) for career data.
+S3 (`s3-per-soldier-telemetry.md`) for career data.
 
 ## Problem
 
