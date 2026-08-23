@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
+import com.dillon.starsectormarines.ui.retained.style.UiTheme;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -172,6 +175,42 @@ class UiDocumentTest {
 
         assertRect(outerClip, 10f, 10f, 80f, 80f);
         assertRect(innerClip, 60f, 60f, 30f, 30f);
+    }
+
+    @Test
+    void explicitRelayoutRefreshesHoverForAStationaryPointer() {
+        UiElement button = new UiElement("button")
+                .tag(UiTag.BUTTON)
+                .preferredSize(40f, 40f)
+                .align(UiAlign.CENTER, UiAlign.CENTER);
+        UiDocument document = new UiDocument(new UiElement("root")
+                .layout(UiLayout.STACK)
+                .child(button));
+        document.layout(100f, 100f);
+        document.pointerMoved(50f, 50f);
+        assertTrue(button.hovered());
+
+        document.layout(200f, 100f);
+
+        assertFalse(button.hovered());
+    }
+
+    @Test
+    void nestedOpacityMultipliesForEveryPaintPath() {
+        UiElement child = new UiElement("child");
+        UiElement root = new UiElement("root").child(child);
+        UiDocument document = new UiDocument(root).theme(new UiTheme(
+                StyleSheet.parse("theme", """
+                        :root { opacity: 0.5; }
+                        #child { opacity: 0.5; }
+                        """), Map.of()));
+        document.layout(100f, 100f);
+
+        float rootAlpha = UiPainter.combinedAlpha(1f, root);
+        float childAlpha = UiPainter.combinedAlpha(rootAlpha, child);
+
+        assertEquals(0.5f, rootAlpha, EPSILON);
+        assertEquals(0.25f, childAlpha, EPSILON);
     }
 
     private static void assertRect(Rect rect, float x, float y, float width, float height) {
