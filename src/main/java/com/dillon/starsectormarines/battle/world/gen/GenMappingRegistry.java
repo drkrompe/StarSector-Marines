@@ -22,15 +22,15 @@ import java.util.Map;
  * generated things" data half of moddable-tilesets Phase 2, loaded from
  * {@code data/tilesets/*.mapping.json}. Sibling to {@link TileRegistry}: that
  * one owns the tile/doodad <em>defs</em> (what art exists); this one owns how
- * gen <em>uses</em> them (pools, and — later slices — {@code GroundKind} render
- * dispatch + per-{@code BlockKind} filler params).
+ * gen <em>uses</em> them: ordered doodad pools, {@code GroundKind} render
+ * dispatch, per-{@code BlockKind} filler parameters, and surface-relief
+ * material overrides.
  *
  * <p>The data/algorithm seam holds: pools/membership are data here; the scatter
  * and carve algorithms stay in Java (the fillers). See
- * {@code roadmap/moddable-tilesets/stories/phase-2-doodad-pools.md}.
- *
- * <p>v1 carries only the doodad pools (theme &rarr; doodad ids). Ids resolve
- * against {@link TileRegistry#installed()} — fail-loud on an unknown id.
+ * {@code moddable-tilesets-nouns.md}. Doodad-pool ids resolve against
+ * {@link TileRegistry#installed()} and fail loudly when unknown; render and
+ * filler references remain consumer-resolved pending cross-mapping preflight.
  */
 public final class GenMappingRegistry {
 

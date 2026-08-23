@@ -1,33 +1,16 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 /**
- * Hand-curated mapping from semantic battle-tile categories to source
- * {@code (col, row)} positions in {@code graphics/tilesets/urban-tileset.png}.
+ * Compatibility vocabulary for battle tile rendering that has not yet moved
+ * behind the data registries. The authoritative built-in tile, block, and prop
+ * catalog lives in {@code TileRegistry}; this class retains source-sheet
+ * constants and {@link TileFrame} for older rendering/model boundaries, plus
+ * code-owned topology helpers and explicit no-registry fallbacks.
  *
- * <p>This sheet is a top-down 32px set with no 2-tall walls (the previous sheet
- * had wall pieces drawn in 3/4 perspective, which had to be squashed vertically
- * and looked awkward next to the marine sprites). All tiles here are 1×1, so
- * walls slot cleanly into one nav-grid cell.
- *
- * <p>Layout on the sheet (10×10 cells):
- * <ul>
- *   <li>{@code (0..2, 0..2)} — clean floor 3×3 (nine variants pulled into the floor pool)</li>
- *   <li>{@code (3..5, 0..2)} — clean wall 3×3 autotile, center cell empty</li>
- *   <li>{@code (6, 2)} — closed door with green LED (decorative doodad)</li>
- *   <li>{@code (7, 2)} — open door overhead (transparent overlay rendered above floor at doorway cells)</li>
- *   <li>{@code (0..2, 4..6)} — damaged floor 3×3 (rubble pool)</li>
- *   <li>{@code (3..5, 4..6)} — damaged wall 3×3 autotile, center cell empty (reserved for a future "damaged-but-standing" wall state)</li>
- *   <li>row 7 cols 6-9 — chairs + chest doodads</li>
- *   <li>row 3 cols 3-4, row 1 cols 8-9 — crate doodads</li>
- *   <li>remaining cells — grates, bookshelves, terminals, rubble piles (reserved for prop placement later)</li>
- * </ul>
- *
- * <p>Walls are picked via {@link #pickWallTile} from the 4-neighbor exposure
- * pattern — top-edge cells use the top row, left-edge use the left column,
- * corners use the matching corner cell. The center cell {@code (4, 1)} is
- * transparent in the source art and is reserved for the "all four neighbors
- * are walls" case — the renderer paints a solid color there instead of stamping
- * the empty tile.
+ * <p>The grass/dirt helpers still hardcode sliced variant-pool membership. That
+ * narrow authority exception is tracked by
+ * {@code nature-variant-pool-authority-cleanup.md}. See
+ * {@code moddable-tilesets-nouns.md} for the standing ownership model.
  */
 public final class TileManifest {
 

@@ -136,18 +136,21 @@ public final class MissionLaunch {
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.tier, m.risk, profile);
+                        enemyHasHeavyArmor, m.tier, m.risk, profile,
+                        det.marineWings, m.enemyFighterSupport);
                 break;
             case CONQUEST:
                 sim = BattleSetup.createConquest(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.tier, m.risk, profile);
+                        enemyHasHeavyArmor, m.tier, m.risk, profile,
+                        det.marineWings, m.enemyFighterSupport);
                 break;
             case ASSAULT:
             case RAID:
             case EXTRACTION:
             default:
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.tier, m.risk, m.type, profile);
+                        enemyHasHeavyArmor, m.tier, m.risk, m.type, profile,
+                        det.marineWings, m.enemyFighterSupport);
         }
 
         // Scenario factories author seat roles/objectives first; the persistent
@@ -172,12 +175,13 @@ public final class MissionLaunch {
                     .applyTo(sim, firstPlayerShuttle);
         }
 
-        // Marine-side fighter cover (committed bays + employer) combined with the
-        // mission's enemy support, then any force-spawned debug wings (both sides
-        // — each FighterWing carries its own side, so the overlay spawns it right);
-        // then the active command-power roster.
+        // Generic factories leave only the enemy wings that fit their shared
+        // force budget on the sim. Combine those with marine-side cover
+        // (committed bays + employer), then any force-spawned debug wings (both
+        // sides — each FighterWing carries its own side, so the overlay spawns
+        // it right); then install the active command-power roster.
         sim.setFlybyRoster(FlybyRoster.combine(
-                FlybyRoster.combine(det.marineWings, m.enemyFighterSupport), debugWings));
+                FlybyRoster.combine(det.marineWings, sim.getFlybyRoster()), debugWings));
         sim.setCommandPowers(det.powers);
         sim.setCommandPowerResources(new CampaignCommandPowerResources());
 

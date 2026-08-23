@@ -81,17 +81,14 @@ universe over time, not retrofitted into intel slots.
   blocks, and apartment facades add non-traversable firing windows that preserve
   sight, shots, and directional cover. See
   [`mapgen/`](mapgen/).
-- **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
-  tile definitions and their gen→tile mappings out of hardcoded Java
-  (`NatureTile`, `TileManifest`, per-`BlockKind` filler presets) into a
-  dual-JSON, id-addressed `TileRegistry` so a submod can extend the tile
-  catalog without recompiling. Phase 1 (id-registry, behavior-preserving)
-  already paid off pre-submod: it killed the "enum order = PNG order" +
-  hardcoded `(col,row)` fragility, and Phase 2 made the gen→tile mapping
-  (doodad pools, ground-render dispatch, filler params) data too. Phase 3
-  (mod-merge: load order, id-override, validation) is deferred until a real
-  submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
-  [`moddable-tilesets/`](moddable-tilesets/overview.md).
+- **Moddable tilesets** *(Phases 1 + 2 shipped; one proposed cleanup)* — the
+  built-in visual catalog and its generation mapping are dual-JSON and
+  id-addressed. `TileRegistry` owns what assets exist; `GenMappingRegistry`
+  owns how code-driven generation and rendering use them. Phase 3 discovery,
+  merge, override, and strict-validation semantics remain direction until a
+  real second content provider exists. `moddable-tilesets-nouns.md` carries the
+  standing model; its adjacent `stories.md` board tracks the remaining narrow
+  nature-pool authority cleanup.
 - **Moddable weapons** *(W1 shipped)* — the same move for the weapon
   catalog. Nineteen weapons across four enums (`MarineWeapon`,
   `MarineSecondary`, `MechWeapon`, `TurretKind`) with near-identical field
@@ -141,8 +138,9 @@ universe over time, not retrofitted into intel slots.
   Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
   and static turret candidates the combined player/allied attack cannot support,
   keeping small Raids playable without making heavy defenses categorically
-  late-game. First Contract missions also suppress procedural enemy fighter
-  support while preserving marine-side allied cover. Hound's ASSAULT
+  late-game. Fighter sorties now use that same budget: allied air strengthens
+  the attack, ordinary strafing has a fixed per-sortie cost, and AoE missile
+  profiles carry a premium. Hound's ASSAULT
   doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
@@ -191,7 +189,7 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C9 and C14 Slice 1 shipped)* — the player's force as one legible
+- **Company view** *(active — C9 and C14 Slices 1–2 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
@@ -232,7 +230,11 @@ universe over time, not retrofitted into intel slots.
   ships the first end-to-end version:** four reusable starter cards, mixed
   four-billet issues including support weapons, atomic stock checks net of
   returned gear, persistent per-team assignments, and Alpha/Bravo/Charlie on
-  the Fleet Armory LOADOUTS surface. The player-authored designer is next. A tenth story
+  the Fleet Armory LOADOUTS surface. The Card Designer now creates, clones and
+  renames persistent custom cards, edits all four billets without stock gates,
+  and saves equipment changes as new revisions so assigned teams never refit
+  silently. Both the designer library and LOADOUTS picker page beyond the four
+  starters. Availability previews and fast swap are next. A tenth story
   (C10) settles where the company is
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the

@@ -1,6 +1,6 @@
 # Economic districts — the city looks like its economy
 
-> Bridge consumer #2 (see [`../../campaign-battle-bridge/overview.md`](../../campaign-battle-bridge/overview.md)
+> Bridge consumer #2 (see `campaign-battle-bridge-nouns.md`
 > § "urban composition"), scoped up from "reweight the existing themes" to its
 > true size: a **district vocabulary** where a mining world *reads and fights*
 > like a mining world, a spaceport like a spaceport. Districts become
@@ -41,10 +41,11 @@ is the hard part:
 
 ## Dependency — extend the bridge to carry the economy
 
-`TargetProfile` (the [campaign → battle bridge](../../campaign-battle-bridge/overview.md))
-distills only `defenseLevel` + `spaceportTier` today. This feature needs the
-planet's **economic function mix**. To keep `battle.world.gen` campaign-free,
-introduce a stable, vanilla-decoupled enum in `battle.world.gen`:
+`TargetProfile` (the campaign → battle bridge in `campaign-battle-bridge-nouns.md`)
+originally carried only `defenseLevel` and `spaceportTier`; this feature's
+shipped substrate extended it with the planet's **economic function mix**. To
+keep `battle.world.gen` campaign-free, that mix uses a stable,
+vanilla-decoupled enum in `battle.world.gen`:
 
 ```
 enum EconomicFunction { HABITATION, COMMERCE, HEAVY_INDUSTRY, SPACEPORT,
@@ -163,7 +164,7 @@ cell stamps, per "identity lives in the nav layout" above).
 Until then these read as generic crates / grates / rocks from the shared sheets.
 
 ## Cross-refs
-- [`../../campaign-battle-bridge/overview.md`](../../campaign-battle-bridge/overview.md)
+- `campaign-battle-bridge-nouns.md`
   — this is consumer #2; slice 0 extends `TargetProfile`.
 - [`../overview.md`](../overview.md) + the `bsp/fill/` filler family
   — the content layer this expands.
