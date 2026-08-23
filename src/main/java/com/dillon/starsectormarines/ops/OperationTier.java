@@ -24,7 +24,7 @@ package com.dillon.starsectormarines.ops;
  * replaces fifteen hand-written numbers in {@code DefenderRoster.totalFor},
  * each of which encoded tier inside type.
  *
- * <p>See `mission-tiers/overview.md`.
+ * <p>See `mission-tier-nouns.md`.
  */
 public enum OperationTier {
 

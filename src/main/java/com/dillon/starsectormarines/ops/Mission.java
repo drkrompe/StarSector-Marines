@@ -33,7 +33,7 @@ public final class Mission {
      * Where on the campaign arc this work sits — owns scale (map size, lift,
      * defender count) and whether the type may be offered at all. Never null;
      * defaults from {@link #risk} for missions authored before the split.
-     * See `mission-tiers/overview.md`.
+     * See `mission-tier-nouns.md`.
      */
     public final OperationTier tier;
     public final String        requirements;

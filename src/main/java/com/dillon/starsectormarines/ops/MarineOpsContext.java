@@ -395,8 +395,9 @@ public class MarineOpsContext {
                 ? Global.getSector().getPlayerFaction()
                 : null;
 
-        // 0. Debug client — synthetic entry exposing every MissionType × RiskLevel
-        //    combo for playtesting. Gated by DevConfig.DEBUG_CLIENT.
+        // 0. Debug client — synthetic entry exposing every eligible
+        //    MissionType × OperationTier pairing at medium risk for playtesting.
+        //    Gated by DevConfig.DEBUG_CLIENT.
         if (com.dillon.starsectormarines.DevConfig.DEBUG_CLIENT && market != null) {
             out.add(new Client(DEBUG_CLIENT_FACTION_ID,
                     "DEBUG — All Missions",

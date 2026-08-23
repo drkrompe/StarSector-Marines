@@ -60,8 +60,8 @@ public final class MissionGenerator {
     public static List<Mission> generate(PlanetAPI planet, Client client) {
         if (planet == null || client == null) return Collections.emptyList();
 
-        // Debug client — the full MissionType × RiskLevel grid, no caps,
-        // for playtesting. Gated upstream by DevConfig.DEBUG_CLIENT.
+        // Debug client — every eligible MissionType × OperationTier pairing at
+        // medium risk, with no caps. Gated upstream by DevConfig.DEBUG_CLIENT.
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return generateDebugGrid(planet, client);
         }
@@ -105,10 +105,10 @@ public final class MissionGenerator {
     }
 
     /**
-     * Emits the full {@link MissionType} × {@link RiskLevel} grid for the debug
-     * client — 15 ordinary type/risk entries plus three swarm-rescue risk
-     * entries. Bypasses {@link #MAX_MISSIONS} so every scenario is reachable
-     * from a single planet.
+     * Emits every eligible {@link MissionType} × {@link OperationTier} pairing
+     * at medium risk for the debug client, followed by three swarm-rescue risk
+     * entries. Bypasses {@link #MAX_MISSIONS} so every scale is reachable from
+     * a single planet.
      *
      * <p>Industry id is the first non-disrupted industry on the planet (or null
      * — disruption writeback no-ops in that case). Payouts + drop counts use
@@ -592,7 +592,7 @@ public final class MissionGenerator {
     }
 
     /**
-     * Per-(type, risk) drop count. Drops feed marines onto the field via
+     * Per-(type, tier) drop count. Drops feed marines onto the field via
      * shuttle cycling — with capacity-4 Aeroshuttles, drop count × 4 ≈ marines
      * on the field. CONQUEST gets the biggest commitments; SABOTAGE stays
      * smallest for covert flavor.

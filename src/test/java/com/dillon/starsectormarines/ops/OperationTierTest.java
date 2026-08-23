@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Scale on its own axis — `mission-tiers/overview.md`.
+ * Scale on its own axis — `mission-tier-nouns.md`.
  *
  * <p>What these hold: a mission type can now span the whole ladder instead of
  * having its tier baked into its risk table, CONQUEST cannot be offered as a
