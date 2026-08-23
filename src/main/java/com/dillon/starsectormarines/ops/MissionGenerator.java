@@ -124,8 +124,14 @@ public final class MissionGenerator {
 
         List<Mission> out = new ArrayList<>();
         int index = 0;
+        // The debug board enumerates (type x tier), not (type x risk): tier is
+        // the axis a force-ratio playtest varies, and a type below its floor
+        // is not a thing that exists. Risk rides along at MEDIUM so the board
+        // shows each tier's nominal fight rather than its variance.
         for (MissionType type : MissionType.values()) {
-            for (RiskLevel risk : RiskLevel.values()) {
+            for (OperationTier tier : OperationTier.values()) {
+                if (!tier.atLeast(type.tierFloor)) continue;
+                RiskLevel risk = RiskLevel.MEDIUM;
                 int payout = computePayout(market.getSize(), risk, type, r);
 
                 float x = 0.08f + r.nextFloat() * 0.84f;
@@ -134,14 +140,16 @@ public final class MissionGenerator {
                 FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
                 FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-                int requiredDrops = requiredDropsFor(type, risk);
+                int requiredDrops = requiredDropsFor(type, tier);
                 if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
                     requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
                 }
                 int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
-                String id = "debug:" + type.name() + ":" + risk.name() + ":" + index++;
-                String name = type.name() + " — " + risk.name();
-                String flavor = "DEBUG: " + type.name() + " at " + risk.name() + " risk.";
+                String id = "debug:" + type.name() + ":" + tier.name() + ":" + index++;
+                String name = type.name() + " — " + tier.displayName;
+                String flavor = "DEBUG: " + type.name() + " at " + tier.displayName
+                        + " — wants " + tier.squadsDemanded
+                        + (tier.squadsDemanded == 1 ? " squad." : " squads.");
 
                 out.add(Mission.builder()
                         .id(id)
@@ -150,6 +158,7 @@ public final class MissionGenerator {
                         .source(MissionSource.DEBUG)
                         .payout(payout)
                         .risk(risk)
+                        .tier(tier)
                         .requirements(requirementsFor(risk))
                         .flavor(flavor)
                         .mapPosition(x, y)
@@ -188,7 +197,8 @@ public final class MissionGenerator {
                 .civiliansAtRisk(CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT)
                 .build());
         for (RiskLevel risk : RiskLevel.values()) {
-            int requiredDrops = requiredDropsFor(MissionType.EXTRACTION, risk);
+            int requiredDrops = requiredDropsFor(MissionType.EXTRACTION,
+                tierFor(MissionType.EXTRACTION, risk));
             if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
                 requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
             }
@@ -302,7 +312,8 @@ public final class MissionGenerator {
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        int requiredDrops = requiredDropsFor(missionType, risk);
+        OperationTier tier = tierFor(missionType, risk);
+        int requiredDrops = requiredDropsFor(missionType, tier);
         int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
         java.util.List<String> employerPowers = rollEmployerPowers(r, risk);
 
@@ -450,7 +461,8 @@ public final class MissionGenerator {
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        int requiredDrops = requiredDropsFor(archetype.type, risk);
+        OperationTier tier = tierFor(archetype.type, risk);
+        int requiredDrops = requiredDropsFor(archetype.type, tier);
         int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
         String requirements = requirementsFor(risk);
         String id = client.factionId + ":" + industry.id + ":" + index;
@@ -585,26 +597,25 @@ public final class MissionGenerator {
      * on the field. CONQUEST gets the biggest commitments; SABOTAGE stays
      * smallest for covert flavor.
      */
-    private static int requiredDropsFor(MissionType type, RiskLevel risk) {
-        if (type == null || risk == null) return 3;
-        switch (type) {
-            case ASSAULT:
-                switch (risk) { case LOW: return 5; case MEDIUM: return 13; case HIGH: return 25; }
-                break;
-            case SABOTAGE:
-                switch (risk) { case LOW: return 3; case MEDIUM: return 6;  case HIGH: return 12; }
-                break;
-            case RAID:
-                switch (risk) { case LOW: return 5; case MEDIUM: return 11; case HIGH: return 22; }
-                break;
-            case EXTRACTION:
-                switch (risk) { case LOW: return 5; case MEDIUM: return 11; case HIGH: return 22; }
-                break;
-            case CONQUEST:
-                switch (risk) { case LOW: return 6; case MEDIUM: return 18; case HIGH: return 40; }
-                break;
-        }
-        return 3;
+    /**
+     * Lift the work is written for: the tier's drop budget scaled by what the
+     * mission type is, so the attacker-to-defender ratio the designer picked
+     * holds across types. Floors at two — one drop is not an operation.
+     */
+    /**
+     * Tier for a mission the generator only has a risk level for. The
+     * compatibility mapping, floored by the type — so a CONQUEST offered at
+     * any risk still comes out at least REINFORCED.
+     */
+    static OperationTier tierFor(MissionType type, RiskLevel risk) {
+        return OperationTier.clampTo(OperationTier.forRisk(risk),
+                type != null ? type.tierFloor : null);
+    }
+
+    static int requiredDropsFor(MissionType type, OperationTier tier) {
+        OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
+        float weight = type != null ? type.defenderWeight : 0.6f;
+        return Math.max(2, Math.round(resolved.drops * weight));
     }
 
     /**

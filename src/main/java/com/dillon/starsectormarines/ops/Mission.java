@@ -29,6 +29,13 @@ public final class Mission {
     public final MissionSource source;
     public final int           payout;
     public final RiskLevel     risk;
+    /**
+     * Where on the campaign arc this work sits — owns scale (map size, lift,
+     * defender count) and whether the type may be offered at all. Never null;
+     * defaults from {@link #risk} for missions authored before the split.
+     * See `mission-tiers/overview.md`.
+     */
+    public final OperationTier tier;
     public final String        requirements;
     public final String        flavor;
     public final float         normalizedX;
@@ -118,6 +125,9 @@ public final class Mission {
         this.source       = b.source != null ? b.source : MissionSource.GENERATED;
         this.payout       = b.payout;
         this.risk         = b.risk;
+        this.tier         = OperationTier.clampTo(
+                b.tier != null ? b.tier : OperationTier.forRisk(b.risk),
+                b.type != null ? b.type.tierFloor : null);
         this.requirements = b.requirements;
         this.flavor       = b.flavor;
         this.normalizedX  = b.normalizedX;
@@ -170,6 +180,7 @@ public final class Mission {
         private MissionSource source;
         private int payout;
         private RiskLevel risk;
+        private OperationTier tier;
         private String requirements = "";
         private String flavor = "";
         private float normalizedX;
@@ -205,6 +216,7 @@ public final class Mission {
             this.source = m.source;
             this.payout = m.payout;
             this.risk = m.risk;
+            this.tier = m.tier;
             this.requirements = m.requirements;
             this.flavor = m.flavor;
             this.normalizedX = m.normalizedX;
@@ -251,6 +263,11 @@ public final class Mission {
 
         public Builder payout(int payout) {
             this.payout = payout;
+            return this;
+        }
+
+        public Builder tier(OperationTier tier) {
+            this.tier = tier;
             return this;
         }
 

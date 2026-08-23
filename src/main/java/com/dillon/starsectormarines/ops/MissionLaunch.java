@@ -136,17 +136,18 @@ public final class MissionLaunch {
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.risk, profile);
+                        enemyHasHeavyArmor, m.tier, m.risk, profile);
                 break;
             case CONQUEST:
-                sim = BattleSetup.createConquest(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk, profile);
+                sim = BattleSetup.createConquest(seed, det.shuttleManifest,
+                        enemyHasHeavyArmor, m.tier, m.risk, profile);
                 break;
             case ASSAULT:
             case RAID:
             case EXTRACTION:
             default:
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.risk, m.type, profile);
+                        enemyHasHeavyArmor, m.tier, m.risk, m.type, profile);
         }
 
         // Scenario factories author seat roles/objectives first; the persistent

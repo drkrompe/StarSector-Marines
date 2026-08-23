@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 /**
@@ -30,13 +31,28 @@ public enum MapScale {
         this.height = height;
     }
 
-    public static MapScale forRisk(RiskLevel risk) {
-        if (risk == null) return MEDIUM;
-        switch (risk) {
-            case LOW:    return SMALL;
-            case HIGH:   return LARGE;
-            case MEDIUM:
-            default:     return MEDIUM;
+    /**
+     * Map size for an operation's tier. Scale is the tier's business — a
+     * beginner's job is tight and quick whether or not it is dangerous, and a
+     * late-game siege needs room whether or not it is a surprise.
+     */
+    public static MapScale forTier(OperationTier tier) {
+        if (tier == null) return MEDIUM;
+        switch (tier) {
+            case FIRST_CONTRACT: return SMALL;
+            case REINFORCED:
+            case FULL_STRENGTH:  return LARGE;
+            case ESTABLISHED:
+            case VETERAN:
+            default:             return MEDIUM;
         }
+    }
+
+    /**
+     * Compatibility bridge for paths with no mission behind them. Prefer
+     * {@link #forTier}; see {@code OperationTier.forRisk}.
+     */
+    public static MapScale forRisk(RiskLevel risk) {
+        return forTier(OperationTier.forRisk(risk));
     }
 }

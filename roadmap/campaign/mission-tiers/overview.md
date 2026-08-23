@@ -7,7 +7,8 @@
 
 **Status:** contracted 2026-08-23, from a playtest observation — CONQUEST is
 late-game content by *type*, variance is going to keep growing, and there is
-a beginner tier the enum has no room for.
+a beginner tier the enum has no room for. **Slice 1 (the tier and its scale
+duties) shipped the same day.**
 
 ## The finding
 
@@ -94,17 +95,26 @@ millimetre.
   tier says how many squads the work wants, rank says how many one officer
   leads.
 
-## Open — the ladder itself
+## The ladder — decided 2026-08-23
 
-The tier names and count are an authorial call, not a derivable one, and
-they set the campaign's pacing. Sketch for discussion, not a decision:
+**It is the debug company's vocabulary**, so a job's tier and the company
+that should take it are the same words read from two sides. A briefing can
+say "this wants a Reinforced company and you field Established" instead of
+leaving the player to infer it from a colour.
 
-| Tier | Character | Company that should take it |
-| --- | --- | --- |
-| Beginner | the opening ladder — militia, no air, finite enemy | 1 squad, green |
-| Standard | ordinary contract work | 3-6 squads |
-| Major | a real operation, multiple officers | 10-17 squads |
-| Late | CONQUEST and its peers | 24-34 squads |
+| Tier | Defenders (MEDIUM) | Drops | Squads demanded | Map |
+| --- | ---: | ---: | ---: | --- |
+| First Contract | 14 | 3 | 1 | SMALL |
+| Established | 44 | 8 | 6 | MEDIUM |
+| Veteran | 105 | 18 | 10 | MEDIUM |
+| Reinforced | 175 | 28 | 17 | LARGE |
+| Full Strength | 280 | 40 | 34 | LARGE |
+
+Those are the base curve; a mission type scales it by `defenderWeight`
+(CONQUEST 1.00, ASSAULT 0.75, EXTRACTION 0.65, RAID 0.60, SABOTAGE 0.45) and
+risk nudges it by `forceMult` (0.85 / 1.00 / 1.15). CONQUEST at Full
+Strength / HIGH lands on **322** — the old table's 320, preserved so the
+measurement play already made still means something.
 
 ## Scope boundary
 

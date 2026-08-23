@@ -86,6 +86,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayDeque;
@@ -113,7 +114,7 @@ public final class BattleSetup {
 
     private static final Logger LOG = Logger.getLogger(BattleSetup.class);
 
-    /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forRisk}. */
+    /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forTier}. */
     public static final int GRID_W = MapScale.MEDIUM.width;
     public static final int GRID_H = MapScale.MEDIUM.height;
 
@@ -280,7 +281,16 @@ public final class BattleSetup {
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
                                                   boolean enemyHasHeavyArmor, RiskLevel risk,
                                                   TargetProfile profile) {
-        MapScale scale = MapScale.forRisk(risk);
+        return createSabotage(seed, manifest, enemyHasHeavyArmor,
+                OperationTier.forRisk(risk), risk, profile);
+    }
+
+    /** Tier-aware sabotage factory — scale comes from the tier, variance from the risk. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile) {
+        MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -349,7 +359,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.SABOTAGE, risk, enemyHasHeavyArmor), rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(
+                MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         // Marine commander: routes non-planter squads toward the closest
@@ -505,7 +516,16 @@ public final class BattleSetup {
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor, RiskLevel risk,
                                                      MissionType type, TargetProfile profile) {
-        MapScale scale = MapScale.forRisk(risk);
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor,
+                OperationTier.forRisk(risk), risk, type, profile);
+    }
+
+    /** Tier-aware catch-all factory — scale comes from the tier, variance from the risk. */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile) {
+        MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -558,7 +578,8 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(
+                type, tier, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, null);
@@ -579,7 +600,7 @@ public final class BattleSetup {
         if (kind == null) throw new IllegalArgumentException(
                 "opening operation kind is required");
 
-        MapScale scale = MapScale.forRisk(RiskLevel.LOW);
+        MapScale scale = MapScale.forTier(OperationTier.FIRST_CONTRACT);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null,
                 profile != null ? profile : TargetProfile.NEUTRAL);
         Random rng = new Random(seed);
@@ -905,8 +926,17 @@ public final class BattleSetup {
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor, RiskLevel risk,
                                                TargetProfile profile) {
-        MapScale scale = MapScale.forRisk(risk);
-        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, risk, profile,
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                OperationTier.forRisk(risk), risk, profile);
+    }
+
+    /** Tier-aware conquest build — scale comes from the tier, variance from the risk. */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile) {
+        MapScale scale = MapScale.forTier(tier);
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
                 scale.width, scale.height);
     }
 
@@ -919,6 +949,15 @@ public final class BattleSetup {
      */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor, RiskLevel risk,
+                                               TargetProfile profile, int gridW, int gridH) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                OperationTier.forRisk(risk), risk, profile, gridW, gridH);
+    }
+
+    /** Tier-aware explicit-dimensions conquest build. */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
                                                TargetProfile profile, int gridW, int gridH) {
         Random rng = new Random(seed);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
@@ -982,7 +1021,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.CONQUEST, risk, enemyHasHeavyArmor), rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(
+                MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor), rng);
         linkGuardpostSquads(sim, map.defensePosts);
         spawnAmbientCivilians(sim, map, rng);
         // Marine commander: lateral-strip partition perpendicular to the
@@ -1005,6 +1045,15 @@ public final class BattleSetup {
                                                   boolean enemyHasHeavyArmor, RiskLevel risk,
                                                   TargetProfile profile) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor, risk, profile).sim();
+    }
+
+    /** Tier-aware conquest factory — the campaign mission flow's entry point. */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                tier, risk, profile).sim();
     }
 
     /**
