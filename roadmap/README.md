@@ -170,7 +170,9 @@ universe over time, not retrofitted into intel slots.
   Marine Ops is growing a retained document layer inside the existing full-canvas
   Starsector host. U1 adds the first Java tree, top-left document coordinates,
   row/column/stack layout, shared paint/hit boxes, and a dev workbench reachable
-  from Company HQ. Clipping/focus/canvas input, themes/transitions, and MoonLight-style
+  from Company HQ. U2 now ports MoonLight's CSS overflow contract: nested padding-box
+  clips govern both OpenGL paint and hit-testing through one UI-scale-aware adapter.
+  Scrolling/focus/canvas input, themes/transitions, and MoonLight-style
   `.mlx` components remain ordered follow-ons under `roadmap/ui/`; Fleet Armory is
   the first planned production conversion.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible

@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -108,6 +109,69 @@ class UiDocumentTest {
         assertTrue(document.pointerUp(75f, 75f));
         assertEquals(0, clicks.get());
         assertFalse(button.armed());
+    }
+
+    @Test
+    void hiddenOverflowClipsHitTestingToThePaddingBox() {
+        UiElement first = new UiElement("first").preferredWidth(30f);
+        UiElement target = new UiElement("target")
+                .preferredWidth(30f)
+                .onClick(() -> { });
+        UiElement clipped = new UiElement("clipped")
+                .layout(UiLayout.ROW)
+                .preferredSize(60f, 60f)
+                .align(UiAlign.START, UiAlign.START)
+                .border(5f, null)
+                .overflow(Overflow.HIDDEN)
+                .child(first)
+                .child(target);
+        UiElement root = new UiElement("root")
+                .layout(UiLayout.STACK)
+                .child(clipped);
+        UiDocument document = new UiDocument(root);
+        document.layout(100f, 100f);
+
+        assertSame(target, document.hit(50f, 20f));
+        assertNull(document.hit(57f, 20f));
+    }
+
+    @Test
+    void visibleOverflowAllowsAChildHitBeyondItsParent() {
+        UiElement first = new UiElement("first").preferredWidth(40f);
+        UiElement target = new UiElement("target")
+                .preferredWidth(40f)
+                .onClick(() -> { });
+        UiElement visible = new UiElement("visible")
+                .layout(UiLayout.ROW)
+                .preferredSize(60f, 60f)
+                .align(UiAlign.START, UiAlign.START)
+                .overflow(Overflow.VISIBLE)
+                .child(first)
+                .child(target);
+        UiElement root = new UiElement("root")
+                .layout(UiLayout.STACK)
+                .child(visible);
+        UiDocument document = new UiDocument(root);
+        document.layout(100f, 100f);
+
+        assertSame(target, document.hit(70f, 20f));
+    }
+
+    @Test
+    void nestedOverflowClipsIntersectRatherThanReplaceTheirAncestors() {
+        LayoutBox outer = new LayoutBox();
+        outer.place(new Rect(10f, 10f, 80f, 80f), Insets.ZERO, 0f);
+        LayoutBox inner = new LayoutBox();
+        inner.place(new Rect(60f, 60f, 50f, 50f), Insets.ZERO, 0f);
+        Rect viewport = new Rect(0f, 0f, 100f, 100f);
+
+        Rect outerClip = UiLayoutEngine.clipForChildren(
+                Overflow.HIDDEN, outer, viewport);
+        Rect innerClip = UiLayoutEngine.clipForChildren(
+                Overflow.SCROLL, inner, outerClip);
+
+        assertRect(outerClip, 10f, 10f, 80f, 80f);
+        assertRect(innerClip, 60f, 60f, 30f, 30f);
     }
 
     private static void assertRect(Rect rect, float x, float y, float width, float height) {
