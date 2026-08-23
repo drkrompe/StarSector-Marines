@@ -50,10 +50,17 @@ class DebugCivilianRescueMissionTest {
 
     @Test
     void ordinaryExtractionDoesNotSelectTheRescueFactory() {
-        Mission mission = new Mission("ordinary", "Extraction",
-                MissionType.EXTRACTION, MissionSource.GENERATED,
-                1_000, RiskLevel.LOW, "", "", 0.5f, 0.5f,
-                null, null, 1, 0, "Test Colony", null);
+        Mission mission = Mission.builder()
+                .id("ordinary")
+                .name("Extraction")
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.GENERATED)
+                .payout(1_000)
+                .risk(RiskLevel.LOW)
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(1)
+                .targetPlanetName("Test Colony")
+                .build();
 
         assertFalse(MissionLaunch.isCivilianRescueBattle(mission));
         assertFalse(mission.source.isDebug());

@@ -209,6 +209,7 @@ player has to remember which teams are out.
 | ~~C10~~ (`c10-company-between-contracts.md`) | The company between contracts: a campaign-map home — **shipped 2026-08-23** | — |
 | C11 (`c11-the-contract-board.md`) | The contract board: seeing work you are not standing on | C10 slice 1 |
 | ~~C12~~ (`c12-the-debug-company.md`) | The debug company: a fixture that mimics the campaign — **slices 1-2 shipped 2026-08-23** | C1, C7 |
+| C13 (`c13-the-task-force.md`) | The task force: command scoped per officer — **slice 1 shipped 2026-08-23** | C7, C12 |
 
 C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real

@@ -1,12 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
 
-import java.util.Collections;
 import java.util.Random;
 
 /** Builds the immutable mission boundary for one committed rescue event. */
@@ -37,16 +35,22 @@ public final class CivilianRescueMissionFactory {
         String name = "Civilian Evacuation — " + planetName;
         String flavor = "Relief stores are committed. Hold the evacuation "
                 + "corridor until the civilian lifts are clear.";
-        return new Mission(missionId, name, MissionType.EXTRACTION,
-                MissionSource.CAMPAIGN_EVENT, 0, RiskLevel.HIGH,
-                "Committed relief response", flavor,
-                0.2f + random.nextFloat() * 0.6f,
-                0.2f + random.nextFloat() * 0.6f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                4, 0, planetName, null, factionId,
-                -1L, eventId, localMarketId,
-                state.eventCiviliansAtRisk[row],
-                (byte) 0, (byte) 0, (byte) 100,
-                (byte) 0, (byte) 0, Collections.emptyList());
+        return Mission.builder()
+                .id(missionId)
+                .name(name)
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.CAMPAIGN_EVENT)
+                .risk(RiskLevel.HIGH)
+                .requirements("Committed relief response")
+                .flavor(flavor)
+                .mapPosition(0.2f + random.nextFloat() * 0.6f,
+                        0.2f + random.nextFloat() * 0.6f)
+                .requiredDrops(4)
+                .targetPlanetName(planetName)
+                .targetFactionId(factionId)
+                .campaignEventId(eventId)
+                .campaignEventMarketId(localMarketId)
+                .civiliansAtRisk(state.eventCiviliansAtRisk[row])
+                .build();
     }
 }

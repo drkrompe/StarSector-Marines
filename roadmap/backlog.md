@@ -296,6 +296,27 @@ as separate entries below.
   id, or the test should stop asserting the leader's team index. The
   company-view track owns squad leadership (C7) and should pick.
 
+## Constructor sprawl
+
+Both offenders are fixed; kept here as the shape to reach for next time.
+
+- **`MissionOutcome`** — six constructors, thirty-six positional parameters,
+  seven call sites. Replaced by `MissionOutcome.builder()` on 2026-08-22.
+- **`Mission`** — six constructors, twenty-eight positional parameters,
+  twenty-one call sites. Replaced by `Mission.builder()` the same day, plus
+  `Mission.builder(Mission)` for copy-with-changes.
+
+The pattern in both: every new frozen field arrives as one more overload
+delegating inward, and the older overloads keep passing whatever sentinel
+meant "absent" at the time. Call sites decay into runs of bare literals, and
+a caller picking the wrong overload silently gets defaults it never asked
+for. Make builder defaults the absent-values the class already normalizes to,
+and the overloads stop being necessary at all.
+
+`MissionBuilderTest` pins the defaults and asserts `builder(Mission)` copies
+every field — that second test is the guard against a new field being added
+to the class and not to the copy path.
+
 ## Translation / community
 
 - **i18n coverage audit** — all user-facing strings should already route

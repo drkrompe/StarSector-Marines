@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -51,24 +50,38 @@ public final class OpeningOperationStory implements StoryMissionDef {
         String planetName = ctx.planet != null ? ctx.planet.getName() : null;
 
         return switch (kind) {
-            case RELIEF -> new Mission(
-                    id(), "Hold Until Relieved", MissionType.ASSAULT,
-                    MissionSource.STORY, 6_000, RiskLevel.LOW,
-                    "Player lift for 1 sortie",
-                    "A local militia post is taking fire from bandits with more nerve than kit. "
+            case RELIEF -> Mission.builder()
+                    .id(id())
+                    .name("Hold Until Relieved")
+                    .type(MissionType.ASSAULT)
+                    .source(MissionSource.STORY)
+                    .payout(6_000)
+                    .risk(RiskLevel.LOW)
+                    .requirements("Player lift for 1 sortie")
+                    .flavor("A local militia post is taking fire from bandits with more nerve than kit. "
                             + "Their line is still intact, but it will not stay that way. Land beside "
-                            + "them, steady the position, and break the attack.",
-                    x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                    2, 1, planetName, null);
-            case COUNTERATTACK -> new Mission(
-                    id(), "Take Back the Depot", MissionType.ASSAULT,
-                    MissionSource.STORY, 9_000, RiskLevel.LOW,
-                    "Player lift for 2 sorties",
-                    "The survivors from the relief job found the bandits' supply depot. Local troops "
+                            + "them, steady the position, and break the attack.")
+                    .mapPosition(x, y)
+                    .requiredDrops(2)
+                    .employerShuttles(1)
+                    .targetPlanetName(planetName)
+                    .build();
+            case COUNTERATTACK -> Mission.builder()
+                    .id(id())
+                    .name("Take Back the Depot")
+                    .type(MissionType.ASSAULT)
+                    .source(MissionSource.STORY)
+                    .payout(9_000)
+                    .risk(RiskLevel.LOW)
+                    .requirements("Player lift for 2 sorties")
+                    .flavor("The survivors from the relief job found the bandits' supply depot. Local troops "
                             + "will go in with you, but they need a harder outfit to carry the sweep "
-                            + "through the occupied blocks.",
-                    x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                    3, 1, planetName, null);
+                            + "through the occupied blocks.")
+                    .mapPosition(x, y)
+                    .requiredDrops(3)
+                    .employerShuttles(1)
+                    .targetPlanetName(planetName)
+                    .build();
         };
     }
 

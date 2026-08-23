@@ -38,12 +38,14 @@ class ResultsScreenPersonnelPresentationTest {
     }
 
     private static MissionOutcome outcome(MissionSource source, Set<String> fireteams) {
-        return new MissionOutcome(true, "results-personnel", "Personnel Test",
-                MissionType.ASSAULT, RiskLevel.MEDIUM, source,
-                0, 0, 0, 0, null, null, null, null,
-                0, 0f, null, null, null, null,
-                -1L, -1L, -1, 0, -1,
-                -1, -1, 0, 0, 0,
-                Collections.emptySet(), Collections.emptySet(), fireteams);
+        return MissionOutcome.builder()
+                .victory(true)
+                .missionId("results-personnel")
+                .missionName("Personnel Test")
+                .missionType(MissionType.ASSAULT)
+                .risk(RiskLevel.MEDIUM)
+                .missionSource(source)
+                .deployedFireteamIds(fireteams)
+                .build();
     }
 }
