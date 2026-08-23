@@ -4,7 +4,7 @@ Status: READY — tune only from observed issues in the manual route-and-motion 
 
 Written: 2026-06-02
 
-Updated: 2026-08-23 — unified controller, cost, clearance, and recovery feel tuning.
+Updated: 2026-08-23 — removed shipped turn correctness from the remaining feel knobs.
 
 Read `convoy-nouns.md` and run `route-and-motion-acceptance.md` first.
 
@@ -17,7 +17,8 @@ boundaries or adding new mechanics.
 
 Speed-scaled lookahead and a curvature speed governor are shipped. The cost
 field prefers roads, the clearance mask rejects static gaps, the local planner
-tracks a rolling feasible trajectory, and recovery can reverse or reroute.
+tracks a rolling forward-feasible trajectory, route bends are minimum-radius
+validated, and recovery can reverse or cumulatively reroute.
 
 ## Evidence-led knobs
 
@@ -26,7 +27,7 @@ tracks a rolling feasible trajectory, and recovery can reverse or reroute.
 - acceleration, braking, and steering slew for each existing handling profile;
 - terrain costs, clearance erosion, and string-pull aggressiveness;
 - docking range/speed and recovery reaction timing;
-- cumulative avoidance or reroute caps only if a repeated-route loop appears.
+- reroute caps only if the remaining bounded no-route retries read poorly.
 
 Cost-aware string-pulling is a conditional refinement: add it only if geometric
 pulling visibly cuts across terrain that contradicts the route's road preference.
@@ -40,6 +41,5 @@ clearance, terrain slumming, or tuning that masks a correctness failure.
 ## Out of scope
 
 - New vehicle mechanics or variants.
-- Turn-aware macro routing unless the dedicated recovery story admits it from
-  repeated evidence.
+- New route-planning architecture beyond the shipped minimum-radius validation.
 - Performance work without a measured multi-vehicle cost.

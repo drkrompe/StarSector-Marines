@@ -9,12 +9,12 @@ import java.util.List;
 
 /**
  * The cost-field convoy router: a cost-weighted grid A* over a vehicle-clearance
- * mask, string-pulled into the sparse advisory polyline the corridor →
- * local-planner → controller stack consumes. Replaces the road-<em>graph</em>
+ * mask, string-pulled and minimum-radius-refined into the sparse advisory
+ * corridor the local-planner → controller stack consumes. Replaces the road-<em>graph</em>
  * router — roads are now a cost <em>bias</em> ({@link TerrainCostField}), not a
  * topology vehicles are confined to. See {@code convoy-nouns.md}.
  *
- * <p>Two stages:
+ * <p>Three stages for runtime vehicle routes:
  * <ol>
  *   <li><b>Search</b> — {@link GridPathfinder}'s cost-field overload finds the
  *       minimum-cost cell path: prefers roads (cost 1.0), crosses open ground
@@ -25,18 +25,26 @@ import java.util.List;
  *       visibility test is a <em>clearance-aware supercover trace</em> (every
  *       cell the segment touches must be vehicle-passable), so a straightened
  *       segment never cuts a corner through a sub-clearance cell.</li>
+ *   <li><b>Turn refinement</b> — each bend becomes a footprint-validated
+ *       minimum-radius fillet. A bend that cannot be driven forward is masked
+ *       and the bounded macro search tries another corridor.</li>
  * </ol>
  *
  * <p>Output is {@code float[][]{xs, ys}} in cell-center coords ({@code cell +
  * 0.5}) — the advisory-corridor shape consumed by the mission/control stack.
- * Returns {@code null} for no-route (distinct from a valid path), so callers can
- * fall back rather than mistake it for empty.
+ * Returns {@code null} for no-route (distinct from a valid path), so dispatch or
+ * recovery can fail explicitly rather than mistake it for an empty route.
  *
  * <p>Pure: {@code (start, goal, grid, costField, clearance) -> polyline}. No
  * {@link VehicleMission} coupling — reusable for tanks / player vehicles. Tuned in
  * slice 4.
  */
 public final class VehicleRoutePlanner {
+
+    /** Alternate macro corridors tried after a statically valid bend fails minimum-radius refinement. */
+    private static final int MAX_KINEMATIC_ROUTE_ATTEMPTS = 8;
+    /** Disc placed on a failed bend before the next cost-field search. */
+    private static final float FAILED_TURN_AVOID_RADIUS = 2f;
 
     /** A rescue route plus the forced first-step direction it consumed. */
     static record RescueRoute(float[][] points, int firstStepDirectionBit) {}
@@ -54,6 +62,20 @@ public final class VehicleRoutePlanner {
                                   NavigationGrid grid, TerrainCostField costField, VehicleClearance clearance) {
         return routeMasked(startX, startY, goalX, goalY, grid, costField,
                 clearance.passableArray(), clearance.getWidth(), clearance.getHeight());
+    }
+
+    /**
+     * Cost-field route whose sparse bends are also forward-drivable by
+     * {@code type}. A statically clear but kinematically impossible bend is
+     * masked and the macro search is repeated, bounded so dispatch fails cleanly
+     * instead of producing a route that recovery must rediscover is impossible.
+     */
+    public static float[][] routeDrivable(int startX, int startY, int goalX, int goalY,
+                                          NavigationGrid grid, TerrainCostField costField,
+                                          VehicleClearance clearance, VehicleType type) {
+        return routeMaskedDrivable(startX, startY, goalX, goalY, grid, costField,
+                clearance.passableArray().clone(), clearance.passableArray(),
+                clearance.getWidth(), clearance.getHeight(), type);
     }
 
     /**
@@ -99,7 +121,19 @@ public final class VehicleRoutePlanner {
                                                   float facingDegrees, int triedFirstStepMask,
                                                   NavigationGrid grid, TerrainCostField costField,
                                                   VehicleClearance clearance,
-                                                  int avoidX, int avoidY, float avoidRadius) {
+                                                  int avoidX, int avoidY, float avoidRadius,
+                                                  VehicleType type) {
+        return routeAvoidingForwardFirst(startX, startY, goalX, goalY,
+                facingDegrees, triedFirstStepMask, grid, costField, clearance,
+                new int[]{avoidX}, new int[]{avoidY}, 1, avoidRadius, type);
+    }
+
+    static RescueRoute routeAvoidingForwardFirst(int startX, int startY, int goalX, int goalY,
+                                                  float facingDegrees, int triedFirstStepMask,
+                                                  NavigationGrid grid, TerrainCostField costField,
+                                                  VehicleClearance clearance,
+                                                  int[] avoidXs, int[] avoidYs, int avoidCount,
+                                                  float avoidRadius, VehicleType type) {
         double radians = Math.toRadians(facingDegrees);
         float forwardX = -(float) Math.sin(radians);
         float forwardY = (float) Math.cos(radians);
@@ -110,7 +144,8 @@ public final class VehicleRoutePlanner {
             if ((triedFirstStepMask & (1 << direction.bit())) != 0) continue;
             float[][] candidate = routeAvoidingVia(startX, startY,
                     startX + direction.dx, startY + direction.dy, goalX, goalY,
-                    grid, costField, clearance, avoidX, avoidY, avoidRadius);
+                    grid, costField, clearance, avoidXs, avoidYs, avoidCount,
+                    avoidRadius, type);
             if (candidate == null) continue;
             float length = direction.isDiagonal() ? (float) Math.sqrt(2f) : 1f;
             float dot = (forwardX * direction.dx + forwardY * direction.dy) / length;
@@ -132,9 +167,11 @@ public final class VehicleRoutePlanner {
                                                int goalX, int goalY,
                                                NavigationGrid grid, TerrainCostField costField,
                                                VehicleClearance clearance,
-                                               int avoidX, int avoidY, float avoidRadius) {
+                                               int[] avoidXs, int[] avoidYs, int avoidCount,
+                                               float avoidRadius,
+                                               VehicleType type) {
         int w = clearance.getWidth(), h = clearance.getHeight();
-        boolean[] mask = avoidanceMask(clearance, avoidX, avoidY, avoidRadius);
+        boolean[] mask = avoidanceMask(clearance, avoidXs, avoidYs, avoidCount, avoidRadius);
         if (startX < 0 || startX >= w || startY < 0 || startY >= h) return null;
         // The physical rescue pose may sit inside the avoid disc. Its own cell
         // remains valid, but the forced next cell must be clear of the disc.
@@ -147,7 +184,8 @@ public final class VehicleRoutePlanner {
             return new float[][]{{startX + 0.5f, viaX + 0.5f},
                     {startY + 0.5f, viaY + 0.5f}};
         }
-        float[][] tail = routeMasked(viaX, viaY, goalX, goalY, grid, costField, mask, w, h);
+        float[][] tail = routeMaskedDrivable(viaX, viaY, goalX, goalY, grid, costField,
+                mask, clearance.passableArray(), w, h, type);
         if (tail == null) return null;
         float[] xs = new float[tail[0].length + 1];
         float[] ys = new float[tail[1].length + 1];
@@ -155,21 +193,25 @@ public final class VehicleRoutePlanner {
         ys[0] = startY + 0.5f;
         System.arraycopy(tail[0], 0, xs, 1, tail[0].length);
         System.arraycopy(tail[1], 0, ys, 1, tail[1].length);
+        // Keep the forced adjacent step explicit. Its alignment with the live
+        // pose is handled by the rolling local planner; the tail beyond that
+        // step has already passed full minimum-radius refinement above.
         return new float[][]{xs, ys};
     }
 
     private static boolean[] avoidanceMask(VehicleClearance clearance,
                                            int avoidX, int avoidY, float avoidRadius) {
+        return avoidanceMask(clearance, new int[]{avoidX}, new int[]{avoidY}, 1, avoidRadius);
+    }
+
+    private static boolean[] avoidanceMask(VehicleClearance clearance,
+                                           int[] avoidXs, int[] avoidYs, int avoidCount,
+                                           float avoidRadius) {
         int w = clearance.getWidth(), h = clearance.getHeight();
         boolean[] mask = clearance.passableArray().clone();
-        int r = (int) Math.ceil(avoidRadius);
-        float r2 = avoidRadius * avoidRadius;
-        for (int dy = -r; dy <= r; dy++) {
-            for (int dx = -r; dx <= r; dx++) {
-                if (dx * dx + dy * dy > r2) continue;
-                int x = avoidX + dx, y = avoidY + dy;
-                if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = false;
-            }
+        int count = Math.min(avoidCount, Math.min(avoidXs.length, avoidYs.length));
+        for (int i = 0; i < count; i++) {
+            blockDisc(mask, w, h, avoidXs[i], avoidYs[i], avoidRadius);
         }
         return mask;
     }
@@ -184,6 +226,48 @@ public final class VehicleRoutePlanner {
             return null;
         }
         return stringPull(cells, passable, w, h);
+    }
+
+    private static float[][] routeMaskedDrivable(int startX, int startY, int goalX, int goalY,
+                                                  NavigationGrid grid, TerrainCostField costField,
+                                                  boolean[] mask, boolean[] basePassable,
+                                                  int w, int h, VehicleType type) {
+        for (int attempt = 0; attempt < MAX_KINEMATIC_ROUTE_ATTEMPTS; attempt++) {
+            float[][] route = routeMasked(startX, startY, goalX, goalY,
+                    grid, costField, mask, w, h);
+            if (route == null) return null;
+            TurnAwareCorridor.Result refined = TurnAwareCorridor.refine(route, type, grid);
+            if (refined.points() != null) return refined.points();
+
+            int failedX = (int) Math.floor(refined.failedX());
+            int failedY = (int) Math.floor(refined.failedY());
+            if ((failedX == startX && failedY == startY)
+                    || (failedX == goalX && failedY == goalY)) {
+                return null;
+            }
+            blockDisc(mask, w, h, failedX, failedY, FAILED_TURN_AVOID_RADIUS);
+            restoreEndpoint(mask, basePassable, w, h, startX, startY);
+            restoreEndpoint(mask, basePassable, w, h, goalX, goalY);
+        }
+        return null;
+    }
+
+    private static void blockDisc(boolean[] mask, int w, int h,
+                                  int centerX, int centerY, float radius) {
+        int r = (int) Math.ceil(radius);
+        float radiusSq = radius * radius;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > radiusSq) continue;
+                int x = centerX + dx, y = centerY + dy;
+                if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = false;
+            }
+        }
+    }
+
+    private static void restoreEndpoint(boolean[] mask, boolean[] basePassable,
+                                        int w, int h, int x, int y) {
+        if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = basePassable[y * w + x];
     }
 
     /**

@@ -4,7 +4,7 @@ Status: PLANNED — recovery safeguards are shipped; the terminal no-route polic
 
 Written: 2026-06-02
 
-Updated: 2026-08-23 — folded shipped recovery rungs and retained only unresolved policy.
+Updated: 2026-08-23 — turn-aware routing and cumulative avoidance shipped; retained only unresolved terminal policy.
 
 Read `convoy-nouns.md` before implementing this story.
 
@@ -12,8 +12,10 @@ Read `convoy-nouns.md` before implementing this story.
 
 The controller already commits to bounded reverse after wall blockage or a
 geometrically impossible forward turn, detects lack of corridor progress, and
-requests a cost-field reroute that avoids the failing area. These behaviors are
-standing convoy semantics, not open implementation scope.
+requests a cost-field reroute that cumulatively avoids failed areas. Initial
+macro routes reject footprint-unsafe minimum-radius bends, and an on-grid local
+planning failure brakes instead of pursuing the rejected coarse corridor.
+These behaviors are standing convoy semantics, not open implementation scope.
 
 ## Goal
 
@@ -26,12 +28,6 @@ Choose the least surprising payload-safe terminal policy from live-play
 evidence: abort and remove the delivery, disembark at a safe nearby cell, or
 enter a durable disabled/held state. The choice must state what happens to the
 passengers, reinforcement request, world actor, and any ticket already spent.
-
-## Conditional follow-up
-
-Turn-aware route or approach validation is not automatic scope. Add it only if
-`route-and-motion-acceptance.md` shows static clearance repeatedly selecting
-approaches the body fits through but cannot enter kinematically.
 
 ## Acceptance
 

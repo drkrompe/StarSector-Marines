@@ -4,6 +4,8 @@ Status: ACTIVE — the single-APC delivery, routing, control, and recovery spine
 
 Written: 2026-08-23
 
+Updated: 2026-08-23 — made route bends minimum-radius-valid and on-grid planner failure explicit.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -67,15 +69,23 @@ genuine shortcut, and avoids ugly terrain where possible. A clearance mask for
 the vehicle's width gates the search and its straight-line simplification, so a
 route never deliberately threads a static gap the vehicle cannot fit. Endpoint
 snapping accounts for perimeter and wall-adjacent cells removed by clearance.
-The resulting sparse corridor remains advisory: it is not an animation rail.
+The sparse result then receives a vehicle-specific turn pass: material vertices
+become footprint-checked minimum-radius fillets. A bend that the chassis cannot
+drive forward is masked and the bounded cost search tries another corridor;
+failure suppresses the dispatch instead of exporting an impossible corner.
+The resulting corridor remains advisory: it is not an animation rail.
 
-The controller continuously tracks a rolling, local kinematically feasible
-trajectory against the live navigation grid. The bicycle body, speed-aware
-lookahead, corner-speed governor, and terminal docking maneuver make turns
-continuous. The only pose playback is the short, validated terminal docking
-maneuver; ordinary route travel is always body-driven. The local planner may
-fall back to corridor pursuit where no short trajectory is available, including
-the deliberately off-map entry and exit tails.
+The controller continuously tracks a rolling, local forward-only,
+kinematically feasible trajectory against the live navigation grid. Rolling
+goals carry the corridor tangent and require heading agreement, so proximity
+before a bend is not false success. Reverse is an explicit committed recovery,
+not a hidden cusp in an ordinary plan. The bicycle body, speed-aware lookahead,
+corner-speed governor, and terminal docking maneuver make turns continuous.
+Docking aligns the parked APC with its outbound corridor. The only pose playback
+is that short validated maneuver; ordinary route travel is always body-driven.
+Coarse pursuit is limited to deliberate off-map entry and exit tails. Once the
+full footprint is on-grid, a missing local trajectory means brake and reroute,
+never "drive the rejected coarse corner anyway."
 
 Recovery is progressive rather than a permission to clip geometry:
 
@@ -83,7 +93,9 @@ Recovery is progressive rather than a permission to clip geometry:
 2. A wall-blocked or geometrically impossible forward turn commits to a bounded
    reverse that creates room for a new forward plan.
 3. Lack of corridor progress re-routes around the failing area through the
-   cost field, choosing a new initial bearing when needed.
+   cost field, choosing a new initial bearing when needed. Failed areas remain
+   excluded for that travel leg so later attempts cannot ping-pong through an
+   earlier bad bend.
 4. If no such route exists, reroute attempts are rate-limited while ordinary
    tracking continues. A durable abort, hold, or deliver-in-place terminal
    policy is open work.
@@ -97,11 +109,12 @@ macro reroute must refresh its inputs.
 
 - Reinforcement orchestration, supply production, and request priority stay
   outside convoy. Convoy must not mint itself a delivery opportunity.
-- A route is clearance-valid and cost-biased; it is neither a road-graph-only
-  path nor an exact sequence of poses to replay.
-- Motion owns kinematic feasibility. Route preference alone cannot promise that
-  an approach has enough turning room, so recovery must remain safe and visible
-  until turn-aware routing is proven.
+- A route is cost-biased, clearance-valid, and minimum-radius-valid for its
+  vehicle profile; it is neither a road-graph-only path nor an exact sequence
+  of poses to replay.
+- Route construction proves ordinary forward bends. Live motion remains the
+  final kinematic authority, and any changed-grid failure stops and recovers
+  instead of degrading to raw polyline pursuit.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery.
 - A vehicle moves under its own body or performs a bounded recovery. It never

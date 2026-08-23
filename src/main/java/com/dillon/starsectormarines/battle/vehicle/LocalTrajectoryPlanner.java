@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
@@ -70,6 +71,9 @@ public final class LocalTrajectoryPlanner {
         Pose goal = corridor.targetAhead(start.x, start.y, horizon);
         float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS, GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);
 
+        Trajectory terminal = directTerminalTrajectory(start, goal, goalRadius, type, grid);
+        if (terminal != null) return terminal;
+
         float margin = turnRadius
                 + 0.5f * Math.max(type.visualLengthCells, type.visualWidthCells)
                 + WINDOW_SLACK_CELLS;
@@ -83,5 +87,36 @@ public final class LocalTrajectoryPlanner {
                 LOCAL_MAX_ITERATIONS, type, grid);
         if (refined == null) return null;
         return new Trajectory(refined[0], refined[1], refined[2]);
+    }
+
+    /**
+     * Inside the soft goal radius the lattice would accept the start node and
+     * extract a one-pose (therefore null) path. Preserve the distinction between
+     * arrival and planning failure by returning the exact short straight finish
+     * when pose, corridor tangent, and swept footprint agree.
+     */
+    private static Trajectory directTerminalTrajectory(Pose start, Pose goal, float goalRadius,
+                                                       VehicleType type, NavigationGrid grid) {
+        float dx = goal.x - start.x, dy = goal.y - start.y;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance < 1e-4f || distance > goalRadius) return null;
+        float bearing = AirBody.facingToward(dx, dy);
+        if (headingError(start.facingDeg, bearing) > 20f
+                || headingError(goal.facingDeg, bearing) > 20f) return null;
+
+        float length = type.visualLengthCells + HybridAStarPlanner.PLANNER_CLEARANCE;
+        float width = type.visualWidthCells + HybridAStarPlanner.PLANNER_CLEARANCE;
+        int samples = Math.max(1, (int) Math.ceil(distance / 0.25f));
+        for (int i = 0; i <= samples; i++) {
+            float t = i / (float) samples;
+            if (!VehicleFootprint.isPoseFeasible(start.x + dx * t, start.y + dy * t,
+                    bearing, length, width, grid)) return null;
+        }
+        return new Trajectory(new float[]{start.x, goal.x}, new float[]{start.y, goal.y},
+                new float[]{start.facingDeg, goal.facingDeg});
+    }
+
+    private static float headingError(float a, float b) {
+        return Math.abs(((a - b + 540f) % 360f) - 180f);
     }
 }
