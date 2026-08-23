@@ -13,8 +13,8 @@ import org.json.JSONObject;
  * <p>Vanilla ships are drawn nose-up in their sprite image and their
  * ship-local frame has {@code +X = nose / forward}, {@code +Y = port}
  * (left when facing forward). Slot positions in {@code .ship} files are in
- * <em>pixels</em>, relative to the sprite's pixel center. Vanilla angles use
- * {@code 0° = +X (forward)}, CCW-positive.
+ * <em>pixels</em>, relative to the hull's authored {@code center}. Vanilla
+ * angles use {@code 0° = +X (forward)}, CCW-positive.
  *
  * <p>This mod's shuttle frame has {@code +Y = nose / forward},
  * {@code +X = starboard} (matches the
@@ -32,21 +32,16 @@ import org.json.JSONObject;
  * </pre>
  *
  * <p>{@code pxPerCell} comes from the spec's {@code height} property —
- * vanilla's sprite "height" is the pixel extent along the ship's
- * forward (+X) axis since ships are drawn nose-up. Combined with the
- * {@link com.dillon.starsectormarines.battle.air.ShuttleType#visualLengthCells}
- * we want this hull to render at, that fixes the pixel-to-cell scale.
+ * vanilla's sprite "height" is the pixel extent along the ship's forward
+ * (+X) axis since ships are drawn nose-up. Combined with the visual length
+ * resolved for this hull, that fixes the pixel-to-cell scale.
  *
- * <h2>Sprite anchor</h2>
- * <p>Slot positions in {@code .ship} files are stored relative to the
- * sprite's pixel center, NOT to vanilla's {@code center} property. We
- * tried adding {@code (spec.center - pixelCenter)} compensation when
- * dagger looked slightly off, but it scrambled every other hull —
- * Valkyrie's {@code center=[42,113]} on an 84×264 sprite produced a
- * 19-pixel shift, which is the opposite of what we want given how
- * {@link com.fs.starfarer.api.graphics.SpriteAPI#renderAtCenter} anchors
- * our hull sprites. The renderer anchors at pixel center; slot positions
- * are expressed in that frame; no compensation needed.
+ * <h2>Shared anchor</h2>
+ * <p>{@code AirBody} names the authored hull centre of gravity. Engine slots
+ * remain centre-relative here, while {@link HullPivotResolver} offsets the
+ * painted sprite's pixel centre during rendering. Engine, weapon, simulation,
+ * and render transforms therefore share one authored origin; see
+ * {@code air-nouns.md}.
  */
 public final class ShipSpecEngineParser {
 

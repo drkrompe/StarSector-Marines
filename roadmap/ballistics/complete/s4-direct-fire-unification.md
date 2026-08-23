@@ -132,9 +132,8 @@ their bursts and projectile attacks onto the same target-plane aim semantics:
 - source Z, roofs, structural walls, and air-to-air targets get an explicit
   airborne collision policy before enabling resolver damage.
 
-This is intentionally coordinated with
-[`../../air/stories/fighter-air-entities.md`](../../air/stories/fighter-air-entities.md),
-not smuggled into the ground-source migration.
+This is intentionally coordinated with `fighter-air-entities.md`, not smuggled
+into the ground-source migration.
 
 ## Tests
 
