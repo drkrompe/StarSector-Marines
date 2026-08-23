@@ -10,8 +10,8 @@ Delete `MarineWeapon`, `MarineSecondary`, `MechWeapon` and `TurretKind` as
 stat carriers. Consumers hold a `WeaponDef` or its id string.
 
 The load-bearing part is **persistence**. `MarineSoldier.primary` is an
-xstream-serialized enum, and `SquadEquipmentPreset` stores weapons too, so
-every existing save carries enum names. The migration is the established
+xstream-serialized enum, and `FireTeamBillet` stores weapons inside persisted
+armory template cards too, so every existing save carries enum names. The migration is the established
 `readResolve` legacy-repair pattern: map the historical enum name to its
 registry id, and fail closed onto the starter weapon when an id no longer
 resolves — a submod the player uninstalled must not corrupt a roster.

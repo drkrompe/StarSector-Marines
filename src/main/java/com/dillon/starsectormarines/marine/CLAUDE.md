@@ -30,6 +30,12 @@ write them directly:
   or changes the fitness of a soldier must call it or the squad will keep
   pointing at a leader who is gone.
 
+Fire-team **template assignment is authored state**, not another derived
+rollup. `MarineSquad` holds one template-card id for each of its three team
+slots; `MarineRoster.applyFireTeamTemplate` changes that id only after the
+complete four-billet inventory transaction succeeds. The current per-soldier
+kit remains the materialized state consumed by deployment and battle.
+
 When adding new persistent gameplay state, prefer this pattern: a thin
 `EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
 check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data

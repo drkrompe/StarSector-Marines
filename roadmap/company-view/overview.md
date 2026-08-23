@@ -5,15 +5,19 @@
 > them as an organization, and the organization is destroyed the moment
 > they deploy.
 
-**Status:** design stage. Six stories contracted (C1–C6), none started.
+**Status:** ACTIVE
+**Written:** 2026-08-22
+**Updated:** 2026-08-23 — C14 makes the fire team the Fleet Armory's template-card tier.
 
 ## Concept
 
-One consistent three-level object — **company → squad → marine** —
+One consistent organizational object — **company → squad → fire team → marine** —
 readable everywhere the player looks at their own force: in the fleet
 between contracts, on the pre-battle deployment screen, in the battle HUD,
 and in the after-action. One card per officer's command, each card made of
-its squads, each squad expandable to its individuals.
+its squads. The Fleet Armory expands a squad through its three equipment-bearing
+fire teams to the named marines filling their billets; battle command remains
+squad-granular.
 
 The point is *grouping for comprehension*, not new mechanics. The player
 should be able to answer "what shape is my army in right now, and where is
@@ -110,6 +114,8 @@ player has to remember which teams are out.
   across passes staying one squad (C8).
 - Fire teams as the AI's maneuver element — stable bounding pairs, fix-and-
   flank, team-aware role assignment (C9).
+- Fire-team template cards as the armory's routine equipment unit, with
+  reusable four-billet designs and inventory-gated assignment (C14).
 - A campaign-map home for the company, reachable while not at a planet,
   carrying standing, running deadlines, and the army management that never
   needed a market (C10).
@@ -138,14 +144,14 @@ player has to remember which teams are out.
 
 ## Design commitments
 
-1. **The squad is the persistent unit of organization; the battle squad
-   is its in-battle instance.** One id maps them. Everything else in this
-   track follows from that. A squad is **twelve marines in three
-   four-marine fire teams**, led by an NCO — see
-   C7 (`c7-organization-and-ranks.md`). Fire teams are modelled but
-   behind the scenes: they are the AI's maneuver element
-   (C9 (`c9-fire-teams-as-the-maneuver-element.md`)), not a level of
-   the player's hierarchy.
+1. **The squad is the persistent command unit; the fire team is its equipment
+   and maneuver unit.** One squad id maps the campaign unit to its in-battle
+   instance. A squad is **twelve marines in three four-marine fire teams**,
+   led by an NCO — see C7 (`c7-organization-and-ranks.md`). Fire teams are a
+   player-facing level in the Fleet Armory, where reusable four-billet cards
+   are assigned, and the AI's maneuver element in C9
+   (`c9-fire-teams-as-the-maneuver-element.md`). They do not become separate
+   deployment selections or player order targets.
 2. **A card is one officer's command — the company.** *Settled
    2026-08-22.* The named officer is the company commander; the squads
    under them are led by NCOs who are not officers. Early game that is one
@@ -161,11 +167,14 @@ player has to remember which teams are out.
    *facts*, not rollups. Nothing is shipped and there are no saves to
    preserve, so neither carries a migration burden — see
    C7 (`c7-organization-and-ranks.md`).)
-4. **Read-only first.** Every story here ships a view. Mutation stays where
-   it already lives (armory transfers, deployment toggles, stationing).
-5. **One selection model, two hosts.** Company → squad → marine behaves
-   the same in the ops screens and in the battle HUD, so the player learns
-   it once.
+4. **Mutation lives at the tier that owns it.** Deployment toggles remain on
+   squads, Armory equipment mutation moves to fire-team cards, and stationing
+   remains whole-squad. Read-only views consume those facts without inventing
+   parallel state.
+5. **One hierarchy, host-appropriate depth.** Company → squad is stable
+   everywhere. The Armory drills through fire team to marine because it owns
+   equipment; the battle HUD may stop at squad or use team grouping without
+   exposing team-level player orders.
 6. **Type scale per role, not one font.** Display `orbitron24aabold`,
    header `orbitron20aa`, body `insignia17LTaa`, dense rows
    `insignia15LTaa`, numeric columns `arial14` (the only vanilla face with
@@ -210,6 +219,7 @@ player has to remember which teams are out.
 | C11 (`c11-the-contract-board.md`) | The contract board: seeing work you are not standing on | C10 slice 1 |
 | ~~C12~~ (`c12-the-debug-company.md`) | The debug company: a fixture that mimics the campaign — **slices 1-2 shipped 2026-08-23** | C1, C7 |
 | C13 (`c13-the-task-force.md`) | The task force: command scoped per officer — **slice 1 shipped 2026-08-23** | C7, C12 |
+| C14 (`c14-fire-team-template-cards.md`) | Fire-team template cards — **slice 1 shipped 2026-08-23** | C7 |
 
 C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
