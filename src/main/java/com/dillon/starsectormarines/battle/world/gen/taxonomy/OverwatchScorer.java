@@ -19,9 +19,8 @@ import java.util.List;
  * <p>This complements {@link TacticalRegion}'s region-level enclosure
  * (membership: "where to garrison / fall back"). A turret wants the opposite of
  * an enclosed pocket — its walls would box the arc in — so this read is
- * directional and per-cell. See
- * {@code roadmap/mapgen/stories/structural-taxonomy.md} § "Membership vs.
- * positional — the corner-tower correction" for the why; this class is the
+ * directional and per-cell. See {@code mapgen-nouns.md} for the
+ * membership-versus-position distinction; this class is the
  * generalization of {@code FortressWallStamper}'s hand-placed wall towers.
  */
 public final class OverwatchScorer {

@@ -8,8 +8,8 @@ package com.dillon.starsectormarines.battle.world.gen.taxonomy;
  * mount a gun": a cell with cover at its back and a long field of fire
  * <em>out</em> over low-cover ground.
  *
- * <p>See {@code roadmap/mapgen/stories/structural-taxonomy.md} §
- * "Membership vs. positional — the corner-tower correction": the walls that
+ * <p>See {@code mapgen-nouns.md} for the membership-versus-position distinction:
+ * the walls that
  * make a pocket holdable are the same walls that box in a turret's arc, so the
  * two reads pick opposite cells. Built by {@link OverwatchScorer}.
  *

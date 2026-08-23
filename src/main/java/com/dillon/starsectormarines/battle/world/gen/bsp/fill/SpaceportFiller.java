@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Civilian spaceport apron. Each sufficiently large leaf contains one authored
- * 5x5 shuttle berth with a clear approach lane, a corner control office and a
- * cargo/service band along the opposite edge. Props are placed in small rows
- * and work clusters rather than uniformly scattered across the tarmac.
+ * Spaceport-pad filler with two established grammars. Conquest and neutral
+ * generation retain the legacy open tactical apron. A campaign-backed civilian
+ * city uses an authored 5x5 shuttle berth with a clear approach lane, a corner
+ * control office, and a cargo/service band along the opposite edge. Civilian
+ * props form small rows and work clusters rather than uniform tarmac scatter.
  */
 public final class SpaceportFiller implements BlockFiller {
 

@@ -13,7 +13,7 @@ import java.util.List;
  * connected.
  *
  * <p>This is the "generator publishes structure, passes consume it" seam the
- * corridors-first-class design centers on: downstream placement/spawn passes
+ * mapgen noun model centers on: downstream placement/spawn passes
  * query this graph instead of re-deriving topology from raw geometry. Two tiers
  * of signal:
  * <ul>

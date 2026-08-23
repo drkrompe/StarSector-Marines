@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
  * BSP reserves between leaves are simply left solid (they become the
  * inter-room hull wall the corridor pass punches through).
  *
- * <p>This is the deliberate reuse the corridors-first-class design calls out:
+ * <p>This is the deliberate reuse the mapgen noun model calls out:
  * the same {@link Bsp#partition} that drives the city, with the station recipe
  * just <em>ignoring</em> the {@code roadCells} mask instead of painting it
  * walkable. No trunk pre-pass (stations have no arterials), so this calls the

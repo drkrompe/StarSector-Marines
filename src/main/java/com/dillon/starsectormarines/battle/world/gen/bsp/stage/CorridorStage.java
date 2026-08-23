@@ -51,7 +51,7 @@ import java.util.Set;
  */
 public final class CorridorStage implements GenStage {
 
-    /** Transit-corridor width. 2 is the floor that flows (gives the pathfinder's occupancy penalty a parallel lane); see the corridors-first-class width policy. */
+    /** Transit-corridor width. 2 is the floor that flows, giving the pathfinder's occupancy penalty a parallel lane; see {@code mapgen-nouns.md}. */
     private static final int CORRIDOR_WIDTH = 2;
 
     /** Loop budget = roomCount / this. One extra (non-tree) edge per ~this-many rooms, so the spine stays mostly tree with a few alternate routes. */

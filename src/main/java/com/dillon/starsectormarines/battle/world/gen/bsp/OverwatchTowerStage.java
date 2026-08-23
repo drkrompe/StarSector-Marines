@@ -46,7 +46,7 @@ import java.util.List;
  * node, so the defender roster balance is untouched (the autonomous
  * {@link com.dillon.starsectormarines.battle.turret.MapTurret} still fires).
  * Manning the towers + adopting the stage into the legacy recipe are captured
- * follow-ups; see {@code roadmap/mapgen/stories/structural-taxonomy.md}.
+ * follow-ups; see {@code mapgen-nouns.md} and its story board.
  *
  * <p>Draws no {@code rng}: placement is a deterministic function of the scored
  * sites, and it runs after every randomized pass, so adding it perturbs no
