@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -47,6 +48,9 @@ class SquadStateDumperTest {
         assertEquals(enemy, picture.getLong("primaryContactId"));
         assertEquals("Raider", picture.getString("primaryContactName"));
         assertTrue(picture.getBoolean("doctrineChangedThisTick"));
+        assertTrue(picture.getBoolean("holdReactionFresh"));
+        assertEquals(TacticalScoring.HOLD_AFTER_LOS_TICKS,
+                picture.getInt("holdAfterLosWindowTicks"));
         assertEquals("DIRECT", evidence.getString("source"));
         assertEquals(sim.simTickIndex, evidence.getInt("lastSeenTick"));
         assertEquals(0, evidence.getInt("ageTicks"));
