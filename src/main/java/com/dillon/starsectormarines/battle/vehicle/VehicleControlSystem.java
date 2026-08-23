@@ -26,11 +26,10 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
  *       pursues. Refreshed every {@link VehicleController#REPLAN_INTERVAL_SEC} /
  *       when consumed / on drift. This is what plans <em>through</em> corners so
  *       they read as continuous min-radius arcs.</li>
- *   <li><b>Coarse corridor</b> (fallback) — when the local plan returns
- *       {@code null} (off-map approach before the truck reaches the grid, or a
- *       transient planner gap) the body pursues the advisory corridor polyline
- *       directly. Still kinematic, so still smooth; the recovery ladder replaces
- *       this null-handling with a formal escalation.</li>
+ *   <li><b>Coarse corridor</b> (boundary fallback) — only while the body is
+ *       crossing the deliberate off-map entry/exit tail and therefore has no
+ *       complete on-grid footprint pose. An on-grid {@code null} is a rejected
+ *       route and triggers braking plus rerouting, never raw-corridor pursuit.</li>
  * </ol>
  * The old dead-reckon "playback along synthetic-heading rails" fork is gone — that
  * was the source of the 90° corner snaps. Reeds-Shepp docking is the one surviving
@@ -101,18 +100,23 @@ public final class VehicleControlSystem {
         s.trajProgress = 0f;
         s.sinceReplan = 0f;
         s.trajCarrotAtEnd = false;
+        s.localPlanFailureTime = 0f;
+        s.localPlanFailureRerouteAttempted = false;
         s.dockingPath = null;
         s.recovery = VehicleControlComponent.Recovery.NONE;
         s.recoveryAttempts = 0;
         s.recoveryBestRemaining = Float.MAX_VALUE;
         s.wallStuckTime = 0f;
         s.timeSinceProgress = 0f;
-        if (clearRescueFirstSteps) s.rescueFirstStepTriedMask = 0;
+        if (clearRescueFirstSteps) {
+            s.rescueFirstStepTriedMask = 0;
+            s.rerouteAvoidCount = 0;
+        }
     }
 
     /**
      * One tracking step. Priority: terminal RS docking (inbound) → arrival →
-     * rolling local-trajectory tracking → coarse-corridor pursuit fallback,
+     * rolling local-trajectory tracking → off-map coarse-corridor crossing,
      * with a shared wall-stuck reverse stub wrapping the kinematic move.
      */
     private void advance(VehicleMission mission, GroundBody body, VehicleType type,
@@ -147,7 +151,7 @@ public final class VehicleControlSystem {
         } else {
             s.timeSinceProgress += dt;
             if (s.timeSinceProgress > VehicleController.STALL_SECONDS) {
-                boolean rerouted = attemptReroute(mission, body, s);
+                boolean rerouted = attemptReroute(mission, body, type, s);
                 s.timeSinceProgress = 0f; // rate-limit retries whether or not it took
                 if (rerouted) return;   // next tick drives the fresh corridor cleanly
             }
@@ -156,7 +160,7 @@ public final class VehicleControlSystem {
         // --- Terminal docking phase (inbound only) -------------------------
         if (isInbound) {
             if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
-            tryEngageDocking(body, type, s, xs, ys);
+            tryEngageDocking(mission, body, type, s, xs, ys);
             if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
         }
 
@@ -183,6 +187,31 @@ public final class VehicleControlSystem {
             s.trajProgress = 0f;
             s.sinceReplan = 0f;
             s.trajCarrotAtEnd = false;
+        }
+
+        // A null plan while the body is fully on-grid means the kinematic
+        // planner rejected the route ahead. Do not feed that same sharp coarse
+        // polyline to the bicycle controller: brake, then ask the macro router
+        // for a genuinely different turn-aware corridor. Coarse pursuit remains
+        // only for the deliberate off-map entry/exit crossing, where no complete
+        // footprint pose exists in the grid yet.
+        boolean bodyFullyOnGrid = VehicleFootprint.isPoseWithinGrid(
+                body.x, body.y, body.facingDegrees,
+                type.visualLengthCells, type.visualWidthCells, navigation.getGrid());
+        if (s.trajectory == null && bodyFullyOnGrid) {
+            s.localPlanFailureTime += dt;
+            body.speed = 0f;
+            if (!s.localPlanFailureRerouteAttempted
+                    && s.localPlanFailureTime >= VehicleController.LOCAL_PLAN_FAILURE_REROUTE_SEC) {
+                s.localPlanFailureRerouteAttempted = true;
+                attemptReroute(mission, body, type, s);
+                s.timeSinceProgress = 0f;
+            }
+            return;
+        }
+        if (s.trajectory != null) {
+            s.localPlanFailureTime = 0f;
+            s.localPlanFailureRerouteAttempted = false;
         }
 
         // --- Track (trajectory if we have one, else the coarse corridor) ---
@@ -406,7 +435,8 @@ public final class VehicleControlSystem {
      * stall timer retries every {@link VehicleController#STALL_SECONDS} in case the
      * grid opens up).
      */
-    private boolean attemptReroute(VehicleMission mission, GroundBody body, VehicleControlComponent s) {
+    private boolean attemptReroute(VehicleMission mission, GroundBody body, VehicleType type,
+                                   VehicleControlComponent s) {
         TerrainCostField cost = mission.routeCostField;
         VehicleClearance clr = mission.routeClearance;
         if (cost == null || clr == null) return false; // not cost-routed — can't lap
@@ -431,10 +461,12 @@ public final class VehicleControlSystem {
         Pose ahead = s.corridor.targetAhead(body.x, body.y, VehicleController.REROUTE_AVOID_RADIUS + 1.5f);
         int avoidX = (int) Math.floor(ahead.x);
         int avoidY = (int) Math.floor(ahead.y);
+        rememberFailedArea(s, avoidX, avoidY);
         VehicleRoutePlanner.RescueRoute rescue = VehicleRoutePlanner.routeAvoidingForwardFirst(
                 cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
-                s.rescueFirstStepTriedMask, grid, cost, clr, avoidX, avoidY,
-                VehicleController.REROUTE_AVOID_RADIUS);
+                s.rescueFirstStepTriedMask, grid, cost, clr,
+                s.rerouteAvoidX, s.rerouteAvoidY, s.rerouteAvoidCount,
+                VehicleController.REROUTE_AVOID_RADIUS, type);
         if (rescue == null) return false; // boxed in or every first step already exhausted — hold (rung 4)
         s.rescueFirstStepTriedMask |= 1 << rescue.firstStepDirectionBit();
         float[][] re = rescue.points();
@@ -455,6 +487,19 @@ public final class VehicleControlSystem {
         return true;
     }
 
+    private static void rememberFailedArea(VehicleControlComponent s, int x, int y) {
+        for (int i = 0; i < s.rerouteAvoidCount; i++) {
+            int dx = s.rerouteAvoidX[i] - x;
+            int dy = s.rerouteAvoidY[i] - y;
+            if (dx * dx + dy * dy <= VehicleController.REROUTE_AVOID_RADIUS
+                    * VehicleController.REROUTE_AVOID_RADIUS) return;
+        }
+        if (s.rerouteAvoidCount >= s.rerouteAvoidX.length) return;
+        s.rerouteAvoidX[s.rerouteAvoidCount] = x;
+        s.rerouteAvoidY[s.rerouteAvoidCount] = y;
+        s.rerouteAvoidCount++;
+    }
+
     /**
      * Try to switch the inbound truck from pursuit to a Reeds-Shepp docking
      * maneuver when within {@link VehicleController#DOCKING_TRIGGER_CELLS} of the
@@ -462,7 +507,8 @@ public final class VehicleControlSystem {
      * is non-walkable, docking stays off this tick (pursuit then delivers the truck
      * to the LZ via the corridor).
      */
-    private void tryEngageDocking(GroundBody body, VehicleType type, VehicleControlComponent s,
+    private void tryEngageDocking(VehicleMission mission, GroundBody body, VehicleType type,
+                                  VehicleControlComponent s,
                                   float[] xs, float[] ys) {
         if (!(body instanceof BicycleBody)) return;
         int lastIdx = xs.length - 1;
@@ -471,9 +517,7 @@ public final class VehicleControlSystem {
         float distToLz = body.distanceTo(lzX, lzY);
         if (distToLz > VehicleController.DOCKING_TRIGGER_CELLS) return;
 
-        float prevX = xs[lastIdx - 1];
-        float prevY = ys[lastIdx - 1];
-        float lzFacingDeg = AirBody.facingToward(lzX - prevX, lzY - prevY);
+        float lzFacingDeg = mission.lzDepartureFacingDeg;
 
         Pose start = new Pose(body.x, body.y, body.facingDegrees);
         Pose goal = new Pose(lzX, lzY, lzFacingDeg);

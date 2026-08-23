@@ -156,8 +156,8 @@ Direction: replace the fitted-ortho zoom with a **proper view-projection** and a
 Orthographic-with-Z vs. perspective is open. This is a `render2d` engine change
 (the camera mechanism already lives there post engine/game split); the concrete
 passes and `RenderSystem`s shouldn't care, since they consume the camera
-projection abstractly. Cross-ref: [`../air/ships/`](../air/ships/overview.md) §
-"Scale & altitude", [`../air/hull-extraction.md`](../air/hull-extraction.md).
+projection abstractly. `air-nouns.md` owns the airborne altitude and on-map
+ship constraints that consume this future camera space.
 
 ## Considered alternatives
 
@@ -234,7 +234,7 @@ machinery is sim-tier work gated behind Phase 2.
   north star. Its docs were dropped when it shipped (`a86e6c45`); the
   taxonomy it defined now lives in code, in the `battle/`
   `package-info.java` root charter.
-- [`air/`](../air/overview.md) — depends on the camera-Z direction above for
-  airborne-craft altitude and true zoom-out.
+- `air-nouns.md` — depends on the camera-Z direction above for airborne-craft
+  altitude and true zoom-out.
 - Memory: "Battle services + systems", "Default to ECS shape", "Script
   sandbox", "GL state gotchas", "render2d batching".

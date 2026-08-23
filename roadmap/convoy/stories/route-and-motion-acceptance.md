@@ -14,12 +14,14 @@ layers read as one coherent heavy-vehicle journey in live play.
 ## Contract under test
 
 - The road graph chooses a defender-side approach, interior drop-off, and exit;
-  the cost field and vehicle clearance choose the route between them.
+  the cost field, vehicle clearance, and minimum-radius bend validation choose
+  the route between them.
 - Roads are visibly preferred, but a sensible open-ground shortcut is legal.
 - Ordinary travel remains body-driven through continuous turns. Only the short,
   validated terminal docking maneuver uses pose playback.
-- A blocked or infeasible approach recovers through committed reverse and, when
-  necessary, an avoiding reroute. Genuinely no-route cases are recorded against
+- A blocked or changed-grid approach stops rather than pursuing a rejected raw
+  corner, then recovers through committed reverse and, when necessary, a
+  cumulative avoiding reroute. Genuinely no-route cases are recorded against
   `slice-3-recovery-ladder.md`, not accepted as terminally solved.
 - The APC reaches the drop-off, unloads its four-person payload, holds armed
   overwatch, departs, and reaches the terminal gone state.

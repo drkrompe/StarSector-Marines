@@ -394,15 +394,21 @@ public final class FacingSystem {
 
         if (inAim) {
             MarineSecondary secondary = (MarineSecondary) secondarySpec[row];
-            float duration = secondary != null ? secondary.aimDuration : 1f;
+            float duration = secondary != null ? secondary.aimDuration() : 1f;
             float progress = clamp01((duration - actionTimer[row]) / duration);
             boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
-            authoredPose = fired ? LayeredAppearance.POSE_ROCKET_FIRE
-                    : LayeredAppearance.POSE_ROCKET_AIM;
+            boolean amr = secondary == MarineSecondary.ANTI_MATERIEL_RIFLE;
+            authoredPose = fired
+                    ? (amr ? LayeredAppearance.POSE_AMR_FIRE
+                            : LayeredAppearance.POSE_ROCKET_FIRE)
+                    : (amr ? LayeredAppearance.POSE_AMR_AIM
+                            : LayeredAppearance.POSE_ROCKET_AIM);
             authoredPhase = fired ? clamp01((progress - 0.5f) * 2f)
                     : clamp01(progress * 2f);
-            if (fired) {
+            if (fired && !amr) {
                 authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
+            }
+            if (fired) {
                 float elapsedAfterFire = Math.max(0f, progress - 0.5f) * duration;
                 if (elapsedAfterFire <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;

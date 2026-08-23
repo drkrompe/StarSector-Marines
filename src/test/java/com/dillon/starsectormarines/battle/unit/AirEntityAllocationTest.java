@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Phase-1 foundation of the air-into-world epic
- * ({@code roadmap/air/air-entities-into-world.md}): {@link UnitRosterService#allocateAir}
+ * Phase-1 foundation of the air world-entity model in {@code air-nouns.md}:
+ * {@link UnitRosterService#allocateAir}
  * mints an air entity from the SINGLE id authority (shared with ground
  * {@link UnitRosterService#spawn}, so a shuttle id can never collide with a
  * ground id) and adopts it <em>world-only</em> — present in the {@code EntityWorld}

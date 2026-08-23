@@ -28,8 +28,8 @@ public final class InfantryUnitPrep {
     private InfantryUnitPrep() {}
 
     /**
-     * If the unit is locked into the rocket aim animation, advances the timer,
-     * launches the rocket at the aim midpoint, and returns {@code true} so the
+     * If the unit is locked into a special-equipment aim animation, advances
+     * the timer, fires at the aim midpoint, and returns {@code true} so the
      * caller short-circuits the rest of its update (no movement, no primary
      * fire, no re-target). Returns {@code false} when the unit is not aiming
      * and the caller should proceed normally.
@@ -42,14 +42,14 @@ public final class InfantryUnitPrep {
         if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
         MarineSecondary sec = w.secondaryWeapon(id);
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
-        float fireAt = sec.aimDuration * 0.5f;
+        float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
             long aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
-            if (aimTarget != 0L) {
+            if (legalSpecialShot(unit, aimTarget, sec, sim)) {
                 sim.fireSecondary(unit, aimTarget);
+                w.setSecondaryCooldownTimer(id, sec.cooldown());
             }
             w.setSecondaryFired(id, true);
-            w.setSecondaryCooldownTimer(id, sec.cooldown);
         }
         if (w.secondaryActionTimer(id) <= 0f) {
             w.setSecondaryActionTimer(id, 0f);
@@ -101,16 +101,16 @@ public final class InfantryUnitPrep {
     }
 
     /**
-     * Reactive rocket-fire on a hardened-target-of-opportunity. When the unit
+     * Reactive special fire on a hardened target of opportunity. When the unit
      * is mid-pathing (any posture — approach, regroup, even the engage
      * out-of-range fallback), has a loaded rocket and an idle aim, and an
      * enemy hardened target ({@link TacticalScoring#isHardened} — turrets,
-     * drone hubs, heavy mechs) sits inside rocket range with LOS, this
+     * drone hubs, heavy mechs) sits inside special range with LOS, this
      * initiates the aim window. The aim animation freezes movement (handled
      * by {@link #tickAimAndShortCircuit} on subsequent ticks); fire resolves
      * at the aim midpoint.
      *
-     * <p>The squad-coordination gate ({@link TacticalScoring#shouldCommitRocket})
+     * <p>The squad-coordination gate ({@link TacticalScoring#shouldCommitSpecial})
      * is what prevents the 4-marine volley failure: once one squadmate locks
      * onto a hardened target, the projected damage projection blocks the rest
      * from committing until the projection no longer kills.
@@ -119,7 +119,7 @@ public final class InfantryUnitPrep {
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
      * Returns {@code false} when nothing changed.
      */
-    public static boolean tryOpportunityRocket(long unit, BattleView sim) {
+    public static boolean tryOpportunitySpecial(long unit, BattleView sim) {
         long id = unit;
         if (!sim.world().hasSecondaryWeapon(id)) return false;
         if (sim.world().secondaryAmmo(id) <= 0) return false;
@@ -127,9 +127,9 @@ public final class InfantryUnitPrep {
         if (sim.world().secondaryActionTimer(id) > 0f) return false;
 
         MarineSecondary sec = sim.world().secondaryWeapon(id);
-        float range = sec.range;
+        float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
-        // rocket range with LoS that the squad-coordination gate doesn't
+        // special range with LoS that the squad-coordination gate doesn't
         // block. Closest one wins — tilts toward turrets / hubs (typically
         // closer in a defensive posture) while still letting a near mech
         // earn the shot if it's the nearest hardened threat.
@@ -148,15 +148,38 @@ public final class InfantryUnitPrep {
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit), sim.world().cellY(unit), sim.world().cellX(other), sim.world().cellY(other))) continue;
-            if (!sim.getTacticalScoring().shouldCommitRocket(unit, other)) continue;
+            if (!sim.getTacticalScoring().shouldCommitSpecial(unit, other)) continue;
             bestHardened = other;
             bestDistSq = d2;
         }
         if (bestHardened == 0L) return false;
 
-        sim.world().setSecondaryActionTimer(id, sec.aimDuration);
+        sim.world().setSecondaryActionTimer(id, sec.aimDuration());
         sim.world().setSecondaryFired(id, false);
         sim.world().setSecondaryAimTargetId(id, bestHardened);
         return true;
+    }
+
+    /** Compatibility name retained for focused rocket behavior tests. */
+    public static boolean tryOpportunityRocket(long unit, BattleView sim) {
+        return tryOpportunitySpecial(unit, sim);
+    }
+
+    private static boolean legalSpecialShot(long unit, long target,
+                                            MarineSecondary special,
+                                            BattleView sim) {
+        if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
+            return false;
+        }
+        if (!sim.world().isAlive(target)
+                || sim.identity().faction(target) == sim.identity().faction(unit)) {
+            return false;
+        }
+        float dx = sim.world().x(target) - sim.world().x(unit);
+        float dy = sim.world().y(target) - sim.world().y(unit);
+        if (dx * dx + dy * dy > special.range() * special.range()) return false;
+        return sim.getGrid().hasLineOfSight(
+                sim.world().cellX(unit), sim.world().cellY(unit),
+                sim.world().cellX(target), sim.world().cellY(target));
     }
 }

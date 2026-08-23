@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -80,6 +81,25 @@ public class KillZoneIntegrationTest {
         assertTrue(EngagePosture.INSTANCE.preconditions().isSpecified(Predicate.ENEMY_IN_KILL_ZONE));
         assertTrue(s.get(Predicate.ENEMY_IN_KILL_ZONE),
                 "after the gate trips, the kill-zone bit reads true so Engage's matching bit is satisfied");
+    }
+
+    @Test
+    public void killZoneDetectionRemainsIndependentOfShorterVisionRange() {
+        BattleSimulation sim = openSim();
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad defSquad = sim.getSquad(defSquadId);
+        defSquad.holdsFireUntilKillZone = true;
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5)
+                .squad(defSquadId).visionRange(2f));
+        long marine = sim.spawn(new EntitySpec("m1", Faction.MARINE,
+                UnitType.MARINE, 10, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(defSquad.killZoneLosTicks == 1,
+                "a close visible enemy advances the explicit eight-cell kill-zone gate");
+        assertNull(defSquad.believedContact(marine),
+                "kill-zone detection does not expand the observer's direct-awareness range");
     }
 
     @Test

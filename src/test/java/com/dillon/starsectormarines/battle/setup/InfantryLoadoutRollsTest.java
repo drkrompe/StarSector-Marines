@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class InfantryLoadoutRollsTest {
 
@@ -78,5 +81,19 @@ public class InfantryLoadoutRollsTest {
         assertEquals(ExperienceTier.GREEN, greenMilitia.experienceTier());
         assertEquals(SoldierAptitude.EXCEPTIONAL, eliteRegular.aptitude());
         assertEquals(ExperienceTier.ELITE, eliteRegular.experienceTier());
+    }
+
+    @Test
+    public void defenderAmrAvailabilityIsExplicitHighRiskDoctrine() {
+        MarineLoadout[] high = InfantryLoadoutRolls.defenderSquad(
+                4, UnitType.MARINE_RED, RiskLevel.HIGH, new FixedRandom(50));
+        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE, high[3].secondary);
+        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo(),
+                high[3].secondaryAmmo);
+
+        MarineLoadout[] militia = InfantryLoadoutRolls.defenderSquad(
+                4, UnitType.MILITIA, RiskLevel.HIGH, new FixedRandom(50));
+        assertNull(militia[3].secondary,
+                "local militia do not gain the elite anti-materiel issue");
     }
 }
