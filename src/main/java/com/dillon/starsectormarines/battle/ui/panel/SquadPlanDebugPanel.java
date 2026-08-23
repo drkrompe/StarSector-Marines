@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.FireGate;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -293,8 +294,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 1: 2 lines (status + garrison flags), 1 divider gap.
         int lines = 2;
         int dividers = 1;
-        // Section 2: 4 contact-doctrine lines + fire-readiness line, 1 divider gap.
-        lines += 5;
+        // Section 2: 4 contact-doctrine lines + HOLD freshness + fire readiness.
+        lines += 6;
         dividers += 1;
         // Section 3: goal + assignment, 1 divider gap.
         lines += 2;
@@ -477,6 +478,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         String primary = primaryContactLabel(picture, ctx.getSim());
         lineY = drawLineIfVisible(font, primarySummary(picture, primary), lineX, lineY,
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        lineY = drawLineIfVisible(font, holdReactionSummary(s, ctx.getSim()),
+                lineX, lineY, DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = drawLineIfVisible(font, fireSummary(s, ctx.getSim()), lineX, lineY,
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
@@ -652,6 +655,22 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return String.format("Primary %s @%d,%d   Confidence %.2f",
                 primaryLabel, picture.primaryCellX(), picture.primaryCellY(),
                 picture.primaryConfidence());
+    }
+
+    static String holdReactionSummary(Squad squad, BattleSimulation sim) {
+        SquadContactPicture picture = squad.contactPicture;
+        boolean fresh = TacticalScoring.contactHoldIsFresh(squad, picture,
+                sim.getSimTickIndex());
+        boolean active = picture.posture() == SquadContactPicture.Posture.ADVANCING
+                && picture.doctrine() == Doctrine.HOLD && fresh;
+        BelievedContact evidence = squad.believedContact(
+                picture.primaryContactId());
+        String age = evidence != null
+                ? Math.max(0, sim.getSimTickIndex() - evidence.lastSeenTick()) + "t"
+                : (picture.directContactCount() > 0 ? "0t" : "—");
+        return String.format("Hold stop %s   Evidence %s/%dt",
+                active ? "ACTIVE" : "OFF", age,
+                TacticalScoring.HOLD_AFTER_LOS_TICKS);
     }
 
     static String fireSummary(Squad squad, BattleSimulation sim) {
