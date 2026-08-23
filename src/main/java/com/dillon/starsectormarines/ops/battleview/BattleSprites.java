@@ -39,6 +39,10 @@ public class BattleSprites {
     private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
+    private static final String SMOKE_GRENADE_SPRITE =
+            "graphics/ui/armory/special-smoke-grenades.png";
+    private static final String SMOKE_PUFF_SPRITE =
+            "graphics/battle/fx/smoke-field-puff.png";
 
     // ---- unit sheets --------------------------------------------------------
 
@@ -138,6 +142,9 @@ public class BattleSprites {
     private SpriteAPI iconDanger;
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
+    private SpriteAPI smokeGrenadeSprite;
+    private SpriteAPI smokePuffSprite;
+    private boolean smokeSpritesLoadAttempted;
 
     // =========================================================================
     // Accessors
@@ -153,6 +160,8 @@ public class BattleSprites {
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
     public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
+    public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
+    public SpriteAPI smokePuffSprite() { return smokePuffSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
@@ -440,6 +449,19 @@ public class BattleSprites {
             } catch (Exception e) {
                 LOG.error("BattleSprites: failed to load mech projectile " + w.projectileSpritePath, e);
             }
+        }
+    }
+
+    public void ensureSmokeSprites() {
+        if (smokeSpritesLoadAttempted) return;
+        smokeSpritesLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(SMOKE_GRENADE_SPRITE);
+            smokeGrenadeSprite = Global.getSettings().getSprite(SMOKE_GRENADE_SPRITE);
+            Global.getSettings().loadTexture(SMOKE_PUFF_SPRITE);
+            smokePuffSprite = Global.getSettings().getSprite(SMOKE_PUFF_SPRITE);
+        } catch (Exception e) {
+            LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
     }
 
