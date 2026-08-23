@@ -67,11 +67,11 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * The canonical pre-battle surface (roadmap command-powers S8). Reached from
+ * The canonical pre-battle surface (see {@code command-powers-nouns.md}). Reached from
  * the mission-select list via the dossier card's <em>Brief &amp; Deploy</em>
  * action ({@link CommsConsolePanel}).
  *
- * <p>Full-canvas, two columns (S8 Slice B): the left "mission" column holds the
+ * <p>The full-canvas two-column layout's left "mission" column holds the
  * briefing details, salvage negotiation, and captain selection; the right
  * "detachment" column splits into <em>Your Fleet Brings</em> (the player's
  * committed transports + fighter cover + power-source ships, opt-in toggles) and <em>Employer
