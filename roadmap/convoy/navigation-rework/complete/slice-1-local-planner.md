@@ -81,7 +81,7 @@ Routed to **slice 2** (fixes belong in the controller / a later consolidation):
 the near-goal `null` must be read as arrival (check `corridor.atEnd` before
 planning) not as a stuck signal; and `planLocal`/`refine` collapse onto one core
 once full-path `refine` is retired. Both recorded in
-[`../stories/slice-2-live-tracking.md`](../stories/slice-2-live-tracking.md).
+`slice-2-live-tracking.md`.
 
 ---
 

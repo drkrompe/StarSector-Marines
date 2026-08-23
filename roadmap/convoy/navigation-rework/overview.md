@@ -175,12 +175,12 @@ the old fork rather than keep it alongside.
 
 | # | Story | What it lands |
 | --- | --- | --- |
-| 0 | [`slice-0-controller-seam`](stories/slice-0-controller-seam.md) | Extract `VehicleController` + `ReferenceCorridor`; `GroundSystem` calls `controller.tick(dt)`. **No behavior change** — wraps today's advance* logic behind the seam. De-risks the rest. |
-| 1 | [`slice-1-local-planner`](stories/slice-1-local-planner.md) | `LocalTrajectoryPlanner`: rolling-horizon HA* over a bounded window. Unit-tested standalone against `NavigationGrid`. Not yet wired into motion. |
-| 2 | [`slice-2-live-tracking`](stories/slice-2-live-tracking.md) | Controller tracks the rolling local plan with BicycleBody+PurePursuit every tick; replan every K ticks / on deviation. **Delete `advancePlayback`, `refineWithFallback`, `deriveSegmentHeadings`.** The 90° snaps die here; motion is always kinematic. |
-| 3 | [`slice-3-recovery-ladder`](stories/slice-3-recovery-ladder.md) | Formal escalation: drift → blocked → stuck → giveup. Replaces ad-hoc wall-stuck/reverse-pulse. Reverse / 3-point extraction via the local planner. |
-| 4 | [`slice-4-tuning-feel`](stories/slice-4-tuning-feel.md) | Lookahead-vs-speed curve, replan cadence, horizon length, corner speed taper. Folds in [`../stories/driving-feel-tuning.md`](../stories/driving-feel-tuning.md). Playtest pass. |
-| 5 | [`slice-5-perf-budget`](stories/slice-5-perf-budget.md) | Budget the now-continuous planner: amortize replans across vehicles, cache grid-distance fields, cap iterations. Matters once multi-truck convoys run N planners. |
+| 0 | `slice-0-controller-seam.md` | Extract `VehicleController` + `ReferenceCorridor`; `GroundSystem` calls `controller.tick(dt)`. **No behavior change** — wraps today's advance* logic behind the seam. De-risks the rest. |
+| 1 | `slice-1-local-planner.md` | `LocalTrajectoryPlanner`: rolling-horizon HA* over a bounded window. Unit-tested standalone against `NavigationGrid`. Not yet wired into motion. |
+| 2 | `slice-2-live-tracking.md` | Controller tracks the rolling local plan with BicycleBody+PurePursuit every tick; replan every K ticks / on deviation. **Delete `advancePlayback`, `refineWithFallback`, `deriveSegmentHeadings`.** The 90° snaps die here; motion is always kinematic. |
+| 3 | `slice-3-recovery-ladder.md` | Formal escalation: drift → blocked → stuck → giveup. Replaces ad-hoc wall-stuck/reverse-pulse. Reverse / 3-point extraction via the local planner. |
+| 4 | `slice-4-tuning-feel.md` | Lookahead-vs-speed curve, replan cadence, horizon length, corner speed taper. Folds in [`../stories/driving-feel-tuning.md`](../stories/driving-feel-tuning.md). Playtest pass. |
+| 5 | `slice-5-perf-budget.md` | Budget the now-continuous planner: amortize replans across vehicles, cache grid-distance fields, cap iterations. Matters once multi-truck convoys run N planners. |
 
 ### Why this order
 

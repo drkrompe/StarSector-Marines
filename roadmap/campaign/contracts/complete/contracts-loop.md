@@ -10,7 +10,7 @@ salvage-vs-cash negotiation knob, the battle resolves, and the
 resolver bridge writes the outcome back to `CampaignState` with rep +
 phase deltas.
 
-Source session: [`../../../sessions/2026-05-21-3.md`](../../../sessions/2026-05-21-3.md).
+Source session: 2026-05-21 (third session; the `sessions/` logs were retired).
 
 ## Contracts table — sixth SoA table on `CampaignState`
 

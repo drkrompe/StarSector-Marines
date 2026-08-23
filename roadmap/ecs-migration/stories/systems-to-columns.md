@@ -60,7 +60,7 @@ never made that move.**
   (`HeavyWeapons` over mechLoadouts, `DroneCrashSystem`, `AirSystem` over airCraft,
   the corpse sweep) — all tiny or optional populations.
 - The mainline N≈200 loop —
-  [`UnitUpdateSystem.tick`](../../../src/main/java/com/dillon/starsectormarines/battle/decision/UnitUpdateSystem.java)
+  `UnitUpdateSystem.tick`
   — iterates the dense `Entity[]` (`roster.denseArray()`), parallel-streams
   `[0, liveCount)`, and dispatches `behaviorFor(u.role).update(u, sim)`. Inside, state
   is read **by id**: `sim.world().hasAiState(u.entityId)`,

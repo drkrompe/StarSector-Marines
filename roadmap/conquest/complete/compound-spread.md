@@ -128,7 +128,7 @@ Non-seed members keep the standard area-sorted role assignment.
 
 - [`central-keep.md`](../central-keep.md) — compound-as-supply model;
   the progression this story enforces.
-- [`tug-of-war-v2.md`](../tug-of-war-v2.md) — garrison drops at
+- `tug-of-war-v2.md` — garrison drops at
   captured compounds; spread affects where drops land across the map.
 - `BiomeMap` — biome band layout along the traversal axis.
 - `CompoundClaim` — BFS compound seeding + role assignment.

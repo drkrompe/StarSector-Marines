@@ -203,5 +203,5 @@ the map feel like it refuses to stay taken.
   this story.**
 - [`../central-keep.md`](../central-keep.md) — compound-as-supply
   gates still constrain bulge delivery means.
-- [`compound-spread.md`](compound-spread.md) — the tiered biome bands
+- `compound-spread.md` — the tiered biome bands
   that define which slices can be conceded and reclaimed.

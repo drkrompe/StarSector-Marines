@@ -92,7 +92,7 @@ instead of waiting for the front to wash over the compound.
 
 - [`central-keep.md`](../central-keep.md) — V1 compound-as-supply + win
   condition (`ConquestObjective`).
-- [`tug-of-war-v2.md`](../tug-of-war-v2.md) — garrison drop that holds the
+- `tug-of-war-v2.md` — garrison drop that holds the
   captured compound (the release valve this pass relies on).
 - `roadmap/ai/stories/12-squad-of-squads.md` § Improvement path — the
   commander-tier improvement bank this slots into.

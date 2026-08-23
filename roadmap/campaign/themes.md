@@ -16,7 +16,7 @@ of that as we scale up content:
    refinery worlds. Vanilla rep would tank in a single session and the
    player would stop being able to interact with the faction.
 2. **Economy safety**. The disruption mechanic in
-   [`MissionResolver`](../../src/main/java/com/dillon/starsectormarines/ops/MissionResolver.java)
+   `MissionResolver`
    already pushes on vanilla industries. Sustained marine pressure that
    meaningfully reshapes the sector economy is fun *content*, but the
    game's economy isn't built to absorb arbitrary perturbations from a
@@ -147,7 +147,7 @@ Independent presence is just a local house), no N² explosion.
 
 ## Captains as trust network
 
-The captain roster ([`MarineRosterScript`](../../src/main/java/com/dillon/starsectormarines/marine/MarineRosterScript.java))
+The captain roster (`MarineRosterScript`)
 already persists named captains with rank, traits, and a commendation
 log. We extend that with a per-house reputation overlay:
 
@@ -265,7 +265,7 @@ sector scale (a few thousand rows).
    Scripted is easier to author; utility is more replayable. Likely a
    mix: each house has a long-term ambition plus tactical opportunism.
 5. **Story missions interaction** — story missions
-   ([`StoryMissionRegistry`](../../src/main/java/com/dillon/starsectormarines/ops/mission/story/StoryMissionRegistry.java))
+   (`StoryMissionRegistry`)
    are one-shot scripted; T1-T3 chains are procedurally driven. They
    probably interleave — story missions bookend chains as marquee
    moments inside a generated arc.
