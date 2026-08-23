@@ -6,7 +6,7 @@ import java.util.List;
  * A named, ordered composition of {@link GenStage}s — the "what map type" knob
  * of the generation pipeline (the Game / specific-behavior analogue to
  * {@link GenContext} as Service and {@link GenStage} as System; see
- * {@code roadmap/mapgen/composable-pipeline.md}).
+ * {@code mapgen-nouns.md}).
  *
  * <p>Where a {@link GenStage} is a single reusable pass and {@link GenContext}
  * is the shared blackboard, a recipe is the decision of <em>which</em> passes

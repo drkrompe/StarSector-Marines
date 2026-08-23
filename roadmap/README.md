@@ -80,8 +80,8 @@ universe over time, not retrofitted into intel slots.
   conference and server rooms, and distinct low-versus-opaque office cover.
   Qualifying standalone residential lots now become street-facing apartment
   blocks, and apartment facades add non-traversable firing windows that preserve
-  sight, shots, and directional cover. See
-  [`mapgen/`](mapgen/).
+  sight, shots, and directional cover. The durable pipeline, tactical-space,
+  station, and economic-district model lives in `mapgen-nouns.md`.
 - **Moddable tilesets** *(Phases 1 + 2 shipped; one proposed cleanup)* — the
   built-in visual catalog and its generation mapping are dual-JSON and
   id-addressed. `TileRegistry` owns what assets exist; `GenMappingRegistry`

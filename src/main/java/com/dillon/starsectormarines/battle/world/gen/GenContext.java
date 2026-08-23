@@ -31,12 +31,12 @@ import java.util.Random;
  *   <li><b>Blackboard</b> — optional / domain-specific overlays addressed by
  *       {@link GenKey}: biome map, road graph, compound list, etc. A pass
  *       that needs one reads it by key and is responsible for running after
- *       whatever {@code put}s it (ordering is the recipe's job once stages
- *       exist; today it's the imperative call order in the orchestrator).</li>
+ *       whatever {@code put}s it; ordering is the owning recipe's job.</li>
  * </ul>
  *
  * <p>Not thread-safe and not meant to be — one generation run is single
- * threaded, and a generator is invoked once per battle with a fresh context.
+ * threaded, and a generator is invoked with a fresh context for each run. See
+ * {@code mapgen-nouns.md}.
  */
 public final class GenContext {
 

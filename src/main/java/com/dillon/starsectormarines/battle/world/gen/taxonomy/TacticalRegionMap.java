@@ -14,8 +14,8 @@ import java.util.List;
  * Segmentation of a generated map's walkable space into {@link TacticalRegion}s
  * — the city's structural-taxonomy artifact. Generator-agnostic: it reads only
  * a {@link NavigationGrid} (walkability) + {@link CellTopology} (ground kind) +
- * an optional {@link TraversalAxis}, so the same segmenter serves the BSP city,
- * a future station recipe, or any other map type.
+ * an optional {@link TraversalAxis}, so the same segmenter can serve the BSP
+ * city, station recipes, or any other map type.
  *
  * <p><b>Why texture, not topology.</b> A porous open-with-obstacles city has no
  * real movement chokepoints (a unit walks around a building island through the
@@ -24,7 +24,7 @@ import java.util.List;
  * <em>texture</em> of the walkable blob: it cuts the blob into regions at every
  * ground-kind change and every obstacle, then tags each region with cover /
  * exposure / enclosure / assault-depth attributes that a placement pass can
- * query directly. See {@code roadmap/mapgen/stories/structural-taxonomy.md}.
+ * query directly. See {@code mapgen-nouns.md}.
  *
  * <p>Pure analysis — draws no randomness and mutates nothing, so inserting the
  * stage that builds it leaves generated maps byte-identical.

@@ -7,12 +7,11 @@ package com.dillon.starsectormarines.battle.world.gen;
  * state flows through {@code ctx} (spine fields + {@link GenKey}-addressed
  * overlays), never through stage instance fields.
  *
- * <p>A generator's {@code generate()} becomes "build a {@link GenContext}, run
- * an ordered {@code List<GenStage>}, assemble the result from the context." A
- * stage that needs a domain overlay is responsible for ordering — its position
- * in the list must follow whatever {@code put}s the overlay it reads. Once
- * {@code GenRecipe} lands (Slice 3) the conditional {@code if (ctx.has(KEY))}
- * gates inside stages collapse into "the stage simply isn't in this recipe."
+ * <p>A generator run builds a {@link GenContext}, executes an ordered
+ * {@code List<GenStage>}, and assembles the result from that context. A stage
+ * that needs a domain overlay must follow the stage that binds it. Map-type
+ * differences belong in {@link GenRecipe} membership; a stage uses a
+ * conditional overlay only when the condition is genuinely shared behavior.
  *
  * <p>Functional interface so trivial passes can be expressed as lambdas, but
  * the load-bearing passes are concrete classes — named, reusable across

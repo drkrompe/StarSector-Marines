@@ -67,8 +67,9 @@ import static org.junit.jupiter.api.Assertions.fail;
  * edge/cell connectivity agree, every garrison node has ≥ 1 reachable
  * deployable cell); softer findings print as a report for the human (cramped
  * garrisons, emplacement anchors on structure cells). As the corridor work
- * lands, the reported findings are the candidates to promote to asserts — this
- * is the acceptance harness the corridors-first-class story rides on.
+ * lands, the reported findings are the candidates to promote to asserts. This
+ * is the standing structural acceptance harness described by
+ * {@code mapgen-nouns.md}.
  */
 public class MapValidationScanTest {
 
@@ -104,8 +105,8 @@ public class MapValidationScanTest {
     }
 
     /**
-     * Station-interior scan — the acceptance gate the corridors-first-class story
-     * rides on. The station inverts the city (solid-default; rooms + corridors
+     * Station-interior scan — the noun model's connectivity acceptance gate.
+     * The station inverts the city (solid-default; rooms + corridors
      * carved), so the load-bearing invariant is that the corridor spine actually
      * connects every room: <b>exactly one</b> walkable component (no islands),
      * and the marine spawn can <em>path</em> to the defender spawn via the real
