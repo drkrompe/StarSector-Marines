@@ -251,6 +251,12 @@ public final class SquadStateDumper {
             MechLoadoutComponent mechLoadout = sim.world().mechLoadout(u);
             o.put("mechVariant", mechVariant != null ? mechVariant.id : null);
             o.put("mechRole", mechLoadout != null ? mechLoadout.role.name() : null);
+            o.put("overwatchCellX", mechLoadout != null ? mechLoadout.overwatchCellX : null);
+            o.put("overwatchCellY", mechLoadout != null ? mechLoadout.overwatchCellY : null);
+            long screen = mechLoadout != null
+                    ? sim.resolveUnit(mechLoadout.overwatchScreenId) : 0L;
+            o.put("overwatchScreenId", screen != 0L
+                    ? sim.identity().name(screen) : null);
             o.put("cellX", sim.world().cellX(u));
             o.put("cellY", sim.world().cellY(u));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,

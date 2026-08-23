@@ -11,10 +11,10 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import java.util.List;
 
 /**
- * LR Support mech goal: hold an LR-band overwatch position and lob LRMs
- * at the squad's known threat axis. {@link Goal.Priority#MISSION} so it
- * outranks the ambient {@link MechEliminateEnemiesGoal} when both are
- * relevant.
+ * LR Support mech goal: angle for a medium/long-range firing lane along the
+ * squad's known threat axis, preferably behind a non-Sirocco ally.
+ * {@link Goal.Priority#MISSION} so it outranks the ambient
+ * {@link MechEliminateEnemiesGoal} when both are relevant.
  *
  * <p>Relevance is gated on two conditions:
  * <ol>

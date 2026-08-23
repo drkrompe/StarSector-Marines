@@ -207,8 +207,10 @@ Implementation ordering:
 (LR Support + Armored Support) via spawn-time assignment. Stage 2A's
 faction-neutral Assault role and risk-scaled production roster shipped in
 `22-assault-mech-and-difficulty-roster.md`; its reciprocal infantry/mech
-cohesion leash shipped in `28-assault-mech-cohesion.md`. Recon and broad
-dynamic re-assignment remain.
+cohesion leash shipped in `28-assault-mech-cohesion.md`. The Sirocco's
+medium/long screened firing posture shipped in
+`29-sirocco-screened-overwatch.md`. Recon and broad dynamic re-assignment
+remain.
 
 ## Cross-references
 

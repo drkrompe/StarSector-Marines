@@ -12,13 +12,15 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 /**
- * LR Support doctrine: hold at LR-band cover, lob LRMs at the squad's
- * known threat axis, withhold SRMs. Picks a cover cell ~32–38 cells from
- * {@code squad.lastSeenEnemyX/Y} with LoS to that cell — once per threat
- * axis shift, cached on {@link MechLoadoutComponent#overwatchCellX} so per-tick
- * re-search doesn't blow the planner budget.
+ * LR Support doctrine: angle through medium/long-range firing lanes toward the
+ * squad's known threat axis. Candidate cells prefer a same-faction combatant
+ * between the mech and the threat, but another Sirocco never counts as the
+ * screen. The picked cell is cached on
+ * {@link MechLoadoutComponent#overwatchCellX}; it refreshes when the threat or
+ * screen changes and periodically while unscreened.
  *
  * <p>Per-member execution branches on role. An LR_SUPPORT member runs the
  * overwatch body; any other member in the squad (e.g. an ARMORED_SUPPORT
@@ -30,12 +32,10 @@ import com.dillon.starsectormarines.battle.nav.Paths;
  * squads acceptably.
  *
  * <p>The "withhold SRM" piece is doctrine-as-positioning: the mech holds
- * at LR band, so SRM band targets are typically out of range and the gate
- * is a no-op. When an enemy closes inside chaingun range (the kill
- * corridor is being overrun), the chaingun fires as last-ditch defense.
- * SRM is never called from this action regardless. Future morale-driven
- * "pressured" override (see {@code roadmap/ai/14-mech-stage1.md} "Mech
- * survival") can unlock SRM as a pressure-release valve in Stage 2.
+ * in the medium/long band. A Sirocco can take a heavy-cannon opportunity near
+ * the inner edge and uses LRMs outside the cannon band. SRM is never called
+ * from this action regardless. A future morale-driven pressured override can
+ * unlock SRM as a pressure-release valve; see `14-mech-stage1.md`.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — same lifecycle as
  * {@link EngageAtCurrentBand}; replan handles posture changes.
@@ -44,12 +44,20 @@ public final class OverwatchKillZone implements Action {
 
     public static final OverwatchKillZone INSTANCE = new OverwatchKillZone();
 
-    /** Lower bound on overwatch-cell distance from {@code lastSeenEnemy}. Just above the mech's 30-cell chaingun range so LR doctrine still establishes an artillery position. */
-    private static final float OVERWATCH_MIN_DIST = 32f;
-    /** Upper bound. Below the mech's LRM range (40 cells) so the picked cell is comfortably inside the firing envelope for arc'd LRMs. */
-    private static final float OVERWATCH_MAX_DIST = 38f;
+    /** Inner brawling edge. It overlaps the Sirocco's 26-cell heavy cannon. */
+    static final float OVERWATCH_MIN_DIST = 24f;
+    /** Outer edge. It stays comfortably inside the 40-cell LRM envelope. */
+    static final float OVERWATCH_MAX_DIST = 36f;
     /** Cover-bonus weight when scoring candidate overwatch cells. Higher = strong preference for high-cover cells over short-walk cells. */
     private static final float OVERWATCH_COVER_WEIGHT = 5f;
+    /** Strong but non-mandatory preference for a lane screened by a useful ally. */
+    private static final float SCREENED_POSITION_BONUS = 24f;
+    /** Maximum lateral distance from the firing axis for an ally to count as the screen. */
+    static final float SCREEN_AXIS_HALF_WIDTH = 3f;
+    /** Keeps an ally meaningfully between the shooter and threat rather than touching either endpoint. */
+    private static final float SCREEN_ENDPOINT_CLEARANCE = 3f;
+    /** Two-second discovery cadence for an unscreened cached perch. */
+    private static final int UNSCREENED_RECHECK_TICKS = 60;
 
     private static final WorldState PRE = WorldState.EMPTY;
     private static final WorldState EFF = WorldState.EMPTY
@@ -82,25 +90,47 @@ public final class OverwatchKillZone implements Action {
 
         // Refresh overwatch cell when threat axis shifts or we have no cached
         // pick yet. Pick is per-mech (each LR member gets its own cell).
-        if (m.overwatchCellX < 0 ||
-            m.overwatchAxisX != squad.lastSeenEnemyX ||
-            m.overwatchAxisY != squad.lastSeenEnemyY) {
-            int[] cell = pickOverwatchCell(member, squad, sim);
-            if (cell == null) {
-                // No valid LR-band cover cell in range — fall back to parity.
-                // Re-tries next replan when the threat axis may have shifted.
+        boolean needsRepick = m.overwatchCellX < 0
+                || m.overwatchAxisX != squad.lastSeenEnemyX
+                || m.overwatchAxisY != squad.lastSeenEnemyY;
+        if (!needsRepick && m.overwatchScreenId != 0L) {
+            needsRepick = !isValidScreen(m.overwatchScreenId,
+                    m.overwatchCellX, m.overwatchCellY,
+                    squad.lastSeenEnemyX, squad.lastSeenEnemyY,
+                    squad, sim);
+        }
+        if (!needsRepick && m.overwatchScreenId == 0L) {
+            needsRepick = Math.floorMod(sim.getSimTickIndex() + Long.hashCode(member),
+                    UNSCREENED_RECHECK_TICKS) == 0;
+        }
+        if (needsRepick) {
+            OverwatchPosition position = pickOverwatchCell(member, squad, sim);
+            if (position == null) {
+                m.overwatchCellX = -1;
+                m.overwatchCellY = -1;
+                m.overwatchScreenId = 0L;
+                // No valid medium/LR firing cell — fall back to parity.
                 return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
             }
-            m.overwatchCellX = cell[0];
-            m.overwatchCellY = cell[1];
+            m.overwatchCellX = position.x();
+            m.overwatchCellY = position.y();
             m.overwatchAxisX = squad.lastSeenEnemyX;
             m.overwatchAxisY = squad.lastSeenEnemyY;
+            m.overwatchScreenId = position.screenId();
         }
 
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
+        boolean stalePath = !Paths.isEmpty(path)
+                && (Paths.destX(path) != m.overwatchCellX
+                || Paths.destY(path) != m.overwatchCellY);
+        if (stalePath) {
+            sim.clearPath(member);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
+        }
         if (!sim.movement().atCell(member, m.overwatchCellX, m.overwatchCellY)
                 && sim.movement().mayRepath(member)
                 && pathIdx >= Paths.cellCount(path)) {
@@ -115,8 +145,8 @@ public final class OverwatchKillZone implements Action {
             sim.advanceMovement(member);
         }
 
-        // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)
-        // and chaingun (last-ditch if a target closes to chaingun band).
+        // Fire pass — withhold SRM, allow LRM in its long band and whichever
+        // direct-fire weapon is installed on the arms track in its own band.
         // Re-pick whenever the cached target isn't currently shootable: an
         // LR mech parked at its overwatch cell can otherwise stay locked onto
         // an enemy that's slid behind cover while ignoring a fresh enemy now
@@ -131,7 +161,7 @@ public final class OverwatchKillZone implements Action {
                     sim.world().cellX(target), sim.world().cellY(target));
             if (inRange) {
                 MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
-                MechCombatantBehavior.tryFireChaingun(member, m, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireArms(member, m, target, dist, sim, visible);
                 // SRM intentionally withheld — see class doc.
             }
         }
@@ -139,21 +169,24 @@ public final class OverwatchKillZone implements Action {
     }
 
     /**
-     * Picks the best cover cell in the LR band of {@code squad.lastSeenEnemy}.
+     * Picks the best medium/long firing cell around
+     * {@code squad.lastSeenEnemy}.
      * Scans the {@code [-OVERWATCH_MAX_DIST, OVERWATCH_MAX_DIST]} box around
      * the threat, filters to walkable cells in
      * {@code [OVERWATCH_MIN_DIST, OVERWATCH_MAX_DIST]} with LoS to the threat,
-     * scores by cover quality (per-facing, against the threat axis) minus walk
-     * distance from the mech's current cell. Returns {@code null} when no cell
-     * satisfies the filter — caller falls back to parity engagement.
+     * scores by walk distance and directional cover, then strongly rewards a
+     * non-Sirocco friendly combatant lying on the candidate-to-threat axis.
+     * Returns {@code null} when no cell satisfies the filter — caller falls
+     * back to parity engagement.
      */
-    private static int[] pickOverwatchCell(long member, Squad squad, BattleView sim) {
+    static OverwatchPosition pickOverwatchCell(long member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
         int radius = (int) Math.ceil(OVERWATCH_MAX_DIST);
+        ScreeningAllies allies = gatherScreeningAllies(member, squad, tx, ty, sim);
 
-        int[] best = null;
+        OverwatchPosition best = null;
         float bestScore = Float.MAX_VALUE;
         for (int dy = -radius; dy <= radius; dy++) {
             for (int dx = -radius; dx <= radius; dx++) {
@@ -170,15 +203,94 @@ public final class OverwatchKillZone implements Action {
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 float walk = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), cx + 0.5f, cy + 0.5f);
+                long screen = screeningAlly(cx, cy, tx, ty, allies);
                 float score = walk
                         - OVERWATCH_COVER_WEIGHT * cover
-                        - OVERWATCH_COVER_WEIGHT * doodadCover;
+                        - OVERWATCH_COVER_WEIGHT * doodadCover
+                        - (screen != 0L ? SCREENED_POSITION_BONUS : 0f);
                 if (score < bestScore) {
                     bestScore = score;
-                    best = new int[]{cx, cy};
+                    best = new OverwatchPosition(cx, cy, screen);
                 }
             }
         }
         return best;
     }
+
+    private static ScreeningAllies gatherScreeningAllies(long member, Squad squad,
+                                                         int threatX, int threatY,
+                                                         BattleView sim) {
+        LongBucket gathered = new LongBucket();
+        sim.getUnitIndex().gather(threatX + 0.5f, threatY + 0.5f,
+                OVERWATCH_MAX_DIST, gathered);
+        long[] ids = new long[gathered.size];
+        float[] xs = new float[gathered.size];
+        float[] ys = new float[gathered.size];
+        int write = 0;
+        for (int i = 0, n = gathered.size; i < n; i++) {
+            long ally = gathered.ids[i];
+            if (ally == member || sim.identity().faction(ally) != squad.faction
+                    || !sim.identity().type(ally).combatant
+                    || sim.identity().mechVariant(ally) == MechVariant.SIROCCO) continue;
+            ids[write] = ally;
+            xs[write] = sim.world().x(ally);
+            ys[write] = sim.world().y(ally);
+            write++;
+        }
+        return new ScreeningAllies(ids, xs, ys, write);
+    }
+
+    private static long screeningAlly(int candidateX, int candidateY,
+                                      int threatX, int threatY,
+                                      ScreeningAllies allies) {
+        long best = 0L;
+        float bestLateralSq = Float.MAX_VALUE;
+        for (int i = 0; i < allies.size(); i++) {
+            long ally = allies.ids()[i];
+            float lateralSq = screenLateralDistanceSq(
+                    allies.xs()[i], allies.ys()[i], candidateX, candidateY,
+                    threatX, threatY);
+            if (lateralSq < 0f) continue;
+            if (lateralSq < bestLateralSq
+                    || lateralSq == bestLateralSq && ally < best) {
+                best = ally;
+                bestLateralSq = lateralSq;
+            }
+        }
+        return best;
+    }
+
+    private static boolean isValidScreen(long ally, int candidateX, int candidateY,
+                                         int threatX, int threatY,
+                                         Squad squad, BattleView sim) {
+        return sim.resolveUnit(ally) != 0L
+                && sim.identity().faction(ally) == squad.faction
+                && sim.identity().type(ally).combatant
+                && sim.identity().mechVariant(ally) != MechVariant.SIROCCO
+                && screenLateralDistanceSq(sim.world().x(ally), sim.world().y(ally),
+                candidateX, candidateY, threatX, threatY) >= 0f;
+    }
+
+    private static float screenLateralDistanceSq(float allyX, float allyY,
+                                                 int candidateX, int candidateY,
+                                                 int threatX, int threatY) {
+        float startX = candidateX + 0.5f;
+        float startY = candidateY + 0.5f;
+        float dx = threatX + 0.5f - startX;
+        float dy = threatY + 0.5f - startY;
+        float lengthSq = dx * dx + dy * dy;
+        if (lengthSq < 1e-4f) return -1f;
+        float length = (float) Math.sqrt(lengthSq);
+        float relX = allyX - startX;
+        float relY = allyY - startY;
+        float progress = (relX * dx + relY * dy) / length;
+        if (progress < SCREEN_ENDPOINT_CLEARANCE
+                || progress > length - SCREEN_ENDPOINT_CLEARANCE) return -1f;
+        float lateral = Math.abs(relX * -dy + relY * dx) / length;
+        return lateral <= SCREEN_AXIS_HALF_WIDTH ? lateral * lateral : -1f;
+    }
+
+    private record ScreeningAllies(long[] ids, float[] xs, float[] ys, int size) {}
+
+    record OverwatchPosition(int x, int y, long screenId) {}
 }
