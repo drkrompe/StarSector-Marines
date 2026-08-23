@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageLi
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -15,6 +16,7 @@ import com.dillon.starsectormarines.intel.CivilianRescueIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
+import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -22,6 +24,8 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotAPI;
+import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotsAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
@@ -29,6 +33,9 @@ import org.apache.log4j.Logger;
 public class StarsectorMarinesModPlugin extends BaseModPlugin {
 
     public static final String MOD_ID = "starsector_marines";
+
+    /** Ability bars the player can page through; vanilla's {@code AddAbility} uses five. */
+    private static final int ABILITY_BARS = 5;
 
     private static final Logger LOG = Global.getLogger(StarsectorMarinesModPlugin.class);
 
@@ -41,6 +48,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Generation mapping (moddable-tilesets Phase 2) — pools/dispatch as data.
         // After TileRegistry so its doodad-id pools resolve against installed tiles.
         GenMappingRegistry.loadBuiltins();
+        // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
+        // tile registries this is NOT self-defensive: a weapon whose stats failed to
+        // load would read zero range and zero damage, so a bad catalog must stop
+        // startup rather than produce a silently unwinnable battle. Must precede any
+        // consumer that walks the catalog at load time — BattleSprites preloads every
+        // primary's projectile sprite through it.
+        WeaponRegistry.loadBuiltins();
     }
 
     @Override
@@ -53,6 +67,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureMarineRoster();
         ensureCaptainDiscoverySalvageListener();
         ensurePlayerEventPresenter();
+        ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
         ensureDeadLetterIntel();
@@ -141,6 +156,62 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (PlayerEventPresenter.getInstance() != null) return;
         sector.addScript(new PlayerEventPresenter());
         LOG.info("Starsector Marines: PlayerEventPresenter registered");
+    }
+
+    /**
+     * Grants the campaign-map company button and puts it on the ability bar.
+     *
+     * <p>Granting and slot assignment are separate concerns: the player may legitimately
+     * drag the ability off the bar, and re-adding it every load would fight them. So the
+     * slot scan mirrors vanilla's {@code AddAbility} rulecmd — walk all five bars first,
+     * and only claim a free slot when the ability is on none of them.
+     *
+     * <p>Self-defensive: a malformed {@code abilities.csv} row would otherwise take game
+     * load down with it, and an entry point is not worth that.
+     */
+    private static void ensureCompanyViewAbility() {
+        SectorAPI sector = Global.getSector();
+        try {
+            if (sector.getCharacterData() == null) return;
+            boolean granted = sector.getCharacterData().getAbilities()
+                    .contains(CompanyViewAbility.ABILITY_ID);
+            if (!granted) {
+                sector.getCharacterData().addAbility(CompanyViewAbility.ABILITY_ID);
+                LOG.info("Starsector Marines: company view ability granted");
+            }
+            assignToFreeAbilitySlot(sector, CompanyViewAbility.ABILITY_ID);
+        } catch (RuntimeException e) {
+            LOG.warn("Starsector Marines: company view ability unavailable", e);
+        }
+    }
+
+    /** No-op when the ability already occupies a slot on any bar, or when all are full. */
+    private static void assignToFreeAbilitySlot(SectorAPI sector, String abilityId) {
+        if (sector.getUIData() == null) return;
+        AbilitySlotsAPI slots = sector.getUIData().getAbilitySlotsAPI();
+        if (slots == null) return;
+        int restoreBar = slots.getCurrBarIndex();
+        try {
+            for (int bar = 0; bar < ABILITY_BARS; bar++) {
+                slots.setCurrBarIndex(bar);
+                for (AbilitySlotAPI slot : slots.getCurrSlotsCopy()) {
+                    if (abilityId.equals(slot.getAbilityId())) return;
+                }
+            }
+            for (int bar = 0; bar < ABILITY_BARS; bar++) {
+                slots.setCurrBarIndex(bar);
+                for (AbilitySlotAPI slot : slots.getCurrSlotsCopy()) {
+                    if (slot.getAbilityId() == null) {
+                        slot.setAbilityId(abilityId);
+                        LOG.info("Starsector Marines: company view ability placed on bar "
+                                + (bar + 1));
+                        return;
+                    }
+                }
+            }
+        } finally {
+            slots.setCurrBarIndex(restoreBar);
+        }
     }
 
     private static void ensureCampaignDebugIntel() {

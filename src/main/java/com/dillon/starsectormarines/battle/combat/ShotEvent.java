@@ -200,7 +200,7 @@ public class ShotEvent {
         if (marineSecondary != null) return 2.5f;
         if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
         if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius);
-        if (marineWeapon != null && marineWeapon.impactProfile == ImpactProfile.KINETIC) {
+        if (marineWeapon != null && marineWeapon.impactProfile() == ImpactProfile.KINETIC) {
             return 1.4f;
         }
         return 1f;
@@ -225,7 +225,7 @@ public class ShotEvent {
     public ImpactProfile impactProfile() {
         if (turretKind != null) return turretKind.impactProfile();
         if (marineSecondary != null) return marineSecondary.impactProfile();
-        if (marineWeapon != null) return marineWeapon.impactProfile;
+        if (marineWeapon != null) return marineWeapon.impactProfile();
         if (mechWeapon != null) return mechWeapon.impactProfile;
         return ImpactProfile.RIFLE;
     }

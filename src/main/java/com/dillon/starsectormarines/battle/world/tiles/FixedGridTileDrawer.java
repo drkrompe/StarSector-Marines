@@ -16,9 +16,10 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
  *
  * <p>Shared inset constants:
  * <ul>
- *   <li>{@link #GROUND_INSET_PX_LARGE} — 2px, for 32px sheets (urban, road).</li>
- *   <li>{@link #GROUND_INSET_PX_SMALL} — 1px, for 16px sheets (Floors,
- *       Water). 12.5% per-axis is the largest crop these can take before
+ *   <li>{@link #GROUND_INSET_PX_LARGE} — 2px, for 32px-or-larger sheets
+ *       (urban, road, high-resolution Floors).</li>
+ *   <li>{@link #GROUND_INSET_PX_SMALL} — 1px, for sub-32px sheets (Water).
+ *       12.5% per-axis is the largest crop these can take before
  *       the sampler reads into adjacent tiles.</li>
  *   <li>{@link #OVERLAY_INSET_PX} — 0, for doodads / overlays whose edge
  *       pixels are real content.</li>
@@ -29,10 +30,10 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
  */
 public final class FixedGridTileDrawer {
 
-    /** Default inset for 32px source sheets — confirmed 2px essentially eliminates the bilinear-sampler seam without cropping perceptible content. */
+    /** Default inset for 32px-or-larger source sheets — confirmed 2px essentially eliminates the bilinear-sampler seam without cropping perceptible content. */
     public static final int GROUND_INSET_PX_LARGE = 2;
 
-    /** Default inset for 16px source sheets. 1px keeps the sampler off the boundary texel without throwing away 25% of the per-axis content area. */
+    /** Default inset for sub-32px source sheets. 1px keeps the sampler off the boundary texel without throwing away 25% of a 16px content area. */
     public static final int GROUND_INSET_PX_SMALL = 1;
 
     /** Inset for standalone overlay sprites (doodads, DOOR_OPEN) — their edge pixels are visible art, not part of a tiling field. */

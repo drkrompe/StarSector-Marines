@@ -253,9 +253,8 @@ the pane C3 and C4 later furnish.
   planet-scoped Marine Ops dialog. *Settled 2026-08-22.* The ability bar is
   already the campaign-only HUD element, so it hides itself with the rest of
   the HUD and needs no visibility gate of ours; the host is the one
-  [G32](../campaign/contracts/complete/g32-player-event-popup.md) shipped.
-  See C10 (`c10-company-between-contracts.md`), which supersedes C4's
-  slice 3.
+  G32 (`g32-player-event-popup.md`) shipped. See C10
+  (`c10-company-between-contracts.md`), which supersedes C4's slice 3.
 
 ## Open questions
 

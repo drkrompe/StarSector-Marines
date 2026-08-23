@@ -484,7 +484,7 @@ public final class TacticalScoring {
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
         MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
-        float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult : 0.3f;
+        float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult() : 0.3f;
         float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
                 ? world.secondaryWeapon(self).vsTurretMult : 0f;
         float bestMult = Math.max(primary, secondary);

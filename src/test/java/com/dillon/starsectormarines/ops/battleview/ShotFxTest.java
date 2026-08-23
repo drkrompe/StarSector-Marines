@@ -91,14 +91,14 @@ public class ShotFxTest {
     public void marinePrimariesUseDistinctTravelingBodyFamilies() {
         for (MarineWeapon w : MarineWeapon.values()) {
             ShotFx fx = ShotFx.of(shot(null, w, null, null));
-            if (w.projectileSpritePath != null) {
+            if (w.projectileSpritePath() != null) {
                 Sprite body = assertSprite(fx, "primary " + w);
-                assertEquals(w.projectileSpritePath, body.spritePath(), "sprite path for " + w);
-                assertEquals(w.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + w);
+                assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
+                assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
             } else {
                 assertInstanceOf(Bolt.class, fx.body(), "primary should bolt: " + w);
                 Bolt bolt = (Bolt) fx.body();
-                assertSame(w.tracerColor, bolt.color(), "bolt color for " + w);
+                assertSame(w.tracerColor(), bolt.color(), "bolt color for " + w);
                 BoltExpectation expected = switch (w) {
                     case PULSE_RIFLE -> new BoltExpectation(
                             ShotFx.PULSE_BOLT_SPRITE_PATH, 1.0f, 0.25f);
@@ -128,7 +128,7 @@ public class ShotFxTest {
 
     @Test
     public void dmrNeedleUsesAHighContrastPaleBlueTint() {
-        assertEquals(new Color(0xE0, 0xF0, 0xFF), MarineWeapon.DMR.tracerColor);
+        assertEquals(new Color(0xE0, 0xF0, 0xFF), MarineWeapon.DMR.tracerColor());
     }
 
     @Test

@@ -45,22 +45,76 @@ public final class OfficerMoodReader {
     /** Fleet ships below which GREEN triggers (absent SEASONED). */
     static final int GREEN_SHIP_CEILING = 2;
     /** Runway in months of upkeep — below this, DESPERATE fires. */
-    static final int DESPERATE_RUNWAY_MONTHS = 6;
+    public static final int DESPERATE_RUNWAY_MONTHS = 6;
     /** Runway in months of upkeep — SEASONED requires at least this much cushion. */
-    static final int SEASONED_RUNWAY_MONTHS = 12;
+    public static final int SEASONED_RUNWAY_MONTHS = 12;
 
     private OfficerMoodReader() {}
 
     /**
      * Returns the comms officer's mood for the current player state.
-     * Guards every external lookup defensively — same pattern as
+     * {@link #read()} guards every external lookup defensively — same pattern as
      * {@code OfficerHeaderWidget.currentSectorDay} — so an early-load
      * frame (no sector, no campaign script) returns STEADY rather than
      * throwing.
      */
     public static OfficerMood currentMood() {
+        return read().mood();
+    }
+
+    /**
+     * The player-state numbers the mood is bucketed from, kept together so a surface
+     * that wants to <em>show</em> them — the company view's standing pane — reads the
+     * same values the officer is reacting to, rather than assembling a second, subtly
+     * different picture of the same wallet.
+     */
+    public static final class Snapshot {
+
+        public final float credits;
+        public final float netLastMonth;
+        public final float upkeepLastMonth;
+        public final int debt;
+        public final int previousDebt;
+        public final int activeCaptains;
+        public final int ships;
+        public final int mrbRep;
+
+        Snapshot(float credits, float netLastMonth, float upkeepLastMonth,
+                 int debt, int previousDebt, int activeCaptains, int ships, int mrbRep) {
+            this.credits = credits;
+            this.netLastMonth = netLastMonth;
+            this.upkeepLastMonth = upkeepLastMonth;
+            this.debt = debt;
+            this.previousDebt = previousDebt;
+            this.activeCaptains = activeCaptains;
+            this.ships = ships;
+            this.mrbRep = mrbRep;
+        }
+
+        public OfficerMood mood() {
+            return bucket(credits, netLastMonth, upkeepLastMonth, debt, previousDebt,
+                    activeCaptains, ships, mrbRep);
+        }
+
+        /**
+         * Months of payroll on hand — the headline the company view leads with, and the
+         * same quantity {@link OfficerMoodReader#DESPERATE_RUNWAY_MONTHS} and
+         * {@link OfficerMoodReader#SEASONED_RUNWAY_MONTHS} band.
+         *
+         * @return {@code -1} when last month's upkeep is zero or unknown, which is a
+         *         missing denominator rather than infinite runway — the first month of
+         *         a campaign has no report yet. Callers must not render it as a number.
+         */
+        public float runwayMonths() {
+            if (upkeepLastMonth <= 0f) return -1f;
+            return credits / upkeepLastMonth;
+        }
+    }
+
+    /** Reads the live player state. Every external lookup is guarded; see {@link #currentMood}. */
+    public static Snapshot read() {
         SectorAPI sector = Global.getSector();
-        if (sector == null) return OfficerMood.STEADY;
+        if (sector == null) return new Snapshot(0f, 0f, 0f, 0, 0, 0, 0, 0);
 
         float credits = 0f;
         int ships = 0;
@@ -99,7 +153,7 @@ public final class OfficerMoodReader {
             mrbRep = campaignScript.state().playerMrbRep;
         }
 
-        return bucket(credits, netLastMonth, upkeepLastMonth, debt, previousDebt,
+        return new Snapshot(credits, netLastMonth, upkeepLastMonth, debt, previousDebt,
                 activeCaptains, ships, mrbRep);
     }
 

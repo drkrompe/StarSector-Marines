@@ -38,7 +38,7 @@ public final class WeaponSymbols {
     }
 
     public static Color primaryColor(MarineWeapon w) {
-        return w != null ? w.tracerColor : DEFAULT_FG;
+        return w != null ? w.tracerColor() : DEFAULT_FG;
     }
 
     public static String secondaryAbbrev(MarineSecondary s) {

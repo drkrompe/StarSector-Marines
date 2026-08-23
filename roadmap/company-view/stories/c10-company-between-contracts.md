@@ -27,7 +27,7 @@ fiction. Checked against the code:
 
 The one thing that genuinely needs a planet is *responding* to a stationing
 event, because a response builds a ground battle and a battle needs a map.
-And contracts [G32](../../campaign/contracts/complete/g32-player-event-popup.md)
+And contracts G32 (`g32-player-event-popup.md`)
 already solved reaching that from anywhere: the event popup's **Deploy Now**
 opens Marine Ops against the *contract's own* market regardless of where the
 fleet is.
@@ -170,7 +170,7 @@ Three row sources, already persisted:
 
 | Row | Field | Shipped by |
 | --- | --- | --- |
-| Pending response | `contractResponseDeadlineTick` | [G31](../../campaign/contracts/complete/g31-stationing-response-deadlines.md) |
+| Pending response | `contractResponseDeadlineTick` | G31 (`g31-stationing-response-deadlines.md`) |
 | Stationing term ending | `contractExpiresTick` | G5 |
 | Offer lapsing | `contractOfferExpiresTick` | offer expiry |
 
@@ -236,8 +236,9 @@ battle seam.
    `ensure`-style grant + slot assignment. `pressButton()` opens the G32
    host on an empty `COMPANY_HQ` screen. Settles the TOGGLE-latching risk
    before anything is built on top.
-2. **Standing.** Runway headline through `OfficerMoodReader`, retainer sum,
-   MRB and employer standing, comms-officer line.
+2. ~~**Standing.**~~ **Shipped** (`b204c237`). Runway headline through
+   `OfficerMoodReader.Snapshot`, retainer sum, MRB and employer standing,
+   personnel gap, and the comms-officer line via `OfficerHeaderWidget`.
 3. **The clock.** Merged deadline list over the three sources, with
    **Respond** routing through `PlayerEventPresenter.requestDeployment`.
 4. **The company pane.** Strength rollup and the armory route.
@@ -305,7 +306,7 @@ the same gate as G5, G13, and G32.
   line for recalling a stationed team. If it is wanted, it belongs to the
   contracts track.
 - **Changing stationing mechanics, terms, or payloads.**
-  [`campaign/contracts/`](../../campaign/contracts/) owns those; G31 and G32
+  `roadmap/campaign/contracts/` owns those; G31 and G32
   have just reshaped them.
 - **Deployment selection.** Seats and missions exist only in a briefing flow;
   that surface stays there.
@@ -330,3 +331,102 @@ the same gate as G5, G13, and G32.
   is less useful than "four months, down from seven." `MonthlyReport` carries
   the previous report, so the data is there; whether one extra number earns
   its space is a layout call for slice 2.
+
+---
+
+## Slice 1 — shipped
+
+`2b959e44`. `gradlew.bat build` green.
+
+### What landed
+
+- `mod/data/campaign/abilities.csv` — one row, merging with vanilla's table.
+- `mod/graphics/icons/abilities/company_view.png` — 48x48 to match vanilla's
+  ability icons; twelve pips in three fire teams of four, the same squad shape
+  C7 settles and C3's rows will use.
+- `ops/CompanyViewAbility` — `pressButton()` only.
+- `ops/CompanyHqScreen` — stub: header, three placeholder lines naming the
+  panes to come, and a Back that dismisses.
+- `ScreenId.COMPANY_HQ`, registered on `MarineOpsPanelPlugin` with the routing
+  constraint recorded in its class javadoc.
+- `StarsectorMarinesModPlugin.ensureCompanyViewAbility` — grant plus a
+  vanilla-shaped slot scan, self-defensive so a malformed row cannot take game
+  load down.
+- `AbilitiesCsvTest` — four checks on seams that otherwise fail silently.
+
+### Deviations
+
+**The ability lives in `ops/`, not `campaign/ability/`.** It is a door into an
+ops screen, and `ops` already depends on `campaign`; putting it under
+`campaign` would have inverted that dependency for no gain.
+
+**The latching risk was smaller than this story claimed.** Extending
+`BaseAbilityPlugin` directly — rather than `BaseToggleAbility` — already gives
+`isActive()` false, `getProgressFraction()` zero, and `getCooldownFraction()`
+one, so `showActiveIndicator`, `showProgressIndicator`, and
+`showCooldownIndicator` all return false without being touched. Only the two
+abstract cooldown accessors had to be satisfied. `activate()` and
+`deactivate()` are still stubbed, because the base implementations call
+`reportPlayerActivatedAbility` and would fire an activation event and an on/off
+sound the player never asked for.
+
+That lowers the risk but does not retire it: none of it proves the engine
+routes a TOGGLE press through `pressButton()` at all. That is still a live-run
+question.
+
+### Still to confirm in game
+
+- The button appears on the ability bar, with its icon and tooltip.
+- Clicking it opens the company screen, and **nothing latches** — no active
+  indicator, no cooldown sweep, no on/off sound.
+- Back returns to the campaign map with no residual dialog.
+- The button is absent in the fleet, refit, intel, and map tabs, in an
+  interaction dialog, and in the pause menu.
+- Opening it from deep space, with no market in sensor range, works.
+- An existing save picks the ability up on load and places it on a free slot;
+  dragging it off the bar and reloading does not put it back.
+
+If a TOGGLE press does not reach `pressButton()`, the fallbacks are `DURATION`
+with no `durationDays`, then the `CampaignUIRenderingListener` +
+`CampaignInputListener` widget described above.
+
+## Slice 2 — shipped
+
+`b204c237`. `gradlew.bat build` green; 13 assertions in `CompanyStandingTest`.
+
+### What landed
+
+- `OfficerMoodReader.Snapshot` — the world-read extracted from `currentMood()`,
+  carrying `runwayMonths()` next to the bands that already gate the mood.
+  `currentMood()` is now `read().mood()`; `bucket(...)` and its existing tests are
+  untouched. `DESPERATE_RUNWAY_MONTHS` / `SEASONED_RUNWAY_MONTHS` are public so the
+  pane colours on the same numbers the officer reacts to.
+- `CompanyStanding` — derived, never persisted: retainer income, employers ranked by
+  standing, and strength against what can deploy today.
+- `CompanyHqScreen` — the three columns it will keep, standing populated.
+- `OfficerHeaderWidget` reused verbatim; with no client selected it falls to the
+  overview flavor, and it needs no planet.
+
+### Decisions worth keeping
+
+**Runway leads, and an unknown runway says so.** `runwayMonths()` returns -1 when last
+month's upkeep is zero or unknown, and the pane renders "Runway unknown" rather than a
+number. A first-month campaign has no monthly report; printing anything there would
+read as good news.
+
+**Retainer counts only rows that are actually paying** — ACTIVE and IN_PROGRESS. An
+OFFERED row has not been accepted and a terminal row has stopped. This number feeds the
+runway the screen leads with, so overcounting it is the one direction it must never err
+in.
+
+**`unavailable` is the whole gap, not just casualties.** Wounded, stationed, and
+reserve-pool marines all sit between "on the books" and "can go today", and the
+player's question is how many they can actually send.
+
+### Still to confirm in game
+
+- Standing figures agree with the campaign's own numbers (credits, last month's
+  upkeep, debt) on a real save.
+- The runway colour flips at 6 and 12 months and matches the officer's tone.
+- Three columns at 1.0x / 1.25x / 1.5x UI scale, with the employer list not
+  overrunning the column.

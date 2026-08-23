@@ -92,6 +92,26 @@ universe over time, not retrofitted into intel slots.
   (mod-merge: load order, id-override, validation) is deferred until a real
   submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
   [`moddable-tilesets/`](moddable-tilesets/overview.md).
+- **Moddable weapons** *(W1 shipped)* — the same move for the weapon
+  catalog. Nineteen weapons across four enums (`MarineWeapon`,
+  `MarineSecondary`, `MechWeapon`, `TurretKind`) with near-identical field
+  sets, none reachable by a submod and all requiring a recompile to tune.
+  **W1 shipped**: a new `battle.weapon` package holds `WeaponDef` /
+  `MountClass` / `WeaponRegistry`, marine primaries now live in
+  `data/marines/marine-weapons.weapon.json`, and `MarineWeapon` is reduced
+  to an id handle whose accessors delegate to the registry — pinned
+  field-for-field by `WeaponRegistryParityTest` with no test expectation
+  changed. Next is **W2**, which replaces the four-arm `ImpactProfile` enum
+  with **layered** effect definitions so a weapon composes its own tracer,
+  muzzle and impact particles instead of picking one of four fixed recipes.
+  W5 (submod merge) is deferred and should share one mechanism with
+  moddable-tilesets Phase 3. A design pass also pulled `TurretKind` out of
+  the weapon catalog entirely into **W6**: it is a platform, a mount and a
+  gun fused into one enum, already carried by three platforms (static
+  emplacement, shuttle hardpoint, convoy vehicle) that disagree about which
+  of its fields mean anything — so emplacements and structures adopt the
+  three-layer model mechs already use. See
+  [`moddable-weapons/`](moddable-weapons/overview.md).
 - **Surface relief** *(active)* — S1 derivation and the manually accepted S2
   material-aware parallax/water pass are shipped. S3 dynamic ground bump
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
@@ -182,7 +202,11 @@ universe over time, not retrofitted into intel slots.
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the
   planet-scoped Marine Ops screen — most roster work turned out to be gated
-  by where its button sits, not by any fiction. Adjacent to progression S8,
+  by where its button sits, not by any fiction. **C10 slices 1-2 are shipped**
+  (`2b959e44`, `b204c237`): the ability, the planet-free host, and a standing
+  pane led by runway in months of payroll, reusing `OfficerMoodReader` so the
+  figure the player reads is the one the officer's mood reacts to. Confirmed in
+  game that the ability opens the screen and the host dismisses cleanly. Adjacent to progression S8,
   which owns what a single marine row says. See
   [`company-view/`](company-view/overview.md).
 

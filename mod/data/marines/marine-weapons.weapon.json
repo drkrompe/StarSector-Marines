@@ -1,0 +1,149 @@
+{
+  "weapons": [
+    {
+      "id": "weapon.field-rifle",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Field Rifle",
+        "modelName": "Rook",
+        "designation": "FR-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 22.0,
+        "damage": 14.0,
+        "accuracy": 0.28,
+        "cooldown": 1.15,
+        "vsHardenedMult": 0.25,
+        "burstCount": 1,
+        "burstSpacing": 0.0,
+        "accuracyFalloff": 0.42,
+        "hitSpread": 0.75,
+        "roundVelocity": 48.0
+      },
+      "render": {
+        "tracerColor": "FFD088",
+        "impact": "rifle",
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.18
+      },
+      "audio": { "fireSound": "light_autocannon_fire" }
+    },
+    {
+      "id": "weapon.pulse-rifle",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Pulse Rifle",
+        "modelName": "Lancer",
+        "designation": "PLS",
+        "designationTiered": true
+      },
+      "sim": {
+        "range": 24.0,
+        "damage": 9.0,
+        "accuracy": 0.35,
+        "cooldown": 1.0,
+        "vsHardenedMult": 0.30,
+        "burstCount": 3,
+        "burstSpacing": 0.09,
+        "accuracyFalloff": 0.30,
+        "hitSpread": 0.4,
+        "roundVelocity": 55.0
+      },
+      "render": {
+        "tracerColor": "80FF80",
+        "impact": "rifle",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
+      "id": "weapon.smg",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Light Machine Gun",
+        "modelName": "Rattler",
+        "designation": "LMG",
+        "designationTiered": true
+      },
+      "sim": {
+        "range": 16.0,
+        "damage": 5.4,
+        "accuracy": 0.50,
+        "cooldown": 0.50,
+        "vsHardenedMult": 0.30,
+        "burstCount": 3,
+        "burstSpacing": 0.07,
+        "accuracyFalloff": 0.60,
+        "hitSpread": 1.4,
+        "roundVelocity": 45.0
+      },
+      "render": {
+        "tracerColor": "FFE8C0",
+        "impact": "rifle",
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.15
+      },
+      "audio": { "fireSound": "light_machinegun_fire" }
+    },
+    {
+      "id": "weapon.dmr",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Railgun",
+        "modelName": "Longbow",
+        "designation": "RG",
+        "designationTiered": true
+      },
+      "sim": {
+        "range": 32.0,
+        "damage": 18.0,
+        "accuracy": 0.55,
+        "cooldown": 1.10,
+        "vsHardenedMult": 0.40,
+        "burstCount": 1,
+        "burstSpacing": 0.0,
+        "accuracyFalloff": 0.10,
+        "hitSpread": 0.15,
+        "roundVelocity": 110.0
+      },
+      "render": {
+        "tracerColor": "E0F0FF",
+        "impact": "kinetic",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "audio": { "fireSound": "railgun_fire" }
+    },
+    {
+      "id": "weapon.drone-pulse",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Drone Pulse Laser",
+        "modelName": "Wisp",
+        "designation": "DPLS",
+        "designationTiered": true
+      },
+      "sim": {
+        "range": 26.0,
+        "damage": 7.2,
+        "accuracy": 0.40,
+        "cooldown": 1.0,
+        "vsHardenedMult": 0.30,
+        "burstCount": 2,
+        "burstSpacing": 0.10,
+        "accuracyFalloff": 0.35,
+        "hitSpread": 0.5,
+        "roundVelocity": 55.0
+      },
+      "render": {
+        "tracerColor": "60CFFF",
+        "impact": "rifle",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    }
+  ]
+}

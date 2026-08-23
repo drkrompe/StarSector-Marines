@@ -4,8 +4,11 @@
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
 commander ("squad of squads") tiers. Ten stories contracted (C1–C10).
-**`c7-organization-and-ranks.md` has shipped** — slices 1–4; its slice 5
-moved into C1, which owns the seam it needs. The other nine are unstarted.
+**Two have shipped work.** `c7-organization-and-ranks.md` is complete —
+slices 1–4; its slice 5 moved into C1, which owns the seam it needs.
+`c10-company-between-contracts.md` has slices 1–2 in: the campaign-map
+entry point (`2b959e44`) and the standing pane (`b204c237`). Everything
+else is design stage.
 
 The organization is now settled in code, so every later story renders a
 real hierarchy rather than a proposed one:
@@ -51,15 +54,18 @@ unblocked and can land in parallel; it is the prerequisite for all three UI
 stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
 visible change) is a safe proof.
 
-C10 (`c10-company-between-contracts.md`)
+**C10 — The company between contracts** (`c10-company-between-contracts.md`)
 is unblocked too, and is the one story here that ships player-visible value
 without C2 first: two of its three panes (standing, running deadlines) read
 state that is already persisted or already computed, and its third pane is
 the reserved space C3 and C4 later furnish. It also gives
-[G32](../campaign/contracts/complete/g32-player-event-popup.md)'s **Hold**
+G32 (`g32-player-event-popup.md`)'s **Hold**
 option somewhere to go — today a deferred event popup dismisses into nothing.
-Its slice 1 is a spike: confirm a `TOGGLE` ability with a no-op `activate()`
-fires `pressButton()` without latching, before anything is built on top.
+**Slices 1-2 shipped** (`2b959e44`, `b204c237`): the ability, the planet-free host, and a
+standing pane led by runway in months of payroll. The spike question slice 1
+existed to answer is **settled in game**: the ability opens the screen and the
+host dismisses cleanly. Slices 3 (running clocks) and 4 (roster) are next; the
+clocks pane is where G32's **Hold** finally goes.
 
 ~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
 `c7-organization-and-ranks.md` under `complete/`. One consequence worth
@@ -150,6 +156,8 @@ and nothing was tuned to compensate.
 
 ## Commit chain
 
+- `2b959e44` — C10 slice 1: a campaign-map door into the company
+- `b204c237` — C10 slice 2: standing, led by months of payroll
 - `2e187f54` — C7 slices 1+2: squad of twelve in three fire teams; officer
   ranks counted in squads
 - `976bb87a` — C7 slice 3: `EnlistedRank`, squad leaders, deterministic
