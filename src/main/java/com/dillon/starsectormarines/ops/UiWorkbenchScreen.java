@@ -1,11 +1,15 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.retained.CanvasContext;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.Overflow;
+import com.dillon.starsectormarines.ui.retained.PointerButton;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
 import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
@@ -51,6 +55,8 @@ public final class UiWorkbenchScreen implements Screen {
     private UiElement selectedTeamReadout;
     private UiElement selectedTemplateReadout;
     private UiElement transactionReadout;
+    private UiElement transactionCanvas;
+    private float issueMarkerX = 610f;
     private int selectedTeam;
     private int selectedTemplate;
 
@@ -111,6 +117,7 @@ public final class UiWorkbenchScreen implements Screen {
 
         UiDocument built = new UiDocument(root)
                 .onCancel(() -> context.goTo(ScreenId.COMPANY_HQ));
+        built.canvases().set(transactionCanvas, this::paintTransactionCanvas);
         updateSelectionReadouts();
         return built;
     }
@@ -206,6 +213,29 @@ public final class UiWorkbenchScreen implements Screen {
         content.child(selectedTeamReadout);
         content.child(selectedTemplateReadout);
 
+        transactionCanvas = new UiElement("transaction-canvas")
+                .tag(UiTag.CANVAS)
+                .canvasSize(900, 150)
+                .preferredHeight(150f)
+                .background(PANEL_DARK)
+                .border(1f, BORDER)
+                .overflow(Overflow.HIDDEN)
+                .onPointerDown(event -> {
+                    if (event.button() == PointerButton.PRIMARY) {
+                        event.capturePointer();
+                        moveIssueMarker(event);
+                    }
+                })
+                .onPointerMove(event -> {
+                    if (document != null && document.pointerCapture() == transactionCanvas) {
+                        moveIssueMarker(event);
+                    }
+                })
+                .onPointerUp(event -> {
+                    if (event.button() == PointerButton.PRIMARY) moveIssueMarker(event);
+                });
+        content.child(transactionCanvas);
+
         content.child(issueRow("free", "FREE STOCK", "18 rifles  ·  4 armor  ·  1 support"));
         content.child(issueRow("returns", "RETURNED ISSUE", "+4 rifles  ·  +4 armor"));
         content.child(issueRow("required", "REQUIRED ISSUE", "-3 rifles  ·  -4 armor  ·  -1 support"));
@@ -229,6 +259,43 @@ public final class UiWorkbenchScreen implements Screen {
                 .border(1f, EDGE);
         stack.child(overlay);
         return stack;
+    }
+
+    private void paintTransactionCanvas(CanvasContext canvas) {
+        float width = canvas.metrics().surfaceWidth();
+        float nodeWidth = 190f;
+        float nodeHeight = 62f;
+        float top = 42f;
+        float[] x = {28f, width * 0.28f, width * 0.54f, width - nodeWidth - 28f};
+        String[] labels = {"FREE STOCK", "RETURNS", "REQUIRED", "VALID ISSUE"};
+        Color[] colors = {BUTTON, SELECTED, new Color(0x3D, 0x2A, 0x26),
+                new Color(0x13, 0x2B, 0x22)};
+
+        canvas.text(Fonts.ORBITRON_20, "CAPTURED CANVAS DRAG  ·  MOVE ISSUE MARKER",
+                24f, 12f, MUTED);
+        for (int index = 0; index < x.length; index++) {
+            if (index > 0) {
+                canvas.line(x[index - 1] + nodeWidth, top + nodeHeight * 0.5f,
+                        x[index], top + nodeHeight * 0.5f, EDGE, 2f);
+            }
+            canvas.fillRect(x[index], top, nodeWidth, nodeHeight, colors[index]);
+            canvas.strokeRect(x[index], top, nodeWidth, nodeHeight,
+                    index == x.length - 1 ? GOOD : BORDER, 2f);
+            canvas.text(Fonts.ORBITRON_20, labels[index], x[index] + 13f,
+                    top + 18f, index == x.length - 1 ? GOOD : TEXT);
+        }
+        canvas.line(issueMarkerX, 34f, issueMarkerX, 126f, ACCENT, 3f);
+        canvas.fillRect(issueMarkerX - 7f, 30f, 14f, 14f, ACCENT);
+    }
+
+    private void moveIssueMarker(UiPointerEvent event) {
+        if (document == null || transactionCanvas == null) return;
+        CanvasMetrics metrics = document.canvasMetrics(transactionCanvas, 1f);
+        float canvasX = metrics.toCanvasX(event.x());
+        if (!Float.isFinite(canvasX)) return;
+        issueMarkerX = Math.max(8f,
+                Math.min(metrics.surfaceWidth() - 8f, canvasX));
+        document.canvases().invalidate(transactionCanvas);
     }
 
     private static UiElement issueRow(String id, String label, String value) {

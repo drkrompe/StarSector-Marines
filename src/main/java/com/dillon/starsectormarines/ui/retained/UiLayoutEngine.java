@@ -99,9 +99,9 @@ public final class UiLayoutEngine {
 
     private void arrangeStack(List<UiElement> children, Rect content) {
         for (UiElement child : children) {
-            float width = resolveStackExtent(child.preferredWidth(), content.width(),
+            float width = resolveStackExtent(preferredAxis(child, true), content.width(),
                     child.horizontalAlign());
-            float height = resolveStackExtent(child.preferredHeight(), content.height(),
+            float height = resolveStackExtent(preferredAxis(child, false), content.height(),
                     child.verticalAlign());
             float x = crossOrigin(content.x(), content.width(), width,
                     child.horizontalAlign());
@@ -112,12 +112,20 @@ public final class UiLayoutEngine {
     }
 
     private static float preferredMain(UiElement element, boolean horizontal) {
-        float preferred = horizontal ? element.preferredWidth() : element.preferredHeight();
+        float preferred = preferredAxis(element, horizontal);
         return Float.isNaN(preferred) ? 0f : Math.max(0f, preferred);
     }
 
     private static float preferredCross(UiElement element, boolean horizontal) {
-        return horizontal ? element.preferredHeight() : element.preferredWidth();
+        return preferredAxis(element, !horizontal);
+    }
+
+    private static float preferredAxis(UiElement element, boolean horizontal) {
+        float preferred = horizontal ? element.preferredWidth() : element.preferredHeight();
+        if (Float.isNaN(preferred) && element.tag() == UiTag.CANVAS) {
+            return horizontal ? element.canvasWidth() : element.canvasHeight();
+        }
+        return preferred;
     }
 
     private static float resolveStackExtent(float preferred, float available, UiAlign align) {

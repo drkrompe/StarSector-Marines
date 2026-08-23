@@ -26,6 +26,8 @@ public final class UiElement {
     private UiTag tag = UiTag.DIV;
     private Integer tabIndex;
     private boolean disabled;
+    private int canvasWidth = 300;
+    private int canvasHeight = 150;
 
     private UiLayout layout = UiLayout.COLUMN;
     private Insets padding = Insets.ZERO;
@@ -87,6 +89,35 @@ public final class UiElement {
         return this;
     }
 
+    /** Sets the independent HTML canvas drawing-surface size. */
+    public UiElement canvasSize(int width, int height) {
+        if (tag != UiTag.CANVAS) {
+            throw new IllegalStateException("Only a canvas has a drawing surface");
+        }
+        if (width < 0 || height < 0) {
+            throw new IllegalArgumentException("Canvas surface size cannot be negative");
+        }
+        canvasWidth = width;
+        canvasHeight = height;
+        return this;
+    }
+
+    public int canvasWidth() {
+        requireCanvas();
+        return canvasWidth;
+    }
+
+    public int canvasHeight() {
+        requireCanvas();
+        return canvasHeight;
+    }
+
+    private void requireCanvas() {
+        if (tag != UiTag.CANVAS) {
+            throw new IllegalStateException(id + " is not a canvas");
+        }
+    }
+
     public UiElement tabIndex(int tabIndex) {
         if (tabIndex != -1 && tabIndex != 0) {
             throw new IllegalArgumentException("tabIndex supports only -1 or 0");
@@ -130,11 +161,19 @@ public final class UiElement {
         if (child == this || child.isAncestorOf(this)) {
             throw new IllegalArgumentException("Adding " + child.id + " would create a cycle");
         }
-        if (child.parent != null) {
-            throw new IllegalArgumentException(child.id + " already has a parent");
-        }
+        if (child.parent != null) child.parent.children.remove(child);
         child.parent = this;
         children.add(child);
+        return this;
+    }
+
+    public UiElement remove(UiElement child) {
+        Objects.requireNonNull(child, "child");
+        if (child.parent != this) {
+            throw new IllegalArgumentException(child.id + " is not a child of " + id);
+        }
+        children.remove(child);
+        child.parent = null;
         return this;
     }
 

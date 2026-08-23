@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open; clipping, scrolling, focus, and pointer capture implemented
+Status: ACTIVE — four foundation stories open; U2 implementation complete for live acceptance
 Written: 2026-08-23
-Updated: 2026-08-23 — established semantic host input, focus actions, and explicit pointer capture.
+Updated: 2026-08-23 — established the canvas surface/box mapping and document-owned producer seam.
 
 ## Purpose
 
@@ -152,6 +152,26 @@ Pointer capture is explicit rather than an automatic consequence of pressing.
 While held, pointer movement, hover, and release retarget to the captured element;
 primary release dispatches before ending capture. Leaving a screen clears active
 input state, while a resize/position callback only relayouts the enduring document.
+
+## Procedural canvas
+
+A canvas has two independent sizes. Its integer surface width and height define the
+producer's local coordinate space; its retained content box defines where that
+surface is rendered. With no authored rendered size, the surface provides the
+canvas's intrinsic layout size. If both differ, each axis maps by its own ratio just
+as an HTML canvas stretched by CSS would.
+
+`CanvasMetrics` owns both directions of this mapping. Document pointer coordinates
+are never decorated with invented canvas fields; a canvas handler explicitly calls
+`toCanvasX` and `toCanvasY`. Samples delivered under capture may therefore be
+negative or beyond the surface edge. UI scale does not alter the mapping because
+both sides are document-space quantities; device-pixel ratio is separate metadata.
+
+A document-owned registry associates attached canvas identity with one Java
+producer. The producer draws deterministic projection state through a bounded
+`CanvasContext`, not raw OpenGL, after the element background and before following
+content. Its output is clipped to the canvas content box intersected with ancestor
+clips, and its `visibleBounds` is expressed in canvas-local units.
 
 ## Authority boundaries
 
