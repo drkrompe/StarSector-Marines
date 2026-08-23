@@ -11,9 +11,9 @@ import java.util.PriorityQueue;
 
 /**
  * Hybrid A* path planner for ground vehicles. Searches (x, y, heading)
- * configuration space using the bicycle model's kinematics for successor
+ * configuration space using forward bicycle-model motion for successor
  * generation, {@link VehicleFootprint} for obstacle checking, and
- * {@link ReedsShepp} for analytic shortcutting.
+ * forward-only {@link ReedsShepp} candidates for analytic shortcutting.
  *
  * <p>Slots between {@link ConvoyPlanner} (high-level road-graph route) and
  * {@link VehicleMission} (waypoint consumer). The output is a dense {@code float[][]}
@@ -28,7 +28,6 @@ public final class HybridAStarPlanner {
     static final float BIN_WIDTH_DEG = 360f / NUM_HEADING_BINS;
     static final float STEP_CELLS = 2.0f;
     static final int NUM_STEER_SAMPLES = 5;
-    static final float REVERSE_PENALTY = 1.5f;
     static final float STEER_CHANGE_PENALTY = 0.1f;
     static final int MAX_ITERATIONS = 15_000;
     static final int ANALYTIC_EXPANSION_INTERVAL = 30;
@@ -38,6 +37,8 @@ public final class HybridAStarPlanner {
     /** Extra clearance added to the vehicle footprint during planning. Accounts for PurePursuit tracking imprecision so planned paths don't graze walls. */
     static final float PLANNER_CLEARANCE = 0.6f;
     private static final float SQRT2 = (float) Math.sqrt(2.0);
+    /** A rolling goal is accepted only when the vehicle is also aligned within 20 degrees of its corridor tangent. */
+    private static final int LOCAL_GOAL_HEADING_TOLERANCE_BINS = 2;
 
     // -- Rolling-horizon local search --------------------------------------
 
@@ -59,8 +60,8 @@ public final class HybridAStarPlanner {
      * <p>Pure: ({@code start}, {@code goal}, window, grid) in → feasible
      * {@code float[3][]} ([0]=X, [1]=Y, [2]=headingDeg) or {@code null} out.
      * No {@link VehicleMission} / {@link GroundSystem} coupling. {@code null} means
-     * "no forward trajectory in the window within {@code maxIterations}" — the
-     * caller (and, in slice 3, the recovery ladder) escalates.
+     * "no executable forward trajectory in the window within
+     * {@code maxIterations}" — reverse remains an explicit controller recovery.
      */
     public static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
                                       int winMinX, int winMinY, int winMaxX, int winMaxY,
@@ -127,7 +128,11 @@ public final class HybridAStarPlanner {
 
             float gdx = goal.x - current.x, gdy = goal.y - current.y;
             float distSqToGoal = gdx * gdx + gdy * gdy;
-            if (distSqToGoal <= goalRadiusSq) {
+            int currentHeadingBin = headingBinFor(current.headingDeg);
+            int goalHeadingBin = headingBinFor(goal.facingDeg);
+            if (distSqToGoal <= goalRadiusSq
+                    && headingBinDistance(currentHeadingBin, goalHeadingBin)
+                    <= LOCAL_GOAL_HEADING_TOLERANCE_BINS) {
                 goalNode = current;
                 break;
             }
@@ -138,7 +143,7 @@ public final class HybridAStarPlanner {
                     Pose curPose = new Pose(current.x, current.y, current.headingDeg);
                     ReedsShepp.Path rsPath = tryAnalyticExpansion(
                             curPose, goal, turnRadius, vLen, vWid, grid);
-                    if (rsPath != null) {
+                    if (rsPath != null && isForwardOnly(rsPath)) {
                         analyticPath = rsPath;
                         analyticFrom = current;
                         break;
@@ -146,51 +151,50 @@ public final class HybridAStarPlanner {
                 }
             }
 
+            // Ordinary trajectory tracking has no gear/cusp state. Reverse is
+            // therefore a recovery maneuver owned by VehicleControlSystem,
+            // never a hidden edge in a supposedly forward local trajectory.
             for (int si = 0; si < NUM_STEER_SAMPLES; si++) {
-                for (int dir = 0; dir < 2; dir++) {
-                    float dirSign = (dir == 0) ? 1f : -1f;
-                    float steer = steerAngles[si];
+                float steer = steerAngles[si];
 
-                    float dTheta = (STEP_CELLS / wheelbase) * (float) Math.tan(steer) * dirSign;
-                    float midHeadingRad = (float) Math.toRadians(current.headingDeg) + dTheta * 0.5f;
-                    float newHeadingRad = (float) Math.toRadians(current.headingDeg) + dTheta;
+                float dTheta = (STEP_CELLS / wheelbase) * (float) Math.tan(steer);
+                float midHeadingRad = (float) Math.toRadians(current.headingDeg) + dTheta * 0.5f;
+                float newHeadingRad = (float) Math.toRadians(current.headingDeg) + dTheta;
 
-                    float nx = current.x + STEP_CELLS * dirSign * (-(float) Math.sin(midHeadingRad));
-                    float ny = current.y + STEP_CELLS * dirSign * ((float) Math.cos(midHeadingRad));
-                    float newHeadingDeg = (float) Math.toDegrees(newHeadingRad);
-                    newHeadingDeg = ((newHeadingDeg % 360f) + 360f) % 360f;
+                float nx = current.x + STEP_CELLS * (-(float) Math.sin(midHeadingRad));
+                float ny = current.y + STEP_CELLS * ((float) Math.cos(midHeadingRad));
+                float newHeadingDeg = (float) Math.toDegrees(newHeadingRad);
+                newHeadingDeg = ((newHeadingDeg % 360f) + 360f) % 360f;
 
-                    int ncx = (int) Math.floor(nx);
-                    int ncy = (int) Math.floor(ny);
-                    if (ncx < minX || ncx > maxX || ncy < minY || ncy > maxY) continue;
+                int ncx = (int) Math.floor(nx);
+                int ncy = (int) Math.floor(ny);
+                if (ncx < minX || ncx > maxX || ncy < minY || ncy > maxY) continue;
 
-                    float midX = current.x + STEP_CELLS * 0.5f * dirSign * (-(float) Math.sin(midHeadingRad));
-                    float midY = current.y + STEP_CELLS * 0.5f * dirSign * ((float) Math.cos(midHeadingRad));
-                    float midHeadingDeg = (float) Math.toDegrees(midHeadingRad);
-                    midHeadingDeg = ((midHeadingDeg % 360f) + 360f) % 360f;
+                float midX = current.x + STEP_CELLS * 0.5f * (-(float) Math.sin(midHeadingRad));
+                float midY = current.y + STEP_CELLS * 0.5f * ((float) Math.cos(midHeadingRad));
+                float midHeadingDeg = (float) Math.toDegrees(midHeadingRad);
+                midHeadingDeg = ((midHeadingDeg % 360f) + 360f) % 360f;
 
-                    if (!VehicleFootprint.isPoseFeasible(midX, midY, midHeadingDeg, vLen, vWid, grid)) continue;
-                    if (!VehicleFootprint.isPoseFeasible(nx, ny, newHeadingDeg, vLen, vWid, grid)) continue;
+                if (!VehicleFootprint.isPoseFeasible(midX, midY, midHeadingDeg, vLen, vWid, grid)) continue;
+                if (!VehicleFootprint.isPoseFeasible(nx, ny, newHeadingDeg, vLen, vWid, grid)) continue;
 
-                    int nhb = headingBinFor(newHeadingDeg);
-                    int nKey = stateIndex(ncx, ncy, nhb, gridW);
-                    if (closed.contains(nKey)) continue;
+                int nhb = headingBinFor(newHeadingDeg);
+                int nKey = stateIndex(ncx, ncy, nhb, gridW);
+                if (closed.contains(nKey)) continue;
 
-                    float edgeCost = STEP_CELLS * (dir == 1 ? REVERSE_PENALTY : 1f)
-                            + STEER_CHANGE_PENALTY * Math.abs(steer);
-                    float ng = current.gCost + edgeCost;
+                float edgeCost = STEP_CELLS + STEER_CHANGE_PENALTY * Math.abs(steer);
+                float ng = current.gCost + edgeCost;
 
-                    Node existing = best.get(nKey);
-                    if (existing != null && ng >= existing.gCost - 1e-4f) continue;
+                Node existing = best.get(nKey);
+                if (existing != null && ng >= existing.gCost - 1e-4f) continue;
 
-                    Node succ = new Node(nx, ny, newHeadingDeg, nKey);
-                    succ.gCost = ng;
-                    succ.fCost = ng + heuristic(nx, ny, newHeadingDeg,
-                            goal, turnRadius, gridDist, gridW);
-                    succ.parentKey = current.stateKey;
-                    open.add(succ);
-                    best.put(nKey, succ);
-                }
+                Node succ = new Node(nx, ny, newHeadingDeg, nKey);
+                succ.gCost = ng;
+                succ.fCost = ng + heuristic(nx, ny, newHeadingDeg,
+                        goal, turnRadius, gridDist, gridW);
+                succ.parentKey = current.stateKey;
+                open.add(succ);
+                best.put(nKey, succ);
             }
         }
 
@@ -377,6 +381,18 @@ public final class HybridAStarPlanner {
 
     static int stateIndex(int cx, int cy, int hb, int gridW) {
         return (cy * gridW + cx) * NUM_HEADING_BINS + hb;
+    }
+
+    private static int headingBinDistance(int a, int b) {
+        int distance = Math.abs(a - b);
+        return Math.min(distance, NUM_HEADING_BINS - distance);
+    }
+
+    private static boolean isForwardOnly(ReedsShepp.Path path) {
+        for (ReedsShepp.Element element : path.elements) {
+            if (!element.forward && element.length > 1e-5f) return false;
+        }
+        return true;
     }
 
     // -- Node ---------------------------------------------------------------

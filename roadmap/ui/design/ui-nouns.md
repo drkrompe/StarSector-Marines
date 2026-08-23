@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open; overflow clipping implemented
+Status: ACTIVE — four foundation stories open; U2 implementation complete for live acceptance
 Written: 2026-08-23
-Updated: 2026-08-23 — adopted MoonLight's CSS overflow contract for retained paint and hit-testing.
+Updated: 2026-08-23 — established the canvas surface/box mapping and document-owned producer seam.
 
 ## Purpose
 
@@ -110,6 +110,68 @@ and reverse-order hit test. A clipped-away child is therefore neither visible no
 clickable. Only the OpenGL backend converts that document rectangle into physical
 framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once.
+
+## Vertical scrolling
+
+`scrollTop` is retained content state on the element, while `scrollHeight` is a
+layout result on its box. Layout clamps the effective offset to
+`max(0, scrollHeight - content height)` and translates descendants only: the
+scroll surface, padding-box clip, and host viewport do not move.
+
+Wheel input uses the geometric target chain rather than a clickable-only hit. It
+walks from the deepest element outward, skips `overflow: hidden`, and moves the
+nearest `overflow: scroll` surface that has room in the requested direction. At a
+nested boundary the next movable ancestor receives the delta. At the Starsector
+host seam, a wheel aimed at a retained scroll surface is still consumed when every
+candidate is at its boundary, preventing the campaign layer from receiving the
+same notch.
+
+The scrollbar thumb is overlay chrome painted after descendants and clipped to the
+surface's padding box. It advertises position and range but does not reserve layout
+space or participate in hit-testing.
+
+## Input, focus, and capture
+
+Starsector `InputEventAPI` objects and LWJGL integer key codes end at one host
+adapter. The retained tree receives document-space coordinates, pointer buttons
+named by role, named keys, and a modifier set. Character input remains a separate
+future seam; a key press is not text.
+
+Geometric targeting and action eligibility are distinct. The deepest painted box
+under the pointer is the event target even when it is a non-clickable label; pointer
+events bubble through its retained parents, while click and focus defaults search
+for the nearest eligible ancestor. Hover is likewise an ancestor chain.
+
+Each document has at most one focused element. Tab traverses eligible elements in
+document order, `tabIndex=-1` remains directly focusable but is skipped, and
+disabled controls are ineligible. Enter confirms the focused control, Space uses a
+press/release action, and unmodified Escape belongs to the document cancel seam.
+Focus acquired by keyboard is visibly distinguished from focus acquired by pointer.
+
+Pointer capture is explicit rather than an automatic consequence of pressing.
+While held, pointer movement, hover, and release retarget to the captured element;
+primary release dispatches before ending capture. Leaving a screen clears active
+input state, while a resize/position callback only relayouts the enduring document.
+
+## Procedural canvas
+
+A canvas has two independent sizes. Its integer surface width and height define the
+producer's local coordinate space; its retained content box defines where that
+surface is rendered. With no authored rendered size, the surface provides the
+canvas's intrinsic layout size. If both differ, each axis maps by its own ratio just
+as an HTML canvas stretched by CSS would.
+
+`CanvasMetrics` owns both directions of this mapping. Document pointer coordinates
+are never decorated with invented canvas fields; a canvas handler explicitly calls
+`toCanvasX` and `toCanvasY`. Samples delivered under capture may therefore be
+negative or beyond the surface edge. UI scale does not alter the mapping because
+both sides are document-space quantities; device-pixel ratio is separate metadata.
+
+A document-owned registry associates attached canvas identity with one Java
+producer. The producer draws deterministic projection state through a bounded
+`CanvasContext`, not raw OpenGL, after the element background and before following
+content. Its output is clipped to the canvas content box intersected with ancestor
+clips, and its `visibleBounds` is expressed in canvas-local units.
 
 ## Authority boundaries
 

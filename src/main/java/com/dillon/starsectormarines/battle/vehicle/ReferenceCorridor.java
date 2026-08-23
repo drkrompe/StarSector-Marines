@@ -79,15 +79,20 @@ public final class ReferenceCorridor {
      */
     public Pose targetAhead(float poseX, float poseY, float horizon) {
         PurePursuit.Carrot c = PurePursuit.pick(poseX, poseY, xs, ys, cursor, horizon);
-        float dx = c.x - poseX, dy = c.y - poseY;
-        // Near the corridor end the carrot pins to the final vertex; once the
-        // pose sits on it, pose->carrot is a zero vector and facingToward would
-        // collapse to an arbitrary 0deg. Fall back to the final segment's
-        // direction so the goal heading stays meaningful (the planner's RS tail
-        // and turn-cost heuristic key off it).
-        float facing = (dx * dx + dy * dy > 1e-6f)
-                ? AirBody.facingToward(dx, dy)
-                : finalSegmentHeading();
+        // The goal heading is the corridor tangent AT the rolling goal. Using
+        // pose->goal instead turns an L-shaped route into a diagonal target pose,
+        // allowing the local planner to declare success before it has actually
+        // negotiated the bend.
+        int end = c.segmentEndIdx;
+        float facing;
+        if (end > 0) {
+            facing = AirBody.facingToward(xs[end] - xs[end - 1], ys[end] - ys[end - 1]);
+        } else {
+            float dx = c.x - poseX, dy = c.y - poseY;
+            facing = dx * dx + dy * dy > 1e-6f
+                    ? AirBody.facingToward(dx, dy)
+                    : finalSegmentHeading();
+        }
         return new Pose(c.x, c.y, facing);
     }
 

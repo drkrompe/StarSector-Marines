@@ -37,6 +37,23 @@ public final class VehicleFootprint {
     public static boolean isPoseFeasible(float x, float y, float facingDeg,
                                          float lengthCells, float widthCells,
                                          NavigationGrid grid) {
+        return allSamplesValid(x, y, facingDeg, lengthCells, widthCells, grid, true);
+    }
+
+    /**
+     * Returns whether the complete rotated footprint lies inside the grid,
+     * independent of walkability. This distinguishes deliberate off-map route
+     * tails from an on-grid pose that happens to overlap an obstacle.
+     */
+    public static boolean isPoseWithinGrid(float x, float y, float facingDeg,
+                                           float lengthCells, float widthCells,
+                                           NavigationGrid grid) {
+        return allSamplesValid(x, y, facingDeg, lengthCells, widthCells, grid, false);
+    }
+
+    private static boolean allSamplesValid(float x, float y, float facingDeg,
+                                           float lengthCells, float widthCells,
+                                           NavigationGrid grid, boolean requireWalkable) {
         float rad = (float) Math.toRadians(facingDeg);
         float fx = -(float) Math.sin(rad);
         float fy =  (float) Math.cos(rad);
@@ -55,7 +72,8 @@ public final class VehicleFootprint {
                 float py = y + u * fy + v * sy;
                 int cx = (int) Math.floor(px);
                 int cy = (int) Math.floor(py);
-                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return false;
+                if (!grid.inBounds(cx, cy)
+                        || (requireWalkable && !grid.isWalkable(cx, cy))) return false;
             }
         }
         return true;

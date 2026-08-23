@@ -12,6 +12,7 @@ public final class LayoutBox {
     private Rect borderBox = Rect.EMPTY;
     private Insets padding = Insets.ZERO;
     private float borderWidth;
+    private float scrollHeight;
 
     public Rect borderBox() {
         return borderBox;
@@ -33,10 +34,29 @@ public final class LayoutBox {
         return borderWidth;
     }
 
+    /** Natural vertical content extent, recorded for clipping boxes. */
+    public float scrollHeight() {
+        return scrollHeight;
+    }
+
+    /** Largest vertical offset that still leaves content in view. */
+    public float maxScrollTop() {
+        return Math.max(0f, scrollHeight - contentBox().height());
+    }
+
     void place(Rect borderBox, Insets padding, float borderWidth) {
         this.borderBox = borderBox;
         this.padding = padding;
         this.borderWidth = borderWidth;
+    }
+
+    void scrollHeight(float scrollHeight) {
+        this.scrollHeight = Math.max(0f, scrollHeight);
+    }
+
+    void translate(float deltaX, float deltaY) {
+        borderBox = new Rect(borderBox.x() + deltaX, borderBox.y() + deltaY,
+                borderBox.width(), borderBox.height());
     }
 
     @Override
