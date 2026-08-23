@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
+import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -456,18 +457,20 @@ public class BriefingScreen implements Screen {
                             + " selected · " + readiness.companyReady()
                             + " company · " + readiness.selectedShortfall() + " short",
                     valueX, y, readiness.ready() ? ACCEPT_COLOR : BLOCKED_COLOR));
-            MarineCaptain captain = ctx.getSelectedCaptain();
-            int selectedTeams = CaptainDeploymentPolicy.selectedCount(
-                    MarineRosterScript.getInstance() != null
-                            ? MarineRosterScript.getInstance().roster() : null,
-                    ctx.getSelectedMarineSquadIds());
-            int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
+            TaskForce force = selectedTaskForce();
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    selectedTeams + "/" + teamCap + " squads",
-                    x + rowW - 150f, y, captainCommandReady(m)
+                    force.squadCount() + " squads · " + force.officerCount()
+                            + (force.officerCount() == 1 ? " officer" : " officers"),
+                    x + rowW - 190f, y, captainCommandReady(m)
                             ? ACCEPT_COLOR : BLOCKED_COLOR));
         }
         y -= ROW_GAP;
+
+        // Task force — one row per officer once the operation needs more than
+        // one. A single-officer deployment says nothing new, so it stays quiet.
+        if (!m.source.isDebug() && m.source != MissionSource.STATIONING) {
+            y = buildTaskForceRows(x, y, rowW, floor);
+        }
 
         y = buildCommandDeck(x, y, rowW, floor);
         y -= SECTION_GAP;
@@ -749,6 +752,40 @@ public class BriefingScreen implements Screen {
         MarineRoster roster = script != null ? script.roster() : null;
         ctx.replaceMarineSquadSelection(CaptainDeploymentPolicy.defaultSquadIds(
                 roster, ctx.getSelectedCaptain()));
+    }
+
+    /** The officers the current squad selection puts in the field. */
+    private TaskForce selectedTaskForce() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return TaskForce.of(script != null ? script.roster() : null,
+                ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
+    }
+
+    /**
+     * One row per officer in the task force, with what each is leading. Only
+     * rendered when more than one officer is involved — for a single-officer
+     * operation the summary line above already said it.
+     */
+    private float buildTaskForceRows(float x, float y, float rowW, float floor) {
+        TaskForce force = selectedTaskForce();
+        if (force.officerCount() < 2) return y;
+        for (TaskForce.Element element : force.elements()) {
+            if (y < floor) return y;
+            boolean bad = !element.fit() || element.overCap();
+            String name = element.officer != null
+                    ? element.officer.rank().displayName() + " " + element.officer.name()
+                    : "Unassigned";
+            String detail = element.squads.size()
+                    + (element.squads.size() == 1 ? " squad · " : " squads · ")
+                    + element.marines + " marines"
+                    + (element.inherited ? " · attached" : "");
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "  " + name,
+                    x, y, bad ? BLOCKED_COLOR : LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, detail,
+                    x + rowW - 240f, y, bad ? BLOCKED_COLOR : VALUE_COLOR));
+            y -= ROW_GAP;
+        }
+        return y;
     }
 
     private boolean captainCommandReady(Mission mission) {
@@ -1231,14 +1268,11 @@ public class BriefingScreen implements Screen {
         int cashMult = 100 + (baseline - next) / 2;
         int phaseNegotiated = Math.min(m.salvageBaseline & 0xFF, next);
 
-        Mission replaced = new Mission(
-                m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
-                m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
-                m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.targetFactionId, m.contractId, m.salvageBaseline,
-                (byte) phaseNegotiated, (byte) cashMult,
-                m.contractSalvageBaseline, (byte) next,
-                m.employerPowerIds);
+        Mission replaced = Mission.builder(m)
+                .salvageNegotiated(phaseNegotiated)
+                .cashMultiplier(cashMult)
+                .contractSalvageNegotiated(next)
+                .build();
         ctx.setSelectedMission(replaced);
         rebuild();
     }

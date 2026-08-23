@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
+import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -53,10 +54,8 @@ public final class SquadDeploymentScreen implements Screen {
         int capacity = ctx.getMarineDeploymentCapacity();
         PersonnelReadiness readiness = PersonnelReadiness.assessSelection(
                 roster, ctx.getSelectedMarineSquadIds(), capacity);
-        MarineCaptain captain = ctx.getSelectedCaptain();
-        int selectedTeams = CaptainDeploymentPolicy.selectedCount(
-                roster, ctx.getSelectedMarineSquadIds());
-        int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
+        TaskForce force = TaskForce.of(roster, ctx.getSelectedCaptain(),
+                ctx.getSelectedMarineSquadIds());
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Pre-Battle Squad Assignment", left, top, HEADER));
@@ -67,25 +66,30 @@ public final class SquadDeploymentScreen implements Screen {
                 "READY SEATS  " + Math.min(readiness.selectedReady(), capacity)
                         + " / " + capacity + "   COMPANY " + readiness.companyReady()
                         + "   SHORT " + readiness.selectedShortfall()
-                        + "   SQUADS " + selectedTeams + " / " + teamCap
+                        + "   SQUADS " + force.squadCount()
                         + (readiness.selectedReady() > capacity
                                 ? "   (" + (readiness.selectedReady() - capacity)
                                         + " reserve)" : ""),
                 left, top - 60f, readiness.ready() ? READY : BAD));
+        // Command is per officer now, so the headline number is the task
+        // force rather than one captain's remaining cap.
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "COMMAND  " + force.summary(),
+                left, top - 84f, force.isValid() ? MUTED : BAD));
 
         if (roster == null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Persistent roster unavailable.", left, top - 100f, BAD));
+                    "Persistent roster unavailable.", left, top - 124f, BAD));
         } else {
             float colW = (position.getWidth() - 2f * PAD - GAP) / 2f;
-            int rowsPerCol = Math.max(1, (int) ((position.getHeight() - 150f) / ROW_H));
+            int rowsPerCol = Math.max(1, (int) ((position.getHeight() - 174f) / ROW_H));
             int index = 0;
             for (MarineSquad squad : roster.squads()) {
                 if (squad.reserve()) continue;
                 if (index >= rowsPerCol * 2) break;
                 int col = index / rowsPerCol;
                 int row = index % rowsPerCol;
-                addSquad(squad, left + col * (colW + GAP), top - 100f - row * ROW_H, colW);
+                addSquad(squad, left + col * (colW + GAP), top - 124f - row * ROW_H, colW);
                 index++;
             }
         }
@@ -94,6 +98,15 @@ public final class SquadDeploymentScreen implements Screen {
                 () -> ctx.goTo(ScreenId.BRIEFING), HEADER);
         addButton(left + 172f, position.getY() + PAD, 184f, "Manage Personnel",
                 () -> ctx.openArmoryFrom(ScreenId.SQUAD_DEPLOYMENT, capacity), HEADER);
+    }
+
+    /** Names the officer who would take this squad out, when it is not the commander. */
+    private String leaderSuffix(MarineSquad squad) {
+        MarineCaptain home = roster.captainForSquad(squad.id());
+        if (home == null) return "";
+        MarineCaptain commander = ctx.getSelectedCaptain();
+        if (commander != null && commander.id().equals(home.id())) return "";
+        return "   " + home.rank().displayName() + " " + home.name();
     }
 
     private void addSquad(MarineSquad squad, float x, float y, float w) {
@@ -110,6 +123,7 @@ public final class SquadDeploymentScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 (selected ? "[X] " : "[ ] ") + squad.name() + "   " + ready + "/"
                         + MarineSquad.CAPACITY + " RTD"
+                        + leaderSuffix(squad)
                         + (!canToggle ? "   COMMAND LIMIT" : ""),
                 x + 8f, y, selected ? SELECTED : canToggle ? HEADER : BAD));
 

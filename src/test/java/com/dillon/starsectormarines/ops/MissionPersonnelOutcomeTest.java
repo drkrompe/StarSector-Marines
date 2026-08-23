@@ -57,13 +57,18 @@ class MissionPersonnelOutcomeTest {
     private static MissionOutcome outcome(boolean victory, Set<String> survivors,
                                           Set<String> fallen,
                                           Set<String> fireteams) {
-        return new MissionOutcome(victory, "personnel-outcome-test", "Personnel Test",
-                MissionType.ASSAULT, RiskLevel.MEDIUM, MissionSource.GENERATED,
-                0, 0, survivors.size() + fallen.size(), fallen.size(),
-                null, null, null, null,
-                0, 0f, null,
-                null, null, null,
-                -1L, -1L, -1, 0, -1,
-                -1, -1, 0, 0, 0, survivors, fallen, fireteams);
+        return MissionOutcome.builder()
+                .victory(victory)
+                .missionId("personnel-outcome-test")
+                .missionName("Personnel Test")
+                .missionType(MissionType.ASSAULT)
+                .risk(RiskLevel.MEDIUM)
+                .missionSource(MissionSource.GENERATED)
+                .marinesEngaged(survivors.size() + fallen.size())
+                .marinesLost(fallen.size())
+                .survivingSoldierIds(survivors)
+                .fallenSoldierIds(fallen)
+                .deployedFireteamIds(fireteams)
+                .build();
     }
 }

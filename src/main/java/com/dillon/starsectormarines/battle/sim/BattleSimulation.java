@@ -62,6 +62,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
+import com.dillon.starsectormarines.battle.profile.TickStallWatchdog;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
@@ -1093,6 +1094,17 @@ public class BattleSimulation implements BattleControl {
 
     private void tick() {
         simTickIndex++;
+        // The ordinary phase profiler can report only after a tick returns.
+        // Arm an out-of-band daemon around the whole tick so a permanent stall
+        // still leaves every JVM thread and owned monitor in the common folder.
+        try (TickStallWatchdog.TickGuard ignored =
+                     TickStallWatchdog.watchTick(simTickIndex)) {
+            tickGuarded();
+        }
+    }
+
+    /** Fixed-tick phase pipeline, bracketed by {@link #tick()}'s stall watchdog. */
+    private void tickGuarded() {
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.

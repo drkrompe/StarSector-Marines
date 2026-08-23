@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 
+import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -93,217 +95,279 @@ public final class Mission {
     /** Contract-wide negotiated salvage frozen at first deployment. */
     public final byte contractSalvageNegotiated;
 
-    /** Backwards-compatible constructor — ad-hoc mission, no contract, no salvage entitlement. */
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId) {
-        this(id, name, type, source, payout, risk, requirements, flavor,
-                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
-                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                null, -1L, (byte) 0, (byte) 0, (byte) 100, Collections.emptyList());
+    /** @return a builder with every optional field defaulted to its "absent" value. */
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId,
-                   long contractId,
-                   byte salvageBaseline,
-                   byte salvageNegotiated,
-                   byte cashMultiplier,
-                   List<String> employerPowerIds) {
-        this(id, name, type, source, payout, risk, requirements, flavor,
-                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
-                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                null, contractId, salvageBaseline, salvageNegotiated, cashMultiplier,
-                employerPowerIds);
+    /**
+     * @return a builder pre-loaded with every field of {@code source}, for the
+     *     copy-with-changes case (re-negotiating a briefing's salvage terms).
+     *     Seeding from the mission itself is the point: a hand-written copy has
+     *     to be revisited every time this class gains a field, and silently
+     *     drops the new one until somebody notices.
+     */
+    public static Builder builder(Mission source) {
+        return new Builder(source);
     }
 
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId,
-                   String targetFactionId,
-                   long contractId,
-                   byte salvageBaseline,
-                   byte salvageNegotiated,
-                   byte cashMultiplier,
-                   List<String> employerPowerIds) {
-        this(id, name, type, source, payout, risk, requirements, flavor,
-                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
-                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                targetFactionId, contractId, salvageBaseline, salvageNegotiated,
-                cashMultiplier, salvageBaseline, salvageNegotiated, employerPowerIds);
-    }
-
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId,
-                   String targetFactionId,
-                   long contractId,
-                   byte salvageBaseline,
-                   byte salvageNegotiated,
-                   byte cashMultiplier,
-                   byte contractSalvageBaseline,
-                   byte contractSalvageNegotiated,
-                   List<String> employerPowerIds) {
-        this(id, name, type, source, payout, risk, requirements, flavor,
-                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
-                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                targetFactionId, contractId, -1L, -1, 0,
-                salvageBaseline, salvageNegotiated, cashMultiplier,
-                contractSalvageBaseline, contractSalvageNegotiated,
-                employerPowerIds);
-    }
-
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId,
-                   String targetFactionId,
-                   long contractId,
-                   long campaignEventId,
-                   int campaignEventMarketId,
-                   int civiliansAtRisk,
-                   byte salvageBaseline,
-                   byte salvageNegotiated,
-                   byte cashMultiplier,
-                   byte contractSalvageBaseline,
-                   byte contractSalvageNegotiated,
-                   List<String> employerPowerIds) {
-        this(id, name, type, source, payout, risk, requirements, flavor,
-                normalizedX, normalizedY, clientFighterSupport,
-                enemyFighterSupport, requiredDrops, employerShuttles,
-                targetPlanetName, targetIndustryId, targetFactionId,
-                contractId, campaignEventId, campaignEventMarketId,
-                civiliansAtRisk, -1L, salvageBaseline, salvageNegotiated,
-                cashMultiplier, contractSalvageBaseline,
-                contractSalvageNegotiated, employerPowerIds);
-    }
-
-    public Mission(String id,
-                   String name,
-                   MissionType type,
-                   MissionSource source,
-                   int payout,
-                   RiskLevel risk,
-                   String requirements,
-                   String flavor,
-                   float normalizedX,
-                   float normalizedY,
-                   FlybyRoster clientFighterSupport,
-                   FlybyRoster enemyFighterSupport,
-                   int requiredDrops,
-                   int employerShuttles,
-                   String targetPlanetName,
-                   String targetIndustryId,
-                   String targetFactionId,
-                   long contractId,
-                   long campaignEventId,
-                   int campaignEventMarketId,
-                   int civiliansAtRisk,
-                   long campaignEventThreatSeed,
-                   byte salvageBaseline,
-                   byte salvageNegotiated,
-                   byte cashMultiplier,
-                   byte contractSalvageBaseline,
-                   byte contractSalvageNegotiated,
-                   List<String> employerPowerIds) {
-        this.id           = id;
-        this.name         = name;
-        this.type         = type;
-        this.source       = source != null ? source : MissionSource.GENERATED;
-        this.payout       = payout;
-        this.risk         = risk;
-        this.requirements = requirements;
-        this.flavor       = flavor;
-        this.normalizedX  = normalizedX;
-        this.normalizedY  = normalizedY;
-        this.clientFighterSupport = clientFighterSupport != null ? clientFighterSupport : FlybyRoster.EMPTY;
-        this.enemyFighterSupport  = enemyFighterSupport  != null ? enemyFighterSupport  : FlybyRoster.EMPTY;
-        this.employerPowerIds     = employerPowerIds != null
-                ? Collections.unmodifiableList(new java.util.ArrayList<>(employerPowerIds))
+    private Mission(Builder b) {
+        this.id           = b.id;
+        this.name         = b.name;
+        this.type         = b.type;
+        this.source       = b.source != null ? b.source : MissionSource.GENERATED;
+        this.payout       = b.payout;
+        this.risk         = b.risk;
+        this.requirements = b.requirements;
+        this.flavor       = b.flavor;
+        this.normalizedX  = b.normalizedX;
+        this.normalizedY  = b.normalizedY;
+        this.clientFighterSupport = b.clientFighterSupport != null
+                ? b.clientFighterSupport : FlybyRoster.EMPTY;
+        this.enemyFighterSupport  = b.enemyFighterSupport  != null
+                ? b.enemyFighterSupport  : FlybyRoster.EMPTY;
+        this.employerPowerIds     = b.employerPowerIds != null
+                ? Collections.unmodifiableList(new ArrayList<>(b.employerPowerIds))
                 : Collections.emptyList();
-        this.requiredDrops = Math.max(0, requiredDrops);
-        this.employerShuttles = Math.max(0, Math.min(employerShuttles, this.requiredDrops));
-        this.targetPlanetName = targetPlanetName;
-        this.targetIndustryId = targetIndustryId;
-        this.targetFactionId  = targetFactionId;
-        this.contractId        = contractId;
-        this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
+        this.requiredDrops = Math.max(0, b.requiredDrops);
+        this.employerShuttles = Math.max(0, Math.min(b.employerShuttles, this.requiredDrops));
+        this.targetPlanetName = b.targetPlanetName;
+        this.targetIndustryId = b.targetIndustryId;
+        this.targetFactionId  = b.targetFactionId;
+        this.contractId        = b.contractId;
+        this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
-                ? Math.max(-1, campaignEventMarketId) : -1;
+                ? Math.max(-1, b.campaignEventMarketId) : -1;
         this.civiliansAtRisk = this.source.isCivilianRescue()
-                ? Math.max(0, civiliansAtRisk) : 0;
+                ? Math.max(0, b.civiliansAtRisk) : 0;
         this.campaignEventThreatSeed = this.campaignEventId > 0L
-                && campaignEventThreatSeed >= 0L
-                ? campaignEventThreatSeed : -1L;
-        this.salvageBaseline   = salvageBaseline;
-        this.salvageNegotiated = salvageNegotiated;
-        this.cashMultiplier    = cashMultiplier;
-        this.contractSalvageBaseline = contractSalvageBaseline;
-        this.contractSalvageNegotiated = contractSalvageNegotiated;
+                && b.campaignEventThreatSeed >= 0L
+                ? b.campaignEventThreatSeed : -1L;
+        this.salvageBaseline   = b.salvageBaseline;
+        this.salvageNegotiated = b.salvageNegotiated;
+        this.cashMultiplier    = b.cashMultiplier;
+        this.contractSalvageBaseline = b.contractSalvageBaseline;
+        this.contractSalvageNegotiated = b.contractSalvageNegotiated;
+    }
+
+    /**
+     * Mutable staging area for one {@link Mission}. Defaults are the values a
+     * plain ad-hoc mission carries — no contract, no campaign event, no salvage
+     * entitlement, a baseline cash multiplier — so a caller names only the
+     * fields its mission kind actually has.
+     *
+     * <p>The salvage setters take {@code int} and narrow internally. The fields
+     * are bytes holding 0..255 percentages, and making every call site spell
+     * {@code (byte) 100} bought nothing.
+     *
+     * <p>Not thread-safe. Build one, call {@link #build()}, drop it.
+     */
+    public static final class Builder {
+
+        private String id;
+        private String name;
+        private MissionType type;
+        private MissionSource source;
+        private int payout;
+        private RiskLevel risk;
+        private String requirements = "";
+        private String flavor = "";
+        private float normalizedX;
+        private float normalizedY;
+        private FlybyRoster clientFighterSupport = FlybyRoster.EMPTY;
+        private FlybyRoster enemyFighterSupport = FlybyRoster.EMPTY;
+        private List<String> employerPowerIds = Collections.emptyList();
+        private int requiredDrops;
+        private int employerShuttles;
+        private String targetPlanetName;
+        private String targetIndustryId;
+        private String targetFactionId;
+
+        private long contractId = -1L;
+        private long campaignEventId = -1L;
+        private int campaignEventMarketId = -1;
+        private int civiliansAtRisk;
+        private long campaignEventThreatSeed = -1L;
+
+        private byte salvageBaseline;
+        private byte salvageNegotiated;
+        private byte cashMultiplier = (byte) 100;
+        private byte contractSalvageBaseline;
+        private byte contractSalvageNegotiated;
+
+        private Builder() {
+        }
+
+        private Builder(Mission m) {
+            this.id = m.id;
+            this.name = m.name;
+            this.type = m.type;
+            this.source = m.source;
+            this.payout = m.payout;
+            this.risk = m.risk;
+            this.requirements = m.requirements;
+            this.flavor = m.flavor;
+            this.normalizedX = m.normalizedX;
+            this.normalizedY = m.normalizedY;
+            this.clientFighterSupport = m.clientFighterSupport;
+            this.enemyFighterSupport = m.enemyFighterSupport;
+            this.employerPowerIds = m.employerPowerIds;
+            this.requiredDrops = m.requiredDrops;
+            this.employerShuttles = m.employerShuttles;
+            this.targetPlanetName = m.targetPlanetName;
+            this.targetIndustryId = m.targetIndustryId;
+            this.targetFactionId = m.targetFactionId;
+            this.contractId = m.contractId;
+            this.campaignEventId = m.campaignEventId;
+            this.campaignEventMarketId = m.campaignEventMarketId;
+            this.civiliansAtRisk = m.civiliansAtRisk;
+            this.campaignEventThreatSeed = m.campaignEventThreatSeed;
+            this.salvageBaseline = m.salvageBaseline;
+            this.salvageNegotiated = m.salvageNegotiated;
+            this.cashMultiplier = m.cashMultiplier;
+            this.contractSalvageBaseline = m.contractSalvageBaseline;
+            this.contractSalvageNegotiated = m.contractSalvageNegotiated;
+        }
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder type(MissionType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder source(MissionSource source) {
+            this.source = source;
+            return this;
+        }
+
+        public Builder payout(int payout) {
+            this.payout = payout;
+            return this;
+        }
+
+        public Builder risk(RiskLevel risk) {
+            this.risk = risk;
+            return this;
+        }
+
+        public Builder requirements(String requirements) {
+            this.requirements = requirements;
+            return this;
+        }
+
+        public Builder flavor(String flavor) {
+            this.flavor = flavor;
+            return this;
+        }
+
+        /** Position on the tactical map, both 0..1. */
+        public Builder mapPosition(float normalizedX, float normalizedY) {
+            this.normalizedX = normalizedX;
+            this.normalizedY = normalizedY;
+            return this;
+        }
+
+        public Builder clientFighterSupport(FlybyRoster clientFighterSupport) {
+            this.clientFighterSupport = clientFighterSupport;
+            return this;
+        }
+
+        public Builder enemyFighterSupport(FlybyRoster enemyFighterSupport) {
+            this.enemyFighterSupport = enemyFighterSupport;
+            return this;
+        }
+
+        public Builder employerPowerIds(List<String> employerPowerIds) {
+            this.employerPowerIds = employerPowerIds;
+            return this;
+        }
+
+        public Builder requiredDrops(int requiredDrops) {
+            this.requiredDrops = requiredDrops;
+            return this;
+        }
+
+        public Builder employerShuttles(int employerShuttles) {
+            this.employerShuttles = employerShuttles;
+            return this;
+        }
+
+        public Builder targetPlanetName(String targetPlanetName) {
+            this.targetPlanetName = targetPlanetName;
+            return this;
+        }
+
+        public Builder targetIndustryId(String targetIndustryId) {
+            this.targetIndustryId = targetIndustryId;
+            return this;
+        }
+
+        public Builder targetFactionId(String targetFactionId) {
+            this.targetFactionId = targetFactionId;
+            return this;
+        }
+
+        public Builder contractId(long contractId) {
+            this.contractId = contractId;
+            return this;
+        }
+
+        public Builder campaignEventId(long campaignEventId) {
+            this.campaignEventId = campaignEventId;
+            return this;
+        }
+
+        public Builder campaignEventMarketId(int campaignEventMarketId) {
+            this.campaignEventMarketId = campaignEventMarketId;
+            return this;
+        }
+
+        public Builder civiliansAtRisk(int civiliansAtRisk) {
+            this.civiliansAtRisk = civiliansAtRisk;
+            return this;
+        }
+
+        public Builder campaignEventThreatSeed(long campaignEventThreatSeed) {
+            this.campaignEventThreatSeed = campaignEventThreatSeed;
+            return this;
+        }
+
+        public Builder salvageBaseline(int salvageBaseline) {
+            this.salvageBaseline = (byte) salvageBaseline;
+            return this;
+        }
+
+        public Builder salvageNegotiated(int salvageNegotiated) {
+            this.salvageNegotiated = (byte) salvageNegotiated;
+            return this;
+        }
+
+        public Builder cashMultiplier(int cashMultiplier) {
+            this.cashMultiplier = (byte) cashMultiplier;
+            return this;
+        }
+
+        public Builder contractSalvageBaseline(int contractSalvageBaseline) {
+            this.contractSalvageBaseline = (byte) contractSalvageBaseline;
+            return this;
+        }
+
+        public Builder contractSalvageNegotiated(int contractSalvageNegotiated) {
+            this.contractSalvageNegotiated = (byte) contractSalvageNegotiated;
+            return this;
+        }
+
+        public Mission build() {
+            return new Mission(this);
+        }
     }
 }

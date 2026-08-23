@@ -10,7 +10,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-/** Whole-fireteam command rules shared by briefing and deployment UI. */
+/**
+ * Whole-squad command rules shared by briefing and deployment UI.
+ *
+ * <p>Command is scoped <b>per officer</b>, not per operation: a selected
+ * squad counts against its own home officer's {@code Rank.squadCommandCap},
+ * and only a squad with no home officer counts against the operation's
+ * commander. See {@link TaskForce} for why, and for the compatibility
+ * argument — with nothing assigned, every squad falls to the commander and
+ * these rules reduce exactly to the single-officer cap they replaced.
+ */
 public final class CaptainDeploymentPolicy {
 
     private CaptainDeploymentPolicy() {}
@@ -42,20 +51,40 @@ public final class CaptainDeploymentPolicy {
         return count;
     }
 
-    public static boolean canAdd(MarineRoster roster, MarineCaptain captain,
+    /**
+     * Can this squad join the selection? Bounded by whoever would lead it —
+     * its home officer, or the commander when it has none — rather than by
+     * one officer's cap over the whole operation.
+     */
+    public static boolean canAdd(MarineRoster roster, MarineCaptain commander,
                                  Set<String> selectedIds, String squadId) {
-        if (!canLead(captain) || roster == null || squadId == null) return false;
+        if (roster == null || squadId == null) return false;
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null || squad.reserve()
                 || !roster.isSquadAvailable(squadId)) return false;
         if (selectedIds != null && selectedIds.contains(squadId)) return true;
-        return selectedCount(roster, selectedIds) < captain.rank().squadCommandCap();
+        MarineCaptain leader = leaderFor(roster, commander, squadId);
+        if (!canLead(leader)) return false;
+        return TaskForce.of(roster, commander, selectedIds).remainingCapacity(leader) > 0;
     }
 
+    /**
+     * The officer who would take this squad into the field: its home officer
+     * when it has a fit one, otherwise the operation's commander.
+     */
+    public static MarineCaptain leaderFor(MarineRoster roster, MarineCaptain commander,
+                                          String squadId) {
+        if (roster == null || squadId == null) return commander;
+        MarineCaptain home = roster.captainForSquad(squadId);
+        return canLead(home) ? home : commander;
+    }
+
+    /** Every selected squad has a fit officer with room for it. */
     public static boolean isValidCommand(MarineRoster roster,
-                                         MarineCaptain captain,
+                                         MarineCaptain commander,
                                          Set<String> selectedIds) {
-        return canLead(captain)
-                && selectedCount(roster, selectedIds) <= captain.rank().squadCommandCap();
+        TaskForce force = TaskForce.of(roster, commander, selectedIds);
+        if (force.squadCount() == 0) return canLead(commander);
+        return force.isValid();
     }
 }
