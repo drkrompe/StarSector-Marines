@@ -67,8 +67,7 @@ universe over time, not retrofitted into intel slots.
   this layer. The first green-company ladder now ships two Independent jobs:
   reinforce a fixed local militia line, then return for a joint counterattack,
   both against militia-only bandits with no heavy support. See
-  [`campaign/`](campaign/) and
-  [`campaign/early-operations/`](campaign/early-operations/overview.md).
+  [`campaign/`](campaign/) and `early-operation-nouns.md`.
 - **Map generation** — room-purpose refactor complete (Slices A–D), with that
   substrate now paying off in both station layouts and ground maps. Tactical
   commercial interiors ship purpose-labeled sales floors/stockrooms plus real
@@ -263,10 +262,10 @@ universe over time, not retrofitted into intel slots.
 1. **Early-operations playtest** — the two-job Independent opening ladder is
    code-complete: one-player-sortie relief followed by a two-sortie joint
    counterattack, with employer militia, finite advancing bandits, and no
-   fighters/mechs/turrets/reinforcement budget. Tune the 8+4 vs 12 relief and
-   4+player vs 12 counterattack ratios in live play before contracting a third
-   pinned-assault variant. See
-   [`campaign/early-operations/next-session.md`](campaign/early-operations/next-session.md).
+   fighters/mechs/turrets/reinforcement budget. Validate relief-line survival,
+   arrival timing, and the counterattack's larger lift demand in live play
+   before contracting a third pinned-assault variant. See
+   `opening-ladder-live-acceptance.md`.
 2. **Campaign personnel spine** — persistent six-person fireteams, cargo-backed
    enlistment, reserve management, armory allocation/presets, explicit
    deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery, and debrief are
