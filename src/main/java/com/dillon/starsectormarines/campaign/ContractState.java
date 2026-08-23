@@ -2,18 +2,13 @@ package com.dillon.starsectormarines.campaign;
 
 /**
  * Lifecycle state of a {@link ContractType contract} — see
- * <code>roadmap/campaign/contracts/overview.md</code> §"Lifecycle".
+ * <code>roadmap/campaign/contracts/design/contracts-nouns.md</code>.
  *
- * <pre>
- *  ACTIVE ──► IN_PROGRESS ──► COMPLETED
- *     │                       FAILED
- *     │                       ABANDONED
- *     └──────────────────────► DEFAULTED   (patron stops paying)
- * </pre>
- *
- * <p>Mission-mode contracts spend most of their lifetime in {@code IN_PROGRESS}
- * across phases; stationing-mode contracts stay {@code ACTIVE} until the term
- * expires or the patron defaults.
+ * <p>{@code OFFERED} is the pre-commitment state and may expire. Accepted
+ * stationing work remains {@code ACTIVE}; phased missions use
+ * {@code IN_PROGRESS}. Ordinary mission offers currently settle directly from
+ * {@code OFFERED}; {@code mission-offer-acceptance.md} tracks moving that path
+ * through the persisted acceptance boundary before launch.
  *
  * <p>Backed by {@link #ordinal()} into the {@code byte} slot in
  * {@link CampaignState}{@code .contractState[]} — never reorder.
@@ -27,16 +22,18 @@ public enum ContractState {
     COMPLETED,
     /** Player failed a phase / mission. Mission-mode terminates here; rep hit. */
     FAILED,
-    /** Patron stopped paying (DEPOSED / promoted / political flip). Spawns extraction. */
+    /** Patron breached a stationing agreement. Spawns recovery work. */
     DEFAULTED,
     /** Player walked away mid-contract. Tanks rep + MRB. */
     ABANDONED,
     /**
      * Patron has put this on the table but the player hasn't accepted yet.
-     * Acceptance flips OFFERED → ACTIVE; the offer-aging branch of
-     * {@code ContractLifecycleSystem} flips OFFERED → {@link #EXPIRED} when
-     * the offer window lapses. Ordinal kept stable for save compatibility
-     * with releases that predated EXPIRED.
+     * Stationing and civil-war acceptance flip OFFERED → ACTIVE; ordinary
+     * mission acceptance still awaits the persisted boundary tracked in
+     * {@code mission-offer-acceptance.md}. The offer-aging branch of
+     * {@code ContractLifecycleSystem} flips OFFERED → {@link #EXPIRED} when the
+     * offer window lapses. Ordinal kept stable for save compatibility with
+     * releases that predated EXPIRED.
      */
     OFFERED,
     /**

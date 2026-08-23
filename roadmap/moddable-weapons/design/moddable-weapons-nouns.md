@@ -3,7 +3,7 @@
 Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
-Updated: 2026-08-23 — made penetration the weapon-owned input to the combat-durability contract.
+Updated: 2026-08-23 — shipped penetration through every live damage path while mech and turret definitions remain transitional enum authorities.
 
 ## Purpose
 
@@ -100,7 +100,8 @@ anti-materiel heavy round through the same marine-secondary mount class.
 `MarineWeapon` and `MarineSecondary` remain id-backed compatibility handles;
 the latter points through a distinct special-equipment definition so a loadout
 item and the weapon it activates do not become one identity. Mech weapons and
-turrets remain enum-owned work. The open work is on `stories.md`.
+turrets remain enum-owned work, but now author penetration with the same live
+semantics until their catalog migrations ship. The open work is on `stories.md`.
 
 W2 turns effect recipes into ordered authored layers. W3 has migrated the
 current rocket and added marine mount validation; its remaining slice moves

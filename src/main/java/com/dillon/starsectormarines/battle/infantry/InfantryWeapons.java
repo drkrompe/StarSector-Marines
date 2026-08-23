@@ -158,7 +158,7 @@ public class InfantryWeapons {
         MarineWeapon weapon = roster.combat().primaryWeapon(shooter);
         float accuracy = world.accuracy(shooter);
         float damage   = world.attackDamage(shooter);
-        float vsTurretMult = 1f;
+        float penetration = 0f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
         // through to their baked Entity stats with flat accuracy and no
@@ -171,7 +171,7 @@ public class InfantryWeapons {
             accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
                     weapon.accuracyFalloff(), dist, effectiveRange);
             damage   = world.attackDamage(shooter);
-            vsTurretMult = weapon.vsTurretMult();
+            penetration = weapon.penetration();
             effectiveSpread = RangeFalloff.spread(
                     InfantryCombatStats.spread(weapon,
                             roster.combat().equipmentGrade(shooter),
@@ -217,7 +217,7 @@ public class InfantryWeapons {
                     ? damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
                     : damage;
             shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
-                    res.flightTime(), appliedDamage, vsTurretMult, moraleImpact, res.friendlyHit()));
+                    res.flightTime(), appliedDamage, penetration, moraleImpact, res.friendlyHit()));
         }
 
         // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
@@ -290,7 +290,7 @@ public class InfantryWeapons {
                         : sec.damage();
                 shots.queueImpact(new ShotService.PendingImpact(
                         res.victimId(), shooter, res.flightTime(), damage,
-                        sec.vsTurretMult(), roster.identity().type(shooter).moraleImpact,
+                        sec.penetration(), roster.identity().type(shooter).moraleImpact,
                         res.friendlyHit(), sec));
             }
             shots.postShot(new ShotEvent(fromX, fromY, 0f,
@@ -308,7 +308,7 @@ public class InfantryWeapons {
                 ? new PendingDetonation(
                         shooter,
                         res.endX(), res.endY(), res.flightTime(),
-                        sec.aoeRadius(), sec.damage(), sec.vsTurretMult(),
+                        sec.aoeRadius(), sec.damage(), sec.penetration(),
                         sec.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
                         sec.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                         /*friendlyFireImmune*/ false)

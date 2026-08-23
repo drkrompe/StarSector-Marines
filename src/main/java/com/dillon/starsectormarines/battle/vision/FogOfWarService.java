@@ -56,6 +56,7 @@ public final class FogOfWarService {
 
     private final FogCohort[] cohorts = new FogCohort[COHORT_COUNT];
     private int cohortCursor = 0;
+    private long lastOpacityRevision = -1L;
 
     private boolean initialized = false;
 
@@ -100,6 +101,7 @@ public final class FogOfWarService {
         this.fadeAlpha = new float[unitCapacity];
 
         this.shadowScratch = new int[Shadowcast.maxCells(MAX_VISION_RANGE)];
+        this.lastOpacityRevision = grid.opacityRevision();
 
         for (int i = 0; i < COHORT_COUNT; i++) {
             cohorts[i] = new FogCohort();
@@ -210,7 +212,15 @@ public final class FogOfWarService {
         if (simTickIndex % 3 != 0) return;
 
         if (initialized) {
-            tickFogCohort(roster);
+            long revision = grid.opacityRevision();
+            if (revision != lastOpacityRevision) {
+                for (FogCohort cohort : cohorts) tickFogCohort(cohort, roster, true);
+                lastOpacityRevision = revision;
+            } else {
+                FogCohort cohort = cohorts[cohortCursor % COHORT_COUNT];
+                cohortCursor++;
+                tickFogCohort(cohort, roster, false);
+            }
             tickEphemeralSources();
             sweepUnitVisibility(roster);
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
@@ -310,11 +320,10 @@ public final class FogOfWarService {
         }
     }
 
-    private void tickFogCohort(UnitRosterService roster) {
+    private void tickFogCohort(FogCohort cohort, UnitRosterService roster,
+                               boolean forceRecast) {
         World world = roster.world();
         VisionService vision = roster.vision();
-        FogCohort cohort = cohorts[cohortCursor % COHORT_COUNT];
-        cohortCursor++;
 
         for (int i = cohort.contributors.size() - 1; i >= 0; i--) {
             ContributorEntry e = cohort.contributors.get(i);
@@ -330,7 +339,7 @@ public final class FogOfWarService {
 
             int cx = world.cellX(e.unitId);
             int cy = world.cellY(e.unitId);
-            if (cx == e.lastCellX && cy == e.lastCellY) continue;
+            if (!forceRecast && cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
 

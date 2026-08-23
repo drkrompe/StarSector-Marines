@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 13 open stories; infantry armor is aligning with combat durability
+Status: ACTIVE — 12 open stories; issued infantry armor now supplies live durability profiles
 Written: 2026-08-23
-Updated: 2026-08-23 — aligned issued armor and weapon penetration with the combat-durability contract.
+Updated: 2026-08-23 — shipped faction-neutral smoke utility and migrated issued armor from bonus HP/reduction to live armor pool and rating.
 
 ## Purpose
 
@@ -101,9 +101,9 @@ tradeoffs. Some authored patterns are not presently reachable by the live
 unlock ladder; their existence is not evidence of a shipped acquisition path.
 The pattern owns the deployed armor pool, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
-removes that armor and exposed structure. The current bonus-HP and permanent
-damage-reduction representation is transitional until
-`d1-armor-structure-foundation.md` ships.
+removes that armor and exposed structure. Structure remains the platform's base
+pool; armor no longer adds health or applies a permanent damage-reduction
+multiplier after it breaks.
 
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
@@ -113,8 +113,9 @@ assignment, fabrication value, and reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
-The first two built-in identities are the rocket launcher and anti-materiel
-rifle. Both are direct-fire activations, but only the item definition owns
+The first three built-in identities are the rocket launcher, anti-materiel
+rifle, and Wayfarer smoke grenades. The first two are direct-fire activations,
+while smoke is a utility activation, but only the item definition owns
 loadout identity, initial ammunition, Armory art, and activation type; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
 and audio behavior. Persisted marines, billets, stock, and recipes use the
@@ -131,6 +132,22 @@ drives player and defender carriers; current authored availability is one
 starter player rifle plus one carrier in high-risk non-militia defender
 fireteams. Its report is an ordinary localized shot noise, not omniscient
 identity disclosure.
+
+Smoke grenades are two-canister tactical utility. A short authored throw
+creates a simulation-owned, several-cell cloud for one maneuver bound. Its
+cells are temporary opacity in the shared tactical line-of-sight layer: they
+block observation and direct fire for both factions, but never movement,
+ballistic travel, audio, damage, or remembered belief. Overlapping clouds
+reference-count that opacity until the last field expires.
+
+Smoke is planned at squad level, not fired as a target-of-opportunity weapon.
+An exposed objective bound reserves one carrier and lane, pauses until the
+cloud is actually opaque, then resumes; a breaking squad may supplement its
+fallback with one useful throw while the other survivors keep moving. Active
+or airborne coverage prevents redundant throws. The same rules drive player
+and defender carriers. Player issue includes two starter canisters and a
+Screen template; medium/high-risk non-militia defender fireteams may carry
+smoke explicitly.
 
 ### Telemetry and career
 
@@ -196,7 +213,7 @@ The following are direction, not current behavior:
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
   reachable path. The anti-materiel rifle is shipped; the next planned
-  additions are smoke grenades, satchel charges, and fragmentation grenades.
+  additions are satchel charges and fragmentation grenades; smoke is shipped.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in
@@ -204,9 +221,6 @@ The following are direction, not current behavior:
 - Give only traits with an observable, domain-appropriate consequence a
   mechanic, and define a deliberate acquisition model before promising
   level-up rewards.
-- Replace infantry armor's bonus-health and permanent-reduction proxy with the
-  armor pool and rating supplied to `combat-durability-nouns.md`; keep armor
-  acquisition and loadout authority here.
 
 ## Invariants for future work
 

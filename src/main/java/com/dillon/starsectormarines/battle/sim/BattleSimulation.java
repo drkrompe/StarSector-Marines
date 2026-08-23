@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
+
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -128,6 +133,8 @@ public class BattleSimulation implements BattleControl {
     private final NavigationService navigation;
     /** Alias of {@link NavigationService#getGrid()}. Same instance — kept as a field so the sim's 80+ {@code grid.*} reads don't pay a per-call accessor hop. */
     private final NavigationGrid grid;
+    /** Temporary faction-neutral visual opacity and grenade-flight lifecycle. */
+    private final SmokeFieldService smokeFields;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
@@ -401,6 +408,7 @@ public class BattleSimulation implements BattleControl {
         // 80+ internal `grid.*`/`topology.*`/`zoneGraph.*`/`occupancyMap[...]`
         // reads stay direct (no per-call accessor hop).
         this.grid = navigation.getGrid();
+        this.smokeFields = new SmokeFieldService(this.grid);
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
         this.occupancyMap = navigation.getOccupancyMap();
@@ -516,6 +524,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     public NavigationGrid getGrid() { return grid; }
+    @Override public SmokeFieldService smokeFields() { return smokeFields; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -917,13 +926,13 @@ public class BattleSimulation implements BattleControl {
     }
 
     /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
-    public void applyDamage(long target, float damage, float vsTurretMult) {
-        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, 1.0f);
+    public void applyDamage(long target, float damage, float penetration) {
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 1.0f);
     }
 
     /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
-    public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
-        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, moraleImpact);
+    public void applyDamage(long target, float damage, float penetration, float moraleImpact) {
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, moraleImpact);
     }
 
     /**
@@ -932,8 +941,8 @@ public class BattleSimulation implements BattleControl {
      * {@link CombatTelemetryService#NO_ATTACKER} when nothing in the sim is
      * responsible; the id changes nothing about what the hit does.
      */
-    public void applyDamage(long target, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
-        damageService.applyDamage(target, attackerId, damage, vsTurretMult, moraleImpact);
+    public void applyDamage(long target, long attackerId, float damage, float penetration, float moraleImpact) {
+        damageService.applyDamage(target, attackerId, damage, penetration, moraleImpact);
     }
 
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
@@ -1136,6 +1145,9 @@ public class BattleSimulation implements BattleControl {
         // breach, then enables auto-init for the duration of the tick. Paired
         // with navigation.endTick() at the bottom.
         navigation.beginTick();
+        // Smoke lands/expires before perception so stationary observers recast
+        // against the same opacity state direct-fire AI sees this tick.
+        smokeFields.tick(TICK_DT);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
@@ -1385,7 +1397,7 @@ public class BattleSimulation implements BattleControl {
             }
             rosterService.telemetry().recordRoundHit(impact.shooterId);
             damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
-                    impact.vsTurretMult, impact.moraleImpact);
+                    impact.penetration, impact.moraleImpact);
             if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
                 friendlyFireSquadsThisFrame.add(friendlyFireSquad);
             }
@@ -1569,6 +1581,31 @@ public class BattleSimulation implements BattleControl {
         infantry.fireSecondary(shooter, target);
     }
 
+    @Override
+    public void throwSmoke(long carrier, float targetX, float targetY) {
+        if (!world.hasSecondaryWeapon(carrier)) return;
+        MarineSecondary secondary = world.secondaryWeapon(carrier);
+        if (secondary.activation() != SpecialActivation.UTILITY_SMOKE) return;
+        int ammo = world.secondaryAmmo(carrier);
+        if (ammo <= 0) return;
+        SmokeGrenadeSpec spec = secondary.smokeGrenadeSpec();
+        float fromX = world.renderX(carrier);
+        float fromY = world.renderY(carrier);
+        float dx = targetX - fromX;
+        float dy = targetY - fromY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance > spec.throwRange() && distance > 0f) {
+            targetX = fromX + dx / distance * spec.throwRange();
+            targetY = fromY + dy / distance * spec.throwRange();
+        }
+        targetX = Math.max(0.5f, Math.min(grid.getWidth() - 0.5f, targetX));
+        targetY = Math.max(0.5f, Math.min(grid.getHeight() - 0.5f, targetY));
+        world.setSecondaryAmmo(carrier, ammo - 1);
+        rosterService.telemetry().recordSecondaryUsed(carrier);
+        smokeFields.launch(carrier, identity().faction(carrier), fromX, fromY,
+                targetX, targetY, spec);
+    }
+
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, long target, boolean aerialShooter) {
@@ -1616,14 +1653,14 @@ public class BattleSimulation implements BattleControl {
      * short-circuits the morale branch — strafes are too short-lived for the
      * morale model to model meaningfully. Cover reduction, HP write, death
      * cascade (death FX + equipment drop + squad-leader promotion) all run
-     * normally. {@code vsTurretMult = 1f} since strafing isn't turret-specific.
+     * normally. The caller supplies explicit penetration for the source.
      * No {@link ShotEvent} is emitted — flyby tracers draw via the overlay,
      * not the ground combat tracer pass. Fall-back is also intentionally
      * skipped (strafes pin you down rather than break contact).
      */
-    public void applyExternalDamage(long target, float damage) {
+    public void applyExternalDamage(long target, float damage, float penetration) {
         if (target == 0L || !world.isAlive(target) || damage <= 0f) return;
-        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, 1f, 0f);
+        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 0f);
     }
 
 

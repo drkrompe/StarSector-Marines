@@ -88,6 +88,7 @@ public final class BreakLOS implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        SmokeTactics.coverWithdrawal(squad, sim);
         SquadPlan.Step step = squad.currentPlan != null
                 ? squad.currentPlan.currentStep() : null;
         String role = step != null ? step.slotOf(member) : null;

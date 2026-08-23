@@ -44,9 +44,9 @@ class CampaignMarineDeploymentTest {
         assertEquals(MarineWeapon.DMR, seat.primary);
         assertEquals(123, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
-        assertEquals(MarineArmorPattern.CHARCOAL.bonusHp, seat.armorBonusHp, 1e-6f);
-        assertEquals(MarineArmorPattern.CHARCOAL.damageReduction,
-                seat.armorDamageReduction, 1e-6f);
+        assertEquals(MarineArmorPattern.CHARCOAL.armorPool, seat.armorPool, 1e-6f);
+        assertEquals(MarineArmorPattern.CHARCOAL.armorRating,
+                seat.armorRating, 1e-6f);
         assertEquals(MarineArmorPattern.CHARCOAL.moveSpeedMult,
                 seat.armorMoveSpeedMult, 1e-6f);
         assertEquals(MarineArmorPattern.CHARCOAL.incomingAccuracyMult,
