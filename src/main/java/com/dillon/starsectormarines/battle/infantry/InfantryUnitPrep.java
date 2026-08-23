@@ -98,7 +98,9 @@ public final class InfantryUnitPrep {
      */
     public static boolean tryOpportunityPrimary(long unit, BattleView sim) {
         if (sim.combat().fireTargetId(unit) != 0L) return false;
-        long target = sim.getTacticalScoring().closestEnemyInAttackRange(unit);
+        long target = sim.getTacticalScoring().closestEnemyInAttackRange(unit,
+                sim.combat().reflexTargetId(unit),
+                TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN);
         if (target == 0L) return false;
         sim.combat().setFireIntent(unit, target,
                 FireStance.stanceFor(!sim.movement().settled(unit)), false);

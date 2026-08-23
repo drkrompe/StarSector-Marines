@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -292,8 +293,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 1: 2 lines (status + garrison flags), 1 divider gap.
         int lines = 2;
         int dividers = 1;
-        // Section 2: 4 contact-doctrine lines, 1 divider gap.
-        lines += 4;
+        // Section 2: 4 contact-doctrine lines + fire-readiness line, 1 divider gap.
+        lines += 5;
         dividers += 1;
         // Section 3: goal + assignment, 1 divider gap.
         lines += 2;
@@ -476,6 +477,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         String primary = primaryContactLabel(picture, ctx.getSim());
         lineY = drawLineIfVisible(font, primarySummary(picture, primary), lineX, lineY,
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        lineY = drawLineIfVisible(font, fireSummary(s, ctx.getSim()), lineX, lineY,
+                DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
         // Section 3: goal + priority bucket + commander assignment.
@@ -649,6 +652,35 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return String.format("Primary %s @%d,%d   Confidence %.2f",
                 primaryLabel, picture.primaryCellX(), picture.primaryCellY(),
                 picture.primaryConfidence());
+    }
+
+    static String fireSummary(Squad squad, BattleSimulation sim) {
+        int ready = 0;
+        int registering = 0;
+        int cooldown = 0;
+        FireGate latestGate = FireGate.NONE;
+        int latestTick = -1;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long member = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(member)
+                    || sim.squad().squadId(member) != squad.id
+                    || !sim.world().hasCombat(member)) continue;
+            if (sim.combat().reflexTimer(member) > 0f) registering++;
+            else if (sim.combat().reflexTargetId(member) != 0L
+                    && sim.resolveUnit(sim.combat().reflexTargetId(member)) != 0L
+                    && sim.combat().cooldownTimer(member) <= 0f) ready++;
+            if (sim.combat().cooldownTimer(member) > 0f) cooldown++;
+            int gateTick = sim.combat().lastFireGateTick(member);
+            FireGate gate = sim.combat().lastFireGate(member);
+            if (gate != FireGate.NONE && gateTick >= latestTick) {
+                latestTick = gateTick;
+                latestGate = gate;
+            }
+        }
+        String last = latestGate == FireGate.NONE ? "—"
+                : latestGate + " " + Math.max(0, sim.getSimTickIndex() - latestTick) + "t";
+        return String.format("Fire Ready %d   Reg %d   CD %d   Last %s",
+                ready, registering, cooldown, last);
     }
 
     private static String primaryContactLabel(SquadContactPicture picture,

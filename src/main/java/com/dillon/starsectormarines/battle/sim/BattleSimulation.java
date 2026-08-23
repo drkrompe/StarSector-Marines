@@ -541,6 +541,10 @@ public class BattleSimulation implements BattleControl {
 
     @Override public int liveUnitCount() { return rosterService.liveCount(); }
     @Override public long liveUnitAt(int index) { return rosterService.get(index); }
+    @Override public int squadMemberCount(int squadId) { return rosterService.squadMemberCount(squadId); }
+    @Override public long squadMemberAt(int squadId, int index) {
+        return rosterService.squadMemberArray(squadId)[index];
+    }
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
@@ -1133,6 +1137,7 @@ public class BattleSimulation implements BattleControl {
         // pathfind / target-pick). Reset then advertised via the static
         // TickInnerProfile.current() slot so GridPathfinder / TacticalScoring
         // can record without threading the sim through their signatures.
+        TickInnerProfile.resetAllWorkers();
         tickInnerProfile.reset();
         TickInnerProfile.setCurrent(tickInnerProfile);
         // Per-tick LoS cache + spatial-state setup — sweeps every worker's
@@ -1172,8 +1177,9 @@ public class BattleSimulation implements BattleControl {
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
         squadAlert.tick(TICK_DT, simTickIndex);
-        tacticalScoring.updateContactPictures(simTickIndex);
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
+        tacticalScoring.updateContactPictures(simTickIndex);
+        tickProfile.lap(TickProfile.Phase.CONTACT_PICTURE);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from SquadAlertSystem: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so

@@ -37,6 +37,7 @@ public final class TickProfile {
         REBUILD_UNIT_INDEX,
         REBUILD_ATTACKERS,
         SQUAD_ALERT,
+        CONTACT_PICTURE,
         SQUAD_MORALE,
         SQUAD_FALLBACK,
         COMMANDER,

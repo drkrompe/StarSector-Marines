@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
+import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.RepositionToCover;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
@@ -155,6 +156,30 @@ public class FiringSystemTest {
     }
 
     @Test
+    public void alternatingNearEqualThreatsCannotStarveOpportunityFire() {
+        BattleSimulation sim = openArena(30, 10);
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long first = combatant(sim, Faction.DEFENDER, 9, 5);
+        long second = combatant(sim, Faction.DEFENDER, 10, 5);
+        sim.world().setAttackRange(shooter, 10f);
+        FiringSystem system = systemFor(sim);
+
+        for (int tick = 0; tick < 20
+                && sim.world().cooldownTimer(shooter) <= 0f; tick++) {
+            sim.world().setCellPos(first, tick % 2 == 0 ? 9 : 10, 5);
+            sim.world().setCellPos(second, tick % 2 == 0 ? 10 : 9, 5);
+            assertTrue(InfantryUnitPrep.tryOpportunityPrimary(shooter, sim));
+            system.tick(sim);
+        }
+
+        assertTrue(sim.world().cooldownTimer(shooter) > 0f,
+                "one-cell nearest-target alternation must still allow reflex registration and a shot");
+        assertEquals(first, sim.combat().reflexTargetId(shooter),
+                "the original legal acquisition remains locked through marginal swaps");
+        assertEquals(FireGate.FIRED, sim.combat().lastFireGate(shooter));
+    }
+
+    @Test
     public void nonSoldierCombatantsDoNotInheritSyntheticRegularReflexes() {
         BattleSimulation sim = openArena(30, 10);
         long alien = sim.spawn(new EntitySpec("alien", Faction.MARINE,
@@ -190,6 +215,8 @@ public class FiringSystemTest {
         assertEquals(MarineWeapon.PULSE_RIFLE.burstCount() - 1, sim.world().burstRemaining(shooter),
                 "PULSE_RIFLE's 3-round burst queues 2 follow-up rounds via beginBurst");
         assertEquals(target, sim.world().burstTargetId(shooter));
+        assertEquals(FireGate.FIRED, sim.combat().lastFireGate(shooter));
+        assertEquals(sim.getSimTickIndex(), sim.combat().lastFireGateTick(shooter));
     }
 
     @Test
@@ -204,6 +231,7 @@ public class FiringSystemTest {
         assertEquals(0f, sim.world().cooldownTimer(shooter), 1e-6f, "no intent, no fire, no cooldown reset");
         assertEquals(0, sim.world().burstRemaining(shooter));
         assertEquals(0L, sim.combat().fireTargetId(shooter));
+        assertEquals(FireGate.NONE, sim.combat().lastFireGate(shooter));
     }
 
     @Test
@@ -221,6 +249,7 @@ public class FiringSystemTest {
                 "cooldown gate blocks the fire — cooldownTimer is untouched, not reset");
         assertEquals(0L, sim.combat().fireTargetId(shooter), "intent still consumed even though it didn't fire");
         assertEquals(0, sim.world().burstRemaining(shooter));
+        assertEquals(FireGate.COOLDOWN, sim.combat().lastFireGate(shooter));
     }
 
     @Test
@@ -235,6 +264,7 @@ public class FiringSystemTest {
 
         assertEquals(0f, sim.world().cooldownTimer(shooter), 1e-6f, "out-of-range intent must not fire");
         assertEquals(0L, sim.combat().fireTargetId(shooter));
+        assertEquals(FireGate.OUT_OF_RANGE, sim.combat().lastFireGate(shooter));
     }
 
     @Test
@@ -251,6 +281,7 @@ public class FiringSystemTest {
 
         assertEquals(0f, sim.world().cooldownTimer(shooter), 1e-6f, "wall-blocked LoS must not fire");
         assertEquals(0L, sim.combat().fireTargetId(shooter));
+        assertEquals(FireGate.NO_LOS, sim.combat().lastFireGate(shooter));
     }
 
     @Test

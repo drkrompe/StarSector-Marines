@@ -54,9 +54,13 @@ public final class FacingSystem {
     public static final float MIN_TRAVEL_SPEED = 0.5f;
     /** Civilian body/look rotation is visual state, smoothed across path changes. */
     public static final float CIVILIAN_TURN_RATE_DEGREES_PER_SECOND = 180f;
+    /** Combatant torso rotation is visual only; firing never waits for alignment. */
+    public static final float COMBATANT_TURN_RATE_DEGREES_PER_SECOND = 360f;
     private static final float MIN_TRAVEL_SPEED_SQ = MIN_TRAVEL_SPEED * MIN_TRAVEL_SPEED;
     private static final float CIVILIAN_TURN_STEP =
             CIVILIAN_TURN_RATE_DEGREES_PER_SECOND * BattleSimulation.TICK_DT;
+    private static final float COMBATANT_TURN_STEP =
+            COMBATANT_TURN_RATE_DEGREES_PER_SECOND * BattleSimulation.TICK_DT;
 
     private final EntityWorld world;
     private final BattleComponents components;
@@ -95,6 +99,8 @@ public final class FacingSystem {
                     ? t.floats(components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN).array() : null;
             long[] targetId = hasCombat
                     ? t.longs(components.COMBAT, BattleComponents.COMBAT_TARGET_ID).array() : null;
+            long[] reflexTargetId = hasCombat
+                    ? t.longs(components.COMBAT, BattleComponents.COMBAT_REFLEX_TARGET_ID).array() : null;
 
             float[] gaitPhase = hasMovement
                     ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE).array() : null;
@@ -175,7 +181,8 @@ public final class FacingSystem {
                 boolean haveTargetDelta = false;
                 if (hasCombat && type.combatant) {
                     long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
-                            ? secondaryAimTarget[r] : targetId[r];
+                            ? secondaryAimTarget[r]
+                            : (reflexTargetId[r] != 0L ? reflexTargetId[r] : targetId[r]);
                     if (tid != 0L && roster.isLive(tid)) {
                         int tcx = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_X));
                         int tcy = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_Y));
@@ -380,6 +387,9 @@ public final class FacingSystem {
             float desiredFacing = haveTravelDelta ? torsoFacing : facing[row];
             torsoFacing = LayeredAppearance.approachFacing(
                     facing[row], desiredFacing, CIVILIAN_TURN_STEP);
+        } else {
+            torsoFacing = LayeredAppearance.approachFacing(
+                    facing[row], torsoFacing, COMBATANT_TURN_STEP);
         }
         facing[row] = torsoFacing;
         locomotion[row] = LayeredAppearance.locomotionPhase(

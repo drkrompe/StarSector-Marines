@@ -307,6 +307,76 @@ public class SeparationSystemTest {
                         + (thirdTeamY - firstTeamY));
     }
 
+    @Test
+    public void sharedDestinationRetainsArrivalHeadingLongEnoughToFinishFootprint() {
+        BattleSimulation sim = openArena(32, 20);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long[] marines = new long[8];
+        float[] offsetsX = {1f, 0f, -1f, 0f,
+                0.7071f, -0.7071f, -0.7071f, 0.7071f};
+        float[] offsetsY = {0f, 1f, 0f, -1f,
+                0.7071f, 0.7071f, -0.7071f, -0.7071f};
+        for (int i = 0; i < marines.length; i++) {
+            marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 20, 10).squad(squadId)
+                    .fireTeam(i / Squad.FIRE_TEAM_SIZE));
+            // Both teams share one centroid but every body begins outside
+            // physical-overlap range, isolating arrival-formation authority
+            // from the collision resolver's deterministic coincident push.
+            sim.world().setPos(marines[i], 20.5f + offsetsX[i],
+                    10.5f + offsetsY[i]);
+            sim.setPath(marines[i], new int[]{5, 10, 20, 10});
+            sim.movement().setPathIdx(marines[i], 2);
+            sim.movement().setFormationMemoryTimer(marines[i],
+                    MovementService.FORMATION_MEMORY_SECONDS);
+        }
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        int ticks = Math.round(1.5f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            sim.movement().beginTick(BattleSimulation.TICK_DT);
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        float gap = Math.abs(teamCentroidY(sim, marines, 1)
+                - teamCentroidY(sim, marines, 0));
+        assertTrue(gap >= 1f,
+                "settled teams should finish the open-ground footprint; gap=" + gap);
+    }
+
+    @Test
+    public void distinctAuthoredDestinationsDoNotReceiveArrivalFormationDrift() {
+        BattleSimulation sim = openArena(32, 20);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long[] marines = new long[8];
+        float[] x = new float[8];
+        float[] y = new float[8];
+        for (int i = 0; i < marines.length; i++) {
+            int cellX = 8 + i;
+            int cellY = 6 + i % 2 * 4;
+            marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, cellX, cellY).squad(squadId)
+                    .fireTeam(i / Squad.FIRE_TEAM_SIZE));
+            sim.setPath(marines[i], new int[]{2, cellY, cellX, cellY});
+            sim.movement().setPathIdx(marines[i], 2);
+            sim.movement().setFormationMemoryTimer(marines[i],
+                    MovementService.FORMATION_MEMORY_SECONDS);
+            x[i] = sim.world().x(marines[i]);
+            y[i] = sim.world().y(marines[i]);
+        }
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        separation.tick(BattleSimulation.TICK_DT);
+
+        for (int i = 0; i < marines.length; i++) {
+            assertEquals(x[i], sim.world().x(marines[i]), 0f,
+                    "authored post X must remain authoritative");
+            assertEquals(y[i], sim.world().y(marines[i]), 0f,
+                    "authored post Y must remain authoritative");
+        }
+    }
+
     /**
      * Test 3 — mass asymmetry: a mech (radius 0.6, mass 0.36) and a marine
      * (radius 0.3, mass 0.09) overlap by 0.1 cells along the x-axis. The

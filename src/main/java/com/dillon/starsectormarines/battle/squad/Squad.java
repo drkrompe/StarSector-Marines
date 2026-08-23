@@ -589,6 +589,32 @@ public final class Squad {
     }
 
     /**
+     * Whether the serial alert pass directly observed any hostile combatant
+     * this tick. Planning runs after that pass and treats this published fact
+     * as authoritative instead of rescanning live units and line of sight.
+     */
+    public boolean hasDirectContactThisTick() {
+        return _engagedThisTick;
+    }
+
+    /**
+     * Whether the serial alert pass directly observed a hostile combatant in
+     * this garrison's kill zone this tick. Meaningful only when
+     * {@link #holdsFireUntilKillZone} is true.
+     */
+    public boolean hasEnemyInKillZoneThisTick() {
+        return _killZoneSightedThisTick;
+    }
+
+    /**
+     * Whether the serial alert pass found hostile incoming fire with line of
+     * sight back to its origin this tick.
+     */
+    public boolean isUnderFireAtLosThisTick() {
+        return _underFireAtLosThisTick;
+    }
+
+    /**
      * Ages the private serial-write store at tick start. The refreshed
      * immutable snapshot is published after all direct observations land.
      */

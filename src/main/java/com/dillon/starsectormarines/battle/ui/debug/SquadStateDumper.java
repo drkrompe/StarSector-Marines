@@ -287,8 +287,8 @@ public final class SquadStateDumper {
         return o;
     }
 
-    private static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
-                                              long selectedUnitEntityId) throws Exception {
+    static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
+                                      long selectedUnitEntityId) throws Exception {
         JSONArray arr = new JSONArray();
         // Live members only (dense registry) — a dead member has left the
         // registry, so the dump no longer lists corpses. The "why is this squad
@@ -347,6 +347,15 @@ public final class SquadStateDumper {
             o.put("settled", sim.movement().settled(u));
             long dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != 0L ? sim.identity().name(dumpTarget) : null);
+            long reflexTarget = sim.resolveUnit(sim.combat().reflexTargetId(u));
+            o.put("reflexTargetId", reflexTarget != 0L ? reflexTarget : JSONObject.NULL);
+            o.put("reflexTargetName", reflexTarget != 0L
+                    ? sim.identity().name(reflexTarget) : JSONObject.NULL);
+            o.put("reflexTimer", sim.combat().reflexTimer(u));
+            o.put("lastFireGate", sim.combat().lastFireGate(u).name());
+            o.put("lastFireGateTick", sim.combat().lastFireGateTick(u));
+            o.put("lastFireGateAgeTicks", Math.max(0,
+                    sim.getSimTickIndex() - sim.combat().lastFireGateTick(u)));
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
             // can't route to from this member — e.g. an enemy behind walls

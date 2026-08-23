@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 12 open stories; issued infantry armor now supplies live durability profiles
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped faction-neutral smoke utility and migrated issued armor from bonus HP/reduction to live armor pool and rating.
+Updated: 2026-08-23 — shipped smoke and live armor, and clarified stable multi-angle threat acquisition.
 
 ## Purpose
 
@@ -82,10 +82,14 @@ Experience already has a behavioral meaning beyond output. For infantry
 training archetypes, `FiringSystem` holds the first primary shot against a
 newly selected threat until the tier's reflex delay expires. Continuing on the
 same threat does not restart the delay; opportunity fire registers its own
-observed threat without changing the pursuit target. Sustained cadence remains
-a weapon-and-handling concern. This applies to trained humanoid infantry, not
-to mechs, turrets, drones, or fauna. Experience changes first action without
-becoming another permanent damage multiplier.
+observed threat without changing the pursuit target. A legal in-range acquired
+threat remains the opportunity-fire choice until another is materially closer;
+near-equal hostiles cannot alternate the registration identity each tick and
+starve the first shot. Visual torso facing follows this acquisition at a
+bounded rate but is presentation state, never another fire gate. Sustained
+cadence remains a weapon-and-handling concern. This applies to trained humanoid
+infantry, not to mechs, turrets, drones, or fauna. Experience changes first
+action without becoming another permanent damage multiplier.
 
 ### Kit and armory
 

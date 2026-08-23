@@ -49,6 +49,10 @@ public final class EnterZone extends AbstractZoneAction {
     static final String TEAM_B = FIRE_TEAM + "1";
     /** Cells gained by each maneuvering fire team before the role rotates. */
     static final float BOUNDING_STRIDE = 6f;
+    /** Open-ground progress required before the next quiet-advance team releases. */
+    static final float ECHELON_RELEASE_DISTANCE = 2f;
+    /** Formation authority yields unless this local square radius is fully open. */
+    static final int ECHELON_OPEN_CLEARANCE = 2;
 
     /** Destination cell inside the target zone — chosen at construction so all members aim at the same spot and the pathfinder routes them through the portal naturally. */
     private final int destX;
@@ -110,8 +114,66 @@ public final class EnterZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
 
+        if (holdsForQuietEchelon(member, squad, sim)) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
         advanceIntoZone(member, squad, sim, destX, destY, true);
         return ActionStatus.RUNNING;
+    }
+
+    private boolean holdsForQuietEchelon(long member, Squad squad,
+                                         BattleControl sim) {
+        if (squad.isMechSquad() || squad.contactPicture.hasContacts()) return false;
+        SquadPlan plan = squad.currentPlan;
+        SquadPlan.Step step = plan != null ? plan.currentStep() : null;
+        if (step == null || step.action != this) return false;
+        List<List<Long>> teams = liveTeams(step, sim);
+        int teamIndex = teamIndexContaining(teams, member);
+        if (teamIndex <= 0 || teams.size() < 2) return false;
+        List<Long> currentTeam = teams.get(teamIndex);
+        for (long teammate : currentTeam) {
+            if (sim.movement().has(teammate) && !sim.movement().settled(teammate)) {
+                return false; // once released, the whole team completes its movement
+            }
+            if (!locallyOpenForEchelon(teammate, sim)) return false;
+        }
+
+        float axisX = destX + 0.5f - squad.centroidX;
+        float axisY = destY + 0.5f - squad.centroidY;
+        float axisLength = (float) Math.sqrt(axisX * axisX + axisY * axisY);
+        if (axisLength <= ECHELON_RELEASE_DISTANCE) return false;
+        axisX /= axisLength;
+        axisY /= axisLength;
+        float predecessor = teamProjection(teams.get(teamIndex - 1), axisX, axisY, sim);
+        float current = teamProjection(currentTeam, axisX, axisY, sim);
+        return predecessor - current < ECHELON_RELEASE_DISTANCE;
+    }
+
+    private static float teamProjection(List<Long> team, float axisX,
+                                        float axisY, BattleView sim) {
+        float projection = 0f;
+        for (long member : team) {
+            projection += sim.world().x(member) * axisX
+                    + sim.world().y(member) * axisY;
+        }
+        return projection / team.size();
+    }
+
+    private static boolean locallyOpenForEchelon(long member, BattleView sim) {
+        NavigationGrid grid = sim.getGrid();
+        int cx = sim.world().cellX(member);
+        int cy = sim.world().cellY(member);
+        if (grid.isDoorway(cx, cy)) return false;
+        for (int y = cy - ECHELON_OPEN_CLEARANCE;
+             y <= cy + ECHELON_OPEN_CLEARANCE; y++) {
+            for (int x = cx - ECHELON_OPEN_CLEARANCE;
+                 x <= cx + ECHELON_OPEN_CLEARANCE; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
+                        || grid.isDoorway(x, y)) return false;
+            }
+        }
+        return true;
     }
 
     @Override

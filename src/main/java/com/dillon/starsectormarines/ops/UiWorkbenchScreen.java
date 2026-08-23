@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.Overflow;
@@ -33,19 +33,15 @@ public final class UiWorkbenchScreen implements Screen {
     private static final Color ROOT = new Color(0x08, 0x0D, 0x15);
     private static final Color PANEL = new Color(0x15, 0x20, 0x2E);
     private static final Color PANEL_DARK = new Color(0x0E, 0x16, 0x21);
-    private static final Color BORDER = new Color(0x62, 0x82, 0xA8);
     private static final Color EDGE = new Color(0x6E, 0xD7, 0xFF);
     private static final Color TEXT = new Color(0xE4, 0xEE, 0xFA);
     private static final Color MUTED = new Color(0x8B, 0x9A, 0xAF);
     private static final Color ACCENT = new Color(0xFF, 0xD4, 0x64);
-    private static final Color SELECTED = new Color(0x31, 0x50, 0x70);
-    private static final Color BUTTON = new Color(0x1E, 0x30, 0x45);
-    private static final Color BUTTON_HOVER = new Color(0x2A, 0x49, 0x68);
-    private static final Color BUTTON_ARMED = new Color(0x46, 0x6F, 0x92);
     private static final Color GOOD = new Color(0x78, 0xD4, 0x94);
 
     private final List<UiElement> teamButtons = new ArrayList<>();
     private final List<UiElement> templateButtons = new ArrayList<>();
+    private final List<UiElement> themeButtons = new ArrayList<>();
 
     private MarineOpsContext context;
     private UiViewport viewport;
@@ -59,6 +55,7 @@ public final class UiWorkbenchScreen implements Screen {
     private float issueMarkerX = 610f;
     private int selectedTeam;
     private int selectedTemplate;
+    private boolean highContrast;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -75,16 +72,13 @@ public final class UiWorkbenchScreen implements Screen {
     private UiDocument buildDocument() {
         UiElement root = panel("workbench-root", ROOT)
                 .layout(UiLayout.COLUMN)
-                .padding(14f)
-                .gap(10f)
-                .border(3f, EDGE);
+                .addClass("workbench-root");
 
         UiElement header = panel("header", PANEL)
                 .layout(UiLayout.ROW)
                 .preferredHeight(70f)
                 .padding(12f)
-                .gap(12f)
-                .border(1f, BORDER);
+                .gap(12f);
         header.child(label("title", "RETAINED UI WORKBENCH", ACCENT)
                 .grow(1f));
         viewportReadout = label("viewport-readout", "", EDGE)
@@ -106,16 +100,26 @@ public final class UiWorkbenchScreen implements Screen {
                 .layout(UiLayout.ROW)
                 .preferredHeight(48f)
                 .padding(7f)
-                .gap(10f)
-                .border(1f, BORDER);
+                .gap(10f);
         footer.child(button("back", "BACK TO COMPANY HQ", 188f,
                 () -> context.goTo(ScreenId.COMPANY_HQ)));
+        UiElement standardTheme = button("theme-standard", "STANDARD", 116f,
+                () -> selectTheme(false));
+        UiElement contrastTheme = button("theme-contrast", "HIGH CONTRAST", 154f,
+                () -> selectTheme(true));
+        themeButtons.add(standardTheme);
+        themeButtons.add(contrastTheme);
+        footer.child(standardTheme);
+        footer.child(contrastTheme);
         footer.child(label("retained-status",
-                "RETAINED TREE  |  CLIPPED SCROLL + HIT TEST  |  U2 PROOF",
+                "RETAINED TREE  |  CASCADE + REAL-TIME MOTION  |  U3 PROOF",
                 GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
+        stampScope(root, "ui-workbench");
         UiDocument built = new UiDocument(root)
+                .addStyleSheet(MarineOpsThemes.WORKBENCH_COMPONENTS)
+                .theme(highContrast ? MarineOpsThemes.highContrast() : MarineOpsThemes.standard())
                 .onCancel(() -> context.goTo(ScreenId.COMPANY_HQ));
         built.canvases().set(transactionCanvas, this::paintTransactionCanvas);
         updateSelectionReadouts();
@@ -126,13 +130,12 @@ public final class UiWorkbenchScreen implements Screen {
         UiElement pane = panel("formation-pane", PANEL)
                 .layout(UiLayout.COLUMN)
                 .padding(10f)
-                .gap(7f)
-                .border(1f, BORDER);
+                .gap(7f);
         pane.child(label("formation-heading", "COMPANY / SQUAD / FIRE TEAM", EDGE)
                 .preferredHeight(34f));
         pane.child(label("squad", "1ST SQUAD  ·  12 / 12 RTD", TEXT)
                 .preferredHeight(34f)
-                .background(PANEL_DARK)
+                .addClass("surface-dark")
                 .padding(7f));
 
         String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
@@ -156,8 +159,7 @@ public final class UiWorkbenchScreen implements Screen {
         UiElement pane = panel("template-pane", PANEL)
                 .layout(UiLayout.COLUMN)
                 .padding(10f)
-                .gap(7f)
-                .border(1f, BORDER);
+                .gap(7f);
         pane.child(label("template-heading", "TEMPLATE LIBRARY", EDGE)
                 .preferredHeight(34f));
         UiElement list = new UiElement("template-list")
@@ -193,32 +195,44 @@ public final class UiWorkbenchScreen implements Screen {
 
     private UiElement buildWorkspacePane() {
         UiElement stack = panel("workspace-stack", PANEL)
-                .layout(UiLayout.STACK)
-                .border(1f, BORDER);
+                .layout(UiLayout.STACK);
         UiElement content = new UiElement("workspace-content")
                 .layout(UiLayout.COLUMN)
                 .padding(12f)
                 .gap(8f)
+                .overflow(Overflow.SCROLL)
                 .align(UiAlign.STRETCH, UiAlign.STRETCH);
         content.child(label("workspace-heading", "REFIT TRANSACTION", EDGE)
                 .preferredHeight(34f));
         selectedTeamReadout = label("selected-team", "", ACCENT)
                 .preferredHeight(38f)
-                .background(PANEL_DARK)
+                .addClass("surface-dark")
                 .padding(8f);
         selectedTemplateReadout = label("selected-template", "", TEXT)
                 .preferredHeight(38f)
-                .background(PANEL_DARK)
+                .addClass("surface-dark")
                 .padding(8f);
         content.child(selectedTeamReadout);
         content.child(selectedTemplateReadout);
+
+        UiElement states = new UiElement("state-gallery")
+                .layout(UiLayout.ROW)
+                .preferredHeight(48f)
+                .gap(6f);
+        states.child(button("state-focus", "TAB: FOCUS", Float.NaN, () -> { }).grow(1f));
+        states.child(button("state-live", "HOVER / PRESS", Float.NaN, () -> { }).grow(1f));
+        states.child(button("state-selected", "SELECTED", Float.NaN, () -> { })
+                .grow(1f).selected(true));
+        states.child(button("state-disabled", "DISABLED", Float.NaN, () -> { })
+                .grow(1f).disabled(true));
+        content.child(states);
 
         transactionCanvas = new UiElement("transaction-canvas")
                 .tag(UiTag.CANVAS)
                 .canvasSize(900, 150)
                 .preferredHeight(150f)
-                .background(PANEL_DARK)
-                .border(1f, BORDER)
+                .addClass("panel")
+                .addClass("surface-dark")
                 .overflow(Overflow.HIDDEN)
                 .onPointerDown(event -> {
                     if (event.button() == PointerButton.PRIMARY) {
@@ -241,9 +255,9 @@ public final class UiWorkbenchScreen implements Screen {
         content.child(issueRow("required", "REQUIRED ISSUE", "-3 rifles  ·  -4 armor  ·  -1 support"));
         transactionReadout = label("transaction-result", "", GOOD)
                 .preferredHeight(46f)
-                .background(new Color(0x13, 0x2B, 0x22))
+                .addClass("good-surface")
                 .padding(10f)
-                .border(1f, GOOD);
+                .addClass("panel");
         content.child(transactionReadout);
         content.child(label("workspace-note",
                 "This pane is a stack: the badge below overlays without moving content.", MUTED)
@@ -254,38 +268,39 @@ public final class UiWorkbenchScreen implements Screen {
         UiElement overlay = label("stack-proof", "STACK OVERLAY", EDGE)
                 .preferredSize(178f, 34f)
                 .align(UiAlign.END, UiAlign.END)
-                .background(new Color(0x18, 0x3B, 0x50))
+                .addClass("edge-surface")
                 .padding(7f)
-                .border(1f, EDGE);
+                .addClass("panel");
         stack.child(overlay);
         return stack;
     }
 
     private void paintTransactionCanvas(CanvasContext canvas) {
+        MarineOpsThemes.CanvasPalette palette = MarineOpsThemes.canvasPalette(highContrast);
+        BitmapFont font = document.styles().fontFor(transactionCanvas);
         float width = canvas.metrics().surfaceWidth();
         float nodeWidth = 190f;
         float nodeHeight = 62f;
         float top = 42f;
         float[] x = {28f, width * 0.28f, width * 0.54f, width - nodeWidth - 28f};
         String[] labels = {"FREE STOCK", "RETURNS", "REQUIRED", "VALID ISSUE"};
-        Color[] colors = {BUTTON, SELECTED, new Color(0x3D, 0x2A, 0x26),
-                new Color(0x13, 0x2B, 0x22)};
+        Color[] colors = {palette.button(), palette.selected(), palette.danger(), palette.valid()};
 
-        canvas.text(Fonts.ORBITRON_20, "CAPTURED CANVAS DRAG  ·  MOVE ISSUE MARKER",
-                24f, 12f, MUTED);
+        canvas.text(font, "CAPTURED CANVAS DRAG  ·  MOVE ISSUE MARKER",
+                24f, 12f, palette.muted());
         for (int index = 0; index < x.length; index++) {
             if (index > 0) {
                 canvas.line(x[index - 1] + nodeWidth, top + nodeHeight * 0.5f,
-                        x[index], top + nodeHeight * 0.5f, EDGE, 2f);
+                        x[index], top + nodeHeight * 0.5f, palette.edge(), 2f);
             }
             canvas.fillRect(x[index], top, nodeWidth, nodeHeight, colors[index]);
             canvas.strokeRect(x[index], top, nodeWidth, nodeHeight,
-                    index == x.length - 1 ? GOOD : BORDER, 2f);
-            canvas.text(Fonts.ORBITRON_20, labels[index], x[index] + 13f,
-                    top + 18f, index == x.length - 1 ? GOOD : TEXT);
+                    index == x.length - 1 ? palette.good() : palette.border(), 2f);
+            canvas.text(font, labels[index], x[index] + 13f,
+                    top + 18f, index == x.length - 1 ? palette.good() : palette.text());
         }
-        canvas.line(issueMarkerX, 34f, issueMarkerX, 126f, ACCENT, 3f);
-        canvas.fillRect(issueMarkerX - 7f, 30f, 14f, 14f, ACCENT);
+        canvas.line(issueMarkerX, 34f, issueMarkerX, 126f, palette.accent(), 3f);
+        canvas.fillRect(issueMarkerX - 7f, 30f, 14f, 14f, palette.accent());
     }
 
     private void moveIssueMarker(UiPointerEvent event) {
@@ -309,31 +324,39 @@ public final class UiWorkbenchScreen implements Screen {
     }
 
     private static UiElement panel(String id, Color color) {
-        return new UiElement(id)
-                .background(color)
-                .overflow(Overflow.HIDDEN);
+        UiElement panel = new UiElement(id).overflow(Overflow.HIDDEN);
+        if (!ROOT.equals(color)) panel.addClass("panel");
+        if (PANEL_DARK.equals(color)) panel.addClass("surface-dark");
+        return panel;
     }
 
     private static UiElement label(String id, String text, Color color) {
         return new UiElement(id)
-                .text(Fonts.ORBITRON_20, text, color)
+                .addClass("label")
+                .addClass(toneClass(color))
+                .text(text)
                 .overflow(Overflow.HIDDEN);
     }
 
     private static UiElement button(String id, String text, float width, Runnable action) {
-        UiElement button = new UiElement(id)
+        return new UiElement(id)
                 .tag(UiTag.BUTTON)
                 .preferredWidth(width)
-                .background(BUTTON)
-                .hoverBackground(BUTTON_HOVER)
-                .armedBackground(BUTTON_ARMED)
-                .border(1f, BORDER)
-                .focusOutline(2f, ACCENT)
-                .padding(9f)
-                .overflow(Overflow.HIDDEN)
-                .text(Fonts.ORBITRON_20, text, TEXT)
+                .text(text)
                 .onClick(action);
-        return button;
+    }
+
+    private static String toneClass(Color color) {
+        if (EDGE.equals(color)) return "tone-edge";
+        if (MUTED.equals(color)) return "tone-muted";
+        if (ACCENT.equals(color)) return "tone-accent";
+        if (GOOD.equals(color)) return "tone-good";
+        return "tone-text";
+    }
+
+    private static void stampScope(UiElement element, String scopeClass) {
+        element.addClass(scopeClass);
+        for (UiElement child : element.children()) stampScope(child, scopeClass);
     }
 
     private void selectTeam(int index) {
@@ -346,6 +369,15 @@ public final class UiWorkbenchScreen implements Screen {
         updateSelectionReadouts();
     }
 
+    private void selectTheme(boolean useHighContrast) {
+        highContrast = useHighContrast;
+        if (document != null) {
+            document.theme(highContrast
+                    ? MarineOpsThemes.highContrast() : MarineOpsThemes.standard());
+        }
+        updateSelectionReadouts();
+    }
+
     private void updateSelectionReadouts() {
         String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
         String[] templates = {
@@ -353,10 +385,13 @@ public final class UiWorkbenchScreen implements Screen {
                 "BOARDING", "ANTI-ARMOR", "SECURITY", "HAZARD RESPONSE"
         };
         for (int i = 0; i < teamButtons.size(); i++) {
-            teamButtons.get(i).background(i == selectedTeam ? SELECTED : BUTTON);
+            teamButtons.get(i).selected(i == selectedTeam);
         }
         for (int i = 0; i < templateButtons.size(); i++) {
-            templateButtons.get(i).background(i == selectedTemplate ? SELECTED : BUTTON);
+            templateButtons.get(i).selected(i == selectedTemplate);
+        }
+        for (int i = 0; i < themeButtons.size(); i++) {
+            themeButtons.get(i).selected(highContrast == (i == 1));
         }
         if (selectedTeamReadout != null) {
             selectedTeamReadout.text("TARGET  ·  1ST SQUAD / " + teams[selectedTeam]);
@@ -379,6 +414,7 @@ public final class UiWorkbenchScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (document != null) document.advance(dt);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.retained.style.StyleResolver;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.opengl.Display;
 
@@ -41,7 +43,7 @@ final class UiPainter {
     private static final Color SCROLL_THUMB = new Color(0xC8, 0xD0, 0xD8, 0xA6);
 
     void paint(UiElement root, UiViewport viewport, float alphaMult,
-               CanvasRegistry canvases) {
+               CanvasRegistry canvases, StyleResolver styles) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT
                 | GL_LINE_BIT | GL_TEXTURE_BIT | GL_SCISSOR_BIT);
         try {
@@ -50,7 +52,7 @@ final class UiPainter {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_SCISSOR_TEST);
             Rect viewportClip = new Rect(0f, 0f, viewport.width(), viewport.height());
-            paintElement(root, viewport, alphaMult, viewportClip, canvases);
+            paintElement(root, viewport, alphaMult, viewportClip, canvases, styles);
         } finally {
             glUseProgram(0);
             glPopAttrib();
@@ -58,43 +60,47 @@ final class UiPainter {
     }
 
     private void paintElement(UiElement element, UiViewport viewport, float alphaMult,
-                              Rect inheritedClip, CanvasRegistry canvases) {
+                              Rect inheritedClip, CanvasRegistry canvases,
+                              StyleResolver styles) {
         if (inheritedClip.width() <= 0f || inheritedClip.height() <= 0f) return;
+        float elementAlpha = combinedAlpha(alphaMult, element);
+        if (elementAlpha <= 0f) return;
         applyClip(viewport, inheritedClip);
         Rect rect = element.box().borderBox();
         Color background = element.paintedBackground();
         if (background != null && rect.width() > 0f && rect.height() > 0f) {
-            fill(rect, viewport, background, alphaMult);
+            fill(rect, viewport, background, elementAlpha);
         }
         if (element.borderColor() != null && element.borderWidth() > 0f
                 && rect.width() > 0f && rect.height() > 0f) {
-            outline(rect, viewport, element.borderColor(), element.borderWidth(), alphaMult);
+            outline(rect, viewport, element.borderColor(), element.borderWidth(), elementAlpha);
         }
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         applyClip(viewport, childClip);
-        if (element.font() != null && element.text() != null && element.textColor() != null
+        BitmapFont font = styles.fontFor(element);
+        if (font != null && element.text() != null && element.textColor() != null
                 && childClip.width() > 0f && childClip.height() > 0f) {
             Rect content = element.box().contentBox();
-            element.font().drawString(element.text(), viewport.screenXFor(content.x()),
-                    viewport.screenTopFor(content.y()), element.textColor(), alphaMult);
+            font.drawString(element.text(), viewport.screenXFor(content.x()),
+                    viewport.screenTopFor(content.y()), element.textColor(), elementAlpha);
         }
-        paintCanvas(element, viewport, alphaMult, childClip, canvases);
+        paintCanvas(element, viewport, elementAlpha, childClip, canvases);
         for (UiElement child : element.children()) {
-            paintElement(child, viewport, alphaMult, childClip, canvases);
+            paintElement(child, viewport, elementAlpha, childClip, canvases, styles);
         }
         if (element.focusVisible() && element.focusOutlineColor() != null
                 && element.focusOutlineWidth() > 0f) {
             applyClip(viewport, inheritedClip);
             outline(rect, viewport, element.focusOutlineColor(),
-                    element.focusOutlineWidth(), alphaMult);
+                    element.focusOutlineWidth(), elementAlpha);
         }
         Rect thumb = scrollThumbRect(element);
         if (thumb != null) {
             Rect thumbClip = inheritedClip.intersect(element.box().paddingBox());
             if (thumbClip.width() > 0f && thumbClip.height() > 0f) {
                 applyClip(viewport, thumbClip);
-                fill(thumb, viewport, SCROLL_THUMB, alphaMult);
+                fill(thumb, viewport, SCROLL_THUMB, elementAlpha);
             }
         }
     }
@@ -124,6 +130,10 @@ final class UiPainter {
                 || !Float.isFinite(right) || !Float.isFinite(bottom)) return null;
         return new Rect(left, top, Math.max(0f, right - left),
                 Math.max(0f, bottom - top));
+    }
+
+    static float combinedAlpha(float inheritedAlpha, UiElement element) {
+        return inheritedAlpha * element.opacity();
     }
 
     /** Pure geometry seam for the overlay scrollbar and its headless tests. */
