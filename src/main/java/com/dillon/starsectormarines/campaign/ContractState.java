@@ -37,9 +37,10 @@ public enum ContractState {
      */
     OFFERED,
     /**
-     * Offer lapsed before the player accepted. Terminal — the row is kept
-     * as a tombstone (architecture.md §1 soft-delete invariant: id→index
-     * mappings never invalidate) but filters out of the offer list.
+     * Offer lapsed before the player accepted. Terminal — filters out of the
+     * offer list. The contract ID remains stable for callers; the owning
+     * maintenance path may later compact the backing row storage and rebuild
+     * its lookup index.
      * Appended after {@link #OFFERED} so existing ordinals stay stable.
      */
     EXPIRED;
