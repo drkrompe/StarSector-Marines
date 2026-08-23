@@ -57,7 +57,7 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
-    /** Persistent fireteams selected for the current mission's player-controlled seats. */
+    /** Persistent squads selected for the current mission's player-controlled seats. */
     private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
     private String squadSelectionMissionId;
     /** Distinguishes an intentional empty selection from the legacy implicit-whole-line state. */

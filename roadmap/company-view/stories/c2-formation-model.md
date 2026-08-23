@@ -3,9 +3,15 @@
 > Four surfaces each recompute "how many of my marines are ready" by hand.
 > Build the rollup once.
 
-**Status:** not started. No dependencies. Prerequisite for
-C3 (`c3-company-card-stack.md`), C4 (`c4-whereabouts-and-deployed-state.md`),
-C5 (`c5-battle-hud-company-rollup.md`).
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+No dependencies. Prerequisite for `c3-company-card-stack.md`,
+`c4-whereabouts-and-deployed-state.md`, and
+`c5-battle-hud-company-rollup.md`.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Problem
 
@@ -44,7 +50,7 @@ CompanySnapshot
 
 CommandSnapshot
   captainId / captainName / rank / captainStatus
-  squadCap     (the officer's rank cap, in squads — C7)
+  squadCap     (the officer's rank cap, in squads)
   squads: List<SquadSnapshot>
   + the same count rollup, scoped to this command
 
@@ -70,8 +76,8 @@ MarineSnapshot
   unchanged roster are equal.
 - **Both groupings available.** `commands` gives the per-captain shape;
   a flat `squads()` accessor over all commands + unassigned gives the
-  whole-roster shape. The open question in the overview (card = command vs
-  card = company) is then a C3 rendering choice, not a model change.
+  whole-roster shape. Whether C3 emphasizes an officer command or the whole
+  company is then a rendering choice, not a model change.
 - **Counts defined once.** "Ready" is `MarineRoster.readyCount` semantics
   (ACTIVE and available); "living" includes WIA per
   `MarineRoster.livingCount`. Reuse the roster's existing definitions

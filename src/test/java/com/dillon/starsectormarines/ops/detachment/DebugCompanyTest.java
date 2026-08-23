@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>The point of the story is that a debug mission stops being a special
  * case: it fields squads with identity, NCO leaders and campaign-legal kit,
- * so everything {@code c1-fireteam-identity-through-the-drop.md} and
- * {@code c8-lift-capacity-and-multi-pass-drops.md} shipped is reachable from
+ * so the deployment-identity law in {@code company-view-nouns.md} and the
+ * shipped C8 lift behavior are reachable from
  * it. These tests hold that line at the seam that would silently regress —
  * a fixture that stops producing tags still deploys, it just quietly stops
  * testing anything.

@@ -3,9 +3,14 @@
 > Every offer in the sector already exists. The player can see one of them
 > at a time, and only while docked at the market that minted it.
 
-**Status:** not started. Depends on C10 (`c10-company-between-contracts.md`)
-slice 1 for the host it renders into. Independent of everything else in the
-track.
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on the shipped campaign-map home in `company-view-nouns.md`.
+Independent of the other open stories in this track.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Problem
 
@@ -50,9 +55,9 @@ change is not a follow-up here; it is slice 1.
 
 That said, twenty rows also settles the layout question cheaply: at this scale
 `ScrollRegionWidget` is sufficient and pagination is over-engineering.
-Design commitment 9 already fixes the ladder — compact, then paginate, and
-always state the off-screen count — so pagination is the named escalation, not
-the opening move.
+The standing presentation law fixes the ladder: compact, then paginate, and
+always state the off-screen count. Pagination is the named escalation, not the
+opening move.
 
 ## Goal
 
@@ -60,7 +65,7 @@ A board that answers **"where should the company go next?"** from anywhere in
 the sector, and that makes the answer depend on the company's standing rather
 than on its flight path.
 
-The organising test C10 sets applies here too: what decision does each element
+The organizing test in `company-view-nouns.md` applies here too: what decision does each element
 inform, and can it be made here? A board that lists work the player cannot
 evaluate, cannot reach, and cannot man is a travel-planning tool pretending to
 be a contract screen.
@@ -136,7 +141,7 @@ Why the fee is split rather than a single number:
   gates which patrons will offer work
   (G21 (`g21-contract-eligibility-gates.md`)) — a gate on offers the player
   never sees, so the number moves and nothing observable changes.
-- **The maintenance fee lands on the number C10 put at the top of the screen.**
+- **The maintenance fee lands on the standing pane's headline number.**
   It is upkeep, so it shortens the runway the standing pane leads with. An
   information advantage that costs runway is a trade rather than a reward.
 - **Cancelling is cheap and re-activating is not.** A company in the DESPERATE
@@ -164,7 +169,7 @@ black box** — the player must be able to see why a row is at the top:
 - payout against the company's monthly upkeep (the runway currency the standing
   pane already speaks),
 - **can the company actually field it** — required drops checked against
-  `CompanyStanding.available`, which C10 slice 2 already computes.
+  the shipped `CompanyStanding.available` read model.
 
 That last one does work no player can do by eye. A board that dims jobs the
 company cannot man today, and says why, converts a list into advice. It also
@@ -177,24 +182,21 @@ board reads as a spreadsheet, the entire patron-voice investment is bypassed.
 
 ## Sequencing
 
-Depends only on C10 slice 1 — the ability, the planet-free host, and
-`ScreenId.COMPANY_HQ`. It shares the standing pane's derived rollups
-(`CompanyStanding.available`) if C10 slice 2 has landed, and degrades to
-distance-plus-payout relevance if it has not.
+Depends only on the shipped ability and planet-free `ScreenId.COMPANY_HQ`
+host. It shares the standing pane's derived rollups, including
+`CompanyStanding.available`.
 
-**Against C10 slice 3.** The clock pane and the board split the deadline
+**Against the shipped clock.** The clock pane and the board split the deadline
 sources between them, and the split is by *valence*:
 
 - An obligation **bites**. A missed response deadline costs reputation and
   loses the garrison; a stationing term ending changes the company's income.
-  Those are C10 slice 3.
+  Those belong to the shipped clock.
 - An opportunity **lapses**. A missed offer costs nothing — the player simply
   does not get the job. That is this board.
 
-So `contractOfferExpiresTick` moves here, and C10 slice 3 renders two sources
-rather than three. That resolves C10's open question ("should the clock pane
-show contracts the player has not accepted?") with a reason rather than a
-layout preference.
+So `contractOfferExpiresTick` belongs here, while the clock renders only
+obligations. The boundary follows consequence rather than layout preference.
 
 The one case that would genuinely earn an offer a slot on the clock pane is an
 offer the player has **decided on** and is flying toward — a watchlist. Not
@@ -255,7 +257,8 @@ them but not their correctness.
 ## Automated verification
 
 The reach/resolution rules and the relevance composite are pure and testable;
-the pane ships on in-game smoke, the same gate as G5, G13, G32, and C10.
+the pane ships on in-game smoke, the same gate as G5, G13, G32, and the
+campaign-map home.
 
 - Reach resolution: a fixture contracts table plus a player location, asserting
   which rows appear at each tier and at what resolution. Including that a

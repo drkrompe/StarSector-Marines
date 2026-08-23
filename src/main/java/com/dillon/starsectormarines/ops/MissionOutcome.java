@@ -80,7 +80,7 @@ public final class MissionOutcome {
     public final int     salvageHighValueChancePct;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
-    /** Mission-time whole-fireteam selection, in briefing order. */
+    /** Mission-time persistent squad selection, in briefing order. */
     public final Set<String> deployedFireteamIds;
     /**
      * What each deployed marine actually did, keyed by campaign soldier id.
