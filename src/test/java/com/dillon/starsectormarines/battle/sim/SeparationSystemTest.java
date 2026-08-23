@@ -150,10 +150,11 @@ public class SeparationSystemTest {
     }
 
     /**
-     * S3 chokepoint regression: an eight-unit crowd converges from a room into a
-     * one-cell-wide passage, traverses it, and fans back out into the room on
-     * the far side. This drives movement and separation in their production
-     * order while rebuilding the unit-index snapshot once per tick. Every
+     * S3 chokepoint regression: a twelve-marine, three-fire-team squad
+     * converges from a room into a one-cell-wide passage, traverses it, and
+     * fans back out into the room on the far side. This drives movement and
+     * separation in their production order while rebuilding the unit-index
+     * snapshot once per tick. Every
      * mover must make forward progress through both mouths and finish its
      * route on walkable ground; a separation/path tug that oscillates at a
      * doorway leaves at least one path unexhausted within the generous
@@ -171,14 +172,16 @@ public class SeparationSystemTest {
 
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(w, h));
         SeparationSystem separation = separationFor(sim);
-        long[] marines = new long[8];
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long[] marines = new long[12];
         for (int i = 0; i < marines.length; i++) {
-            int startX = 2 + i % 3;
-            int startY = 2 + i / 3;
-            int destX = 18 + i % 3;
-            int destY = 2 + i / 3;
+            int startX = 2 + i % 4;
+            int startY = 2 + i / 4;
+            int destX = 18 + i % 4;
+            int destY = 2 + i / 4;
             marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
-                    UnitType.MARINE, startX, startY));
+                    UnitType.MARINE, startX, startY)
+                    .squad(squadId).fireTeam(i / Squad.FIRE_TEAM_SIZE));
             sim.setPath(marines[i], new int[]{
                     startX, startY,
                     7, 4,
@@ -188,6 +191,8 @@ public class SeparationSystemTest {
                     destX, destY
             });
         }
+        grid.setDoorway(8, 4, true);
+        grid.setDoorway(15, 4, true);
 
         boolean[] enteredChoke = new boolean[marines.length];
         boolean[] exitedChoke = new boolean[marines.length];
@@ -230,6 +235,76 @@ public class SeparationSystemTest {
             assertTrue(exitRetreats[i] <= 1,
                     "unit " + i + " oscillated across the choke exit " + exitRetreats[i] + " times");
         }
+    }
+
+    @Test
+    public void threeFireTeamsReleaseFormationBeforeDoorway() {
+        int width = 28;
+        int height = 15;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                if (x != 13) grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(13, 7);
+        grid.setDoorway(13, 7, true);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(width, height));
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long[] marines = new long[12];
+        float[] beforeX = new float[marines.length];
+        float[] beforeY = new float[marines.length];
+        for (int i = 0; i < marines.length; i++) {
+            int team = i / Squad.FIRE_TEAM_SIZE;
+            int startX = 5 + team * 2;
+            int startY = 5 + i % Squad.FIRE_TEAM_SIZE;
+            marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, startX, startY)
+                    .squad(squadId).fireTeam(team));
+            sim.setPath(marines[i], new int[]{startX, startY, 13, 7, 23, 7});
+            beforeX[i] = sim.world().x(marines[i]);
+            beforeY[i] = sim.world().y(marines[i]);
+        }
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        for (int i = 0; i < marines.length; i++) {
+            assertEquals(beforeX[i], sim.world().x(marines[i]), 0f,
+                    "formation should yield X authority before the portal for marine " + i);
+            assertEquals(beforeY[i], sim.world().y(marines[i]), 0f,
+                    "formation should yield Y authority before the portal for marine " + i);
+        }
+    }
+
+    @Test
+    public void threeFireTeamsReformSquadArcAfterConstraintClears() {
+        BattleSimulation sim = openArena(36, 24);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long[] marines = new long[12];
+        for (int i = 0; i < marines.length; i++) {
+            int team = i / Squad.FIRE_TEAM_SIZE;
+            int x = 9 + team * 2;
+            int y = 9 + i % Squad.FIRE_TEAM_SIZE;
+            marines[i] = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, x, y).squad(squadId).fireTeam(team));
+            sim.setPath(marines[i], new int[]{x, y, 31, y});
+        }
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        int ticks = Math.round(6f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        float firstTeamY = teamCentroidY(sim, marines, 0);
+        float thirdTeamY = teamCentroidY(sim, marines, 2);
+        assertTrue(thirdTeamY - firstTeamY >= 5f,
+                "squad arc should reform in open ground; team-centroid gap="
+                        + (thirdTeamY - firstTeamY));
     }
 
     /**
@@ -483,6 +558,16 @@ public class SeparationSystemTest {
         float dx = sim.world().x(a) - sim.world().x(b);
         float dy = sim.world().y(a) - sim.world().y(b);
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private static float teamCentroidY(BattleSimulation sim, long[] members,
+                                       int teamIndex) {
+        float total = 0f;
+        int first = teamIndex * Squad.FIRE_TEAM_SIZE;
+        for (int i = first; i < first + Squad.FIRE_TEAM_SIZE; i++) {
+            total += sim.world().y(members[i]);
+        }
+        return total / Squad.FIRE_TEAM_SIZE;
     }
 
     /**
