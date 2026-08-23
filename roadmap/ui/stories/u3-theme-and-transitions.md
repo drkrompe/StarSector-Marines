@@ -1,6 +1,6 @@
 # U3 — Theme, component roles, and transitions
 
-Status: PLANNED
+Status: IN PROGRESS
 Written: 2026-08-23
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1 and U2.
@@ -20,6 +20,18 @@ states; the theme owns typography, spacing, palette, borders, and retained motio
 - Paint-only color/opacity transitions and bounded layout transitions on unscaled
   real time.
 - A reusable Marine Ops theme and workbench state gallery.
+
+## Implementation slices
+
+| Slice | Size | Dependency | Proof |
+| --- | --- | --- | --- |
+| U3.1 — authored style and cascade | M | U1 retained identity | CSS-named closed properties; tag, class, id, descendant, and interaction-state selectors; ordered component sheets with a final replaceable theme; inherited text properties. |
+| U3.2 — retained transitions | M | U3.1 computed styles, U2 interaction states | Color and opacity interpolation, bounded numeric layout interpolation, reversal shortening, and an idle fast path driven by unscaled real seconds. |
+| U3.3 — Marine Ops theme gallery | M | U3.1–U3.2 | The workbench uses semantic classes and selected state rather than local palette/state painting, and exposes the standard control states together for live review. |
+
+The Java construction API remains available as inline style. This is the migration seam for
+legacy screens, not a second presentation model: inline values enter the same computed cascade and
+retain the ordinary last-layer precedence.
 
 ## Acceptance
 

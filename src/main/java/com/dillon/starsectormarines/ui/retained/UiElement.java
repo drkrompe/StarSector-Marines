@@ -1,12 +1,18 @@
 package com.dillon.starsectormarines.ui.retained;
 
 import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.retained.style.ComputedStyle;
+import com.dillon.starsectormarines.ui.retained.style.Length;
+import com.dillon.starsectormarines.ui.retained.style.StyleDeclaration;
+import com.dillon.starsectormarines.ui.retained.style.StyleProperty;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -21,6 +27,8 @@ public final class UiElement {
     private final String id;
     private final List<UiElement> children = new ArrayList<>();
     private final LayoutBox box = new LayoutBox();
+    private final Set<String> classes = new LinkedHashSet<>();
+    private final StyleDeclaration authoredStyle = StyleDeclaration.empty();
 
     private UiElement parent;
     private UiTag tag = UiTag.DIV;
@@ -59,6 +67,10 @@ public final class UiElement {
     private boolean armed;
     private boolean focused;
     private boolean focusVisible;
+    private ComputedStyle computedStyle;
+    private long styleRevision;
+    private boolean styleDirty = true;
+    private boolean descendantStyleDirty;
 
     public UiElement(String id) {
         this.id = Objects.requireNonNull(id, "id");
@@ -86,7 +98,52 @@ public final class UiElement {
 
     public UiElement tag(UiTag tag) {
         this.tag = Objects.requireNonNull(tag, "tag");
+        touchStyle();
         return this;
+    }
+
+    public UiElement addClass(String className) {
+        requireClassName(className);
+        if (classes.add(className)) touchStyle();
+        return this;
+    }
+
+    public UiElement removeClass(String className) {
+        if (classes.remove(className)) touchStyle();
+        return this;
+    }
+
+    public UiElement classed(String className, boolean present) {
+        return present ? addClass(className) : removeClass(className);
+    }
+
+    public boolean hasClass(String className) {
+        return classes.contains(className);
+    }
+
+    public Set<String> classes() {
+        return Collections.unmodifiableSet(classes);
+    }
+
+    public UiElement selected(boolean selected) {
+        return classed("selected", selected);
+    }
+
+    public boolean selected() {
+        return hasClass("selected");
+    }
+
+    public UiElement style(String declaration) {
+        StyleDeclaration parsed = StyleDeclaration.parse(declaration);
+        parsed.values().forEach(authoredStyle::put);
+        touchStyle();
+        return this;
+    }
+
+    private static void requireClassName(String className) {
+        if (className == null || className.isBlank() || className.chars().anyMatch(Character::isWhitespace)) {
+            throw new IllegalArgumentException("Class name must be one non-blank token");
+        }
     }
 
     /** Sets the independent HTML canvas drawing-surface size. */
@@ -131,7 +188,9 @@ public final class UiElement {
     }
 
     public UiElement disabled(boolean disabled) {
+        if (this.disabled == disabled) return this;
         this.disabled = disabled;
+        touchStyle();
         return this;
     }
 
@@ -148,11 +207,14 @@ public final class UiElement {
     }
 
     public UiLayout layout() {
+        if (layout != UiLayout.STACK && computedStyle != null) return computedStyle.direction();
         return layout;
     }
 
     public UiElement layout(UiLayout layout) {
         this.layout = Objects.requireNonNull(layout, "layout");
+        if (layout != UiLayout.STACK) authoredStyle.put(StyleProperty.FLEX_DIRECTION, layout);
+        touchStyle();
         return this;
     }
 
@@ -161,9 +223,14 @@ public final class UiElement {
         if (child == this || child.isAncestorOf(this)) {
             throw new IllegalArgumentException("Adding " + child.id + " would create a cycle");
         }
-        if (child.parent != null) child.parent.children.remove(child);
+        if (child.parent != null) {
+            UiElement previousParent = child.parent;
+            previousParent.children.remove(child);
+            previousParent.touchStyle();
+        }
         child.parent = this;
         children.add(child);
+        child.touchStyle();
         return this;
     }
 
@@ -174,6 +241,8 @@ public final class UiElement {
         }
         children.remove(child);
         child.parent = null;
+        touchStyle();
+        child.touchStyle();
         return this;
     }
 
@@ -186,25 +255,40 @@ public final class UiElement {
 
     public UiElement padding(float all) {
         this.padding = Insets.uniform(all);
+        putPadding(this.padding);
         return this;
     }
 
     public UiElement padding(Insets padding) {
         this.padding = Objects.requireNonNull(padding, "padding");
+        putPadding(this.padding);
         return this;
     }
 
     public Insets padding() {
+        if (computedStyle != null) return computedStyle.padding(box.borderBox().width());
         return padding;
+    }
+
+    Insets resolvedPadding(float basis) {
+        return computedStyle == null ? padding : computedStyle.padding(basis);
     }
 
     public UiElement gap(float gap) {
         this.gap = Math.max(0f, gap);
+        authoredStyle.put(StyleProperty.ROW_GAP, Length.px(this.gap));
+        authoredStyle.put(StyleProperty.COLUMN_GAP, Length.px(this.gap));
+        touchStyle();
         return this;
     }
 
     public float gap() {
+        if (computedStyle != null) return computedStyle.gap(box.contentBox().width());
         return gap;
+    }
+
+    float resolvedGap(float basis) {
+        return computedStyle == null ? gap : computedStyle.gap(basis);
     }
 
     public UiElement preferredSize(float width, float height) {
@@ -224,19 +308,38 @@ public final class UiElement {
     }
 
     public float preferredWidth() {
-        return preferredWidth;
+        return resolvedPreferredWidth(box.borderBox().width());
+    }
+
+    float resolvedPreferredWidth(float basis) {
+        if (computedStyle == null) return preferredWidth;
+        float contentWidth = computedStyle.width(basis);
+        if (Float.isNaN(contentWidth)) return preferredWidth;
+        return contentWidth + computedStyle.padding(basis).horizontal()
+                + computedStyle.borderWidth() * 2f;
     }
 
     public float preferredHeight() {
-        return preferredHeight;
+        return resolvedPreferredHeight(box.borderBox().height(), box.borderBox().width());
+    }
+
+    float resolvedPreferredHeight(float heightBasis, float widthBasis) {
+        if (computedStyle == null) return preferredHeight;
+        float contentHeight = computedStyle.height(heightBasis);
+        if (Float.isNaN(contentHeight)) return preferredHeight;
+        return contentHeight + computedStyle.padding(widthBasis).vertical()
+                + computedStyle.borderWidth() * 2f;
     }
 
     public UiElement grow(float grow) {
         this.grow = Math.max(0f, grow);
+        authoredStyle.put(StyleProperty.FLEX_GROW, this.grow);
+        touchStyle();
         return this;
     }
 
     public float grow() {
+        if (computedStyle != null) return computedStyle.grow();
         return grow;
     }
 
@@ -256,10 +359,13 @@ public final class UiElement {
 
     public UiElement overflow(Overflow overflow) {
         this.overflow = Objects.requireNonNull(overflow, "overflow");
+        authoredStyle.put(StyleProperty.OVERFLOW, overflow);
+        touchStyle();
         return this;
     }
 
     public Overflow overflow() {
+        if (computedStyle != null) return computedStyle.overflow();
         return overflow;
     }
 
@@ -279,24 +385,30 @@ public final class UiElement {
 
     public UiElement background(Color color) {
         this.background = color;
+        authoredStyle.put(StyleProperty.BACKGROUND_COLOR, color);
+        touchStyle();
         return this;
     }
 
     public Color background() {
+        if (computedStyle != null) return computedStyle.backgroundColor();
         return background;
     }
 
     public UiElement hoverBackground(Color color) {
         this.hoverBackground = color;
+        touchStyle();
         return this;
     }
 
     public UiElement armedBackground(Color color) {
         this.armedBackground = color;
+        touchStyle();
         return this;
     }
 
     public Color paintedBackground() {
+        if (computedStyle != null) return computedStyle.backgroundColor();
         if (armed && armedBackground != null) return armedBackground;
         if (hovered && hoverBackground != null) return hoverBackground;
         return background;
@@ -305,14 +417,19 @@ public final class UiElement {
     public UiElement border(float width, Color color) {
         this.borderWidth = Math.max(0f, width);
         this.borderColor = color;
+        authoredStyle.put(StyleProperty.BORDER_WIDTH, Length.px(this.borderWidth));
+        authoredStyle.put(StyleProperty.BORDER_COLOR, color);
+        touchStyle();
         return this;
     }
 
     public float borderWidth() {
+        if (computedStyle != null) return computedStyle.borderWidth();
         return borderWidth;
     }
 
     public Color borderColor() {
+        if (computedStyle != null) return computedStyle.borderColor();
         return borderColor;
     }
 
@@ -334,6 +451,9 @@ public final class UiElement {
         this.font = font;
         this.text = text;
         this.textColor = color;
+        authoredStyle.put(StyleProperty.FONT_FAMILY, font);
+        authoredStyle.put(StyleProperty.COLOR, color);
+        touchStyle();
         return this;
     }
 
@@ -351,6 +471,7 @@ public final class UiElement {
     }
 
     public Color textColor() {
+        if (computedStyle != null) return computedStyle.color();
         return textColor;
     }
 
@@ -399,7 +520,9 @@ public final class UiElement {
     }
 
     void hovered(boolean hovered) {
+        if (this.hovered == hovered) return;
         this.hovered = hovered;
+        touchStyle();
     }
 
     public boolean armed() {
@@ -407,7 +530,9 @@ public final class UiElement {
     }
 
     void armed(boolean armed) {
+        if (this.armed == armed) return;
         this.armed = armed;
+        touchStyle();
     }
 
     public boolean focused() {
@@ -415,11 +540,76 @@ public final class UiElement {
     }
 
     void focused(boolean focused, boolean focusVisible) {
+        boolean nextVisible = focused && focusVisible;
+        if (this.focused == focused && this.focusVisible == nextVisible) return;
         this.focused = focused;
-        this.focusVisible = focused && focusVisible;
+        this.focusVisible = nextVisible;
+        touchStyle();
     }
 
     public boolean focusVisible() {
         return focusVisible;
+    }
+
+    public float opacity() {
+        return computedStyle == null ? 1f : computedStyle.opacity();
+    }
+
+    public StyleDeclaration authoredStyle() {
+        return authoredStyle.copy();
+    }
+
+    public long styleRevision() {
+        return styleRevision;
+    }
+
+    public boolean styleDirty() {
+        return styleDirty;
+    }
+
+    public boolean descendantStyleDirty() {
+        return descendantStyleDirty;
+    }
+
+    public void clearStyleDirty() {
+        styleDirty = false;
+    }
+
+    public void clearDescendantStyleDirty() {
+        descendantStyleDirty = false;
+    }
+
+    /** Marks this element for a new cascade pass. Used by inherited transition propagation. */
+    public void invalidateStyle() {
+        touchStyle();
+    }
+
+    public void computedStyle(ComputedStyle style) {
+        computedStyle = style;
+    }
+
+    public Color hoverBackgroundOverride() {
+        return hoverBackground;
+    }
+
+    public Color armedBackgroundOverride() {
+        return armedBackground;
+    }
+
+    private void putPadding(Insets value) {
+        authoredStyle.put(StyleProperty.PADDING_TOP, Length.px(value.top()));
+        authoredStyle.put(StyleProperty.PADDING_RIGHT, Length.px(value.right()));
+        authoredStyle.put(StyleProperty.PADDING_BOTTOM, Length.px(value.bottom()));
+        authoredStyle.put(StyleProperty.PADDING_LEFT, Length.px(value.left()));
+        touchStyle();
+    }
+
+    private void touchStyle() {
+        styleRevision++;
+        styleDirty = true;
+        for (UiElement ancestor = parent; ancestor != null; ancestor = ancestor.parent) {
+            if (ancestor.descendantStyleDirty) break;
+            ancestor.descendantStyleDirty = true;
+        }
     }
 }
