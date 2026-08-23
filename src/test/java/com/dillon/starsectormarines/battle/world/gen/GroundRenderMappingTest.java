@@ -24,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  *       rendered as before the data extraction (and {@code null} for the
  *       special-cased SIDEWALK / dead SNOW);</li>
  *   <li>each mapped block lives on the sheet + {@code cellPx} the renderer's
- *       {@code sheetFor}/inset selection assumes — so a 16px Floors block can't
- *       silently start drawing at a 32px source rect.</li>
+ *       {@code sheetFor}/inset selection assumes — so a Floors block can't
+ *       silently start drawing with a mismatched source rect.</li>
  * </ol>
  */
 public class GroundRenderMappingTest {
@@ -77,11 +77,11 @@ public class GroundRenderMappingTest {
         assertBlock(reg, m, GroundKind.TILE,      TileManifest.ROAD_SHEET,   32);
         assertBlock(reg, m, GroundKind.STRIPED,   TileManifest.ROAD_SHEET,   32);
         assertBlock(reg, m, GroundKind.LZ_MARKER, TileManifest.ROAD_SHEET,   32);
-        assertBlock(reg, m, GroundKind.GRASS,     TileManifest.FLOORS_SHEET, 16);
-        assertBlock(reg, m, GroundKind.DIRT,      TileManifest.FLOORS_SHEET, 16);
-        assertBlock(reg, m, GroundKind.STONE,     TileManifest.FLOORS_SHEET, 16);
-        assertBlock(reg, m, GroundKind.SAND,      TileManifest.FLOORS_SHEET, 16);
-        assertBlock(reg, m, GroundKind.BRICK,     TileManifest.FLOORS_SHEET, 16);
+        assertBlock(reg, m, GroundKind.GRASS,     TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
+        assertBlock(reg, m, GroundKind.DIRT,      TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
+        assertBlock(reg, m, GroundKind.STONE,     TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
+        assertBlock(reg, m, GroundKind.SAND,      TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
+        assertBlock(reg, m, GroundKind.BRICK,     TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
         assertBlock(reg, m, GroundKind.WATER,     TileManifest.WATER_SHEET,  16);
     }
 
