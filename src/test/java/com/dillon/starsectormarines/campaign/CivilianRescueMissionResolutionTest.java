@@ -129,15 +129,21 @@ class CivilianRescueMissionResolutionTest {
         MissionOutcome outcome(String missionId, MissionSource source,
                                long outcomeEventId, int outcomeMarket,
                                int atRisk, int rescued) {
-            return new MissionOutcome(false, missionId,
-                    "Civilian Evacuation", MissionType.EXTRACTION,
-                    RiskLevel.HIGH, source,
-                    0, 0, 8, 2,
-                    null, null, null, null,
-                    0, 0f, null,
-                    "Arcadia", null, "independent",
-                    -1L, outcomeEventId, outcomeMarket, atRisk, rescued,
-                    0, 0, 0);
+            return MissionOutcome.builder()
+                    .missionId(missionId)
+                    .missionName("Civilian Evacuation")
+                    .missionType(MissionType.EXTRACTION)
+                    .risk(RiskLevel.HIGH)
+                    .missionSource(source)
+                    .marinesEngaged(8)
+                    .marinesLost(2)
+                    .targetPlanetName("Arcadia")
+                    .targetFactionId("independent")
+                    .campaignEventId(outcomeEventId)
+                    .campaignEventMarketId(outcomeMarket)
+                    .civiliansAtRisk(atRisk)
+                    .civiliansRescued(rescued)
+                    .build();
         }
     }
 }

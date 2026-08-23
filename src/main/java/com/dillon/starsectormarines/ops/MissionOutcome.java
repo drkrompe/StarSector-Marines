@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
@@ -17,6 +18,10 @@ import java.util.Set;
  * screen displays and everything {@link MissionResolver#apply} writes back to
  * the player's game state. Compute it once when the battle ends, apply it
  * once, then read it for display. Immutable so it can't drift after creation.
+ *
+ * <p>Build one with {@link #builder()}. Every field has an "absent" default
+ * (see {@link Builder}), so a caller sets only what it actually knows —
+ * a debug fixture with no battle in hand names four values, not thirty-six.
  */
 public final class MissionOutcome {
 
@@ -90,237 +95,333 @@ public final class MissionOutcome {
      */
     public final Map<String, CombatTelemetryRow> soldierTelemetry;
 
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, int civiliansAtRisk,
-                          int civiliansRescued, int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
-                salvageEntitlement, salvageRecoveryBonusPct,
-                salvageHighValueChancePct, Collections.emptySet(), Collections.emptySet());
+    /** @return a builder with every field defaulted to its "absent" value. */
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, int civiliansAtRisk,
-                          int civiliansRescued, int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
-                -1, -1,
-                salvageEntitlement, salvageRecoveryBonusPct,
-                salvageHighValueChancePct, survivingSoldierIds,
-                fallenSoldierIds, Collections.emptySet());
-    }
-
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, int civiliansAtRisk,
-                          int civiliansRescued, int evacuationRepresentatives,
-                          int representativesEvacuated, int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
-                          Set<String> deployedFireteamIds) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
-                evacuationRepresentatives, representativesEvacuated,
-                AbandonedColonyArchiveOutcome.NONE, salvageEntitlement,
-                salvageRecoveryBonusPct, salvageHighValueChancePct,
-                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
-    }
-
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, int civiliansAtRisk,
-                          int civiliansRescued, int evacuationRepresentatives,
-                          int representativesEvacuated,
-                          AbandonedColonyArchiveOutcome colonyArchiveOutcome,
-                          int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
-                          Set<String> deployedFireteamIds) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, -1L, civiliansAtRisk, civiliansRescued,
-                evacuationRepresentatives, representativesEvacuated,
-                colonyArchiveOutcome, salvageEntitlement,
-                salvageRecoveryBonusPct, salvageHighValueChancePct,
-                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
+    private MissionOutcome(Builder b) {
+        this.victory            = b.victory;
+        this.missionId          = b.missionId;
+        this.missionName        = b.missionName;
+        this.missionType        = b.missionType;
+        this.risk               = b.risk;
+        this.missionSource      = b.missionSource != null ? b.missionSource : MissionSource.GENERATED;
+        this.payoutBase         = b.payoutBase;
+        this.payoutEarned       = b.payoutEarned;
+        this.marinesEngaged     = b.marinesEngaged;
+        this.marinesLost        = b.marinesLost;
+        this.captainId          = b.captainId;
+        this.captainName        = b.captainName;
+        this.priorCaptainStatus = b.priorCaptainStatus;
+        this.newCaptainStatus   = b.newCaptainStatus;
+        this.xpGained           = b.xpGained;
+        this.injuredUntilDay    = b.injuredUntilDay;
+        this.promotedTo         = b.promotedTo;
+        this.targetPlanetName   = b.targetPlanetName;
+        this.targetIndustryId   = b.targetIndustryId;
+        this.targetFactionId    = b.targetFactionId;
+        this.contractId         = b.contractId;
+        this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
+        this.campaignEventMarketId = this.campaignEventId > 0L
+                ? Math.max(-1, b.campaignEventMarketId) : -1;
+        this.campaignEventThreatSeed = this.campaignEventId > 0L
+                && b.campaignEventThreatSeed >= 0L
+                ? b.campaignEventThreatSeed : -1L;
+        this.civiliansAtRisk = this.missionSource.isCivilianRescue()
+                ? Math.max(0, b.civiliansAtRisk) : 0;
+        this.civiliansRescued = this.missionSource.isCivilianRescue()
+                ? b.civiliansRescued : -1;
+        boolean validEvacuation = this.missionSource.isCivilianRescue()
+                && b.evacuationRepresentatives > 0
+                && b.representativesEvacuated >= 0
+                && b.representativesEvacuated <= b.evacuationRepresentatives;
+        this.evacuationRepresentatives = validEvacuation
+                ? b.evacuationRepresentatives : -1;
+        this.representativesEvacuated = validEvacuation
+                ? b.representativesEvacuated : -1;
+        this.colonyArchiveOutcome = b.colonyArchiveOutcome != null
+                ? b.colonyArchiveOutcome : AbandonedColonyArchiveOutcome.NONE;
+        this.salvageEntitlement = b.salvageEntitlement;
+        this.salvageRecoveryBonusPct = Math.max(0, b.salvageRecoveryBonusPct);
+        this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
+        this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
+        this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
+        this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
+        this.soldierTelemetry = immutableTelemetry(b.soldierTelemetry);
     }
 
     /**
-     * Telemetry-free overload — every caller that builds an outcome without a
-     * battle in hand (debug fixtures, campaign-side resolutions, tests).
+     * Mutable staging area for one {@link MissionOutcome}. Defaults are the
+     * "nothing to report" values the outcome's own normalization treats as
+     * absent — {@code -1} for every lineage id and every optional battle
+     * report, zero for civilian stakes and salvage, empty for the soldier
+     * collections. That is what lets a caller name only the fields it knows.
+     *
+     * <p>Not thread-safe and not reusable in spirit: build one, call
+     * {@link #build()}, drop it.
      */
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, long campaignEventThreatSeed,
-                          int civiliansAtRisk, int civiliansRescued,
-                          int evacuationRepresentatives,
-                          int representativesEvacuated,
-                          AbandonedColonyArchiveOutcome colonyArchiveOutcome,
-                          int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
-                          Set<String> deployedFireteamIds) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, campaignEventThreatSeed, civiliansAtRisk,
-                civiliansRescued, evacuationRepresentatives, representativesEvacuated,
-                colonyArchiveOutcome, salvageEntitlement, salvageRecoveryBonusPct,
-                salvageHighValueChancePct, survivingSoldierIds, fallenSoldierIds,
-                deployedFireteamIds, Collections.emptyMap());
-    }
+    public static final class Builder {
 
-    /** Canonical constructor. Everything else here funnels into it. */
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, long campaignEventThreatSeed,
-                          int civiliansAtRisk, int civiliansRescued,
-                          int evacuationRepresentatives,
-                          int representativesEvacuated,
-                          AbandonedColonyArchiveOutcome colonyArchiveOutcome,
-                          int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
-                          Set<String> deployedFireteamIds,
-                          Map<String, CombatTelemetryRow> soldierTelemetry) {
-        this.victory            = victory;
-        this.missionId          = missionId;
-        this.missionName        = missionName;
-        this.missionType        = missionType;
-        this.risk               = risk;
-        this.missionSource      = missionSource != null ? missionSource : MissionSource.GENERATED;
-        this.payoutBase         = payoutBase;
-        this.payoutEarned       = payoutEarned;
-        this.marinesEngaged     = marinesEngaged;
-        this.marinesLost        = marinesLost;
-        this.captainId          = captainId;
-        this.captainName        = captainName;
-        this.priorCaptainStatus = priorCaptainStatus;
-        this.newCaptainStatus   = newCaptainStatus;
-        this.xpGained           = xpGained;
-        this.injuredUntilDay    = injuredUntilDay;
-        this.promotedTo         = promotedTo;
-        this.targetPlanetName   = targetPlanetName;
-        this.targetIndustryId   = targetIndustryId;
-        this.targetFactionId    = targetFactionId;
-        this.contractId         = contractId;
-        this.campaignEventId = campaignEventId > 0L ? campaignEventId : -1L;
-        this.campaignEventMarketId = this.campaignEventId > 0L
-                ? Math.max(-1, campaignEventMarketId) : -1;
-        this.campaignEventThreatSeed = this.campaignEventId > 0L
-                && campaignEventThreatSeed >= 0L
-                ? campaignEventThreatSeed : -1L;
-        this.civiliansAtRisk = this.missionSource.isCivilianRescue()
-                ? Math.max(0, civiliansAtRisk) : 0;
-        this.civiliansRescued = this.missionSource.isCivilianRescue()
-                ? civiliansRescued : -1;
-        boolean validEvacuation = this.missionSource.isCivilianRescue()
-                && evacuationRepresentatives > 0
-                && representativesEvacuated >= 0
-                && representativesEvacuated <= evacuationRepresentatives;
-        this.evacuationRepresentatives = validEvacuation
-                ? evacuationRepresentatives : -1;
-        this.representativesEvacuated = validEvacuation
-                ? representativesEvacuated : -1;
-        this.colonyArchiveOutcome = colonyArchiveOutcome != null
-                ? colonyArchiveOutcome : AbandonedColonyArchiveOutcome.NONE;
-        this.salvageEntitlement = salvageEntitlement;
-        this.salvageRecoveryBonusPct = Math.max(0, salvageRecoveryBonusPct);
-        this.salvageHighValueChancePct = Math.max(0, Math.min(100, salvageHighValueChancePct));
-        this.survivingSoldierIds = immutableIds(survivingSoldierIds);
-        this.fallenSoldierIds = immutableIds(fallenSoldierIds);
-        this.deployedFireteamIds = immutableOrderedIds(deployedFireteamIds);
-        this.soldierTelemetry = immutableTelemetry(soldierTelemetry);
-    }
+        private boolean victory;
+        private String missionId;
+        private String missionName;
+        private MissionType missionType;
+        private RiskLevel risk;
+        private MissionSource missionSource;
+        private int payoutBase;
+        private int payoutEarned;
+        private int marinesEngaged;
+        private int marinesLost;
+        private String targetPlanetName;
+        private String targetIndustryId;
+        private String targetFactionId;
 
-    public MissionOutcome(boolean victory,
-                          String missionId, String missionName,
-                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
-                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
-                          String captainId, String captainName,
-                          Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId, String targetFactionId,
-                          long contractId, long campaignEventId,
-                          int campaignEventMarketId, int civiliansAtRisk,
-                          int civiliansRescued, int evacuationRepresentatives,
-                          int representativesEvacuated, int salvageEntitlement,
-                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
-                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds) {
-        this(victory, missionId, missionName, missionType, risk, missionSource,
-                payoutBase, payoutEarned, marinesEngaged, marinesLost,
-                captainId, captainName, priorCaptainStatus, newCaptainStatus,
-                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
-                targetIndustryId, targetFactionId, contractId, campaignEventId,
-                campaignEventMarketId, civiliansAtRisk, civiliansRescued,
-                evacuationRepresentatives, representativesEvacuated,
-                salvageEntitlement, salvageRecoveryBonusPct,
-                salvageHighValueChancePct, survivingSoldierIds,
-                fallenSoldierIds, Collections.emptySet());
+        private String captainId;
+        private String captainName;
+        private Status priorCaptainStatus;
+        private Status newCaptainStatus;
+        private int xpGained;
+        private float injuredUntilDay;
+        private Rank promotedTo;
+
+        private long contractId = -1L;
+        private long campaignEventId = -1L;
+        private int campaignEventMarketId = -1;
+        private long campaignEventThreatSeed = -1L;
+        private int civiliansAtRisk;
+        private int civiliansRescued = -1;
+        private int evacuationRepresentatives = -1;
+        private int representativesEvacuated = -1;
+        private AbandonedColonyArchiveOutcome colonyArchiveOutcome =
+                AbandonedColonyArchiveOutcome.NONE;
+        private int salvageEntitlement;
+        private int salvageRecoveryBonusPct;
+        private int salvageHighValueChancePct;
+
+        private Set<String> survivingSoldierIds = Collections.emptySet();
+        private Set<String> fallenSoldierIds = Collections.emptySet();
+        private Set<String> deployedFireteamIds = Collections.emptySet();
+        private Map<String, CombatTelemetryRow> soldierTelemetry = Collections.emptyMap();
+
+        private Builder() {
+        }
+
+        /**
+         * Copies every field the outcome inherits verbatim from the contract it
+         * resolves: identity, type, risk, source, the pre-multiplier payout,
+         * the physical target, and the contract/event lineage the campaign
+         * tier bridges back on. Set the battle-derived fields separately.
+         */
+        public Builder mission(Mission mission) {
+            this.missionId = mission.id;
+            this.missionName = mission.name;
+            this.missionType = mission.type;
+            this.risk = mission.risk;
+            this.missionSource = mission.source;
+            this.payoutBase = mission.payout;
+            this.targetPlanetName = mission.targetPlanetName;
+            this.targetIndustryId = mission.targetIndustryId;
+            this.targetFactionId = mission.targetFactionId;
+            this.contractId = mission.contractId;
+            this.campaignEventId = mission.campaignEventId;
+            this.campaignEventMarketId = mission.campaignEventMarketId;
+            this.campaignEventThreatSeed = mission.campaignEventThreatSeed;
+            this.civiliansAtRisk = mission.civiliansAtRisk;
+            return this;
+        }
+
+        /** Null-safe: a mission run with no captain leaves both name fields null. */
+        public Builder captain(MarineCaptain captain) {
+            this.captainId = captain != null ? captain.id() : null;
+            this.captainName = captain != null ? captain.name() : null;
+            return this;
+        }
+
+        public Builder victory(boolean victory) {
+            this.victory = victory;
+            return this;
+        }
+
+        public Builder missionId(String missionId) {
+            this.missionId = missionId;
+            return this;
+        }
+
+        public Builder missionName(String missionName) {
+            this.missionName = missionName;
+            return this;
+        }
+
+        public Builder missionType(MissionType missionType) {
+            this.missionType = missionType;
+            return this;
+        }
+
+        public Builder risk(RiskLevel risk) {
+            this.risk = risk;
+            return this;
+        }
+
+        public Builder missionSource(MissionSource missionSource) {
+            this.missionSource = missionSource;
+            return this;
+        }
+
+        public Builder payoutBase(int payoutBase) {
+            this.payoutBase = payoutBase;
+            return this;
+        }
+
+        public Builder payoutEarned(int payoutEarned) {
+            this.payoutEarned = payoutEarned;
+            return this;
+        }
+
+        public Builder marinesEngaged(int marinesEngaged) {
+            this.marinesEngaged = marinesEngaged;
+            return this;
+        }
+
+        public Builder marinesLost(int marinesLost) {
+            this.marinesLost = marinesLost;
+            return this;
+        }
+
+        public Builder targetPlanetName(String targetPlanetName) {
+            this.targetPlanetName = targetPlanetName;
+            return this;
+        }
+
+        public Builder targetIndustryId(String targetIndustryId) {
+            this.targetIndustryId = targetIndustryId;
+            return this;
+        }
+
+        public Builder targetFactionId(String targetFactionId) {
+            this.targetFactionId = targetFactionId;
+            return this;
+        }
+
+        public Builder captainId(String captainId) {
+            this.captainId = captainId;
+            return this;
+        }
+
+        public Builder captainName(String captainName) {
+            this.captainName = captainName;
+            return this;
+        }
+
+        public Builder priorCaptainStatus(Status priorCaptainStatus) {
+            this.priorCaptainStatus = priorCaptainStatus;
+            return this;
+        }
+
+        public Builder newCaptainStatus(Status newCaptainStatus) {
+            this.newCaptainStatus = newCaptainStatus;
+            return this;
+        }
+
+        public Builder xpGained(int xpGained) {
+            this.xpGained = xpGained;
+            return this;
+        }
+
+        public Builder injuredUntilDay(float injuredUntilDay) {
+            this.injuredUntilDay = injuredUntilDay;
+            return this;
+        }
+
+        public Builder promotedTo(Rank promotedTo) {
+            this.promotedTo = promotedTo;
+            return this;
+        }
+
+        public Builder contractId(long contractId) {
+            this.contractId = contractId;
+            return this;
+        }
+
+        public Builder campaignEventId(long campaignEventId) {
+            this.campaignEventId = campaignEventId;
+            return this;
+        }
+
+        public Builder campaignEventMarketId(int campaignEventMarketId) {
+            this.campaignEventMarketId = campaignEventMarketId;
+            return this;
+        }
+
+        public Builder campaignEventThreatSeed(long campaignEventThreatSeed) {
+            this.campaignEventThreatSeed = campaignEventThreatSeed;
+            return this;
+        }
+
+        public Builder civiliansAtRisk(int civiliansAtRisk) {
+            this.civiliansAtRisk = civiliansAtRisk;
+            return this;
+        }
+
+        public Builder civiliansRescued(int civiliansRescued) {
+            this.civiliansRescued = civiliansRescued;
+            return this;
+        }
+
+        /**
+         * The sealed representative cohort and how much of it got out. Set as a
+         * pair: the outcome discards both unless they describe a coherent
+         * report on a civilian-rescue mission.
+         */
+        public Builder evacuationReport(int representatives, int evacuated) {
+            this.evacuationRepresentatives = representatives;
+            this.representativesEvacuated = evacuated;
+            return this;
+        }
+
+        public Builder colonyArchiveOutcome(AbandonedColonyArchiveOutcome colonyArchiveOutcome) {
+            this.colonyArchiveOutcome = colonyArchiveOutcome;
+            return this;
+        }
+
+        public Builder salvageEntitlement(int salvageEntitlement) {
+            this.salvageEntitlement = salvageEntitlement;
+            return this;
+        }
+
+        public Builder salvageRecoveryBonusPct(int salvageRecoveryBonusPct) {
+            this.salvageRecoveryBonusPct = salvageRecoveryBonusPct;
+            return this;
+        }
+
+        public Builder salvageHighValueChancePct(int salvageHighValueChancePct) {
+            this.salvageHighValueChancePct = salvageHighValueChancePct;
+            return this;
+        }
+
+        public Builder survivingSoldierIds(Set<String> survivingSoldierIds) {
+            this.survivingSoldierIds = survivingSoldierIds;
+            return this;
+        }
+
+        public Builder fallenSoldierIds(Set<String> fallenSoldierIds) {
+            this.fallenSoldierIds = fallenSoldierIds;
+            return this;
+        }
+
+        public Builder deployedFireteamIds(Set<String> deployedFireteamIds) {
+            this.deployedFireteamIds = deployedFireteamIds;
+            return this;
+        }
+
+        public Builder soldierTelemetry(Map<String, CombatTelemetryRow> soldierTelemetry) {
+            this.soldierTelemetry = soldierTelemetry;
+            return this;
+        }
+
+        public MissionOutcome build() {
+            return new MissionOutcome(this);
+        }
     }
 
     private static Map<String, CombatTelemetryRow> immutableTelemetry(

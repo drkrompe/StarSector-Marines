@@ -288,24 +288,29 @@ public final class MissionResolver {
             }
         }
 
-        return new MissionOutcome(
-                victory,
-                mission.id, mission.name, mission.type, mission.risk, mission.source,
-                mission.payout, payoutEarned, marinesEngaged, marinesLost,
-                captain != null ? captain.id()   : null,
-                captain != null ? captain.name() : null,
-                priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
-                mission.targetPlanetName, mission.targetIndustryId, mission.targetFactionId,
-                mission.contractId, mission.campaignEventId,
-                mission.campaignEventMarketId, mission.campaignEventThreatSeed,
-                mission.civiliansAtRisk,
-                civiliansRescued,
-                evacuationRepresentatives, representativesEvacuated,
-                colonyArchiveOutcome,
-                salvageEntitlement,
-                recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
-                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds,
-                soldierTelemetry);
+        return MissionOutcome.builder()
+                .mission(mission)
+                .victory(victory)
+                .payoutEarned(payoutEarned)
+                .marinesEngaged(marinesEngaged)
+                .marinesLost(marinesLost)
+                .captain(captain)
+                .priorCaptainStatus(priorStatus)
+                .newCaptainStatus(newStatus)
+                .xpGained(xpGained)
+                .injuredUntilDay(injuredUntilDay)
+                .promotedTo(promotedTo)
+                .civiliansRescued(civiliansRescued)
+                .evacuationReport(evacuationRepresentatives, representativesEvacuated)
+                .colonyArchiveOutcome(colonyArchiveOutcome)
+                .salvageEntitlement(salvageEntitlement)
+                .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct)
+                .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
+                .survivingSoldierIds(survivingSoldierIds)
+                .fallenSoldierIds(fallenSoldierIds)
+                .deployedFireteamIds(deployedFireteamIds)
+                .soldierTelemetry(soldierTelemetry)
+                .build();
     }
 
     public static void apply(MissionOutcome outcome) {
