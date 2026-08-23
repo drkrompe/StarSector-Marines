@@ -5,9 +5,11 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,9 +24,12 @@ public final class MarineArmory implements Serializable {
     private int highRiskVictories;
     private Map<String, Integer> printedGear = new HashMap<>();
     private Set<String> unlockedRecipes = new HashSet<>();
+    /** Reusable designs; assignment consumes equipment, never the card. */
+    private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
 
     public MarineArmory() {
         seedStarterIssue();
+        seedStarterCards();
     }
 
     public int fabricationMaterials() { return fabricationMaterials; }
@@ -32,6 +37,16 @@ public final class MarineArmory implements Serializable {
     public int highRiskVictories() { return highRiskVictories; }
     public Set<String> unlockedRecipes() {
         return Collections.unmodifiableSet(unlockedRecipes);
+    }
+    public List<FireTeamTemplateCard> templateCards() {
+        return Collections.unmodifiableList(templateCards);
+    }
+    public FireTeamTemplateCard templateCardById(String id) {
+        if (id == null) return null;
+        for (FireTeamTemplateCard card : templateCards) {
+            if (id.equals(card.id())) return card;
+        }
+        return null;
     }
 
     public void addFabricationMaterials(int amount) {
@@ -150,6 +165,10 @@ public final class MarineArmory implements Serializable {
         printedGear.put(armorKey(MarineArmorPattern.ARMY_GREEN), 4);
     }
 
+    private void seedStarterCards() {
+        if (templateCards.isEmpty()) templateCards.addAll(FireTeamTemplateCards.starterCards());
+    }
+
     private void putAtLeast(String key, int count) {
         if (printedGear.getOrDefault(key, 0) < count) printedGear.put(key, count);
     }
@@ -185,7 +204,9 @@ public final class MarineArmory implements Serializable {
     private Object readResolve() {
         if (printedGear == null) printedGear = new HashMap<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
+        if (templateCards == null) templateCards = new ArrayList<>();
         if (unlockedRecipes.isEmpty()) seedStarterIssue();
+        seedStarterCards();
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
         fabricationMaterials = Math.max(0, fabricationMaterials);

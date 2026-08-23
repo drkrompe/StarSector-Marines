@@ -118,13 +118,17 @@ measurement play already made still means something.
 
 Mission tier still owns the base infantry force, but high-impact defender
 units also pass through a battle-start force score. Attacker infantry seats
-include employer and allied waves; defender militia, regulars, and mech chassis
-consume the opposing score budget. This is intentionally not whole-encounter
-rubber-banding: committing more lift does not add infantry defenders. It only
-allows an otherwise eligible mech candidate to remain when the combined attack
-has enough force to answer it. The first score table is conservative and
-limited to infantry plus mechs; equipment, air, command powers, terrain, and
-telemetry-derived values remain future inputs.
+include employer and allied waves; defender militia, regulars, mech chassis,
+and static turret emplacements consume one opposing score budget. This is
+intentionally not whole-encounter rubber-banding: committing more lift does not
+add infantry defenders or reroll the map. It only allows otherwise eligible
+heavy-support candidates to remain when the combined attack has enough force
+to answer them. Mechs retain roster priority; turrets then keep a deterministic
+prefix of the map-authored candidates with the remaining score. Balanced-out
+guns leave their fortification geometry behind, while a post with no live guns
+is not linked to a Conquest guard squad. The score table is provisional;
+equipment, air, command powers, terrain, and telemetry-derived values remain
+future inputs.
 
 ## Scope boundary
 

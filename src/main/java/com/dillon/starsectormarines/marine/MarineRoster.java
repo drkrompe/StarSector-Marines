@@ -676,45 +676,102 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
-    /** Applies a whole-squad issue pattern only when every ready member can receive it. */
-    public SquadPresetResult applySquadPreset(String squadId, SquadEquipmentPreset preset) {
+    /**
+     * Assigns one reusable template card to one complete, ready fire team.
+     * Inventory is evaluated net of every item the target team returns; no
+     * soldier or assignment changes until the whole four-billet issue fits.
+     */
+    public FireTeamTemplateResult applyFireTeamTemplate(String squadId, int teamIndex,
+                                                        String templateCardId) {
         MarineSquad squad = squadById(squadId);
-        if (squad == null || squad.reserve() || preset == null) {
-            return SquadPresetResult.NO_READY_PERSONNEL;
+        if (squad == null || squad.reserve() || teamIndex < 0
+                || teamIndex >= MarineSquad.TEAMS_PER_SQUAD) {
+            return FireTeamTemplateResult.INVALID_FIRE_TEAM;
         }
-        if (squad.stationed()) return SquadPresetResult.STATIONED;
-        List<MarineSoldier> ready = new ArrayList<>();
-        for (MarineSoldier soldier : squadMembers(squad)) {
-            if (soldier.status() == MarineSoldierStatus.ACTIVE) ready.add(soldier);
+        if (squad.stationed()) return FireTeamTemplateResult.STATIONED;
+        FireTeamTemplateCard card = armory.templateCardById(templateCardId);
+        if (card == null) return FireTeamTemplateResult.UNKNOWN_CARD;
+        List<String> memberIds = squad.teamMembers(teamIndex);
+        if (memberIds.size() != MarineSquad.TEAM_SIZE) {
+            return FireTeamTemplateResult.TEAM_NOT_READY;
         }
-        if (ready.isEmpty()) return SquadPresetResult.NO_READY_PERSONNEL;
-        if (!armory.isPrimaryUnlocked(preset.primary, preset.grade)
-                || !armory.isArmorUnlocked(preset.armor)) {
-            return SquadPresetResult.LOCKED_RECIPE;
+        List<MarineSoldier> team = new ArrayList<>();
+        for (String memberId : memberIds) {
+            MarineSoldier soldier = soldierById(memberId);
+            if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) {
+                return FireTeamTemplateResult.TEAM_NOT_READY;
+            }
+            team.add(soldier);
+        }
+
+        Map<PrimaryIssue, Integer> requiredPrimaries = new HashMap<>();
+        Map<MarineArmorPattern, Integer> requiredArmor = new HashMap<>();
+        Map<MarineSecondary, Integer> requiredSecondaries = new HashMap<>();
+        for (FireTeamBillet billet : card.billets()) {
+            if (!armory.isPrimaryUnlocked(billet.primary(), billet.grade())
+                    || !armory.isArmorUnlocked(billet.armor())
+                    || billet.secondary() != null
+                    && !armory.isSecondaryUnlocked(billet.secondary())) {
+                return FireTeamTemplateResult.LOCKED_RECIPE;
+            }
+            requiredPrimaries.merge(
+                    new PrimaryIssue(billet.primary(), billet.grade()), 1, Integer::sum);
+            requiredArmor.merge(billet.armor(), 1, Integer::sum);
+            if (billet.secondary() != null) {
+                requiredSecondaries.merge(billet.secondary(), 1, Integer::sum);
+            }
         }
 
         Set<String> targetIds = new HashSet<>();
-        for (MarineSoldier soldier : ready) targetIds.add(soldier.id());
-        int weaponsUsedElsewhere = 0;
-        int armorUsedElsewhere = 0;
-        for (MarineSoldier soldier : soldiers) {
-            if (targetIds.contains(soldier.id()) || !holdsAllocatedGear(soldier)) continue;
-            if (soldier.primary() == preset.primary && soldier.primaryGrade() == preset.grade) {
-                weaponsUsedElsewhere++;
+        for (MarineSoldier soldier : team) targetIds.add(soldier.id());
+        for (Map.Entry<PrimaryIssue, Integer> entry : requiredPrimaries.entrySet()) {
+            PrimaryIssue issue = entry.getKey();
+            if (issue.weapon == MarineWeapon.FIELD_RIFLE
+                    && issue.grade == EquipmentGrade.SERVICE) continue;
+            int usedElsewhere = 0;
+            for (MarineSoldier soldier : soldiers) {
+                if (!targetIds.contains(soldier.id()) && holdsAllocatedGear(soldier)
+                        && soldier.primary() == issue.weapon
+                        && soldier.primaryGrade() == issue.grade) usedElsewhere++;
             }
-            if (soldier.armor() == preset.armor) armorUsedElsewhere++;
+            if (armory.ownedPrimary(issue.weapon, issue.grade) - usedElsewhere
+                    < entry.getValue()) {
+                return FireTeamTemplateResult.INSUFFICIENT_PRIMARIES;
+            }
         }
-        if (armory.ownedPrimary(preset.primary, preset.grade) - weaponsUsedElsewhere
-                < ready.size()) return SquadPresetResult.INSUFFICIENT_WEAPONS;
-        if (armory.ownedArmor(preset.armor) - armorUsedElsewhere
-                < ready.size()) return SquadPresetResult.INSUFFICIENT_ARMOR;
+        for (Map.Entry<MarineArmorPattern, Integer> entry : requiredArmor.entrySet()) {
+            int usedElsewhere = 0;
+            for (MarineSoldier soldier : soldiers) {
+                if (!targetIds.contains(soldier.id()) && holdsAllocatedGear(soldier)
+                        && soldier.armor() == entry.getKey()) usedElsewhere++;
+            }
+            if (armory.ownedArmor(entry.getKey()) - usedElsewhere < entry.getValue()) {
+                return FireTeamTemplateResult.INSUFFICIENT_ARMOR;
+            }
+        }
+        for (Map.Entry<MarineSecondary, Integer> entry : requiredSecondaries.entrySet()) {
+            int usedElsewhere = 0;
+            for (MarineSoldier soldier : soldiers) {
+                if (!targetIds.contains(soldier.id()) && holdsAllocatedGear(soldier)
+                        && soldier.secondary() == entry.getKey()) usedElsewhere++;
+            }
+            if (armory.ownedSecondary(entry.getKey()) - usedElsewhere < entry.getValue()) {
+                return FireTeamTemplateResult.INSUFFICIENT_SECONDARIES;
+            }
+        }
 
-        for (MarineSoldier soldier : ready) {
-            soldier.setPrimary(preset.primary, preset.grade);
-            soldier.setArmor(preset.armor);
+        for (int i = 0; i < team.size(); i++) {
+            MarineSoldier soldier = team.get(i);
+            FireTeamBillet billet = card.billet(i);
+            soldier.setPrimary(billet.primary(), billet.grade());
+            soldier.setSecondary(billet.secondary());
+            soldier.setArmor(billet.armor());
         }
-        return SquadPresetResult.APPLIED;
+        squad.setTeamTemplateCardId(teamIndex, card.id());
+        return FireTeamTemplateResult.APPLIED;
     }
+
+    private record PrimaryIssue(MarineWeapon weapon, EquipmentGrade grade) {}
 
     public void applySoldierOutcome(Set<String> survivors, Set<String> fallen,
                                     int survivorXp) {
