@@ -80,6 +80,12 @@ final class UiPainter {
         for (UiElement child : element.children()) {
             paintElement(child, viewport, alphaMult, childClip);
         }
+        if (element.focusVisible() && element.focusOutlineColor() != null
+                && element.focusOutlineWidth() > 0f) {
+            applyClip(viewport, inheritedClip);
+            outline(rect, viewport, element.focusOutlineColor(),
+                    element.focusOutlineWidth(), alphaMult);
+        }
         Rect thumb = scrollThumbRect(element);
         if (thumb != null) {
             Rect thumbClip = inheritedClip.intersect(element.box().paddingBox());

@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open; overflow clipping and vertical scrolling implemented
+Status: ACTIVE — four foundation stories open; clipping, scrolling, focus, and pointer capture implemented
 Written: 2026-08-23
-Updated: 2026-08-23 — adopted MoonLight's CSS overflow and retained vertical-scroll contracts.
+Updated: 2026-08-23 — established semantic host input, focus actions, and explicit pointer capture.
 
 ## Purpose
 
@@ -129,6 +129,29 @@ same notch.
 The scrollbar thumb is overlay chrome painted after descendants and clipped to the
 surface's padding box. It advertises position and range but does not reserve layout
 space or participate in hit-testing.
+
+## Input, focus, and capture
+
+Starsector `InputEventAPI` objects and LWJGL integer key codes end at one host
+adapter. The retained tree receives document-space coordinates, pointer buttons
+named by role, named keys, and a modifier set. Character input remains a separate
+future seam; a key press is not text.
+
+Geometric targeting and action eligibility are distinct. The deepest painted box
+under the pointer is the event target even when it is a non-clickable label; pointer
+events bubble through its retained parents, while click and focus defaults search
+for the nearest eligible ancestor. Hover is likewise an ancestor chain.
+
+Each document has at most one focused element. Tab traverses eligible elements in
+document order, `tabIndex=-1` remains directly focusable but is skipped, and
+disabled controls are ineligible. Enter confirms the focused control, Space uses a
+press/release action, and unmodified Escape belongs to the document cancel seam.
+Focus acquired by keyboard is visibly distinguished from focus acquired by pointer.
+
+Pointer capture is explicit rather than an automatic consequence of pressing.
+While held, pointer movement, hover, and release retarget to the captured element;
+primary release dispatches before ending capture. Leaving a screen clears active
+input state, while a resize/position callback only relayouts the enduring document.
 
 ## Authority boundaries
 
