@@ -24,7 +24,7 @@ compass is the *one* track that resists optimization. The player can't
 grind it; they can only *be themselves* across hundreds of choices, and
 learn what they've been only when the world reflects it back. This is the
 structural prerequisite for the Kingdom-of-Heaven-style kingmaker capstone
-speech (see [`t3-endgame/overview.md`](t3-endgame/overview.md)).
+speech (see `t3-endgame-nouns.md`).
 
 ## Foundation shape — locked v1
 
@@ -178,12 +178,12 @@ the player learns to read).
   [`personnel/complete/captain-trait-drift.md`](personnel/complete/captain-trait-drift.md).
 - NPC dialog gates — content-side, read the compass via a getter.
 - Capstone scene infrastructure — the locked story contract lives in
-  [`t3-endgame/complete/kingmaker-capstone.md`](t3-endgame/complete/kingmaker-capstone.md).
+  `t3-endgame-nouns.md`.
 
 ## Related
 
 - [black-swan events](events.md) — highest-density compass-touching content.
-- [`t3-endgame/overview.md`](t3-endgame/overview.md) — the kingmaker
+- `t3-endgame-nouns.md` — the kingmaker
   capstone reveal.
 - [`narrative/overview.md`](narrative/overview.md) — patron dialog gates +
   briefing flavor the compass feeds.

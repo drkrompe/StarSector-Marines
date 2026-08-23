@@ -158,7 +158,7 @@ Each slice is independently observable.
 | ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | ~~**C — Drift**~~ ✅ | Minimal persisted ambitions, weekly 3–5 share drift, autonomous majority promotion | Shares creep and majority houses promote on their own. First "the world has a life." |
 | ~~**D — Chains + Chronicle**~~ ✅ | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
-| ~~**E — Consolidation + ambition**~~ ✅ | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
+| ~~**E — Consolidation + ambition**~~ ✅ | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to `t3-endgame-nouns.md`. |
 
 A–B deliver real value before autonomous simulation. C is the breathing world;
 D adds headlines and decisive events. E is the long tail.
@@ -334,7 +334,7 @@ Designed in a follow-up once Genesis + drift exist to react against.
   machinery the Chronicle composes through.
 - [`../contracts/overview.md`](../contracts/overview.md) — player chains
   feed contracts feed missions; the accelerant path.
-- [`../t3-endgame/overview.md`](../t3-endgame/overview.md) — where
+- `t3-endgame-nouns.md` — where
   `CLAIM_THRONE` ambitions lead.
 - Memory: [[feedback-world-reactive-over-expressive]],
   [[feedback-patron-narrative-discoverable]],

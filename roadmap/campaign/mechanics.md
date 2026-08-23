@@ -374,7 +374,7 @@ status quo paying. Both are valid, both have rep consequences.
 - [`infrastructure/overview.md`](infrastructure/overview.md) —
   per-planet and per-region buildings, their in-game effects on the
   data model (stake influence, garrison default rate reduction).
-- [`t3-endgame/overview.md`](t3-endgame/overview.md) — Tier-4 promotion
+- `t3-endgame-nouns.md` — Tier-4 promotion
   attempts: vanilla faction flip, splinter faction creation, market
   ownership change. Where this doc crosses into vanilla state.
 - [`narrative/overview.md`](narrative/overview.md) — hidden heirs, story

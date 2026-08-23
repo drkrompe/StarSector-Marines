@@ -340,7 +340,7 @@ with it, the player feels the world acting on them.
 - [`infrastructure/overview.md`](infrastructure/overview.md) —
   per-planet and per-region buildings: build cost, monthly maintenance,
   exact mitigation effects, stacking rules.
-- [`t3-endgame/overview.md`](t3-endgame/overview.md) — faction flips,
+- `t3-endgame-nouns.md` — faction flips,
   market ownership change, vanilla rep consequences, the "marginal
   colony as reward" mechanic. Where the economy and mechanics docs cross
   into vanilla state.

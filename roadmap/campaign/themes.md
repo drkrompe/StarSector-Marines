@@ -299,7 +299,7 @@ sector scale (a few thousand rows).
 - [`infrastructure/overview.md`](infrastructure/overview.md) —
   per-planet and per-region buildings: build cost, monthly maintenance,
   exact mitigation effects, stacking rules.
-- [`t3-endgame/overview.md`](t3-endgame/overview.md) — faction flips,
+- `t3-endgame-nouns.md` — faction flips,
   market ownership change, vanilla rep consequences, splinter-faction
   creation, the "marginal colony as reward" mechanic.
 - [`flavors/`](flavors/README.md) — per-flavor authoring notes: nameset,

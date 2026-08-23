@@ -115,5 +115,5 @@ transitively, the indices remain valid across save/load.
 - [`infrastructure/overview.md`](infrastructure/overview.md) — buildings
   modulate `housePower` / default-rate math. Probably a passive modifier
   table read by multiple systems.
-- [`t3-endgame/overview.md`](t3-endgame/overview.md) — the only System
+- `t3-endgame-nouns.md` — the only System
   allowed to write back to vanilla state.
