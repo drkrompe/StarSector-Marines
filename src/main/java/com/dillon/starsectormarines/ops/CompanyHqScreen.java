@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.campaign.CompanyStanding;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
+import com.dillon.starsectormarines.campaign.PlayerEventNotice;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
+import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -20,8 +25,8 @@ import java.util.List;
  * {@link CompanyViewAbility}, not from a planet.
  *
  * <p>Three columns, ordered by what the player came for: standing, the clocks running
- * against them, and the company itself. Standing is populated; the other two are
- * reserved space (slices 3 and 4). See {@code c10-company-between-contracts.md}.
+ * against them, and the company itself. Standing and the clocks are populated; the
+ * roster column is reserved space (slice 4). See {@code c10-company-between-contracts.md}.
  *
  * <p>Unlike every other {@link Screen} here, this one runs with a null
  * {@code ctx.planet} and no market. It must therefore read nothing off the context but
@@ -47,6 +52,14 @@ public final class CompanyHqScreen implements Screen {
     private static final int COLUMNS = 3;
     /** Employers listed before the column is cut; the rest are counted, never dropped. */
     private static final int EMPLOYER_LIMIT = 5;
+    /** Clock rows shown before the column is cut; the remainder is stated, never dropped. */
+    private static final int CLOCK_LIMIT = 6;
+    /** Days remaining at or below which a clock reads as urgent. */
+    private static final int CLOCK_URGENT_DAYS = 2;
+    /** Days remaining at or below which a clock reads as near. */
+    private static final int CLOCK_SOON_DAYS = 7;
+    private static final float RESPOND_W = 120f;
+    private static final float RESPOND_H = 26f;
 
     private final WidgetRoot widgets = new WidgetRoot();
     private PositionAPI position;
@@ -83,9 +96,7 @@ public final class CompanyHqScreen implements Screen {
         float columnW = (width - (COLUMNS - 1) * COLUMN_GAP) / COLUMNS;
 
         buildStanding(left, columnTop, columnW);
-        buildPlaceholder(left + columnW + COLUMN_GAP, columnTop,
-                Strings.get("companyHqClocksHeader"),
-                Strings.get("companyHqDeadlinesPending"));
+        buildClocks(left + columnW + COLUMN_GAP, columnTop);
         buildPlaceholder(left + 2f * (columnW + COLUMN_GAP), columnTop,
                 Strings.get("companyHqRosterHeader"),
                 Strings.get("companyHqRosterPending"));
@@ -195,6 +206,115 @@ public final class CompanyHqScreen implements Screen {
                     x, y, employer.reputation < 0 ? BAD : VALUE));
             y -= ROW;
         }
+    }
+
+    /**
+     * Everything with a deadline running against the company, soonest first.
+     *
+     * <p>Obligations only. A lapsing <em>offer</em> is not here: it costs nothing to
+     * miss, and the only action it has is to fly somewhere else, which belongs to the
+     * contract board. See {@code c11-the-contract-board.md}.
+     */
+    private void buildClocks(float x, float top) {
+        float y = top;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                Strings.get("companyHqClocksHeader"), x, y, HEADER));
+        y -= ROW + 4f;
+
+        List<CompanyClocks.Entry> entries = CompanyClocks.current();
+        if (entries.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("companyHqClocksEmpty"), x, y, MUTED));
+            return;
+        }
+
+        int day = CampaignClock.day();
+        int shown = Math.min(entries.size(), CLOCK_LIMIT);
+        for (int i = 0; i < shown; i++) {
+            y = buildClockRow(entries.get(i), day, x, y);
+        }
+        if (entries.size() > shown) {
+            // Design commitment 9: the off-screen count is always stated.
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MessageFormat.format(Strings.get("companyHqClocksMore"),
+                            entries.size() - shown), x, y, MUTED));
+        }
+    }
+
+    /** @return the y the next row should start at */
+    private float buildClockRow(CompanyClocks.Entry entry, int day,
+                                float x, float top) {
+        int days = entry.daysRemaining(day);
+        float y = top;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                daysText(days) + "  ·  " + clockLabel(entry), x, y, clockColor(days)));
+        y -= ROW - 4f;
+
+        String where = clockWhere(entry);
+        if (where != null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, where, x, y, MUTED));
+            y -= ROW - 4f;
+        }
+        if (entry.failsOnExpiry) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("companyHqClockTermFails"), x, y, BAD));
+            y -= ROW - 4f;
+        }
+        if (entry.kind == CompanyClocks.Kind.RESPONSE && entry.notice != null) {
+            float buttonY = y - RESPOND_H + 6f;
+            widgets.add(new ButtonWidget(x, buttonY, RESPOND_W, RESPOND_H,
+                    () -> onRespond(entry)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("companyHqClockRespond"),
+                    x + 12f, buttonY + RESPOND_H - 7f, VALUE));
+            y = buttonY - 4f;
+        }
+        return y - SECTION_GAP;
+    }
+
+    /**
+     * The same hand-off the event popup's Deploy Now takes: queue the deployment, then
+     * close this dialog so the presenter's quiet gate opens on a later frame.
+     * {@code showInteractionDialog} refuses while this screen's own dialog is still up.
+     */
+    private void onRespond(CompanyClocks.Entry entry) {
+        PlayerEventPresenter.requestDeployment(entry.notice);
+        onClose();
+    }
+
+    private static String clockLabel(CompanyClocks.Entry entry) {
+        if (entry.kind == CompanyClocks.Kind.TERM_ENDING) {
+            return Strings.get("companyHqClockTerm");
+        }
+        return entry.notice != null
+                && entry.notice.kind == PlayerEventNotice.Kind.CADRE_INCIDENT
+                ? Strings.get("companyHqClockCadre")
+                : Strings.get("companyHqClockGarrison");
+    }
+
+    /**
+     * Market and employer, dropping whichever half the campaign cannot name rather than
+     * rendering a registry slot or an empty separator.
+     */
+    private static String clockWhere(CompanyClocks.Entry entry) {
+        String market = PlayerEventTarget.displayName(entry.marketId);
+        String patron = entry.patronName;
+        if (market != null && patron != null) {
+            return MessageFormat.format(Strings.get("companyHqClockWhere"), market, patron);
+        }
+        return market != null ? market : patron;
+    }
+
+    private static String daysText(int days) {
+        if (days <= 0) return Strings.get("companyHqClockDue");
+        if (days == 1) return Strings.get("companyHqClockOneDay");
+        return MessageFormat.format(Strings.get("companyHqClockDays"), days);
+    }
+
+    private static Color clockColor(int days) {
+        if (days <= CLOCK_URGENT_DAYS) return BAD;
+        if (days <= CLOCK_SOON_DAYS) return WARN;
+        return VALUE;
     }
 
     private void buildPlaceholder(float x, float top, String header, String body) {

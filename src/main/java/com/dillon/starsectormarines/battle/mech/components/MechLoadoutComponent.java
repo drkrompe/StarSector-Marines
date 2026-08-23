@@ -70,10 +70,9 @@ public final class MechLoadoutComponent {
 
     // ---- LR Support overwatch cell cache ----
     //
-    // Stage 1's OverwatchKillZone action picks an LR-band cover cell once per
-    // threat-axis shift (not per tick). These fields hold the picked cell
-    // and the squad's lastSeenEnemy at pick time; when the lastSeenEnemy
-    // shifts, the action re-picks. -1 sentinel = no pick yet / no contact yet.
+    // OverwatchKillZone picks a medium/LR-band firing cell and refreshes it
+    // when the threat axis or friendly screen changes. These fields hold the
+    // picked cell, threat point, and optional screening ally.
 
     /** Picked overwatch cell X. -1 = no pick yet. */
     public int overwatchCellX = -1;
@@ -83,6 +82,8 @@ public final class MechLoadoutComponent {
     public int overwatchAxisX = -1;
     /** Squad's lastSeenEnemyY at the moment the overwatch cell was picked. */
     public int overwatchAxisY = -1;
+    /** Same-faction non-Sirocco combatant screening this overwatch lane. 0 = the cached lane is unscreened. */
+    public long overwatchScreenId;
 
     // ---- Armored Support backstop assignment ----
     //

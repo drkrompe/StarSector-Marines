@@ -99,9 +99,16 @@ public final class MechCombatantBehavior implements UnitBehavior {
         }
     }
 
-    /** Arms-track compatibility entry point; it may carry any installed direct-fire arm weapon. */
-    public static void tryFireChaingun(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
+    /** Fires whichever direct-fire weapon is installed on the arms track. */
+    public static void tryFireArms(long u, MechLoadoutComponent m, long target,
+                                   float dist, BattleControl sim, boolean hasLos) {
         tryFireMount(u, m, m.mount(MechMountSlot.ARMS), target, dist, sim, hasLos);
+    }
+
+    /** Compatibility name retained for older callers and focused weapon tests. */
+    public static void tryFireChaingun(long u, MechLoadoutComponent m, long target,
+                                       float dist, BattleControl sim, boolean hasLos) {
+        tryFireArms(u, m, target, dist, sim, hasLos);
     }
 
     /** Fires every installed SRM component; used by doctrines that permit close missiles. */
