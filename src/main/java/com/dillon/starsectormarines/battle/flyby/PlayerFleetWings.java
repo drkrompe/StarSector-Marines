@@ -21,9 +21,10 @@ import java.util.List;
  * — the player may swap their fleet between visits, and we want the briefing
  * to reflect the current state, not a snapshot.
  *
- * <p>Fighter cover is now an <em>opt-in</em> commitment (roadmap command-powers
- * S2 Slice 3): {@link #committableCarriers()} enumerates the player's carriers
- * and {@link #rosterFrom} builds the roster from the subset the player commits.
+ * <p>Fighter cover is an <em>opt-in</em> detachment commitment (see
+ * {@code command-powers-nouns.md}): {@link #committableCarriers()} enumerates
+ * the player's carriers and {@link #rosterFrom} builds the roster from the
+ * subset the player commits.
  * {@link #fromPlayerFleet()} (whole fleet) is kept as the default / display
  * fallback.
  *
