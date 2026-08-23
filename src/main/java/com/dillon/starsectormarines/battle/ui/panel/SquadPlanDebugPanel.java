@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -103,6 +106,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color PRED_FALSE_FG        = new Color(0x80, 0x80, 0x80);
     private static final Color PRIORITY_MISSION_FG  = new Color(0xFF, 0xC0, 0x60);
     private static final Color PRIORITY_SURVIVAL_FG = new Color(0xFF, 0x80, 0x80);
+    private static final Color DOCTRINE_ADVANCE_FG  = new Color(0x60, 0xE8, 0xB0);
+    private static final Color DOCTRINE_HOLD_FG     = new Color(0xFF, 0xD0, 0x40);
+    private static final Color DOCTRINE_DISENGAGE_FG = new Color(0xFF, 0x70, 0x70);
     private static final Color SCROLL_TRACK         = new Color(0x20, 0x2C, 0x3A, 0xC0);
     private static final Color SCROLL_THUMB         = new Color(0x80, 0xA0, 0xC8, 0xE0);
 
@@ -124,6 +130,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color DUMP_BTN_BORDER       = new Color(0x80, 0x60, 0xA0);
     /** Sim-seconds the post-dump status banner persists before reverting to the regular hint string. */
     private static final float DUMP_STATUS_DURATION  = 3.0f;
+    /** World cells shown forward from the selected squad's published tactical axis. */
+    static final int DOCTRINE_AXIS_TRACE_CELLS = 8;
 
     private final BattleUiContext ctx;
     /** Per-frame cache filled by update(); consumed by render(). Empty in detail mode. */
@@ -195,6 +203,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         BattleSimulation sim = ctx.getSim();
         ctx.getHighlights().clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
         ctx.getHighlights().clear(HighlightOverlay.SRC_HEARD_NOISE);
+        ctx.getHighlights().clear(HighlightOverlay.SRC_CONTACT_DOCTRINE);
         if (sim == null) return;
 
         Selection sel = ctx.getSelection();
@@ -224,6 +233,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 publishStepHighlights(s, sim);
                 publishCaptainHighlight(s);
                 publishBeliefHighlights(s);
+                publishDoctrineHighlight(s);
                 return;
             }
             // Selected squad vanished (wiped out, or stale id). Fall through to
@@ -237,6 +247,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         overlay.clear(HighlightOverlay.SRC_CAPTAIN);
         overlay.clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
         overlay.clear(HighlightOverlay.SRC_HEARD_NOISE);
+        overlay.clear(HighlightOverlay.SRC_CONTACT_DOCTRINE);
         // SRC_SELECTED_SQUAD is owned by SelectionHighlightPublisher (production)
         // now — it clears itself when the selection drops, so the panel no longer
         // touches it.
@@ -281,10 +292,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 1: 2 lines (status + garrison flags), 1 divider gap.
         int lines = 2;
         int dividers = 1;
-        // Section 2: 1 line (goal), 1 divider gap.
-        lines += 1;
+        // Section 2: 4 contact-doctrine lines, 1 divider gap.
+        lines += 4;
         dividers += 1;
-        // Section 3: "Plan: …" line + per-step (action line + slot lines).
+        // Section 3: goal + assignment, 1 divider gap.
+        lines += 2;
+        dividers += 1;
+        // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
         if (s.currentPlan != null) {
             for (SquadPlan.Step step : s.currentPlan.steps()) {
@@ -292,7 +306,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
             }
         }
         dividers += 1;
-        // Section 4: "Predicates:" header + one row per declared predicate.
+        // Section 5: "Predicates:" header + one row per declared predicate.
         lines += 1 + Predicate.values().length;
         return lines * DETAIL_LINE_H + dividers * 2f;
     }
@@ -449,7 +463,22 @@ public final class SquadPlanDebugPanel implements HudPanel {
         lineY = drawLineIfVisible(font, l2, lineX, lineY, DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
-        // Section 2: goal + priority bucket + commander assignment.
+        // Section 2: published contact picture. These rows consume the exact
+        // snapshot planning used; presentation never reconstructs a score or
+        // consults a hostile's live cell.
+        SquadContactPicture picture = s.contactPicture;
+        lineY = drawLineIfVisible(font, doctrineSummary(picture), lineX, lineY,
+                doctrineColor(picture.doctrine()), alphaMult, vpBottomY, vpTopY);
+        lineY = drawLineIfVisible(font, threatSummary(picture), lineX, lineY,
+                DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        lineY = drawLineIfVisible(font, forceSummary(picture), lineX, lineY,
+                DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        String primary = primaryContactLabel(picture, ctx.getSim());
+        lineY = drawLineIfVisible(font, primarySummary(picture, primary), lineX, lineY,
+                DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
+
+        // Section 3: goal + priority bucket + commander assignment.
         String goalLabel = s.currentGoal != null ? s.currentGoal.name() : "(no goal)";
         if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
             font.drawString("Goal:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
@@ -470,7 +499,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
             font.drawString("Assignment:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
             String assignLabel = "—";
             if (s.assignedObjective != null) {
-                com.dillon.starsectormarines.battle.command.ObjectiveAssignment a = s.assignedObjective;
+                ObjectiveAssignment a = s.assignedObjective;
                 StringBuilder sb = new StringBuilder(a.kind().name());
                 if (a.targetZoneId() >= 0) sb.append(" zone:").append(a.targetZoneId());
                 if (a.targetNode() != null) sb.append(" node");
@@ -482,7 +511,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         lineY -= DETAIL_LINE_H;
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
-        // Section 3: plan steps with per-slot assignments.
+        // Section 4: plan steps with per-slot assignments.
         SquadPlan plan = s.currentPlan;
         String planHeader = plan == null ? "Plan: (none)"
                 : "Plan: step " + (plan.currentIndex() + 1) + "/" + plan.stepCount();
@@ -513,7 +542,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
-        // Section 4: predicate grid — every declared predicate, T/F colored.
+        // Section 5: predicate grid — every declared predicate, T/F colored.
         // Load-bearing diagnostic: a garrison squad statue-mode'ing under fire
         // shows up immediately as ENEMY_IN_PORTAL_CELL=F while
         // UNDER_FIRE_AT_LOS=T, for example.
@@ -594,6 +623,48 @@ public final class SquadPlanDebugPanel implements HudPanel {
             case SURVIVAL: return PRIORITY_SURVIVAL_FG;
             default:       return DETAIL_LABEL_FG;
         }
+    }
+
+    static String doctrineSummary(SquadContactPicture picture) {
+        return String.format("Doctrine %s   Posture %s   Odds %s",
+                picture.doctrine(), picture.posture(), picture.forceBalance());
+    }
+
+    static String threatSummary(SquadContactPicture picture) {
+        return String.format("Threat %s   Motion %s   Seen D%d/T%d",
+                picture.dominantSector(), picture.primaryMotion(),
+                picture.directContactCount(), picture.contactCount());
+    }
+
+    static String forceSummary(SquadContactPicture picture) {
+        return String.format("Force H%.2f/F%d   Axis %+.2f,%+.2f",
+                picture.hostileStrength(), picture.friendlyStrength(),
+                picture.axisX(), picture.axisY());
+    }
+
+    static String primarySummary(SquadContactPicture picture, String primaryLabel) {
+        if (!picture.hasContacts() || picture.primaryContactId() == 0L) {
+            return "Primary —";
+        }
+        return String.format("Primary %s @%d,%d   Confidence %.2f",
+                primaryLabel, picture.primaryCellX(), picture.primaryCellY(),
+                picture.primaryConfidence());
+    }
+
+    private static String primaryContactLabel(SquadContactPicture picture,
+                                              BattleSimulation sim) {
+        if (picture.primaryContactId() == 0L) return "—";
+        long live = sim.resolveUnit(picture.primaryContactId());
+        return live != 0L ? sim.identity().name(live)
+                : "#" + picture.primaryContactId();
+    }
+
+    private static Color doctrineColor(Doctrine doctrine) {
+        return switch (doctrine) {
+            case ADVANCE -> DOCTRINE_ADVANCE_FG;
+            case HOLD -> DOCTRINE_HOLD_FG;
+            case DISENGAGE -> DOCTRINE_DISENGAGE_FG;
+        };
     }
 
     /** Comma-joined unit names, capped so a large slot list doesn't blow the panel. Falls back to the numeric entityId when no sim is available. */
@@ -717,6 +788,42 @@ public final class SquadPlanDebugPanel implements HudPanel {
         ctx.getHighlights().put(HighlightOverlay.SRC_HEARD_NOISE,
                 bearing == null ? List.of() : List.of(new CellHighlight(
                         bearing.cellX(), bearing.cellY(), HighlightOverlay.COLOR_HEARD_NOISE)));
+    }
+
+    /** Publishes the selected squad's bounded tactical-axis trace. */
+    private void publishDoctrineHighlight(Squad squad) {
+        ctx.getHighlights().put(HighlightOverlay.SRC_CONTACT_DOCTRINE,
+                doctrineAxisCells(squad));
+    }
+
+    static List<CellHighlight> doctrineAxisCells(Squad squad) {
+        SquadContactPicture picture = squad.contactPicture;
+        float lengthSquared = picture.axisX() * picture.axisX()
+                + picture.axisY() * picture.axisY();
+        if (lengthSquared < 1e-4f) return List.of();
+        float inverseLength = 1f / (float) Math.sqrt(lengthSquared);
+        float axisX = picture.axisX() * inverseLength;
+        float axisY = picture.axisY() * inverseLength;
+
+        Color color = switch (picture.doctrine()) {
+            case ADVANCE -> HighlightOverlay.COLOR_DOCTRINE_ADVANCE;
+            case HOLD -> HighlightOverlay.COLOR_DOCTRINE_HOLD;
+            case DISENGAGE -> HighlightOverlay.COLOR_DOCTRINE_DISENGAGE;
+        };
+        float startX = squad.centroidX - 0.5f;
+        float startY = squad.centroidY - 0.5f;
+        List<CellHighlight> cells = new ArrayList<>(DOCTRINE_AXIS_TRACE_CELLS);
+        int previousX = Integer.MIN_VALUE;
+        int previousY = Integer.MIN_VALUE;
+        for (int i = 1; i <= DOCTRINE_AXIS_TRACE_CELLS; i++) {
+            int cellX = Math.round(startX + axisX * i);
+            int cellY = Math.round(startY + axisY * i);
+            if (cellX == previousX && cellY == previousY) continue;
+            cells.add(new CellHighlight(cellX, cellY, color));
+            previousX = cellX;
+            previousY = cellY;
+        }
+        return List.copyOf(cells);
     }
 
     /**
