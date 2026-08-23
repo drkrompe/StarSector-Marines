@@ -66,7 +66,7 @@ public final class OverwatchTowerStage implements GenStage {
      * intensity</em> (see {@link #DEFENSE_INTENSITY_GAIN}) so a fortified target
      * world fields a longer, heavier overwatch line than a soft one — the
      * campaign → battle bridge realized. See
-     * {@code roadmap/campaign-battle-bridge/stories/defense-intensity.md}.
+     * {@code campaign-battle-bridge-nouns.md}.
      */
     private static final int CELLS_PER_TOWER = 2500;
     /** Floor so even a small map fields a token overwatch line. */
