@@ -5,6 +5,7 @@
 
 Status: IN PROGRESS
 Written: 2026-08-23
+Updated: 2026-08-23 — pure resolution law and focused unit tests landed; component and attack wiring is next.
 
 Read `combat-durability-nouns.md` before implementing this story.
 
@@ -64,9 +65,8 @@ calculation converts post-cover damage into clamped armor and structure loss.
 
 ## Implementation order
 
-1. Land the pure resolution model and its unit tests.
-2. Add component/world/mailbox plumbing.
+1. ~~Land the pure resolution model and its unit tests.~~
+2. **Next:** add component/world/mailbox plumbing.
 3. Migrate weapon inputs and damage callers atomically.
 4. Seed infantry and armored-platform profiles.
 5. Run focused combat tests, then the full build.
-
