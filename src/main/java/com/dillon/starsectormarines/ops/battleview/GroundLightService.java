@@ -160,8 +160,8 @@ public final class GroundLightService {
         if (fx.body() instanceof ShotFx.Tracer tracer) {
             return tracer.color() != null ? tracer.color() : ShotFx.defaultTracerColor(shot.shooterFaction);
         }
-        if (shot.marineWeapon != null && shot.marineWeapon.tracerColor != null) {
-            return shot.marineWeapon.tracerColor;
+        if (shot.marineWeapon != null && shot.marineWeapon.tracerColor() != null) {
+            return shot.marineWeapon.tracerColor();
         }
         if (shot.mechWeapon != null && shot.mechWeapon.tracerColor != null) {
             return shot.mechWeapon.tracerColor;

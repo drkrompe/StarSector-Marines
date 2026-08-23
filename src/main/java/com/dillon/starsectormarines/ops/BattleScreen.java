@@ -832,7 +832,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
-                    ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
+                    ? s.marineWeapon.impactProfile() : ImpactProfile.RIFLE;
             renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
@@ -867,7 +867,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                         s.toY * AUDIO_WORLD_UNITS_PER_CELL);
                 Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId, pitch, 0.70f, loc, zeroVel);
             } else if (s.marineWeapon != null) {
-                profile = s.marineWeapon.impactProfile;
+                profile = s.marineWeapon.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
@@ -916,7 +916,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineSecondary != null) {
                 Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId, pitch, 1.0f, loc, zeroVel);
             } else if (s.marineWeapon != null) {
-                Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId, pitch, 0.85f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId(), pitch, 0.85f, loc, zeroVel);
             } else if (s.mechWeapon != null) {
                 // Mech chassis weapons — chaingun_fire / annihilator_fire /
                 // pilum_lrm_fire. All play at full volume; the chaingun burst

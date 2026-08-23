@@ -203,10 +203,10 @@ public class BattleSprites {
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
     public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
 
-    /** Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source cells, upscaled 2x to the 32px nav grid. */
+    /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
 
-    /** Lazy-loads the Water_tiles sheet (16px cells, upscaled 2x like the floors sheet). */
+    /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(); }
 
     /**
@@ -390,23 +390,23 @@ public class BattleSprites {
         // Primary projectile sprites (field-rifle / SMG shells today). Skip
         // weapons whose projectile path is null — those share the tinted bolt.
         for (MarineWeapon w : MarineWeapon.values()) {
-            if (w.projectileSpritePath == null) continue;
+            if (w.projectileSpritePath() == null) continue;
             try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                Global.getSettings().loadTexture(w.projectileSpritePath());
+                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath());
                 if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
+                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath());
                     continue;
                 }
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                projectileSpriteByPath.put(w.projectileSpritePath, cache);
-                LOG.info("BattleSprites: loaded " + w.projectileSpritePath
+                projectileSpriteByPath.put(w.projectileSpritePath(), cache);
+                LOG.info("BattleSprites: loaded " + w.projectileSpritePath()
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath, e);
+                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath(), e);
             }
         }
         // Bolt families may use mod or vanilla textures. The derived path set

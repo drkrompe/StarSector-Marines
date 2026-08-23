@@ -83,7 +83,7 @@ class TtkReportTest {
             }
         }
         appendTable(report, "Weapon vs target", "weapon",
-                byWeapon, m -> m.scenario().weapon().displayName);
+                byWeapon, m -> m.scenario().weapon().displayName());
 
         List<Measurement> byGrade = new ArrayList<>();
         for (EquipmentGrade grade : EquipmentGrade.values()) {
@@ -234,7 +234,7 @@ class TtkReportTest {
     }
 
     private static String describe(Measurement m) {
-        return m.scenario().weapon().displayName + " vs " + m.scenario().defender().label();
+        return m.scenario().weapon().displayName() + " vs " + m.scenario().defender().label();
     }
 
     private static String fmt(float v) {
