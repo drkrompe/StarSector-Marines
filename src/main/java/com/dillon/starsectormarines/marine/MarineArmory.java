@@ -241,6 +241,7 @@ public final class MarineArmory implements Serializable {
         unlockPrimary(MarineWeapon.SMG, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.DMR, EquipmentGrade.SERVICE);
         unlockSecondary(MarineSecondary.ROCKET_LAUNCHER);
+        unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
         unlockArmor(MarineArmorPattern.ARMORLESS);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
@@ -249,6 +250,7 @@ public final class MarineArmory implements Serializable {
         printedGear.put(primaryKey(MarineWeapon.SMG, EquipmentGrade.SERVICE), 3);
         printedGear.put(primaryKey(MarineWeapon.DMR, EquipmentGrade.SERVICE), 3);
         printedGear.put(secondaryKey(MarineSecondary.ROCKET_LAUNCHER), 2);
+        printedGear.put(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         printedGear.put(armorKey(MarineArmorPattern.ARMORLESS), 12);
         printedGear.put(armorKey(MarineArmorPattern.CHARCOAL), 6);
         printedGear.put(armorKey(MarineArmorPattern.ARMY_GREEN), 4);
@@ -295,7 +297,7 @@ public final class MarineArmory implements Serializable {
         return "primary:" + weapon.name() + ":" + grade.name();
     }
     public static String secondaryKey(MarineSecondary secondary) {
-        return "secondary:" + secondary.name();
+        return "special:" + secondary.specialEquipmentId;
     }
     public static String armorKey(MarineArmorPattern armor) {
         return "armor:" + armor.name();
@@ -306,13 +308,26 @@ public final class MarineArmory implements Serializable {
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (templateCards == null) templateCards = new ArrayList<>();
         if (squadArrangements == null) squadArrangements = new ArrayList<>();
+        migrateLegacySecondaryKeys();
         if (unlockedRecipes.isEmpty()) seedStarterIssue();
         seedStarterCards();
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
+        unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
+        putAtLeast(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
         return this;
+    }
+
+    private void migrateLegacySecondaryKeys() {
+        for (MarineSecondary secondary : MarineSecondary.values()) {
+            String legacy = "secondary:" + secondary.name();
+            String stable = secondaryKey(secondary);
+            Integer owned = printedGear.remove(legacy);
+            if (owned != null) printedGear.merge(stable, owned, Math::max);
+            if (unlockedRecipes.remove(legacy)) unlockedRecipes.add(stable);
+        }
     }
 }

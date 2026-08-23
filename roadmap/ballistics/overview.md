@@ -114,10 +114,12 @@ is structurally avoided, not just tuned away):
   parapet." Wall cells crossed by the ray itself remain a full-height hard stop
   (`firstWallOnLine`).
 
-Non-walkable see-through nature cover follows the second, edge-profile shape
-without becoming a wall hard-stop: a large rock upgrades adjacent standable
-facings to its authored cover level and silhouette. It is not also registered
-as crossed physical cover, preventing two interception rolls from one rock.
+Non-walkable cover follows the second, edge-profile shape without becoming an
+extra crossed-cover roll. Large rocks and navigation-blocking doodads such as
+fences, sandbags, shelves, and planters upgrade adjacent standable facings to
+their authored cover level and silhouette; they are not also registered as
+physical crossings. Water explicitly contributes neither shape: it blocks
+navigation but supplies no ballistic silhouette.
 
 ### 5. Accuracy stack authors the intended trajectory once
 

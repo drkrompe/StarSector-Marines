@@ -3,7 +3,7 @@
 > Reach the obstacle, plant the charge, and survive the answer.
 
 Status: PLANNED — depends on the shared special-equipment identity established
-by `s2a-anti-materiel-rifle.md` and reuses the shipped planter/cordon doctrine
+in `progression-nouns.md` and reuses the shipped planter/cordon doctrine
 without becoming a mission objective.
 
 Written: 2026-08-23

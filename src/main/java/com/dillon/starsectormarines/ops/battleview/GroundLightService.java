@@ -7,7 +7,11 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Render-side lifecycle and fixed-budget selection for S3 ground lights.
@@ -26,6 +30,10 @@ public final class GroundLightService {
     private static final Color FIRE = new Color(0xFF, 0x68, 0x28);
 
     private final List<Light> live = new ArrayList<>();
+    /** Live moving lights keyed by the exact render-side shot record they follow. */
+    private final Map<ShotEvent, Light> boltLights = new IdentityHashMap<>();
+    /** Reused identity set for pruning ended bolt shots without per-frame allocation. */
+    private final Set<ShotEvent> activeBolts = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Light[] selected = new Light[MAX_SHADER_LIGHTS];
     private final float[] selectedScores = new float[MAX_SHADER_LIGHTS];
 
@@ -71,11 +79,52 @@ public final class GroundLightService {
                 FIRE, 0.42f, 0.70f);
     }
 
+    /**
+     * Keeps one weapon-colored ground light under every active traveling bolt.
+     * The light follows the same pose used by {@link ShotRenderService}, so it
+     * freezes with the shot when paused and disappears on arrival instead of
+     * leaving a render-frame trail behind it.
+     */
+    public void syncBoltLights(List<ShotEvent> activeShots) {
+        activeBolts.clear();
+        for (ShotEvent shot : activeShots) {
+            if (!(ShotFx.of(shot).body() instanceof ShotFx.Bolt bolt)) continue;
+            activeBolts.add(shot);
+            ShotRenderService.BoltPose pose = ShotRenderService.boltPose(shot, bolt);
+            if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
+
+            Light light = boltLights.get(shot);
+            if (light == null || !live.contains(light)) {
+                if (live.size() >= MAX_LIVE_LIGHTS) evictOldest();
+                Color color = bolt.color() != null ? bolt.color() : Color.WHITE;
+                light = new Light(0f, 0f, 0f, 0f, color, 0f, 1f, true);
+                boltLights.put(shot, light);
+                live.add(light);
+            }
+
+            light.x = (pose.headX() + pose.tailX()) * 0.5f;
+            light.y = (pose.headY() + pose.tailY()) * 0.5f;
+            float centerZ = (pose.headZ() + pose.tailZ()) * 0.5f;
+            light.height = Math.max(0.2f, 0.9f + centerZ);
+            light.radius = 1.8f + Math.max(0f, bolt.lengthCells()) * 0.4f;
+            light.intensity = 0.30f * pose.fadeIn();
+            light.lifetime = 1f;
+            light.remaining = 1f;
+        }
+
+        boltLights.entrySet().removeIf(entry -> {
+            if (activeBolts.contains(entry.getKey())) return false;
+            live.remove(entry.getValue());
+            return true;
+        });
+    }
+
     /** Ages lights on the same scaled clock as their source FX. */
     public void advance(float dt) {
         if (dt <= 0f) return;
         for (int i = live.size() - 1; i >= 0; i--) {
             Light light = live.get(i);
+            if (light.tracked) continue;
             light.remaining -= dt;
             if (light.remaining <= 0f) live.remove(i);
         }
@@ -84,6 +133,8 @@ public final class GroundLightService {
     /** Clears battle-local state on detach. */
     public void clear() {
         live.clear();
+        boltLights.clear();
+        activeBolts.clear();
         Arrays.fill(selected, null);
     }
 
@@ -136,10 +187,15 @@ public final class GroundLightService {
         return live.size();
     }
 
+    Light boltLight(ShotEvent shot) {
+        return boltLights.get(shot);
+    }
+
     private void spawn(float x, float y, float height, float radius, Color color,
                        float intensity, float lifetime) {
         for (int i = live.size() - 1; i >= 0; i--) {
             Light existing = live.get(i);
+            if (existing.tracked) continue;
             float dx = existing.x - x;
             float dy = existing.y - y;
             if (dx * dx + dy * dy > MERGE_DISTANCE_SQ || !existing.color.equals(color)) continue;
@@ -150,8 +206,14 @@ public final class GroundLightService {
             existing.remaining = Math.max(existing.remaining, lifetime);
             return;
         }
-        if (live.size() >= MAX_LIVE_LIGHTS) live.remove(0);
-        live.add(new Light(x, y, height, radius, color, intensity, lifetime));
+        if (live.size() >= MAX_LIVE_LIGHTS) evictOldest();
+        live.add(new Light(x, y, height, radius, color, intensity, lifetime, false));
+    }
+
+    private void evictOldest() {
+        if (live.isEmpty()) return;
+        Light removed = live.remove(0);
+        boltLights.entrySet().removeIf(entry -> entry.getValue() == removed);
     }
 
     private static Color muzzleColor(ShotEvent shot) {
@@ -174,17 +236,23 @@ public final class GroundLightService {
     }
 
     static final class Light {
-        final float x;
-        final float y;
+        float x;
+        float y;
         final Color color;
         float height;
         float radius;
         float intensity;
         float remaining;
         float lifetime;
+        final boolean tracked;
 
         Light(float x, float y, float height, float radius, Color color,
               float intensity, float lifetime) {
+            this(x, y, height, radius, color, intensity, lifetime, false);
+        }
+
+        Light(float x, float y, float height, float radius, Color color,
+              float intensity, float lifetime, boolean tracked) {
             this.x = x;
             this.y = y;
             this.height = height;
@@ -193,6 +261,7 @@ public final class GroundLightService {
             this.intensity = intensity;
             this.remaining = lifetime;
             this.lifetime = lifetime;
+            this.tracked = tracked;
         }
 
         float effectiveIntensity() {

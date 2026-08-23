@@ -16,7 +16,11 @@ import java.util.List;
  * authored cover into the same lookup without becoming render doodads.
  * Sibling slice to the other services owned by {@link BattleSimulation}.
  *
- * <p>Cover storage is allocated lazily on the first physical-cover addition.
+ * <p>A doodad's navigation footprint chooses exactly one interception shape:
+ * walkable props publish physical ray-crossing cover; non-walkable props
+ * publish directional edge cover onto adjacent standable cells. This keeps a
+ * fixture from rolling both crossing and edge interception for the same shot.
+ * Physical-cover storage is allocated lazily on the first covered addition.
  * Cover features aren't removed mid-fight, so the arrays are append-only —
  * values only ever monotonically increase via the max-merge rule.
  */
@@ -75,14 +79,26 @@ public final class DoodadService {
 
     public List<Doodad> getDoodads() { return doodads; }
 
+    /**
+     * Adds a render doodad and publishes its authored cover through exactly
+     * one ballistic shape per footprint cell. Walkable cells are physical
+     * crossings; navigation blockers behave like windows and upgrade adjacent
+     * grid facings instead.
+     */
     public void addDoodad(Doodad d) {
         doodads.add(d);
         if (d.cover <= 0) return;
         ensureCoverStorage();
         for (int dy = 0; dy < d.footprintCellsY; dy++) {
             for (int dx = 0; dx < d.footprintCellsX; dx++) {
-                addCoverCell(d.cellX + dx, d.cellY + dy,
-                        d.cover, d.ballisticHalfHeight);
+                int cellX = d.cellX + dx;
+                int cellY = d.cellY + dy;
+                if (grid.isWalkable(cellX, cellY)) {
+                    addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                } else {
+                    addDirectionalEdgeCover(cellX, cellY,
+                            d.cover, d.ballisticHalfHeight);
+                }
             }
         }
     }
@@ -113,15 +129,15 @@ public final class DoodadService {
                     addStaticCover(x, y, def.cover.level(),
                             def.cover.defaultBallisticHalfHeight());
                 } else {
-                    addDirectionalTerrainCover(x, y, def.cover.level(),
+                    addDirectionalEdgeCover(x, y, def.cover.level(),
                             def.cover.defaultBallisticHalfHeight());
                 }
             }
         }
     }
 
-    private void addDirectionalTerrainCover(int cellX, int cellY, int cover,
-                                            float ballisticHalfHeight) {
+    private void addDirectionalEdgeCover(int cellX, int cellY, int cover,
+                                         float ballisticHalfHeight) {
         maxMergeGridFacing(cellX, cellY - 1, NavigationGrid.FACING_S,
                 cover, ballisticHalfHeight);
         maxMergeGridFacing(cellX, cellY + 1, NavigationGrid.FACING_N,

@@ -96,6 +96,12 @@
       "sizeHeightSw": 0.82,
       "pivotHeightFraction": 0.75,
       "aimedOffsetSw": [0.1733, -0.12]
+    },
+    "antiMaterielRifle": {
+      "path": "weapons/anti-materiel-rifle.png",
+      "sizeHeightSw": 0.96,
+      "pivotHeightFraction": 0.75,
+      "aimedOffsetSw": [0.1733, -0.12]
     }
   },
   "gradeOverrides": {

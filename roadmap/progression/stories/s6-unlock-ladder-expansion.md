@@ -20,8 +20,8 @@ Updated: 2026-08-23 — expanded the reachability gate across the split primary 
 
 Then flat, forever. Consequences:
 
-- **No additional armor pattern or special equipment beyond starter rockets is
-  ever unlocked.** `BLUE_SCOUT`, `RED_ELITE`,
+- **No additional armor pattern is ever unlocked.** The anti-materiel rifle is
+  now starter issue, while `BLUE_SCOUT`, `RED_ELITE`,
   `OUTLAW`, and `MILITIA` have stats, icons, and sprite layers and cannot
   be reached in a real campaign. `RED_ELITE` is the best armor in the game.
 - Masterwork exists for exactly one weapon.
@@ -160,8 +160,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
 - New gear to unlock — `s2-primary-weapon-catalog-expansion.md`,
-  `s2a-anti-materiel-rifle.md`, `s2b-smoke-grenades.md`, and
-  `s2c-satchel-charges.md`, plus `s2d-frag-grenades.md`.
+  `s2b-smoke-grenades.md`, `s2c-satchel-charges.md`, and
+  `s2d-frag-grenades.md`. The shipped AMR is already starter issue and must
+  remain covered by the stranded-asset check.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income

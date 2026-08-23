@@ -4,6 +4,7 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,10 +89,19 @@ public final class ShotService {
         public final float moraleImpact;
         /** True when the victim shares the shooter's faction. Damage is already reduced accordingly; kept for FX/log — hit-response rolls still apply, since being shot by your own side is still getting shot. */
         public final boolean friendly;
+        /** Non-null when this direct round came from weapon-like special equipment. */
+        public final MarineSecondary marineSecondary;
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
                              float damage, float vsTurretMult, float moraleImpact,
                              boolean friendly) {
+            this(victimId, shooterId, remainingTime, damage, vsTurretMult,
+                    moraleImpact, friendly, null);
+        }
+
+        public PendingImpact(long victimId, long shooterId, float remainingTime,
+                             float damage, float vsTurretMult, float moraleImpact,
+                             boolean friendly, MarineSecondary marineSecondary) {
             this.victimId = victimId;
             this.shooterId = shooterId;
             this.remainingTime = remainingTime;
@@ -99,6 +109,7 @@ public final class ShotService {
             this.vsTurretMult = vsTurretMult;
             this.moraleImpact = moraleImpact;
             this.friendly = friendly;
+            this.marineSecondary = marineSecondary;
         }
     }
 
@@ -186,6 +197,13 @@ public final class ShotService {
     public List<Projectile> snapshotActiveProjectiles() {
         synchronized (activeProjectiles) {
             return new ArrayList<>(activeProjectiles);
+        }
+    }
+
+    /** Thread-safe view of committed direct-fire rounds for damage reservation. */
+    public List<PendingImpact> snapshotActiveImpacts() {
+        synchronized (activeImpacts) {
+            return new ArrayList<>(activeImpacts);
         }
     }
 

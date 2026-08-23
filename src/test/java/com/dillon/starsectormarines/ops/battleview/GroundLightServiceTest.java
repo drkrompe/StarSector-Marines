@@ -1,10 +1,16 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GroundLightServiceTest {
@@ -50,6 +56,63 @@ class GroundLightServiceTest {
         assertTrue(cannonHe.radius > ordinaryHe.radius);
         assertTrue(cannonHe.intensity > ordinaryHe.intensity);
         assertTrue(cannonHe.lifetime > ordinaryHe.lifetime);
+    }
+
+    @Test
+    void travelingBoltLightsFollowTheRenderedBodiesUntilArrival() {
+        GroundLightService lights = new GroundLightService();
+        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, MarineWeapon.PULSE_RIFLE);
+        ShotEvent dmr = boltShot(0f, 10f, 10f, 10f, MarineWeapon.DMR);
+        pulse.lifetime = 0.5f;
+        dmr.lifetime = 0.5f;
+
+        lights.syncBoltLights(List.of(pulse, dmr));
+
+        assertEquals(2, lights.liveCount());
+        GroundLightService.Light pulseLight = lights.boltLight(pulse);
+        GroundLightService.Light dmrLight = lights.boltLight(dmr);
+        assertEquals(4.5f, pulseLight.x, 1e-6f);
+        assertEquals(4.1f, dmrLight.x, 1e-6f);
+        assertEquals(MarineWeapon.PULSE_RIFLE.tracerColor(), pulseLight.color);
+        assertEquals(MarineWeapon.DMR.tracerColor(), dmrLight.color);
+
+        pulse.lifetime = 0.25f;
+        lights.syncBoltLights(List.of(pulse));
+
+        assertSame(pulseLight, lights.boltLight(pulse));
+        assertEquals(7f, pulseLight.x, 1e-6f);
+        assertEquals(1, lights.liveCount(), "the arrived DMR no longer owns a moving light");
+
+        lights.syncBoltLights(List.of());
+        assertEquals(0, lights.liveCount());
+    }
+
+    @Test
+    void nonBoltRoundsDoNotAcquireTravelingLights() {
+        GroundLightService lights = new GroundLightService();
+
+        lights.syncBoltLights(List.of(
+                boltShot(0f, 0f, 10f, 0f, MarineWeapon.FIELD_RIFLE)));
+
+        assertEquals(0, lights.liveCount());
+    }
+
+    @Test
+    void movingBoltDoesNotAbsorbItsSeparateMuzzleFlash() {
+        GroundLightService lights = new GroundLightService();
+        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, MarineWeapon.PULSE_RIFLE);
+        pulse.lifetime = 0.95f;
+        lights.syncBoltLights(List.of(pulse));
+
+        lights.spawnMuzzle(pulse);
+
+        assertEquals(2, lights.liveCount());
+    }
+
+    private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
+                                      MarineWeapon weapon) {
+        return new ShotEvent(fromX, fromY, toX, toY, true, Faction.MARINE,
+                1f, null, weapon, null, null);
     }
 
     private static BattleCamera camera() {

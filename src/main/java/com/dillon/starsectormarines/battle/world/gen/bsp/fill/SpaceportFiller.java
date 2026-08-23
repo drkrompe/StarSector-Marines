@@ -418,6 +418,7 @@ public final class SpaceportFiller implements BlockFiller {
         return new int[]{left, top, right, bottom};
     }
 
+    /** Navigation-blocking apron props remain shoot-through fixtures rather than structural walls. */
     private static void scatterLegacyCover(BlockLeaf leaf, int[] tower, GenContext ctx) {
         List<int[]> candidates = new ArrayList<>();
         for (int y = leaf.top + 1; y <= leaf.bottom - 1; y++) {
@@ -437,6 +438,9 @@ public final class SpaceportFiller implements BlockFiller {
             if (!ctx.grid.isWalkable(x - 1, y) || !ctx.grid.isWalkable(x + 1, y)
                     || !ctx.grid.isWalkable(x, y - 1) || !ctx.grid.isWalkable(x, y + 1)) continue;
             ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setSeeThrough(x, y, true);
+            ctx.topology.setWall(x, y, false);
+            ctx.topology.setFixture(x, y, true);
             ctx.doodads.add(new Doodad(x, y, pool.get(ctx.rng.nextInt(pool.size()))));
             placed++;
         }
