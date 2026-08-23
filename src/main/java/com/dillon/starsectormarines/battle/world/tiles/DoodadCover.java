@@ -7,10 +7,10 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * ({@code [0..3]}, matching {@code NavigationGrid.MAX_COVER}) that
  * {@code Doodad.cover} stores and {@code TacticalScoring} reads.
  *
- * <p>Distinct from {@link TileCover} (the 2-bucket nature-overlay concealment):
- * doodad cover is the 4-level tactical scale crates / shelves / rubble sit on.
- * Each level also supplies a compatibility ballistic half-height when older or
- * third-party data omits an explicit silhouette.
+ * <p>Parallel to {@link TileCover}: both use the shared four-level tactical
+ * scale, while doodads additionally support an explicitly authored ballistic
+ * half-height. Each level supplies a compatibility height when older or
+ * third-party doodad data omits that silhouette.
  */
 public enum DoodadCover {
     /** Open — visual paint only (LZ pads, grates, markers). */

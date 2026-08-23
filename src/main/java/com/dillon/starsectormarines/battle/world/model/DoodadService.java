@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.model;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,13 +12,13 @@ import java.util.List;
 /**
  * Owns the battle's persistent {@link Doodad} list plus the per-cell /
  * per-facing cover lookup that {@link com.dillon.starsectormarines.battle.decision.TacticalScoring}
- * consults when scoring firing positions. Sibling slice to the other
- * services owned by {@link BattleSimulation}.
+ * consults when scoring firing positions. Nature overlays publish their
+ * authored cover into the same lookup without becoming render doodads.
+ * Sibling slice to the other services owned by {@link BattleSimulation}.
  *
- * <p>Cover-by-facing is allocated lazily on the first {@link #addDoodad}
- * call so battles with no doodads pay no memory cost. Doodads aren't
- * removed mid-fight, so the array is append-only — values only ever
- * monotonically increase via the max-merge rule.
+ * <p>Cover storage is allocated lazily on the first physical-cover addition.
+ * Cover features aren't removed mid-fight, so the arrays are append-only —
+ * values only ever monotonically increase via the max-merge rule.
  */
 public final class DoodadService {
 
@@ -24,12 +26,13 @@ public final class DoodadService {
     private final List<Doodad> doodads = new ArrayList<>();
 
     /**
-     * Per-cell, per-facing doodad cover. Indexed as
+     * Per-cell, per-facing cover for doodads and walkable nature overlays.
+     * Indexed as
      * {@code (y * gridWidth + x) * FACING_COUNT + facing}. Updated on
-     * {@link #addDoodad}; never decreases during a battle. Lazy-initialized —
-     * the array is allocated on first {@code addDoodad} call.
+     * {@link #addDoodad} or {@link #addNatureOverlayCover}; never decreases
+     * during a battle. Lazy-initialized on first use.
      *
-     * <p>Each cell in a doodad's authored footprint contributes cover two ways:
+     * <p>Each cell in a feature's authored footprint contributes cover two ways:
      * <ol>
      *   <li><b>Isotropic on its occupied cell.</b> All four facings
      *       gain the doodad's cover level — a marine standing on the crate
@@ -52,14 +55,14 @@ public final class DoodadService {
     private byte[] doodadCoverByFacing;
 
     /**
-     * Per-cell doodad ballistic half-height by cover level — footprint only,
+     * Per-cell physical-cover ballistic half-height by cover level — footprint only,
      * no cardinal-neighbor bleed (unlike {@link #doodadCoverByFacing}). Indexed
      * as {@code grid.index(x, y) * (MAX_COVER + 1) + level}. Lazily allocated
-     * on the first {@link #addDoodad} call with {@code cover > 0}; each level's
+     * on the first covered doodad or walkable-overlay addition; each level's
      * height is max-merged independently. Exists for
      * ballistic ray crossings ({@link com.dillon.starsectormarines.battle.combat.BallisticResolver}),
      * which must roll a block chance only against a cell a round's ray
-     * actually passes through a doodad's own footprint and vertical silhouette
+     * actually passes through a feature's own footprint and vertical silhouette
      * — the facing array's neighbor bleed is a firing-position-scoring concept,
      * not a physical interception one (see {@code roadmap/ballistics/overview.md}
      * §4).
@@ -75,6 +78,82 @@ public final class DoodadService {
     public void addDoodad(Doodad d) {
         doodads.add(d);
         if (d.cover <= 0) return;
+        ensureCoverStorage();
+        for (int dy = 0; dy < d.footprintCellsY; dy++) {
+            for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                addCoverCell(d.cellX + dx, d.cellY + dy,
+                        d.cover, d.ballisticHalfHeight);
+            }
+        }
+    }
+
+    /**
+     * Publishes every covered nature overlay in {@code topology} into the
+     * battle's tactical and ballistic cover profile. Walkable overlays use a
+     * physical cell-crossing profile like doodads. Non-walkable see-through
+     * overlays use directional edge cover on adjacent standable cells, like a
+     * window, so the same rock cannot roll both crossing and edge interception.
+     * Overlay visuals remain owned by {@link CellTopology}; no {@link Doodad}
+     * is added to the render list. A missing registry is the established
+     * degraded no-overlay path.
+     */
+    public void addNatureOverlayCover(CellTopology topology, TileRegistry registry) {
+        if (topology == null || registry == null) return;
+        if (topology.getWidth() != grid.getWidth()
+                || topology.getHeight() != grid.getHeight()) {
+            throw new IllegalArgumentException("Nature overlay topology dimensions must match the navigation grid");
+        }
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                int tileIndex = topology.getNatureOverlayIndex(x, y);
+                if (tileIndex < 0) continue;
+                TileDef def = registry.byIndex(tileIndex);
+                if (def.cover.level() <= 0) continue;
+                if (def.passable) {
+                    addStaticCover(x, y, def.cover.level(),
+                            def.cover.defaultBallisticHalfHeight());
+                } else {
+                    addDirectionalTerrainCover(x, y, def.cover.level(),
+                            def.cover.defaultBallisticHalfHeight());
+                }
+            }
+        }
+    }
+
+    private void addDirectionalTerrainCover(int cellX, int cellY, int cover,
+                                            float ballisticHalfHeight) {
+        maxMergeGridFacing(cellX, cellY - 1, NavigationGrid.FACING_S,
+                cover, ballisticHalfHeight);
+        maxMergeGridFacing(cellX, cellY + 1, NavigationGrid.FACING_N,
+                cover, ballisticHalfHeight);
+        maxMergeGridFacing(cellX - 1, cellY, NavigationGrid.FACING_E,
+                cover, ballisticHalfHeight);
+        maxMergeGridFacing(cellX + 1, cellY, NavigationGrid.FACING_W,
+                cover, ballisticHalfHeight);
+    }
+
+    private void maxMergeGridFacing(int x, int y, int facing, int cover,
+                                    float ballisticHalfHeight) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
+        int existing = grid.getCoverAtFacing(x, y, facing);
+        float existingHeight = grid.getCoverCatchHalfHeightAtFacing(x, y, facing);
+        if (cover < existing) return;
+        grid.setCoverAtFacing(x, y, facing, cover,
+                cover > existing
+                        ? ballisticHalfHeight
+                        : Math.max(existingHeight, ballisticHalfHeight));
+    }
+
+    /** Adds one non-doodad physical cover cell, such as a nature overlay. */
+    public void addStaticCover(int cellX, int cellY, int cover,
+                               float ballisticHalfHeight) {
+        if (cover <= 0 || !grid.inBounds(cellX, cellY)) return;
+        ensureCoverStorage();
+        addCoverCell(cellX, cellY,
+                Math.min(cover, NavigationGrid.MAX_COVER), ballisticHalfHeight);
+    }
+
+    private void ensureCoverStorage() {
         if (doodadCoverByFacing == null) {
             doodadCoverByFacing = new byte[grid.getWidth() * grid.getHeight() * NavigationGrid.FACING_COUNT];
         }
@@ -82,15 +161,9 @@ public final class DoodadService {
             doodadHalfHeightByLevelOnCell = new float[
                     grid.getWidth() * grid.getHeight() * (NavigationGrid.MAX_COVER + 1)];
         }
-        for (int dy = 0; dy < d.footprintCellsY; dy++) {
-            for (int dx = 0; dx < d.footprintCellsX; dx++) {
-                addFootprintCell(d.cellX + dx, d.cellY + dy,
-                        d.cover, d.ballisticHalfHeight);
-            }
-        }
     }
 
-    private void addFootprintCell(int cellX, int cellY, int cover, float ballisticHalfHeight) {
+    private void addCoverCell(int cellX, int cellY, int cover, float ballisticHalfHeight) {
         if (!grid.inBounds(cellX, cellY)) return;
         // Isotropic on each occupied cell. Max-merge with existing props.
         maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_N, cover);
