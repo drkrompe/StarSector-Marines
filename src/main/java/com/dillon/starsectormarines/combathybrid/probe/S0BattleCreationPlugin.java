@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundSceneBackdrop;
@@ -38,9 +37,9 @@ import java.util.List;
  *       ({@code addFleetMember}) so the player pilots/commands through the normal
  *       deploy flow, and installs {@link S0CompletionPlugin} for mod-owned end.</li>
  *   <li><b>SIM_COUPLED</b> — the durable bridge path. {@link #buildSimCoupledConfig} builds a live
- *       Conquest battle at LARGE into one {@link BattleSimulation} and packs it into a
- *       {@link GroundBattleConfig}; a {@link CombatBridgeSession} then owns the whole vanilla-side
- *       lifecycle (spectator canvas + completion, then the backdrop + proxy mirror over the sim).
+ *       Conquest battle at the mode's canonical size into one {@link BattleSimulation} and packs
+ *       it into a {@link GroundBattleConfig}; a {@link CombatBridgeSession} then owns the whole
+ *       vanilla-side lifecycle (spectator canvas + completion, then the backdrop + proxy mirror over the sim).
  *       This plugin only builds the config, routes the two phases to the session, and spawns the
  *       scenario carriers — the production shape.</li>
  * </ul>
@@ -50,21 +49,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     private static final Logger LOG = Global.getLogger(S0BattleCreationPlugin.class);
 
-    /**
-     * Bridge battlefield size, in cells — deliberately decoupled from the standalone {@link MapScale}
-     * tiers (via the explicit-dimensions {@link BattleSetup#createConquestBuild} overload) so we can
-     * push the ground scene bigger under the fleet without enlarging — and paying the world-sized
-     * decal-FBO cost of — standalone HIGH-risk battles. 2× the LARGE tier (240×160) today; the bridge
-     * renders no decals, so that FBO wall doesn't apply. The live ceilings are sim CPU (flat-A* path
-     * length, an O(W×H) zone rebuild ~3–4 ms on each wall-break) + per-cell arrays (~8 MB). Dial
-     * freely; if the generator or defender density misbehaves at this size, scale back. See the
-     * large-map-scaling design doc for the tiled-decal-FBO + camera-residency plan that unblocks
-     * going bigger (and bringing decals over).
-     */
-    private static final int BRIDGE_GRID_W = 480;
-    private static final int BRIDGE_GRID_H = 320;
-    /** Risk tier for the coupled battle — drives defender roster density, not map size (which is the
-     *  explicit {@link #BRIDGE_GRID_W}×{@link #BRIDGE_GRID_H} above). */
+    /** The bridge consumes the same current battlefield contract as every other Conquest host. */
+    private static final int BRIDGE_GRID_W = BattleSetup.CONQUEST_GRID_W;
+    private static final int BRIDGE_GRID_H = BattleSetup.CONQUEST_GRID_H;
+    /** Risk tier for the coupled battle — drives defender roster density, not map size. */
     private static final RiskLevel SIM_RISK = RiskLevel.HIGH;
 
     /** The vanilla carriers "above" whose fighters strafe the planet's defenses. */
@@ -150,7 +138,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         int gridW = BRIDGE_GRID_W, gridH = BRIDGE_GRID_H;
 
         BattleSetup.MapBuild build = BattleSetup.createConquestBuild(
-                SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL, gridW, gridH);
+                SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL);
         BattleSimulation sim = build.sim();
         LongList targetable = build.structures();
         LOG.info("S3: live Conquest battle [" + gridW + "x" + gridH + "] — "

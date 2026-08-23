@@ -103,7 +103,7 @@ public class ConquestObjectiveTest {
         CompoundCaptureSystem system = new CompoundCaptureSystem();
         ConquestObjective obj = new ConquestObjective(service);
         service.register(compoundAt(TacticalNode.Kind.BARRACKS, 3, 5));
-        service.register(compoundAt(TacticalNode.Kind.ARMORY, 7, 5));
+        service.register(compoundAt(TacticalNode.Kind.COMMAND_POST, 7, 5));
 
         // Capture only the BARRACKS (left half).
         captureAll(sim, service, system, 3, 5);
@@ -120,13 +120,29 @@ public class ConquestObjectiveTest {
         CompoundCaptureSystem system = new CompoundCaptureSystem();
         ConquestObjective obj = new ConquestObjective(service);
         service.register(compoundAt(TacticalNode.Kind.BARRACKS, 3, 5));
-        service.register(compoundAt(TacticalNode.Kind.ARMORY, 7, 5));
+        service.register(compoundAt(TacticalNode.Kind.COMMAND_POST, 7, 5));
 
         captureAll(sim, service, system, 3, 5, 7, 5);
 
         obj.tick(sim);
         assertTrue(obj.isComplete(),
                 "objective must complete when all compounds are MARINE_HELD and a marine is alive");
+    }
+
+    @Test
+    public void failsWhenCentralKeepIsMissing() {
+        BattleSimulation sim = openSim();
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        ConquestObjective obj = new ConquestObjective(service);
+        service.register(compoundAt(TacticalNode.Kind.BARRACKS, 3, 5));
+        service.register(compoundAt(TacticalNode.Kind.ARMORY, 7, 5));
+
+        captureAll(sim, service, system, 3, 5, 7, 5);
+
+        obj.tick(sim);
+        assertFalse(obj.isComplete(), "capturing ordinary compounds cannot bypass the keep");
+        assertTrue(obj.isFailed(), "a keep-less Conquest objective must fail closed");
     }
 
     @Test
@@ -140,7 +156,7 @@ public class ConquestObjectiveTest {
         CompoundService service = sim.getCompoundService();
         CompoundCaptureSystem system = new CompoundCaptureSystem();
         ConquestObjective obj = new ConquestObjective(service);
-        service.register(compoundAt(TacticalNode.Kind.BARRACKS, 5, 5));
+        service.register(compoundAt(TacticalNode.Kind.COMMAND_POST, 5, 5));
 
         // Use a held marine reference so we can kill it after the
         // capture-loop adds its own (and that one too).
@@ -172,7 +188,7 @@ public class ConquestObjectiveTest {
         com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective defenderObj =
                 new com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective(
                         Faction.DEFENDER, Faction.MARINE);
-        service.register(compoundAt(TacticalNode.Kind.BARRACKS, 5, 5));
+        service.register(compoundAt(TacticalNode.Kind.COMMAND_POST, 5, 5));
 
         // Drive to MARINE_HELD + everyone dies in the same finishing
         // assault. captureAll adds a marine and ticks the capture system;

@@ -20,7 +20,7 @@ entire map.
 | SMALL 112×64 | 7,168 | 28 | 4 |
 | MEDIUM 144×80 | 11,520 | 45 | 6 |
 | LARGE 240×160 | 38,400 | 150 | 10 |
-| Bridge 480×320 | 153,600 | **600** | 40 |
+| Future 2× Conquest 480×320 | 153,600 | **600** | 40 |
 
 Six hundred tile AABBs vs the camera is a cheap broadphase. The architecture
 question is what a tile *is*.
@@ -55,8 +55,8 @@ tile misses       →  do not iterate its cells; LRU/free the GPU backing
 ```
 
 Zoom 8 on LARGE: ~4–9 blits instead of ~600 cell quads. Zoom 1: 150 blits
-instead of 38k. Bridge spectator: test tile AABBs in world units against the
-vanilla viewport, so the 480×320 plate stops emitting 153k ground quads.
+instead of 38k. At the future 480×320 benchmark, testing tile AABBs in world
+units against the viewport avoids emitting 153k ground quads.
 
 ## Keep cells as sim truth
 
@@ -73,11 +73,12 @@ edge neighbor if autotile halo requires it) goes dirty.
 
 Two sizes are allowed; do not retile the sim to match either.
 
-- **16** — same as `UnitSpatialIndex.BUCKET`. ~600 tiles on the bridge.
+- **16** — same as `UnitSpatialIndex.BUCKET`. ~600 tiles at the future 2×
+  benchmark.
   Good CPU occupancy board. Unbaked 16×16 is still the wrong GROUND path.
 - **32 or 64** — GPU residency. [`../large-map-scaling.md`](../large-map-scaling.md)
-  already wanted 64×64 for view-resident decal FBOs. Bridge ~40 tiles; a
-  zoomed fight is 1–4 blits. Unbaked 64×64 is 4096 cell visits per hit —
+  already wanted 64×64 for view-resident decal FBOs. The future 2× benchmark
+  is ~40 tiles; a zoomed fight is 1–4 blits. Unbaked 64×64 is 4096 cell visits per hit —
   64 only makes sense baked.
 
 ## What this folds
@@ -144,8 +145,8 @@ existing `visibleCells` cell emit for that tile only.
 Cell-rect culling is the common zoomed-in path and just shipped. This story
 is the map-size / zoom-1 / bridge lever, and it is an invalidation + VRAM
 design, not a tight loop. Contract it when GROUND collect/flush is a
-measured ceiling again, or when the bridge needs DECALS on the 480×320
-plate.
+measured ceiling again, or before the canonical Conquest size grows beyond
+240×160 while carrying DECALS.
 
 ## Open questions (when contracted)
 
