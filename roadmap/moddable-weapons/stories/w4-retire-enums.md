@@ -19,7 +19,7 @@ optional billet item holds the special-equipment id established by
 
 The load-bearing part is **persistence**. `MarineSoldier.primary` is an
 xstream-serialized enum, and `FireTeamBillet` stores weapons inside persisted
-armory template cards too, so every existing save carries enum names. The migration is the established
+armory fire-team templates too, so every existing save carries enum names. The migration is the established
 `readResolve` legacy-repair pattern: map historical primary and secondary enum
 names to their registry ids, and fail closed onto the starter primary or an
 empty special slot when an id no longer resolves — a submod the player

@@ -38,8 +38,8 @@ without turning a JSON typo into a silent zero-damage battle.
   stock, unlocks, templates, and save repair. They consume weapon identity;
   a weapon definition must not decide whether the player owns it.
 - A **special-equipment item** is a progression/loadout identity with a typed
-  activation. Weapon-like specials such as rockets and anti-materiel rifles
-  reference a weapon definition; smoke and placed charges do not become
+  activation. Weapon-like specials such as rockets, anti-materiel rifles, and
+  fragmentation grenades reference a weapon definition; smoke and placed charges do not become
   weapons merely because they occupy the same billet slot. The current
   `MarineSecondary` enum conflates these concepts and is transitional.
 - **Effects** are presentation descriptions. A shot's simulation result never
@@ -98,7 +98,8 @@ not implied by the shared schema. The open work is on `stories.md`.
 W2 turns effect recipes into ordered authored layers. W3 migrates the current
 rocket and mech weapon families and adds the first meaningful mount validation.
 Progression S2A then establishes a special-equipment identity that may point at
-those weapon ids; later smoke and satchel stories add non-weapon activations.
+those weapon ids; later smoke and satchel stories add non-weapon activations,
+while the frag story adds another weapon-like activation.
 W4 retires enum stat carriers and owns the save migration. W6 applies the
 platform/mount/weapon split to emplacements and structures. W5 is deferred
 direction: a real submod should establish shared weapon/tile discovery and

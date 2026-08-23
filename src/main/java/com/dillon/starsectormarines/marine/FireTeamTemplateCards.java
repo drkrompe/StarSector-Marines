@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import java.util.List;
 import java.util.Set;
 
-/** Starter card library. Player-authored cards join these in the loadout-designer slice. */
+/** Built-in fire-team template library. Player-authored templates join these entries. */
 public final class FireTeamTemplateCards {
 
     public static final String FIELD_ID = "field";
@@ -61,7 +61,7 @@ public final class FireTeamTemplateCards {
                                 MarineArmorPattern.ARMY_GREEN)));
     }
 
-    /** Built-in cards are permanent library fixtures; players clone them before editing. */
+    /** Built-in templates are permanent library fixtures; players clone them before editing. */
     public static boolean isStarterId(String id) {
         return id != null && STARTER_IDS.contains(id);
     }

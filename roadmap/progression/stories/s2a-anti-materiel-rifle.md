@@ -5,7 +5,7 @@
 
 Status: PLANNED — follows the marine-secondary weapon migration in
 `w3-remaining-catalogs.md` and establishes the shared special-equipment
-identity used by S2B and S2C.
+identity used by S2B–S2D.
 
 Written: 2026-08-23
 
@@ -40,7 +40,8 @@ id. A special-equipment definition declares a typed activation behavior and,
 when it fires a conventional weapon, references the weapon id that owns the
 round. The rocket and anti-materiel rifle are direct-fire activations; smoke
 and satchels later add utility activations without pretending their clouds or
-placement channels are `WeaponDef` shots.
+placement channels are `WeaponDef` shots, while fragmentation grenades add an
+arcing weapon-like activation.
 
 The current `MarineSecondary` name may remain as a compatibility handle until
 `w4-retire-enums.md`; new player-facing copy says **special equipment**. This

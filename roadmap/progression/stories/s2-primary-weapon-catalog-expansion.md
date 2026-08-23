@@ -20,7 +20,8 @@ legible suppression role.
 
 The special-equipment slot has its own expansion stories:
 `s2a-anti-materiel-rifle.md`, `s2b-smoke-grenades.md`, and
-`s2c-satchel-charges.md`. This story does not duplicate their activation or AI
+`s2c-satchel-charges.md`, plus the retained fragmentation-grenade plan in
+`s2d-frag-grenades.md`. This story does not duplicate their activation or AI
 work.
 
 ## Goal

@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 13 open stories
+Status: ACTIVE — 14 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — defined the single special-equipment slot and its weapon/utility authority boundary.
+Updated: 2026-08-23 — split primary breadth from four AI-integrated special-equipment stories.
 
 ## Purpose
 
@@ -38,10 +38,10 @@ legibility.
   Surplus, Service, Milspec, Masterwork. Grade composes with family and profile;
   it does not create a separate unit type.
 - **Special equipment** — one optional billet item carried alongside the
-  marine's primary. A rocket launcher or anti-materiel rifle activates a
-  weapon definition; smoke and satchel charges activate utility behavior.
-  “Secondary” remains a transitional code/catalog name, not the enduring
-  player-facing category.
+  marine's primary. Rocket launchers, anti-materiel rifles, and fragmentation
+  grenades activate weapon definitions; smoke and satchel charges activate
+  utility behavior. “Secondary” remains a transitional code/catalog name, not
+  the enduring player-facing category.
 - **Armor pattern** — a player-owned infantry protection and appearance package.
   Unlike grade, it changes survivability and movement tradeoffs as its own kit
   choice.
@@ -171,8 +171,8 @@ The following are direction, not current behavior:
   learning from losses.
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
-  reachable path. The first planned specials are anti-materiel rifles, smoke
-  grenades, and satchel charges.
+  reachable path. The first planned additions are anti-materiel rifles, smoke
+  grenades, satchel charges, and fragmentation grenades.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in

@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
+import com.dillon.starsectormarines.marine.SquadArrangement;
+import com.dillon.starsectormarines.marine.SquadArrangementPreview;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -46,7 +48,7 @@ import java.util.List;
 /** Fabrication plus squad-centric persistent personnel management. */
 public final class ArmoryScreen implements Screen {
 
-    private enum Tab { PERSONNEL, LOADOUTS, DESIGNER }
+    private enum Tab { PERSONNEL, LOADOUTS, DESIGNER, ARRANGEMENTS }
     private enum InventoryTab { WEAPONS, ARMOR, SPECIAL }
     private enum InventoryState { AVAILABLE, OUT_OF_STOCK, LOCKED, INSTALLED, MARINE_UNAVAILABLE }
     private enum ReadoutFormat { DECIMAL, INTEGER, PERCENT }
@@ -104,13 +106,18 @@ public final class ArmoryScreen implements Screen {
     private MarineSecondary browsedSecondary = MarineSecondary.ROCKET_LAUNCHER;
     private int inventoryScroll;
     private int candidatePage;
-    private int templateCardPage;
-    private String previewTemplateCardId;
-    private int designerCardPage;
-    private String selectedDesignerCardId;
+    private int templatePage;
+    private String previewTemplateId;
+    private int designerTemplatePage;
+    private String selectedDesignerTemplateId;
     private TemplateDraft templateDraft;
     private String designerFeedback;
     private boolean designerSucceeded;
+    private int arrangementPage;
+    private String selectedArrangementId;
+    private ArrangementDraft arrangementDraft;
+    private String arrangementFeedback;
+    private boolean arrangementSucceeded;
     private String lastInventoryClickKey;
     private long lastInventoryClickNanos;
 
@@ -149,15 +156,18 @@ public final class ArmoryScreen implements Screen {
         }
 
         float tabY = top - 52f;
-        addButton(left, tabY, 144f, "Personnel",
+        addButton(left, tabY, 130f, "Personnel",
                 () -> { tab = Tab.PERSONNEL; rebuild(); },
                 tab == Tab.PERSONNEL ? VALUE : HEADER);
-        addButton(left + 154f, tabY, 186f, "Fire-team Loadouts",
+        addButton(left + 140f, tabY, 174f, "Fire-team Loadouts",
                 () -> { tab = Tab.LOADOUTS; selectFirstSoldierIfNeeded(); rebuild(); },
                 tab == Tab.LOADOUTS ? VALUE : HEADER);
-        addButton(left + 350f, tabY, 184f, "Card Designer",
+        addButton(left + 324f, tabY, 174f, "Template Designer",
                 () -> { tab = Tab.DESIGNER; ensureDesignerDraft(); rebuild(); },
                 tab == Tab.DESIGNER ? VALUE : HEADER);
+        addButton(left + 508f, tabY, 190f, "Squad Arrangements",
+                () -> { tab = Tab.ARRANGEMENTS; ensureArrangementDraft(); rebuild(); },
+                tab == Tab.ARRANGEMENTS ? VALUE : HEADER);
 
         int personnelTarget = ctx.getArmoryPersonnelTarget();
         if (personnelTarget > 0) {
@@ -189,6 +199,10 @@ public final class ArmoryScreen implements Screen {
         }
         if (tab == Tab.DESIGNER) {
             buildTemplateDesigner(left, top - 92f);
+            return;
+        }
+        if (tab == Tab.ARRANGEMENTS) {
+            buildArrangementDesigner(left, top - 92f);
             return;
         }
 
@@ -254,7 +268,7 @@ public final class ArmoryScreen implements Screen {
                 "Parts & materials: " + armory.fabricationMaterials()
                         + "    Victories: " + armory.victories()
                         + "    High-risk: " + armory.highRiskVictories()
-                        + "    Select a fire team, then assign a reusable template card",
+                        + "    Select a fire team, then assign a reusable template",
                 left, top + 24f, VALUE));
 
         float rosterW = 236f;
@@ -276,7 +290,7 @@ public final class ArmoryScreen implements Screen {
         ensureDesignerDraft();
         MarineArmory armory = roster.armory();
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Designs are reusable and may be saved without recipes, stock, or materials. "
+                "Fire-team templates are reusable and may be saved without recipes, stock, or materials. "
                         + "Assignment still requires a complete physical kit.",
                 left, top + 24f, VALUE));
 
@@ -288,16 +302,16 @@ public final class ArmoryScreen implements Screen {
 
         if (templateDraft == null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "No template card is available.", editorX, top - 18f, MUTED));
+                    "No fire-team template is available.", editorX, top - 18f, MUTED));
             return;
         }
 
-        FireTeamTemplateCard selected = armory.templateCardById(selectedDesignerCardId);
+        FireTeamTemplateCard selected = armory.templateCardById(selectedDesignerTemplateId);
         boolean builtIn = selected != null
                 && FireTeamTemplateCards.isStarterId(selected.id());
         boolean assigned = selected != null && roster.isFireTeamTemplateAssigned(selected.id());
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "FOUR-BILLET DESIGN", editorX, top - 12f, HEADER));
+                "FOUR-BILLET TEMPLATE", editorX, top - 12f, HEADER));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 selected == null ? "Unsaved draft"
                         : builtIn ? "Built-in · clone or save as new to customize"
@@ -308,13 +322,13 @@ public final class ArmoryScreen implements Screen {
 
         float nameY = top - 62f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "CARD NAME", editorX, nameY + 25f, MUTED));
-        TextFieldWidget cardName = new TextFieldWidget(editorX + 132f, nameY,
+                "TEMPLATE NAME", editorX, nameY + 25f, MUTED));
+        TextFieldWidget templateName = new TextFieldWidget(editorX + 132f, nameY,
                 Math.min(360f, editorW - 132f), BUTTON_H,
                 Fonts.ORBITRON_20, 32, "Template name");
-        cardName.setText(templateDraft.name);
-        cardName.setOnChange(value -> templateDraft.name = value);
-        addTextField(cardName);
+        templateName.setText(templateDraft.name);
+        templateName.setOnChange(value -> templateDraft.name = value);
+        addTextField(templateName);
 
         float rowTop = top - 116f;
         for (int billetIndex = 0; billetIndex < MarineSquad.TEAM_SIZE; billetIndex++) {
@@ -342,27 +356,216 @@ public final class ArmoryScreen implements Screen {
                     designerSucceeded ? GOOD : BAD));
         }
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Changing billet fields edits this draft only. Save as New creates a new stable card; "
+                "Changing billet fields edits this draft only. Save as New creates a new stable template; "
                         + "no fielded team is silently refitted.",
                 editorX, position.getY() + 34f, MUTED));
+    }
+
+    private void buildArrangementDesigner(float left, float top) {
+        ensureArrangementDraft();
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Compose Alpha, Bravo and Charlie from reusable fire-team templates. "
+                        + "Saving is free; issuing still uses finite fleet stock.",
+                left, top + 24f, VALUE));
+
+        float libraryW = 270f;
+        float editorX = left + libraryW + 24f;
+        float right = position.getX() + position.getWidth() - PAD;
+        float editorW = right - editorX;
+        buildArrangementLibrary(left, top, libraryW);
+        if (arrangementDraft == null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Create a fire-team template before composing a squad arrangement.",
+                    editorX, top - 18f, MUTED));
+            return;
+        }
+
+        SquadArrangement selected = roster.armory().squadArrangementById(
+                selectedArrangementId);
+        MarineSquad squad = roster.squadById(selectedSquadId);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "THREE-TEAM ARRANGEMENT", editorX, top - 12f, HEADER));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                squad != null && !squad.reserve()
+                        ? "Target squad · " + squad.name()
+                        : "Select a line squad in Loadouts before issuing",
+                editorX + 290f, top - 12f,
+                squad != null && !squad.reserve() ? GOOD : BAD));
+        addButton(editorX + editorW - 86f, top - 44f, 38f, "<",
+                () -> cycleArrangementTarget(-1), HEADER);
+        addButton(editorX + editorW - 42f, top - 44f, 38f, ">",
+                () -> cycleArrangementTarget(1), HEADER);
+
+        float nameY = top - 62f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "ARRANGEMENT NAME", editorX, nameY + 25f, MUTED));
+        TextFieldWidget nameField = new TextFieldWidget(editorX + 190f, nameY,
+                Math.min(360f, editorW - 190f), BUTTON_H,
+                Fonts.ORBITRON_20, 32, "Arrangement name");
+        nameField.setText(arrangementDraft.name);
+        nameField.setOnChange(value -> arrangementDraft.name = value);
+        addTextField(nameField);
+
+        float rowTop = top - 116f;
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            buildArrangementTeamRow(editorX, rowTop - team * 72f, editorW, team);
+        }
+
+        if (selected != null) {
+            buildArrangementTransactionPreview(editorX, top - 340f, editorW,
+                    squad, selected);
+        } else {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Save this draft to preview its squad-wide inventory transaction.",
+                    editorX, top - 350f, MUTED));
+        }
+
+        float actionY = position.getY() + 78f;
+        addButton(editorX, actionY, 112f, "New Draft",
+                this::newArrangementDraft, HEADER);
+        addButton(editorX + 122f, actionY, 152f, "Capture Squad",
+                squad != null && !squad.reserve()
+                        ? this::captureSelectedSquadArrangement : null,
+                squad != null && !squad.reserve() ? HEADER : MUTED);
+        addButton(editorX + 284f, actionY, 122f, "Rename Only",
+                selected != null ? this::renameSelectedArrangement : null,
+                selected != null ? HEADER : MUTED);
+        addButton(editorX + 416f, actionY, 130f, "Save as New",
+                this::saveArrangementDraft, GOOD);
+        addButton(editorX + 556f, actionY, 92f, "Delete",
+                selected != null ? this::deleteSelectedArrangement : null,
+                selected != null ? BAD : MUTED);
+        SquadArrangementPreview preview = selected != null && squad != null
+                ? roster.previewSquadArrangement(squad.id(), selected.id()) : null;
+        addButton(editorX + 658f, actionY, Math.max(132f, editorW - 658f),
+                squad != null ? "Issue to " + shortSquadName(squad) : "Select Squad",
+                preview != null && preview.canApply()
+                        ? () -> applySelectedArrangement(squad, selected) : null,
+                preview != null && preview.canApply() ? VALUE : MUTED);
+
+        if (arrangementFeedback != null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, arrangementFeedback,
+                    editorX, position.getY() + 58f,
+                    arrangementSucceeded ? GOOD : BAD));
+        }
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Changing a team edits this draft only. Existing squads keep their three current assignments.",
+                editorX, position.getY() + 34f, MUTED));
+    }
+
+    private void buildArrangementLibrary(float x, float top, float width) {
+        List<SquadArrangement> arrangements = roster.armory().squadArrangements();
+        int pageSize = 8;
+        int pages = Math.max(1, (arrangements.size() + pageSize - 1) / pageSize);
+        arrangementPage = Math.max(0, Math.min(arrangementPage, pages - 1));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "ARRANGEMENT LIBRARY", x, top - 12f, HEADER));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                arrangements.size() + " saved plans", x, top - 38f, MUTED));
+
+        float y = top - 82f;
+        int start = arrangementPage * pageSize;
+        int end = Math.min(arrangements.size(), start + pageSize);
+        for (int i = start; i < end; i++) {
+            SquadArrangement arrangement = arrangements.get(i);
+            boolean selected = arrangement.id().equals(selectedArrangementId);
+            int fielded = roster.squadArrangementFieldedCount(arrangement.id());
+            addButton(x, y, width,
+                    (selected ? "> " : "  ") + arrangement.displayName()
+                            + " · " + fielded + " fielded",
+                    () -> selectArrangement(arrangement.id()),
+                    selected ? VALUE : fielded > 0 ? GOOD : HEADER);
+            y -= 42f;
+        }
+        if (arrangements.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "No saved arrangements yet.", x, y, MUTED));
+        }
+        if (pages > 1) {
+            addButton(x, y - 4f, 96f, "Previous", arrangementPage > 0 ? () -> {
+                arrangementPage--;
+                rebuild();
+            } : null, arrangementPage > 0 ? HEADER : MUTED);
+            addButton(x + 106f, y - 4f, 120f,
+                    "Next " + (arrangementPage + 1) + "/" + pages,
+                    arrangementPage + 1 < pages ? () -> {
+                        arrangementPage++;
+                        rebuild();
+                    } : null, arrangementPage + 1 < pages ? HEADER : MUTED);
+        }
+    }
+
+    private void buildArrangementTeamRow(float x, float top, float width, int teamIndex) {
+        FireTeamTemplateCard template = roster.armory().templateCardById(
+                arrangementDraft.templateIds[teamIndex]);
+        widgets.add(new PanelWidget(x, top - 50f, width, 60f));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                fireTeamName(teamIndex), x + 10f, top - 4f, HEADER));
+        addButton(x + 142f, top - 44f, 40f, "<",
+                () -> cycleArrangementTemplate(teamIndex, -1), HEADER);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                template != null ? template.displayName() : "Missing template",
+                x + 198f, top - 4f, template != null ? VALUE : BAD));
+        addButton(x + width - 50f, top - 44f, 40f, ">",
+                () -> cycleArrangementTemplate(teamIndex, 1), HEADER);
+    }
+
+    private void buildArrangementTransactionPreview(float x, float top, float width,
+                                                     MarineSquad squad,
+                                                     SquadArrangement arrangement) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "SQUAD-WIDE ISSUE PREVIEW", x, top, HEADER));
+        if (squad == null || squad.reserve()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Select a line squad in Loadouts to calculate returns and issue.",
+                    x, top - 28f, BAD));
+            return;
+        }
+        SquadArrangementPreview preview = roster.previewSquadArrangement(
+                squad.id(), arrangement.id());
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                preview.canApply() ? "READY · all three teams change together"
+                        : templateMessage(preview.result()),
+                x, top - 28f, preview.canApply() ? GOOD : BAD));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "FREE  +RETURN  /NEED", x + width - 156f, top, MUTED));
+        float y = top - 58f;
+        int shown = Math.min(5, preview.gear().size());
+        for (int i = 0; i < shown; i++) {
+            FireTeamGearDelta delta = preview.gear().get(i);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    shortGearLabel(delta.label()), x + 10f, y,
+                    delta.sufficient() ? HEADER : BAD));
+            String free = delta.unlimited() ? "∞" : Integer.toString(delta.free());
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    free + "  +" + delta.returned() + "  /" + delta.required(),
+                    x + width - 146f, y,
+                    delta.sufficient() ? delta.netIssue() > 0 ? VALUE : GOOD : BAD));
+            y -= 25f;
+        }
+        if (preview.gear().size() > shown) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "+" + (preview.gear().size() - shown) + " more catalog lines",
+                    x + 10f, y, MUTED));
+        }
     }
 
     private void buildDesignerLibrary(float x, float top, float width) {
         List<FireTeamTemplateCard> cards = roster.armory().templateCards();
         int pageSize = 8;
         int pages = Math.max(1, (cards.size() + pageSize - 1) / pageSize);
-        designerCardPage = Math.max(0, Math.min(designerCardPage, pages - 1));
+        designerTemplatePage = Math.max(0, Math.min(designerTemplatePage, pages - 1));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "CARD LIBRARY", x, top - 12f, HEADER));
+                "TEMPLATE LIBRARY", x, top - 12f, HEADER));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 cards.size() + " designs", x, top - 38f, MUTED));
 
         float y = top - 82f;
-        int start = designerCardPage * pageSize;
+        int start = designerTemplatePage * pageSize;
         int end = Math.min(cards.size(), start + pageSize);
         for (int i = start; i < end; i++) {
             FireTeamTemplateCard card = cards.get(i);
-            boolean selected = card.id().equals(selectedDesignerCardId);
+            boolean selected = card.id().equals(selectedDesignerTemplateId);
             boolean builtIn = FireTeamTemplateCards.isStarterId(card.id());
             FireTeamTemplateAvailability availability =
                     roster.fireTeamTemplateAvailability(card.id());
@@ -375,16 +578,16 @@ public final class ArmoryScreen implements Screen {
             y -= 42f;
         }
         if (pages > 1) {
-            addButton(x, y - 4f, 96f, "Previous", designerCardPage > 0 ? () -> {
-                designerCardPage--;
+            addButton(x, y - 4f, 96f, "Previous", designerTemplatePage > 0 ? () -> {
+                designerTemplatePage--;
                 rebuild();
-            } : null, designerCardPage > 0 ? HEADER : MUTED);
+            } : null, designerTemplatePage > 0 ? HEADER : MUTED);
             addButton(x + 106f, y - 4f, 120f,
-                    "Next " + (designerCardPage + 1) + "/" + pages,
-                    designerCardPage + 1 < pages ? () -> {
-                        designerCardPage++;
+                    "Next " + (designerTemplatePage + 1) + "/" + pages,
+                    designerTemplatePage + 1 < pages ? () -> {
+                        designerTemplatePage++;
                         rebuild();
-                    } : null, designerCardPage + 1 < pages ? HEADER : MUTED);
+                    } : null, designerTemplatePage + 1 < pages ? HEADER : MUTED);
         }
     }
 
@@ -430,10 +633,10 @@ public final class ArmoryScreen implements Screen {
     private void ensureDesignerDraft() {
         MarineArmory armory = roster != null ? roster.armory() : null;
         if (armory == null) return;
-        FireTeamTemplateCard selected = armory.templateCardById(selectedDesignerCardId);
+        FireTeamTemplateCard selected = armory.templateCardById(selectedDesignerTemplateId);
         if (selected == null && templateDraft == null && !armory.templateCards().isEmpty()) {
             selected = armory.templateCards().get(0);
-            selectedDesignerCardId = selected.id();
+            selectedDesignerTemplateId = selected.id();
         }
         if (templateDraft == null && selected != null) {
             templateDraft = TemplateDraft.from(selected);
@@ -443,16 +646,192 @@ public final class ArmoryScreen implements Screen {
     private void selectDesignerTemplate(String cardId) {
         FireTeamTemplateCard card = roster.armory().templateCardById(cardId);
         if (card == null) return;
-        selectedDesignerCardId = card.id();
+        selectedDesignerTemplateId = card.id();
         templateDraft = TemplateDraft.from(card);
         designerFeedback = null;
         rebuild();
     }
 
+    private void ensureArrangementDraft() {
+        MarineArmory armory = roster != null ? roster.armory() : null;
+        if (armory == null) return;
+        SquadArrangement selected = armory.squadArrangementById(selectedArrangementId);
+        if (selected == null && arrangementDraft == null
+                && !armory.squadArrangements().isEmpty()) {
+            selected = armory.squadArrangements().get(0);
+            selectedArrangementId = selected.id();
+        }
+        if (arrangementDraft == null) {
+            arrangementDraft = selected != null ? ArrangementDraft.from(selected)
+                    : defaultArrangementDraft();
+        }
+    }
+
+    private ArrangementDraft defaultArrangementDraft() {
+        List<FireTeamTemplateCard> templates = roster.armory().templateCards();
+        if (templates.isEmpty()) return null;
+        String fallback = templates.get(0).id();
+        String[] templateIds = {fallback, fallback, fallback};
+        MarineSquad squad = roster.squadById(selectedSquadId);
+        if (squad != null && !squad.reserve()) {
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                String assigned = squad.teamTemplateCardId(team);
+                if (roster.armory().templateCardById(assigned) != null) {
+                    templateIds[team] = assigned;
+                }
+            }
+        }
+        String name = squad != null && !squad.reserve()
+                ? squad.name() + " Arrangement" : "New Squad Arrangement";
+        return new ArrangementDraft(name, templateIds);
+    }
+
+    private void selectArrangement(String arrangementId) {
+        SquadArrangement arrangement = roster.armory().squadArrangementById(arrangementId);
+        if (arrangement == null) return;
+        selectedArrangementId = arrangement.id();
+        arrangementDraft = ArrangementDraft.from(arrangement);
+        arrangementFeedback = null;
+        rebuild();
+    }
+
+    private void newArrangementDraft() {
+        selectedArrangementId = null;
+        arrangementDraft = defaultArrangementDraft();
+        arrangementFeedback = arrangementDraft != null
+                ? "Unsaved arrangement ready" : "No fire-team templates available";
+        arrangementSucceeded = arrangementDraft != null;
+        rebuild();
+    }
+
+    private void captureSelectedSquadArrangement() {
+        MarineSquad squad = roster.squadById(selectedSquadId);
+        if (squad == null || squad.reserve()) {
+            arrangementSucceeded = false;
+            arrangementFeedback = "Select a line squad in Loadouts first";
+            rebuild();
+            return;
+        }
+        String[] templateIds = new String[MarineSquad.TEAMS_PER_SQUAD];
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            templateIds[team] = squad.teamTemplateCardId(team);
+            if (roster.armory().templateCardById(templateIds[team]) == null) {
+                arrangementSucceeded = false;
+                arrangementFeedback = "Assign a template to all three fire teams first";
+                rebuild();
+                return;
+            }
+        }
+        selectedArrangementId = null;
+        arrangementDraft = new ArrangementDraft(
+                squad.name() + " Arrangement", templateIds);
+        arrangementSucceeded = true;
+        arrangementFeedback = "Current squad composition captured as an unsaved draft";
+        rebuild();
+    }
+
+    private void cycleArrangementTemplate(int teamIndex, int direction) {
+        List<FireTeamTemplateCard> templates = roster.armory().templateCards();
+        if (arrangementDraft == null || templates.isEmpty()) return;
+        int current = 0;
+        for (int i = 0; i < templates.size(); i++) {
+            if (templates.get(i).id().equals(arrangementDraft.templateIds[teamIndex])) {
+                current = i;
+                break;
+            }
+        }
+        int next = Math.floorMod(current + direction, templates.size());
+        arrangementDraft.templateIds[teamIndex] = templates.get(next).id();
+        selectedArrangementId = null;
+        arrangementFeedback = "Draft changed · save as new to keep it";
+        arrangementSucceeded = true;
+        rebuild();
+    }
+
+    private void cycleArrangementTarget(int direction) {
+        List<MarineSquad> lineSquads = roster.squads().stream()
+                .filter(squad -> !squad.reserve()).toList();
+        if (lineSquads.isEmpty()) return;
+        int current = 0;
+        for (int i = 0; i < lineSquads.size(); i++) {
+            if (lineSquads.get(i).id().equals(selectedSquadId)) {
+                current = i;
+                break;
+            }
+        }
+        MarineSquad next = lineSquads.get(Math.floorMod(current + direction,
+                lineSquads.size()));
+        selectedSquadId = next.id();
+        selectedTeamIndex = 0;
+        selectedSoldierId = null;
+        selectFirstSoldierIfNeeded();
+        arrangementFeedback = null;
+        rebuild();
+    }
+
+    private void renameSelectedArrangement() {
+        boolean renamed = roster.armory().renameSquadArrangement(
+                selectedArrangementId, arrangementDraft.name);
+        arrangementSucceeded = renamed;
+        arrangementFeedback = renamed ? "Arrangement renamed"
+                : "Arrangement requires a name";
+        rebuild();
+    }
+
+    private void saveArrangementDraft() {
+        try {
+            SquadArrangement saved = roster.armory().createSquadArrangement(
+                    arrangementDraft.name, Arrays.asList(arrangementDraft.templateIds));
+            selectedArrangementId = saved.id();
+            arrangementDraft = ArrangementDraft.from(saved);
+            arrangementSucceeded = true;
+            arrangementFeedback = "New squad arrangement saved · stock not evaluated";
+            moveArrangementPageTo(saved.id());
+        } catch (IllegalArgumentException ex) {
+            arrangementSucceeded = false;
+            arrangementFeedback = "Arrangement needs a name and three available templates";
+        }
+        rebuild();
+    }
+
+    private void deleteSelectedArrangement() {
+        boolean deleted = roster.armory().deleteSquadArrangement(selectedArrangementId);
+        arrangementSucceeded = deleted;
+        arrangementFeedback = deleted ? "Arrangement deleted · squads unchanged"
+                : "Arrangement unavailable";
+        selectedArrangementId = null;
+        arrangementDraft = null;
+        ensureArrangementDraft();
+        rebuild();
+    }
+
+    private void applySelectedArrangement(MarineSquad squad,
+                                          SquadArrangement arrangement) {
+        FireTeamTemplateResult result = roster.applySquadArrangement(
+                squad.id(), arrangement.id());
+        arrangementSucceeded = result == FireTeamTemplateResult.APPLIED;
+        arrangementFeedback = arrangementSucceeded
+                ? arrangement.displayName() + " issued to " + squad.name()
+                : templateMessage(result);
+        templateFeedback = arrangementFeedback;
+        templateSucceeded = arrangementSucceeded;
+        rebuild();
+    }
+
+    private void moveArrangementPageTo(String arrangementId) {
+        List<SquadArrangement> arrangements = roster.armory().squadArrangements();
+        for (int i = 0; i < arrangements.size(); i++) {
+            if (arrangements.get(i).id().equals(arrangementId)) {
+                arrangementPage = i / 8;
+                return;
+            }
+        }
+    }
+
     private void newTemplateDraft() {
         FireTeamTemplateCard field = roster.armory().templateCardById(
                 FireTeamTemplateCards.FIELD_ID);
-        selectedDesignerCardId = null;
+        selectedDesignerTemplateId = null;
         templateDraft = field != null ? TemplateDraft.from(field)
                 : TemplateDraft.standard();
         templateDraft.name = "New Template";
@@ -462,15 +841,15 @@ public final class ArmoryScreen implements Screen {
     }
 
     private void cloneSelectedTemplate() {
-        FireTeamTemplateCard clone = roster.armory().cloneTemplateCard(selectedDesignerCardId);
+        FireTeamTemplateCard clone = roster.armory().cloneTemplateCard(selectedDesignerTemplateId);
         if (clone == null) {
             designerSucceeded = false;
-            designerFeedback = "Selected card is unavailable";
+            designerFeedback = "Selected template is unavailable";
         } else {
-            selectedDesignerCardId = clone.id();
+            selectedDesignerTemplateId = clone.id();
             templateDraft = TemplateDraft.from(clone);
             designerSucceeded = true;
-            designerFeedback = "Custom card cloned";
+            designerFeedback = "Custom template cloned";
             moveDesignerPageTo(clone.id());
         }
         rebuild();
@@ -478,10 +857,10 @@ public final class ArmoryScreen implements Screen {
 
     private void renameSelectedTemplate() {
         boolean renamed = roster.armory().renameTemplateCard(
-                selectedDesignerCardId, templateDraft.name);
+                selectedDesignerTemplateId, templateDraft.name);
         designerSucceeded = renamed;
-        designerFeedback = renamed ? "Custom card renamed"
-                : "Built-in cards cannot be renamed";
+        designerFeedback = renamed ? "Custom template renamed"
+                : "Built-in templates cannot be renamed";
         rebuild();
     }
 
@@ -489,29 +868,30 @@ public final class ArmoryScreen implements Screen {
         try {
             FireTeamTemplateCard saved = roster.armory().createTemplateCard(
                     templateDraft.name, templateDraft.billetList());
-            selectedDesignerCardId = saved.id();
+            selectedDesignerTemplateId = saved.id();
             templateDraft = TemplateDraft.from(saved);
             designerSucceeded = true;
-            designerFeedback = "New custom card saved · stock not evaluated";
+            designerFeedback = "New custom template saved · stock not evaluated";
             moveDesignerPageTo(saved.id());
         } catch (IllegalArgumentException ex) {
             designerSucceeded = false;
-            designerFeedback = "Card requires a name and four complete billets";
+            designerFeedback = "Template requires a name and four complete billets";
         }
         rebuild();
     }
 
     private void deleteSelectedTemplate() {
-        if (roster.isFireTeamTemplateAssigned(selectedDesignerCardId)) {
+        if (roster.isFireTeamTemplateReferenced(selectedDesignerTemplateId)) {
             designerSucceeded = false;
-            designerFeedback = "Assigned card cannot be deleted · refit its teams first";
+            designerFeedback = "Referenced template cannot be deleted · update squads and arrangements first";
             rebuild();
             return;
         }
-        boolean deleted = roster.deleteFireTeamTemplate(selectedDesignerCardId);
+        boolean deleted = roster.deleteFireTeamTemplate(selectedDesignerTemplateId);
         designerSucceeded = deleted;
-        designerFeedback = deleted ? "Custom card deleted" : "Built-in card cannot be deleted";
-        selectedDesignerCardId = null;
+        designerFeedback = deleted ? "Custom template deleted"
+                : "Built-in template cannot be deleted";
+        selectedDesignerTemplateId = null;
         templateDraft = null;
         ensureDesignerDraft();
         rebuild();
@@ -521,7 +901,7 @@ public final class ArmoryScreen implements Screen {
         List<FireTeamTemplateCard> cards = roster.armory().templateCards();
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).id().equals(cardId)) {
-                designerCardPage = i / 8;
+                designerTemplatePage = i / 8;
                 return;
             }
         }
@@ -645,11 +1025,11 @@ public final class ArmoryScreen implements Screen {
             for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
                 int teamIndex = team;
                 boolean selected = selectedTeamIndex == team;
-                String cardName = assignedTemplateName(selectedSquad, team);
+                String templateName = assignedTemplateName(selectedSquad, team);
                 addButton(x, y, width,
                         (selected ? "> " : "  ") + fireTeamName(team)
                                 + "  " + readyTeamMembers(selectedSquad, team)
-                                + "/" + MarineSquad.TEAM_SIZE + " · " + cardName,
+                                + "/" + MarineSquad.TEAM_SIZE + " · " + templateName,
                         () -> {
                             selectedTeamIndex = teamIndex;
                             selectedSoldierId = null;
@@ -672,7 +1052,7 @@ public final class ArmoryScreen implements Screen {
                 addButton(x, y, width, (selected ? "> " : "  ") + soldier.name()
                         + " · " + statusLabel(soldier), () -> {
                     selectedSoldierId = soldier.id();
-                    previewTemplateCardId = null;
+                    previewTemplateId = null;
                     loadoutFeedback = null;
                     clearDoubleClick();
                     rebuild();
@@ -685,42 +1065,44 @@ public final class ArmoryScreen implements Screen {
         if (selectedSquad != null && !selectedSquad.reserve()) {
             float presetY = position.getY() + 72f;
             List<FireTeamTemplateCard> cards = roster.armory().templateCards();
-            int cardPageSize = 4;
-            int cardPages = Math.max(1, (cards.size() + cardPageSize - 1) / cardPageSize);
-            templateCardPage = Math.max(0, Math.min(templateCardPage, cardPages - 1));
+            int templatePageSize = 4;
+            int templatePages = Math.max(1,
+                    (cards.size() + templatePageSize - 1) / templatePageSize);
+            templatePage = Math.max(0, Math.min(templatePage, templatePages - 1));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                    "TEMPLATE CARDS · FIELD/READY",
+                "FIRE-TEAM TEMPLATES · FIELD/READY",
                     x, presetY + 92f, HEADER));
-            if (cardPages > 1) {
+            if (templatePages > 1) {
                 addButton(x + width - 72f, presetY + 84f, 32f, "<",
-                        templateCardPage > 0 ? () -> {
-                            templateCardPage--;
+                        templatePage > 0 ? () -> {
+                            templatePage--;
                             rebuild();
-                        } : null, templateCardPage > 0 ? HEADER : MUTED);
+                        } : null, templatePage > 0 ? HEADER : MUTED);
                 addButton(x + width - 36f, presetY + 84f, 32f, ">",
-                        templateCardPage + 1 < cardPages ? () -> {
-                            templateCardPage++;
+                        templatePage + 1 < templatePages ? () -> {
+                            templatePage++;
                             rebuild();
-                        } : null, templateCardPage + 1 < cardPages ? HEADER : MUTED);
+                        } : null, templatePage + 1 < templatePages ? HEADER : MUTED);
             }
             int i = 0;
-            int cardStart = templateCardPage * cardPageSize;
-            int cardEnd = Math.min(cards.size(), cardStart + cardPageSize);
-            for (int cardIndex = cardStart; cardIndex < cardEnd; cardIndex++) {
-                FireTeamTemplateCard card = cards.get(cardIndex);
+            int templateStart = templatePage * templatePageSize;
+            int templateEnd = Math.min(cards.size(), templateStart + templatePageSize);
+            for (int templateIndex = templateStart;
+                 templateIndex < templateEnd; templateIndex++) {
+                FireTeamTemplateCard card = cards.get(templateIndex);
                 float bx = x + (i % 2) * (width / 2f + 2f);
                 float by = presetY + (1 - i / 2) * 38f;
                 boolean assigned = card.id().equals(
                         selectedSquad.teamTemplateCardId(selectedTeamIndex));
-                boolean previewed = card.id().equals(previewTemplateCardId);
+                boolean previewed = card.id().equals(previewTemplateId);
                 FireTeamTemplateAvailability availability =
                         roster.fireTeamTemplateAvailability(card.id());
                 addButton(bx, by, width / 2f - 4f,
                         (previewed ? "> " : assigned ? "* " : "")
-                                + shortCardName(card.displayName()) + " · "
+                                + shortTemplateName(card.displayName()) + " · "
                                 + availability.fielded() + "/"
                                 + availability.readyToIssue(), () -> {
-                    previewTemplateCardId = card.id();
+                    previewTemplateId = card.id();
                     templateFeedback = null;
                     rebuild();
                 }, previewed ? VALUE : assigned ? GOOD
@@ -747,7 +1129,7 @@ public final class ArmoryScreen implements Screen {
                                                  FireTeamTemplateCard card) {
         MarineSquad squad = roster.squadById(selectedSquadId);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "SELECTED CARD", x, top - 10f, HEADER));
+                "SELECTED TEMPLATE", x, top - 10f, HEADER));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 card.displayName() + " → " + fireTeamName(selectedTeamIndex),
                 x, top - 38f, VALUE));
@@ -809,7 +1191,7 @@ public final class ArmoryScreen implements Screen {
             addButton(x + team * (targetW + 6f), issueY, targetW,
                     (alreadyAssigned ? "Reissue " : "Issue ") + shortTeamName(team),
                     targetPreview.canApply()
-                            ? () -> applyPreviewCardToTeam(squad, targetTeam, card) : null,
+                            ? () -> applyPreviewTemplateToTeam(squad, targetTeam, card) : null,
                     targetPreview.canApply() ? team == selectedTeamIndex ? VALUE : GOOD : MUTED);
         }
 
@@ -829,8 +1211,8 @@ public final class ArmoryScreen implements Screen {
         }
     }
 
-    private void applyPreviewCardToTeam(MarineSquad squad, int teamIndex,
-                                        FireTeamTemplateCard card) {
+    private void applyPreviewTemplateToTeam(MarineSquad squad, int teamIndex,
+                                            FireTeamTemplateCard card) {
         FireTeamTemplateResult result = roster.applyFireTeamTemplate(
                 squad.id(), teamIndex, card.id());
         templateSucceeded = result == FireTeamTemplateResult.APPLIED;
@@ -850,10 +1232,10 @@ public final class ArmoryScreen implements Screen {
         templateSucceeded = result == FireTeamTemplateResult.APPLIED;
         templateFeedback = templateSucceeded
                 ? fireTeamName(firstTeamIndex) + " ↔ " + fireTeamName(otherTeamIndex)
-                        + " cards swapped"
+                        + " templates swapped"
                 : templateMessage(result);
         if (templateSucceeded) {
-            previewTemplateCardId = squad.teamTemplateCardId(firstTeamIndex);
+            previewTemplateId = squad.teamTemplateCardId(firstTeamIndex);
         }
         selectedSoldierId = null;
         selectFirstSoldierIfNeeded();
@@ -861,10 +1243,10 @@ public final class ArmoryScreen implements Screen {
     }
 
     private void buildPaperDoll(float x, float top, float width) {
-        FireTeamTemplateCard previewCard = roster.armory().templateCardById(
-                previewTemplateCardId);
-        if (previewCard != null) {
-            buildTemplateTransactionPreview(x, top, width, previewCard);
+        FireTeamTemplateCard previewTemplate = roster.armory().templateCardById(
+                previewTemplateId);
+        if (previewTemplate != null) {
+            buildTemplateTransactionPreview(x, top, width, previewTemplate);
             return;
         }
         MarineSoldier soldier = selectedSoldier();
@@ -1674,7 +2056,7 @@ public final class ArmoryScreen implements Screen {
         addButton(x + w - moveW - loadoutW - 8f, y + 4f, loadoutW, "Loadout",
                 () -> {
                     selectedSoldierId = soldier.id();
-                    previewTemplateCardId = null;
+                    previewTemplateId = null;
                     MarineSquad squad = roster.squadForSoldier(soldier.id());
                     if (squad != null) selectedTeamIndex = squad.teamIndexOf(soldier.id());
                     tab = Tab.LOADOUTS;
@@ -1702,8 +2084,8 @@ public final class ArmoryScreen implements Screen {
         return name.length() <= 10 ? name : name.substring(0, 10);
     }
 
-    private static String shortCardName(String name) {
-        if (name == null || name.isBlank()) return "Card";
+    private static String shortTemplateName(String name) {
+        if (name == null || name.isBlank()) return "Template";
         return name.length() <= 11 ? name : name.substring(0, 10) + "…";
     }
 
@@ -1729,11 +2111,12 @@ public final class ArmoryScreen implements Screen {
 
     private static String templateMessage(FireTeamTemplateResult result) {
         return switch (result) {
-            case APPLIED -> "Card assigned · four billets issued";
+            case APPLIED -> "Template assigned · equipment issued";
             case INVALID_FIRE_TEAM -> "Select a line fire team";
             case TEAM_NOT_READY -> "Team needs four RTD marines";
             case STATIONED -> "Squad is stationed away";
-            case UNKNOWN_CARD -> "Template card unavailable";
+            case UNKNOWN_TEMPLATE -> "Fire-team template unavailable";
+            case UNKNOWN_ARRANGEMENT -> "Squad arrangement unavailable";
             case LOCKED_RECIPE -> "Recipe locked";
             case INSUFFICIENT_PRIMARIES -> "Not enough primary weapons";
             case INSUFFICIENT_ARMOR -> "Not enough armor";
@@ -2018,6 +2401,21 @@ public final class ArmoryScreen implements Screen {
 
         private List<FireTeamBillet> billetList() {
             return List.of(billets);
+        }
+    }
+
+    private static final class ArrangementDraft {
+        private String name;
+        private final String[] templateIds;
+
+        private ArrangementDraft(String name, String[] templateIds) {
+            this.name = name;
+            this.templateIds = Arrays.copyOf(templateIds, templateIds.length);
+        }
+
+        private static ArrangementDraft from(SquadArrangement arrangement) {
+            return new ArrangementDraft(arrangement.displayName(),
+                    arrangement.templateIds().toArray(String[]::new));
         }
     }
 

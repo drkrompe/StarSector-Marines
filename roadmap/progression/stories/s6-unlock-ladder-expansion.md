@@ -4,7 +4,7 @@
 > patterns are fully authored and unreachable.
 
 Status: PLANNED — depends on `s5-parts-acquisition-channels.md`,
-`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2C special-equipment
+`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2D special-equipment
 stories.
 Written: 2026-08-22
 Updated: 2026-08-23 — expanded the reachability gate across the split primary and special-equipment stories.
@@ -161,7 +161,7 @@ Where a milestone gate is still the right tool, gate on more than a count:
 - Where parts come from — `s5-parts-acquisition-channels.md`.
 - New gear to unlock — `s2-primary-weapon-catalog-expansion.md`,
   `s2a-anti-materiel-rifle.md`, `s2b-smoke-grenades.md`, and
-  `s2c-satchel-charges.md`.
+  `s2c-satchel-charges.md`, plus `s2d-frag-grenades.md`.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income
