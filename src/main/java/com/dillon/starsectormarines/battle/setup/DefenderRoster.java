@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
@@ -64,8 +65,22 @@ public final class DefenderRoster {
      * presence — driven upstream by whether the target planet's industries
      * produce or demand heavy armaments.
      */
+    /**
+     * Compatibility bridge — prefer the tier-aware overload. Applies the
+     * type's floor, so a CONQUEST reached through a legacy path still gets a
+     * late-game force rather than a beginner-sized one.
+     * See {@code OperationTier.forRisk}.
+     */
     public static DefenderRoster forMission(MissionType type, RiskLevel risk, boolean hasHeavyArmor) {
-        int total = totalFor(type, risk);
+        return forMission(type,
+                OperationTier.clampTo(OperationTier.forRisk(risk),
+                        type != null ? type.tierFloor : null),
+                risk, hasHeavyArmor);
+    }
+
+    public static DefenderRoster forMission(MissionType type, OperationTier tier,
+                                            RiskLevel risk, boolean hasHeavyArmor) {
+        int total = totalFor(type, tier, risk);
         List<MechVariant> mechVariants = mechVariantsFor(type, risk, hasHeavyArmor);
         int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
@@ -77,25 +92,25 @@ public final class DefenderRoster {
         return new DefenderRoster(total, elites, mechVariants, militia, patrolSizeFor(risk), risk);
     }
 
-    private static int totalFor(MissionType type, RiskLevel risk) {
-        switch (type) {
-            case ASSAULT:
-                switch (risk) { case LOW: return 16; case MEDIUM: return 50;  case HIGH: return 120; }
-                break;
-            case SABOTAGE:
-                switch (risk) { case LOW: return 12; case MEDIUM: return 30;  case HIGH: return 70;  }
-                break;
-            case RAID:
-                switch (risk) { case LOW: return 14; case MEDIUM: return 38;  case HIGH: return 90;  }
-                break;
-            case EXTRACTION:
-                switch (risk) { case LOW: return 14; case MEDIUM: return 42;  case HIGH: return 100; }
-                break;
-            case CONQUEST:
-                switch (risk) { case LOW: return 36; case MEDIUM: return 120; case HIGH: return 320; }
-                break;
-        }
-        return 12;
+    /** Smallest defending force worth generating — below this a battle has no shape. */
+    private static final int MINIMUM_DEFENDERS = 8;
+
+    /**
+     * Defenders for an operation: the tier's curve, weighted by what the
+     * mission type is, nudged by risk.
+     *
+     * <p>Replaces fifteen hand-written numbers indexed by (type, risk). Those
+     * encoded tier <em>inside</em> type — CONQUEST/HIGH's 320 was the top of
+     * the ladder while ASSAULT/HIGH's 120 was mid — so no type but CONQUEST
+     * could reach late-game size and CONQUEST could not avoid being offered
+     * at beginner size. Tier now says how big and type says what shape.
+     */
+    static int totalFor(MissionType type, OperationTier tier, RiskLevel risk) {
+        OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
+        float weight = type != null ? type.defenderWeight : 0.6f;
+        float variance = risk != null ? risk.forceMult : 1f;
+        return Math.max(MINIMUM_DEFENDERS,
+                Math.round(resolved.defenderBase * weight * variance));
     }
 
     private static float eliteRatioFor(RiskLevel risk) {

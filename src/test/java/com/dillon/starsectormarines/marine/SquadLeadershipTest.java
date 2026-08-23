@@ -163,10 +163,29 @@ class SquadLeadershipTest {
 
         MarineSoldier leader = roster.squadLeader(squad);
         assertNotNull(leader);
-        assertEquals(0, squad.teamIndexOf(leader.id()));
 
-        MarineSoldier second = roster.soldierById(squad.teamMembers(1).get(0));
-        assertEquals(EnlistedRank.LANCE_CORPORAL, second.enlistedRank());
+        // Five green marines tie on rank and experience, so which one holds
+        // the badge comes down to the id tiebreak — stable inside a roster,
+        // arbitrary across them. Asserting a *specific* billet leads was a
+        // one-in-five coin flip and is not what this test is about. What must
+        // hold is the shape: the manned teams each have a leader and the
+        // empty one has nobody.
+        int leaderTeam = squad.teamIndexOf(leader.id());
+        assertTrue(leaderTeam == 0 || leaderTeam == 1,
+                "the leader comes from a manned team, not the empty third");
+
+        // Count, do not index: which member of a team wins its lance-corporal
+        // billet is the same id tiebreak, so "team 0 slot 0 is the NCO" is a
+        // coin flip whenever that team has more than one marine in it.
+        int otherTeam = leaderTeam == 0 ? 1 : 0;
+        int lanceCorporals = 0;
+        for (String memberId : squad.teamMembers(otherTeam)) {
+            if (roster.soldierById(memberId).enlistedRank() == EnlistedRank.LANCE_CORPORAL) {
+                lanceCorporals++;
+            }
+        }
+        assertEquals(1, lanceCorporals,
+                "the manned team the leader is not in gets exactly one team leader");
         assertTrue(squad.teamMembers(2).isEmpty());
     }
 
