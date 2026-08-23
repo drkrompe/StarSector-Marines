@@ -1,7 +1,13 @@
 # S7 — Forward Operating Base (spoils-tier capstone)
 
+Status: DEFERRED — blocked on S6, spoils-tier acquisition, and conquest territory state.
+
+Written: 2026-05-29
+
+Updated: 2026-08-23 — normalized as the capstone of the open drop-geography line.
+
 > Design-forward stub. The capstone of the reach loop — the player *establishes*
-> a forward LZ rather than finding one.
+> a forward LZ rather than finding one. Read `command-powers-nouns.md` first.
 
 ## Goal
 
@@ -24,8 +30,8 @@ the push.
 
 - Lore-sourced from the survey's Forward-Operating-Base family: Mora
   "buried-hull power station", the "Ilmari" mobile fabricator. These are
-  **spoils-tier** acquisitions (overview § "How powers enter the roster" tier
-  2), so this lands after the spoils-tier roster work exists.
+  **spoils-tier** acquisitions, so this lands after the spoils-tier roster work
+  exists. See `ship-hullmod-survey.md` for the source evidence.
 
 ## Dependencies
 

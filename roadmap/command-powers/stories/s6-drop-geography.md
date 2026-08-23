@@ -1,8 +1,13 @@
 # S6 — Drop geography: dynamic LZs + air defence
 
+Status: DEFERRED — blocked on real-air promotion and the fog/conquest/LZ state seams.
+
+Written: 2026-05-29
+
+Updated: 2026-08-23 — separated from the shipped safe-near-target insertion behavior.
+
 > Design-forward stub. Turns the LZ into the limited/incentivized player choice
-> the playtest feedback asked for. Full design in overview § "Landing zones &
-> drop geography".
+> the playtest feedback asked for. Read `command-powers-nouns.md` first.
 
 ## Goal
 
@@ -20,7 +25,7 @@ unlocked by advancing. Establish the reach loop:
   craft / fighters** (nimble, can punch a hot LZ, deliver less, risk crew).
 - LZ unlock as territory is cleared / AA neutralized.
 - Per-drop risk/reward dial reusing the manned-vs-automated + CR/crew cost
-  model (overview § cost layers, § counterplay).
+  model described by the command-power commitment boundary.
 
 **Out:**
 - Forward operating base (S7).
