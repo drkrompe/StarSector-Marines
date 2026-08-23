@@ -135,9 +135,12 @@ universe over time, not retrofitted into intel slots.
   cannon muzzle/impact lighting and particles, vanilla explosion/ring art,
   structural damage, decals, and positional audio. Bulwark's racks are exposed
   above the hull and its chainguns are narrower. Production defender rosters
-  now scale deterministically by risk (`1ef74f23`): LOW has no mechs, MEDIUM
-  introduces one Bulwark, and HIGH fields budget-preserving mixed
-  Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
+  propose deterministic mech groups by risk (`1ef74f23`): LOW has none, MEDIUM
+  proposes one Bulwark, and HIGH proposes budget-preserving mixed
+  Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
+  the combined player/allied attack cannot support, keeping small Raids
+  playable without making mechs categorically late-game. Hound's ASSAULT
+  doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
   six-cell open-ground slots, compress toward a 2.5-cell floor with terrain,
