@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +46,12 @@ public final class ReinforceContact implements Goal {
     static final float FRIENDLY_SEARCH_RADIUS = 25f;
     /** Spiral search radius when snapping a waypoint to a walkable cell. */
     static final int WALKABLE_SNAP_RADIUS = 5;
+    /** Reject a nominal flank that requires routing around a large structure to reach it. */
+    static final float MAX_FLANK_DETOUR_RATIO = 1.75f;
+    /** Small fixed allowance keeps short routes around a corner from being rejected. */
+    static final int MAX_FLANK_DETOUR_SLACK = 4;
+    /** Absolute dogleg allowance; prevents a farther candidate gaming the ratio denominator. */
+    static final int MAX_FLANK_EXTRA_STEPS = 8;
 
     private ReinforceContact() {}
 
@@ -119,7 +127,7 @@ public final class ReinforceContact implements Goal {
         int rawX = (int) Math.floor(contactCX + perpX * FLANK_RADIUS);
         int rawY = (int) Math.floor(contactCY + perpY * FLANK_RADIUS);
 
-        return snapToWalkable(rawX, rawY, sim.getGrid(), contactX, contactY);
+        return snapToReachable(rawX, rawY, squad, sim);
     }
 
     private static Squad findEngagedFriendlyNearContact(Squad self, BattleView sim) {
@@ -158,5 +166,71 @@ public final class ReinforceContact implements Goal {
             }
         }
         return new int[]{fallbackX, fallbackY};
+    }
+
+    /**
+     * Selects the closest practical flank cell, not merely the first open
+     * tile. Structure walls can make two adjacent-looking cells belong to
+     * very different routes; every candidate therefore needs an A* route
+     * from a live squad member and that route must not be an extreme detour.
+     * When the building cannot support a flank, returning the squad's own
+     * cell makes {@link FlankApproach} complete and hand control back to the
+     * ordinary engagement planner instead of orbiting the structure.
+     */
+    static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
+        NavigationGrid grid = sim.getGrid();
+        int[] origin = squadOrigin(squad, sim);
+        int bestX = origin[0];
+        int bestY = origin[1];
+        float bestScore = Float.MAX_VALUE;
+        for (int r = 0; r <= WALKABLE_SNAP_RADIUS; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (r > 0 && Math.abs(dx) != r && Math.abs(dy) != r) continue;
+                    int candidateX = x + dx;
+                    int candidateY = y + dy;
+                    if (!grid.inBounds(candidateX, candidateY)
+                            || !grid.isWalkable(candidateX, candidateY)
+                            || grid.isDoorway(candidateX, candidateY)) continue;
+                    int[] path = GridPathfinder.findPath(grid,
+                            origin[0], origin[1], candidateX, candidateY);
+                    if (Paths.isEmpty(path)) continue;
+                    int routeSteps = Math.max(0, Paths.cellCount(path) - 1);
+                    int directSteps = Math.max(
+                            Math.abs(candidateX - origin[0]),
+                            Math.abs(candidateY - origin[1]));
+                    if (routeSteps > directSteps * MAX_FLANK_DETOUR_RATIO
+                            + MAX_FLANK_DETOUR_SLACK
+                            || routeSteps - directSteps > MAX_FLANK_EXTRA_STEPS) continue;
+                    float rawDistance2 = dx * dx + dy * dy;
+                    float score = rawDistance2 * 1000f + routeSteps;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestX = candidateX;
+                        bestY = candidateY;
+                    }
+                }
+            }
+        }
+        return new int[]{bestX, bestY};
+    }
+
+    private static int[] squadOrigin(Squad squad, BattleView sim) {
+        long leader = sim.resolveUnit(squad.leaderId);
+        if (leader != 0L) {
+            return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
+        }
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long member = sim.liveUnitAt(i);
+            if (sim.squad().hasSquad(member)
+                    && sim.squad().squadId(member) == squad.id) {
+                return new int[]{sim.world().cellX(member), sim.world().cellY(member)};
+            }
+        }
+        int x = Math.max(0, Math.min(sim.getGrid().getWidth() - 1,
+                (int) Math.floor(squad.centroidX)));
+        int y = Math.max(0, Math.min(sim.getGrid().getHeight() - 1,
+                (int) Math.floor(squad.centroidY)));
+        return new int[]{x, y};
     }
 }

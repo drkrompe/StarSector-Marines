@@ -203,7 +203,11 @@ universe over time, not retrofitted into intel slots.
   campaign billets survive the deployment seam, generated squads receive the
   same stable four-person partition, infantry advances in team-local shapes
   across a shallow squad arc, one team bounds while its siblings cover, and
-  fix-and-flank keeps a team on axis while another maneuvers. The settled
+  fix-and-flank keeps a team on axis while another maneuvers. Team spacing and
+  squad-arc anchors now release before doorways and narrow runs, allowing a
+  natural pathing queue and automatic reformation beyond the constraint;
+  unreachable or structurally indirect flank positions fall back to ordinary
+  engagement. The settled
   decisions: a card is one officer's command, so the rank ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in
   three four-marine fire teams**, because progression S1's shipped 9x
