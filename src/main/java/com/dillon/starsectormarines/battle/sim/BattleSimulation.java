@@ -242,7 +242,7 @@ public class BattleSimulation implements BattleControl {
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
 
-    /** Reinforcement data owner — trigger registry + means provider list + request queue. Mission setup registers triggers/means. Full design: {@code roadmap/reinforcement/architecture.md}. */
+    /** Reinforcement data owner — trigger registry + means provider list + request queue. Mission setup registers triggers/means. Full design: {@code reinforcement-nouns.md}. */
     private final ReinforcementService reinforcement = new ReinforcementService();
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
     private final ReinforcementSystem reinforcementSystem =

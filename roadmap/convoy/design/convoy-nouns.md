@@ -118,10 +118,10 @@ circulation, validation, preview/debug information, and rally/approach
 selection still use it. Only its former role as the sole vehicle router is
 retired. `[[road_graph_design]]` remains the durable generator rationale.
 
-Convoy meets `architecture.md` at the reinforcement-means boundary,
-`central-keep.md` at ARMORY-driven defender supply, and `faction-roster.md` at
-passenger composition. The air domain remains the delivery counterpart, while
-the future air-to-ground interaction depends on a real vehicle damage model.
+Convoy meets `reinforcement-nouns.md` at the orchestration, supply-gate, and
+faction-roster boundary, and `central-keep.md` at compound capture ownership.
+The air domain remains the delivery counterpart, while the future air-to-ground
+interaction depends on a real vehicle damage model.
 
 Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,

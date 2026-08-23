@@ -7,8 +7,8 @@ import java.util.List;
 
 /**
  * Data owner for "adding more to the fight" — the trigger registry, the
- * priority-ordered means provider list, and the pending request queue. Full
- * design in {@code roadmap/reinforcement/architecture.md}.
+ * priority-ordered means provider list, and the pending request queue. See
+ * {@code reinforcement-nouns.md}.
  *
  * <p>A <b>Service</b> (data owner): it holds the registries + queue and exposes
  * the read/mutate methods for them; the per-tick poll-and-dispatch driver lives
@@ -40,8 +40,8 @@ public final class ReinforcementService {
     /**
      * Register a means provider. Order matters — providers are tried in
      * insertion order on each request; first {@link ReinforcementMeans#canFulfill}
-     * wins. Register cheap / readable means first (convoy > shuttle > walk-in
-     * is the planned order; walk-in is the always-feasible floor).
+     * wins. Production registers the readable defender ladder as convoy,
+     * shuttle, then walk-in; supply loss or map feasibility may force fallback.
      */
     public void addMeans(ReinforcementMeans m) { means.add(m); }
 

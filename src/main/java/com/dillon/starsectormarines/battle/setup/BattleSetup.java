@@ -1158,13 +1158,15 @@ public final class BattleSetup {
      *   <li>{@link ShuttleMeans} — air-drop; needs a walkable LZ within
      *       8 cells of the rally. Reuses the existing {@code AirSystem}
      *       state machine.</li>
-     *   <li>{@link WalkInMeans} — always-feasible floor; spawns infantry
-     *       on the side-appropriate perimeter and pulls them toward the
-     *       rally via {@code assignedNode}.</li>
+     *   <li>{@link WalkInMeans} — lowest eligible defender means; requires a
+     *       held BARRACKS, then spawns infantry on the side-appropriate
+     *       perimeter and pulls them toward the rally via
+     *       {@code assignedNode}.</li>
      * </ul>
      * Non-Conquest maps register the same means set and self-gate harmlessly
-     * (no compounds → no garrison fires; no road graph → convoy yields to
-     * shuttle; no LZ → shuttle yields to walk-in). Replaces the prior
+     * (no compounds → no trigger or means supply; no road graph → convoy
+     * yields; no LZ → shuttle yields; a held BARRACKS enables walk-in).
+     * Replaces the prior
      * {@link #maybeSpawnDebugConvoy} debug-spawn path.
      *
      * @param axis traversal axis for the map; nullable on non-Conquest paths

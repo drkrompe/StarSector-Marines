@@ -29,10 +29,9 @@ import org.apache.log4j.Logger;
  * with no LZ within {@link #LZ_SCAN_RADIUS} cells of the rally yields to
  * walk-in.
  *
- * <p>Narrative read: shuttle reinforcement is an "elite strike team"
- * deploying via aircraft. Deboarded units inherit the {@code UnitType.MARINE}
- * stats baked into {@code AirSystem.tryDeboardMarine} — costlier delivery,
- * better troops than the {@link WalkInMeans} militia floor.
+ * <p>Narrative read: shuttle reinforcement is an elite strike team deploying
+ * via aircraft. It explicitly selects the requesting faction's elite roster
+ * tier, while {@link WalkInMeans} selects bulk infantry.
  */
 public final class ShuttleMeans implements ReinforcementMeans {
 
@@ -108,7 +107,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
-        // infantry slot — see roadmap/reinforcement/faction-roster.md.
+        // infantry slot — see reinforcement-nouns.md.
         mission.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
         // No marineLoadout / no turret kit — AirSystem deboards plain COMBATANT
         // units and the null assignedRole skips HOVER_STATION (shuttle drops,

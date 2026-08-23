@@ -4,14 +4,13 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
 /**
- * A way to deliver reinforcements to a battle. The {@link ReinforcementService}
- * iterates registered means in priority order on each request; first one to
+ * A way to deliver reinforcements to a battle. The {@link ReinforcementSystem}
+ * iterates registered means in priority order on each request; the first one to
  * return {@code canFulfill = true} wins and {@link #dispatch}es.
  *
- * <p>Planned v1 set: {@code ConvoyMeans} (road graph + truck),
- * {@code ShuttleMeans} (existing air infra, ported), {@code WalkInMeans}
- * (perimeter spawn + walk to rally). Convoy is the only one wired today;
- * walk-in becomes the always-feasible floor once it lands.
+ * <p>The production defender ladder is {@link ConvoyMeans},
+ * {@link ShuttleMeans}, then {@link WalkInMeans}. Each is supply- and
+ * map-feasibility-gated; see {@code reinforcement-nouns.md}.
  */
 public interface ReinforcementMeans {
 
@@ -24,9 +23,8 @@ public interface ReinforcementMeans {
     boolean canFulfill(BattleView sim, ReinforcementRequest req);
 
     /**
-     * Spawn the actual units. May post {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission},
-     * {@code Shuttle}, or {@code Squad}/{@code Entity} into the sim's normal
-     * lists. Called only after {@link #canFulfill} returns {@code true}.
+     * Spawn ordinary vehicle, air, or squad actors through their native battle
+     * lifecycle. Called only after {@link #canFulfill} returns {@code true}.
      */
     void dispatch(BattleControl sim, ReinforcementRequest req);
 }

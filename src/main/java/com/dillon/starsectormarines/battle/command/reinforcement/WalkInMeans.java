@@ -48,7 +48,7 @@ public final class WalkInMeans implements ReinforcementMeans {
 
     /**
      * Squad size for {@link ReinforcementRequest.Strength#SMALL}. Matches the
-     * strength scaling table in {@code roadmap/reinforcement/architecture.md}
+     * strength scaling contract in {@code reinforcement-strength-scaling.md}
      * (1 squad = 3 infantry); MEDIUM/LARGE will scale to multiple squads in
      * a later slice.
      */

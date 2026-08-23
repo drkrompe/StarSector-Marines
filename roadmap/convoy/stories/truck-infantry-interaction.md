@@ -27,8 +27,8 @@ dodge" and add the squash variant later.
 ## Notes
 
 - The deboard loadout already routes through the per-faction roster described by
-  `convoy-nouns.md`, so squashed/ejected militia would draw from the same
-  lookup. See `faction-roster.md`.
+  `reinforcement-nouns.md`, so squashed/ejected militia would draw from the same
+  lookup.
 - Predictive avoidance leans on the GOAP re-plan triggers described by the AI
   feature — a truck's projected
   occupancy is a new world-state input rather than a bespoke dodge

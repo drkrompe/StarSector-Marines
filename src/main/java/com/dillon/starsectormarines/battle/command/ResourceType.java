@@ -6,7 +6,7 @@ package com.dillon.starsectormarines.battle.command;
  * compound kind and consumed by its corresponding dispatch system.
  */
 public enum ResourceType {
-    /** Spent by {@link com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService} to dispatch a convoy or shuttle. Produced by alive ARMORYs. */
+    /** Spent by the reinforcement dispatcher for any ordinary means. Produced by held ARMORYs. */
     REINFORCEMENT,
     /** Reserved for future air-strike dispatch. Produced by alive COMMAND_POSTs. */
     AIRSTRIKE
