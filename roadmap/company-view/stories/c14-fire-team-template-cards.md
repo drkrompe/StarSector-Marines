@@ -10,6 +10,9 @@
 **Written:** 2026-08-23
 **Updated:** 2026-08-23 — Built-in card assignment now ships end to end on the Fleet Armory.
 
+Read `company-view-nouns.md` first; it owns the standing organization and
+equipment-authority model this story extends.
+
 ## Decision
 
 The **fire team is the Fleet Armory's routine equipment unit**. The squad

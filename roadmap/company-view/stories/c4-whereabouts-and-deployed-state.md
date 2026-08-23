@@ -3,8 +3,13 @@
 > The game already knows a squad is garrisoned three systems away for
 > another forty days. No screen says so.
 
-**Status:** not started. Depends on [C2](c2-formation-model.md),
-[C3](c3-company-card-stack.md).
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on `c2-formation-model.md` and `c3-company-card-stack.md`.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Problem
 
@@ -61,15 +66,15 @@ squad chip is a rollup, not a replacement for it.
   books) from *available strength* (deployable right now). The gap between
   those two numbers is the interesting one and currently has no display.
 
-### The non-mission entry point — moved to C10 (`c10-company-between-contracts.md`)
+### The non-mission entry point — already shipped
 
 This was originally contracted here as a company/personnel route *inside*
 Marine Ops. That only delivers "readable without accepting a mission" — the
 planet interaction is still required to reach it, so the problem statement
 above stays half-answered.
 
-C10 (`c10-company-between-contracts.md`) owns it instead: a campaign-map
-ability-bar button opening the planet-free host G32
+The campaign-map-home law in `company-view-nouns.md` owns it instead: an
+ability-bar button opens the planet-free host G32
 (`g32-player-event-popup.md`) shipped,
 on a `COMPANY_HQ` screen whose company pane is where C3's stack and this
 story's chips land. C4 keeps the whereabouts model and the chips; the entry
@@ -81,8 +86,8 @@ point is not its work.
    the stationing contract lookup and the recovery rollup.
 2. **Chips on the card.** Render state, block selection with a reason,
    split strength vs. available in the band.
-3. ~~**Standalone entry.**~~ Moved to C10
-   (`c10-company-between-contracts.md`); C4 is slices 1-2.
+3. ~~**Standalone entry.**~~ Folded into `company-view-nouns.md`; C4 is
+   slices 1–2.
 
 ## Acceptance
 
@@ -92,8 +97,8 @@ point is not its work.
   *with a return day*, not as an empty row.
 - Selection blocking always states a reason (command limit, stationed,
   no deployable members).
-- Opening the company view between contracts — through C10
-  (`c10-company-between-contracts.md`)'s campaign-map entry — shows the
+- Opening the company view between contracts through the shipped campaign-map
+  entry shows the
   same stack with the briefing-only affordances (seat counts, selection)
   absent or inert.
 - Replay-safe: the view reads state, never writes it. No contract or
@@ -108,7 +113,7 @@ point is not its work.
 ## Out of scope
 
 - Changing stationing mechanics, terms, or the incident payloads
-  ([`campaign/contracts/`](../../campaign/contracts/) owns those, and
+  (`campaign/contracts/` owns those, and
   G31/G32 are actively reshaping them — read that track's `next-session.md`
   before touching the term/deadline fields).
 - Recalling a stationed team from this screen. That is a mutation with real

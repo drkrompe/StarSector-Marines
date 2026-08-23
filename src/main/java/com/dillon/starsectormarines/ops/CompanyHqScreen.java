@@ -25,8 +25,7 @@ import java.util.List;
  * {@link CompanyViewAbility}, not from a planet.
  *
  * <p>Three columns, ordered by what the player came for: standing, the clocks running
- * against them, and the company itself. Standing and the clocks are populated; the
- * roster column is reserved space (slice 4). See {@code c10-company-between-contracts.md}.
+ * against them, and the company itself. See {@code company-view-nouns.md}.
  *
  * <p>Unlike every other {@link Screen} here, this one runs with a null
  * {@code ctx.planet} and no market. It must therefore read nothing off the context but
@@ -218,7 +217,7 @@ public final class CompanyHqScreen implements Screen {
             y = buildClockRow(entries.get(i), day, x, y);
         }
         if (entries.size() > shown) {
-            // Design commitment 9: the off-screen count is always stated.
+            // Truncation must remain explicit: always state the off-screen count.
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     MessageFormat.format(Strings.get("companyHqClocksMore"),
                             entries.size() - shown), x, y, MUTED));
