@@ -44,7 +44,7 @@ public enum BlockKind {
      * dense {@link #DENSE_BLOCK} CQB and the cover-rich {@link #INDUSTRIAL_YARD}.
      *
      * <p>Filled by {@code SpaceportFiller}; lives in the {@code HARBOR_PORT}
-     * theme. See {@code roadmap/economic-districts/overview.md}.
+     * theme. The economic-districts feature owns the remaining terrain types.
      */
     SPACEPORT_PAD,
 

@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — made fire-team template cards the Fleet Armory's equipment-authoring tier.
+Updated: 2026-08-23 — added player-authored cards and immutable card revisions.
 
 ## Purpose
 
@@ -105,10 +105,13 @@ Recon, and mixed Fire Support cards, and the LOADOUTS surface exposes
 Alpha/Bravo/Charlie plus each assigned card.
 
 Cards are reusable but equipment is finite. Design itself must not be gated by
-stock; the planned designer may save an unfieldable card, while assignment is
-allowed only when the armory can supply it. Editing a card must never silently
-refit every fielded team: a changed design becomes a pending revision or a new
-card, followed by an explicit inventory transaction. Fast card swaps,
+stock; the designer may save an unfieldable card, while assignment is allowed
+only when the armory can supply it. Built-in cards are immutable library
+fixtures and may be cloned. Player-authored cards have stable persisted ids;
+their names are metadata and may change in place, while changing billet issue
+is saved as a new card revision. Assigned teams therefore retain both their old
+card id and materialized issue until an explicit refit succeeds. A custom card
+cannot be deleted while any team still references it. Fast card swaps,
 three-card squad arrangements, conformance, and retirement of routine
 per-marine mutation remain in `c14-fire-team-template-cards.md`.
 

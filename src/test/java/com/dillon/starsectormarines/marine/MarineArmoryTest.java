@@ -5,6 +5,10 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -203,6 +207,96 @@ class MarineArmoryTest {
     }
 
     @Test
+    void customCardCanBeDesignedWithoutStockAndKeepsItsStableIdAcrossSaveLoad()
+            throws Exception {
+        MarineArmory armory = new MarineArmory();
+        assertFalse(armory.isPrimaryUnlocked(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
+        assertFalse(armory.isArmorUnlocked(MarineArmorPattern.RED_ELITE));
+
+        FireTeamTemplateCard card = armory.createTemplateCard("Aspirational Hunters",
+                List.of(
+                        billet("Leader", MarineWeapon.DMR, EquipmentGrade.MASTERWORK,
+                                MarineSecondary.ROCKET_LAUNCHER, MarineArmorPattern.RED_ELITE),
+                        billet("Hunter", MarineWeapon.DMR, EquipmentGrade.MASTERWORK,
+                                null, MarineArmorPattern.RED_ELITE),
+                        billet("Hunter", MarineWeapon.DMR, EquipmentGrade.MASTERWORK,
+                                null, MarineArmorPattern.RED_ELITE),
+                        billet("Hunter", MarineWeapon.DMR, EquipmentGrade.MASTERWORK,
+                                null, MarineArmorPattern.RED_ELITE)));
+
+        MarineArmory loaded = roundTrip(armory);
+        FireTeamTemplateCard persisted = loaded.templateCardById(card.id());
+        assertNotNull(persisted);
+        assertEquals("Aspirational Hunters", persisted.displayName());
+        assertEquals(MarineWeapon.DMR, persisted.billet(0).primary());
+        assertEquals(EquipmentGrade.MASTERWORK, persisted.billet(0).grade());
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER, persisted.billet(0).secondary());
+        assertEquals(MarineArmorPattern.RED_ELITE, persisted.billet(0).armor());
+        assertEquals(5, loaded.templateCards().size(),
+                "readResolve restores missing starters without duplicating existing ones");
+    }
+
+    @Test
+    void builtInsAreImmutableButCanBeClonedAndRenamed() {
+        MarineArmory armory = new MarineArmory();
+        assertFalse(armory.renameTemplateCard(FireTeamTemplateCards.RECON_ID, "Sneaky"));
+
+        FireTeamTemplateCard clone = armory.cloneTemplateCard(FireTeamTemplateCards.RECON_ID);
+        assertNotNull(clone);
+        assertFalse(FireTeamTemplateCards.isStarterId(clone.id()));
+        assertTrue(armory.renameTemplateCard(clone.id(), "Pathfinders"));
+        assertEquals("Pathfinders", armory.templateCardById(clone.id()).displayName());
+        assertEquals(FireTeamTemplateCards.RECON_ID,
+                armory.templateCardById(FireTeamTemplateCards.RECON_ID).id());
+    }
+
+    @Test
+    void newRevisionDoesNotRewriteAssignedCardAndAssignedCardCannotBeDeleted() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+        MarineArmory armory = roster.armory();
+        FireTeamTemplateCard original = armory.cloneTemplateCard(FireTeamTemplateCards.FIELD_ID);
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 0, original.id()));
+
+        FireTeamTemplateCard revision = armory.createTemplateCard("Field Mk II",
+                List.of(
+                        billet("Leader", MarineWeapon.DMR, EquipmentGrade.MASTERWORK,
+                                null, MarineArmorPattern.RED_ELITE),
+                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                                null, MarineArmorPattern.ARMORLESS),
+                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                                null, MarineArmorPattern.ARMORLESS),
+                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                                null, MarineArmorPattern.ARMORLESS)));
+
+        assertEquals(original.id(), squad.teamTemplateCardId(0));
+        assertEquals(MarineWeapon.FIELD_RIFLE,
+                roster.soldierById(squad.teamMembers(0).get(0)).primary());
+        assertFalse(roster.deleteFireTeamTemplate(original.id()));
+        assertTrue(roster.deleteFireTeamTemplate(revision.id()));
+    }
+
+    @Test
+    void customCardRequiresExactlyFourCompleteBillets() {
+        MarineArmory armory = new MarineArmory();
+        List<FireTeamBillet> three = List.of(
+                billet("One", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                        null, MarineArmorPattern.ARMORLESS),
+                billet("Two", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                        null, MarineArmorPattern.ARMORLESS),
+                billet("Three", MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE,
+                        null, MarineArmorPattern.ARMORLESS));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> armory.createTemplateCard("Too Small", three));
+        assertThrows(IllegalArgumentException.class,
+                () -> armory.createTemplateCard("   ",
+                        FireTeamTemplateCards.starterCards().get(0).billets()));
+    }
+
+    @Test
     void woundedPersonnelContinueHoldingTheirAllocatedGear() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(4);
@@ -218,5 +312,23 @@ class MarineArmoryTest {
 
         assertFalse(roster.allocatePrimary(roster.soldiers().get(3).id(),
                 MarineWeapon.DMR, EquipmentGrade.SERVICE));
+    }
+
+    private static FireTeamBillet billet(String name, MarineWeapon primary,
+                                          EquipmentGrade grade, MarineSecondary secondary,
+                                          MarineArmorPattern armor) {
+        return new FireTeamBillet(name, primary, grade, secondary, armor);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T roundTrip(T value) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(value);
+        }
+        try (ObjectInputStream in = new ObjectInputStream(
+                new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (T) in.readObject();
+        }
     }
 }

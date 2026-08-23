@@ -6,9 +6,9 @@
 > design a four-billet card once, then assign it wherever the company owns a
 > complete kit.
 
-**Status:** IN PROGRESS — Slice 1 shipped; Slice 2 next
+**Status:** IN PROGRESS — Slices 1–2 shipped; Slice 3 next
 **Written:** 2026-08-23
-**Updated:** 2026-08-23 — Built-in card assignment now ships end to end on the Fleet Armory.
+**Updated:** 2026-08-23 — Player-authored card design now ships; availability and fast swap are next.
 
 Read `company-view-nouns.md` first; it owns the standing organization and
 equipment-authority model this story extends.
@@ -88,9 +88,11 @@ surface once the designer replaces it.
    three teams and starter cards on the existing LOADOUTS surface. This is the
    compatibility slice: per-marine kit remains the battle-facing materialized
    state.
-2. **Loadout designer.** Create, clone, rename and edit player-authored cards.
-   Saving is legal without stock. Validate exactly four complete billets and
-   preserve stable card ids across save/load.
+2. ~~**Loadout designer.**~~ **Shipped 2026-08-23.** Create, clone, rename and edit
+   player-authored cards. Saving is legal without stock. Validate exactly four
+   complete billets and preserve stable card ids across save/load. Built-ins
+   clone into custom cards; billet changes save as a new revision so assigned
+   teams retain their prior intent and issue.
 3. **Availability and fast swap.** Preview returned/required/free gear, show
    `fielded` and `ready to issue` counts, and support card-to-team drag/drop or
    an equivalent one-action assignment. A swap between two teams is evaluated
@@ -118,6 +120,20 @@ surface once the designer replaces it.
   Fleet Armory names that card beside Alpha, Bravo or Charlie.
 - Existing deployment freezes still read `MarineSoldier` equipment exactly as
   before; this slice changes no battle-tier contract.
+
+## Slice 2 acceptance
+
+- The Fleet Armory exposes a distinct Card Designer with a paged library and
+  exactly four editable billet rows.
+- Each billet authors its role label, primary, grade, armour and optional
+  secondary from the full catalog, regardless of unlock or stock state.
+- New and cloned cards receive stable persisted custom ids; built-in cards
+  cannot be renamed or deleted.
+- Renaming a custom card changes metadata only. Saving changed billet issue
+  creates a new card id and leaves every assigned team on its prior revision.
+- A custom card referenced by any squad team cannot be deleted.
+- The LOADOUTS card picker pages through libraries larger than the four starter
+  cards.
 
 ## Boundaries
 

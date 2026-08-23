@@ -207,4 +207,5 @@ class MissionBuilderTest {
                 "event fields collapse without an event id");
         assertEquals(-1L, noEvent.campaignEventThreatSeed);
     }
+
 }
