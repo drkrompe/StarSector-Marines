@@ -117,7 +117,8 @@ public final class MissionResolver {
      * victorious contract mission. ~8% of an industry — a seeded plurality is
      * ~110/255, so a backed patron flips one over a handful of strikes, while
      * autonomous drift would take many months (the decisive-accelerant principle,
-     * {@code living-world/overview.md}). Tier-scaling (T2/T3 move more) is a later
+     * {@code roadmap/campaign/living-world/design/living-world-nouns.md}).
+     * Tier-scaling (T2/T3 move more) is a later
      * refinement.
      */
     private static final int CONTRACT_STAKE_SEIZE = 20;
@@ -753,8 +754,9 @@ public final class MissionResolver {
      * Writes a victorious mission's result into the political simulation: the
      * patron accrues promotion progress; territorial contract types also seize a
      * slice of the struck industry from the target. This is the Slice-B impact-ladder rung
-     * ({@code living-world/overview.md}) — the first time player ops leave a
-     * *permanent* mark on the houses graph rather than just on contract state.
+     * ({@code roadmap/campaign/living-world/design/living-world-nouns.md}) — the first
+     * time player ops leave a *permanent* mark on the houses graph rather than just
+     * on contract state.
      *
      * <p>The contested ground is the <em>target's</em> market + the struck
      * industry: patron and target are picked sector-wide by {@code ContractGenerator}

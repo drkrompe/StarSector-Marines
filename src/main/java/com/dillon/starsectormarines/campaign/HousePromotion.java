@@ -12,7 +12,8 @@ import org.apache.log4j.Logger;
  * <p>The single primitive every promotion-driving caller routes through: the
  * player path (a backed patron's mission victories bump progress, via
  * {@code MissionResolver}) and the autonomous {@code AutonomousPromotionSystem}
- * to come ({@code living-world/overview.md} Slice C). One implementation means
+ * described by
+ * {@code roadmap/campaign/living-world/design/living-world-nouns.md}. One implementation means
  * the player-fast / autonomous-glacial distinction lives purely in the *delta*
  * each caller passes — the threshold-crossing + cascade logic is shared.
  *

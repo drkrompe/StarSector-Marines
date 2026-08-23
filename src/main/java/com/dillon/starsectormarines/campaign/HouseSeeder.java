@@ -24,7 +24,8 @@ import java.util.Set;
  * <p>Multiple houses per market is load-bearing: the political layer is
  * house-vs-house on a shared industry ("House Drennar's stake transferred to
  * House Korvath"), which is unseedable with a single house per market. See
- * {@code roadmap/campaign/living-world/overview.md} §Genesis.
+ * {@code roadmap/campaign/living-world/design/living-world-nouns.md} for the
+ * political-board ownership law.
  *
  * <p>Stakes are seeded from {@link MarketAPI#getIndustries()}: each industry
  * gets a deterministic dominant house plus (usually) a contender, with an

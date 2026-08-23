@@ -8,9 +8,9 @@ package com.dillon.starsectormarines.campaign;
  *
  * <p>This is the single primitive every stake-moving caller routes through —
  * the player path ({@code MissionResolver}'s contract bridge today) and the
- * autonomous drift / chain loops to come ({@code living-world/overview.md}
- * Slices C–D). Centralising it keeps the conservation + ceiling invariants in
- * one place.
+ * autonomous drift / chain loops described by
+ * {@code roadmap/campaign/living-world/design/living-world-nouns.md}.
+ * Centralising it keeps the conservation + ceiling invariants in one place.
  *
  * <h2>Tombstone-at-zero (stake soft-delete)</h2>
  * Stakes have no {@code status} column, so a depleted stake is represented by
