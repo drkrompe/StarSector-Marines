@@ -138,6 +138,10 @@ public final class Squad {
     private final Map<Long, BelievedContact> contactMemory = new LinkedHashMap<>();
     /** Immutable snapshot published before the parallel planner/read phase. */
     private volatile List<BelievedContact> believedContacts = List.of();
+    /** Immutable belief-derived tactical summary published once per sim tick. */
+    public volatile SquadContactPicture contactPicture = SquadContactPicture.NONE;
+    /** One-tick planner interrupt set when the selected local doctrine changes. */
+    public volatile boolean _contactDoctrineChangedThisTick;
     /** Distinguishes the compatibility projection from an anonymous audio bearing. */
     private boolean lastSeenFromBelief;
     /** Latest localized hostile noise, retained until the squad returns UNAWARE. */
@@ -578,7 +582,8 @@ public final class Squad {
             } else {
                 entry.setValue(new BelievedContact(old.unitId(), old.lastSeenCellX(),
                         old.lastSeenCellY(), old.lastSeenTick(), confidence,
-                        old.source()));
+                        old.source(), old.previousDirectCellX(),
+                        old.previousDirectCellY(), old.previousDirectTick()));
             }
         }
     }
@@ -593,9 +598,14 @@ public final class Squad {
         boolean started = old == null
                 || old.source() != BeliefSource.DIRECT
                 || old.lastSeenTick() < simTick - 1;
-        contactMemory.put(unitId,
-                new BelievedContact(unitId, cellX, cellY, simTick, 1f,
-                        BeliefSource.DIRECT));
+        boolean continuous = old != null
+                && old.source() == BeliefSource.DIRECT
+                && old.lastSeenTick() == simTick - 1;
+        contactMemory.put(unitId, new BelievedContact(unitId, cellX, cellY,
+                simTick, 1f, BeliefSource.DIRECT,
+                continuous ? old.lastSeenCellX() : BelievedContact.NO_PREVIOUS_DIRECT,
+                continuous ? old.lastSeenCellY() : BelievedContact.NO_PREVIOUS_DIRECT,
+                continuous ? old.lastSeenTick() : BelievedContact.NO_PREVIOUS_DIRECT));
         return started;
     }
 

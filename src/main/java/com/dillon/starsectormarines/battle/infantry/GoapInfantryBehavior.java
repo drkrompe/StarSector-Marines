@@ -59,6 +59,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             RoutinePatrol.INSTANCE,
             ReinforceContact.INSTANCE,
             SurviveContact.INSTANCE,
+            DisengageFromContactGoal.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
@@ -224,6 +225,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                            || memberCountChanged
                            || incomingFireStarted
                            || contactStateChanged
+                           || squad._contactDoctrineChangedThisTick
                            || squad._moraleBrokenChangedThisTick;
 
         if (!needsReplan) {
