@@ -4,8 +4,8 @@
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
 commander ("squad of squads") tiers. **Ten stories contracted (C1–C10). One
-slice is shipped — C10 slice 1, the campaign-map entry point (`2b959e44`);
-everything else is design stage.**
+C10 has two slices shipped — the campaign-map entry point (`2b959e44`) and the
+standing pane (`b204c237`); everything else is design stage.**
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -43,12 +43,11 @@ state that is already persisted or already computed, and its third pane is
 the reserved space C3 and C4 later furnish. It also gives
 G32 (`g32-player-event-popup.md`)'s **Hold**
 option somewhere to go — today a deferred event popup dismisses into nothing.
-**Its slice 1 shipped** (`2b959e44`): the ability, the planet-free host, a
-`COMPANY_HQ` stub screen, and `AbilitiesCsvTest`. The spike question it
-existed to answer — does a `TOGGLE` press reach `pressButton()` without
-latching — **is still open**, because it can only be answered in a running
-game. Confirm that before writing slices 2-4 on top of it; the fallbacks are
-`DURATION`, then a `CampaignUIRenderingListener` widget.
+**Slices 1-2 shipped** (`2b959e44`, `b204c237`): the ability, the planet-free host, and a
+standing pane led by runway in months of payroll. The spike question slice 1
+existed to answer is **settled in game**: the ability opens the screen and the
+host dismisses cleanly. Slices 3 (running clocks) and 4 (roster) are next; the
+clocks pane is where G32's **Hold** finally goes.
 
 [C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
 unblocked and is worth doing early: it settles the language and the command
