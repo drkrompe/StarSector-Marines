@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — non-card templates and arrangements ship; the optional special-equipment slot is explicit.
+Updated: 2026-08-23 — the Fleet Armory now also hosts the campaign-authoritative Mech Lab.
 
 ## Purpose
 
@@ -12,7 +12,7 @@ battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
 player-order layer. The Fleet Armory is its deliberate authoring seam: it
 assigns reusable equipment designs to the fire teams the organization already
-contains.
+contains and hosts the Mech Lab for persistent support-squad refits.
 
 This domain owns the shared language and presentation shape of the company. It
 does not own personnel persistence, equipment progression, contract resolution,
@@ -60,6 +60,10 @@ company view composes their stable outputs.
 - **Whereabouts** — a derived statement of a squad's current role: available,
   stationed, recovering or understrength, or part of a live mission snapshot.
   It is not independently persisted.
+- **Mech Lab** — the Fleet Armory workspace over the persistent support squad
+  and finite mech subsystem stock defined by `mechs-nouns.md`. It presents
+  chassis and hardpoints but mutates only inventory authorities that actually
+  exist.
 
 ## Organization and leadership
 
@@ -149,6 +153,22 @@ later cannot rewrite a squad that used it.
 “Card” is not part of this model. Compact tiles or rows may make templates quick
 to scan and assign, but the Fleet Armory has no collectible-card, deck, hand or
 consumption semantics.
+
+## Mech Lab
+
+The Mech Lab mirrors the Armory's squad-first interaction without reusing its
+personnel template model. Campaign mechs retain individual identity inside a
+selected support squad of up to four chassis. The lab shows the whole squad,
+then the selected mech's doctrine, fixed chassis mounts, installed subsystem,
+and fleet subsystem inventory. The current first slice authors missile-
+replenisher installation; chassis and weapon mounts remain visible but read-
+only until acquisition and weapon-component inventories exist.
+
+Subsystem assignment is an atomic inventory transaction. Installed copies
+count against owned quantity and the target's current component returns before
+the candidate is checked. The active squad freezes into plain deployment values
+only when a sourced Mech Support power is resolved, preserving the same rule as
+personnel deployment: campaign objects do not enter battle.
 
 ## Deployment identity
 
@@ -276,8 +296,8 @@ stories will expand.
 ## Presentation boundaries
 
 Company reporting surfaces are read-only explanations. The Fleet Armory is the
-exception that authors personnel organization and equipment through roster and
-armory services; its UI does not mutate those facts independently. Mission
+exception that authors personnel organization and equipment through roster,
+armory, and mech-bay services; its UI does not mutate those facts independently. Mission
 command owns battle assignments; `Selection` remains view state. Campaign
 surfaces consume the live roster, while battle and results surfaces consume the
 frozen deployment. A UI must not silently regroup marines, invent persistence,
@@ -312,6 +332,8 @@ production vehicle deployment seam exists.
 - Fire teams are equipment/AI/lift units, not player command targets.
 - Fire-team templates are reusable designs; every assignment remains bounded by
   finite physical stock.
+- Mech subsystems are finite physical stock; installed copies remain counted,
+  and the Mech Lab cannot create a second inventory authority.
 - A failed template or arrangement assignment changes neither issued equipment
   nor assignment.
 - Per-soldier kit remains the battle-facing materialization until the deployment

@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -56,7 +58,8 @@ public final class DetachmentResolver {
                                      List<FleetMemberAPI> committedPowerSources) {
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, committedShuttles);
         FlybyRoster marineWings = FlybyRoster.combine(m.clientFighterSupport, committedWings);
-        List<CommandPower> powers = PowerCatalog.resolve(committedPowerSources, m);
+        List<CommandPower> powers = PowerCatalog.resolve(
+                committedPowerSources, m, campaignMechDeployment());
         return new Detachment(manifest, marineWings, powers);
     }
 
@@ -76,6 +79,12 @@ public final class DetachmentResolver {
         CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
         if (fleet == null || fleet.getFleetData() == null) return Collections.emptyList();
         return new ArrayList<>(fleet.getFleetData().getMembersListCopy());
+    }
+
+    private static List<MechDeploymentSpec> campaignMechDeployment() {
+        if (Global.getSector() == null) return List.of();
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return script != null ? script.roster().mechBay().activeDeployment() : List.of();
     }
 
     // ---- shuttle manifest (moved verbatim from the briefing screens) ----
