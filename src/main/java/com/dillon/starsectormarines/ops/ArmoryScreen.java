@@ -172,7 +172,7 @@ public final class ArmoryScreen implements Screen {
         }
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Organize fireteams, personnel, command assignments and reserves.",
+                "Organize squads, personnel, command assignments and reserves.",
                 left + 394f, tabY + BUTTON_H - 6f, MUTED));
         float managementTop = top - 112f;
         float managementBottom = position.getY() + PAD + BUTTON_H + 12f;
@@ -321,7 +321,7 @@ public final class ArmoryScreen implements Screen {
         if (selectedSquad != null && !selectedSquad.reserve()) {
             float presetY = position.getY() + 72f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                    "FIRETEAM PRESET", x, presetY + 92f, HEADER));
+                    "SQUAD PRESET", x, presetY + 92f, HEADER));
             int i = 0;
             for (SquadEquipmentPreset preset : SquadEquipmentPreset.values()) {
                 float bx = x + (i % 2) * (width / 2f + 2f);
@@ -949,7 +949,7 @@ public final class ArmoryScreen implements Screen {
 
     private void buildSquadList(float x, float top, float bottom) {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "FIRETEAMS", x, top + 24f, HEADER));
+                "SQUADS", x, top + 24f, HEADER));
         int pageSize = Math.max(3, (int) ((top - bottom - 44f) / SQUAD_ROW_H));
         int pages = Math.max(1, (roster.squads().size() + pageSize - 1) / pageSize);
         squadPage = Math.max(0, Math.min(squadPage, pages - 1));
@@ -992,11 +992,11 @@ public final class ArmoryScreen implements Screen {
         if (squad == null) return;
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                squad.reserve() ? "RESERVE POOL" : "SELECTED FIRETEAM",
+                squad.reserve() ? "RESERVE POOL" : "SELECTED SQUAD",
                 x, top + 24f, HEADER));
         if (!squad.reserve()) {
             renameField = new TextFieldWidget(x, top - 14f, 210f, BUTTON_H,
-                    Fonts.ORBITRON_20, 22, "Fireteam name");
+                    Fonts.ORBITRON_20, 22, "Squad name");
             renameField.setText(squad.name());
             renameField.setOnChange(value -> roster.renameSquad(squad.id(), value));
             widgets.add(renameField);
@@ -1025,8 +1025,8 @@ public final class ArmoryScreen implements Screen {
                     }
                     rebuild();
                 } : null, canRecruit ? GOOD : MUTED);
-        addButton(actionX + 148f, top - 14f, 130f, "New Fireteam", () -> {
-            MarineSquad created = roster.createFireteam();
+        addButton(actionX + 148f, top - 14f, 130f, "New Squad", () -> {
+            MarineSquad created = roster.createSquad();
             selectedSquadId = created.id();
             squadPage = Integer.MAX_VALUE;
             memberPage = 0;
@@ -1036,7 +1036,7 @@ public final class ArmoryScreen implements Screen {
         if (!squad.reserve()) {
             float commandY = top - 52f;
             buildHomeCommand(squad, x, commandY, width);
-
+            buildSquadLeader(squad, x + width * 0.5f, commandY);
         }
 
         float rowTop = top - (squad.reserve() ? 58f : 96f);
@@ -1057,7 +1057,7 @@ public final class ArmoryScreen implements Screen {
         if (members.isEmpty()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     squad.reserve() ? "No marines held in reserve."
-                            : "Empty fireteam — reinforce or transfer personnel here.",
+                            : "Empty squad — reinforce or transfer personnel here.",
                     x, rowY, MUTED));
         }
         if (pages > 1) {
@@ -1074,13 +1074,24 @@ public final class ArmoryScreen implements Screen {
         }
     }
 
+    /** Names the NCO actually leading the squad, beside the officer who commands it. */
+    private void buildSquadLeader(MarineSquad squad, float x, float y) {
+        MarineSoldier leader = roster.squadLeader(squad);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                leader != null
+                        ? "Squad leader: " + leader.enlistedRank().displayName()
+                                + " " + leader.name()
+                        : "Squad leader: none fit for duty",
+                x, y + 25f, leader != null ? VALUE : MUTED));
+    }
+
     private void buildHomeCommand(MarineSquad squad, float x, float y, float width) {
         MarineCaptain current = roster.captainForSquad(squad.id());
         MarineCaptain next = roster.nextAssignableCaptain(squad.id());
         String command = current != null
                 ? current.name() + " · " + current.rank().displayName()
                         + " · " + roster.squadsCommandedBy(current.id()).size()
-                        + "/" + current.rank().squadCommandCap() + " teams"
+                        + "/" + current.rank().squadCommandCap() + " squads"
                         + (current.status() == Status.ACTIVE
                                 ? "" : " · " + current.status().name())
                 : "Unassigned";
@@ -1113,8 +1124,10 @@ public final class ArmoryScreen implements Screen {
         String kit = soldier.primary().catalogName(soldier.primaryGrade())
                 + " / " + soldier.armor().displayName
                 + (soldier.secondary() != null ? " / Rockets" : "");
+        String billet = soldier.enlistedRank().leads()
+                ? soldier.enlistedRank().abbreviation() + " " : "";
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                soldier.name() + "  " + statusLabel(soldier), x, y + 26f,
+                billet + soldier.name() + "  " + statusLabel(soldier), x, y + 26f,
                 ready ? HEADER : statusColor(soldier.status())));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 soldier.profile().shortLabel() + "  " + soldier.experienceXp() + " XP",
@@ -1177,7 +1190,7 @@ public final class ArmoryScreen implements Screen {
     private static String presetMessage(SquadPresetResult result) {
         return switch (result) {
             case APPLIED -> "Issued to all RTD personnel";
-            case STATIONED -> "Fireteam is stationed away";
+            case STATIONED -> "Squad is stationed away";
             case NO_READY_PERSONNEL -> "No RTD personnel";
             case LOCKED_RECIPE -> "Recipe locked";
             case INSUFFICIENT_WEAPONS -> "Not enough weapons";
@@ -1394,7 +1407,7 @@ public final class ArmoryScreen implements Screen {
 
     private static String secondaryFlavor(MarineSecondary secondary) {
         return switch (secondary) {
-            case ROCKET_LAUNCHER -> "An Annihilator-pattern disposable tube cluster. Fireteams carry it for "
+            case ROCKET_LAUNCHER -> "An Annihilator-pattern disposable tube cluster. Fire teams carry it for "
                     + "hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe.";
         };
     }

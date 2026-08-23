@@ -10,22 +10,29 @@ package com.dillon.starsectormarines.marine;
  */
 public enum EnlistedRank {
     /** Rank and file. */
-    MARINE("Marine"),
+    MARINE("Marine", "Mar."),
     /** Leads a four-marine fire team. */
-    LANCE_CORPORAL("Lance Corporal"),
+    LANCE_CORPORAL("Lance Corporal", "LCpl."),
     /** Leads a squad, and its first fire team with it. */
-    CORPORAL("Corporal"),
+    CORPORAL("Corporal", "Cpl."),
     /** A squad leader who has become a veteran; the officer's right hand. */
-    SERGEANT("Sergeant");
+    SERGEANT("Sergeant", "Sgt.");
 
     private final String displayName;
+    private final String abbreviation;
 
-    EnlistedRank(String displayName) {
+    EnlistedRank(String displayName, String abbreviation) {
         this.displayName = displayName;
+        this.abbreviation = abbreviation;
     }
 
     public String displayName() {
         return displayName;
+    }
+
+    /** Short form for a roster row, where the name is what the player is scanning for. */
+    public String abbreviation() {
+        return abbreviation;
     }
 
     /** True for the billets that lead something — a fire team or a whole squad. */

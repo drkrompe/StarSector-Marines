@@ -304,7 +304,7 @@ public class MarineRoster implements Serializable {
         return releaseStationing(contractId);
     }
 
-    /** Assigns or atomically reassigns one line fireteam to an active captain. */
+    /** Assigns or atomically reassigns one line squad to an active captain. */
     public boolean assignCaptainToSquad(String captainId, String squadId) {
         MarineCaptain captain = byId(captainId);
         MarineSquad squad = squadById(squadId);
@@ -429,8 +429,8 @@ public class MarineRoster implements Serializable {
         return reserve;
     }
 
-    public MarineSquad createFireteam() {
-        MarineSquad squad = new MarineSquad(String.format("Fireteam %02d", nextSquadNumber++));
+    public MarineSquad createSquad() {
+        MarineSquad squad = new MarineSquad(String.format("Squad %02d", nextSquadNumber++));
         int reserveIndex = squads.indexOf(squadById(reserveSquadId));
         if (reserveIndex >= 0) squads.add(reserveIndex, squad);
         else squads.add(squad);
@@ -444,7 +444,7 @@ public class MarineRoster implements Serializable {
         return true;
     }
 
-    /** Hires one replacement into an open line-fireteam billet. */
+    /** Hires one replacement into an open line-squad billet. */
     public MarineSoldier recruitToSquad(String squadId) {
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.stationed()
@@ -456,7 +456,7 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
-    /** Enlists into the first vacant line billet, creating a fireteam when needed. */
+    /** Enlists into the first vacant line billet, creating a squad when needed. */
     MarineSoldier enlistLineRecruit() {
         MarineSquad target = null;
         for (MarineSquad squad : squads) {
@@ -465,7 +465,7 @@ public class MarineRoster implements Serializable {
                 break;
             }
         }
-        if (target == null) target = createFireteam();
+        if (target == null) target = createSquad();
         MarineSoldier recruit = createRecruit();
         target.add(recruit.id());
         armory.ensureBasicIssue(activeSoldierCount());
@@ -548,7 +548,7 @@ public class MarineRoster implements Serializable {
         return result;
     }
 
-    /** Ready personnel already assigned to line fireteams; reserves require transfer first. */
+    /** Ready personnel already assigned to line squads; reserves require transfer first. */
     public List<MarineSoldier> lineReadySoldiers() {
         List<MarineSoldier> result = new ArrayList<>();
         for (MarineSquad squad : squads) {
@@ -570,7 +570,7 @@ public class MarineRoster implements Serializable {
     public void ensureActiveSoldiers(int count) {
         while (activeSoldierCount() < count) {
             MarineSoldier recruit = createRecruit();
-            assignToFireteam(recruit);
+            assignToSquad(recruit);
         }
         armory.ensureBasicIssue(activeSoldierCount());
         refreshLeadership();
@@ -675,7 +675,7 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
-    /** Applies a whole-fireteam issue pattern only when every ready member can receive it. */
+    /** Applies a whole-squad issue pattern only when every ready member can receive it. */
     public SquadPresetResult applySquadPreset(String squadId, SquadEquipmentPreset preset) {
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.reserve() || preset == null) {
@@ -849,7 +849,7 @@ public class MarineRoster implements Serializable {
         return best;
     }
 
-    private void assignToFireteam(MarineSoldier recruit) {
+    private void assignToSquad(MarineSoldier recruit) {
         for (MarineSquad squad : squads) {
             if (!squad.reserve() && !squad.stationed()
                     && manningCount(squad) < MarineSquad.CAPACITY) {
@@ -862,7 +862,7 @@ public class MarineRoster implements Serializable {
             reserve.add(recruit.id());
             return;
         }
-        MarineSquad squad = createFireteam();
+        MarineSquad squad = createSquad();
         squad.add(recruit.id());
     }
 
@@ -913,7 +913,7 @@ public class MarineRoster implements Serializable {
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;
         for (MarineSoldier soldier : soldiers) {
-            if (squadForSoldier(soldier.id()) == null) assignToFireteam(soldier);
+            if (squadForSoldier(soldier.id()) == null) assignToSquad(soldier);
         }
         repairSquadCommands();
         repairStationingBindings();
