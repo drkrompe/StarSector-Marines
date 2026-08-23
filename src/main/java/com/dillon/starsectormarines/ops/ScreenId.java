@@ -7,6 +7,12 @@ package com.dillon.starsectormarines.ops;
  * so transitions don't allocate.
  */
 public enum ScreenId {
+    /**
+     * The company's between-contracts home, opened from the campaign map with no
+     * planet behind it. The only screen here that tolerates a null
+     * {@code MarineOpsContext.planet} — see {@link MarineOpsPanelPlugin}.
+     */
+    COMPANY_HQ,
     MISSION_SELECT,
     ARMORY,
     BRIEFING,

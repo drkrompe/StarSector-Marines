@@ -105,6 +105,14 @@
 		"eventPopupConfirm":      "Confirm",
 		"eventPopupCancel":       "Cancel",
 
+		# Company view — the between-contracts home
+		"companyAbilityTitle":    "Company",
+		"companyAbilityTooltip":  "Review the company between contracts: standing, running deadlines, and the roster. Available anywhere; no need to be at a market.",
+		"companyHqHeader":        "COMPANY",
+		"companyHqStandingPending": "Standing — runway, retainers, and reputation land in slice 2.",
+		"companyHqDeadlinesPending": "Running clocks — pending responses, terms, and offers land in slice 3.",
+		"companyHqRosterPending": "Roster — strength rollup and the armory route land in slice 4.",
+
 		# Battle screen
 		"battleSpeedPause":       "Pause",
 		"battleSpeed1x":          "1x",
