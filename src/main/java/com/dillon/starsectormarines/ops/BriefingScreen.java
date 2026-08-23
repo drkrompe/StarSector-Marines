@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -781,17 +782,22 @@ public class BriefingScreen implements Screen {
         float arrowW = 34f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Count", x, y, LABEL_COLOR));
         float controlX = x + 70f;
-        addDebugTransportButton(controlX, y, arrowW, "-",
+        addDebugTransportButton(controlX, y, 42f, "-10",
+                debugMechCount > 0 ? () -> adjustDebugMechCount(-10) : null);
+        addDebugTransportButton(controlX + 46f, y, arrowW, "-",
                 debugMechCount > 0 ? () -> adjustDebugMechCount(-1) : null);
-        widgets.add(new ButtonWidget(controlX + arrowW + 4f, y - BTN_H + 6f,
+        widgets.add(new ButtonWidget(controlX + 84f, y - BTN_H + 6f,
                 56f, BTN_H, null));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Integer.toString(debugMechCount),
-                controlX + arrowW + 22f, y,
+                controlX + 100f, y,
                 debugMechCount > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
-        addDebugTransportButton(controlX + arrowW + 64f, y, arrowW, "+",
+        addDebugTransportButton(controlX + 144f, y, arrowW, "+",
                 debugMechCount < DebugMechRoster.MAX_COUNT
                         ? () -> adjustDebugMechCount(1) : null);
-        float rerollX = controlX + 2f * arrowW + 76f;
+        addDebugTransportButton(controlX + 182f, y, 42f, "+10",
+                debugMechCount < DebugMechRoster.MAX_COUNT
+                        ? () -> adjustDebugMechCount(10) : null);
+        float rerollX = controlX + 232f;
         addDebugTransportButton(rerollX, y, 88f, "Reroll", () -> {
             debugMechRoll++;
             rebuild();
@@ -834,7 +840,10 @@ public class BriefingScreen implements Screen {
         if (bulwarks > 0) parts.add(bulwarks + "x Bulwark");
         if (hounds > 0) parts.add(hounds + "x Hound");
         if (siroccos > 0) parts.add(siroccos + "x Sirocco");
-        return String.join(" · ", parts);
+        int drops = (roster.count() + MechSupport.LANCE_SIZE - 1)
+                / MechSupport.LANCE_SIZE;
+        return drops + (drops == 1 ? " lance · " : " lances · ")
+                + String.join(" · ", parts);
     }
 
     /** Exact debug-only transport type/count controls. */

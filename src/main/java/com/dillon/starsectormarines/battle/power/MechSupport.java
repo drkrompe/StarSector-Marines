@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Calls a shootable heavy transport that physically unloads one marine mech. */
+/** Calls a shootable heavy transport that physically unloads a marine mech lance. */
 public final class MechSupport extends AirDeliveryPower {
 
     public static final String ID = "mech_support";
+    public static final int LANCE_SIZE = 4;
 
     private final List<MechVariant> variants;
 
@@ -20,9 +21,9 @@ public final class MechSupport extends AirDeliveryPower {
         this(List.of(MechVariant.BULWARK));
     }
 
-    /** Debug/playtest constructor: one physical support sortie per chassis. */
+    /** Debug/playtest constructor: one physical support sortie per lance. */
     public MechSupport(List<MechVariant> variants) {
-        super(ID, displayName(variants), 4f, validVariants(variants).size(), 0, 3,
+        super(ID, displayName(variants), 4f, lanceCount(validVariants(variants).size()), 0, 3,
                 ShuttleType.VALKYRIE,
                 MechSupportPayload.INSTANCE, 5);
         this.variants = Collections.unmodifiableList(new ArrayList<>(validVariants(variants)));
@@ -32,12 +33,17 @@ public final class MechSupport extends AirDeliveryPower {
     protected void configureMission(ShuttleMission mission, ShuttleType carrier,
                                     CommandPowerService service) {
         int remaining = service != null ? service.getChargesRemaining(ID) : maxCharges - 1;
-        mission.mechVariant = variantForRemainingCharges(remaining);
+        List<MechVariant> lance = lanceForRemainingCharges(remaining);
+        mission.mechVariants = lance.toArray(new MechVariant[0]);
+        mission.mechVariant = lance.get(0);
+        mission.marinesRemaining = lance.size();
     }
 
-    MechVariant variantForRemainingCharges(int remaining) {
+    List<MechVariant> lanceForRemainingCharges(int remaining) {
         int activation = Math.max(0, maxCharges - Math.max(0, remaining) - 1);
-        return variants.get(Math.min(activation, variants.size() - 1));
+        int from = Math.min(activation * LANCE_SIZE, variants.size() - 1);
+        int to = Math.min(from + LANCE_SIZE, variants.size());
+        return variants.subList(from, to);
     }
 
     private static List<MechVariant> validVariants(List<MechVariant> variants) {
@@ -50,7 +56,12 @@ public final class MechSupport extends AirDeliveryPower {
     }
 
     private static String displayName(List<MechVariant> variants) {
-        int count = validVariants(variants).size();
-        return count > 1 ? "Mech Support x" + count : "Mech Support";
+        int mechs = validVariants(variants).size();
+        int lances = lanceCount(mechs);
+        return mechs > 1 ? "Mech Lance x" + lances : "Mech Support";
+    }
+
+    private static int lanceCount(int mechCount) {
+        return Math.max(1, (mechCount + LANCE_SIZE - 1) / LANCE_SIZE);
     }
 }

@@ -20,13 +20,13 @@ public class DebugMechRosterTest {
 
         assertEquals(first.variants(), second.variants());
         assertEquals(DebugMechRoster.MAX_COUNT,
-                DebugMechRoster.randomized(99, 42L).count());
+                DebugMechRoster.randomized(999, 42L).count());
         assertEquals(0, DebugMechRoster.randomized(-1, 42L).count());
     }
 
     @Test
     public void configuredRosterReplacesPowerInPlaceAndSetsChargeCount() {
-        DebugMechRoster roster = DebugMechRoster.randomized(3, 7L);
+        DebugMechRoster roster = DebugMechRoster.randomized(9, 7L);
         List<CommandPower> powers = roster.applyTo(
                 List.of(new ReconPing(), new MechSupport()));
 
