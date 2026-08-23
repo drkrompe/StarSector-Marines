@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
+
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -128,6 +133,8 @@ public class BattleSimulation implements BattleControl {
     private final NavigationService navigation;
     /** Alias of {@link NavigationService#getGrid()}. Same instance — kept as a field so the sim's 80+ {@code grid.*} reads don't pay a per-call accessor hop. */
     private final NavigationGrid grid;
+    /** Temporary faction-neutral visual opacity and grenade-flight lifecycle. */
+    private final SmokeFieldService smokeFields;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
@@ -401,6 +408,7 @@ public class BattleSimulation implements BattleControl {
         // 80+ internal `grid.*`/`topology.*`/`zoneGraph.*`/`occupancyMap[...]`
         // reads stay direct (no per-call accessor hop).
         this.grid = navigation.getGrid();
+        this.smokeFields = new SmokeFieldService(this.grid);
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
         this.occupancyMap = navigation.getOccupancyMap();
@@ -516,6 +524,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     public NavigationGrid getGrid() { return grid; }
+    @Override public SmokeFieldService smokeFields() { return smokeFields; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -1131,6 +1140,9 @@ public class BattleSimulation implements BattleControl {
         // breach, then enables auto-init for the duration of the tick. Paired
         // with navigation.endTick() at the bottom.
         navigation.beginTick();
+        // Smoke lands/expires before perception so stationary observers recast
+        // against the same opacity state direct-fire AI sees this tick.
+        smokeFields.tick(TICK_DT);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
@@ -1561,6 +1573,31 @@ public class BattleSimulation implements BattleControl {
      */
     public void fireSecondary(long shooter, long target) {
         infantry.fireSecondary(shooter, target);
+    }
+
+    @Override
+    public void throwSmoke(long carrier, float targetX, float targetY) {
+        if (!world.hasSecondaryWeapon(carrier)) return;
+        MarineSecondary secondary = world.secondaryWeapon(carrier);
+        if (secondary.activation() != SpecialActivation.UTILITY_SMOKE) return;
+        int ammo = world.secondaryAmmo(carrier);
+        if (ammo <= 0) return;
+        SmokeGrenadeSpec spec = secondary.smokeGrenadeSpec();
+        float fromX = world.renderX(carrier);
+        float fromY = world.renderY(carrier);
+        float dx = targetX - fromX;
+        float dy = targetY - fromY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance > spec.throwRange() && distance > 0f) {
+            targetX = fromX + dx / distance * spec.throwRange();
+            targetY = fromY + dy / distance * spec.throwRange();
+        }
+        targetX = Math.max(0.5f, Math.min(grid.getWidth() - 0.5f, targetX));
+        targetY = Math.max(0.5f, Math.min(grid.getHeight() - 0.5f, targetY));
+        world.setSecondaryAmmo(carrier, ammo - 1);
+        rosterService.telemetry().recordSecondaryUsed(carrier);
+        smokeFields.launch(carrier, identity().faction(carrier), fromX, fromY,
+                targetX, targetY, spec);
     }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */

@@ -220,7 +220,7 @@ another.
   [Licensing](#licensing-the-identity-dial) exclusivity tiers are the first
   instance of this principle in code.
 - When tuning "is the player doing well" judgments (the `OfficerMoodReader`
-  SEASONED gate — see [`narrative/overview.md`](narrative/overview.md) and
+  SEASONED gate — see `narrative-nouns.md` and
   [[feedback-paycheck-runway-window]]), reputation *breadth* should
   eventually feed the gate ("respected by at least N houses", not just
   "MRB rep ≥ 0"). Widening the mood reader past MRB is a follow-up once

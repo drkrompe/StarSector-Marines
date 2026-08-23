@@ -123,6 +123,9 @@ public class NavigationGrid {
     private final float[] coverCatchHalfHeightByFacing;
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
     private final int[] wallHp;
+    /** Reference-counted temporary opacity (smoke). Never affects walkability or ballistics. */
+    private final short[] transientOpacity;
+    private long opacityRevision;
 
     public NavigationGrid(int width, int height) {
         this.width = width;
@@ -133,6 +136,7 @@ public class NavigationGrid {
         this.coverByFacing = new byte[size * FACING_COUNT];
         this.coverCatchHalfHeightByFacing = new float[size * FACING_COUNT];
         this.wallHp = new int[size];
+        this.transientOpacity = new short[size];
     }
 
     // ----- Tag access (generic) -----
@@ -183,9 +187,36 @@ public class NavigationGrid {
      * glass/fences/smoke later) let shots and sight pass.
      */
     public boolean blocksLineOfSightAt(int idx) {
+        return transientOpacity[idx] > 0 || blocksStructuralLineOfSightAt(idx);
+    }
+
+    /** Permanent wall/fixture opacity, excluding smoke. */
+    public boolean blocksStructuralLineOfSightAt(int idx) {
         long flags = cellFlags[idx];
         return (flags & CellTag.WALKABLE.mask())    == 0L
             && (flags & CellTag.SEE_THROUGH.mask()) == 0L;
+    }
+
+    public boolean hasTransientOpacityAt(int idx) { return transientOpacity[idx] > 0; }
+
+    public boolean hasTransientOpacity(int x, int y) {
+        return inBounds(x, y) && hasTransientOpacityAt(index(x, y));
+    }
+
+    public long opacityRevision() { return opacityRevision; }
+
+    public void addTransientOpacityAt(int idx) {
+        if (transientOpacity[idx] == Short.MAX_VALUE) return;
+        transientOpacity[idx]++;
+        opacityRevision++;
+        LosCache.clearAll();
+    }
+
+    public void removeTransientOpacityAt(int idx) {
+        if (transientOpacity[idx] <= 0) return;
+        transientOpacity[idx]--;
+        opacityRevision++;
+        LosCache.clearAll();
     }
 
     /**
@@ -435,6 +466,9 @@ public class NavigationGrid {
         Arrays.fill(coverByFacing, (byte) 0);
         Arrays.fill(coverCatchHalfHeightByFacing, 0f);
         Arrays.fill(wallHp, 0);
+        Arrays.fill(transientOpacity, (short) 0);
+        opacityRevision++;
+        LosCache.clearAll();
     }
 
     // ----- Line of sight -----
@@ -509,6 +543,25 @@ public class NavigationGrid {
         return hasLineOfSight(x0, y0, x1, y1);
     }
 
+    /** True when a non-endpoint smoke cell lies on this Bresenham lane. */
+    public boolean hasTransientOpacityOnLine(int x0, int y0, int x1, int y1) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        int x = x0;
+        int y = y0;
+        while (true) {
+            boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
+            if (!endpoint && hasTransientOpacity(x, y)) return true;
+            if (x == x1 && y == y1) return false;
+            int e2 = err << 1;
+            if (e2 > -dy) { err -= dy; x += sx; }
+            if (e2 < dx) { err += dx; y += sy; }
+        }
+    }
+
     /**
      * Bresenham raycast from {@code (x0, y0)} to {@code (x1, y1)} that returns
      * the first LoS-blocking cell encountered (excluding the origin) per
@@ -536,7 +589,8 @@ public class NavigationGrid {
         int x = x0;
         int y = y0;
         while (true) {
-            if (!(x == x0 && y == y0) && blocksLineOfSight(x, y)) {
+            if (!(x == x0 && y == y0) && inBounds(x, y)
+                    && blocksStructuralLineOfSightAt(index(x, y))) {
                 return (((long) y & 0xFFFFFFFFL) << 32) | ((long) x & 0xFFFFFFFFL);
             }
             if (x == x1 && y == y1) return (((long) -1) & 0xFFFFFFFFL) << 32 | (((long) -1) & 0xFFFFFFFFL);

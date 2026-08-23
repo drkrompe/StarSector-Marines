@@ -287,7 +287,7 @@ sector scale (a few thousand rows).
   (Strike, Garrison, Cadre, Escort, Planetary Assault), their
   time-commitment semantics, salvage and payment terms, the
   merc-registry reputation track. **Drafted + loop playable.**
-- [`narrative/overview.md`](narrative/overview.md) — the patron
+- `narrative-nouns.md` — the patron
   tapestry: comms-officer narrator, archetype content axis,
   procedural-fatigue discipline.
 - [`backgrounds.md`](backgrounds.md) — player starting-state seed (name +

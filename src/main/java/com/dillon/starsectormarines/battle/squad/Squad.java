@@ -495,6 +495,21 @@ public final class Squad {
     /** Last tick that tried to start or flip a bound; prevents every sibling retrying the same failed search. */
     public volatile int boundingAttemptTick = -1;
 
+    // ---- planned smoke utility ----
+    public volatile long smokeCarrierId = 0L;
+    public volatile long smokeThreatId = 0L;
+    public volatile int smokeTargetX = -1;
+    public volatile int smokeTargetY = -1;
+
+    public void clearSmokeReservation() {
+        synchronized (lock) {
+            smokeCarrierId = 0L;
+            smokeThreatId = 0L;
+            smokeTargetX = -1;
+            smokeTargetY = -1;
+        }
+    }
+
     // ---- Story 23: mech-screened objective advance ----
 
     /** Friendly assault mech currently walking point for this infantry squad, or {@code 0L}. */
