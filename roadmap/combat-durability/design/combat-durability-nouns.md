@@ -2,6 +2,7 @@
 
 Status: ACTIVE — the armor-and-structure model is contracted; implementation is in progress.
 Written: 2026-08-23
+Updated: 2026-08-23 — landed the shared allocation-free resolution calculation; live component wiring remains D1 work.
 
 ## Purpose
 
@@ -69,6 +70,11 @@ The first model deliberately has no through-armor structure bypass, damage
 types, armor regeneration, localized facings, or ablative segments. Those are
 possible extensions only after a weapon or platform demonstrates a gameplay
 need that the two-pool model cannot express.
+
+`DurabilityModel` is the shipped pure calculation boundary. It writes into
+caller-owned result scratch so live application can remain allocation-free;
+component storage, attack migration, and live resolver wiring remain active D1
+work.
 
 ## Ownership and flow
 
@@ -149,4 +155,3 @@ durability roles. `moddable-weapons-nouns.md` owns weapon-authored damage and
 penetration. Ballistics owns whether a projectile contacts a target and how
 cover intervenes. Combat durability owns what that resolved contact does to
 the target's live protection and structure.
-
