@@ -316,8 +316,8 @@ construction by the current defenders.
   purpose-built defender art.
 - **Scale with the rank ladder.** Not every keep is an ancestral seat. A
   frontier-outpost keep ≠ a Successor capital fortress; tie the allocation
-  to the rank-ladder visibility scaling in
-  [`../campaign/themes.md`](../campaign/themes.md). High-stakes conquest
+  to the rank-ladder visibility scaling in `living-world-nouns.md`.
+  High-stakes conquest
   battles get the full multi-building fortress; routine garrison strikes use
   lighter keep variants.
 

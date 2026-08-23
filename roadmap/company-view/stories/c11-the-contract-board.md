@@ -129,10 +129,10 @@ part fails differently:
 3. **A monthly maintenance fee keeps it on**, and the player can cancel it
    from this screen at any time.
 
-The fiction is already written. `themes.md` casts the Mercenary Review Board as
-the neutral broker that "aggregates contract history, flags breaches, and rates
-the company's reliability" — an organisation that already holds every
-contract in the sector is the obvious thing to subscribe to, and being
+The fiction is already written. `campaign-nouns.md` casts the Mercenary Review
+Board as the neutral broker that "aggregates contract history, flags breaches,
+and rates the company's reliability" — an organisation that already holds
+every contract in the sector is the obvious thing to subscribe to, and being
 *allowed* to subscribe is exactly what a credibility score should buy.
 
 Why the fee is split rather than a single number:
