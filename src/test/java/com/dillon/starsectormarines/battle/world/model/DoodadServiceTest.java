@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.tiles.TileCover;
+import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DoodadServiceTest {
 
@@ -50,5 +54,32 @@ class DoodadServiceTest {
         assertEquals(1, sofa.footprintCellsY);
         assertEquals(true, sofa.occupiesCell(2, 1));
         assertEquals(false, sofa.occupiesCell(3, 1));
+    }
+
+    @Test
+    void natureOverlaysPublishCoverWithoutBecomingRenderDoodads() {
+        NavigationGrid grid = new NavigationGrid(5, 4);
+        CellTopology topology = new CellTopology(5, 4);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        TileRegistry registry = TileRegistry.installed();
+        TileDef medium = registry.tile("nature.rock-medium-1");
+        TileDef large = registry.tile("nature.rock-large-1");
+        topology.setNatureOverlayIndex(1, 1, medium.index);
+        topology.setNatureOverlayIndex(3, 1, large.index);
+        DoodadService service = new DoodadService(grid);
+
+        service.addNatureOverlayCover(topology, registry);
+
+        assertTrue(service.getDoodads().isEmpty());
+        assertEquals(TileCover.LIGHT.level(), service.getDoodadLevelOnCell(1, 1, 0.10f));
+        assertEquals(Doodad.COVER_NONE, service.getDoodadLevelOnCell(1, 1, 0.19f));
+        assertEquals(Doodad.COVER_NONE, service.getDoodadLevelOnCell(3, 1, 0.10f),
+                "non-walkable rock must not double-count as crossed doodad cover");
+        assertEquals(TileCover.HEAVY.level(),
+                grid.getCoverAtFacing(2, 1, NavigationGrid.FACING_E));
+        assertEquals(TileCover.HEAVY.defaultBallisticHalfHeight(),
+                grid.getCoverCatchHalfHeightAtFacing(2, 1, NavigationGrid.FACING_E), EPS);
     }
 }

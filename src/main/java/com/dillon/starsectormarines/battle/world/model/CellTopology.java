@@ -90,9 +90,10 @@ public class CellTopology {
         /** Roof above this building cell has caved in. Roof pass skips the cell; persistent (not driven by LOS), set when an adjacent wall collapses or a direct interior hit cracks the roof. Rubble decal is spawned at the moment of cave-in by the damage path. */
         ROOF_DESTROYED,
         /**
-         * A non-walkable interior prop footprint such as a commercial shelf run.
-         * Fixtures shape navigation but are not structural walls: the ground and
-         * doodad render normally, and finalize does not seed destructible wall HP.
+         * A non-walkable, non-structural physical feature such as a commercial
+         * shelf run or large nature rock. Fixtures shape navigation but are not
+         * walls: their own overlay/prop renders normally, and finalize does not
+         * seed destructible wall HP.
          */
         FIXTURE,
         /**
@@ -155,7 +156,7 @@ public class CellTopology {
      * Set by nature-zone fillers (grassland / wetland / beach) during gen;
      * read by the renderer's nature-overlay pass after the ground-tile flush
      * so plant + rock sprites stack on top of the painted surface. Only
-     * meaningful on walkable cells whose {@link GroundKind} is a nature kind
+     * meaningful on cells whose {@link GroundKind} is a nature kind
      * ({@link GroundKind#GRASS} / {@link GroundKind#DIRT} /
      * {@link GroundKind#SAND}) — wall + water cells ignore the slot.
      */
@@ -379,8 +380,9 @@ public class CellTopology {
      * wall" props stamp after this sweep so they keep WALL cleared. Water
      * cells should ALSO have their {@code GroundKind} set to WATER before
      * this call so the wall pass can skip them via {@link #isWater}. Tagged
-     * {@link Tag#FIXTURE} cells are also skipped: their doodad supplies the
-     * visible obstacle even though navigation treats the footprint as blocked.
+     * {@link Tag#FIXTURE} cells are also skipped: their own prop or nature
+     * overlay supplies the visible feature even though navigation treats the
+     * footprint as blocked.
      */
     public void tagDefaultWalls(NavigationGrid nav) {
         for (int y = 0; y < height; y++) {

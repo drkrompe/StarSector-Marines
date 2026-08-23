@@ -50,15 +50,13 @@ import java.util.Random;
  * silently skipped — the per-cell roll falls through to "no overlay"
  * rather than substituting a different one.
  *
- * <p>All overlay cells stay walkable for now — the {@code passable} field on
- * a {@link TileDef} is a designer hint we don't enforce on the nav grid yet.
- * Flipping a cell
- * non-walkable here would force the orchestrator's {@code tagDefaultWalls}
- * pass to tag it as {@code WALL} (the post-fill sweep can't distinguish
- * "boulder" from "building wall"), which would render urban wall art on
- * top of the rock sprite. Proper "natural obstacle" walkability blocking
- * needs a {@code Tag.OBSTACLE} bit on the topology — deferred until the
- * rocks are doing enough work gameplay-wise to justify the extra plumbing.
+ * <p>Overlay tactical metadata is applied here rather than inferred from the
+ * sprite. Passable rocks remain standable; non-passable rocks block movement
+ * but stay see-through and are tagged as non-structural fixtures, so finalize
+ * neither gives them wall art nor destructible wall HP. Blocking placements
+ * are kept off the leaf perimeter and rejected when they would split the
+ * leaf's walkable space. Cover quality is published to combat when the map is
+ * installed into a battle simulation.
  */
 public final class NatureZoneFiller implements BlockFiller {
 
@@ -89,7 +87,7 @@ public final class NatureZoneFiller implements BlockFiller {
         // (FillerParams). Skip them if either is unavailable — base ground is still
         // painted. Both are installed at app load + by the test bootstrap.
         if (reg == null || params == null) return;
-        scatterOverlays(leaf, topology, rng, reg, params);
+        scatterOverlays(leaf, grid, topology, rng, reg, params);
     }
 
     /**
@@ -304,7 +302,9 @@ public final class NatureZoneFiller implements BlockFiller {
      * to skip if the base isn't grass); rocks tried second. Plant + rock
      * are mutually exclusive in a single cell — first match wins.
      */
-    private void scatterOverlays(BlockLeaf leaf, CellTopology topology, Random rng, TileRegistry reg, FillerParams params) {
+    private void scatterOverlays(BlockLeaf leaf, NavigationGrid grid,
+                                 CellTopology topology, Random rng,
+                                 TileRegistry reg, FillerParams params) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 GroundKind base = topology.getGroundKind(x, y);
@@ -327,10 +327,88 @@ public final class NatureZoneFiller implements BlockFiller {
                 if (rng.nextFloat() < params.rockChance) {
                     TileDef rockDef = reg.tile(params.pickRockId(rng));
                     if (!rockDef.canOverlayOn(baseDef)) continue;
+                    if (!rockDef.passable && !canBlockWithoutDisconnecting(leaf, grid, x, y)) {
+                        continue;
+                    }
                     topology.setNatureOverlayIndex(x, y, rockDef.index);
+                    if (!rockDef.passable) {
+                        // Window-like movement/visibility contract: the rock
+                        // occupies the cell but never becomes an opaque wall.
+                        grid.setWalkable(x, y, false);
+                        grid.setSeeThrough(x, y, true);
+                        topology.setFixture(x, y, true);
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * True when removing {@code (blockX, blockY)} leaves every remaining
+     * walkable cell in the leaf cardinally connected. The perimeter is kept
+     * open unconditionally so every nature leaf retains several joins to its
+     * surrounding road frame.
+     */
+    private static boolean canBlockWithoutDisconnecting(BlockLeaf leaf,
+                                                         NavigationGrid grid,
+                                                         int blockX, int blockY) {
+        if (blockX == leaf.left || blockX == leaf.right
+                || blockY == leaf.top || blockY == leaf.bottom) {
+            return false;
+        }
+
+        int width = leaf.width();
+        int area = leaf.area();
+        boolean[] reached = new boolean[area];
+        int[] queue = new int[area];
+        int walkable = 0;
+        int seed = -1;
+        for (int y = leaf.top; y <= leaf.bottom; y++) {
+            for (int x = leaf.left; x <= leaf.right; x++) {
+                if ((x == blockX && y == blockY) || !grid.isWalkable(x, y)) continue;
+                int local = (y - leaf.top) * width + (x - leaf.left);
+                if (seed < 0) seed = local;
+                walkable++;
+            }
+        }
+        if (walkable <= 1) return true;
+
+        int head = 0;
+        int tail = 0;
+        queue[tail++] = seed;
+        reached[seed] = true;
+        int visited = 0;
+        while (head < tail) {
+            int local = queue[head++];
+            visited++;
+            int x = leaf.left + local % width;
+            int y = leaf.top + local / width;
+            tail = enqueueWalkableNeighbor(leaf, grid, blockX, blockY,
+                    x + 1, y, width, reached, queue, tail);
+            tail = enqueueWalkableNeighbor(leaf, grid, blockX, blockY,
+                    x - 1, y, width, reached, queue, tail);
+            tail = enqueueWalkableNeighbor(leaf, grid, blockX, blockY,
+                    x, y + 1, width, reached, queue, tail);
+            tail = enqueueWalkableNeighbor(leaf, grid, blockX, blockY,
+                    x, y - 1, width, reached, queue, tail);
+        }
+        return visited == walkable;
+    }
+
+    private static int enqueueWalkableNeighbor(BlockLeaf leaf, NavigationGrid grid,
+                                                int blockX, int blockY,
+                                                int x, int y, int width,
+                                                boolean[] reached, int[] queue,
+                                                int tail) {
+        if (!leaf.contains(x, y) || (x == blockX && y == blockY)
+                || !grid.isWalkable(x, y)) {
+            return tail;
+        }
+        int local = (y - leaf.top) * width + (x - leaf.left);
+        if (reached[local]) return tail;
+        reached[local] = true;
+        queue[tail] = local;
+        return tail + 1;
     }
 
     /**
