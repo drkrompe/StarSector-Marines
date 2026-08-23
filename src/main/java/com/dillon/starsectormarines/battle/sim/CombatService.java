@@ -164,9 +164,9 @@ public final class CombatService {
      */
     public void beginBurst(long shooterId, long targetId) {
         MarineWeapon weapon = primaryWeapon(shooterId);
-        if (weapon == null || weapon.burstCount <= 1) return;
-        setBurstRemaining(shooterId, weapon.burstCount - 1);
-        setBurstTimer(shooterId, weapon.burstSpacing);
+        if (weapon == null || weapon.burstCount() <= 1) return;
+        setBurstRemaining(shooterId, weapon.burstCount() - 1);
+        setBurstTimer(shooterId, weapon.burstSpacing());
         setBurstTargetId(shooterId, targetId);
     }
 }

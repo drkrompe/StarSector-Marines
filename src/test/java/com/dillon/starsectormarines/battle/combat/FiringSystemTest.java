@@ -80,7 +80,7 @@ public class FiringSystemTest {
         assertEquals(0L, sim.combat().fireTargetId(shooter), "consume-once: intent cleared");
         assertEquals(sim.world().attackCooldown(shooter), sim.world().cooldownTimer(shooter), 1e-6f,
                 "a successful fire resets cooldownTimer to attackCooldown");
-        assertEquals(MarineWeapon.PULSE_RIFLE.burstCount - 1, sim.world().burstRemaining(shooter),
+        assertEquals(MarineWeapon.PULSE_RIFLE.burstCount() - 1, sim.world().burstRemaining(shooter),
                 "PULSE_RIFLE's 3-round burst queues 2 follow-up rounds via beginBurst");
         assertEquals(target, sim.world().burstTargetId(shooter));
     }

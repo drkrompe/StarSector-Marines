@@ -8,36 +8,36 @@ public final class InfantryCombatStats {
     private InfantryCombatStats() {}
 
     public static float range(MarineWeapon family, EquipmentGrade grade) {
-        return family.range * grade.rangeMult;
+        return family.range() * grade.rangeMult;
     }
 
     public static float damage(MarineWeapon family, EquipmentGrade grade) {
-        return family.damage * grade.damageMult;
+        return family.damage() * grade.damageMult;
     }
 
     public static float accuracy(MarineWeapon family, EquipmentGrade grade,
                                  SoldierProfile profile) {
         ExperienceTier exp = profile.experienceTier();
-        return clamp01(family.accuracy * grade.accuracyMult
+        return clamp01(family.accuracy() * grade.accuracyMult
                 * profile.aptitude().accuracyMult * exp.accuracyMult);
     }
 
     public static float cooldown(MarineWeapon family, EquipmentGrade grade,
                                  SoldierProfile profile) {
-        return family.cooldown * grade.cooldownMult
+        return family.cooldown() * grade.cooldownMult
                 * profile.experienceTier().cooldownMult;
     }
 
     public static float spread(MarineWeapon family, EquipmentGrade grade,
                                SoldierProfile profile) {
-        return family.hitSpread * grade.spreadMult
+        return family.hitSpread() * grade.spreadMult
                 * profile.aptitude().spreadMult
                 * profile.experienceTier().spreadMult;
     }
 
     /** Total raw damage released by one trigger pull, before hit rolls. */
     public static float volleyDamage(MarineWeapon family, EquipmentGrade grade) {
-        return damage(family, grade) * family.burstCount;
+        return damage(family, grade) * family.burstCount();
     }
 
     /** Sustained raw output based on the interval between trigger pulls. */
@@ -51,7 +51,7 @@ public final class InfantryCombatStats {
                                                 SoldierProfile profile, float rangeFraction) {
         float effectiveRange = range(family, grade);
         return clamp01(RangeFalloff.accuracy(accuracy(family, grade, profile),
-                family.accuracyFalloff, effectiveRange * clamp01(rangeFraction), effectiveRange));
+                family.accuracyFalloff(), effectiveRange * clamp01(rangeFraction), effectiveRange));
     }
 
     /** Marksmanship portion shared by primary and secondary direct fire. */

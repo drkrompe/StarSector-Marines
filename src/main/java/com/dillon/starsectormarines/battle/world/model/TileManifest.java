@@ -44,12 +44,13 @@ public final class TileManifest {
     /**
      * Third sheet — outdoor surface autotiles (grass, dirt, stone, sand,
      * snow) plus the polished interior {@code fl-tile} cluster. Drawn at
-     * 16px source-cell size and upscaled 2x to fit the 32px nav grid.
+     * 56px source-cell size and downsampled to fit the 32px nav grid. The
+     * extra source density keeps outdoor materials crisp under zoom.
      */
     public static final String FLOORS_SHEET = "graphics/tilesets/Floors_Tiles.png";
-    public static final int FLOORS_TILE_SIZE = 16;
+    public static final int FLOORS_TILE_SIZE = 56;
 
-    /** Fourth sheet — water autotile. 16px cells, upscaled 2x like {@link #FLOORS_SHEET}. */
+    /** Fourth sheet — water autotile. Its legacy cells remain 16px and upscale to the nav grid. */
     public static final String WATER_SHEET = "graphics/tilesets/Water_tiles.png";
 
     /**

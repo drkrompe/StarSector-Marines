@@ -265,6 +265,7 @@ public class BuildingZonePreviewTest {
         // Candidates grouped by source sheet. Center cells only — for
         // autotile blocks we sample the (1, 1) center so the comparison
         // isn't muddied by edge variants.
+        int floorsCellPx = TileManifest.FLOORS_TILE_SIZE;
         FloorCandidate[] candidates = new FloorCandidate[] {
                 // urban-tileset.png (32px cells) — clean indoor floor center + damaged.
                 new FloorCandidate(urban,  32, 1, 1, "fl (INDOOR center)",              "urban"),
@@ -281,20 +282,20 @@ public class BuildingZonePreviewTest {
                 new FloorCandidate(road,   32,13, 1, "road center (STREET)",              "road"),
                 new FloorCandidate(road,   32,11, 2, "grate-1",                           "road"),
                 new FloorCandidate(road,   32,16, 2, "grate-2",                           "road"),
-                // Floors_Tiles.png (16px cells) — the current TILE pool + outdoor centers.
-                new FloorCandidate(floors, 16,17, 1, "fl-tile-1 (current TILE)",          "floors"),
-                new FloorCandidate(floors, 16,16, 2, "fl-tile-2 (current TILE)",          "floors"),
-                new FloorCandidate(floors, 16,17, 2, "fl-tile-3 (current TILE)",          "floors"),
-                new FloorCandidate(floors, 16,18, 2, "fl-tile-4 (current TILE)",          "floors"),
-                new FloorCandidate(floors, 16,17, 3, "fl-tile-5 (current TILE)",          "floors"),
-                new FloorCandidate(floors, 16, 2,10, "grass-2 center",                    "floors"),
-                new FloorCandidate(floors, 16, 7,10, "stone-2 center",                    "floors"),
-                new FloorCandidate(floors, 16,12,10, "dirt-2 center",                     "floors"),
-                new FloorCandidate(floors, 16, 2,14, "snow-3 center",                     "floors"),
-                new FloorCandidate(floors, 16, 7,14, "sand-3 center",                     "floors"),
+                // Floors_Tiles.png (56px cells) — the current TILE pool + outdoor centers.
+                new FloorCandidate(floors, floorsCellPx,17, 1, "fl-tile-1 (current TILE)", "floors"),
+                new FloorCandidate(floors, floorsCellPx,16, 2, "fl-tile-2 (current TILE)", "floors"),
+                new FloorCandidate(floors, floorsCellPx,17, 2, "fl-tile-3 (current TILE)", "floors"),
+                new FloorCandidate(floors, floorsCellPx,18, 2, "fl-tile-4 (current TILE)", "floors"),
+                new FloorCandidate(floors, floorsCellPx,17, 3, "fl-tile-5 (current TILE)", "floors"),
+                new FloorCandidate(floors, floorsCellPx, 2,10, "grass-2 center",           "floors"),
+                new FloorCandidate(floors, floorsCellPx, 7,10, "stone-2 center",           "floors"),
+                new FloorCandidate(floors, floorsCellPx,12,10, "dirt-2 center",            "floors"),
+                new FloorCandidate(floors, floorsCellPx, 2,14, "snow-3 center",            "floors"),
+                new FloorCandidate(floors, floorsCellPx, 7,14, "sand-3 center",            "floors"),
         };
 
-        int displayCell = 160;        // 5x of 32px source; 10x of 16px source.
+        int displayCell = 160;
         int gap = 18;
         int labelH = 36;
         int cols = 5;
@@ -368,7 +369,7 @@ public class BuildingZonePreviewTest {
      * {@code Floors_Tiles} tileset {@code "cells"} annotations say the art
      * actually lives). The road sheet is only 17×3 cells at 32px source, so
      * coords (17,1), (17,2), (18,2), (17,3) all read off-sheet there; the
-     * floors sheet is 25×26 cells at 16px source, where the same coords are
+     * floors sheet is 25×26 cells at 56px source, where the same coords are
      * well in-bounds. Side-by-side at 8× makes the sheet-mismatch bug
      * (transparent stamps → beige underpaint workaround) obvious.
      */
@@ -412,7 +413,7 @@ public class BuildingZonePreviewTest {
                 gap, 32);
 
         int roadCellPx = TileManifest.TILE_SIZE;          // 32
-        int floorsCellPx = TileManifest.TILE_SIZE / 2;    // 16, per Floors_Tiles cell size
+        int floorsCellPx = TileManifest.FLOORS_TILE_SIZE;
         int roadCols = road.getWidth() / roadCellPx;
         int roadRows = road.getHeight() / roadCellPx;
         int floorsCols = floors.getWidth() / floorsCellPx;
@@ -422,7 +423,7 @@ public class BuildingZonePreviewTest {
         drawSheetRow(g, road, "ROAD_SHEET\n(17×3 cells @ 32px)", coords, roadCellPx,
                 roadCols, roadRows, 0, 60, rowHeaderW, gap, displayCell, labelH);
         // Row 2: floors sheet (Floors_Tiles.png) — what the catalog says these coords map to.
-        drawSheetRow(g, floors, "FLOORS_SHEET\n(25×26 cells @ 16px)", coords, floorsCellPx,
+        drawSheetRow(g, floors, "FLOORS_SHEET\n(25×26 cells @ 56px)", coords, floorsCellPx,
                 floorsCols, floorsRows, 0, 60 + sheetRowH, rowHeaderW, gap, displayCell, labelH);
 
         g.dispose();

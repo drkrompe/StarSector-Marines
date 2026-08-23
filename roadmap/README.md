@@ -92,6 +92,20 @@ universe over time, not retrofitted into intel slots.
   (mod-merge: load order, id-override, validation) is deferred until a real
   submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
   [`moddable-tilesets/`](moddable-tilesets/overview.md).
+- **Moddable weapons** *(W1 shipped)* — the same move for the weapon
+  catalog. Nineteen weapons across four enums (`MarineWeapon`,
+  `MarineSecondary`, `MechWeapon`, `TurretKind`) with near-identical field
+  sets, none reachable by a submod and all requiring a recompile to tune.
+  **W1 shipped**: a new `battle.weapon` package holds `WeaponDef` /
+  `MountClass` / `WeaponRegistry`, marine primaries now live in
+  `data/marines/marine-weapons.weapon.json`, and `MarineWeapon` is reduced
+  to an id handle whose accessors delegate to the registry — pinned
+  field-for-field by `WeaponRegistryParityTest` with no test expectation
+  changed. Next is **W2**, which replaces the four-arm `ImpactProfile` enum
+  with **layered** effect definitions so a weapon composes its own tracer,
+  muzzle and impact particles instead of picking one of four fixed recipes.
+  W5 (submod merge) is deferred and should share one mechanism with
+  moddable-tilesets Phase 3. See [`moddable-weapons/`](moddable-weapons/overview.md).
 - **Surface relief** *(active)* — S1 derivation and the manually accepted S2
   material-aware parallax/water pass are shipped. S3 dynamic ground bump
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
