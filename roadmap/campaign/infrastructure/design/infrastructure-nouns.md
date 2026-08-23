@@ -67,7 +67,8 @@ living-world discovery system would ask for an intelligence modifier when it
 owns a discoverability decision. The campaign framework supplies persistence
 and day-based scheduling through `campaign-framework-nouns.md`.
 
-`mechanics.md` remains authoritative for political stakes and `housePower`.
+`living-world-nouns.md` remains authoritative for political stakes and
+`housePower`.
 `contracts-nouns.md` remains authoritative for stationing/default policy.
 `economy.md` remains authoritative for the wider scale-inefficiency and
 finance direction. This feature must not fold those nouns into a building
