@@ -12,7 +12,7 @@ import java.util.List;
  * mask, string-pulled into the sparse advisory polyline the corridor →
  * local-planner → controller stack consumes. Replaces the road-<em>graph</em>
  * router — roads are now a cost <em>bias</em> ({@link TerrainCostField}), not a
- * topology vehicles are confined to. See {@code cost-field-routing/overview.md}.
+ * topology vehicles are confined to. See {@code convoy-nouns.md}.
  *
  * <p>Two stages:
  * <ol>
@@ -28,9 +28,9 @@ import java.util.List;
  * </ol>
  *
  * <p>Output is {@code float[][]{xs, ys}} in cell-center coords ({@code cell +
- * 0.5}) — the same shape {@link ConvoyPlanner#expandToWaypoints} returns, so the
- * downstream stack is untouched. Returns {@code null} for no-route (distinct
- * from a valid path), so callers can fall back rather than mistake it for empty.
+ * 0.5}) — the advisory-corridor shape consumed by the mission/control stack.
+ * Returns {@code null} for no-route (distinct from a valid path), so callers can
+ * fall back rather than mistake it for empty.
  *
  * <p>Pure: {@code (start, goal, grid, costField, clearance) -> polyline}. No
  * {@link VehicleMission} coupling — reusable for tanks / player vehicles. Tuned in

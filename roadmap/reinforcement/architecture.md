@@ -287,22 +287,18 @@ turns the budget into a visible resource the player can plan around,
 not a hidden timer. Fog of war later changes the enemy-side read but
 not the player-side UI.
 
-### 5. Commander-tier integration deferred
+### 5. Commander-tier boundary
 
-Once the squad-of-squads commander ([[mission_type_flavors]]) lands,
-deboarded reinforcement squads need to register with it so they get
-objective assignment. For v1 the spawned squad enters the same
-"free agent" pool the commander will pick up; no special wiring
-needed in the reinforcement service itself.
+Deboarded reinforcement squads receive the request's tactical objective when
+they spawn. They still enter the ordinary free-agent/commander pool rather than
+registering through a convoy-specific commander channel; explicit commander
+registration remains deferred until that layer needs a distinct arrival signal.
+No special wiring belongs in reinforcement orchestration itself.
 
 ## Cross-refs
 
-- [`../convoy/complete/reinforcement-integration.md`](../convoy/complete/reinforcement-integration.md)
-  — the convoy provider (`ConvoyMeans`) implementation lives there; this
-  doc owns the orchestration layer above it.
-- [`../convoy/complete/v1-polish.md`](../convoy/complete/v1-polish.md) —
-  the truck stack the convoy means rides on (bicycle + pure pursuit +
-  Reeds-Shepp dock + road reservation + Hybrid A* pose playback).
+- `convoy-nouns.md` — the convoy provider, ground-vehicle movement stack, and
+  delivery boundary; this document owns the orchestration model above it.
 - [[mission_type_flavors]] — Conquest is the first mission surface;
   Assault and others will follow with their own trigger flavors.
 - [[tactical_linker_compound_fallback]] — rally points reuse the
