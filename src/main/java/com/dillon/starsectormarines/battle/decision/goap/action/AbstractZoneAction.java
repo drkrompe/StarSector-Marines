@@ -113,7 +113,8 @@ abstract class AbstractZoneAction implements Action {
                 return;
             }
             doctrineHold = advancingPicture && doctrine == Doctrine.HOLD
-                    && squad.contactPicture.hasContacts();
+                    && TacticalScoring.contactHoldIsFresh(squad,
+                    squad.contactPicture, sim.getSimTickIndex());
             committed |= doctrineHold;
             engageLeash = squad.advanceEngageLeash;
             advanceThreat = squad.advanceThreatId;

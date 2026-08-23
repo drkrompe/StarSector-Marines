@@ -71,6 +71,8 @@ public final class UiElement {
     private long styleRevision;
     private boolean styleDirty = true;
     private boolean descendantStyleDirty;
+    private boolean layoutDirty = true;
+    private boolean descendantLayoutDirty;
 
     public UiElement(String id) {
         this.id = Objects.requireNonNull(id, "id");
@@ -97,8 +99,11 @@ public final class UiElement {
     }
 
     public UiElement tag(UiTag tag) {
-        this.tag = Objects.requireNonNull(tag, "tag");
+        UiTag next = Objects.requireNonNull(tag, "tag");
+        if (this.tag == next) return this;
+        this.tag = next;
         touchStyle();
+        touchLayout();
         return this;
     }
 
@@ -156,6 +161,7 @@ public final class UiElement {
         }
         canvasWidth = width;
         canvasHeight = height;
+        touchLayout();
         return this;
     }
 
@@ -213,8 +219,13 @@ public final class UiElement {
 
     public UiElement layout(UiLayout layout) {
         this.layout = Objects.requireNonNull(layout, "layout");
-        if (layout != UiLayout.STACK) authoredStyle.put(StyleProperty.FLEX_DIRECTION, layout);
+        if (layout == UiLayout.STACK) {
+            authoredStyle.remove(StyleProperty.FLEX_DIRECTION);
+        } else {
+            authoredStyle.put(StyleProperty.FLEX_DIRECTION, layout);
+        }
         touchStyle();
+        touchLayout();
         return this;
     }
 
@@ -227,10 +238,12 @@ public final class UiElement {
             UiElement previousParent = child.parent;
             previousParent.children.remove(child);
             previousParent.touchStyle();
+            previousParent.touchLayout();
         }
         child.parent = this;
         children.add(child);
         child.touchStyle();
+        touchLayout();
         return this;
     }
 
@@ -243,6 +256,7 @@ public final class UiElement {
         child.parent = null;
         touchStyle();
         child.touchStyle();
+        touchLayout();
         return this;
     }
 
@@ -294,16 +308,19 @@ public final class UiElement {
     public UiElement preferredSize(float width, float height) {
         this.preferredWidth = width;
         this.preferredHeight = height;
+        touchLayout();
         return this;
     }
 
     public UiElement preferredWidth(float width) {
         this.preferredWidth = width;
+        touchLayout();
         return this;
     }
 
     public UiElement preferredHeight(float height) {
         this.preferredHeight = height;
+        touchLayout();
         return this;
     }
 
@@ -346,6 +363,7 @@ public final class UiElement {
     public UiElement align(UiAlign horizontal, UiAlign vertical) {
         this.horizontalAlign = Objects.requireNonNull(horizontal, "horizontal");
         this.verticalAlign = Objects.requireNonNull(vertical, "vertical");
+        touchLayout();
         return this;
     }
 
@@ -454,11 +472,14 @@ public final class UiElement {
         authoredStyle.put(StyleProperty.FONT_FAMILY, font);
         authoredStyle.put(StyleProperty.COLOR, color);
         touchStyle();
+        touchLayout();
         return this;
     }
 
     public UiElement text(String text) {
+        if (Objects.equals(this.text, text)) return this;
         this.text = text;
+        touchLayout();
         return this;
     }
 
@@ -468,6 +489,10 @@ public final class UiElement {
 
     public String text() {
         return text;
+    }
+
+    public UiTextAlign textAlign() {
+        return computedStyle == null ? UiTextAlign.START : computedStyle.textAlign();
     }
 
     public Color textColor() {
@@ -571,6 +596,22 @@ public final class UiElement {
         return descendantStyleDirty;
     }
 
+    boolean layoutDirty() {
+        return layoutDirty;
+    }
+
+    boolean descendantLayoutDirty() {
+        return descendantLayoutDirty;
+    }
+
+    void clearLayoutDirty() {
+        layoutDirty = false;
+    }
+
+    void clearDescendantLayoutDirty() {
+        descendantLayoutDirty = false;
+    }
+
     public void clearStyleDirty() {
         styleDirty = false;
     }
@@ -610,6 +651,14 @@ public final class UiElement {
         for (UiElement ancestor = parent; ancestor != null; ancestor = ancestor.parent) {
             if (ancestor.descendantStyleDirty) break;
             ancestor.descendantStyleDirty = true;
+        }
+    }
+
+    private void touchLayout() {
+        layoutDirty = true;
+        for (UiElement ancestor = parent; ancestor != null; ancestor = ancestor.parent) {
+            if (ancestor.descendantLayoutDirty) break;
+            ancestor.descendantLayoutDirty = true;
         }
     }
 }
