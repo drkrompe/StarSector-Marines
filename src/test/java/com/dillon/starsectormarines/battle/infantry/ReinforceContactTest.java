@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -69,7 +72,7 @@ public class ReinforceContactTest {
     }
 
     @Test
-    public void relevanceZeroForMarines() {
+    public void relevancePositiveForMarinesSoTheyCanFixAndFlank() {
         BattleSimulation sim = openSim();
         long leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 35, 5));
         int sid = sim.mintSquad(Faction.MARINE, leader);
@@ -81,7 +84,7 @@ public class ReinforceContactTest {
         s.centroidX = 35;
         s.centroidY = 5;
         s.aliveMembers = 4;
-        assertEquals(0f, ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim));
+        assertTrue(ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim) > 0f);
     }
 
     @Test
@@ -174,6 +177,30 @@ public class ReinforceContactTest {
         assertNotNull(plan);
         assertEquals(1, plan.stepCount());
         assertTrue(plan.steps().get(0).action instanceof FlankApproach);
+    }
+
+    @Test
+    public void flankApproachKeepsOneTeamFixingWhileSiblingManeuvers() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        List<Long> members = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            members.add(sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 5, 5 + i).squad(squadId).fireTeam(i / 4)));
+        }
+        squad.aliveMembers = 8;
+        FlankApproach action = new FlankApproach(20, 20);
+
+        var roles = action.assignRoles(squad, sim, members);
+
+        assertEquals(2, roles.size());
+        assertEquals(4, roles.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(FlankApproach.FIX))
+                .findFirst().orElseThrow().getValue().size());
+        assertEquals(4, roles.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(FlankApproach.FLANK))
+                .findFirst().orElseThrow().getValue().size());
     }
 
     // ---- Flanking geometry ----

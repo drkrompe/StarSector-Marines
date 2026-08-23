@@ -1553,8 +1553,8 @@ public final class TacticalScoring {
      *
      * <p>Cover dominates the rank, then proximity to the stride point, route
      * length, existing occupancy, and spacing from cells already reserved in
-     * this phase. This is deliberately a small greedy assignment — fireteams
-     * cap around eight members and a bound contains at most half of them.
+     * this phase. This is deliberately a small greedy assignment: one bound
+     * contains one organizational fire team, normally four marines.
      */
     public List<BoundingPosition> findBoundingPositions(List<Long> bounders,
                                                         long threat,

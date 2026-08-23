@@ -6,9 +6,9 @@
 > design a four-billet card once, then assign it wherever the company owns a
 > complete kit.
 
-**Status:** IN PROGRESS — Slices 1–2 shipped; Slice 3 next
+**Status:** IN PROGRESS — Slices 1–3 shipped; Slice 4 next
 **Written:** 2026-08-23
-**Updated:** 2026-08-23 — Player-authored card design now ships; availability and fast swap are next.
+**Updated:** 2026-08-23 — Availability previews and atomic fast swaps now ship; squad arrangements are next.
 
 Read `company-view-nouns.md` first; it owns the standing organization and
 equipment-authority model this story extends.
@@ -93,10 +93,10 @@ surface once the designer replaces it.
    complete billets and preserve stable card ids across save/load. Built-ins
    clone into custom cards; billet changes save as a new revision so assigned
    teams retain their prior intent and issue.
-3. **Availability and fast swap.** Preview returned/required/free gear, show
-   `fielded` and `ready to issue` counts, and support card-to-team drag/drop or
-   an equivalent one-action assignment. A swap between two teams is evaluated
-   as one net transaction.
+3. ~~**Availability and fast swap.**~~ **Shipped 2026-08-23.** Preview
+   returned/required/free gear, show `fielded` and `ready to issue` counts, and
+   support card-to-team drag/drop or an equivalent one-action assignment. A
+   swap between two teams is evaluated as one net transaction.
 4. **Squad arrangements.** Save and apply a three-card squad composition
    atomically. A failure in any team leaves all three assignments unchanged.
 5. **Conformance and replacement flow.** Show vacancies, WIA-held gear and
@@ -135,11 +135,26 @@ surface once the designer replaces it.
 - The LOADOUTS card picker pages through libraries larger than the four starter
   cards.
 
+## Slice 3 acceptance
+
+- Every card reports fielded assignments and the number of additional complete
+  kits current uncommitted stock can supply; locked designs report no ready
+  copies without being removed from the library.
+- Selecting a card shows the selected team's free stock, returned issue and
+  required issue per affected catalog line, plus the exact assignment failure
+  reason when invalid.
+- Preview and assignment share one transaction calculation, so their success
+  and failure answers cannot drift.
+- A selected card can be issued directly to Alpha, Bravo or Charlie with one
+  target action and remains selected for repeated issue.
+- Two assigned teams can exchange cards atomically. Both returns are counted
+  before either issue, and any failure leaves both teams unchanged.
+
 ## Boundaries
 
 - C14 changes equipment authorship, not deployment selection or player battle
   orders. Squads remain the command target.
-- `c9-fire-teams-as-the-maneuver-element.md` owns how assigned teams maneuver.
+- `company-view-nouns.md` owns how assigned teams maneuver in battle.
   It may later consume card-derived tactical tags, but C14 does not make gear a
   hidden AI-order channel.
 - `progression-nouns.md` owns catalog breadth, unlocks, grades and individual

@@ -7,7 +7,10 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.CaptainCandidate;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
+import com.dillon.starsectormarines.marine.FireTeamGearDelta;
+import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
+import com.dillon.starsectormarines.marine.FireTeamTemplateAvailability;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCards;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineArmory;
@@ -102,6 +105,7 @@ public final class ArmoryScreen implements Screen {
     private int inventoryScroll;
     private int candidatePage;
     private int templateCardPage;
+    private String previewTemplateCardId;
     private int designerCardPage;
     private String selectedDesignerCardId;
     private TemplateDraft templateDraft;
@@ -360,9 +364,12 @@ public final class ArmoryScreen implements Screen {
             FireTeamTemplateCard card = cards.get(i);
             boolean selected = card.id().equals(selectedDesignerCardId);
             boolean builtIn = FireTeamTemplateCards.isStarterId(card.id());
+            FireTeamTemplateAvailability availability =
+                    roster.fireTeamTemplateAvailability(card.id());
             addButton(x, y, width,
                     (selected ? "> " : "  ") + card.displayName()
-                            + (builtIn ? " · BUILT-IN" : " · CUSTOM"),
+                            + " · " + availability.fielded() + "F/"
+                            + availability.readyToIssue() + "R",
                     () -> selectDesignerTemplate(card.id()),
                     selected ? VALUE : builtIn ? HEADER : GOOD);
             y -= 42f;
@@ -665,6 +672,7 @@ public final class ArmoryScreen implements Screen {
                 addButton(x, y, width, (selected ? "> " : "  ") + soldier.name()
                         + " · " + statusLabel(soldier), () -> {
                     selectedSoldierId = soldier.id();
+                    previewTemplateCardId = null;
                     loadoutFeedback = null;
                     clearDoubleClick();
                     rebuild();
@@ -681,7 +689,7 @@ public final class ArmoryScreen implements Screen {
             int cardPages = Math.max(1, (cards.size() + cardPageSize - 1) / cardPageSize);
             templateCardPage = Math.max(0, Math.min(templateCardPage, cardPages - 1));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                    "TEMPLATE CARDS · " + fireTeamName(selectedTeamIndex),
+                    "TEMPLATE CARDS · FIELD/READY",
                     x, presetY + 92f, HEADER));
             if (cardPages > 1) {
                 addButton(x + width - 72f, presetY + 84f, 32f, "<",
@@ -704,14 +712,19 @@ public final class ArmoryScreen implements Screen {
                 float by = presetY + (1 - i / 2) * 38f;
                 boolean assigned = card.id().equals(
                         selectedSquad.teamTemplateCardId(selectedTeamIndex));
+                boolean previewed = card.id().equals(previewTemplateCardId);
+                FireTeamTemplateAvailability availability =
+                        roster.fireTeamTemplateAvailability(card.id());
                 addButton(bx, by, width / 2f - 4f,
-                        (assigned ? "> " : "") + card.displayName(), () -> {
-                    FireTeamTemplateResult result = roster.applyFireTeamTemplate(
-                            selectedSquad.id(), selectedTeamIndex, card.id());
-                    templateSucceeded = result == FireTeamTemplateResult.APPLIED;
-                    templateFeedback = templateMessage(result);
+                        (previewed ? "> " : assigned ? "* " : "")
+                                + shortCardName(card.displayName()) + " · "
+                                + availability.fielded() + "/"
+                                + availability.readyToIssue(), () -> {
+                    previewTemplateCardId = card.id();
+                    templateFeedback = null;
                     rebuild();
-                }, assigned ? VALUE : HEADER);
+                }, previewed ? VALUE : assigned ? GOOD
+                        : availability.recipesUnlocked() ? HEADER : MUTED);
                 i++;
             }
             if (templateFeedback != null) {
@@ -730,7 +743,130 @@ public final class ArmoryScreen implements Screen {
         selectFirstSoldierIfNeeded();
     }
 
+    private void buildTemplateTransactionPreview(float x, float top, float width,
+                                                 FireTeamTemplateCard card) {
+        MarineSquad squad = roster.squadById(selectedSquadId);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "SELECTED CARD", x, top - 10f, HEADER));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                card.displayName() + " → " + fireTeamName(selectedTeamIndex),
+                x, top - 38f, VALUE));
+        FireTeamTemplateAvailability availability =
+                roster.fireTeamTemplateAvailability(card.id());
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                availability.fielded() + " fielded · " + availability.readyToIssue()
+                        + " additional complete kits ready",
+                x, top - 64f, availability.recipesUnlocked() ? GOOD : BAD));
+
+        if (squad == null || squad.reserve()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Select a line fire team to preview this issue.",
+                    x, top - 102f, BAD));
+            return;
+        }
+
+        FireTeamRefitPreview preview = roster.previewFireTeamTemplate(
+                squad.id(), selectedTeamIndex, card.id());
+        float panelY = top - 404f;
+        widgets.add(new PanelWidget(x, panelY, width, 320f));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "GEAR", x + 10f, top - 94f, MUTED));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "FREE  +RETURN  /NEED", x + width - 156f, top - 94f, MUTED));
+
+        int maxRows = 10;
+        float y = top - 124f;
+        int shown = Math.min(maxRows, preview.gear().size());
+        for (int i = 0; i < shown; i++) {
+            FireTeamGearDelta delta = preview.gear().get(i);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    shortGearLabel(delta.label()), x + 10f, y,
+                    delta.sufficient() ? HEADER : BAD));
+            String free = delta.unlimited() ? "∞" : Integer.toString(delta.free());
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    free + "  +" + delta.returned() + "  /" + delta.required(),
+                    x + width - 146f, y,
+                    delta.sufficient() ? delta.netIssue() > 0 ? VALUE : GOOD : BAD));
+            y -= 26f;
+        }
+        if (preview.gear().size() > maxRows) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "+" + (preview.gear().size() - maxRows) + " more catalog lines",
+                    x + 10f, y, MUTED));
+        }
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                preview.canApply() ? "READY TO ISSUE" : templateMessage(preview.result()),
+                x, top - 432f, preview.canApply() ? GOOD : BAD));
+
+        float issueY = top - 478f;
+        float targetW = (width - 12f) / 3f;
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            int targetTeam = team;
+            FireTeamRefitPreview targetPreview = roster.previewFireTeamTemplate(
+                    squad.id(), team, card.id());
+            boolean alreadyAssigned = card.id().equals(squad.teamTemplateCardId(team));
+            addButton(x + team * (targetW + 6f), issueY, targetW,
+                    (alreadyAssigned ? "Reissue " : "Issue ") + shortTeamName(team),
+                    targetPreview.canApply()
+                            ? () -> applyPreviewCardToTeam(squad, targetTeam, card) : null,
+                    targetPreview.canApply() ? team == selectedTeamIndex ? VALUE : GOOD : MUTED);
+        }
+
+        float swapY = top - 520f;
+        int swapButton = 0;
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            if (team == selectedTeamIndex || squad.teamTemplateCardId(team) == null
+                    || squad.teamTemplateCardId(selectedTeamIndex) == null) continue;
+            int otherTeam = team;
+            FireTeamRefitPreview swapPreview = roster.previewFireTeamTemplateSwap(
+                    squad.id(), selectedTeamIndex, squad.id(), team);
+            addButton(x + swapButton * 156f, swapY, 148f,
+                    "Swap ↔ " + fireTeamName(team),
+                    () -> swapSelectedTeamWith(squad, otherTeam),
+                    swapPreview.canApply() ? HEADER : BAD);
+            swapButton++;
+        }
+    }
+
+    private void applyPreviewCardToTeam(MarineSquad squad, int teamIndex,
+                                        FireTeamTemplateCard card) {
+        FireTeamTemplateResult result = roster.applyFireTeamTemplate(
+                squad.id(), teamIndex, card.id());
+        templateSucceeded = result == FireTeamTemplateResult.APPLIED;
+        templateFeedback = templateSucceeded
+                ? card.displayName() + " issued to " + fireTeamName(teamIndex)
+                : templateMessage(result);
+        selectedTeamIndex = teamIndex;
+        selectedSoldierId = null;
+        selectFirstSoldierIfNeeded();
+        rebuild();
+    }
+
+    private void swapSelectedTeamWith(MarineSquad squad, int otherTeamIndex) {
+        int firstTeamIndex = selectedTeamIndex;
+        FireTeamTemplateResult result = roster.swapFireTeamTemplates(
+                squad.id(), firstTeamIndex, squad.id(), otherTeamIndex);
+        templateSucceeded = result == FireTeamTemplateResult.APPLIED;
+        templateFeedback = templateSucceeded
+                ? fireTeamName(firstTeamIndex) + " ↔ " + fireTeamName(otherTeamIndex)
+                        + " cards swapped"
+                : templateMessage(result);
+        if (templateSucceeded) {
+            previewTemplateCardId = squad.teamTemplateCardId(firstTeamIndex);
+        }
+        selectedSoldierId = null;
+        selectFirstSoldierIfNeeded();
+        rebuild();
+    }
+
     private void buildPaperDoll(float x, float top, float width) {
+        FireTeamTemplateCard previewCard = roster.armory().templateCardById(
+                previewTemplateCardId);
+        if (previewCard != null) {
+            buildTemplateTransactionPreview(x, top, width, previewCard);
+            return;
+        }
         MarineSoldier soldier = selectedSoldier();
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 soldier != null ? soldier.name().toUpperCase() : "NO MARINE SELECTED",
@@ -1538,6 +1674,7 @@ public final class ArmoryScreen implements Screen {
         addButton(x + w - moveW - loadoutW - 8f, y + 4f, loadoutW, "Loadout",
                 () -> {
                     selectedSoldierId = soldier.id();
+                    previewTemplateCardId = null;
                     MarineSquad squad = roster.squadForSoldier(soldier.id());
                     if (squad != null) selectedTeamIndex = squad.teamIndexOf(soldier.id());
                     tab = Tab.LOADOUTS;
@@ -1563,6 +1700,25 @@ public final class ArmoryScreen implements Screen {
         if (squad.reserve()) return "Reserve";
         String name = squad.name();
         return name.length() <= 10 ? name : name.substring(0, 10);
+    }
+
+    private static String shortCardName(String name) {
+        if (name == null || name.isBlank()) return "Card";
+        return name.length() <= 11 ? name : name.substring(0, 10) + "…";
+    }
+
+    private static String shortGearLabel(String label) {
+        if (label == null || label.isBlank()) return "Gear";
+        return label.length() <= 20 ? label : label.substring(0, 19) + "…";
+    }
+
+    private static String shortTeamName(int teamIndex) {
+        return switch (teamIndex) {
+            case 0 -> "A";
+            case 1 -> "B";
+            case 2 -> "C";
+            default -> "?";
+        };
     }
 
     private static String shortCaptainName(MarineCaptain captain) {

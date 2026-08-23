@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -10,10 +12,13 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * <b>Story D — Patrol intercept.</b> Per-instance action that converges all
- * squad members on a pre-computed flanking waypoint. The waypoint is placed
+ * <b>Fire-team flank.</b> Per-instance action that sends one intact fire team
+ * to a pre-computed flanking waypoint while its siblings hold the contact
+ * axis. The waypoint is placed
  * ~90° off the garrison's engagement axis by
  * {@link com.dillon.starsectormarines.battle.infantry.ReinforceContact#customPlan}
  * so the patrol arrives at a crossfire angle rather than stacking behind the
@@ -35,6 +40,8 @@ import java.util.List;
 public final class FlankApproach implements Action {
 
     public static final float ARRIVAL_RADIUS = 3.0f;
+    static final String FIX = "fix:";
+    static final String FLANK = "flank:";
 
     private final int waypointX;
     private final int waypointY;
@@ -54,10 +61,32 @@ public final class FlankApproach implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
+    public Map<String, List<Long>> assignRoles(Squad squad, BattleView sim,
+                                                List<Long> candidates) {
+        List<FireTeamGroups.Team> teams = FireTeamGroups.organize(candidates, sim.squad());
+        if (teams.size() < 2) {
+            return FireTeamGroups.assignments(FLANK, candidates, sim.squad());
+        }
+        Map<String, List<Long>> result = new LinkedHashMap<>();
+        for (int i = 0; i < teams.size(); i++) {
+            FireTeamGroups.Team team = teams.get(i);
+            String role = i == teams.size() - 1 ? FLANK : FIX;
+            result.put(role + team.index(), team.members());
+        }
+        return result;
+    }
+
+    @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        float dx = squad.centroidX - (waypointX + 0.5f);
-        float dy = squad.centroidY - (waypointY + 0.5f);
-        if (Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS) {
+        SquadPlan.Step step = squad.currentPlan != null
+                ? squad.currentPlan.currentStep() : null;
+        String role = step != null ? step.slotOf(member) : null;
+        if (role != null && role.startsWith(FIX)) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
+
+        if (maneuverDistance(step, squad, sim) <= ARRIVAL_RADIUS) {
             return ActionStatus.SUCCESS;
         }
 
@@ -74,6 +103,33 @@ public final class FlankApproach implements Action {
             sim.advanceMovement(member);
         }
         return ActionStatus.RUNNING;
+    }
+
+    private float maneuverDistance(SquadPlan.Step step, Squad squad,
+                                   BattleView sim) {
+        if (step == null) {
+            return distanceToWaypoint(squad.centroidX, squad.centroidY);
+        }
+        float x = 0f;
+        float y = 0f;
+        int count = 0;
+        for (Map.Entry<String, List<Long>> entry : step.assignments.entrySet()) {
+            if (!entry.getKey().startsWith(FLANK)) continue;
+            for (long member : entry.getValue()) {
+                if (sim.resolveUnit(member) == 0L) continue;
+                x += sim.world().x(member);
+                y += sim.world().y(member);
+                count++;
+            }
+        }
+        return count > 0 ? distanceToWaypoint(x / count, y / count)
+                : distanceToWaypoint(squad.centroidX, squad.centroidY);
+    }
+
+    private float distanceToWaypoint(float x, float y) {
+        float dx = x - (waypointX + 0.5f);
+        float dy = y - (waypointY + 0.5f);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override

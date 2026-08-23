@@ -38,9 +38,9 @@ change.
 > and the card as **one officer's command**. The screens say "fireteam"
 > today; that word moves to the four-marine element, and the row the player
 > sees is a squad row. The class has always been `MarineSquad`; only the UI
-> string changes. Fire teams are not a card level
-> (C9 (`c9-fire-teams-as-the-maneuver-element.md`)); they show up only as
-> pip grouping.
+> string changes. Fire teams are not a card level; their shipped battle role
+> is defined in `company-view-nouns.md`, and here they show up only as pip
+> grouping.
 
 **Company band (top).** Strength / ready / wounded / recovering, squads
 deployable vs. rank cap, seats required vs. filled for this sortie. This is
