@@ -126,8 +126,8 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static ShotFx derivePrimary(MarineWeapon w) {
-        Body body = w.projectileSpritePath != null
-                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)
+        Body body = w.projectileSpritePath() != null
+                ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : bolt(w);
         return new ShotFx(body, 0f, false, false, false, null);
     }
@@ -135,11 +135,11 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     private static Bolt bolt(MarineWeapon w) {
         return switch (w) {
             case PULSE_RIFLE -> new Bolt(PULSE_BOLT_SPRITE_PATH,
-                    w.tracerColor, 1.0f, 0.25f);
+                    w.tracerColor(), 1.0f, 0.25f);
             case DMR -> new Bolt(RAIL_NEEDLE_SPRITE_PATH,
-                    w.tracerColor, 1.8f, 0.16f);
+                    w.tracerColor(), 1.8f, 0.16f);
             case DRONE_PULSE -> new Bolt(DRONE_DART_SPRITE_PATH,
-                    w.tracerColor, 0.65f, 0.16f);
+                    w.tracerColor(), 0.65f, 0.16f);
             case FIELD_RIFLE, SMG -> throw new IllegalArgumentException(
                     "sprite-backed primary cannot derive a bolt: " + w);
         };

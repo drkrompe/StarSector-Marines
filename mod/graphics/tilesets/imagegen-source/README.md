@@ -24,9 +24,10 @@ python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
 
 `atlas-material-source/` contains the small checked-in authoring inputs used by
 `texture-atlases.json`. They are wrap-aware FFmpeg downsamples of selected Game
-Buffs 4K materials: 52x52 grass and dirt for `nature-tiles`, plus 14x14 sand and
-stone for `Floors_Tiles`. Every hash-selected variant in a material pool uses
-the same imported source so unlike variants cannot expose a join.
+Buffs 4K materials: 52x52 grass and dirt plus 45x47 sand for `nature-tiles`,
+and 52x52 sand and stone for `Floors_Tiles`. Every hash-selected variant in a
+material pool uses the same imported source so unlike variants cannot expose a
+join.
 
 ## Individual-material atlas packer
 
@@ -55,13 +56,16 @@ neighbors instead of clamped image edges:
 python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py import-tileable `
   "C:\path\to\Sand_Albedo.png" `
   mod\graphics\tilesets\imagegen-source\atlas-material-source\new-pack\sand.png `
-  --size 14
+  --size 52
 ```
 
-For the 16px `Floors_Tiles` ground pools, a 1px runtime guard means each
-checked-in material is 14x14. The manifest packs `Beach_Sand_Dry_1_Albedo.png`
+For the 56px `Floors_Tiles` ground pools, a 2px runtime guard means each
+checked-in material is 52x52. The manifest packs `Beach_Sand_Dry_1_Albedo.png`
 into sand cells `[6, 14]`, `[7, 14]`, and `[8, 14]`, and
 `Gravel_11_Albedo.png` into stone cells `[6, 10]`, `[7, 10]`, and `[8, 10]`.
+The nature strip's irregular 49x51 sand frame uses a 45x47 import plus the same
+2px guard. Rectangular imports use `--size WIDTHxHEIGHT`, such as
+`--size 45x47`.
 
 Run the packer tests with:
 
@@ -78,9 +82,9 @@ python -m unittest discover `
 | `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGB) | Strong whole-sheet preservation; 2 originally empty cells contain spillover |
 | `urban-tileset-2.png` | `urban-tileset-2-spaceport-apron.raw.png` (1254x1254 RGB) | The approved 3x3 spaceport apron is extracted panel-by-panel into the road atlas |
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
-| `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (14x14 RGBA) | Material families retained; sand and stone fields use manifest-packed seamless materials |
+| `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 RGBA) | All 20 auto-sliced frames retained in order; grass/dirt fields use manifest-packed seamless materials |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 and 45x47 RGBA) | All 20 auto-sliced frames retained in order; grass, dirt, and sand fields use manifest-packed seamless materials |
 
 ## Shared prompt frame
 

@@ -373,7 +373,7 @@ public final class ArmoryScreen implements Screen {
                 x + 96f, primaryY + primaryH - 40f, GOOD));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 soldier.primary() == MarineWeapon.FIELD_RIFLE
-                        ? "Unlimited fleet issue" : soldier.primary().displayName,
+                        ? "Unlimited fleet issue" : soldier.primary().displayName(),
                 x + 96f, primaryY + 30f, MUTED));
         boolean primaryCanReset = editable && (soldier.primary() != MarineWeapon.FIELD_RIFLE
                 || soldier.primaryGrade() != EquipmentGrade.SERVICE);
@@ -644,7 +644,7 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new SpriteThumbWidget(weaponIcon(weapon), x + 8f, y + 6f, 54f, h - 12f));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 weapon.catalogName(grade) + " · " + grade.displayName,
-                x + 72f, y + h - 9f, unlocked ? weapon.tracerColor : MUTED));
+                x + 72f, y + h - 9f, unlocked ? weapon.tracerColor() : MUTED));
         boolean installed = soldier != null && soldier.primary() == weapon
                 && soldier.primaryGrade() == grade;
         boolean canEquip = !installed && soldier != null
@@ -823,7 +823,7 @@ public final class ArmoryScreen implements Screen {
         EquipmentGrade grade = browsedGrade;
         boolean unlocked = roster.armory().isPrimaryUnlocked(weapon, grade);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, weapon.catalogName(grade),
-                x + 170f, top - 48f, weapon.tracerColor));
+                x + 170f, top - 48f, weapon.tracerColor()));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 weapon == MarineWeapon.FIELD_RIFLE ? "Unlimited fleet service issue"
                         : grade.displayName + " pattern · Tier " + grade.tierMark(),

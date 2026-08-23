@@ -326,7 +326,7 @@ public final class GroundRenderSystem implements RenderSystem {
         emitCellPx(sheet, b.cellPx, c[0], c[1], inset, x, y);
     }
 
-    /** Source rect for a {@code cellPx}-grid sheet (32px urban/road, 16px floors/water): col/row * cellPx, inset, cell-center dst. */
+    /** Source rect for a {@code cellPx}-grid sheet (56px floors, 32px urban/road, 16px water): col/row * cellPx, inset, cell-center dst. */
     private void emitCellPx(SpriteAPI sheet, int cellPx, int col, int row, int inset, int gridX, int gridY) {
         int srcX = col * cellPx + inset;
         int srcY = row * cellPx + inset;
