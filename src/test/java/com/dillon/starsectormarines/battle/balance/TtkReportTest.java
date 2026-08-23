@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Produces the time-to-kill table
- * {@code roadmap/progression/stories/s1-lethality-and-tier-spread.md} tunes
+ * {@code progression-nouns.md} defines the quality model this report tunes
  * against, and guards the structural relationships that must survive any
  * tuning pass.
  *

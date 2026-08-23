@@ -19,9 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for {@link CombatTelemetryService} and {@link CombatTelemetryReport}
- * — progression S3 slice 1
- * ({@code s3-per-soldier-telemetry.md}).
+ * Coverage for the battle-local evidence model in {@link CombatTelemetryService}
+ * and {@link CombatTelemetryReport} ({@code progression-nouns.md}).
  *
  * <p>The load-bearing case is {@link #aKilledMarineKeepsItsRecord}: telemetry
  * is a lifecycle-stable capability, and a marine's statistics matter most when

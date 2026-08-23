@@ -90,7 +90,7 @@ public final class MissionOutcome {
      * <p>Only marines the campaign roster tracks appear. Defenders, employer
      * militia and turrets are recorded in battle and reach the per-mission
      * debug table, but never a career record
-     * ({@code s3-per-soldier-telemetry.md}).
+     * ({@code progression-nouns.md}).
      * Empty for every outcome built by a caller that has no battle in hand.
      */
     public final Map<String, CombatTelemetryRow> soldierTelemetry;

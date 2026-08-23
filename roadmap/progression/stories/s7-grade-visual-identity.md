@@ -3,9 +3,9 @@
 > If a marine is carrying the best rifle in the company, the player should
 > be able to tell by looking at the fight.
 
-**Status:** not started. Depends on
-[S1](s1-lethality-and-tier-spread.md) — there is no point signalling a
-grade difference that does not yet exist.
+Status: PLANNED — depends on the shipped quality scale in `progression-nouns.md`.
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 
 ## Problem
 
@@ -46,7 +46,7 @@ Scale existing effect parameters by grade rather than authoring new assets:
   more saturated. The existing per-weapon `tracerColor` stays the family
   identity; grade modulates it.
 - **Muzzle flash scale and light contribution** — grade-scaled, feeding the
-  shipped [`../../surface-relief/`](../../surface-relief/overview.md)
+  shipped `surface-relief.md`
   dynamic light budget. Note that budget is a fixed eight lights; grade
   must modulate existing muzzle events, not add new ones.
 - **Impact weight** — `ImpactProfile` selection or scaling, so a Masterwork
@@ -85,7 +85,7 @@ marker on high-tier marines closes the loop:
   selection, contact ghosts, and objective markers. This must not become
   another layer of noise.
 
-Note the overlap with [S9](s9-in-battle-quality-conveyance.md), which owns
+Note the overlap with `s9-in-battle-quality-conveyance.md`, which owns
 *experience* conveyance in battle. Coordinate so the two do not each invent
 a marker. Recommended split: S7 owns anything driven by **equipment**, S9
 owns anything driven by **the person**.

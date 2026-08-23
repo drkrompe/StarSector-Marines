@@ -426,7 +426,7 @@ public final class BattleComponents {
      * death transmute and rides the corpse — which is the whole point: a
      * soldier's statistics matter most when they were killed, and the
      * end-of-battle gather runs long after the roster released them. See
-     * {@code s3-per-soldier-telemetry.md}.
+     * {@code progression-nouns.md}.
      */
     public final ComponentType TELEMETRY;
     /**

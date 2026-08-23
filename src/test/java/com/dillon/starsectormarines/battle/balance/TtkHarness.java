@@ -25,9 +25,9 @@ import com.dillon.starsectormarines.marine.MarineArmorPattern;
 
 /**
  * Measures time-to-kill by running the shipped firing pipeline, not by
- * re-deriving it. This is the instrument
- * {@code roadmap/progression/stories/s1-lethality-and-tier-spread.md} makes a
- * deliverable: every lethality or grade-spread change is argued from a
+ * re-deriving it. This is the instrument that makes the quality laws in
+ * {@code progression-nouns.md} measurable: every lethality or grade-spread
+ * change is argued from a
  * before/after table this class produces, and the same table is re-runnable
  * when a later story perturbs the numbers again.
  *

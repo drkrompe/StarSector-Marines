@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * One marine's lifetime service record — the campaign-side accumulation of the
  * per-battle telemetry {@code battle.sim.CombatTelemetryService} collects
- * ({@code s3-per-soldier-telemetry.md}).
+ * ({@code progression-nouns.md}).
  *
  * <p><b>Lifetime totals only.</b> Per-mission history is a much bigger
  * commitment — save size, and a UI surface to justify it — and none of this

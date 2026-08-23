@@ -72,10 +72,9 @@ wounded and until when, who is gone.
 
 ## Out of scope
 
-- Per-marine battle telemetry (rounds landed, kills). That is progression
-  S3 (`s3-per-soldier-telemetry.md`); this story
-  reports survival, not performance. When S3 lands, its per-marine numbers
-  slot into these rows.
+- Per-marine battle telemetry (rounds landed, kills). The standing evidence
+  model is `progression-nouns.md`; this story reports survival, not
+  performance. Its per-marine numbers slot into these rows.
 - Changing casualty determination or recovery timing.
 
 ## Open questions

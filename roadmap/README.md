@@ -165,10 +165,10 @@ universe over time, not retrofitted into intel slots.
 - **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned
   per-soldier experience, the fabrication parts economy, and the legibility
-  of all of it. [`progression/audit.md`](progression/audit.md) measured the
-  baseline: the plumbing is shipped but the content is thin — four authored
-  armor patterns are unreachable, the unlock ladder ends at mission five,
-  parts have exactly one source (winning), XP is flat per survivor, and six
+  of all of it. `progression-nouns.md` carries the standing model; the
+  baseline showed that the plumbing is shipped but the content is thin — four
+  authored armor patterns are unreachable, the unlock ladder ends at mission
+  five, parts have exactly one source (winning), XP is flat per survivor, and six
   of eleven traits are inert enums with no UI. **S1 is shipped** (`3a307354`,
   `fdc49c36`, plus the grade spread): a TTK harness that drives the real
   firing pipeline, then the two numeric passes it made arguable. A marine
@@ -182,9 +182,9 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 and S4-S10 remain, and S1's own last acceptance item is an in-game feel
-  pass. See
-  [`progression/`](progression/overview.md).
+  S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
+  and the synthesis found one proposed XP-authority cleanup. See
+  `progression-nouns.md`; its adjacent board is the open-work list.
 - **Company view** *(active — C7 shipped)* — the player's force as one legible
   hierarchy, company → squad → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
@@ -410,14 +410,14 @@ which drives the briefing voice via `BriefingComposer`. Commits `e3cbe306`,
 - **`backlog.md`** — known future work, grouped by area. Edit additively as
   ideas land.
 - **Feature directories** (`ecs-migration/`, `campaign/`, `conquest/`, etc.)
-  — each follows the `overview.md` + `stories/` + `complete/` layout
-  described in [`CLAUDE.md`](../CLAUDE.md). `next-session.md` in each dir
-  is the handoff artifact for picking up cold. Existing dirs are migrated
-  to this layout incrementally as they're touched.
+  — converge on the noun doc + `design/stories.md` + temporary `stories/`
+  layout described in `CLAUDE.md`. Existing legacy directories are migrated
+  incrementally as they are touched; do not copy their `complete/` or
+  `next-session.md` lifecycle into migrated features.
 
 ## Related project context
 
-- [`CLAUDE.md`](../CLAUDE.md) — build toolchain, Starsector API conventions,
+- `CLAUDE.md` — build toolchain, Starsector API conventions,
   repo conventions. Read at session start.
 - `~/.claude/projects/.../memory/` — Claude's project memory. Holds *patterns
   and gotchas* (UI font minimum, Starsector rulecmd package gotcha, GL state
