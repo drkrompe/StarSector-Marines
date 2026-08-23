@@ -15,8 +15,9 @@ Terrain Textures
   Material adapted:
     Beach_Sand_Dry_1_Albedo.png (outdoor sand)
   Source: Purchased Game Buffs / Unity Asset Store package
-  Modifications: Wrap-aware FFmpeg downsample from 4096x4096 to 52x52;
-                 packed into the floor atlas with a 2px wrapped guard band.
+  Modifications: Wrap-aware FFmpeg downsamples from 4096x4096 to 52x52 and
+                 45x47; packed into the floor and nature atlases with 2px
+                 wrapped guard bands.
 
 "70+ Realistic Mountain Environment Textures" by Game Buffs
   Material adapted:
