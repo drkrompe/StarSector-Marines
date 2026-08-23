@@ -328,8 +328,14 @@ public final class Squad {
      */
     public boolean _engagedThisTick = false;
     public boolean _suspiciousThisTick = false;
-    /** True on the first tick of a direct contact or a direct re-acquisition. */
+    /**
+     * True on the first tick of a squad-wide direct-LOS episode. Additional
+     * hostile identities entering sight during uninterrupted contact do not
+     * start another episode; reacquisition after a tick with no direct LOS does.
+     */
     public boolean _directContactStartedThisTick = false;
+    /** Whether any direct contact was observed on the immediately preceding tick. */
+    private boolean directContactObservedLastTick = false;
     /** True when the finalized alert level differs from the previous tick. */
     public boolean _alertLevelChangedThisTick = false;
     /** True when morale hysteresis enters or leaves the broken state. */
@@ -567,11 +573,16 @@ public final class Squad {
      * Ages the private serial-write store at tick start. The refreshed
      * immutable snapshot is published after all direct observations land.
      */
-    void beginBeliefTick(float dt) {
+    void beginBeliefTick(float dt, int simTick) {
+        directContactObservedLastTick = false;
         Iterator<Map.Entry<Long, BelievedContact>> iterator = contactMemory.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Long, BelievedContact> entry = iterator.next();
             BelievedContact old = entry.getValue();
+            if (old.source() == BeliefSource.DIRECT
+                    && old.lastSeenTick() == simTick - 1) {
+                directContactObservedLastTick = true;
+            }
             float confidence = old.confidence() - BELIEF_DECAY_PER_SECOND * dt;
             if (confidence <= 0f) {
                 iterator.remove();
@@ -585,18 +596,17 @@ public final class Squad {
 
     /**
      * Records one authoritative direct-LOS observation at full confidence.
-     * Returns true when this starts (or re-acquires) direct contact rather
-     * than continuing an uninterrupted sighting from the preceding tick.
+     * The first observation of a squad-wide direct-LOS episode raises the
+     * tactical-interrupt flag. Seeing another hostile during uninterrupted
+     * contact does not; reacquiring any hostile after a no-LOS tick does.
      */
-    boolean observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
-        BelievedContact old = contactMemory.get(unitId);
-        boolean started = old == null
-                || old.source() != BeliefSource.DIRECT
-                || old.lastSeenTick() < simTick - 1;
+    void observeDirectContact(long unitId, int cellX, int cellY, int simTick) {
+        boolean started = !directContactObservedLastTick
+                && !_directContactStartedThisTick;
         contactMemory.put(unitId,
                 new BelievedContact(unitId, cellX, cellY, simTick, 1f,
                         BeliefSource.DIRECT));
-        return started;
+        if (started) _directContactStartedThisTick = true;
     }
 
     /** True when another member already established this contact this tick. */

@@ -54,7 +54,10 @@ execution.
 - Plan invalidated (a queued action's precondition stopped holding)
 - Goal achieved (plan ran to completion)
 - Squad member died
+- Squad-wide direct-LOS episode started (first contact, or reacquisition after
+  a tick with no direct sighting)
 - `SquadAlertLevel` transitioned
+- Incoming-fire onset or morale broken-state transition
 - Periodic ~2 sim-seconds fallback
 
 ## Persistence

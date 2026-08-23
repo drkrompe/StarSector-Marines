@@ -8,7 +8,9 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.perception.NoiseDetection;
 import com.dillon.starsectormarines.battle.perception.NoiseEvent;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -16,7 +18,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import java.util.List;
 
 /**
- * Stateless tick consumer that refreshes {@link SquadAlertLevel} on every
+ * Serial tick consumer that refreshes {@link SquadAlertLevel} on every
  * registered squad. Promotion rules:
  * <ul>
  *   <li><b>ENGAGED</b> — any living squadmate has LOS to an alive enemy
@@ -45,6 +47,9 @@ import java.util.List;
  * pass that posts each alive unit's contribution to its squad in one walk:
  * increments the alive count, accumulates centroid, notes if any member is
  * in fall-back, and records every hostile combatant visible to any member.
+ * Candidate discovery uses the tick-start unit spatial index and each
+ * observer's vision range; only nearby candidates pay faction, range, and
+ * line-of-sight checks.
  *
  * <p>Hostile noises are heard through a one-tick mailbox, independent of
  * line of sight. They create imperfect localized bearings and may refresh an
@@ -86,10 +91,19 @@ public final class SquadAlertSystem {
      */
     public static final float KILL_ZONE_AMBUSH_BLOWN_SECONDS = 3.0f;
 
+    /**
+     * Conservative padding for a cell-distance vision query over an index of
+     * true positions. Two points in cells whose coordinates are in range can
+     * differ by up to sqrt(2) more than the cell-coordinate distance.
+     */
+    private static final float VISION_GATHER_PADDING = 1.414214f;
+
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final ShotService shots;
     private final NoiseEventBus noiseEvents;
+    /** Serial-pass scratch reused by every member query; grows only to the largest local crowd. */
+    private final LongBucket awarenessCandidates = new LongBucket();
 
     public SquadAlertSystem(NavigationService navigation,
                             UnitRosterService roster,
@@ -107,6 +121,7 @@ public final class SquadAlertSystem {
         World world = roster.world();
         VisionService vision = roster.vision();
         IdentityService identity = roster.identity();
+        UnitSpatialIndex unitIndex = navigation.getUnitIndex();
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
 
@@ -114,13 +129,13 @@ public final class SquadAlertSystem {
         // the hot path; reset at the top so a dead squad's leftover flags
         // don't leak into next tick.
         for (Squad squad : roster.getSquads()) {
-            squad.beginBeliefTick(dt);
+            squad._directContactStartedThisTick = false;
+            squad.beginBeliefTick(dt, simTick);
             squad.aliveMembers = 0;
             squad.centroidX = 0f;
             squad.centroidY = 0f;
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
-            squad._directContactStartedThisTick = false;
             squad._alertLevelChangedThisTick = false;
             squad._killZoneSightedThisTick = false;
             squad._underFireAtLosLastTick = squad._underFireAtLosThisTick;
@@ -140,51 +155,56 @@ public final class SquadAlertSystem {
             Squad squad = roster.getSquad(roster.squad().squadId(u));
             if (squad == null) continue;
             float uAir = vision.airLosRadius(u);
+            float uX = world.x(u);
+            float uY = world.y(u);
+            float visionRange = Math.max(0f, vision.visionRange(u));
             squad.aliveMembers++;
-            squad.centroidX += world.x(u);
-            squad.centroidY += world.y(u);
+            squad.centroidX += uX;
+            squad.centroidY += uY;
             if (world.fallbackTimer(u) > 0f) squad._suspiciousThisTick = true;
 
-            // Kill-zone LOS scan for garrison squads only. Looks for ANY
-            // squadmate with LOS to a close enemy combatant — a single
-            // qualifying sighting per tick increments the counter for the
-            // squad. The scan is keyed on holdsFireUntilKillZone so non-
-            // garrison squads pay nothing.
-            if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
-                int uCellX = world.cellX(u);
-                int uCellY = world.cellY(u);
-                for (int j = 0; j < liveCount; j++) {
-                    long other = dense[j];
-                    if (identity.faction(other) == squad.faction) continue;
-                    if (!identity.type(other).combatant) continue;
-                    int otherCellX = world.cellX(other);
-                    int otherCellY = world.cellY(other);
-                    float dx = world.x(other) - world.x(u);
-                    float dy = world.y(other) - world.y(u);
-                    if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
-                    if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                            uAir, vision.airLosRadius(other))) continue;
-                    squad._killZoneSightedThisTick = true;
-                    break;
-                }
-            }
-
-            // Belief scan records every visible hostile, not just the first.
-            // One member's observation is shared with the squad before GOAP.
+            // One spatial query feeds both direct awareness and the tighter
+            // garrison kill-zone gate. Their ranges remain independent.
+            boolean needsKillZone = squad.holdsFireUntilKillZone
+                    && !squad._killZoneSightedThisTick;
+            float awarenessGatherRange = visionRange > 0f
+                    ? visionRange + VISION_GATHER_PADDING
+                    : 0f;
+            float gatherRange = needsKillZone
+                    ? Math.max(awarenessGatherRange, KILL_ZONE_RANGE_CELLS)
+                    : awarenessGatherRange;
+            unitIndex.gather(uX, uY, gatherRange, awarenessCandidates);
             int uCellX = world.cellX(u);
             int uCellY = world.cellY(u);
-            for (int j = 0; j < liveCount; j++) {
-                long other = dense[j];
+            float visionRangeSquared = visionRange * visionRange;
+            for (int j = 0; j < awarenessCandidates.size; j++) {
+                long other = awarenessCandidates.ids[j];
                 if (identity.faction(other) == squad.faction) continue;
                 if (!identity.type(other).combatant) continue;
-                if (squad.observedDirectlyOnTick(other, simTick)) continue;
+                float dx = world.x(other) - uX;
+                float dy = world.y(other) - uY;
+                float distanceSquared = dx * dx + dy * dy;
                 int otherCellX = world.cellX(other);
                 int otherCellY = world.cellY(other);
+                int cellDx = otherCellX - uCellX;
+                int cellDy = otherCellY - uCellY;
+                float cellDistanceSquared = (float) cellDx * cellDx
+                        + (float) cellDy * cellDy;
+                boolean inKillZone = needsKillZone
+                        && distanceSquared <= KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS;
+                boolean needsObservation = visionRange > 0f
+                        && cellDistanceSquared <= visionRangeSquared
+                        && !squad.observedDirectlyOnTick(other, simTick);
+                if (!inKillZone && !needsObservation) continue;
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         uAir, vision.airLosRadius(other))) continue;
-                squad._engagedThisTick = true;
-                if (squad.observeDirectContact(other, otherCellX, otherCellY, simTick)) {
-                    squad._directContactStartedThisTick = true;
+                if (inKillZone) {
+                    squad._killZoneSightedThisTick = true;
+                    needsKillZone = false;
+                }
+                if (needsObservation) {
+                    squad._engagedThisTick = true;
+                    squad.observeDirectContact(other, otherCellX, otherCellY, simTick);
                 }
             }
         }
