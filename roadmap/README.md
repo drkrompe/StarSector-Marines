@@ -141,7 +141,8 @@ universe over time, not retrofitted into intel slots.
   Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
   and static turret candidates the combined player/allied attack cannot support,
   keeping small Raids playable without making heavy defenses categorically
-  late-game. Hound's ASSAULT
+  late-game. First Contract missions also suppress procedural enemy fighter
+  support while preserving marine-side allied cover. Hound's ASSAULT
   doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
