@@ -2,8 +2,8 @@
 
 ## State of play
 
-A DEBUG-only player mech-drop picker is code-complete on the current session
-branch. Debug briefings default to three randomized Bulwark/Hound/Sirocco
+A DEBUG-only player mech-drop picker shipped in `53a365ae`. Debug briefings
+default to three randomized Bulwark/Hound/Sirocco
 chassis, allow zero through eight plus reroll, show the resulting makeup, and
 turn that roster into real targeted Mech Support charges delivered by
 Valkyries. Production-sourced Mech Support remains one Bulwark. Focused tests

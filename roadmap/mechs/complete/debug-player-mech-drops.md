@@ -1,6 +1,6 @@
 # DEBUG player mech drops
 
-**Status:** In progress.
+**Status:** Shipped in `53a365ae`.
 
 ## Goal
 
@@ -36,3 +36,13 @@ only changing the mission or explicitly rerolling changes its seed.
 
 This is battle-iteration scaffolding, not player mech progression. It adds no
 ownership, inventory, salvage, refit, recovery, or campaign cost model.
+
+## Shipped details
+
+`53a365ae` added the DEBUG briefing picker, immutable randomized
+`DebugMechRoster`, launch-boundary power replacement, variable-charge
+`MechSupport`, and the post-commit hook that stamps each sortie's configured
+`MechVariant`. Focused coverage pins deterministic generation, zero/removal,
+charge count, variant ordering, and the unchanged one-Bulwark production
+default. `gradlew.bat build` passed. In-game UI layout and Conquest feel remain
+manual smoke items rather than blockers for this debug-only slice.
