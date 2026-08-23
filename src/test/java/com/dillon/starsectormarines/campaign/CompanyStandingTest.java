@@ -143,6 +143,67 @@ class CompanyStandingTest {
         assertEquals(0, CompanyStanding.wounded(null));
     }
 
+    // ---------- formation and recovery ----------
+
+    @Test
+    void theReservePoolIsNotAFormation() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(12);
+        int lineSquads = CompanyStanding.lineSquads(roster);
+        assertEquals(roster.squads().size(), lineSquads);
+
+        // The reserve pool is a MarineSquad too — a holding area for marines awaiting
+        // transfer rather than a formation that deploys. It is created on demand, so
+        // the count must not move when it appears.
+        roster.reserveSquad();
+
+        assertEquals(lineSquads + 1, roster.squads().size());
+        assertEquals(lineSquads, CompanyStanding.lineSquads(roster));
+    }
+
+    @Test
+    void stationedSquadsAreCountedSeparatelyFromTheLineTotal() {
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain captain = new MarineCaptain("Lead", null, Rank.LIEUTENANT, 0f);
+        roster.add(captain);
+        roster.ensureActiveSoldiers(12);
+        MarineSquad squad = roster.squads().get(0);
+
+        assertEquals(0, CompanyStanding.stationedSquads(roster));
+        assertTrue(roster.bindStationing(1L, captain.id(), List.of(squad.id())));
+
+        assertEquals(1, CompanyStanding.stationedSquads(roster));
+        // Away, not gone: it is still one of the company's formations.
+        assertTrue(CompanyStanding.lineSquads(roster) >= 1);
+    }
+
+    @Test
+    void theNextRecoveryIsTheSoonestOneNotTheLast() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(12);
+        roster.applySoldierOutcome(
+                Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA),
+                0, 100f, 20f);
+        roster.applySoldierOutcome(
+                Map.of(roster.soldiers().get(1).id(), MarineSoldierStatus.WIA),
+                0, 100f, 5f);
+
+        assertEquals(2, CompanyStanding.wounded(roster));
+        assertEquals(105f, CompanyStanding.nextRecoveryDay(roster), 0.001f);
+    }
+
+    @Test
+    void aCompanyWithNobodyRecoveringHasNoNextRecoveryDay() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(12);
+
+        // -1 is the caller's signal to omit the line, not a day to render.
+        assertEquals(-1f, CompanyStanding.nextRecoveryDay(roster), 0.001f);
+        assertEquals(-1f, CompanyStanding.nextRecoveryDay(null), 0.001f);
+        assertEquals(0, CompanyStanding.lineSquads(null));
+        assertEquals(0, CompanyStanding.stationedSquads(null));
+    }
+
     // ---------- assembly ----------
 
     @Test
