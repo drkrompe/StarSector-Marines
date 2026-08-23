@@ -176,7 +176,10 @@ universe over time, not retrofitted into intel slots.
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the
   planet-scoped Marine Ops screen — most roster work turned out to be gated
-  by where its button sits, not by any fiction. Adjacent to progression S8,
+  by where its button sits, not by any fiction. **C10 slice 1 is shipped**
+  (`2b959e44`): the ability, the planet-free host, and a stub screen. Whether
+  a TOGGLE press actually reaches `pressButton()` without latching is an
+  in-game question and is still open. Adjacent to progression S8,
   which owns what a single marine row says. See
   [`company-view/`](company-view/overview.md).
 

@@ -206,7 +206,7 @@ player has to remember which teams are out.
 | [C7](stories/c7-organization-and-ranks.md) | Organization and ranks | — |
 | [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
 | [C9](stories/c9-fire-teams-as-the-maneuver-element.md) | Fire teams as the maneuver element | C7 |
-| [C10](stories/c10-company-between-contracts.md) | The company between contracts: a campaign-map home | — |
+| C10 (`c10-company-between-contracts.md`) | The company between contracts: a campaign-map home | — |
 
 C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
@@ -253,9 +253,8 @@ the pane C3 and C4 later furnish.
   planet-scoped Marine Ops dialog. *Settled 2026-08-22.* The ability bar is
   already the campaign-only HUD element, so it hides itself with the rest of
   the HUD and needs no visibility gate of ours; the host is the one
-  [G32](../campaign/contracts/complete/g32-player-event-popup.md) shipped.
-  See [C10](stories/c10-company-between-contracts.md), which supersedes C4's
-  slice 3.
+  G32 (`g32-player-event-popup.md`) shipped. See C10
+  (`c10-company-between-contracts.md`), which supersedes C4's slice 3.
 
 ## Open questions
 
