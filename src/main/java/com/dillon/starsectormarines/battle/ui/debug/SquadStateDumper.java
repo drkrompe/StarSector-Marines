@@ -158,6 +158,25 @@ public final class SquadStateDumper {
                 ? sim.identity().name(rejectedTarget) : null);
         o.put("engagementDisciplineThreatDensity",
                 squad.engagementDisciplineThreatDensity);
+        var picture = squad.contactPicture;
+        JSONObject contactPicture = new JSONObject();
+        contactPicture.put("tick", picture.tick());
+        contactPicture.put("posture", picture.posture().name());
+        contactPicture.put("axisX", picture.axisX());
+        contactPicture.put("axisY", picture.axisY());
+        contactPicture.put("contactCount", picture.contactCount());
+        contactPicture.put("directContactCount", picture.directContactCount());
+        contactPicture.put("hostileStrength", picture.hostileStrength());
+        contactPicture.put("friendlyStrength", picture.friendlyStrength());
+        contactPicture.put("forceBalance", picture.forceBalance().name());
+        contactPicture.put("dominantSector", picture.dominantSector().name());
+        contactPicture.put("primaryMotion", picture.primaryMotion().name());
+        contactPicture.put("primaryContactId", picture.primaryContactId());
+        contactPicture.put("primaryCellX", picture.primaryCellX());
+        contactPicture.put("primaryCellY", picture.primaryCellY());
+        contactPicture.put("primaryConfidence", picture.primaryConfidence());
+        contactPicture.put("doctrine", picture.doctrine().name());
+        o.put("contactPicture", contactPicture);
         o.put("advanceEngageWeight", squad.advanceEngageWeight);
         o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
         o.put("advanceEngageLeash", squad.advanceEngageLeash);
