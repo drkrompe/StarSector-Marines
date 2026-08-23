@@ -32,7 +32,7 @@ universe over time, not retrofitted into intel slots.
   generation, and multi-chamber keep all shipped. See
   [`conquest/central-keep.md`](conquest/central-keep.md) for the full
   shipped-with-details record. The battle tier's ongoing parallel tracks
-  are convoy kinematics ([`convoy/`](convoy/overview.md)), the Services/Systems + SoA refactor
+  are convoy kinematics (`convoy-nouns.md`), the Services/Systems + SoA refactor
   ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war
   (`fog-of-war-nouns.md`), and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
@@ -41,11 +41,14 @@ universe over time, not retrofitted into intel slots.
   decomposition into a layered draw-list pipeline is complete** (stories A–J +
   Final shipped & verified — `renderWorld` is now collect-all → drain-all over a
   `RenderSystem` registry); only the deferred `QuadBatch.flush` perf spike
-  remains. See [`battle-render/`](battle-render/overview.md). A new **design-stage**
-  track — [`command-powers/`](command-powers/overview.md) — brainstorms the
-  player-agency layer (orbital strikes, marine drops, recon) and its
-  between-battle meta-progression spine; powers are sourced diegetically from
-  the player's fleet (ship + hull-mod flavor). A second, now **active** track —
+  remains. See [`battle-render/`](battle-render/overview.md). The **active
+  command-powers track** has shipped its fleet-sourced player-agency spine:
+  canonical briefing, member-level support commitment, command-deck slotting,
+  recon, physical reinforcement/resupply, orbital barrage, and marine insertion.
+  Its immediate work is the S8 mixed-detachment live-play acceptance; capacity
+  progression and drop geography remain planned/deferred. See
+  `command-powers-nouns.md` and its adjacent open-story board. A second, now
+  **active** track —
   [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — hooks the headless
   sim and vanilla `CombatEngineAPI` together (the reverse of how the mod is built).
   Past its probes: sim-authoritative *proxy targets* are proven, and a live Conquest
@@ -117,7 +120,12 @@ universe over time, not retrofitted into intel slots.
   Sirocco works behind one; their geometry, silhouettes, installed mounts, and
   encounter costs agree. Production admits deterministic mixed groups through
   the shared force budget, while DEBUG family delivery remains non-progression
-  playtest scaffolding. `mechs-nouns.md` carries the standing model; its
+  playtest scaffolding. The campaign Fleet Armory now also hosts a Mech Lab:
+  one persistent support squad owns its installed kit, finite replenisher
+  inventory can refit it atomically, and sourced Mech Support freezes that
+  configured squad into battle without exposing campaign objects. Chassis
+  acquisition and weapon-component inventory remain future progression.
+  `mechs-nouns.md` carries the standing model; its
   adjacent `stories.md` board tracks the remaining acceptance pass.
   Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
@@ -163,6 +171,15 @@ universe over time, not retrofitted into intel slots.
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
+- **Retained UI foundation** *(active — U1 implementation ready for live acceptance)* —
+  Marine Ops is growing a retained document layer inside the existing full-canvas
+  Starsector host. U1 adds the first Java tree, top-left document coordinates,
+  row/column/stack layout, shared paint/hit boxes, and a dev workbench reachable
+  from Company HQ. U2 now ports MoonLight's CSS overflow contract: nested padding-box
+  clips govern both OpenGL paint and hit-testing through one UI-scale-aware adapter.
+  Scrolling/focus/canvas input, themes/transitions, and MoonLight-style
+  `.mlx` components remain ordered follow-ons under `roadmap/ui/`; Fleet Armory is
+  the first planned production conversion.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
@@ -352,10 +369,11 @@ universe over time, not retrofitted into intel slots.
    before adding patron evolution, captain observations, or longer-form
    continuity. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
-5. **Command Powers S8 B-2** — add member-level commitment for power-source
-   ships so the canonical briefing narrows `PowerCatalog` to the actual
-   detachment. Then S8 C can add the command-deck slot budget. See
-   [`command-powers/next-session.md`](command-powers/next-session.md).
+5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
+   hold back individual source ships, verify cards disappear and return, deploy
+   a mixed deck, and confirm that the battle receives exactly the selected
+   powers, fighter cover, and shuttle support. See
+   `s8-pre-battle-loadout-screen.md` and `command-powers-nouns.md`.
 6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
    the reciprocal Hound/infantry screen: the Hound should lead by no more than

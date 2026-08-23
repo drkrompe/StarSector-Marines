@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 
 import java.util.List;
 
@@ -20,7 +21,9 @@ public final class HoldEngagementLineGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        return state.get(Predicate.THREAT_DENSITY_HIGH_AT_TARGET) ? 2f : 0f;
+        if (state.get(Predicate.THREAT_DENSITY_HIGH_AT_TARGET)) return 2f;
+        return squad.contactPicture.hasContacts()
+                && squad.contactPicture.doctrine() == Doctrine.HOLD ? 2.5f : 0f;
     }
 
     @Override

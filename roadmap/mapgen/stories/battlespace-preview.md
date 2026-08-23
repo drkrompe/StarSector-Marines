@@ -2,16 +2,16 @@
 
 > Forward-looking idea, parked deliberately. Pre-generate the actual
 > battlespace before the fight and show it as an *interesting preview* on the
-> pre-battle screen — replacing the old decorative planet-crop "map" that
-> command-powers S8 dropped. **We don't yet know we want this**; this doc
-> exists so the idea isn't lost and so the S8 loadout layout is designed to
-> stand on its own without depending on it.
+> pre-battle screen — replacing the old decorative planet-crop "map" that the
+> command-power briefing dropped. **We don't yet know we want this**; this doc
+> exists so the idea isn't lost and so the canonical loadout layout is designed
+> to stand on its own without depending on it.
 
 ## The idea
 
 When the player opens the pre-battle loadout screen (the canonical
-`BriefingScreen`, command-powers S8), run mapgen for *this* mission ahead of
-time and present the result as a preview — not a flat decorative crop, but
+`BriefingScreen`, described by `command-powers-nouns.md`), run mapgen for *this*
+mission ahead of time and present the result as a preview — not a flat decorative crop, but
 something that conveys the fight to come: the terrain/biome, compound layout,
 LZ candidates, enemy garrison density, objective positions. It turns dead
 flavor space into genuine pre-battle intel and a reason to look.
@@ -21,10 +21,10 @@ Why it's appealing:
 - It pairs naturally with **command-powers** decisions — you'd slot powers and
   commit a detachment *against a battlespace you can see*, not blind.
 - It's the obvious host for the **drop-geography / LZ-picker** thread
-  (command-powers overview §"Landing zones & drop geography", S6): pick your LZ
+  (`s6-drop-geography.md`): pick your LZ
   *on the previewed map*.
-- Survey Equipment's "pre-battle intel" double-life (command-powers overview
-  open fork #1) could *gate how much of the preview you see* — bring the right
+- Survey Equipment's possible pre-battle-intel role could *gate how much of the
+  preview you see* — bring the right
   ship, see more of the battlespace.
 
 ## Why it's a separate story (and parked)
@@ -55,8 +55,8 @@ Why it's appealing:
 - **mapgen** — deterministic pre-generation + seed persistence is the gating
   capability. ([`../overview.md`](../overview.md),
   [`../composable-pipeline.md`](../composable-pipeline.md))
-- **command-powers S8** — the pre-battle loadout screen this would live on; S8
-  dropped the decorative map and is built to not need this.
-  ([`../../command-powers/stories/s8-pre-battle-loadout-screen.md`](../../command-powers/stories/s8-pre-battle-loadout-screen.md))
-- **command-powers S6** — drop geography / LZ-picker; the interactive form of
+- **`s8-pre-battle-loadout-screen.md`** — the pre-battle loadout screen this
+  would live on; its canonical layout dropped the decorative map and is built
+  not to need this.
+- **`s6-drop-geography.md`** — drop geography / LZ-picker; the interactive form of
   this preview.

@@ -3,11 +3,8 @@ package com.dillon.starsectormarines.battle.power;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 
 /**
- * The S1 skeleton power: a recon sweep that lifts fog in a radius around the
- * targeted cell for a short window, then fades. Chosen because it touches only
- * the fog-of-war system (nothing combat-critical), so the
- * invoke&rarr;target&rarr;resolve&rarr;cooldown loop can be proven end-to-end
- * before any damage/AI plumbing.
+ * A recon sweep that lifts fog in a radius around the targeted cell for a short
+ * window, then fades.
  *
  * <p>{@link #resolve} registers an {@link CommandPowerService.ActivePing} on the
  * service; the view layer ({@code ops.BattleScreen.advance}) projects active
@@ -20,7 +17,7 @@ public final class ReconPing extends CommandPower {
 
     public static final String ID = "recon_ping";
 
-    /** Placeholder S1 tuning — balance is S5's job. */
+    /** Placeholder tuning — persistent capacity and pacing balance remain open. */
     private static final float CP_COST = 2f;
     private static final float COOLDOWN_SECONDS = 8f;
     private static final int REVEAL_RADIUS_CELLS = 8;

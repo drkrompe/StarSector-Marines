@@ -158,6 +158,25 @@ public final class SquadStateDumper {
                 ? sim.identity().name(rejectedTarget) : null);
         o.put("engagementDisciplineThreatDensity",
                 squad.engagementDisciplineThreatDensity);
+        var picture = squad.contactPicture;
+        JSONObject contactPicture = new JSONObject();
+        contactPicture.put("tick", picture.tick());
+        contactPicture.put("posture", picture.posture().name());
+        contactPicture.put("axisX", picture.axisX());
+        contactPicture.put("axisY", picture.axisY());
+        contactPicture.put("contactCount", picture.contactCount());
+        contactPicture.put("directContactCount", picture.directContactCount());
+        contactPicture.put("hostileStrength", picture.hostileStrength());
+        contactPicture.put("friendlyStrength", picture.friendlyStrength());
+        contactPicture.put("forceBalance", picture.forceBalance().name());
+        contactPicture.put("dominantSector", picture.dominantSector().name());
+        contactPicture.put("primaryMotion", picture.primaryMotion().name());
+        contactPicture.put("primaryContactId", picture.primaryContactId());
+        contactPicture.put("primaryCellX", picture.primaryCellX());
+        contactPicture.put("primaryCellY", picture.primaryCellY());
+        contactPicture.put("primaryConfidence", picture.primaryConfidence());
+        contactPicture.put("doctrine", picture.doctrine().name());
+        o.put("contactPicture", contactPicture);
         o.put("advanceEngageWeight", squad.advanceEngageWeight);
         o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
         o.put("advanceEngageLeash", squad.advanceEngageLeash);
@@ -267,6 +286,13 @@ public final class SquadStateDumper {
                 o.put("mechTorsoAimTargetId", aimTarget != 0L
                         ? sim.identity().name(aimTarget) : null);
                 o.put("mechTorsoOnTarget", mechLoadout.torsoOnTarget);
+                o.put("missileReplenisherId", mechLoadout.missileReplenisher().id());
+                o.put("missileReplenisherName",
+                        mechLoadout.missileReplenisher().displayName());
+                o.put("srmReplenishmentSeconds",
+                        mechLoadout.missileReplenisher().srmReplenishmentSeconds());
+                o.put("lrmReplenishmentSeconds",
+                        mechLoadout.missileReplenisher().lrmReplenishmentSeconds());
                 o.put("mechMounts", buildMechMountsJson(mechLoadout, sim));
             }
             o.put("cellX", sim.world().cellX(u));
@@ -320,6 +346,8 @@ public final class SquadStateDumper {
             o.put("cooldown", mount.cooldown);
             o.put("burstRemaining", mount.burstRemaining);
             o.put("burstTimer", mount.burstTimer);
+            o.put("replenishmentProgressSeconds",
+                    mount.replenishmentProgressSeconds);
             long burstTarget = sim.resolveUnit(mount.burstTargetId);
             o.put("burstTargetId", burstTarget != 0L
                     ? sim.identity().name(burstTarget) : null);

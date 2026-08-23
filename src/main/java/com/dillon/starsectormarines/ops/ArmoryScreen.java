@@ -4,7 +4,11 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.CaptainCandidate;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamGearDelta;
@@ -22,6 +26,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
+import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.SquadArrangement;
 import com.dillon.starsectormarines.marine.SquadArrangementPreview;
 import com.dillon.starsectormarines.marine.Status;
@@ -44,11 +49,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /** Fabrication plus squad-centric persistent personnel management. */
 public final class ArmoryScreen implements Screen {
 
-    private enum Tab { PERSONNEL, LOADOUTS, DESIGNER, ARRANGEMENTS }
+    private enum Tab { PERSONNEL, LOADOUTS, DESIGNER, ARRANGEMENTS, MECH_LAB }
     private enum InventoryTab { WEAPONS, ARMOR, SPECIAL }
     private enum InventoryState { AVAILABLE, OUT_OF_STOCK, LOCKED, INSTALLED, MARINE_UNAVAILABLE }
     private enum ReadoutFormat { DECIMAL, INTEGER, PERCENT }
@@ -118,6 +124,10 @@ public final class ArmoryScreen implements Screen {
     private ArrangementDraft arrangementDraft;
     private String arrangementFeedback;
     private boolean arrangementSucceeded;
+    private String selectedMechSquadId;
+    private String selectedCampaignMechId;
+    private String mechLabFeedback;
+    private boolean mechLabSucceeded;
     private String lastInventoryClickKey;
     private long lastInventoryClickNanos;
 
@@ -134,6 +144,7 @@ public final class ArmoryScreen implements Screen {
                 selectedSquadId = roster.squads().get(0).id();
             }
             selectFirstSoldierIfNeeded();
+            ensureMechSelection();
         }
         rebuild();
     }
@@ -168,6 +179,9 @@ public final class ArmoryScreen implements Screen {
         addButton(left + 508f, tabY, 190f, "Squad Arrangements",
                 () -> { tab = Tab.ARRANGEMENTS; ensureArrangementDraft(); rebuild(); },
                 tab == Tab.ARRANGEMENTS ? VALUE : HEADER);
+        addButton(left + 708f, tabY, 142f, "Mech Lab",
+                () -> { tab = Tab.MECH_LAB; ensureMechSelection(); rebuild(); },
+                tab == Tab.MECH_LAB ? VALUE : HEADER);
 
         int personnelTarget = ctx.getArmoryPersonnelTarget();
         if (personnelTarget > 0) {
@@ -203,6 +217,10 @@ public final class ArmoryScreen implements Screen {
         }
         if (tab == Tab.ARRANGEMENTS) {
             buildArrangementDesigner(left, top - 92f);
+            return;
+        }
+        if (tab == Tab.MECH_LAB) {
+            buildMechLab(left, top - 92f);
             return;
         }
 
@@ -284,6 +302,190 @@ public final class ArmoryScreen implements Screen {
         buildPaperDoll(paperX, top, paperW);
         buildItemDossier(dossierX, top, dossierW);
         buildInventoryBrowser(inventoryX, top, inventoryW);
+    }
+
+    /** Campaign-authoritative squad workspace for mech hardware and finite subsystems. */
+    private void buildMechLab(float left, float top) {
+        ensureMechSelection();
+        MechBay bay = roster.mechBay();
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Configure the active support squad. Installed subsystems deploy with Mech Support; "
+                        + "chassis and weapon mounts are read-only until their inventories exist.",
+                left, top + 24f, VALUE));
+
+        float right = position.getX() + position.getWidth() - PAD;
+        float squadW = 220f;
+        float mechW = 292f;
+        float loadoutW = 326f;
+        float squadX = left;
+        float mechX = squadX + squadW + GAP;
+        float loadoutX = mechX + mechW + GAP;
+        float inventoryX = loadoutX + loadoutW + GAP;
+        float inventoryW = Math.max(300f, right - inventoryX);
+
+        buildMechSquadLibrary(bay, squadX, top, squadW);
+        buildMechSquadMembers(bay, mechX, top, mechW);
+        buildSelectedMechLoadout(loadoutX, top, loadoutW);
+        buildMechComponentInventory(bay, inventoryX, top, inventoryW);
+
+        if (mechLabFeedback != null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, mechLabFeedback,
+                    loadoutX, position.getY() + 42f,
+                    mechLabSucceeded ? GOOD : BAD));
+        }
+    }
+
+    private void buildMechSquadLibrary(MechBay bay, float x, float top, float width) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "MECH SQUADS", x, top - 10f, HEADER));
+        float y = top - 58f;
+        for (CampaignMechSquad squad : bay.squads()) {
+            boolean selected = squad.id().equals(selectedMechSquadId);
+            boolean active = bay.activeSquad() != null
+                    && bay.activeSquad().id().equals(squad.id());
+            widgets.add(new SelectableRowWidget(x, y, width, 58f,
+                    selected, false, () -> {
+                        selectedMechSquadId = squad.id();
+                        bay.selectActiveSquad(squad.id());
+                        selectedCampaignMechId = squad.mechs().isEmpty()
+                                ? null : squad.mechs().get(0).id();
+                        rebuild();
+                    }));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    squad.displayName(), x + 10f, y + 42f,
+                    selected ? VALUE : HEADER));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    squad.mechs().size() + "/" + CampaignMechSquad.CAPACITY
+                            + " chassis" + (active ? " · ACTIVE SUPPORT" : ""),
+                    x + 10f, y + 20f, active ? GOOD : MUTED));
+            y -= 68f;
+        }
+    }
+
+    private void buildMechSquadMembers(MechBay bay, float x, float top, float width) {
+        CampaignMechSquad squad = bay.squadById(selectedMechSquadId);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "SQUAD LOADOUT", x, top - 10f, HEADER));
+        if (squad == null || squad.mechs().isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "No chassis assigned.", x, top - 52f, MUTED));
+            return;
+        }
+        float y = top - 68f;
+        for (CampaignMech mech : squad.mechs()) {
+            boolean selected = mech.id().equals(selectedCampaignMechId);
+            widgets.add(new SelectableRowWidget(x, y, width, 76f,
+                    selected, false, () -> {
+                        selectedCampaignMechId = mech.id();
+                        rebuild();
+                    }));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    mech.displayName(), x + 10f, y + 58f,
+                    selected ? VALUE : HEADER));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    mech.variant().displayName + " · " + roleLabel(mech),
+                    x + 10f, y + 36f, GOOD));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    mech.missileReplenisher().displayName(),
+                    x + 10f, y + 16f, MUTED));
+            y -= 86f;
+        }
+    }
+
+    private void buildSelectedMechLoadout(float x, float top, float width) {
+        CampaignMech mech = selectedCampaignMech();
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "INSTALLED LOADOUT", x, top - 10f, HEADER));
+        if (mech == null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Select a mech to inspect its hardware.", x, top - 52f, MUTED));
+            return;
+        }
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                mech.displayName() + " · " + mech.variant().displayName,
+                x, top - 46f, VALUE));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Doctrine: " + roleLabel(mech), x, top - 72f, GOOD));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Integrity: " + Math.round(mech.variant().maxHp)
+                        + "    Speed: " + fmt(mech.variant().moveSpeed),
+                x, top - 98f, MUTED));
+
+        float mountTop = top - 138f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "HARDPOINTS", x, mountTop, HEADER));
+        addMechMountLine("Arms", mech.variant().arms, x, mountTop - 28f);
+        addMechMountLine("Left shoulder", mech.variant().leftShoulder,
+                x, mountTop - 54f);
+        addMechMountLine("Right shoulder", mech.variant().rightShoulder,
+                x, mountTop - 80f);
+
+        MissileReplenisherComponent replenisher = mech.missileReplenisher();
+        float subsystemTop = mountTop - 124f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "ONBOARD SUBSYSTEM", x, subsystemTop, HEADER));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                replenisher.displayName(), x, subsystemTop - 28f, VALUE));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "SRM " + fmt(replenisher.srmReplenishmentSeconds())
+                        + "s / trigger    LRM "
+                        + fmt(replenisher.lrmReplenishmentSeconds()) + "s / trigger",
+                x, subsystemTop - 54f, GOOD));
+        addWrappedText("Capacity remains rack-owned. This subsystem changes reload cadence "
+                        + "and can cycle for the entire battle.",
+                x, subsystemTop - 84f, width, MUTED, 3);
+    }
+
+    private void buildMechComponentInventory(MechBay bay, float x, float top, float width) {
+        CampaignMech mech = selectedCampaignMech();
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "SUBSYSTEM INVENTORY", x, top - 10f, HEADER));
+        float y = top - 74f;
+        for (MissileReplenisherComponent component
+                : MissileReplenisherComponent.catalog()) {
+            boolean installed = mech != null
+                    && component.id().equals(mech.missileReplenisherId());
+            int owned = bay.ownedReplenisher(component.id());
+            int fielded = bay.installedReplenisher(component.id());
+            int free = bay.availableReplenisher(component.id());
+            widgets.add(new SelectableRowWidget(x, y, width, 132f,
+                    installed, false, null));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                    component.displayName(), x + 10f, y + 112f,
+                    installed ? VALUE : HEADER));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "OWNED " + owned + " · INSTALLED " + fielded + " · FREE " + free,
+                    x + 10f, y + 86f, free > 0 ? GOOD : MUTED));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "SRM " + fmt(component.srmReplenishmentSeconds())
+                            + "s    LRM " + fmt(component.lrmReplenishmentSeconds()) + "s",
+                    x + 10f, y + 60f, MUTED));
+            boolean canInstall = mech != null && !installed && free > 0;
+            String action = installed ? "INSTALLED" : free > 0 ? "INSTALL" : "FIELD STOCK COMMITTED";
+            float buttonW = Math.min(194f, Math.max(120f, width - 20f));
+            addButton(x + width - buttonW - 10f, y + 12f, buttonW,
+                    action, canInstall ? () -> installMechReplenisher(component) : null,
+                    canInstall ? GOOD : MUTED);
+            y -= 144f;
+        }
+    }
+
+    private void addMechMountLine(String slot, MechWeaponComponent component,
+                                  float x, float y) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                slot + ": " + (component != null ? component.displayName : "Empty"),
+                x, y, component != null ? GOOD : MUTED));
+    }
+
+    private void installMechReplenisher(MissileReplenisherComponent component) {
+        CampaignMech mech = selectedCampaignMech();
+        mechLabSucceeded = mech != null
+                && roster.mechBay().installReplenisher(mech.id(), component.id());
+        mechLabFeedback = mechLabSucceeded
+                ? component.displayName() + " installed on " + mech.displayName()
+                : "No unassigned component is available";
+        rebuild();
     }
 
     private void buildTemplateDesigner(float left, float top) {
@@ -2160,6 +2362,40 @@ public final class ArmoryScreen implements Screen {
         if (!members.isEmpty()) selectedSoldierId = members.get(0);
     }
 
+    private void ensureMechSelection() {
+        if (roster == null) return;
+        MechBay bay = roster.mechBay();
+        CampaignMechSquad squad = bay.squadById(selectedMechSquadId);
+        if (squad == null) {
+            squad = bay.activeSquad();
+            selectedMechSquadId = squad != null ? squad.id() : null;
+        }
+        if (squad == null) {
+            selectedCampaignMechId = null;
+            return;
+        }
+        if (squad.mechById(selectedCampaignMechId) == null) {
+            selectedCampaignMechId = squad.mechs().isEmpty()
+                    ? null : squad.mechs().get(0).id();
+        }
+    }
+
+    private CampaignMech selectedCampaignMech() {
+        if (roster == null) return null;
+        CampaignMechSquad squad = roster.mechBay().squadById(selectedMechSquadId);
+        return squad != null ? squad.mechById(selectedCampaignMechId) : null;
+    }
+
+    private static String roleLabel(CampaignMech mech) {
+        String[] words = mech.role().name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder label = new StringBuilder();
+        for (String word : words) {
+            if (label.length() > 0) label.append(' ');
+            label.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return label.toString();
+    }
+
     private MarineSoldier selectedSoldier() {
         return roster != null ? roster.soldierById(selectedSoldierId) : null;
     }
@@ -2362,7 +2598,7 @@ public final class ArmoryScreen implements Screen {
     }
 
     private static String fmt(float value) {
-        return String.format(java.util.Locale.ROOT, "%.2f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 
     private static String pct(float value) {

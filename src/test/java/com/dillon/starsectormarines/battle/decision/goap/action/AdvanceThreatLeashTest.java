@@ -38,8 +38,18 @@ public class AdvanceThreatLeashTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    private static BattleSimulation splitSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+            grid.setWalkable(16, y, false);
+        }
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     private static Squad marineSquad(BattleSimulation sim, int size) {
-        Squad squad = new Squad(7, Faction.MARINE);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
         List<Long> members = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             members.add(sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
@@ -53,6 +63,10 @@ public class AdvanceThreatLeashTest {
         return squad;
     }
 
+    private static void observeContacts(BattleSimulation sim) {
+        sim.advance(BattleSimulation.TICK_DT);
+    }
+
     private static long defender(BattleSimulation sim, String name, int x, int y) {
         return sim.spawn(new EntitySpec(name, Faction.DEFENDER, UnitType.MARINE, x, y));
     }
@@ -63,9 +77,10 @@ public class AdvanceThreatLeashTest {
         Squad squad = marineSquad(sim, 4);
         long first = defender(sim, "d0", 20, 15);
         defender(sim, "d1", 22, 16);
+        observeContacts(sim);
 
         TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
-                .assessAdvanceThreat(squad, DEST_X, DEST_Y);
+                .assessAdvanceThreat(squad, DEST_X, DEST_Y, sim.getSimTickIndex());
 
         assertEquals(1f, threat.weight(), 0.001f,
                 "two route contacts against four friends reach the half-force parity point");
@@ -78,13 +93,33 @@ public class AdvanceThreatLeashTest {
     }
 
     @Test
+    public void hiddenUnrememberedEnemyDoesNotAffectLocalThreat() {
+        BattleSimulation sim = splitSim();
+        Squad squad = marineSquad(sim, 4);
+        defender(sim, "hidden-route", 22, 15);
+        observeContacts(sim);
+
+        TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
+                .assessAdvanceThreat(squad, DEST_X, DEST_Y, sim.getSimTickIndex());
+
+        assertTrue(squad.believedContacts().isEmpty(),
+                "the separating wall prevents the squad from identifying the enemy");
+        assertEquals(0f, threat.weight(), 0.001f,
+                "an unremembered live enemy on the geometric route is not AI knowledge");
+        assertEquals(0f, sim.getTacticalScoring().believedHostilePresenceWithin(
+                squad, 10, 15, 30f), 0.001f,
+                "the guard-post presence primitive uses the same honest belief authority");
+    }
+
+    @Test
     public void flankAndRetreatingContactsDoNotStopHealthySquad() {
         BattleSimulation flankSim = openSim();
         Squad flankSquad = marineSquad(flankSim, 4);
         defender(flankSim, "flank", 20, 25);
+        observeContacts(flankSim);
 
         TacticalScoring.AdvanceThreat flank = flankSim.getTacticalScoring()
-                .assessAdvanceThreat(flankSquad, DEST_X, DEST_Y);
+                .assessAdvanceThreat(flankSquad, DEST_X, DEST_Y, flankSim.getSimTickIndex());
         assertTrue(flank.weight() < AbstractZoneAction.ADVANCE_RELEASE_THRESHOLD,
                 "a lone contact near the outer edge of the corridor is shots-of-opportunity only");
 
@@ -92,9 +127,10 @@ public class AdvanceThreatLeashTest {
         Squad retreatSquad = marineSquad(retreatSim, 4);
         long retreating = defender(retreatSim, "retreating", 20, 15);
         retreatSim.setPath(retreating, new int[]{20, 15, 40, 15});
+        observeContacts(retreatSim);
 
         TacticalScoring.AdvanceThreat retreat = retreatSim.getTacticalScoring()
-                .assessAdvanceThreat(retreatSquad, DEST_X, DEST_Y);
+                .assessAdvanceThreat(retreatSquad, DEST_X, DEST_Y, retreatSim.getSimTickIndex());
         assertTrue(retreat.primaryRetreating());
         assertEquals(0.1f, retreat.weight(), 0.001f,
                 "one retreating contact contributes 0.2 force against the four-friend parity force of 2");
@@ -113,6 +149,7 @@ public class AdvanceThreatLeashTest {
         BattleSimulation sim = openSim();
         Squad squad = marineSquad(sim, 4);
         long enemy = defender(sim, "weak", 20, 15);
+        observeContacts(sim);
         long leader = squad.leaderId;
         sim.world().setAttackRange(leader, 30f);
 
@@ -132,6 +169,7 @@ public class AdvanceThreatLeashTest {
         Squad squad = marineSquad(sim, 4);
         long first = defender(sim, "d0", 20, 15);
         long second = defender(sim, "d1", 22, 16);
+        observeContacts(sim);
         long leader = squad.leaderId;
         sim.world().setAttackRange(leader, 30f);
         sim.setPath(leader, new int[]{10, 14, DEST_X, DEST_Y});
@@ -165,6 +203,7 @@ public class AdvanceThreatLeashTest {
         Squad squad = marineSquad(sim, 4);
         defender(sim, "d0", 24, 15);
         defender(sim, "d1", 26, 16);
+        observeContacts(sim);
         long leader = squad.leaderId;
         sim.world().setAttackRange(leader, 6f);
 

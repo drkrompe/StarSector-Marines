@@ -1,124 +1,61 @@
-# S8 — Pre-Battle Loadout & Briefing Screen
+# S8 — Pre-Battle Loadout & Briefing Acceptance
 
-> The full-canvas pre-battle surface where the player reviews the mission,
-> commits a detachment, and **slots the powers they'll bring** under a command
-> budget. This is the home for the two-phase economy's *loadout phase* and the
-> resolution of open fork #2 ("UI surface", overview).
+Status: READY — implementation is shipped; manual mixed-detachment acceptance remains.
 
-## Why
+Written: 2026-05-30
 
-S2 unified powers + fighter cover + shuttles under an explicit `Detachment`, but
-the only place the player commits it today is the **inline expanded dossier
-card** in `CommsConsolePanel`. That card is cramped: salvage slider + transport
-toggles + fighter toggles + captain rows + accept, all stacked in one expansion.
-It can't host the *slotting UI* S2 explicitly deferred, and it has no room to make
-the **"your fleet brings vs. the employer brings"** distinction legible.
+Updated: 2026-08-23 — folded shipped slices and narrowed the story to live-play acceptance.
 
-The old full-screen `BriefingScreen` (two-zone: planet crop + info column) still
-exists but is **dead code** — its only entry, `TacticalMapPanel`, is never
-instantiated (the three-column ops layout it belonged to was replaced by the
-list-view `MissionSelectScreen` + `CommsConsolePanel`). Worse, S2 added the
-carrier/transport toggles to *both* screens, so we now maintain two drifting
-copies of the detachment UI, one unreachable.
+Read `command-powers-nouns.md` before running this story.
 
-This story **revives the full-screen surface as the single canonical pre-battle
-screen**, kills the duplication, and grows it into the loadout/deck-building
-moment the command-powers economy was designed around.
+## Goal
 
-## Design anchors (already decided in overview)
+Confirm in live play that the canonical briefing makes fleet commitment and
+command-deck selection understandable, and that the launched battle receives
+exactly the support the player chose.
 
-- **Two-phase economy** (overview §"The two-phase economy"): the loadout phase is
-  a *slot budget* — command level → N slottable powers, each power carries a
-  weight. The player weighs which available powers to bring under that budget.
-- **Charge at use, not opt-in** (overview §"What powers cost"): slotting stays
-  *cheap*. The campaign-resource costs (supplies / crew / CR) are spent when a
-  power *fires* mid-battle, not when it's slotted. So the screen's "cost" is the
-  slot budget, plus an *informational* readout of each power's at-use cost.
-- **Explicit detachment, two co-sources** (overview §"The commitment layer"):
-  `Detachment` already carries the player's committed assets and the employer's
-  offerings (`Mission.clientFighterSupport` / `employerShuttles` /
-  `employerPowerIds`). The screen makes those two sources visually distinct.
-- **Command level is a stub here.** A *constant* budget cap is fine for this
-  story; the real capacity curve is S5.
+## Contract under test
 
-## Information architecture
+- The mission dossier hands off through **Brief & Deploy**; it does not expose a
+  second commitment editor.
+- **Your Fleet Brings** owns independently committable transports, fighter
+  carriers, and power-source ships. **Employer Provides** remains a distinct,
+  read-only co-source.
+- Withholding or restoring one power-source ship removes or restores only the
+  powers contributed by that member.
+- The command deck accepts only available cards that fit its budget. Slotting
+  changes what enters battle; it does not spend the displayed at-use resources.
+- Deploy resolves the committed detachment once. The battle roster, shuttle
+  manifest, and fighter cover match the final briefing choices.
 
-One full-canvas takeover, four regions:
+## Manual acceptance
 
-- **MISSION** — type / risk / payout, salvage negotiation, briefing prose. The
-  decorative planet crop + reticle is **dropped** (it provided no gameplay and
-  ate ~70% of the screen via the old `INFO_W`-fixed split); that space is
-  reclaimed for the action regions below. A future *battlespace preview* could
-  one day occupy a corner here, but it's parked as a separate speculative story
-  — the layout must stand on its own without it. See
-  [`../../mapgen/stories/battlespace-preview.md`](../../mapgen/stories/battlespace-preview.md).
-- **YOUR FLEET BRINGS** — committable assets as opt-in rows: transports, carriers
-  (fighter cover), and **power-source ships** (e.g. an Apogee that grants Recon
-  Sweep). Committing a row feeds the `Detachment` *and* the contested-asset
-  attrition model — these are exactly the ships at CR/crew risk.
-- **EMPLOYER PROVIDES** — read-only: employer shuttles, client fighter support,
-  employer-offered powers. The contract co-source made legible.
-- **COMMAND DECK** — the slotting UI: available powers (resolved from committed
-  ships + employer), each with a slot weight, against a command budget bar. The
-  slotted subset is what actually arrives in battle.
-- **CAPTAIN** + **Deploy / Back**.
-
-## Slices (each compiles + commits)
-
-### Slice A — Revive & make canonical
-- Re-route: `CommsConsolePanel` expanded card's **Accept** becomes
-  **"Brief & Deploy"** → `ctx.setSelectedMission(m)` + `goTo(BRIEFING)`. The card
-  collapses to a read-only summary (type/risk/payout/prose); all *commitment*
-  controls move to the full screen.
-- `BriefingScreen` becomes the single pre-battle surface: port it to match the
-  live card's behavior (carrier toggles already present; verify parity), keep its
-  `onAccept` → `MissionLaunch.buildSimulation` → `goTo(BATTLE)` path.
-- Delete the duplication: the toggle/manifest logic lives in one screen, not two.
-  Decide `TacticalMapPanel`'s fate — likely delete (dead) or keep only if a
-  future map-pick path wants it; if deleted, drop `BRIEFING` plumbing that only
-  it fed and re-point the one live entry.
-- **Verify:** picking a mission → Brief & Deploy → full screen → Deploy → battle,
-  with the same manifest/roster a no-deselect Accept produced pre-revival.
-
-### Slice B — Action-dominant rebuild: two-source presentation (+ member-level commitment)
-- **Drop the planet map and rebuild the layout action-dominant.** `BriefingLayout`
-  currently pins controls to a fixed 380px `INFO_W` strip and gives the
-  decorative map all remaining width — invert that: the full canvas is the
-  action area. No map surface at all (the future preview re-introduces its own
-  if it ever lands).
-- Restructure into "Your Fleet Brings" / "Employer Provides" panels across the
-  reclaimed width.
-- Surface **power-source ships** as their own committable rows (the Apogee /
-  Hi-Res Sensors carrier). This makes **member-level commitment** real — the top
-  S2 follow-up — so power narrowing finally has something to narrow against, and
-  `DevConfig.ALWAYS_GRANT_RECON_PING` can flip off to feel the gating.
-
-  *May split: B-1 = drop map + two-source reflow of existing controls
-  (transports/carriers/employer); B-2 = power-source committable rows +
-  narrowing. B-1 alone already answers the "reclaim the map space" feedback.*
-
-### Slice C — Command Deck (slotting UI)
-- Slottable-powers list with a *constant* command budget (S5 does the curve).
-- Each power: a slot weight + an informational at-use cost readout.
-- The slotted subset filters `PowerCatalog.resolve` output before it reaches
-  `setCommandPowers`. This is S2's deferred slotting + the deck-building moment.
-
-## Out of scope
-
-- The real command-level *budget curve* (S5).
-- New power *behaviors* (S3 Orbital Fire Support, S4 Marine Insertion).
-- At-use resource accounting (the cost stack fires in-battle; here it's a readout).
-- Drop geography / LZ choice (S6).
-
-## Dependencies
-
-- S1 framework + S2 detachment resolver (both shipped).
-- A stub command level (constant budget) — fine; real curve is S5.
+1. Open a mission from its dossier and confirm **Brief & Deploy** reaches the
+   full-canvas briefing with no commitment controls left on the dossier.
+2. Use a fleet with more than one power source plus eligible transport and
+   fighter support. Withhold individual source ships and confirm their unique
+   cards disappear; recommit them and confirm the cards return without
+   disturbing unrelated contributions.
+3. Verify player contributions and employer offerings remain visually distinct,
+   including a mission where both sources contribute support.
+4. Build a mixed command deck near the budget limit, change the transport and
+   fighter commitments, choose a captain, and deploy.
+5. In battle, confirm the visible command-power roster is exactly the selected
+   deck and that only the committed shuttle/fighter support arrives.
+6. Back out once before deployment and confirm returning to the mission list
+   does not launch or retain a stale battle setup.
 
 ## Acceptance
 
-Picking a mission opens the full-screen loadout; the player sees their fleet's
-contribution distinct from the employer's, slots powers under a budget, picks a
-captain, and Deploy launches a battle whose powers/fighters/shuttles match the
-committed detachment + slotted deck. The inline card no longer hosts commitment
-controls, and there is exactly one detachment UI in the codebase.
+The screen is legible without relying on implementation knowledge, source
+withholding changes availability predictably, and every launched support kind
+matches the final briefing state. Record any feel or correctness failure as a
+new focused story; once the pass succeeds, fold and delete this story.
+
+## Out of scope
+
+- The command-level capacity curve (`s5-command-level-progression.md`).
+- New landing-zone, air-defense, or craft-risk mechanics
+  (`s6-drop-geography.md`).
+- New command-power behaviors or balance tuning beyond a defect discovered by
+  this acceptance pass.

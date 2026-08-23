@@ -34,7 +34,7 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
  * </ol>
  * The old dead-reckon "playback along synthetic-heading rails" fork is gone — that
  * was the source of the 90° corner snaps. Reeds-Shepp docking is the one surviving
- * rails case, as a terminal LZ phase (see {@code navigation-rework/overview.md}).
+ * rails case, as a terminal LZ phase (see {@code convoy-nouns.md}).
  *
  * <p>Motion state (waypoint cursor, docking path, wall-stuck timers, {@code arrived})
  * lives in the {@link VehicleControlComponent}; the pose stays on the

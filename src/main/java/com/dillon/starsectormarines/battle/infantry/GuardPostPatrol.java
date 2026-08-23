@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -68,8 +70,6 @@ public final class GuardPostPatrol implements Action {
     /** Max attempts to roll a random walkable cell inside the box before giving up this tick and dwelling on the current waypoint. */
     private static final int WAYPOINT_SAMPLE_ATTEMPTS = 16;
 
-    /** Cells beyond the box, ≈ one rifle range, that the odds tally reaches — so the squad senses a build-up massing just outside its box, not only the foes already inside it. */
-    private static final float SENSE_MARGIN = 24f;
     /** Floor the engage leash collapses to when heavily outnumbered — a tight ring on the post's cover + turret, the squad's last-ditch defensive footing. */
     private static final float DEFENSIVE_RING = 6f;
 
@@ -120,6 +120,10 @@ public final class GuardPostPatrol implements Action {
             int homeX = hasHome ? sim.home().homeCellX(member) : sim.world().cellX(member);
             int homeY = hasHome ? sim.home().homeCellY(member) : sim.world().cellY(member);
             return returnTo(member, sim, homeX, homeY);
+        }
+
+        if (squad.contactPicture.doctrine() == Doctrine.DISENGAGE) {
+            return BreakContact.INSTANCE.execute(member, squad, sim);
         }
 
         long target = sim.targetOf(member);
@@ -202,7 +206,7 @@ public final class GuardPostPatrol implements Action {
     }
 
     /**
-     * Maps the local enemy:defender ratio around the post to a leash between
+     * Maps the shared contact-picture enemy:defender ratio to a leash between
      * {@link #DEFENSIVE_RING} (heavily outnumbered → collapse onto the post)
      * and the full box {@link #radius} (even-or-better odds → fight forward to
      * the perimeter). Defenders include the post's live turret(s) and any
@@ -210,26 +214,15 @@ public final class GuardPostPatrol implements Action {
      * guard holds forward; a second attacker push tips the ratio and pulls it
      * back. No contesting enemy in sensing range → the full box.
      *
-     * <p><b>Perception debt (story 15).</b> The {@code foes} tally is an
-     * <em>omniscient</em> ground-truth read — the same "squads react to enemies
-     * they have no business knowing about" class as
-     * {@link com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder}'s
-     * {@code HAS_LOS_TO_TARGET}. Acceptable interim while the perception layer is
-     * parked; swap to {@code squad.believedEnemies} (Tier B) when it lands so a
-     * post can't collapse against an unseen flank. The {@code friends} tally
-     * does <em>not</em> carry this debt — a faction legitimately knows its own
-     * positions (the {@code friendly_influence} channel).
+     * <p>The shared picture consumes confidence-weighted believed contacts at
+     * remembered cells, so an unseen flank cannot collapse the post. Friendly
+     * positions remain exact faction knowledge.
      */
     private float computeLeash(Squad squad, BattleControl sim) {
-        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-        float sense = radius + SENSE_MARGIN;
-        TacticalScoring scoring = sim.getTacticalScoring();
-        // PERCEPTION-DEBT (story 15): omniscient enemy read; swap to
-        // squad.believedEnemies when Tier B belief ships.
-        int foes = scoring.countCombatantsWithin(enemy, anchorX, anchorY, sense);
-        if (foes == 0) return radius;
-        int friends = scoring.countCombatantsWithin(squad.faction, anchorX, anchorY, sense);
-        float factor = Math.min(1f, friends / (float) foes);
+        float foes = squad.contactPicture.hostileStrength();
+        if (foes <= 0f) return radius;
+        int friends = squad.contactPicture.friendlyStrength();
+        float factor = Math.min(1f, friends / foes);
         float inner = Math.min(DEFENSIVE_RING, radius);
         return inner + (radius - inner) * factor;
     }

@@ -11,7 +11,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
  *
  * <p>The old decorative planet-map zone is gone — it provided no gameplay and
  * ate ~70% of the screen via a fixed {@code INFO_W} strip. The action area now
- * uses the full width (roadmap command-powers S8 Slice B). A future battlespace
+ * uses the full width (see {@code command-powers-nouns.md}). A future battlespace
  * preview may reclaim a corner, but the layout stands on its own without it.
  */
 public final class BriefingLayout {

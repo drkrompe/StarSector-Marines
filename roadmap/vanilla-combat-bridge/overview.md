@@ -278,8 +278,9 @@ product direction; walls stay in the headless sim.
    a bridged mech, who owns its position? The proxy model assumes sim authority;
    direct piloting breaks it. Likely a separate, later design.
 5. **CR / attrition coupling.** Does a proxy's destruction feed back to the
-   campaign fleet the way [`../command-powers/`](../command-powers/overview.md)
-   counterplay does? Natural tie-in, not needed for the probes.
+   campaign fleet through the attrition extension seam described by
+   `command-powers-nouns.md`? Natural tie-in, not needed for the probes; command
+   powers do not currently imply campaign asset damage merely from commitment.
 
 ## How this directory is laid out
 

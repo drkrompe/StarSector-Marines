@@ -22,6 +22,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -153,6 +154,70 @@ public class RecoverFromAmbushTest {
                 "a fresh flank plan must be replaced on the first incoming shot, before the two-second cadence");
         assertSame(BreakLOS.INSTANCE, patrol.currentPlan.steps().get(0).action,
                 "the immediate survival replan should execute BreakLOS");
+    }
+
+    @Test
+    public void firstDirectContactInterruptsFreshPlanImmediately() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.spawn(new EntitySpec("d", Faction.DEFENDER,
+                UnitType.MARINE, 12, 5));
+        squad.originalSize = 1;
+        squad.aliveMembers = 1;
+        squad.aliveMembersAtLastPlan = 1;
+        SquadPlan.Step oldStep = new SquadPlan.Step(OverwatchPosture.INSTANCE);
+        oldStep.assignments.put("any", List.of(marine));
+        SquadPlan oldPlan = new SquadPlan(List.of(oldStep));
+        squad.currentPlan = oldPlan;
+        squad.currentGoal = null;
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(squad._directContactStartedThisTick);
+        assertTrue(squad._alertLevelChangedThisTick);
+        assertNotSame(oldPlan, squad.currentPlan,
+                "new direct contact must replace a fresh quiet-state plan in the same tick");
+        assertSame(HoldEngagementLineGoal.INSTANCE, squad.currentGoal,
+                "a lone marine taking an even-strength flank contact should plant and return fire");
+    }
+
+    @Test
+    public void moraleBreakInterruptsFreshPlanImmediatelyWithoutContact() {
+        NavigationGrid grid = new NavigationGrid(30, 16);
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 30; x++) grid.setWalkableFloor(x, y);
+            grid.setWalkable(15, y, false);
+        }
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(30, 16));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.spawn(new EntitySpec("hidden", Faction.DEFENDER,
+                UnitType.MARINE, 22, 5));
+        squad.originalSize = 1;
+        squad.aliveMembers = 1;
+        squad.aliveMembersAtLastPlan = 1;
+        squad.morale = 0f;
+        squad.moraleBroken = false;
+        squad.timeSinceUnderFire = 0f;
+        SquadPlan.Step oldStep = new SquadPlan.Step(OverwatchPosture.INSTANCE);
+        oldStep.assignments.put("any", List.of(marine));
+        SquadPlan oldPlan = new SquadPlan(List.of(oldStep));
+        squad.currentPlan = oldPlan;
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertFalse(squad._directContactStartedThisTick,
+                "wall keeps the morale transition isolated from perception");
+        assertTrue(squad._moraleBrokenChangedThisTick);
+        assertTrue(squad.moraleBroken);
+        assertNotSame(oldPlan, squad.currentPlan,
+                "crossing the morale threshold must replace a fresh plan in the same tick");
+        assertSame(SurviveContact.INSTANCE, squad.currentGoal);
     }
 
     @Test

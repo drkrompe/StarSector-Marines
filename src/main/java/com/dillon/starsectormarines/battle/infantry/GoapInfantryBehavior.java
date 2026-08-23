@@ -59,6 +59,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             RoutinePatrol.INSTANCE,
             ReinforceContact.INSTANCE,
             SurviveContact.INSTANCE,
+            DisengageFromContactGoal.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
@@ -175,6 +176,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>No current plan</li>
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
+     *   <li>New direct contact or an alert-level transition</li>
+     *   <li>Morale hysteresis entered or left the broken state</li>
      *   <li>The alert pass observed hostile incoming fire with LOS to its origin</li>
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
      * </ul>
@@ -214,11 +217,16 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // hidden cell the ordinary plan can resume on the next replan.
         boolean incomingFireStarted = squad._underFireAtLosThisTick
                 && !squad._underFireAtLosLastTick;
+        boolean contactStateChanged = squad._directContactStartedThisTick
+                || squad._alertLevelChangedThisTick;
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
                            || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
                            || memberCountChanged
-                           || incomingFireStarted;
+                           || incomingFireStarted
+                           || contactStateChanged
+                           || squad._contactDoctrineChangedThisTick
+                           || squad._moraleBrokenChangedThisTick;
 
         if (!needsReplan) {
             squad.timeSinceReplan += BattleSimulation.TICK_DT;

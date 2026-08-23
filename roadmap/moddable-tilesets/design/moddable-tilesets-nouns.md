@@ -4,6 +4,8 @@ Status: ACTIVE — built-in data registry; external merge deferred
 
 Written: 2026-08-23
 
+Updated: 2026-08-23 — nature-overlay passability and physical cover are live
+
 Read `stories.md` for open work.
 
 ## Purpose
@@ -95,6 +97,14 @@ carves wetlands, protects connectivity, and spends its seeded random stream in
 code; JSON only sets the choices and rates it consumes. Doodad cover is likewise
 a property of the data definition, while directional markers and embankment
 resolvers remain code-owned geometry.
+
+Nature overlays now exercise that authority boundary end to end. Small rocks
+are visual only; medium rocks publish light cover while remaining walkable;
+large rocks publish heavy cover and block navigation while remaining
+see-through. The filler applies passability, visibility, and connectivity law;
+the battle setup publishes authored cover quality into tactical scoring and
+ballistic interception. Large rocks are non-structural fixtures rather than
+walls: they receive neither wall art nor destructible wall HP.
 
 `GenMappingRegistry` is also the storage location for surface-relief material
 overrides. The tile feature owns the mapping container and its load order;
