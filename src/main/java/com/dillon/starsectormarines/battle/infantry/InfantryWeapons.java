@@ -16,7 +16,6 @@ import com.dillon.starsectormarines.battle.sim.World;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.Random;
 
-
 /**
  * Handheld squad weapons — rifles, SMGs, DMRs (primary line tracers / kinetic
  * bullets) and rocket launchers (secondary, AoE). Owns the firing math + the
@@ -140,7 +139,17 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing.
      */
     public void fireShot(long shooter, long target, FireStance stance) {
-        roster.telemetry().recordRoundFired(shooter);
+        fireShot(shooter, target, stance, rng);
+    }
+
+    /**
+     * Deterministic seam for the committed ballistic outcome and the
+     * experience-scaled trigger-discipline roll. Package-visible for tests;
+     * production callers share the battle's seeded stream across both rolls,
+     * preserving replay determinism while the hold decision occurs only after
+     * the trajectory is already resolved.
+     */
+    void fireShot(long shooter, long target, FireStance stance, Random rng) {
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
@@ -184,6 +193,22 @@ public class InfantryWeapons {
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 accuracy, effectiveSpread, roundVelocity, rng);
 
+        // Resolve first, then decide whether this soldier recognizes the bad
+        // sight picture in time to hold the trigger. Gating only a committed
+        // friendly-hit result is the DPS invariant: the counterfactual round
+        // was going to stop in the ally and deal zero damage to the enemy, so
+        // better discipline cannot make a veteran less offensively effective.
+        // The caller still consumes this firing opportunity (trigger cooldown
+        // and one burst slot), exactly as if the friendly-bound round had been
+        // emitted. Safe rounds never make a discipline roll.
+        if (res.friendlyHit() && usesInfantryTraining(shooterType)) {
+            ExperienceTier experience = roster.combat().soldierProfile(shooter)
+                    .experienceTier();
+            if (rng.nextFloat() < experience.friendlyFireHoldChance) return;
+        }
+
+        roster.telemetry().recordRoundFired(shooter);
+
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
         if (res.victimId() != 0L) {
             // Friendly-fire damage is pre-multiplied at queue time (see
@@ -210,6 +235,13 @@ public class InfantryWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, lifetime,
                 tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
+    }
+
+    private static boolean usesInfantryTraining(UnitType type) {
+        return type == UnitType.MARINE
+                || type == UnitType.MARINE_BLUE
+                || type == UnitType.MARINE_RED
+                || type == UnitType.MILITIA;
     }
 
     /**

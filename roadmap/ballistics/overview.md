@@ -24,7 +24,10 @@ silhouettes and height-gated directional edge cover). **S4 shipped 2026-08-19**
 (`complete/s4-direct-fire-unification.md` — shared source seam and modeled
 direct fire for mech, handheld rocket, and ground burst-turret paths). **S4a
 shipped 2026-08-19** (`complete/s4a-proximity-catch-ramp.md` — muzzle-distance
-attenuation for probabilistic cover and friendly incidental catches).
+attenuation for probabilistic cover and friendly incidental catches). **S4b
+shipped 2026-08-22** (`s4b-trigger-discipline.md` — experience-scaled infantry
+trigger discipline suppresses only rounds already committed to a friendly
+hit).
 
 ## Why
 
@@ -191,6 +194,12 @@ movers can enter the corridor before contact.
    neutral faction for mission and AI purposes, but the ballistic candidate
    gather omits them for `MARINE` sources. Defender sources still target and
    incidentally hit them normally.
+6. **Training suppresses committed friendly hits, not geometric lanes.** A
+   soldier rolls trigger discipline only after the resolver says the exact
+   would-be primary round will stop in a friendly. A successful hold emits
+   nothing but still spends the firing opportunity. This preserves hostile
+   DPS across experience tiers: the suppressed counterfactual round could not
+   have reached the enemy.
 
 ## Stories
 
@@ -224,6 +233,9 @@ movers can enter the corridor before contact.
   and friendly interveners gain a smooth muzzle-distance attenuation while
   downrange values remain unchanged. See
   [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
+- ~~**S4b — trigger discipline.**~~ **SHIPPED** — infantry primary rounds whose
+  committed resolution is a friendly hit receive an experience-scaled hold
+  roll before emission. See `s4b-trigger-discipline.md`.
 
 Future hooks (post-S4, backlog): doodad HP / cover erosion; lead error by
 aptitude; point defense generalization (`Projectile.intercepted` reserved);
