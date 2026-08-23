@@ -350,7 +350,7 @@ public class BattleSimulation implements BattleControl {
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
-    /** Post-movement soft-collision relaxation pass — pushes overlapping ground units apart. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
+    /** Post-movement ground-unit separation and allied-mech formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
     private final SwarmAvoidanceSystem swarmAvoidance;
@@ -1207,7 +1207,8 @@ public class BattleSimulation implements BattleControl {
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
         // Threat steer then soft-collision relaxation. The first bends allied
         // infantry away from nearby aliens without replacing authored paths;
-        // the second nudges any remaining body overlaps apart.
+        // the second nudges body overlaps apart and softly spaces moving
+        // allied mechs into a loose formation.
         // Runs here (serial, after every UPDATE_UNITS position write has
         // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
         // read final POSITION). See SeparationSystem class doc.

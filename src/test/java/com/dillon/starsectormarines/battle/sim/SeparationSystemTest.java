@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -279,6 +282,75 @@ public class SeparationSystemTest {
         assertEquals(0f, marineVelY, 1e-3f, "marine VEL_Y should be ~0 for a purely x-axis shove");
         assertEquals(mechDispX / BattleSimulation.TICK_DT, mechVelX, 1e-3f, "mech VEL_X should track applied displacement / dt");
         assertEquals(0f, mechVelY, 1e-3f, "mech VEL_Y should be ~0 for a purely x-axis shove");
+    }
+
+    @Test
+    public void everyMechVariantSpreadsIntoALooseFormationWhileMoving() {
+        BattleSimulation sim = openArena(28, 20);
+        SeparationSystem separation = separationFor(sim);
+        long hound = spawnMech(sim, MechVariant.HOUND, Faction.MARINE, 8, 10);
+        long bulwark = spawnMech(sim, MechVariant.BULWARK, Faction.MARINE, 10, 10);
+        long sirocco = spawnMech(sim, MechVariant.SIROCCO, Faction.MARINE, 12, 10);
+        long[] mechs = {hound, bulwark, sirocco};
+        for (long mech : mechs) {
+            sim.setPath(mech, GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(mech), sim.world().cellY(mech), 22, 10));
+        }
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        float houndX = sim.world().x(hound);
+        separation.tick(BattleSimulation.TICK_DT);
+        float firstStep = Math.abs(sim.world().x(hound) - houndX);
+        assertTrue(firstStep > 0f);
+        assertTrue(firstStep < SeparationSystem.MAX_PUSH_SPEED * BattleSimulation.TICK_DT,
+                "formation spacing should steer gently instead of hitting the collision cap");
+
+        int ticks = Math.round(3f / BattleSimulation.TICK_DT);
+        for (int tick = 1; tick < ticks; tick++) {
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        assertTrue(distance(sim, hound, bulwark)
+                        >= SeparationSystem.MECH_FORMATION_DISTANCE - 0.15f,
+                "Hound and Bulwark should open formation spacing");
+        assertTrue(distance(sim, bulwark, sirocco)
+                        >= SeparationSystem.MECH_FORMATION_DISTANCE - 0.15f,
+                "Bulwark and Sirocco should open formation spacing");
+    }
+
+    @Test
+    public void formationForceDoesNotPushIdleOrEnemyMechsApart() {
+        BattleSimulation sim = openArena(24, 20);
+        SeparationSystem separation = separationFor(sim);
+        long idleAllyA = spawnMech(sim, MechVariant.HOUND, Faction.MARINE, 5, 5);
+        long idleAllyB = spawnMech(sim, MechVariant.BULWARK, Faction.MARINE, 7, 5);
+        long movingMarine = spawnMech(sim, MechVariant.SIROCCO, Faction.MARINE, 12, 12);
+        long nearbyEnemy = spawnMech(sim, MechVariant.HOUND, Faction.DEFENDER, 14, 12);
+        sim.setPath(movingMarine, GridPathfinder.findPath(
+                sim.getGrid(), 12, 12, 20, 12));
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertEquals(2f, distance(sim, idleAllyA, idleAllyB), 1e-6f,
+                "settled authored positions should not drift merely for formation spacing");
+        assertEquals(2f, distance(sim, movingMarine, nearbyEnemy), 1e-6f,
+                "enemy mechs should receive only physical overlap separation");
+    }
+
+    private static long spawnMech(BattleSimulation sim, MechVariant variant,
+                                  Faction faction, int x, int y) {
+        long mech = sim.spawn(variant.applyTo(new EntitySpec(
+                variant.id, faction, UnitType.HEAVY_MECH, x, y)));
+        sim.world().attachMechLoadout(mech,
+                variant.createLoadout(MechRole.ARMORED_SUPPORT));
+        return mech;
+    }
+
+    private static float distance(BattleSimulation sim, long a, long b) {
+        float dx = sim.world().x(a) - sim.world().x(b);
+        float dy = sim.world().y(a) - sim.world().y(b);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     /**

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -100,7 +99,25 @@ class AssaultAssignedObjectiveTest {
     }
 
     @Test
-    void anotherFriendlyMechAlsoReleasesTheAssaultAdvance() {
+    void aDifferentFriendlyMechVariantReleasesTheAssaultAdvance() {
+        BattleSimulation sim = openSimulation(32, 12);
+        Squad squad = assaultSquad(sim, Faction.MARINE, 3, 5);
+        long mech = squad.leaderId;
+        mechSquad(sim, Faction.MARINE, MechVariant.BULWARK,
+                MechRole.ARMORED_SUPPORT, 5, 5);
+        sim.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MARINE, 26, 5));
+        squad.lastSeenEnemyX = 26;
+        squad.lastSeenEnemyY = 5;
+
+        GoapMechBehavior.replanIfNeeded(squad, sim);
+        GoapMechBehavior.INSTANCE.update(mech, sim);
+
+        assertTrue(Paths.cellCount(sim.movement().path(mech)) > 0,
+                "a different lance-mate lets the Hound advance as a mech pair");
+    }
+
+    @Test
+    void anotherHoundCannotReleaseAnUnsupportedAssaultAdvance() {
         BattleSimulation sim = openSimulation(32, 12);
         Squad squad = assaultSquad(sim, Faction.MARINE, 3, 5);
         long mech = squad.leaderId;
@@ -112,8 +129,8 @@ class AssaultAssignedObjectiveTest {
         GoapMechBehavior.replanIfNeeded(squad, sim);
         GoapMechBehavior.INSTANCE.update(mech, sim);
 
-        assertTrue(Paths.cellCount(sim.movement().path(mech)) > 0,
-                "a lance-mate lets the Hound advance as a mech pair");
+        assertTrue(Paths.isEmpty(sim.movement().path(mech)),
+                "Hounds must not treat one another as the supporting formation");
     }
 
     @Test
@@ -162,12 +179,17 @@ class AssaultAssignedObjectiveTest {
     }
 
     private static Squad assaultSquad(BattleSimulation sim, Faction faction, int x, int y) {
+        return mechSquad(sim, faction, MechVariant.HOUND, MechRole.ASSAULT, x, y);
+    }
+
+    private static Squad mechSquad(BattleSimulation sim, Faction faction,
+                                   MechVariant variant, MechRole role,
+                                   int x, int y) {
         int squadId = sim.mintSquad(faction, UnitType.HEAVY_MECH);
-        EntitySpec spec = MechVariant.HOUND.applyTo(new EntitySpec(
-                "hound", faction, UnitType.HEAVY_MECH, x, y).squad(squadId));
+        EntitySpec spec = variant.applyTo(new EntitySpec(
+                variant.id, faction, UnitType.HEAVY_MECH, x, y).squad(squadId));
         long mech = sim.spawn(spec);
-        sim.world().attachMechLoadout(mech,
-                MechLoadoutComponent.defaultLoadout(MechRole.ASSAULT));
+        sim.world().attachMechLoadout(mech, variant.createLoadout(role));
         Squad squad = sim.getSquad(squadId);
         squad.leaderId = mech;
         squad.aliveMembers = 1;

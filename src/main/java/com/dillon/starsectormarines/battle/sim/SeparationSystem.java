@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -11,9 +12,11 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import java.util.Arrays;
 
 /**
- * Post-movement soft-collision relaxation pass — pushes overlapping ground
- * units apart over a few ticks instead of letting them stack on one point.
- * Design: {@code roadmap/continuous-positions/stories/separation-steering.md}.
+ * Post-movement separation pass. It pushes overlapping ground units apart
+ * over a few ticks instead of letting them stack on one point, and gives
+ * moving allied mechs a weaker, wider repulsion so a lance travels as a loose
+ * formation instead of collapsing onto one path centerline.
+ * Design: {@code separation-steering.md}.
  * Stateless consumer (Services/Systems shape): every field below is a
  * reusable scratch buffer, never battle state.
  *
@@ -53,8 +56,10 @@ import java.util.Arrays;
  *   <li><b>Accumulate</b> — for each participant {@code a}, gather nearby
  *       participants via {@link UnitSpatialIndex#gather} (a tick-start
  *       snapshot used only to prune candidates; live positions are re-read
- *       for the actual overlap test), and for each overlapping {@code b}
+ *       for the actual distance test), and for each overlapping {@code b}
  *       accumulate a push vector into {@code a}'s scratch impulse slot.
+ *       Same-faction mech pairs also accumulate a weaker correction out to
+ *       {@link #MECH_FORMATION_DISTANCE} while either has an active path.
  *       Every pair is naturally evaluated from both sides (once as {@code a}
  *       gathers {@code b}, once as {@code b} gathers {@code a}), so there is
  *       no half-pair bookkeeping.</li>
@@ -77,15 +82,22 @@ import java.util.Arrays;
 public final class SeparationSystem {
 
     /**
-     * Neighbor-query radius, in cells — 2 × the largest unit radius (mech,
-     * 0.6) plus a per-tick motion margin, so no overlapping pair can be
-     * outside the net even after this tick's movement.
+     * Ordinary neighbor-query radius, in cells — 2 × the largest unit radius
+     * (mech, 0.6) plus a per-tick motion margin, so no overlapping pair can be
+     * outside the net even after this tick's movement. Mechs use
+     * {@link #MECH_FORMATION_QUERY_RADIUS} instead.
      */
     public static final float QUERY_RADIUS = 1.5f;
     /** Fraction of a pair's overlap resolved per tick before the speed clamp — relaxation, not instant pop. */
     public static final float STIFFNESS = 0.5f;
     /** Cap on push distance per tick, in cells/sec — kept under walk speed (2.0) so separation never outruns intent. */
     public static final float MAX_PUSH_SPEED = 1.5f;
+    /** Preferred center-to-center spacing between moving same-faction mechs. */
+    public static final float MECH_FORMATION_DISTANCE = 2.5f;
+    /** Gentle correction applied only to the non-overlapping part of the mech formation gap. */
+    public static final float MECH_FORMATION_STIFFNESS = 0.04f;
+    /** Formation radius plus enough slack for one tick of ordinary mech movement. */
+    private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
 
     /** Below this separation distance, two units are treated as coincident and steered apart by the deterministic id-hash tiebreak instead of a (division-by-zero) normalized delta. */
     private static final float COINCIDENT_EPS = 1e-4f;
@@ -147,7 +159,7 @@ public final class SeparationSystem {
             float ax = world.x(a);
             float ay = world.y(a);
             float ra = radiusOf(a);
-            unitIndex.gather(ax, ay, QUERY_RADIUS, scratch);
+            unitIndex.gather(ax, ay, neighborQueryRadius(a), scratch);
             for (int k = 0, n = scratch.size; k < n; k++) {
                 long b = scratch.ids[k];
                 if (b == a || !participates(b)) continue;
@@ -159,10 +171,12 @@ public final class SeparationSystem {
                 float dx = ax - bx;
                 float dy = ay - by;
                 float dist2 = dx * dx + dy * dy;
-                if (dist2 >= sumR * sumR) continue; // no overlap
                 float dist = (float) Math.sqrt(dist2);
-                float overlap = sumR - dist;
-                if (overlap <= 0f) continue;
+                float physicalOverlap = Math.max(0f, sumR - dist);
+                float formationGap = movingAlliedMechPair(a, b)
+                        ? Math.max(0f, MECH_FORMATION_DISTANCE - Math.max(dist, sumR))
+                        : 0f;
+                if (physicalOverlap <= 0f && formationGap <= 0f) continue;
 
                 float dirX, dirY;
                 if (dist < COINCIDENT_EPS) {
@@ -178,11 +192,31 @@ public final class SeparationSystem {
                     dirY = dy / dist;
                 }
 
-                float mag = weightOf(a, b) * overlap * STIFFNESS;
+                float correction = physicalOverlap * STIFFNESS
+                        + formationGap * MECH_FORMATION_STIFFNESS;
+                float mag = weightOf(a, b) * correction;
                 impulseX[i] += dirX * mag;
                 impulseY[i] += dirY * mag;
             }
         }
+    }
+
+    private float neighborQueryRadius(long id) {
+        return isMech(id) ? MECH_FORMATION_QUERY_RADIUS : QUERY_RADIUS;
+    }
+
+    private boolean movingAlliedMechPair(long a, long b) {
+        return isMech(a) && isMech(b)
+                && roster.identity().faction(a) == roster.identity().faction(b)
+                && (hasActivePath(a) || hasActivePath(b));
+    }
+
+    private boolean isMech(long id) {
+        return roster.identity().type(id).isMech();
+    }
+
+    private boolean hasActivePath(long id) {
+        return world.pathIdx(id) < Paths.cellCount(world.path(id));
     }
 
     private void apply(long[] dense, int liveCount, float dt) {
