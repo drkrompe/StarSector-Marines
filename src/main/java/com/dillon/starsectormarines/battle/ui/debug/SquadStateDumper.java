@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -253,10 +254,21 @@ public final class SquadStateDumper {
             o.put("mechRole", mechLoadout != null ? mechLoadout.role.name() : null);
             o.put("overwatchCellX", mechLoadout != null ? mechLoadout.overwatchCellX : null);
             o.put("overwatchCellY", mechLoadout != null ? mechLoadout.overwatchCellY : null);
+            o.put("overwatchLongRangeBand",
+                    mechLoadout != null ? mechLoadout.overwatchLongRangeBand : null);
             long screen = mechLoadout != null
                     ? sim.resolveUnit(mechLoadout.overwatchScreenId) : 0L;
             o.put("overwatchScreenId", screen != 0L
                     ? sim.identity().name(screen) : null);
+            if (mechLoadout != null) {
+                long aimTarget = sim.resolveUnit(mechLoadout.torsoAimTargetId);
+                o.put("mechHipFacingDegrees", sim.world().mechHipFacingDegrees(u));
+                o.put("mechTorsoFacingDegrees", mechLoadout.torsoFacingDegrees);
+                o.put("mechTorsoAimTargetId", aimTarget != 0L
+                        ? sim.identity().name(aimTarget) : null);
+                o.put("mechTorsoOnTarget", mechLoadout.torsoOnTarget);
+                o.put("mechMounts", buildMechMountsJson(mechLoadout, sim));
+            }
             o.put("cellX", sim.world().cellX(u));
             o.put("cellY", sim.world().cellY(u));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
@@ -280,10 +292,40 @@ public final class SquadStateDumper {
             // key off this flag. JSONObject.NULL when the unit has no target.
             o.put("targetReachable", computeTargetReachable(u, sim));
             o.put("cooldownTimer", sim.world().cooldownTimer(u));
-            o.put("pathLen", Paths.cellCount(sim.world().path(u)));
+            int[] path = sim.world().path(u);
+            int pathLen = Paths.cellCount(path);
+            int pathIndex = sim.world().pathIdx(u);
+            o.put("pathLen", pathLen);
+            o.put("pathIndex", pathIndex);
+            o.put("pathRemaining", Math.max(0, pathLen - pathIndex));
+            o.put("pathDestX", pathLen > 0 ? Paths.destX(path) : null);
+            o.put("pathDestY", pathLen > 0 ? Paths.destY(path) : null);
             arr.put(o);
         }
         return arr;
+    }
+
+    private static JSONArray buildMechMountsJson(MechLoadoutComponent loadout,
+                                                  BattleSimulation sim) throws Exception {
+        JSONArray mounts = new JSONArray();
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount == null) continue;
+            JSONObject o = new JSONObject();
+            o.put("slot", mount.slot.name());
+            o.put("component", mount.component.name());
+            o.put("weapon", mount.weapon().name());
+            o.put("ammo", mount.ammo);
+            o.put("ammoCapacity", mount.component.ammoCapacity);
+            o.put("hasAmmo", mount.hasAmmo());
+            o.put("cooldown", mount.cooldown);
+            o.put("burstRemaining", mount.burstRemaining);
+            o.put("burstTimer", mount.burstTimer);
+            long burstTarget = sim.resolveUnit(mount.burstTargetId);
+            o.put("burstTargetId", burstTarget != 0L
+                    ? sim.identity().name(burstTarget) : null);
+            mounts.put(o);
+        }
+        return mounts;
     }
 
     private static Object computeTargetReachable(long self, BattleSimulation sim) {
