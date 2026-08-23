@@ -1,158 +1,47 @@
-# Dense render tiles — n×m cell chunks as residency, not a new sim grid
+# Dense Render Tiles
 
-> **Status: design-stage / not queued.** Captured so the camera-cull follow-on
-> and the large-map FBO plan have one place to point. Do not pick this up until
-> it is explicitly contracted.
+Status: PARKED — contract only after a measured scale trigger.
 
-## Premise
+Written: 2026-08-23
 
-The world is a dense cell grid. GROUND (and height/normal) still emit one
-command per visible cell every frame. Camera view culling
-([`../complete/camera-view-cull.md`](../complete/camera-view-cull.md)) already
-range-loops `BattleCamera.visibleCells`, so a zoomed fight only walks the
-slice. That does not change the fact that a visible slice is **static
-geometry re-emitted every frame**, and at zoom 1.0 — or on the combat-bridge
-plate, whose `BattleCamera` viewport *is* the whole grid — the slice is the
-entire map.
+Read `battle-render-nouns.md` and `large-map-scaling.md` before reviving this
+story.
 
-| Map | Cells | 16-cell tiles | 64-cell tiles |
-|-----|------:|-------------:|-------------:|
-| SMALL 112×64 | 7,168 | 28 | 4 |
-| MEDIUM 144×80 | 11,520 | 45 | 6 |
-| LARGE 240×160 | 38,400 | 150 | 10 |
-| Future 2× Conquest 480×320 | 153,600 | **600** | 40 |
+## Current substrate
 
-Six hundred tile AABBs vs the camera is a cheap broadphase. The architecture
-question is what a tile *is*.
+Dense terrain already range-loops the camera's visible cell rectangle. It still
+emits one command per visible cell, while persistent decals use one world-sized
+FBO. The current canonical map does not justify replacing those paths yet.
 
-## What a dense tile is
+## Goal
 
-A **dense tile** is an `n×m` block of cells with its own AABB. It always
-contains `n×m` cells — this is not a sparse occupancy list. Camera (or a
-quantized `VisibleCellRect`) decides whether the tile is in view; missed
-tiles are not visited.
+Add a view-resident render-tile layer that can bake static ground and retain
+persistent decals without changing the simulation's cell grid.
 
-That is a different object from:
+## Decisions to settle
 
-- **`visibleCells` (shipped)** — tight cell AABB. Best CPU cull for a
-  grid-aligned ortho camera. Still one quad per cell inside the rect.
-- **Sparse 16-cell buckets** (`UnitSpatialIndex`, doodads-if-we-ever-index
-  them) — each bucket holds a *list* of occupants. Right for units/shots.
-  Wrong for ground: every cell paints.
-- **One world-sized ground FBO**
-  ([`perf-ground-fbo-cache.md`](perf-ground-fbo-cache.md)) — GROUND → 1 quad,
-  but VRAM is O(map area). The map-size wall in
-  [`../large-map-scaling.md`](../large-map-scaling.md).
+- Choose the GPU tile size and per-host pixel density from measurements.
+- Choose one FBO per tile versus a resident atlas.
+- Define camera margin, eviction, and anti-thrash policy.
+- Define the cell-change invalidation API, including autotile edge halos.
+- Keep ground and decal backing separate while sharing tile addressing and
+  residency.
 
-A dense tile only beats the cell rect if **a hit tile is cheap to draw**.
-Unbaked, a 16×16 hit is 256 cell emits plus a ring of off-screen cells —
-strictly looser than `visibleCells`. Baked, a hit tile is one (or a few)
-blits. That is the load-bearing choice.
+## Acceptance
 
-```
-tile hits camera  →  dirty? rebake from cells  →  blit resident FBO/atlas
-tile misses       →  do not iterate its cells; LRU/free the GPU backing
-```
-
-Zoom 8 on LARGE: ~4–9 blits instead of ~600 cell quads. Zoom 1: 150 blits
-instead of 38k. At the future 480×320 benchmark, testing tile AABBs in world
-units against the viewport avoids emitting 153k ground quads.
-
-## Keep cells as sim truth
-
-Do **not** replace `NavigationGrid`, `CellTopology`, fog, occupancy, A*, or
-wall HP with tiles as the address space. Those are ~50 B/cell (LARGE ~2 MB,
-bridge ~8 MB). Path, LoS, autotile neighbors, building interiors, and
-destructible walls are cell-indexed and should stay that way.
-
-A tile is a **view of `n×m` cells**, not a new coordinate system. Sim
-writes a cell (wall break, rubble, roof cave-in); the owning tile (and an
-edge neighbor if autotile halo requires it) goes dirty.
-
-## `n×m` sizing
-
-Two sizes are allowed; do not retile the sim to match either.
-
-- **16** — same as `UnitSpatialIndex.BUCKET`. ~600 tiles at the future 2×
-  benchmark.
-  Good CPU occupancy board. Unbaked 16×16 is still the wrong GROUND path.
-- **32 or 64** — GPU residency. [`../large-map-scaling.md`](../large-map-scaling.md)
-  already wanted 64×64 for view-resident decal FBOs. The future 2× benchmark
-  is ~40 tiles; a zoomed fight is 1–4 blits. Unbaked 64×64 is 4096 cell visits per hit —
-  64 only makes sense baked.
-
-## What this folds
-
-This story is the bake vehicle for two already-written plans. Do not
-implement those as a single world-sized surface.
-
-1. **Ground FBO cache** ([`perf-ground-fbo-cache.md`](perf-ground-fbo-cache.md))
-   — same “stop re-emitting static ground” goal; per-tile instead of one
-   map-sized FBO, so memory is O(view) and a wall break dirties one chunk.
-2. **Tiled decal FBO** ([`../large-map-scaling.md`](../large-map-scaling.md) §1)
-   — same tile grid, same residency/LRU, same spectator cull. Ground and
-   decals should share the board even if they keep separate FBO backing.
-3. **Bridge spectator cull** — `GroundSceneBackdrop`’s `BattleCamera` covers
-   the whole plate, so `visibleCells` is a no-op there. Tile AABBs in world
-   units (or a spectator-derived cell rect) are the consumer that actually
-   cuts 153k.
-
-Not folded: the MoonLight linked-list rewrite in
-[`../../ecs-migration/spatial-index-options.md`](../../ecs-migration/spatial-index-options.md).
-That is a gather-hot-path change for *units* at N ≳ 500. Dense ground tiles
-are a different structure on the same 16-cell pitch.
-
-## Invalidation (the hard part)
-
-Dirties a tile:
-
-- Map load / generator stamp (all tiles dirty once).
-- Wall break, rubble, roof cave-in, fixture change in the tile.
-- Autotile neighbor change on a shared edge → dirty both tiles (1-cell halo
-  at bake time, same as today’s N/S/E/W reads).
-
-Does **not** dirty a tile:
-
-- Camera pan/zoom (blit under the current transform).
-- Fog (separate overlay; already view-culled).
-- Units, shots, doodads (not in the ground bake).
-- Decals, if they stay a sibling FBO on the same tile grid rather than
-  being composited into the ground bake.
-
-Evict-then-revisit: cells remain source of truth, so dropping a tile FBO is
-free; re-entry rebakes from cells (and replays that tile’s decals from the
-capped source list, same as the large-map plan).
-
-## Draw-list fit
-
-Baked tiles are a genuine own-GL blit — `Custom` (or a dedicated command)
-like `DecalAccumulator` today. Per-frame GROUND cell emits go away for
-resident tiles. Paint order stays `GROUND → DECALS → …`; fog/units still
-collect on top. Fail-soft: if a tile FBO is incomplete, fall back to the
-existing `visibleCells` cell emit for that tile only.
+- Visible clean tiles draw as bounded blits instead of per-cell ground commands.
+- Wall, rubble, roof, fixture, and relevant neighbor changes dirty exactly the
+  required tiles.
+- Evicted ground rebuilds from cells; evicted decals replay retained sources.
+- Resident GPU memory is bounded by the view rather than total map area.
+- A failed or unavailable tile target falls back locally to the present cell
+  renderer with unchanged paint order.
+- Standalone and combat-bridge hosts consume the same residency mechanism with
+  host-appropriate projection and pixel density.
 
 ## Out of scope
 
-- Replacing the cell grid in sim, gen, or save.
-- Putting doodads/units into the dense tile (they stay sparse lists /
-  `UnitSpatialIndex`).
-- Hierarchical pathfinding.
-- Camera-Z / perspective ([`../overview.md`](../overview.md) “Future”).
-- Changing `MIN_ZOOM = 1.0`.
-
-## Why not now
-
-Cell-rect culling is the common zoomed-in path and just shipped. This story
-is the map-size / zoom-1 / bridge lever, and it is an invalidation + VRAM
-design, not a tight loop. Contract it when GROUND collect/flush is a
-measured ceiling again, or before the canonical Conquest size grows beyond
-240×160 while carrying DECALS.
-
-## Open questions (when contracted)
-
-- GPU tile size: 32 vs 64; px/cell (standalone 32, bridge maybe 8).
-- One FBO per tile vs an atlas of resident tiles.
-- Whether height/normal targets chunk the same way as color (they are
-  already viewport-sized today; tiling them is optional).
-- LRU vs distance eviction; margin ring so panning does not thrash.
-- Exact dirty API from wall-break / rubble onto tile indices.
+- Replacing navigation, fog, occupancy, LoS, wall health, or saves with tiles.
+- Pathfinding hierarchy.
+- Camera-Z or perspective.
+- Sparse entity indexing.

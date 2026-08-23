@@ -15,10 +15,9 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import java.util.EnumSet;
 
 /**
- * S3b — draws the <b>real ground scene</b> (terrain + building structures) under the
- * vanilla ships, on {@link CombatEngineLayers#BELOW_SHIPS_LAYER}. Replaces the S0b/S2
- * placeholder grid plate ({@code CanvasBackdropRenderer}) with the mod's actual tile
- * renderer.
+ * Draws the <b>real ground scene</b> (terrain + building structures) under vanilla ships on
+ * {@link CombatEngineLayers#BELOW_SHIPS_LAYER}. It uses the mod's actual tile renderer rather
+ * than a parallel combat-only scene implementation.
  *
  * <p><b>The render-target seam.</b> The ground renderer ({@link BattleRenderer}) is a
  * collect→drain pipeline: each pass turns sim cells into coordinates via a
@@ -34,12 +33,12 @@ import java.util.EnumSet;
  *
  * <p>This host runs the projection-agnostic scene passes named by
  * {@link GroundBattleConfig#sceneLayers()} via
- * {@link BattleRenderer#renderWorld(RenderContext, EnumSet)} — the render-layers thread
- * (S3f–S3j) grows that set one bucket per story. UNITS (S3f) draws the only visual for ground
- * forces — the {@link SimProxyMirror} proxies are invisible targeting avatars, and marines are
- * never proxied at all. The FBO-backed accumulators (decals, lighting) and the screen-coupled
- * overlays that assume a screen projection are still left out — they blit in screen space and
- * need projection retarget (S3j).
+ * {@link BattleRenderer#renderWorld(RenderContext, EnumSet)}. The bridge config selects the
+ * ground, doodad, roof, unit, objective, compound, vehicle, convoy, shuttle, fog, shot, and impact
+ * layers that can be projected honestly into combat-world coordinates. UNITS supplies the only
+ * visual for ground forces: {@link SimProxyMirror} proxies are invisible targeting avatars, and
+ * marines are never proxied. DECALS remains excluded because its persistent accumulator still
+ * assumes the standalone screen projection and needs an explicit residency/retarget contract.
  *
  * <p>Pan/zoom come free: the combat free-cam ({@code SpectatorCanvasPlugin}) moves the
  * combat world projection, which moves where our world-coord geometry lands — so the
@@ -113,7 +112,7 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureUrbanTile3Sheet();
         sprites.ensureDoodadSheet();
 
-        // UNITS layer (S3f): turret/hub bodies, footprints, dead poses, live infantry, HP bars.
+        // UNITS: turret/hub bodies, footprints, dead poses, live infantry, and HP bars.
         sprites.ensureUnitSheets();
         sprites.ensureLayeredUnitSprites();
         sprites.ensureLayeredMechSprites();
@@ -121,14 +120,14 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureTurretSprites();
         sprites.ensureDroneHubSprite();
 
-        // OBJECTIVES layer (S3g): charge-site / equipment-drop icons (COMPOUND is vector-drawn, no sheet).
+        // OBJECTIVES: charge-site/equipment-drop icons (COMPOUND is vector-drawn, no sheet).
         sprites.ensureObjectiveIcons();
 
-        // VEHICLES + CONVOY layers (S3h): parked map vehicles + supply trucks/turrets.
+        // VEHICLES + CONVOY: parked map vehicles and supply trucks/turrets.
         sprites.ensureVehicleSheets();
         sprites.ensureConvoySprites();
 
-        // SHUTTLES layer (S3d D1): dropship hulls + their engine-FX plumes. Turret sprites for
+        // SHUTTLES: dropship hulls and their engine-FX plumes. Turret sprites for
         // armed craft are already loaded above (UNITS); pure-transport dropships carry no mounts.
         sprites.ensureShuttleSprites();
         sprites.ensureEngineFxSprites();

@@ -12,7 +12,7 @@ profiling evidence to justify the surgery.
 
 Dense *ground* tiles (`n×m` baked cell chunks as render residency) are a
 different object on a similar pitch — see
-[`../battle-render/stories/dense-render-tiles.md`](../battle-render/stories/dense-render-tiles.md).
+`dense-render-tiles.md`.
 This file stays about unit `gather()`.
 
 ## Current shape (post-`4edb1f4`)

@@ -19,6 +19,6 @@
  *           types ({@code Decal}, {@code SpriteSheetFrames}); the FBO
  *           mechanism is reclassified clean once its game-data binding is separated.
  *
- * <p>See {@code roadmap/battle-render/overview.md} for the render reorg.
+ * <p>See {@code battle-render-nouns.md} for the engine/game rendering contract.
  */
 package com.dillon.starsectormarines.render2d;

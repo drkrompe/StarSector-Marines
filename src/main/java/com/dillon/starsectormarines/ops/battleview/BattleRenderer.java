@@ -117,9 +117,8 @@ public class BattleRenderer {
     private RenderContext rc;
 
     /**
-     * Per-frame draw-command collector. Cleared at the top of {@link #renderWorld}.
-     * Migrated layers route through it ({@link RenderLayer#SHOTS},
-     * {@link RenderLayer#DOODADS}); the rest still draw inline.
+     * Per-frame draw-command collector. Every world producer appends to it;
+     * it is cleared at the top of {@link #renderWorld}.
      */
     private final DrawList drawList = new DrawList();
 
@@ -133,13 +132,10 @@ public class BattleRenderer {
     private final java.util.Map<SpriteAPI, QuadBatch> batchBySheet = new java.util.IdentityHashMap<>();
 
     /**
-     * The migrated world-render producers, in paint order. {@link #renderWorld}
-     * collects every system into {@link #drawList} up front (each tags its own
-     * {@link RenderSystem#layer()}, so collect order is immaterial), then drains
-     * each layer in {@link RenderLayer} order — interleaving the not-yet-migrated
-     * inline passes at their layer slots. As an inline pass migrates it joins this
-     * list and its bespoke drain slot folds into the layer drain sequence; the
-     * endgame is collect-all then drain-all with no inline passes left.
+     * All world-render producers, in same-layer submission order.
+     * {@link #renderWorld} collects every selected producer into {@link #drawList}
+     * and then drains layers in {@link RenderLayer} order. Across layers collect
+     * order is immaterial; within one layer this list preserves painter order.
      */
     private final List<RenderSystem> worldSystems;
 

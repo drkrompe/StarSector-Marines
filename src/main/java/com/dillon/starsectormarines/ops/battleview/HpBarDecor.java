@@ -6,9 +6,8 @@ import java.awt.Color;
  * Reusable HP-bar emit behavior: a fixed-style two-rect bar (dark backing +
  * green fill) submitted as two {@link DrawCommand.Kind#SOLID_RECT}s into any
  * layer. Stateless and layer-agnostic — the canonical bar renderer shared by
- * {@link DroneRenderSystem} (DRONES layer) and, after Story J slice 6, the
- * UNITS HP-bar sweep (and adoptable by SHUTTLES later by running a bar sweep
- * last within its own layer).
+ * {@link DroneRenderSystem} (DRONES layer) and the UNITS HP-bar sweep (and
+ * adoptable by SHUTTLES later by running a bar sweep last within its own layer).
  *
  * <p>Callers own bar <em>placement</em> (where {@code baseY} sits relative to
  * the entity, via the layer's own gap policy); the bar's height and colors are

@@ -4,8 +4,8 @@
  * <p>Category: feature render (the concrete passes layered on the render2d engine).
  * <br>Charter:  per-frame render orchestration ({@code BattleRenderer}), the
  *           concrete producers ({@code RenderSystem} impls such as
- *           {@code DoodadRenderSystem}, and the inline passes still being
- *           migrated), the paint-order layer set ({@code RenderLayer}), the
+ *           {@code DoodadRenderSystem} and renderer-owned adapters), the
+ *           paint-order layer set ({@code RenderLayer}), the
  *           per-frame collector + carrier ({@code DrawList},
  *           {@code RenderContext}), the producer hook ({@code RenderSystem}),
  *           and the asset/sprite registry ({@code BattleSprites},
@@ -19,6 +19,6 @@
  *           enforced invariant, not a call-order convention. Depends on
  *           {@code render2d}; the reverse edge must never appear.
  *
- * <p>See {@code roadmap/battle-render/overview.md} for the render reorg.
+ * <p>See {@code battle-render-nouns.md} for the standing pipeline model.
  */
 package com.dillon.starsectormarines.ops.battleview;

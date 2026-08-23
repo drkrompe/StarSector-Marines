@@ -22,14 +22,14 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import java.awt.Color;
 
 /**
- * Emits the {@link RenderLayer#UNITS} layer — the heavy world pass. Story J's
- * target shape: a stateless consumer that sweeps the unit list <em>once per
+ * Emits the {@link RenderLayer#UNITS} layer as a stateless consumer that sweeps
+ * the unit list <em>once per
  * render-task-kind</em> (footprints, then sprites, then HP bars), branching on a
  * type-flyweight {@link RenderAppearance} + its capability tags instead of an
  * {@code instanceof}/{@code combatant}/{@code deathPoseIdx} ladder. Per-stratum
  * sweeps in paint order dissolve the per-entity decorator ordering trap: "HP bars
  * on top across all kinds" is simply "the bar sweep runs last". See
- * {@code roadmap/battle-render/stories/story-j-units.md}.
+ * {@code battle-render-nouns.md}.
  *
  * <p><b>Complete (slice J6).</b> All six sweeps are live here — footprints, turret
  * + hub whole-sprite bodies, dead-sprites, live-infantry sprites (batched

@@ -111,7 +111,7 @@ and run a tight row loop — the archetype analog of today's
   return to the campaign tier as plain data after the battle.
 - **No reflection.** Every component type and column factory is registered in
   code; archetype matching is `long`-mask arithmetic. Nothing instantiates a
-  component by class — the artemis-odb blocker (battle-render/overview.md) never
+  component by class — the artemis-odb blocker recorded by `battle-render-nouns.md` never
   applies to the hand-rolled core.
 - **Archetype fragmentation.** Kept small by two rules:
   1. **Archetype membership = stable capability; volatile state = column value.**
@@ -210,7 +210,7 @@ a separate presence):
 
 The animation *definition* (frame-index list + per-frame durations, loop/speed) is
 flyweight data in the **sprite registry** keyed by `animId`
-([unified-sprite-registry](../battle-render/stories/unified-sprite-registry.md));
+(`unified-sprite-registry.md`);
 per-entity stores only `animId` + the cursor.
 
 **Render reads only `Sprite`** — it knows nothing about animation, facing, or sim
@@ -287,7 +287,7 @@ See [[feedback_appearance_authored_component]].
 
 Sprite sheets are **not** archetype columns — they're a shared resource pool
 (many entities → one sheet) keyed by a minted handle, render-tier, behind the
-[unified sprite registry](../battle-render/stories/unified-sprite-registry.md).
+`unified-sprite-registry.md` story.
 The sim-side entity carries at most a tier-neutral `Identity.type`; render resolves
 the sheet from it (the `RenderAppearance` flyweight + the registry). Boundary holds:
 the sim never stores a `SpriteAPI`.

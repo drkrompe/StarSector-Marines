@@ -24,8 +24,8 @@ import java.io.InputStream;
  * Asset/sprite-cache registry for the battle screen. Owns all loaded
  * {@link SpriteAPI} sheets, their {@link SpriteSheetFrames}, the content
  * px-dimensions, per-type {@link java.util.EnumMap} caches, and every
- * {@code ensure*}/{@code load*} method. The per-sheet {@code QuadBatch}es
- * stay in {@code BattleScreen} (Story B will move them to BattleRenderer).
+ * {@code ensure*}/{@code load*} method. {@link BattleRenderer} owns the
+ * per-sheet batches that consume these assets.
  */
 public class BattleSprites {
 
