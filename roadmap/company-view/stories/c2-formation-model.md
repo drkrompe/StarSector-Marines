@@ -118,9 +118,8 @@ mission concern, not an organization concern.
 ## Out of scope
 
 - Whereabouts beyond a `HOME` placeholder — C4 (`c4-whereabouts-and-deployed-state.md`).
-- Career/telemetry fields on `MarineSnapshot` — progression
-  S3 (`s3-per-soldier-telemetry.md`) creates that
-  data; add the field when it exists.
+- Career/telemetry fields on `MarineSnapshot` — use the standing evidence in
+  `progression-nouns.md`; add the projection only when this story needs it.
 - Any rendering.
 
 ## Open questions

@@ -185,7 +185,7 @@ public final class MissionResolver {
         // "in the live roster"; this one as "not yet transmuted to a corpse".
         // The two agree at mission end, but folding them together would silently
         // put the second definition behind the first.
-        // See s3-per-soldier-telemetry.md.
+        // See progression-nouns.md.
         List<CombatTelemetryRow> telemetryRows = CombatTelemetryReport.gather(sim);
         LOG.info("MarineOps: combat telemetry for " + mission.id + System.lineSeparator()
                 + CombatTelemetryReport.format(telemetryRows));

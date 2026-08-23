@@ -16,9 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for the telemetry payload {@link MissionOutcome} carries across the
- * battle/campaign seam — progression S3 slice 2
- * ({@code s3-per-soldier-telemetry.md}).
+ * Coverage for the frozen evidence payload {@link MissionOutcome} carries
+ * across the battle/campaign seam ({@code progression-nouns.md}).
  *
  * <p>The battle world is ephemeral and never serializes, so what crosses has
  * to be plain frozen data. These guard that it is frozen at outcome time, for

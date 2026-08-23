@@ -3,8 +3,9 @@
 > Aptitude is rolled, load-bearing, and shown to the player as one letter.
 > Traits have no UI at all.
 
-**Status:** not started. Depends on
-S3 (`s3-per-soldier-telemetry.md`) for career data.
+Status: READY — the career evidence defined by `progression-nouns.md` is shipped.
+Written: 2026-08-22
+Updated: 2026-08-23 — redirected shipped dependencies and normalized references.
 
 ## Problem
 
@@ -166,7 +167,7 @@ Captains carry traits; nothing shows them.
   actually does, and where it came from (recruitment, discovery source,
   moral outlook).
 - Traits with no mechanic yet must not claim one. Until
-  [S10](s10-trait-mechanics.md) lands, an inert trait should read as
+  `s10-trait-mechanics.md` lands, an inert trait should read as
   flavor/background rather than as a stat the player is failing to notice.
 - `IDEALIST` / `CYNICAL` are deliberately mechanic-free and should present
   as character, not as a buff — the moral-outlook story was explicit that
@@ -179,7 +180,7 @@ Captains carry traits; nothing shows them.
 
 - Changing aptitude, XP, or trait *mechanics*. This story is presentation
   only, with the single exception of surfacing data S3 already persists.
-- In-battle conveyance — [S9](s9-in-battle-quality-conveyance.md).
+- In-battle conveyance — `s9-in-battle-quality-conveyance.md`.
 - Any new screen shell. This extends `ArmoryScreen`'s PERSONNEL surface
   rather than adding another full-canvas takeover.
 
@@ -205,7 +206,7 @@ Captains carry traits; nothing shows them.
 - Should rank-and-file marines eventually carry traits too — a specialist
   mark earned in the field? It would give the roster view much more to
   show and make individual marines more distinct. Deferred to
-  [S10](s10-trait-mechanics.md)'s open questions; noted here because it
+  `s10-trait-mechanics.md`'s open questions; noted here because it
   changes how much room the row layout should reserve.
 - Does the career readout want a per-mission timeline rather than lifetime
   totals? S3 ships totals only. A timeline is a bigger save and UI

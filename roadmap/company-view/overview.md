@@ -243,8 +243,8 @@ C10 answers "how is my company", C11 answers "where should it go next".
   arrivals join the same squad and catch up. See commitment 8 and
   C8 (`c8-lift-capacity-and-multi-pass-drops.md`).
 - **How big is a squad?** Twelve, in three fire teams of four. *Revised
-  from six on 2026-08-22.* Progression
-  [S1](../progression/stories/s1-lethality-and-tier-spread.md) shipped a
+  from six on 2026-08-22.* The quality model in
+  `progression-nouns.md` shipped a
   **9x infantry lethality scale** (pulse rifle vs an unarmored marine:
   ~30 s to ~3.3 s), which leaves a six-marine squad past
   `SquadFallbackSystem`'s trigger ratio within seconds of contact and gives

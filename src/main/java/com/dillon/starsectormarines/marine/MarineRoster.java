@@ -745,7 +745,7 @@ public class MarineRoster implements Serializable {
     /**
      * Applies the personnel report and folds the mission's frozen combat
      * telemetry into each deployed marine's career record
-     * ({@code s3-per-soldier-telemetry.md}).
+     * ({@code progression-nouns.md}).
      *
      * <p>{@code outcomes} is the deployment manifest: it holds survivors and
      * casualties alike, so every key is a marine who went. A marine the battle

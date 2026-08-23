@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
 /**
- * Captain trait — granted on recruitment or as a level-up reward. Most mechanics are not
- * wired yet; this enum defines stable save identities as each trait comes online.
+ * Captain trait — assigned by a recruitment/discovery source or by a durable narrative
+ * system such as moral-outlook drift. Generic level-up acquisition is planned, not current
+ * behavior. This enum defines stable save identities as each trait comes online.
  */
 public enum Trait {
     /** Bonus vs fortified ground targets. */

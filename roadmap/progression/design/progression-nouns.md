@@ -1,8 +1,8 @@
 # Progression nouns
 
-**Status:** ACTIVE
-
-**Written:** 2026-08-23
+Status: ACTIVE — 10 open stories
+Written: 2026-08-23
+Updated: 2026-08-23 — folded the shipped lethality, telemetry, career, and combat-reflex stories.
 
 ## Purpose
 
@@ -76,9 +76,11 @@ performance-derived awards are planned work, not current behavior.
 Experience already has a behavioral meaning beyond output. For infantry
 training archetypes, `FiringSystem` holds the first primary shot against a
 newly selected threat until the tier's reflex delay expires. Continuing on the
-same threat does not restart the delay, and sustained cadence remains a
-weapon-and-handling concern. This applies to trained humanoid infantry, not
-to mechs, turrets, drones, or fauna.
+same threat does not restart the delay; opportunity fire registers its own
+observed threat without changing the pursuit target. Sustained cadence remains
+a weapon-and-handling concern. This applies to trained humanoid infantry, not
+to mechs, turrets, drones, or fauna. Experience changes first action without
+becoming another permanent damage multiplier.
 
 ### Kit and armory
 
@@ -98,16 +100,21 @@ unlock ladder; their existence is not evidence of a shipped acquisition path.
 `CombatTelemetryService` records combat evidence at the shared firing and
 damage seams. It records every designated combatant for a mission's debug
 table, including non-campaign units. Damage attribution is based on applied,
-post-mitigation damage, rather than a requested damage value; friendly fire is
-separate, and one arriving round counts once even if its explosion harms many
-targets.
+post-mitigation damage clamped to the target's remaining health, rather than a
+requested damage value; overkill is not credited output. Friendly fire is
+separate and never grants a kill. One arriving round counts once even if its
+explosion harms many targets, while each defeated victim is still a kill.
+Unattributed damage records what happened to the target without inventing an
+attacker.
 
 Telemetry survives a combatant's death transition. At mission end,
-`MissionOutcome` freezes only campaign-marine rows for campaign use, while
-the full report remains a balance readout. `MarineRoster.applySoldierOutcome`
-uses the outcome manifest to count every deployed marine, then folds any
-available telemetry into `SoldierCareer`. Thus deployment is not inferred from
-having fired, and a fallen marine retains the record of their final mission.
+the gathered report is immutable and detached from battle entity handles.
+`MissionOutcome` freezes only campaign-marine rows for campaign use, while the
+full report remains a balance readout. `MarineRoster.applySoldierOutcome` uses
+the outcome manifest to count every deployed marine, then folds any available
+telemetry into `SoldierCareer`. Thus deployment is not inferred from having
+fired, and a fallen marine retains the record of their final mission. Career
+retention is deliberately lifetime totals rather than a per-mission journal.
 
 The standing law is **outcome declares participation; telemetry supplies
 evidence**. Telemetry must never become the authority for campaign identity,
@@ -172,4 +179,6 @@ The following are direction, not current behavior:
   may affect campaign careers or rewards.
 - Attribution measures resolved outcomes, not requested damage or visual
   effects.
+- Persistent experience is awarded from a frozen campaign outcome; battle-local
+  state must not become a second progression authority.
 - Presentation conveys existing quality but never changes sim state.
