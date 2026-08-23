@@ -21,8 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A fireteam of marines that deboarded from one shuttle, or a defender squad
- * pegged to a tactical node at battle start. Squads are the unit of cohesion,
+ * A transient tactical unit assembled from deploying marines, or a defender
+ * squad pegged to a tactical node at battle start. Tagged campaign personnel
+ * join one battle squad per campaign squad and landing zone, including across
+ * multiple lifts; untagged personnel retain the per-sortie fallback. Squads are
+ * the unit of cohesion,
  * field-of-fire spreading, and shared awareness — members stay within radius
  * of squadmates, target selection penalizes squadmates already engaging the
  * same enemy, and a squad's {@link SquadAlertLevel} drives the idle vs.
@@ -36,9 +39,10 @@ import java.util.Map;
  *
  * <p>Created in two paths:
  * <ul>
- *   <li>Marine deboard: {@code AirSystem} mints a squad on the first marine
- *       out of each shuttle and chains the rest to that id. {@link #assignedNode}
- *       stays null — marines navigate by objective, not by tactical-node anchor.</li>
+ *   <li>Marine deboard: tagged campaign personnel resolve through
+ *       {@link CampaignSquadIndex}; untagged personnel mint one squad per sortie.
+ *       {@link #assignedNode} stays null — marines navigate by objective, not by
+ *       tactical-node anchor.</li>
  *   <li>Defender setup: {@code BattleSetup} mints one squad per occupied
  *       tactical node, sets {@link #assignedNode}, and stamps the role on
  *       each member (GARRISON for held nodes, PATROL for roving squads with
@@ -82,8 +86,8 @@ public final class Squad {
     public final Faction faction;
     /**
      * Squad leader, by entity id ({@code 0L} = none / fully-wiped squad).
-     * Initially the first marine to deboard (or the first defender minted into
-     * the squad at setup). On leader death,
+     * Tagged campaign personnel seed their frozen campaign NCO; untagged
+     * personnel and defenders use the first member minted into the squad. On leader death,
      * {@code DamageResolver.resolve} promotes the closest still-alive squad
      * member to take over — preserves direction of travel through the badge
      * change. The leader's cell is the cohesion anchor that

@@ -2,8 +2,14 @@
 
 > The card the player deployed should be the card they get back.
 
-**Status:** not started. Depends on
-C1 (`c1-fireteam-identity-through-the-drop.md`).
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on the shipped deployment-identity law in `company-view-nouns.md`.
+Coordinate officer outcomes with `c13-the-task-force.md`.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Problem
 
@@ -29,7 +35,7 @@ wounded and until when, who is gone.
 
 ## Design
 
-- With C1's `campaignSquadId` on the deployed seats, the resolver can
+- With `CampaignSquadTag` on the frozen deployed seats, the resolver can
   attribute each per-soldier outcome to the team the marine deployed with —
   frozen at deploy time, so a post-battle roster edit cannot retroactively
   rewrite the debrief.
@@ -55,8 +61,10 @@ wounded and until when, who is gone.
 
 - A two-team sortie that loses one marine reports the loss against the
   correct team.
-- Outcomes without campaign personnel (debug fixtures, employer-only
-  forces) render exactly as today — the breakdown is empty, not wrong.
+- Outcomes without frozen campaign identity, such as employer-only forces,
+  render exactly as today—the breakdown is empty, not wrong. Debug companies
+  carry identity, but their resolver intentionally produces no applied campaign
+  outcome; this story does not change that writeback boundary.
 - Replay-safe and idempotent: re-entering the screen re-renders, never
   re-applies. `MissionResolver.apply` remains the only mutation point.
 - The scalars (`marinesEngaged`, `marinesLost`) stay consistent with the
