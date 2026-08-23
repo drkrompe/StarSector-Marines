@@ -24,9 +24,10 @@ silhouettes and height-gated directional edge cover). **S4 shipped 2026-08-19**
 (`complete/s4-direct-fire-unification.md` — shared source seam and modeled
 direct fire for mech, handheld rocket, and ground burst-turret paths). **S4a
 shipped 2026-08-19** (`complete/s4a-proximity-catch-ramp.md` — muzzle-distance
-attenuation for probabilistic cover and friendly incidental catches). **S4b is
-active** (`s4b-trigger-discipline.md` — experience-scaled infantry trigger
-discipline suppresses only rounds already committed to a friendly hit).
+attenuation for probabilistic cover and friendly incidental catches). **S4b
+shipped 2026-08-22** (`s4b-trigger-discipline.md` — experience-scaled infantry
+trigger discipline suppresses only rounds already committed to a friendly
+hit).
 
 ## Why
 
@@ -232,7 +233,7 @@ movers can enter the corridor before contact.
   and friendly interveners gain a smooth muzzle-distance attenuation while
   downrange values remain unchanged. See
   [`complete/s4a-proximity-catch-ramp.md`](complete/s4a-proximity-catch-ramp.md).
-- **S4b — trigger discipline.** **ACTIVE** — infantry primary rounds whose
+- ~~**S4b — trigger discipline.**~~ **SHIPPED** — infantry primary rounds whose
   committed resolution is a friendly hit receive an experience-scaled hold
   roll before emission. See `s4b-trigger-discipline.md`.
 
