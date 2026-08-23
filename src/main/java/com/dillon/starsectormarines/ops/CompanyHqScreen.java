@@ -95,11 +95,12 @@ public final class CompanyHqScreen implements Screen {
         float columnTop = officerY - OFFICER_H - SECTION_GAP;
         float columnW = (width - (COLUMNS - 1) * COLUMN_GAP) / COLUMNS;
 
-        buildStanding(left, columnTop, columnW);
+        // One derivation for both columns: two reads could straddle a day boundary or
+        // a monthly rollover and put disagreeing numbers side by side on one screen.
+        CompanyStanding standing = CompanyStanding.current(EMPLOYER_LIMIT);
+        buildStanding(standing, left, columnTop, columnW);
         buildClocks(left + columnW + COLUMN_GAP, columnTop);
-        buildPlaceholder(left + 2f * (columnW + COLUMN_GAP), columnTop,
-                Strings.get("companyHqRosterHeader"),
-                Strings.get("companyHqRosterPending"));
+        buildRoster(standing, left + 2f * (columnW + COLUMN_GAP), columnTop);
 
         float buttonY = position.getY() + PAD;
         widgets.add(new ButtonWidget(left, buttonY, BTN_W, BTN_H, this::onClose));
@@ -107,8 +108,7 @@ public final class CompanyHqScreen implements Screen {
                 left + 14f, buttonY + BTN_H - 8f, VALUE));
     }
 
-    private void buildStanding(float x, float top, float width) {
-        CompanyStanding standing = CompanyStanding.current(EMPLOYER_LIMIT);
+    private void buildStanding(CompanyStanding standing, float x, float top, float width) {
         NumberFormat credits = NumberFormat.getIntegerInstance();
 
         float y = top;
@@ -161,22 +161,6 @@ public final class CompanyHqScreen implements Screen {
                                 credits.format(standing.retainerPerMonth),
                                 standing.stationingContracts),
                 x, y, standing.stationingContracts == 0 ? MUTED : GOOD));
-        y -= ROW + SECTION_GAP;
-
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                Strings.get("companyHqPersonnelHeader"), x, y, HEADER));
-        y -= ROW;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                MessageFormat.format(Strings.get("companyHqStrength"),
-                        standing.strength, standing.available), x, y,
-                standing.available == 0 ? BAD : VALUE));
-        y -= ROW;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                MessageFormat.format(Strings.get("companyHqUnavailable"),
-                        standing.stationed, standing.wounded,
-                        Math.max(0, standing.unavailable - standing.stationed
-                                - standing.wounded)),
-                x, y, MUTED));
         y -= ROW + SECTION_GAP;
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
@@ -317,10 +301,88 @@ public final class CompanyHqScreen implements Screen {
         return VALUE;
     }
 
-    private void buildPlaceholder(float x, float top, String header, String body) {
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, header, x, top, HEADER));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, body, x, top - ROW - 4f, MUTED));
+    /**
+     * The company itself: how it is organised, how much of it can go today, and the one
+     * route out of this screen that never needed a planet.
+     *
+     * <p>Deliberately a band and a count. C3 ({@code c3-company-card-stack.md}) lands its card
+     * stack in this column, and a second, thinner stack built here would only have to be
+     * torn out — the pane's value before then is that the armory is reachable at all.
+     */
+    private void buildRoster(CompanyStanding standing, float x, float top) {
+        float y = top;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                Strings.get("companyHqRosterHeader"), x, y, HEADER));
+        y -= ROW + 4f;
+
+        if (standing.lineSquads == 0) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("companyHqNoSquads"), x, y, MUTED));
+        } else {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MessageFormat.format(Strings.get("companyHqFormation"),
+                            standing.lineSquads, standing.finances.activeCaptains),
+                    x, y, VALUE));
+            y -= ROW;
+            if (standing.stationedSquads > 0) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        MessageFormat.format(Strings.get("companyHqFormationStationed"),
+                                standing.stationedSquads), x, y, MUTED));
+                y -= ROW;
+            }
+        }
+        y -= SECTION_GAP;
+
+        // Moved here from STANDING in slice 4: a column headed ROSTER that says nothing
+        // about people, beside a STANDING column that enumerates them, reads backwards.
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("companyHqStrength"),
+                        standing.strength, standing.available), x, y,
+                standing.available == 0 ? BAD : VALUE));
+        y -= ROW;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MessageFormat.format(Strings.get("companyHqUnavailable"),
+                        standing.stationed, standing.wounded,
+                        Math.max(0, standing.unavailable - standing.stationed
+                                - standing.wounded)),
+                x, y, MUTED));
+        y -= ROW;
+
+        String recovery = recoveryText(standing);
+        if (recovery != null) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, recovery, x, y, GOOD));
+            y -= ROW;
+        }
+        y -= SECTION_GAP;
+
+        widgets.add(new ButtonWidget(x, y - BTN_H, BTN_W, BTN_H, this::onArmory));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("companyHqArmory"),
+                x + 14f, y - 8f, VALUE));
     }
+
+    /**
+     * When the next wounded marine is back, or null when nobody is recovering. The
+     * screen's only forward-looking number: the question it answers is whether waiting
+     * is worth it, which the count of wounded on its own cannot.
+     */
+    private static String recoveryText(CompanyStanding standing) {
+        if (standing.wounded <= 0 || standing.nextRecoveryDay < 0f) return null;
+        int days = (int) Math.ceil(standing.nextRecoveryDay - CampaignClock.dayFloat());
+        if (days <= 0) return Strings.get("companyHqRecoveryToday");
+        if (days == 1) return Strings.get("companyHqRecoveryOneDay");
+        return MessageFormat.format(Strings.get("companyHqRecoveryDays"), days);
+    }
+
+    /**
+     * The one transition out of this host. {@code ArmoryScreen} has no market or planet
+     * reference anywhere in it, so it runs unchanged with a null {@code ctx.planet}, and
+     * the return screen is set explicitly so Back lands here rather than on mission
+     * select — which this host must never reach.
+     */
+    private void onArmory() {
+        if (ctx != null) ctx.openArmoryFrom(ScreenId.COMPANY_HQ, 0);
+    }
+
 
     /**
      * A missing denominator is not infinite runway. The first month of a campaign has
