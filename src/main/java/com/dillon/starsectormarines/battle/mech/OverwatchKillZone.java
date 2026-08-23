@@ -34,8 +34,11 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * <p>The "withhold SRM" piece is doctrine-as-positioning: the mech holds
  * in the medium/long band. A Sirocco can take a heavy-cannon opportunity near
  * the inner edge and uses LRMs outside the cannon band. SRM is never called
- * from this action regardless. A future morale-driven pressured override can
- * unlock SRM as a pressure-release valve; see `14-mech-stage1.md`.
+ * from this action regardless. Once every LRM rack is empty, the cached long
+ * perch is invalidated and the mech closes into the outer edge of its installed
+ * arms range instead of remaining unable to fire. Resupply restores the normal
+ * medium/long band. A future morale-driven pressured override can unlock SRM as
+ * a pressure-release valve; see `14-mech-stage1.md`.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — same lifecycle as
  * {@link EngageAtCurrentBand}; replan handles posture changes.
@@ -48,6 +51,8 @@ public final class OverwatchKillZone implements Action {
     static final float OVERWATCH_MIN_DIST = 24f;
     /** Outer edge. It stays comfortably inside the 40-cell LRM envelope. */
     static final float OVERWATCH_MAX_DIST = 36f;
+    /** Depth of the outer direct-fire band used after all LRM pressure is spent. */
+    static final float DIRECT_FALLBACK_BAND_DEPTH = 2f;
     /** Cover-bonus weight when scoring candidate overwatch cells. Higher = strong preference for high-cover cells over short-walk cells. */
     private static final float OVERWATCH_COVER_WEIGHT = 5f;
     /** Strong but non-mandatory preference for a lane screened by a useful ally. */
@@ -88,11 +93,22 @@ public final class OverwatchKillZone implements Action {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
 
+        OverwatchBand band = overwatchBand(m);
+        if (band == null) {
+            return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
+        }
+
         // Refresh overwatch cell when threat axis shifts or we have no cached
-        // pick yet. Pick is per-mech (each LR member gets its own cell).
+        // pick yet. A transition between supplied LRM pressure and the
+        // direct-fire fallback also invalidates the cache, even though the
+        // two bands overlap at their inner edge. Pick is per-mech (each LR
+        // member gets its own cell).
         boolean needsRepick = m.overwatchCellX < 0
                 || m.overwatchAxisX != squad.lastSeenEnemyX
-                || m.overwatchAxisY != squad.lastSeenEnemyY;
+                || m.overwatchAxisY != squad.lastSeenEnemyY
+                || m.overwatchLongRangeBand != band.longRange()
+                || !insideBand(m.overwatchCellX, m.overwatchCellY,
+                squad.lastSeenEnemyX, squad.lastSeenEnemyY, band);
         if (!needsRepick && m.overwatchScreenId != 0L) {
             needsRepick = !isValidScreen(m.overwatchScreenId,
                     m.overwatchCellX, m.overwatchCellY,
@@ -104,7 +120,7 @@ public final class OverwatchKillZone implements Action {
                     UNSCREENED_RECHECK_TICKS) == 0;
         }
         if (needsRepick) {
-            OverwatchPosition position = pickOverwatchCell(member, squad, sim);
+            OverwatchPosition position = pickOverwatchCell(member, squad, band, sim);
             if (position == null) {
                 m.overwatchCellX = -1;
                 m.overwatchCellY = -1;
@@ -117,6 +133,7 @@ public final class OverwatchKillZone implements Action {
             m.overwatchAxisX = squad.lastSeenEnemyX;
             m.overwatchAxisY = squad.lastSeenEnemyY;
             m.overwatchScreenId = position.screenId();
+            m.overwatchLongRangeBand = band.longRange();
         }
 
         // Path to the overwatch cell. Idempotent — only requests a new path
@@ -169,21 +186,27 @@ public final class OverwatchKillZone implements Action {
     }
 
     /**
-     * Picks the best medium/long firing cell around
-     * {@code squad.lastSeenEnemy}.
-     * Scans the {@code [-OVERWATCH_MAX_DIST, OVERWATCH_MAX_DIST]} box around
-     * the threat, filters to walkable cells in
-     * {@code [OVERWATCH_MIN_DIST, OVERWATCH_MAX_DIST]} with LoS to the threat,
-     * scores by walk distance and directional cover, then strongly rewards a
-     * non-Sirocco friendly combatant lying on the candidate-to-threat axis.
-     * Returns {@code null} when no cell satisfies the filter — caller falls
-     * back to parity engagement.
+     * Picks the best firing cell around {@code squad.lastSeenEnemy}. A supplied
+     * LR loadout uses the normal medium/long band; one with spent racks uses
+     * the outer edge of its installed arms range. Candidates require walkable
+     * ground and LoS to the threat, score by walk distance and directional
+     * cover, then strongly reward a non-Sirocco friendly combatant lying on the
+     * candidate-to-threat axis. Returns {@code null} when no cell satisfies the
+     * active band — caller falls back to parity engagement.
      */
     static OverwatchPosition pickOverwatchCell(long member, Squad squad, BattleView sim) {
+        MechLoadoutComponent loadout = sim.world().mechLoadout(member);
+        OverwatchBand band = loadout != null ? overwatchBand(loadout) : null;
+        return band != null ? pickOverwatchCell(member, squad, band, sim) : null;
+    }
+
+    private static OverwatchPosition pickOverwatchCell(long member, Squad squad,
+                                                       OverwatchBand band,
+                                                       BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
-        int radius = (int) Math.ceil(OVERWATCH_MAX_DIST);
+        int radius = (int) Math.ceil(band.maxDistance());
         ScreeningAllies allies = gatherScreeningAllies(member, squad, tx, ty, sim);
 
         OverwatchPosition best = null;
@@ -194,7 +217,8 @@ public final class OverwatchKillZone implements Action {
                 int cy = ty + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget < OVERWATCH_MIN_DIST || distFromTarget > OVERWATCH_MAX_DIST) continue;
+                if (distFromTarget < band.minDistance()
+                        || distFromTarget > band.maxDistance()) continue;
                 if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
                 // Cover lookup is directional against the threat axis (Story G
                 // primitive). High-cover cells facing the threat win.
@@ -215,6 +239,37 @@ public final class OverwatchKillZone implements Action {
             }
         }
         return best;
+    }
+
+    private static OverwatchBand overwatchBand(MechLoadoutComponent loadout) {
+        if (hasLrmPressure(loadout)) {
+            return new OverwatchBand(OVERWATCH_MIN_DIST, OVERWATCH_MAX_DIST, true);
+        }
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        if (arms == null || (!arms.hasAmmo() && arms.burstRemaining <= 0)) return null;
+        float maxDistance = arms.weapon().range;
+        float minDistance = Math.min(OVERWATCH_MIN_DIST,
+                Math.max(0f, maxDistance - DIRECT_FALLBACK_BAND_DEPTH));
+        return new OverwatchBand(minDistance, maxDistance, false);
+    }
+
+    private static boolean hasLrmPressure(MechLoadoutComponent loadout) {
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY
+                    && (mount.hasAmmo() || mount.burstRemaining > 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean insideBand(int cellX, int cellY,
+                                      int threatX, int threatY,
+                                      OverwatchBand band) {
+        float dx = cellX - threatX;
+        float dy = cellY - threatY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        return distance >= band.minDistance() && distance <= band.maxDistance();
     }
 
     private static ScreeningAllies gatherScreeningAllies(long member, Squad squad,
@@ -291,6 +346,9 @@ public final class OverwatchKillZone implements Action {
     }
 
     private record ScreeningAllies(long[] ids, float[] xs, float[] ys, int size) {}
+
+    private record OverwatchBand(float minDistance, float maxDistance,
+                                 boolean longRange) {}
 
     record OverwatchPosition(int x, int y, long screenId) {}
 }

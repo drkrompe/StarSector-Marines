@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Reusable armory design for one fire team. The card itself is not inventory;
+ * Reusable armory template for one fire team. The template is not inventory;
  * every assignment requires the fleet to supply all four billet issues.
  */
 public final class FireTeamTemplateCard implements Serializable {
@@ -17,17 +17,19 @@ public final class FireTeamTemplateCard implements Serializable {
 
     public FireTeamTemplateCard(String id, String displayName,
                                 List<FireTeamBillet> billets) {
-        if (id == null || id.isBlank()) throw new IllegalArgumentException("Card id is required");
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Template id is required");
+        }
         if (billets == null || billets.size() != MarineSquad.TEAM_SIZE) {
             throw new IllegalArgumentException(
-                    "A fire-team card requires exactly " + MarineSquad.TEAM_SIZE + " billets");
+                    "A fire-team template requires exactly " + MarineSquad.TEAM_SIZE + " billets");
         }
         this.id = id.trim();
         this.displayName = displayName != null && !displayName.isBlank()
                 ? displayName.trim() : this.id;
         this.billets = new ArrayList<>(billets);
         if (this.billets.contains(null)) {
-            throw new IllegalArgumentException("Card billets cannot be null");
+            throw new IllegalArgumentException("Template billets cannot be null");
         }
     }
 
@@ -45,7 +47,7 @@ public final class FireTeamTemplateCard implements Serializable {
     private Object readResolve() {
         if (id == null || id.isBlank() || billets == null
                 || billets.size() != MarineSquad.TEAM_SIZE || billets.contains(null)) {
-            throw new IllegalStateException("Invalid persisted fire-team template card");
+            throw new IllegalStateException("Invalid persisted fire-team template");
         }
         if (displayName == null || displayName.isBlank()) displayName = id;
         billets = new ArrayList<>(billets);

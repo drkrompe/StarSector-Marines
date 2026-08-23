@@ -23,7 +23,7 @@ import java.util.List;
  * slot engine spreads a mech lance into a useful weapons-platform footprint
  * and a marine fireteam into a smaller tactical interval on open ground,
  * compresses either through constrained terrain, and expands it afterward.
- * Design: {@code separation-steering.md}.
+ * Design: {@code continuous-positions-nouns.md}.
  * Stateless consumer (Services/Systems shape): every field below is a
  * reusable scratch buffer, never battle state.
  *
@@ -125,6 +125,8 @@ public final class SeparationSystem {
     static final float FIRE_TEAM_LATERAL_INTERVAL = 4f;
     /** Wing-team setback that turns three anchors into a shallow advance arc. */
     static final float FIRE_TEAM_ARC_DEPTH = 1.25f;
+    /** Upcoming path cells inspected before formation steering yields to a portal or narrow run. */
+    static final int INFANTRY_CLEARANCE_LOOKAHEAD = 3;
     /** Compression-floor radius plus enough slack for one tick of ordinary mech movement. */
     private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
 
@@ -310,10 +312,14 @@ public final class SeparationSystem {
             float ordinal = teamIndex - (movingTeams.size() - 1) * 0.5f;
             float lateralX = -forwardY;
             float lateralY = forwardX;
-            float anchorX = centerX + lateralX * ordinal * FIRE_TEAM_LATERAL_INTERVAL
-                    - forwardX * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH;
-            float anchorY = centerY + lateralY * ordinal * FIRE_TEAM_LATERAL_INTERVAL
-                    - forwardY * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH;
+            float openness = formationOpenness(
+                    formationMembers, team.size(), FormationProfile.INFANTRY);
+            float anchorX = centerX
+                    + lateralX * ordinal * FIRE_TEAM_LATERAL_INTERVAL * openness
+                    - forwardX * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH * openness;
+            float anchorY = centerY
+                    + lateralY * ordinal * FIRE_TEAM_LATERAL_INTERVAL * openness
+                    - forwardY * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH * openness;
             accumulateFormation(team.size(), FormationProfile.INFANTRY, dt,
                     anchorX, anchorY, forwardX, forwardY);
         }
@@ -350,8 +356,7 @@ public final class SeparationSystem {
         float lateralX = -forwardY;
         float lateralY = forwardX;
         float spacing = preferredFormationSpacing(formationMembers, count, profile);
-        float openness = (spacing - profile.minimumDistance)
-                / (profile.openDistance - profile.minimumDistance);
+        float openness = spacingOpenness(spacing, profile);
         if (openness <= 0f) return;
         boolean depthPair = count == 2 && compareFormationRoles(
                 formationMembers[0], formationMembers[1], profile) != 0;
@@ -462,12 +467,50 @@ public final class SeparationSystem {
         int clearance = profile.openClearance;
         for (int i = 0; i < count; i++) {
             long member = members[i];
-            clearance = Math.min(clearance, walkableClearance(
-                    world.cellX(member), world.cellY(member), profile));
+            clearance = Math.min(clearance,
+                    formationClearance(member, profile));
         }
         float openness = clearance / (float) profile.openClearance;
         return profile.minimumDistance
                 + (profile.openDistance - profile.minimumDistance) * openness;
+    }
+
+    private float formationOpenness(long[] members, int count,
+                                    FormationProfile profile) {
+        return spacingOpenness(
+                preferredFormationSpacing(members, count, profile), profile);
+    }
+
+    private static float spacingOpenness(float spacing,
+                                         FormationProfile profile) {
+        return (spacing - profile.minimumDistance)
+                / (profile.openDistance - profile.minimumDistance);
+    }
+
+    /**
+     * Formation authority anticipates infantry portals instead of discovering
+     * them only once the leading marine is already on the threshold. A zero
+     * clearance anywhere in the next few authored path cells releases both
+     * the fire-team interval and its squad-arc anchor; ordinary path following
+     * and collision separation then form the doorway queue. As path indices
+     * advance beyond the constraint this same query rises again, so the teams
+     * reform without a separate state machine.
+     */
+    private int formationClearance(long member, FormationProfile profile) {
+        int clearance = walkableClearance(
+                world.cellX(member), world.cellY(member), profile);
+        if (profile != FormationProfile.INFANTRY || clearance == 0) {
+            return clearance;
+        }
+        int[] path = world.path(member);
+        int pathCount = Paths.cellCount(path);
+        int first = Math.max(0, world.pathIdx(member));
+        int end = Math.min(pathCount, first + INFANTRY_CLEARANCE_LOOKAHEAD);
+        for (int i = first; i < end && clearance > 0; i++) {
+            clearance = Math.min(clearance, walkableClearance(
+                    Paths.cellX(path, i), Paths.cellY(path, i), profile));
+        }
+        return clearance;
     }
 
     private int walkableClearance(int centerX, int centerY,
