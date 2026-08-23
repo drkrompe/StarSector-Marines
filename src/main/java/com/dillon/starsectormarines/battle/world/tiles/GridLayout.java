@@ -7,7 +7,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * moddable-tilesets data/algorithm seam: the JSON supplies a block's
  * <em>origin</em> + the layout's <em>name</em>; the math stays here (a submod
  * re-points origins, it doesn't author new geometry — see
- * {@code roadmap/moddable-tilesets/overview.md}).
+ * {@code moddable-tilesets-nouns.md}).
  *
  * <p>Each layout is the authoritative autotile geometry for its block —
  * originally ported, behavior-for-behavior, from the now-removed

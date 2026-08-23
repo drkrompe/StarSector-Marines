@@ -6,17 +6,16 @@ import java.util.List;
  * One tile's authoritative definition, loaded from a {@code *.tileset.json} into
  * the {@link TileRegistry} and addressed by its stable string {@link #id}. This
  * is the data half of the moddable-tilesets split — it replaces the per-tile
- * semantics the former {@code NatureTile} / {@code UrbanTile3} enums hardcoded (layer,
- * cover, passability, overlay legality), so a submod can extend the catalog by
- * dropping JSON rather than recompiling.
+ * semantics the former {@code NatureTile} / {@code UrbanTile3} enums hardcoded
+ * (layer, cover, passability, overlay legality).
  *
- * <p>See {@code roadmap/moddable-tilesets/overview.md} for the schema and the
+ * <p>See {@code moddable-tilesets-nouns.md} for the feature model and the
  * data-vs-algorithm seam (tiles are pure data; gen carving stays in code).
  *
  * <p>Sliced sheets pin a {@link #frame} (the slicer's left-to-right ordinal —
- * what the former {@code NatureTile.frameIndex()} derived from enum order). Grid
- * autotile <em>blocks</em> (origin + named layout) arrive in Phase 1c and will
- * leave {@code frame == -1}.
+ * what the former {@code NatureTile.frameIndex()} derived from enum order).
+ * Grid autotile blocks are represented separately by {@link GridBlockDef};
+ * their sliced frame is {@code -1}.
  */
 public final class TileDef {
 
