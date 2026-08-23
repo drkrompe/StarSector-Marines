@@ -33,8 +33,8 @@ import java.util.function.Consumer;
  * company entry from {@link CompanyViewAbility} — starts on {@code COMPANY_HQ} and
  * must never route to {@code MISSION_SELECT}, {@code BRIEFING},
  * {@code SQUAD_DEPLOYMENT}, {@code BATTLE}, {@code RESULTS}, or {@code LOOT}.
- * {@code ARMORY} is safe: it reads only the roster. A planet-scoped host reaches
- * everything as before.
+ * {@code ARMORY} and the dev-only {@code UI_WORKBENCH} are safe: neither reads a
+ * planet. A planet-scoped host reaches everything as before.
  */
 public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
 
@@ -50,7 +50,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      * own crossfade to the battle track via {@code playCustomMusic}.
      */
     private static final Set<ScreenId> INTEL_MUSIC_SCREENS =
-            EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.MISSION_SELECT, ScreenId.ARMORY,
+            EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.UI_WORKBENCH,
+                    ScreenId.MISSION_SELECT, ScreenId.ARMORY,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING);
 
     private final MarineOpsContext ctx;
@@ -75,6 +76,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     public MarineOpsPanelPlugin(PlanetAPI planet, Consumer<MarineOpsContext> seed) {
         this.ctx = new MarineOpsContext(planet);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
+        screens.put(ScreenId.UI_WORKBENCH,   new UiWorkbenchScreen());
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.ARMORY,        new ArmoryScreen());
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
