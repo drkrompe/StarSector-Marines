@@ -181,7 +181,10 @@ read-only commander substrate now ships as well (`4e7089d0`; [story
 receive an independent, immutable two-channel field built from honest friendly
 presence and only their squads' identified contacts, with topology-aware 8×8
 propagation and four debug heatmaps. Frontline analysis, assignment consumers,
-and the briefing loop remain parked.
+and the briefing loop remain parked. Story 32
+(`32-contact-reaction-doctrine.md`) is the active local-reaction slice: contact
+and morale interrupts, belief-gated advance/guard threat reads, and
+fireteam-scoped ambush recovery.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 
