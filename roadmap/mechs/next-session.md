@@ -2,6 +2,14 @@
 
 ## State of play
 
+A DEBUG-only player mech-drop picker is code-complete on the current session
+branch. Debug briefings default to three randomized Bulwark/Hound/Sirocco
+chassis, allow zero through eight plus reroll, show the resulting makeup, and
+turn that roster into real targeted Mech Support charges delivered by
+Valkyries. Production-sourced Mech Support remains one Bulwark. Focused tests
+and the full build pass; an in-game briefing-layout and Conquest feel check is
+still queued.
+
 The modular hardpoint substrate and first specialist family shipped in
 `2d3f044b`. Production defender integration shipped in `1ef74f23`: LOW fields
 no mechs, MEDIUM introduces one Bulwark, and HIGH uses deterministic
@@ -49,6 +57,12 @@ Needle, a fast unpodded scout, is documented but deferred until it can ship with
 real recon/spotting behavior.
 
 ## First action
+
+Open a DEBUG Conquest briefing and smoke the new **MECH DEBUG — player
+support** picker at normal UI scale. Confirm its rows fit above the command
+deck, reroll/count changes stay stable while editing other detachment choices,
+and all configured charges arrive as the summarized marine-side family mix.
+Then continue the production MEDIUM/HIGH tuning pass below.
 
 Run representative MEDIUM and HIGH production battles, then use **Spawn mech
 family** for direct comparison. Confirm mixed defender groups remain readable
