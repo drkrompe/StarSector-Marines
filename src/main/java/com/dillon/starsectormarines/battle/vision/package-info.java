@@ -10,7 +10,7 @@
  *           ungated (they read through fog). New reveal sources hook the
  *           service, not the shadowcast core.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} and
+ * <p>See {@link com.dillon.starsectormarines.battle} and
  * {@code roadmap/fog-of-war/README.md}.
  */
 package com.dillon.starsectormarines.battle.vision;

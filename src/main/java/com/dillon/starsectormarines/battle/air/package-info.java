@@ -16,6 +16,6 @@
  *           {@code AirBody} and fold into this package (see
  *           {@code roadmap/backlog.md}).
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.air;

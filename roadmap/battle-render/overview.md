@@ -232,8 +232,8 @@ machinery is sim-tier work gated behind Phase 2.
 - `render2d/` — the primitive batch/accumulator layer (stays put).
 - The battle-reorg track — the sim-side sibling; same services/systems
   north star. Its docs were dropped when it shipped (`a86e6c45`); the
-  per-package charters it produced live on in the `battle/`
-  `package-info.java` files.
+  taxonomy it defined now lives in code, in the `battle/`
+  `package-info.java` root charter.
 - [`air/`](../air/overview.md) — depends on the camera-Z direction above for
   airborne-craft altitude and true zoom-out.
 - Memory: "Battle services + systems", "Default to ECS shape", "Script
