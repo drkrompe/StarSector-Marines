@@ -7,8 +7,8 @@ commander ("squad of squads") tiers. Twelve stories contracted (C1–C12).
 **Four have shipped work.** `c7-organization-and-ranks.md` and
 `c1-fireteam-identity-through-the-drop.md` are complete;
 `c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in,
-`c10-company-between-contracts.md` has two of four (`2b959e44`,
-`b204c237`), and `c12-the-debug-company.md` has two of three. Everything
+`c10-company-between-contracts.md` has three of four (`2b959e44`,
+`b204c237`, `20f498de`), and `c12-the-debug-company.md` has two of three. Everything
 else is design stage.
 
 The organization is now settled in code, so every later story renders a
@@ -96,8 +96,9 @@ standing pane led by runway in months of payroll. The spike question slice 1
 existed to answer is **settled in game**: the ability opens the screen and the
 host dismisses cleanly. A follow-up (`8ac4116a`) fixed the pane printing an
 unknown upkeep as `Cr. 0` and gave the debug panel a day-skip that actually
-moves the clock. Slices 3 (running clocks) and 4 (roster) are next; the clocks
-pane is where G32's **Hold** finally goes. `c11-the-contract-board.md` was
+moves the clock. **Slice 3 is in** (`20f498de`): the clocks column, and with it
+somewhere for G32's **Hold** to come back to. Slice 4 (the roster column and the
+armory route) is the last one. `c11-the-contract-board.md` was
 contracted 2026-08-22 and takes lapsing offers off that pane.
 
 ~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
@@ -225,6 +226,8 @@ and nothing was tuned to compensate.
 - `b204c237` — C10 slice 2: standing, led by months of payroll
 - `8ac4116a` — C10 slice 2 follow-up: an unknown month says so; debug
   **Skip 1 / 7 / 30 days** via `CampaignClock.skipDays`
+- `20f498de` — C10 slice 3: obligations only, soonest first; Respond routes
+  through the presenter
 - `ce031aba` — fix: an armed convoy vehicle no longer crashes the damage
   pipeline (an APC turret's attacker id has `GROUND_IDENTITY`, not
   `IDENTITY`, and the telemetry seam's faction read is fail-loud)
