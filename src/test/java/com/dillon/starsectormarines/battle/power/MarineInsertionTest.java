@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.air.InfantryPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -27,7 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class MarineInsertionTest {
 
     @Test
-    public void valkyrieDeliversOneCommanderVisibleEightMarineSquad() {
+    public void valkyrieDeliversOneCommanderVisibleFullSquad() {
+        // Capacity is denominated in fire teams; a Valkyrie lifts three.
+        final int lift = ShuttleType.VALKYRIE.capacity;
         NavigationGrid grid = new NavigationGrid(30, 30);
         for (int y = 0; y < 30; y++) for (int x = 0; x < 30; x++) grid.setWalkableFloor(x, y);
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(30, 30));
@@ -44,9 +47,9 @@ public class MarineInsertionTest {
         assertEquals(1, sim.getAirEntityIds().length);
         ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
         assertSame(InfantryPayload.INSTANCE, mission.payload);
-        assertEquals(8, mission.marinesRemaining);
+        assertEquals(lift, mission.marinesRemaining);
         assertNotNull(mission.marineLoadout);
-        assertEquals(8, mission.marineLoadout.length);
+        assertEquals(lift, mission.marineLoadout.length);
         Set<MarineWeapon> manifestPrimaries = EnumSet.noneOf(MarineWeapon.class);
         int manifestRocketeers = 0;
         for (MarineLoadout loadout : mission.marineLoadout) {
@@ -62,14 +65,14 @@ public class MarineInsertionTest {
         assertEquals(0, sim.getCommandPowerService().getChargesRemaining(power.id));
         assertEquals(8, stockpile.supplies);
 
-        for (int i = 0; i < 1200 && mission.deboardedThisSortie < 8; i++) {
+        for (int i = 0; i < 1200 && mission.deboardedThisSortie < lift; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertEquals(8, mission.deboardedThisSortie);
+        assertEquals(lift, mission.deboardedThisSortie);
         Squad squad = sim.getSquad(mission.squadId);
         assertNotNull(squad);
-        assertEquals(8, squad.originalSize);
+        assertEquals(lift, squad.originalSize);
         assertTrue(squad.leaderId != 0L);
         int members = 0;
         Set<MarineWeapon> livePrimaries = EnumSet.noneOf(MarineWeapon.class);
@@ -84,7 +87,7 @@ public class MarineInsertionTest {
                 livePrimaries.add(primary);
             }
         }
-        assertEquals(8, members);
+        assertEquals(lift, members);
         assertEquals(manifestPrimaries, livePrimaries);
     }
 
