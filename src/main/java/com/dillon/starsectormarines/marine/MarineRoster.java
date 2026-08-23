@@ -840,7 +840,13 @@ public class MarineRoster implements Serializable {
      * and resumes the billet instead of the squad drifting to a new leader every
      * time someone is hurt.
      */
-    private void refreshLeadership() {
+    /**
+     * <p>Public because experience is one of the inputs and
+     * {@link MarineSoldier#addExperience} is not routed through the roster —
+     * a caller that awards XP outside {@link #applySoldierOutcome} has to say
+     * so. Idempotent; safe to call as often as a caller likes.
+     */
+    public void refreshLeadership() {
         for (MarineSquad squad : squads) {
             List<MarineSoldier> onDuty = new ArrayList<>();
             if (!squad.reserve()) {

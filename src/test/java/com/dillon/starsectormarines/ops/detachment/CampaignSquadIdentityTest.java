@@ -125,13 +125,10 @@ class CampaignSquadIdentityTest {
 
     @Test
     void generatedPersonnelCarryNoSquadIdentity() {
-        CampaignMarineDeployment fixture = CampaignMarineDeployment.debugFixture(
-                DebugPersonnelPreset.MIXED, 4);
-
-        for (int seat = 0; seat < fixture.size(); seat++) {
-            assertNull(fixture.seat(seat).campaignSquad,
-                    "a debug fixture seat must stay on the old per-shuttle minting");
-        }
+        // Militia, walk-in reinforcements and every other scenario-authored
+        // spawn keep the per-shuttle minting. Only a seat frozen from a roster
+        // carries a tag — which since `c12-the-debug-company.md` includes the
+        // debug company, because it is a roster too.
         assertNull(MarineLoadout.COMBATANT.campaignSquad);
     }
 
