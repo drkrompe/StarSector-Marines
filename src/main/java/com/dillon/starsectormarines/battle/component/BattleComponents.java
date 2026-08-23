@@ -350,7 +350,7 @@ public final class BattleComponents {
      * transmute), with {@code sheet}/{@code flipV} re-asserted to {@code 0}.
      * <b>Interim:</b> {@code sheet} is a small selector ({@code 0}/{@code 1}),
      * not a minted handle, until the unified sprite registry mints sheet
-     * handles ({@code roadmap/battle-render/stories/unified-sprite-registry.md}).
+     * handles ({@code unified-sprite-registry.md}).
      * The render resolves selector {@code 0} against {@link #IDENTITY_TYPE}
      * (the type's base sheet), but selector {@code 1} against the
      * {@link #SECONDARY_WEAPON_SPEC} column — aim sheets are keyed by the

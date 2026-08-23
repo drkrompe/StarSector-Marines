@@ -12,8 +12,7 @@ import java.util.EnumSet;
 
 /**
  * Host-agnostic description of a ground battle to mirror into a vanilla combat instance.
- * Replaces the spike's static {@code S0BattleProbe.mode()} global + per-class constants: the
- * sim is built once (via {@code BattleSetup.buildMap}) and this record carries everything the
+ * The sim is built once (via {@code BattleSetup.buildMap}) and this record carries everything the
  * bridge adapters need to render and couple it. One config → one {@code CombatBridgeSession}.
  *
  * <p>The {@link #sceneLayers} set declares which existing ground render passes the
@@ -40,15 +39,15 @@ public record GroundBattleConfig(
         float damageScale) {
 
     /**
-     * The render passes the bridge draws today: terrain + structure + ground units (S3f) +
-     * objective / compound capture-state markers (S3g) + parked vehicles & convoys (S3h) +
-     * airborne dropships (S3d D1) + per-cell fog-of-war darkening ({@link RenderLayer#FOG}) + combat
+     * The render passes the bridge draws today: terrain, structures, ground units,
+     * objective/compound capture-state markers, parked vehicles and convoys, airborne dropships,
+     * per-cell fog-of-war darkening ({@link RenderLayer#FOG}), and combat
      * FX: in-flight shot tracers/projectiles ({@link RenderLayer#SHOTS}) and shot-impact particles
      * ({@link RenderLayer#IMPACT_FX}). All of these are camera-projected (they drain through
      * {@code ctx.camera}, like UNITS), so they join the set directly — unlike the screen-space FBO
-     * accumulator DECALS, which still needs projection-retarget work and stays out (S3j).
+     * accumulator DECALS, which still needs a projection/residency contract and stays out.
      *
-     * <p><b>FOG</b> was originally skipped (S3i) on a fleet/orbital-POV rationale, partly justified
+     * <p><b>FOG</b> was originally skipped on a fleet/orbital-POV rationale, partly justified
      * as "a no-op anyway — the map-only sim never inits vision." That premise no longer holds: the
      * bridge sim runs full vision (contributors + shadowcast), so the unit-visibility gate pops
      * enemies in and out of sight. Without the matching fog overlay those units read as emerging from
@@ -91,8 +90,8 @@ public record GroundBattleConfig(
     /**
      * Inverse of {@link #cellToWorld}: combat-world coords back to (fractional) cell coords. The air
      * tier flies in cell-units (Y up, same frame as ground units), so a real vanilla ship's
-     * combat-world position projects to the cell a sim dropship spawns from (S3d D1: the orbiting
-     * carrier births a {@code Shuttle} at {@code worldToCell(carrier.getLocation())}). Writes
+     * combat-world position projects to the cell a sim dropship spawns from: an orbiting carrier
+     * births a {@code Shuttle} at {@code worldToCell(carrier.getLocation())}. Writes
      * fractional cells into {@code out} — callers floor when they need an integer cell.
      */
     public void worldToCell(float worldX, float worldY, Vector2f out) {
@@ -102,8 +101,8 @@ public record GroundBattleConfig(
 
     /**
      * Centroid of the live {@link #targetable} entities in combat-world coords — the "ground band"
-     * the carriers steer toward (S3c {@code CarrierEngagementPlugin}) and a taken-over carrier
-     * descends to (S3d {@code CarrierDescentPlugin}). Released units are skipped (their cell
+     * used by {@code CarrierEngagementPlugin} steering and {@code CarrierDescentPlugin} descent.
+     * Released units are skipped (their cell
      * accessors are fail-loud); empty / all-dead falls back to the world origin (grid center), a
      * sane default. Writes into {@code out} (no allocation for the hot caller).
      */

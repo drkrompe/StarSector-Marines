@@ -38,10 +38,10 @@ universe over time, not retrofitted into intel slots.
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; the `entity/` rename alone is deferred to
   ecs-migration). On the render side, the **`BattleScreen` god-class
-  decomposition into a layered draw-list pipeline is complete** (stories A–J +
-  Final shipped & verified — `renderWorld` is now collect-all → drain-all over a
-  `RenderSystem` registry); only the deferred `QuadBatch.flush` perf spike
-  remains. See [`battle-render/`](battle-render/overview.md). The **active
+  decomposition into a layered draw-list pipeline is complete**: `renderWorld`
+  is collect-all → drain-all over semantic layers, the batch-flush rewrite and
+  camera culling are shipped, and only proposed asset/allocation cleanup plus
+  parked dense-tile residency remain. See `battle-render-nouns.md`. The **active
   command-powers track** has shipped its fleet-sourced player-agency spine:
   canonical briefing, member-level support commitment, command-deck slotting,
   recon, physical reinforcement/resupply, orbital barrage, and marine insertion.

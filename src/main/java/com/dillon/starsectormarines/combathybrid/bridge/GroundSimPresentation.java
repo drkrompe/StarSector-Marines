@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * <ul>
  *   <li><b>No decals.</b> The standalone interleaves {@code ImpactDecals} (DECALS) spawns with the
  *       particle spawns. The bridge draws no DECALS pass ({@link GroundBattleConfig#DEFAULT_SCENE_LAYERS}
- *       omits it — it's a screen-space FBO accumulator awaiting projection-retarget, S3j), so we feed
+ *       omits it — it is a persistent FBO accumulator awaiting a projection/residency contract), so we feed
  *       only the camera-projected {@link ImpactFx} particle system + the {@code SHOTS}/contrail FX that
  *       draw with it. (The night-battle lightmap is gone entirely — removed 2026-06-29.)</li>
  *   <li><b>Combat-world audio frame.</b> The standalone positions SFX in an abstract {@code cell×30}

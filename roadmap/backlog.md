@@ -142,8 +142,8 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   build green. What survived (it was never the lightmap): the muzzle-flash / impact / smoke
   **particles** (`ImpactFx`, the daylight burst pop), engine **plumes** (`EngineFxRenderer.draw`),
   LoS shadowing, and **DECALS**. The system only ever rendered in DUSK/NIGHT, and the game was
-  hard-coded to DAY (bypass), so removal is visually a no-op. The bridge's S3j FBO bucket now
-  narrows to **DECALS alone**. Recoverable from git history if night battles ever return.
+  hard-coded to DAY (bypass), so removal is visually a no-op. The bridge's remaining persistent
+  render-target gap is now **DECALS alone**. Recoverable from git history if night battles ever return.
 - **Share the combat FX/sound driver** — `BattleScreen.advance` (standalone) and
   `combathybrid/.../GroundSimPresentation` (bridge) both dispatch per-weapon
   impact-FX + fire/impact sounds off the sim's per-frame `ShotEvent` lists, in
@@ -198,15 +198,15 @@ as separate entries below.
 ### Render path (the bigger share — 367 samples)
 
 - **`QuadBatch.flush`** — was 78% of render / 17.4% of total mod CPU. ✅ **FIXED
-  & VERIFIED (2026-06-01)** — see `battle-render/complete/perf-quadbatch-flush.md`.
+  & VERIFIED (2026-06-01)** — see `battle-render-nouns.md` and its shipped ledger.
   Confirmed across 3 captures it was the per-vertex immediate-mode submission
   (12 JNI calls/quad), *not* float-packing (`append` <1%) or GL-submit-stall or
   flush-thrash (the drain already coalesces). Fix: both `QuadBatch.flush` +
   `SolidQuadBatch.flush` → client-side vertex arrays + `glDrawArrays` (not a VBO
   — marginal here). **Result: −75% combined flush CPU** (722→178 samples;
   SolidQuadBatch 193→1; render path 37%→18% of our CPU). Residual `QuadBatch`
-  cost is the GROUND batch's per-frame memcpy + draw submission → addressed by
-  the ground-FBO follow-up (`battle-render/stories/perf-ground-fbo-cache.md`).
+  cost is the GROUND batch's per-frame memcpy + draw submission → any future
+  bake/residency work is tracked by `dense-render-tiles.md`.
   The candidates below are superseded.
 - **Roots:** 233 samples cascade from `BattleScreen.renderGrid`, 51 from
   `MarineOpsPanelPlugin.render`. Floor + wall tiled passes are the

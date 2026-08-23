@@ -51,6 +51,6 @@ live archetypes migrate in.
   remaining released-ref readers are audited away, entries can be dropped on
   release. (Javadoc updated to reflect the new contract.)
 - `SPRITE.sheet` stays `0` until the
-  [unified sprite registry](../../battle-render/stories/unified-sprite-registry.md)
+  `unified-sprite-registry.md`
   mints sheet handles; the render resolves the corpse sheet from
   `IDENTITY.type` until then.

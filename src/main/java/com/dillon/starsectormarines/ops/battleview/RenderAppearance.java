@@ -9,9 +9,9 @@ import java.util.EnumMap;
  * tags for a {@link UnitType}, resolved once at class-load from the sim type. One
  * descriptor is shared by every entity of a type — entities never store render
  * fields, and {@code Entity}/{@code UnitType} never gain {@code SpriteAPI} (the
- * overview's hard boundary). This is the same flyweight relationship
+ * render tier's hard boundary). This is the same flyweight relationship
  * {@link BattleSprites} already has with {@code UnitType}, promoted to carry the
- * capability tags + sprite-kind the Story J sweeps branch on instead of an
+ * capability tags and sprite kind that the ordered unit strata consume instead of an
  * {@code instanceof}/{@code combatant}/{@code deathPoseIdx} ladder.
  *
  * <p><b>Scope.</b> This carries only what is genuinely type-flyweight. Dynamic
@@ -22,11 +22,8 @@ import java.util.EnumMap;
  * color (ROAD_FILL) is identical for every footprint-drawer, so it lives with the
  * footprint emit helper rather than per-descriptor.
  *
- * <p><b>Consumers arrive in slices J3–J6.</b> This slice (J2) only stands up the
- * table + {@link #of(UnitType)}; the per-stratum {@code UnitRenderService} sweeps
- * that read these tags land in the following slices, and the inline
- * {@code BattleRenderer.renderUnits} fallback is deleted in slice 7. See
- * {@code roadmap/battle-render/stories/story-j-units.md}.
+ * <p>{@link UnitRenderService} consumes these tags through its ordered unit
+ * strata. See {@code battle-render-nouns.md}.
  */
 public final class RenderAppearance {
 

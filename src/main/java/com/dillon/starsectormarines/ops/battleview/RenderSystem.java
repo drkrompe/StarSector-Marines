@@ -32,13 +32,10 @@ public interface RenderSystem {
     RenderLayer layer();
 
     /**
-     * Adapter for renderer-owned passes that don't warrant a dedicated class —
-     * stateful render resources (FBO accumulators, contrails, impact FX) and
-     * simple own-GL overlays (fog, roofs, markers, debug). They keep their state
-     * and {@code render*} bodies on {@link BattleRenderer} and join the ordered
-     * registry by emitting via {@code collect} (typically a single
-     * {@link DrawList#addCustom} — the sanctioned escape hatch for passes that
-     * own their own GL / FBO blits).
+     * Adapter for lightweight or renderer-owned producers that do not warrant a
+     * dedicated class. They may emit ordinary commands through renderer helpers;
+     * only passes with a genuine own-GL/FBO lifecycle use
+     * {@link DrawList#addCustom}.
      *
      * @param layer the layer this pass feeds (also the layer it must emit into)
      * @param collect appends this frame's commands; runs once per frame, GL-free
