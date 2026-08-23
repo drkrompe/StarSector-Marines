@@ -1,4 +1,4 @@
-# C6 — After-action by fireteam
+# C6 — After-action by squad
 
 > The card the player deployed should be the card they get back.
 
@@ -24,20 +24,20 @@ grouping is what is missing.
 
 ## Goal
 
-The debrief reports per fireteam: who deployed, who came back, who is
+The debrief reports per squad: who deployed, who came back, who is
 wounded and until when, who is gone.
 
 ## Design
 
-- With C1's `campaignFireteamId` on the deployed seats, the resolver can
+- With C1's `campaignSquadId` on the deployed seats, the resolver can
   attribute each per-soldier outcome to the team the marine deployed with —
   frozen at deploy time, so a post-battle roster edit cannot retroactively
   rewrite the debrief.
-- `MissionOutcome` gains a per-fireteam breakdown list (id, label,
+- `MissionOutcome` gains a per-squad breakdown list (id, label,
   deployed, returned, wounded, missing, lost) alongside the existing
-  scalars. Keep the scalars — they are read elsewhere and by save-compatible
-  code paths; the breakdown is additive.
-- `ResultsScreen` renders the breakdown as the same fireteam-row vocabulary
+  scalars. Keep the scalars — other code reads them; the breakdown is
+  additive.
+- `ResultsScreen` renders the breakdown as the same squad-row vocabulary
   C3 establishes, so the debrief and the roster look like the same object
   in two states. A team that came back whole should be visually quiet; a
   team that took losses should not be.
@@ -47,9 +47,9 @@ wounded and until when, who is gone.
 
 ## Slices
 
-1. **Attribution in the resolver.** Per-fireteam outcome rollup built from
+1. **Attribution in the resolver.** Per-squad outcome rollup built from
    the frozen deployment; `MissionOutcome` field added.
-2. **Debrief rendering.** Fireteam rows on `ResultsScreen`.
+2. **Debrief rendering.** Squad rows on `ResultsScreen`.
 
 ## Acceptance
 
