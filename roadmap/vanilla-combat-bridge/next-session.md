@@ -50,14 +50,13 @@ Decomposition:
   footprint ([[`FootprintCircleShape`]]) now derive from it too. Still a visual knob.
 - The `SIM_COUPLED` probe loads a **real Conquest map** via `BspCityGenerator.generate(w,h,seed,
   axis, NEUTRAL)` (biome bands + `DefensePostStamper`); defense-post turrets/hubs spawned + mirrored
-  as proxies (fighters strafe the planet's actual defenses). **Grid is now the bridge's own
-  `BRIDGE_GRID_W/H = 480×320`** (2× LARGE), decoupled from the standalone `MapScale` tiers via the
-  explicit-dims `BattleSetup.createConquestBuild` overload (`1a2c87f4`) — so we push the battlefield
-  bigger without enlarging (or paying the world-sized decal-FBO cost of) standalone HIGH battles.
+  as proxies (fighters strafe the planet's actual defenses). **Grid now uses the same canonical
+  240×160 Conquest size as every other host**, sourced from `BattleSetup.CONQUEST_GRID_W/H`.
+  The bridge-only 480×320 override and explicit-dimension Conquest factory were removed so future
+  resizing happens once at the mode authority rather than drifting by caller.
   **Scaling gut-check + the tiled-FBO / camera-residency plan to go bigger:**
   [`../battle-render/large-map-scaling.md`](../battle-render/large-map-scaling.md). Playtest
-  watch-items: BSP generator behavior past its 240×160 test size; HIGH-risk defender density spread
-  over 4× area.
+  watch-items remain relevant if the canonical mode size grows beyond 240×160.
   Map only — no marines/defenders/shuttles/reinforcement (that's the battle, not the map).
 
 ### S3a + S3b probe pieces (combathybrid)
@@ -255,9 +254,10 @@ co-existence with the takeover (`setShipAI` should win — confirm no tug-of-war
 
 ### Live battle below the fleet ✅ SHIPPED (2026-06-20) — the chosen "bridge the sim over" slice
 The coupled sim was **map-only** (terrain + static defense-post turrets). Swapped it to a **live
-Conquest battle**: `buildSimCoupledConfig` now calls `BattleSetup.createConquestBuild(...)` (HIGH
-risk → LARGE) instead of `buildMap`, so defenders, manned guardposts, marines via internal
-shuttles, objectives, and reinforcement all run as a real battle rendered below the ships.
+Conquest battle**: `buildSimCoupledConfig` now calls `BattleSetup.createConquestBuild(...)`
+(canonical 240×160; HIGH risk shapes the roster) instead of `buildMap`, so defenders,
+manned guardposts, marines via internal shuttles, objectives, and reinforcement all run
+as a real battle rendered below the ships.
 - **`BattleSetup.createConquestBuild(...) → MapBuild`** is a behavior-preserving extraction of
   `createConquest`'s body that *keeps* the spawned-structures list (the proxy mirror needs it);
   `createConquest` is now a thin `.sim()` delegate. Only prod caller (`MissionLaunch`) unchanged.

@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -333,8 +334,27 @@ public final class BspCityGenerator implements MapGenerator {
         // omits the conquest-only stages rather than running them as no-ops).
         GenRecipe recipe = (axis != null) ? conquestRecipe : legacyRecipe;
         recipe.run(ctx);
+        if (axis != null) requireExactlyOneCentralKeep(ctx);
 
         return assembleResult(ctx);
+    }
+
+    /**
+     * A Conquest map without one central keep has no trustworthy win condition:
+     * zero lets the aggregate objective complete without the climax, while more
+     * than one turns incidental theme rolls into extra keeps. Fail at generation
+     * time rather than launching a malformed match.
+     */
+    private static void requireExactlyOneCentralKeep(GenContext ctx) {
+        int keeps = 0;
+        for (TacticalNode node : ctx.tactical) {
+            if (node.kind == TacticalNode.Kind.COMMAND_POST) keeps++;
+        }
+        if (keeps != 1) {
+            throw new IllegalStateException("Conquest map seed " + ctx.seed + " at "
+                    + ctx.width + "x" + ctx.height + " generated " + keeps
+                    + " COMMAND_POST nodes; expected exactly one central keep");
+        }
     }
 
     /**

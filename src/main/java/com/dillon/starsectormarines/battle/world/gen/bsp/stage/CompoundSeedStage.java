@@ -9,10 +9,11 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import org.apache.log4j.Logger;
 
 /**
- * Step 2a — forced compound seeding across biomes. Guarantees one
+ * Step 2a — canonical compound seeding across biomes. Reserves exactly one
  * MILITARY_BASE seed per target biome (PORT, CITY, FORTRESS) so compounds
  * spread along the traversal axis instead of clustering in the fortress
- * district. Skips biomes that already have a seed from the natural theme roll.
+ * district. Natural MILITARY_BASE rolls are normalized away first so only the
+ * three mission-authored seeds reach the claim pass.
  * Conquest-only — a no-op when {@link BspKeys#BIOME_MAP} is unbound.
  */
 public final class CompoundSeedStage implements GenStage {
@@ -23,9 +24,10 @@ public final class CompoundSeedStage implements GenStage {
     public void run(GenContext ctx) {
         Bsp.Partition partition = ctx.get(BspKeys.PARTITION);
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-        int forcedSeeds = BiomeCompoundSeeder.seed(partition.leaves, biomeMap);
-        if (forcedSeeds > 0) {
-            LOG.info("BspCityGenerator: force-seeded " + forcedSeeds + " compound(s) across biomes");
+        int reservedSeeds = BiomeCompoundSeeder.seed(partition.leaves, biomeMap);
+        if (reservedSeeds > 0) {
+            LOG.info("BspCityGenerator: reserved " + reservedSeeds
+                    + " military-base compound seed(s) across biomes");
         }
     }
 }

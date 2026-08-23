@@ -187,14 +187,16 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * Biome-driven node kind for the COMMAND leaf. PORT compounds anchor
      * the convoy supply chain (ARMORY), CITY anchors walk-in (BARRACKS),
      * FORTRESS anchors shuttle + the keep (COMMAND_POST). Null biome
-     * (non-conquest maps) defaults to COMMAND_POST.
+     * (non-conquest maps) defaults to COMMAND_POST. Any unexpected Conquest
+     * biome falls back to BARRACKS, never another keep; the generator validates
+     * that the one canonical fortress seed emitted exactly one COMMAND_POST.
      */
     private static TacticalNode.Kind commandNodeKind(BiomeKind biome) {
         if (biome == null) return TacticalNode.Kind.COMMAND_POST;
         return switch (biome) {
-            case PORT     -> TacticalNode.Kind.ARMORY;
-            case CITY     -> TacticalNode.Kind.BARRACKS;
-            default       -> TacticalNode.Kind.COMMAND_POST;
+            case PORT                 -> TacticalNode.Kind.ARMORY;
+            case FORTRESS_DISTRICT    -> TacticalNode.Kind.COMMAND_POST;
+            default                   -> TacticalNode.Kind.BARRACKS;
         };
     }
 
