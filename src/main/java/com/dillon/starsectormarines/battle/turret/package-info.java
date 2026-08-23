@@ -14,6 +14,6 @@
  *           ({@code TurretAim#airLosVisible}) is intentionally uncached
  *           (per-caller air radii) — keep it off {@code nav/LosCache}.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.turret;

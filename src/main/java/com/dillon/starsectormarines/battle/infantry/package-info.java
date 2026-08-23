@@ -23,6 +23,6 @@
  *           under infantry; promote to {@code squad/} only when a second
  *           actor type composes them.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} (GOAP partition rule).
+ * <p>See {@link com.dillon.starsectormarines.battle} (GOAP partition rule).
  */
 package com.dillon.starsectormarines.battle.infantry;

@@ -186,8 +186,13 @@ universe over time, not retrofitted into intel slots.
   before advancing. Fire teams are modelled but behind the scenes — the
   AI's maneuver element (bounding, fix-and-flank), never a level of the
   player's hierarchy. Read-only throughout — in-battle orders are
-  explicitly out of scope. Adjacent to progression S8, which owns what a
-  single marine row says. See [`company-view/`](company-view/overview.md).
+  explicitly out of scope. A tenth story (C10) settles where the company is
+  readable *between* contracts: a campaign-map ability-bar button opening the
+  planet-free dialog host G32 shipped, rather than another route inside the
+  planet-scoped Marine Ops screen — most roster work turned out to be gated
+  by where its button sits, not by any fiction. Adjacent to progression S8,
+  which owns what a single marine row says. See
+  [`company-view/`](company-view/overview.md).
 
 ## Immediate next-up
 

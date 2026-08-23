@@ -14,7 +14,7 @@
  *           {@code goap.world.WorldStateBuilder}) still names concrete
  *           feature behaviors — a deferred framework&rarr;feature edge.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy
  * and the dispatch-inversion follow-up.
  */
 package com.dillon.starsectormarines.battle.decision;

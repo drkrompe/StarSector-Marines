@@ -12,6 +12,6 @@
  *           extension seam for new chassis (tanks, etc.) — add a chassis
  *           there rather than branching the kinematics.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.vehicle;

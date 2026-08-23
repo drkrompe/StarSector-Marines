@@ -17,6 +17,6 @@
  *           pieces to a common base only when a third consumer appears,
  *           not preemptively (see {@code overview.md} Future direction).
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.mech;
