@@ -3,11 +3,10 @@ package com.dillon.starsectormarines.campaign;
 import java.io.Serializable;
 
 /**
- * Open-addressed {@code long → int} hash map with linear probing. Append-only:
- * keys can be put and read, never removed. That matches the
- * <code>roadmap/campaign/architecture.md</code> §1 soft-delete invariant —
- * SoA rows are tombstoned by status, not removed, so id→index mappings never
- * need to invalidate.
+ * Open-addressed {@code long → int} hash map with linear probing. Supports
+ * {@link #put(long, int)}, {@link #get(long)}, and owner-driven
+ * {@link #clear()} / rebuilds. Stable domain identities may outlive a table
+ * row, but this map does not impose a universal row-retention policy.
  *
  * <p>Why hand-rolled rather than {@code HashMap<Long, Integer>}: avoids per-lookup
  * boxing, keeps the SoA hot path free of {@code Long}/{@code Integer} allocations.

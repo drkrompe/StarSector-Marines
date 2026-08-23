@@ -50,13 +50,12 @@ import java.util.List;
  *
  * <p>The state is persisted; the {@link CampaignSystem} list is not. Systems
  * are pure behavior, reconstructed from {@link #defaultSystems()} on every
- * game load. See <code>roadmap/campaign/architecture.md</code> §2.
+ * game load. See <code>roadmap/campaign/design/architecture.md</code>.
  *
  * <p>{@link #advance(float)} fires the daily tick when the sector clock crosses
- * a day boundary, then walks the systems list in registration order. A future
- * scheduler can use each system's {@link CampaignSystem#reads()} /
- * {@link CampaignSystem#writes()} declarations to run conflict-free systems in
- * parallel; for now everything runs serially.
+ * a day boundary, then walks the systems list in registration order. The
+ * {@link CampaignSystem#reads()} / {@link CampaignSystem#writes()} declarations
+ * document each system's table access; execution currently remains serial.
  */
 public class CampaignStateScript implements EveryFrameScript {
 
@@ -138,8 +137,8 @@ public class CampaignStateScript implements EveryFrameScript {
 
     private void onDailyTick(int day) {
         List<CampaignSystem> list = systems();
-        // Serial execution. Future: schedule by reads()/writes() conflict
-        // matrix once profiling justifies parallel.
+        // Serial execution in registration order; reads()/writes() are metadata
+        // only and do not affect scheduling.
         for (int i = 0; i < list.size(); i++) {
             list.get(i).tick(state, day);
         }
