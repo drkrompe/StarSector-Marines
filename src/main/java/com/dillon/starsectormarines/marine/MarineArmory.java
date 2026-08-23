@@ -25,8 +25,10 @@ public final class MarineArmory implements Serializable {
     private int highRiskVictories;
     private Map<String, Integer> printedGear = new HashMap<>();
     private Set<String> unlockedRecipes = new HashSet<>();
-    /** Reusable designs; assignment consumes equipment, never the card. */
+    /** Reusable fire-team designs; the legacy field name is retained for save compatibility. */
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
+    /** Saved three-template compositions; applying one is still an inventory transaction. */
+    private List<SquadArrangement> squadArrangements = new ArrayList<>();
 
     public MarineArmory() {
         seedStarterIssue();
@@ -42,10 +44,21 @@ public final class MarineArmory implements Serializable {
     public List<FireTeamTemplateCard> templateCards() {
         return Collections.unmodifiableList(templateCards);
     }
+    public List<SquadArrangement> squadArrangements() {
+        return Collections.unmodifiableList(squadArrangements);
+    }
     public FireTeamTemplateCard templateCardById(String id) {
         if (id == null) return null;
         for (FireTeamTemplateCard card : templateCards) {
             if (card != null && id.equals(card.id())) return card;
+        }
+        return null;
+    }
+
+    public SquadArrangement squadArrangementById(String id) {
+        if (id == null) return null;
+        for (SquadArrangement arrangement : squadArrangements) {
+            if (arrangement != null && id.equals(arrangement.id())) return arrangement;
         }
         return null;
     }
@@ -57,7 +70,7 @@ public final class MarineArmory implements Serializable {
     public FireTeamTemplateCard createTemplateCard(String displayName,
                                                    List<FireTeamBillet> billets) {
         if (displayName == null || displayName.isBlank()) {
-            throw new IllegalArgumentException("Card name is required");
+            throw new IllegalArgumentException("Template name is required");
         }
         FireTeamTemplateCard card = new FireTeamTemplateCard(
                 "custom:" + UUID.randomUUID(), displayName, billets);
@@ -65,14 +78,14 @@ public final class MarineArmory implements Serializable {
         return card;
     }
 
-    /** Clones either a built-in or custom card into a new player-owned design. */
+    /** Clones either a built-in or custom template into a new player-owned design. */
     public FireTeamTemplateCard cloneTemplateCard(String sourceId) {
         FireTeamTemplateCard source = templateCardById(sourceId);
         if (source == null) return null;
         return createTemplateCard(source.displayName() + " Copy", source.billets());
     }
 
-    /** Renaming changes library metadata only and is therefore safe for assigned cards. */
+    /** Renaming changes library metadata only and is therefore safe for assigned templates. */
     public boolean renameTemplateCard(String id, String displayName) {
         FireTeamTemplateCard card = templateCardById(id);
         if (card == null || FireTeamTemplateCards.isStarterId(id)
@@ -81,10 +94,48 @@ public final class MarineArmory implements Serializable {
         return true;
     }
 
-    /** Assignment-aware callers must reject cards still referenced by a squad. */
+    /** Assignment-aware callers must reject templates with any live reference. */
     boolean deleteTemplateCard(String id) {
         if (id == null || FireTeamTemplateCards.isStarterId(id)) return false;
         return templateCards.removeIf(card -> id.equals(card.id()));
+    }
+
+    /** Saves a reusable three-template plan without consulting recipes or stock. */
+    public SquadArrangement createSquadArrangement(String displayName,
+                                                   List<String> templateIds) {
+        SquadArrangement arrangement = new SquadArrangement(
+                "arrangement:" + UUID.randomUUID(), displayName, templateIds);
+        for (String templateId : arrangement.templateIds()) {
+            if (templateCardById(templateId) == null) {
+                throw new IllegalArgumentException(
+                        "Arrangement references an unknown fire-team template");
+            }
+        }
+        squadArrangements.add(arrangement);
+        return arrangement;
+    }
+
+    /** Renaming changes plan metadata only and never refits a squad. */
+    public boolean renameSquadArrangement(String id, String displayName) {
+        SquadArrangement arrangement = squadArrangementById(id);
+        if (arrangement == null || displayName == null || displayName.isBlank()) return false;
+        arrangement.rename(displayName);
+        return true;
+    }
+
+    /** Deleting a convenience plan never changes existing team assignments. */
+    public boolean deleteSquadArrangement(String id) {
+        return id != null && squadArrangements.removeIf(
+                arrangement -> id.equals(arrangement.id()));
+    }
+
+    public boolean isTemplateReferencedByArrangement(String templateId) {
+        if (templateId == null) return false;
+        for (SquadArrangement arrangement : squadArrangements) {
+            if (arrangement != null
+                    && arrangement.referencesTemplate(templateId)) return true;
+        }
+        return false;
     }
 
     public void addFabricationMaterials(int amount) {
@@ -254,6 +305,7 @@ public final class MarineArmory implements Serializable {
         if (printedGear == null) printedGear = new HashMap<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (templateCards == null) templateCards = new ArrayList<>();
+        if (squadArrangements == null) squadArrangements = new ArrayList<>();
         if (unlockedRecipes.isEmpty()) seedStarterIssue();
         seedStarterCards();
         // Existing saves predate the recruit-grade field rifle recipe.
