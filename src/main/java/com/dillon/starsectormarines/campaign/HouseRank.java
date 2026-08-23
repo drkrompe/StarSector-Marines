@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.campaign;
 
 /**
- * Tier 1-4 rank for sub-faction entities (per <code>roadmap/campaign/mechanics.md</code>).
+ * Tier 1-4 rank for sub-faction entities (per
+ * <code>roadmap/campaign/living-world/design/living-world-nouns.md</code>).
  * Drives visibility (planet → system → faction → sector) and contract-type gating.
  *
  * <p>Tier-4 promotion is the T3 endgame — that's when the mod's state finally
@@ -39,7 +40,7 @@ public enum HouseRank {
         return VALUES[ordinal() + 1];
     }
 
-    /** Vocabulary for this (rank, flavor) pair. See themes.md rank-ladder table. */
+    /** Vocabulary for this (rank, flavor) pair. See roadmap/campaign/design/themes.md. */
     public String displayName(HouseFlavor flavor) {
         switch (flavor) {
             case CORPORATE:

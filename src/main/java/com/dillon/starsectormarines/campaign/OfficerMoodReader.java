@@ -25,14 +25,14 @@ import com.fs.starfarer.api.impl.campaign.shared.SharedData;
  * / {@link MonthlyReport#getPreviousDebt} for trend.
  *
  * <h2>Runway bands</h2>
- * Per {@code roadmap/campaign/economy.md}'s "hard-fail early, steady-grind
+ * Per {@code roadmap/campaign/design/economy.md}'s "hard-fail early, steady-grind
  * mid, intentional-investment late" arc, DESPERATE is the long default —
  * a player needs ~{@value #DESPERATE_RUNWAY_MONTHS} months of upkeep on
  * hand before they leave it, and ~{@value #SEASONED_RUNWAY_MONTHS} before
  * a 6+ captain operation reads as truly comfortable. Tighter bands here
  * would let the player escape paycheck-to-paycheck too quickly.
  *
- * <p>Future inputs (not yet wired): licensing tier (Unregistered should
+ * <p>Inputs not yet wired here: licensing tier (Unregistered should
  * lean DESPERATE regardless of cash); per-faction reputation scarcity;
  * captain loyalty drift. Each will tighten the SEASONED gate further.
  */

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiTag;
@@ -52,5 +53,25 @@ class MarineOpsThemesTest {
         assertNotEquals(standard.button(), contrast.button());
         assertNotEquals(standard.edge(), contrast.edge());
         assertNotEquals(standard.muted(), contrast.muted());
+    }
+
+    @Test
+    void bodyAndHeadingRolesResolveToDistinctDesignedFaces() {
+        UiElement body = new UiElement("body").addClass("ui-workbench");
+        UiElement heading = new UiElement("heading")
+                .addClass("ui-workbench")
+                .addClass("heading");
+        UiElement root = new UiElement("root")
+                .addClass("ui-workbench")
+                .child(body)
+                .child(heading);
+        UiDocument document = new UiDocument(root)
+                .addStyleSheet(MarineOpsThemes.WORKBENCH_COMPONENTS)
+                .theme(MarineOpsThemes.standard());
+
+        document.styles().resolve(root);
+
+        assertSame(Fonts.INSIGNIA_LARGE, document.styles().fontFor(body));
+        assertSame(Fonts.ORBITRON_20_BOLD, document.styles().fontFor(heading));
     }
 }

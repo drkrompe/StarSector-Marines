@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ui.retained.style;
 
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ final class StyleValues {
             case OVERFLOW -> parseOverflow(value);
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
             case FONT_FAMILY -> unquote(value);
+            case TEXT_ALIGN -> parseTextAlign(value);
             case OPACITY -> opacity(value);
             case TRANSITION -> parseTransitions(value);
         };
@@ -56,6 +58,16 @@ final class StyleValues {
             case "hidden" -> Overflow.HIDDEN;
             case "scroll" -> Overflow.SCROLL;
             default -> throw new UiStyleException("Unsupported overflow value \"" + value + "\".");
+        };
+    }
+
+    private static UiTextAlign parseTextAlign(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "left", "start" -> UiTextAlign.START;
+            case "center" -> UiTextAlign.CENTER;
+            case "right", "end" -> UiTextAlign.END;
+            default -> throw new UiStyleException("text-align supports start, center, or end, not \""
+                    + value + "\".");
         };
     }
 

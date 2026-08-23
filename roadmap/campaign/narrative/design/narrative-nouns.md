@@ -51,9 +51,9 @@ briefing surfaces. The same frozen facts can ground after-action observation
 without turning either surface into a political simulator.
 
 `contracts-nouns.md` owns commercial terms and terminal outcomes;
-`mechanics.md` owns houses and archetype identity; `living-world` owns political
-and Chronicle truth; `moral-compass.md` owns hidden moral facts. Narrative owns
-only their truthful, bounded presentation. Longer patron arcs, anomaly events,
+`living-world-nouns.md` owns political and Chronicle truth; `themes.md` owns
+flavor framing; `moral-compass.md` owns hidden moral facts. Narrative owns only
+their truthful, bounded presentation. Longer patron arcs, anomaly events,
 captain observations, and archetype evolution require a new explicit story.
 
 The current live work is `narrative-live-acceptance.md`.

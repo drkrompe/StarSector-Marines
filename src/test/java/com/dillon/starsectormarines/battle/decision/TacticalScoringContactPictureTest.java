@@ -17,7 +17,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TacticalScoringContactPictureTest {
 
@@ -130,6 +132,10 @@ class TacticalScoringContactPictureTest {
                 Posture.ADVANCING, ForceBalance.FAVORABLE, Sector.LEFT_FLANK,
                 Motion.LATERAL, false, Doctrine.HOLD, true),
                 "a held line does not oscillate on one marginally favorable tick");
+        assertEquals(Doctrine.ADVANCE, TacticalScoring.selectDoctrine(
+                Posture.ADVANCING, ForceBalance.FAVORABLE, Sector.LEFT_FLANK,
+                Motion.UNKNOWN, false, Doctrine.HOLD, true, false),
+                "lost contact cannot sustain a doctrine-only hold indefinitely");
     }
 
     @Test
@@ -147,5 +153,34 @@ class TacticalScoringContactPictureTest {
         assertEquals(0, squad.contactPicture.contactCount());
         assertEquals(ForceBalance.NONE, squad.contactPicture.forceBalance());
         assertEquals(Doctrine.ADVANCE, squad.contactPicture.doctrine());
+    }
+
+    @Test
+    void lostContactHoldExpiresWhileBeliefRemainsAvailable() {
+        BattleSimulation sim = openSim();
+        Squad squad = marineSquad(sim, 4);
+        long enemy = sim.spawn(new EntitySpec("flank", Faction.DEFENDER,
+                UnitType.MARINE, 10, 30));
+        sim.world().setMaxHp(enemy, 1_000f);
+        sim.world().setHp(enemy, 1_000f);
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(Doctrine.HOLD, squad.contactPicture.doctrine());
+        assertTrue(TacticalScoring.contactHoldIsFresh(squad,
+                squad.contactPicture, sim.getSimTickIndex()));
+
+        for (int x = 0; x < sim.getGrid().getWidth(); x++) {
+            sim.getGrid().setWalkable(x, 25, false);
+        }
+        for (int i = 0; i <= TacticalScoring.HOLD_AFTER_LOS_TICKS; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertTrue(squad.hasBelievedContacts(),
+                "the long-lived belief still guides awareness after hard HOLD releases");
+        assertEquals(0, squad.contactPicture.directContactCount());
+        assertEquals(Doctrine.ADVANCE, squad.contactPicture.doctrine());
+        assertFalse(TacticalScoring.contactHoldIsFresh(squad,
+                squad.contactPicture, sim.getSimTickIndex()));
     }
 }
