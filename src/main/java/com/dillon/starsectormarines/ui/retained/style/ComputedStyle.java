@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ui.retained.style;
 import com.dillon.starsectormarines.ui.retained.Insets;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 
 import java.awt.Color;
 import java.util.EnumMap;
@@ -32,6 +33,7 @@ public final class ComputedStyle {
         values.put(StyleProperty.BACKGROUND_COLOR, null);
         values.put(StyleProperty.COLOR, null);
         values.put(StyleProperty.FONT_FAMILY, null);
+        values.put(StyleProperty.TEXT_ALIGN, UiTextAlign.START);
         values.put(StyleProperty.OPACITY, 1f);
         values.put(StyleProperty.TRANSITION, List.of());
     }
@@ -107,6 +109,10 @@ public final class ComputedStyle {
 
     public Object fontFamily() {
         return value(StyleProperty.FONT_FAMILY);
+    }
+
+    public UiTextAlign textAlign() {
+        return (UiTextAlign) value(StyleProperty.TEXT_ALIGN);
     }
 
     public float opacity() {

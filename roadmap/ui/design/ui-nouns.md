@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open; U2 implementation complete for live acceptance
+Status: ACTIVE — five foundation stories open; U1b implementation complete for live acceptance
 Written: 2026-08-23
-Updated: 2026-08-23 — established the canvas surface/box mapping and document-owned producer seam.
+Updated: 2026-08-23 — established intrinsic single-line text sizing and semantic typography roles.
 
 ## Purpose
 
@@ -97,6 +97,19 @@ the retained model.
    the Java API produces and receives no privileged layout or behavior path.
 10. **Exceptional drawing stays exceptional.** A new visual does not require a new
     element kind when a canvas producer can express it.
+
+## Intrinsic text and typography
+
+Single-line text is measured through one document-owned seam used by both layout and paint. In a
+row, an auto-sized text element contributes its glyph advance plus padding and border before free
+space is distributed; in a column, its line height contributes on the main axis. A declared size
+still wins. Changing retained text marks geometry dirty so the next document update buys one layout
+pass rather than leaving a stale box.
+
+Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
+a regular body face for controls, values, and prose and a display face for headings. Casing belongs
+to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
+`text-align`; button widgets center their measured line box vertically inside the content box.
 
 ## Overflow and clipping
 

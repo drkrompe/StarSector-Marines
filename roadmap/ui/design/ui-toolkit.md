@@ -60,11 +60,12 @@ different path than the game.
 
 ## Layout scope
 
-The initial toolkit needs row, column, and stack. Grid, absolute placement, intrinsic
-text measurement, and bounded scrolling enter when their consuming stories require
-them. Layout is measure-bottom-up and arrange-top-down once intrinsic content lands;
-the first workbench may use explicit preferred sizes to prove the retained seam
-without pretending that a complete CSS layout engine ships in one slice.
+The initial toolkit needs row, column, and stack. Single-line text now supplies an
+intrinsic width and line height through the same bitmap-font measurement used by
+paint; explicit sizes still win, and a text mutation invalidates layout. Grid,
+absolute placement, rich text, and wrapping enter when their consuming stories
+require them. This is the first measure-bottom-up seam, not a claim that the complete
+CSS layout engine has shipped.
 
 Document coordinates are top-left and Y-down. The Starsector host adapter converts
 once to absolute Y-up UI coordinates for paint and converts input back once before
