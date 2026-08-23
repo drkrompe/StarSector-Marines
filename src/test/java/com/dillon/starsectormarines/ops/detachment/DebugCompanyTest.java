@@ -130,6 +130,76 @@ class DebugCompanyTest {
     }
 
     @Test
+    void theSquadDialResizesWithoutChangingQuality() {
+        // The balance question CONQUEST HIGH raised — "how many marines does
+        // this actually need" — is a size question, and the stage ladder can
+        // only offer fixed points. Dialling size must not quietly re-roll the
+        // company's quality.
+        MarineRoster small = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY, 2);
+        MarineRoster large = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY, 20);
+
+        assertEquals(2, DebugCompany.lineSquadIds(small).size());
+        assertEquals(20, DebugCompany.lineSquadIds(large).size());
+        assertEquals(20 * MarineSquad.CAPACITY, large.activeSoldiers().size());
+        for (MarineRoster roster : List.of(small, large)) {
+            MarineSquad first = roster.squadById(DebugCompany.lineSquadIds(roster).get(0));
+            assertSame(EnlistedRank.SERGEANT, roster.squadLeader(first).enlistedRank());
+        }
+    }
+
+    @Test
+    void theDialStopsWhereTheLiftDoes() {
+        assertEquals(DebugCompany.MAX_SQUADS, DebugCompany.clampSquads(9999));
+        assertEquals(0, DebugCompany.clampSquads(-5));
+
+        MarineRoster maxed = DebugCompany.roster(
+                DebugCompanyStage.FULL_STRENGTH, DebugCompany.MAX_SQUADS);
+        assertEquals(DebugCompany.MAX_SQUADS * MarineSquad.CAPACITY,
+                maxed.activeSoldiers().size(),
+                "480 marines is a CONQUEST-HIGH manifest — 40 drops at twelve seats");
+    }
+
+    @Test
+    void aFullStrengthCompanyFillsAConquestHighManifest() {
+        // 34 squads is 408 marines against 480 seats of lift, so every marine
+        // the stage fields has somewhere to sit.
+        DebugCompanyStage stage = DebugCompanyStage.FULL_STRENGTH;
+        MarineRoster roster = DebugCompany.roster(stage);
+        Set<String> line = new LinkedHashSet<>(DebugCompany.lineSquadIds(roster));
+
+        CampaignMarineDeployment frozen = CampaignMarineDeployment.freezeSelection(
+                roster, line, 40 * 12);
+
+        assertEquals(stage.marines(), frozen.size());
+        Set<String> squadIds = new HashSet<>();
+        int leaders = 0;
+        for (int seat = 0; seat < frozen.size(); seat++) {
+            var tag = frozen.seat(seat).campaignSquad;
+            assertNotNull(tag);
+            squadIds.add(tag.squadId);
+            if (tag.leader) leaders++;
+        }
+        assertEquals(stage.squads, squadIds.size());
+        assertEquals(stage.squads, leaders);
+    }
+
+    @Test
+    void theTopStagesReportOutgrowingTheirOfficer() {
+        // Not a bug to fix here — the finding. A CONQUEST at HIGH risk wants
+        // more squads than Rank.COLONEL may command, so the fixture says so
+        // rather than silently capping.
+        assertTrue(DebugCompanyStage.FULL_STRENGTH.exceedsCommandCap(),
+                "34 squads is past a Colonel's 24");
+        assertTrue(DebugCompanyStage.REINFORCED.exceedsCommandCap(),
+                "17 squads is past a Lt. Colonel's 16");
+        for (DebugCompanyStage stage : List.of(DebugCompanyStage.FIRST_CONTRACT,
+                DebugCompanyStage.ESTABLISHED, DebugCompanyStage.VETERAN_COMPANY)) {
+            assertTrue(!stage.exceedsCommandCap(),
+                    stage + " still fits its officer's command");
+        }
+    }
+
+    @Test
     void eachBuildIsItsOwnDetachedRoster() {
         MarineRoster first = DebugCompany.roster(DebugCompanyStage.FIRST_CONTRACT);
         MarineRoster second = DebugCompany.roster(DebugCompanyStage.FIRST_CONTRACT);
