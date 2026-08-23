@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * {@code sim.telemetry()}.
  *
  * <p>Two products from one set of counters
- * ({@code roadmap/progression/stories/s3-per-soldier-telemetry.md}): a reward
+ * ({@code s3-per-soldier-telemetry.md}): a reward
  * input, which the campaign converts to experience for the marines it
  * recognizes, and a balance artifact, which covers <em>every</em> entity —
  * defenders and employer militia included — so questions like "what is the

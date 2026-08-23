@@ -168,15 +168,17 @@ universe over time, not retrofitted into intel slots.
   `fdc49c36`, plus the grade spread): a TTK harness that drives the real
   firing pipeline, then the two numeric passes it made arguable. A marine
   now dies in 3.4 s rather than 30, and the equipment ladder spans 4.3x in
-  measured time-to-kill rather than 1.75x. **S3 slice 1 is now shipped
+  measured time-to-kill rather than 1.75x. **S3 is now shipped
   too**: a lifecycle-stable `TELEMETRY` component records what every
   combatant did, the attacker is threaded through the damage pipeline so
   kills and post-mitigation damage attribute correctly through ballistic,
-  AoE, turret and melee paths alike, and every mission logs a table covering
-  defenders and the fallen. That table is the balance artifact S1's tuning
-  was argued without. S3 slices 2-3 (crossing to the campaign, the persisted
-  career record) and S2, S4-S10 remain, and S1's own last acceptance item is
-  an in-game feel pass. See
+  AoE, turret and melee paths alike, every mission logs a table covering
+  defenders and the fallen, and each deployed marine now carries a persisted
+  `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
+  That table is the balance artifact S1's tuning was argued without, and the
+  career record is what lets S4 make experience earned rather than issued.
+  S2 and S4-S10 remain, and S1's own last acceptance item is an in-game feel
+  pass. See
   [`progression/`](progression/overview.md).
 - **Company view** *(active — C7 shipped)* — the player's force as one legible
   hierarchy, company → squad → marine, in the fleet and in the field.
@@ -224,15 +226,16 @@ universe over time, not retrofitted into intel slots.
 
 ## Immediate next-up
 
-> **Recommended pickup: play a mission, then progression S3 slices 2-3**
-> (`s3-per-soldier-telemetry.md`).
+> **Recommended pickup: play a mission, then progression S4 —
+> performance-derived experience** (`s4-performance-derived-experience.md`).
 > S1 rewrote every combat number in the mod and its last acceptance item is
 > an in-game feel pass, so a mission or two is worth more than any further
-> tuning — and now a played mission also dumps a full combat-telemetry
-> table to the log, so the feel pass produces data as well as impressions.
-> S3 slice 2 then carries the marine-keyed rows onto `MissionOutcome` and
-> slice 3 persists them as a career record, which is what unblocks S4, S8
-> and S9. The numbered list below is the pre-existing queue.
+> tuning — and a played mission now dumps a full combat-telemetry table to
+> the log and writes each marine's career record, so the feel pass produces
+> data as well as impressions. S4 then converts those records into
+> experience, which is what S1 slice 2 was counting on when it made
+> equipment 2.4x the soldier ladder. The numbered list below is the
+> pre-existing queue.
 
 1. **Early-operations playtest** — the two-job Independent opening ladder is
    code-complete: one-player-sortie relief followed by a two-sortie joint

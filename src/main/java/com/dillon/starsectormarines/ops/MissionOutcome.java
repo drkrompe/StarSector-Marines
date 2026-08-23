@@ -2,11 +2,14 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -74,6 +77,18 @@ public final class MissionOutcome {
     public final Set<String> fallenSoldierIds;
     /** Mission-time whole-fireteam selection, in briefing order. */
     public final Set<String> deployedFireteamIds;
+    /**
+     * What each deployed marine actually did, keyed by campaign soldier id.
+     * Frozen here for the same replay-determinism reason as the rest of this
+     * class: computing an outcome twice must yield identical telemetry.
+     *
+     * <p>Only marines the campaign roster tracks appear. Defenders, employer
+     * militia and turrets are recorded in battle and reach the per-mission
+     * debug table, but never a career record
+     * ({@code s3-per-soldier-telemetry.md}).
+     * Empty for every outcome built by a caller that has no battle in hand.
+     */
+    public final Map<String, CombatTelemetryRow> soldierTelemetry;
 
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
@@ -178,6 +193,10 @@ public final class MissionOutcome {
                 survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
     }
 
+    /**
+     * Telemetry-free overload — every caller that builds an outcome without a
+     * battle in hand (debug fixtures, campaign-side resolutions, tests).
+     */
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
                           MissionType missionType, RiskLevel risk, MissionSource missionSource,
@@ -196,6 +215,38 @@ public final class MissionOutcome {
                           int salvageRecoveryBonusPct, int salvageHighValueChancePct,
                           Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
                           Set<String> deployedFireteamIds) {
+        this(victory, missionId, missionName, missionType, risk, missionSource,
+                payoutBase, payoutEarned, marinesEngaged, marinesLost,
+                captainId, captainName, priorCaptainStatus, newCaptainStatus,
+                xpGained, injuredUntilDay, promotedTo, targetPlanetName,
+                targetIndustryId, targetFactionId, contractId, campaignEventId,
+                campaignEventMarketId, campaignEventThreatSeed, civiliansAtRisk,
+                civiliansRescued, evacuationRepresentatives, representativesEvacuated,
+                colonyArchiveOutcome, salvageEntitlement, salvageRecoveryBonusPct,
+                salvageHighValueChancePct, survivingSoldierIds, fallenSoldierIds,
+                deployedFireteamIds, Collections.emptyMap());
+    }
+
+    /** Canonical constructor. Everything else here funnels into it. */
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, RiskLevel risk, MissionSource missionSource,
+                          int payoutBase, int payoutEarned, int marinesEngaged, int marinesLost,
+                          String captainId, String captainName,
+                          Status priorCaptainStatus, Status newCaptainStatus,
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId, String targetFactionId,
+                          long contractId, long campaignEventId,
+                          int campaignEventMarketId, long campaignEventThreatSeed,
+                          int civiliansAtRisk, int civiliansRescued,
+                          int evacuationRepresentatives,
+                          int representativesEvacuated,
+                          AbandonedColonyArchiveOutcome colonyArchiveOutcome,
+                          int salvageEntitlement,
+                          int salvageRecoveryBonusPct, int salvageHighValueChancePct,
+                          Set<String> survivingSoldierIds, Set<String> fallenSoldierIds,
+                          Set<String> deployedFireteamIds,
+                          Map<String, CombatTelemetryRow> soldierTelemetry) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -243,6 +294,7 @@ public final class MissionOutcome {
         this.survivingSoldierIds = immutableIds(survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(fallenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(deployedFireteamIds);
+        this.soldierTelemetry = immutableTelemetry(soldierTelemetry);
     }
 
     public MissionOutcome(boolean victory,
@@ -269,6 +321,16 @@ public final class MissionOutcome {
                 salvageEntitlement, salvageRecoveryBonusPct,
                 salvageHighValueChancePct, survivingSoldierIds,
                 fallenSoldierIds, Collections.emptySet());
+    }
+
+    private static Map<String, CombatTelemetryRow> immutableTelemetry(
+            Map<String, CombatTelemetryRow> source) {
+        if (source == null || source.isEmpty()) return Collections.emptyMap();
+        Map<String, CombatTelemetryRow> copy = new LinkedHashMap<>();
+        for (Map.Entry<String, CombatTelemetryRow> e : source.entrySet()) {
+            if (e.getKey() != null && e.getValue() != null) copy.put(e.getKey(), e.getValue());
+        }
+        return Collections.unmodifiableMap(copy);
     }
 
     private static Set<String> immutableIds(Set<String> source) {
