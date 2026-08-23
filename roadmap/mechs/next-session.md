@@ -2,6 +2,12 @@
 
 ## State of play
 
+The Hound cohesion follow-up shipped in `eaef38b2`: its ASSAULT advance now
+requires nearby same-faction combat infantry or another live mech, and the
+route stays within a six-cell lead of that support. Losing support cancels the
+advance immediately while leaving the Hound's in-range fire pass active. This
+is reciprocal with the infantry screen rather than a new commander goal.
+
 The DEBUG player drop follow-up shipped in `6764caf1`: Mech Support now batches
 the selected total into four-chassis lances, with one Valkyrie and one mech
 squad per activation plus a partial final lance. The picker defaults to four,
@@ -76,7 +82,10 @@ Then continue the production MEDIUM/HIGH tuning pass below.
 
 Run representative MEDIUM and HIGH production battles, then use **Spawn mech
 family** for direct comparison. Confirm mixed defender groups remain readable
-while moving and turning; then compare
+while moving and turning. In particular, separate a Hound from its infantry or
+lance-mates and confirm it holds and fires, then bring support back within
+twelve cells and confirm it resumes the push without getting more than six
+cells ahead. Then compare
 range behavior, time-to-kill, missile density, and whether Sirocco's heavy
 cannon remains an anti-armor fallback rather than a second primary role. Also
 check that its shell remains visible at normal zoom, the muzzle/impact reads as
@@ -102,6 +111,8 @@ close-range weakness.
    positional audio (`39aefccb`).
 8. Deterministic difficulty-scaled defender profiles and the Hound's
    faction-neutral ASSAULT doctrine (`1ef74f23`).
+9. Reciprocal assault cohesion: nearby infantry/mechs release the Hound's
+   advance, bounded by a six-cell formation lead (`eaef38b2`).
 
 Tune profile/component numbers from the production encounters; mixed-group
 adoption itself is complete.
