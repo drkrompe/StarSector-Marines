@@ -120,6 +120,8 @@ public final class SquadAlertSystem {
             squad.centroidY = 0f;
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
+            squad._directContactStartedThisTick = false;
+            squad._alertLevelChangedThisTick = false;
             squad._killZoneSightedThisTick = false;
             squad._underFireAtLosLastTick = squad._underFireAtLosThisTick;
             squad._underFireAtLosThisTick = false;
@@ -181,7 +183,9 @@ public final class SquadAlertSystem {
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         uAir, vision.airLosRadius(other))) continue;
                 squad._engagedThisTick = true;
-                squad.observeDirectContact(other, otherCellX, otherCellY, simTick);
+                if (squad.observeDirectContact(other, otherCellX, otherCellY, simTick)) {
+                    squad._directContactStartedThisTick = true;
+                }
             }
         }
 
@@ -239,6 +243,7 @@ public final class SquadAlertSystem {
 
         // Finalize: divide centroids, apply alert-state transitions.
         for (Squad squad : roster.getSquads()) {
+            SquadAlertLevel previousAlert = squad.alertLevel;
             squad.publishBeliefSnapshot();
             if (squad.aliveMembers > 0) {
                 squad.centroidX /= squad.aliveMembers;
@@ -303,6 +308,7 @@ public final class SquadAlertSystem {
                     clearSquadMemberTargets(squad.id, roster, dense, liveCount);
                 }
             }
+            squad._alertLevelChangedThisTick = squad.alertLevel != previousAlert;
         }
     }
 

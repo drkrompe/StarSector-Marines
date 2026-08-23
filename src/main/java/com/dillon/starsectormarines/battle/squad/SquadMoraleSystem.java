@@ -104,6 +104,9 @@ public final class SquadMoraleSystem {
         // mech pass reads them by id, a handful of probes per tick.
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
+        for (Squad squad : roster.getSquads()) {
+            squad._moraleBrokenChangedThisTick = false;
+        }
 
         // Near-miss drain pass: hostile shots that landed near a squadmate
         // but didn't connect still rattle the squad. Same cooldown gate as
@@ -141,6 +144,7 @@ public final class SquadMoraleSystem {
 
         for (Squad squad : roster.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
+            boolean wasMoraleBroken = squad.moraleBroken;
             // Mech squads run a separate per-chassis morale pass — recovery,
             // hysteresis, hard cap, squad-level aggregation. The infantry
             // body below would otherwise drain {@link Squad#morale} on a flag
@@ -148,6 +152,8 @@ public final class SquadMoraleSystem {
             // {@link Squad#moraleBroken}, not raw morale).
             if (squad.isMechSquad()) {
                 updateMechSquadMorale(squad, dense, roster, liveCount, dt);
+                squad._moraleBrokenChangedThisTick =
+                        squad.moraleBroken != wasMoraleBroken;
                 continue;
             }
 
@@ -199,6 +205,8 @@ public final class SquadMoraleSystem {
             } else {
                 if (squad.morale < brokenAt) squad.moraleBroken = true;
             }
+            squad._moraleBrokenChangedThisTick =
+                    squad.moraleBroken != wasMoraleBroken;
         }
     }
 

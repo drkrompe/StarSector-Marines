@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -12,6 +14,10 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -186,5 +192,60 @@ public class BreakLOSTest {
     @Test
     public void requiredMembersIsOne() {
         assertEquals(1, BreakLOS.INSTANCE.requiredMembers());
+    }
+
+    @Test
+    public void incomingFireDisplacesOnlyTheExposedFireTeam() {
+        BattleSimulation sim = walledSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        List<Long> members = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            members.add(sim.spawn(new EntitySpec("a" + i, Faction.MARINE,
+                    UnitType.MARINE, 3, 1 + i).squad(squadId).fireTeam(0)));
+        }
+        for (int i = 0; i < 4; i++) {
+            members.add(sim.spawn(new EntitySpec("b" + i, Faction.MARINE,
+                    UnitType.MARINE, 3, 9 + i).squad(squadId).fireTeam(1)));
+        }
+        sim.postShot(new ShotEvent(12.5f, 1.5f, 3.5f, 1.5f,
+                true, Faction.DEFENDER, 1f));
+
+        Map<String, List<Long>> roles = BreakLOS.INSTANCE.assignRoles(
+                squad, sim, members);
+
+        assertEquals(members.subList(0, 4), roles.get(BreakLOS.DISPLACE + "0"));
+        assertEquals(members.subList(4, 8), roles.get(BreakLOS.COVER + "1"));
+    }
+
+    @Test
+    public void coverTeamHoldsUntilEveryDisplacerReachesFallback() {
+        BattleSimulation sim = walledSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long displacer = sim.spawn(new EntitySpec("move", Faction.MARINE,
+                UnitType.MARINE, 3, 2).squad(squadId).fireTeam(0));
+        long cover = sim.spawn(new EntitySpec("cover", Faction.MARINE,
+                UnitType.MARINE, 3, 10).squad(squadId).fireTeam(1));
+        // Two-member teams are required to remain organizationally distinct.
+        long displacerMate = sim.spawn(new EntitySpec("move2", Faction.MARINE,
+                UnitType.MARINE, 4, 2).squad(squadId).fireTeam(0));
+        long coverMate = sim.spawn(new EntitySpec("cover2", Faction.MARINE,
+                UnitType.MARINE, 4, 10).squad(squadId).fireTeam(1));
+
+        SquadPlan.Step step = new SquadPlan.Step(BreakLOS.INSTANCE);
+        step.assignments.put(BreakLOS.DISPLACE + "0", List.of(displacer, displacerMate));
+        step.assignments.put(BreakLOS.COVER + "1", List.of(cover, coverMate));
+        squad.currentPlan = new SquadPlan(List.of(step));
+        sim.setPath(cover, new int[]{3, 10, 5, 10});
+
+        assertEquals(ActionStatus.RUNNING, BreakLOS.INSTANCE.execute(cover, squad, sim));
+        assertTrue(Paths.isEmpty(sim.world().path(cover)),
+                "cover fireteam plants instead of following the exposed team");
+
+        sim.world().setFallbackCell(displacer, 3, 2);
+        sim.world().setFallbackCell(displacerMate, 4, 2);
+        assertEquals(ActionStatus.SUCCESS, BreakLOS.INSTANCE.execute(cover, squad, sim),
+                "cover member may finish the shared step only after all living displacers arrive");
     }
 }

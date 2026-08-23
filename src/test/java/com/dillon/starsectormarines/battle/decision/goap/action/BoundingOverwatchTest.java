@@ -44,11 +44,12 @@ public class BoundingOverwatchTest {
 
     private static Fixture fourMarineFixture() {
         BattleSimulation sim = openSim();
-        Squad squad = new Squad(9, Faction.MARINE);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
         List<Long> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             long member = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
-                    UnitType.MARINE, 10, 14 + i).squad(squad.id));
+                    UnitType.MARINE, 10, 14 + i).squad(squadId));
             sim.world().setAttackRange(member, 30f);
             members.add(member);
         }
@@ -62,6 +63,7 @@ public class BoundingOverwatchTest {
                 UnitType.MARINE, 35, 15));
         long secondThreat = sim.spawn(new EntitySpec("d1", Faction.DEFENDER,
                 UnitType.MARINE, 37, 16));
+        sim.advance(BattleSimulation.TICK_DT);
 
         EnterZone action = new EnterZone(-99, DEST_X, DEST_Y);
         SquadPlan.Step step = new SquadPlan.Step(action);
@@ -104,6 +106,10 @@ public class BoundingOverwatchTest {
         for (int i = 0; i < 6; i++) {
             sim.spawn(new EntitySpec("threat" + i, Faction.DEFENDER,
                     UnitType.MARINE, 35, 7 + i));
+        }
+        sim.advance(BattleSimulation.TICK_DT);
+        for (int i = 0; i < members.size(); i++) {
+            sim.setPath(members.get(i), new int[]{10, 4 + i, DEST_X, DEST_Y});
         }
 
         EnterZone action = new EnterZone(-99, DEST_X, DEST_Y);
