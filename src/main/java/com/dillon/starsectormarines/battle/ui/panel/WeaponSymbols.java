@@ -44,6 +44,7 @@ public final class WeaponSymbols {
     public static String secondaryAbbrev(MarineSecondary s) {
         if (s == null) return null;
         if (s == MarineSecondary.ROCKET_LAUNCHER) return "RKT";
+        if (s == MarineSecondary.ANTI_MATERIEL_RIFLE) return "AMR";
         return s.name().substring(0, 3);
     }
 

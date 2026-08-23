@@ -18,8 +18,8 @@ close-quarters answer in a mod whose mapgen ships two-cell combat aisles and
 apartment interiors, and the current automatic option does not produce a
 legible suppression role.
 
-The special-equipment slot has its own expansion stories:
-`s2a-anti-materiel-rifle.md`, `s2b-smoke-grenades.md`, and
+The special-equipment slot is defined in `progression-nouns.md`; its remaining
+expansion stories are `s2b-smoke-grenades.md` and
 `s2c-satchel-charges.md`, plus the retained fragmentation-grenade plan in
 `s2d-frag-grenades.md`. This story does not duplicate their activation or AI
 work.

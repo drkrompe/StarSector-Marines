@@ -3,10 +3,12 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
+import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -65,6 +67,9 @@ public final class GarrisonPatrol implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        if (squad.contactPicture.doctrine() == Doctrine.DISENGAGE) {
+            return BreakContact.INSTANCE.execute(member, squad, sim);
+        }
         Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
         // CONTEST — re-clear the first room (largest first) that holds an enemy

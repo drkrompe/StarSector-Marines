@@ -160,18 +160,23 @@ public class ShotFxTest {
     }
 
     @Test
-    public void marineSecondariesAreSpritesWithMissileSmokeContrails() {
+    public void marineSecondariesDeriveProjectileBodiesFromTheirWeaponDefinitions() {
         for (MarineSecondary w : MarineSecondary.values()) {
             ShotFx fx = ShotFx.of(shot(null, null, w, null));
-            Sprite body = assertSprite(fx, "secondary " + w);
-            assertEquals(w.projectileSpritePath, body.spritePath(), "sprite path for " + w);
-            assertEquals(w.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + w);
+            if (w.projectileSpritePath() != null) {
+                Sprite body = assertSprite(fx, "secondary " + w);
+                assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
+                assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
+                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
+            } else {
+                assertInstanceOf(Bolt.class, fx.body(), "precision secondary " + w);
+                assertNull(fx.contrail());
+            }
             assertTrue(fx.travels(), "secondary body travels: " + w);
             assertEquals(0f, fx.arcHeight(), 0f);
             assertFalse(fx.boostRamp());
             assertFalse(fx.engineTrail());
             assertFalse(fx.smokeTrail(), "ribbon replaces discrete smoke puffs");
-            assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
         }
     }
 

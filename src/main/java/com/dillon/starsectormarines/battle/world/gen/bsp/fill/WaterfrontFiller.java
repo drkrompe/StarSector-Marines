@@ -179,6 +179,7 @@ public final class WaterfrontFiller implements BlockFiller {
         topology.setGroundKind(x, y, GroundKind.WATER);
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
+        grid.setEdgeCoverSuppressed(x, y, true);
     }
 
     /**

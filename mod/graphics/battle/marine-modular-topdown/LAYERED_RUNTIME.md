@@ -19,7 +19,8 @@ zoom and future body-width changes preserve the same anatomy.
 - repeating locomotion phase;
 - weapon-pose phase;
 - head look relative to the torso;
-- weapon pose (`idle`, `aimed`, `firing`, `rocket aim`, `rocket fire`);
+- weapon pose (`idle`, `aimed`, `firing`, `rocket aim`, `rocket fire`,
+  `AMR aim`, `AMR fire`);
 - flags for movement, muzzle flash, and over-shoulder weapon occlusion.
 - independent body-family and head-family selectors.
 
@@ -37,6 +38,11 @@ Rocket fire uses feet, body, launcher, head, firing FX. This is a pose-specific
 occlusion change: the launcher crosses above the right shoulder while the helmet
 still paints above the launcher and retains independent look rotation.
 
+Anti-materiel fire retains the ordinary under-body rifle occlusion, but swaps
+the primary layer for the longer AMR through a dedicated brace/fire pose. Its
+heavier recoil and muzzle flash are presentation-only; the ballistic resolver
+owns the shot.
+
 ## Armor families and spawn defaults
 
 The cache loads armorless fatigues/bare head, charcoal, field-blue scout, red elite,
@@ -49,7 +55,7 @@ with any body at runtime. Unit type supplies only a default:
 - `MILITIA`: improvised militia carrier and helmet.
 - Pulse rifle loadouts use the laser-gun layer; SMG and DMR loadouts use their
   own compact and precision layers; generic combatants use the rifle layer; an
-  active secondary aim uses the rocket-launcher layer.
+  active weapon-like special aim uses either the rocket-launcher or AMR layer.
 
 Weapon equipment grades fall back to their family's registered sprite and animation.
 Authored exact-grade overrides currently demonstrate the ends of the scale: a battered
@@ -60,7 +66,7 @@ combat statistics and surface read without changing facing or firing behavior.
 
 `MarineRosterScript` persists an armory and rank-and-file roster in the same xstream
 graph as captains. Soldiers have stable ids, aptitude, earned XP, status, primary/grade,
-secondary and armor allocations. Mission launch freezes those allocations into shuttle
+stable special-equipment id and armor allocations. Mission launch freezes those allocations into shuttle
 seats after the scenario authors roles/objectives. The campaign soldier id survives on
 the battle entity and corpse, allowing results to award survivor XP and mark real losses KIA.
 

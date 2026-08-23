@@ -15,7 +15,7 @@ Read `moddable-weapons-nouns.md` before implementing this story.
 Delete `MarineWeapon`, `MarineSecondary`, `MechWeapon` and `TurretKind` as
 stat carriers. Weapon consumers hold a `WeaponDef` or its id string; a marine's
 optional billet item holds the special-equipment id established by
-`s2a-anti-materiel-rifle.md`, which may in turn reference a weapon id.
+`progression-nouns.md`, which may in turn reference a weapon id.
 
 The load-bearing part is **persistence**. `MarineSoldier.primary` is an
 xstream-serialized enum, and `FireTeamBillet` stores weapons inside persisted

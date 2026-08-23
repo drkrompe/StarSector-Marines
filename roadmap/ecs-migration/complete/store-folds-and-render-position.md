@@ -60,11 +60,9 @@ compiler backstop). `ShotEndpoint.resolve` took the target's render x/y as float
 ## `ComponentStore<T>` survives — for air FX only
 
 `ComponentStore<T>` is **not** deleted: it still backs `ThrusterFx` and
-`AirTurrets`, which key the **air-craft** entity space (`Shuttle` +
-`AirSystem.nextAirId`), disjoint from the battle `EntityWorld`. Unifying air into
-the one world is a separate, captured epic
-([`../../air/air-entities-into-world.md`](../../air/air-entities-into-world.md));
-`ComponentStore<T>` dies there. No battle-unit component uses it any more.
+`AirTurrets`, which keyed the former private air-craft entity space. Unifying
+air into the one world was the separate epic now folded into `air-nouns.md`;
+`ComponentStore<T>` died there. No battle-unit component uses it any more.
 
 ## Next: part B — dissolve `UnitRegistry`
 

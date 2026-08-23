@@ -59,6 +59,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             RoutinePatrol.INSTANCE,
             ReinforceContact.INSTANCE,
             SurviveContact.INSTANCE,
+            DisengageFromContactGoal.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
@@ -93,7 +94,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                                            boolean permitsOpportunityFire) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
-        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
+        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
         return true;
     }
 
@@ -175,7 +176,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>No current plan</li>
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
-     *   <li>New direct contact or an alert-level transition</li>
+     *   <li>A squad-wide direct-LOS episode started, or the alert level transitioned</li>
      *   <li>Morale hysteresis entered or left the broken state</li>
      *   <li>The alert pass observed hostile incoming fire with LOS to its origin</li>
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
@@ -216,6 +217,9 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // hidden cell the ordinary plan can resume on the next replan.
         boolean incomingFireStarted = squad._underFireAtLosThisTick
                 && !squad._underFireAtLosLastTick;
+        // Contact is a squad-level no-direct-LOS -> some-direct-LOS episode
+        // edge. Additional hostile identities join belief without repeatedly
+        // replacing the plan during one continuous engagement.
         boolean contactStateChanged = squad._directContactStartedThisTick
                 || squad._alertLevelChangedThisTick;
         boolean needsReplan = squad.currentPlan == null
@@ -224,6 +228,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                            || memberCountChanged
                            || incomingFireStarted
                            || contactStateChanged
+                           || squad._contactDoctrineChangedThisTick
                            || squad._moraleBrokenChangedThisTick;
 
         if (!needsReplan) {
