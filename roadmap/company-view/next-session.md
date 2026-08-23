@@ -3,8 +3,8 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. **Design stage: nine stories
-contracted (C1–C9), none started, no code written.**
+commander ("squad of squads") tiers. **Design stage: ten stories
+contracted (C1–C10), none started, no code written.**
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -34,6 +34,16 @@ deterministic freeze ordering) is pure plumbing verifiable by unit test.
 unblocked and can land in parallel; it is the prerequisite for all three UI
 stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
 visible change) is a safe proof.
+
+[C10 — The company between contracts](stories/c10-company-between-contracts.md)
+is unblocked too, and is the one story here that ships player-visible value
+without C2 first: two of its three panes (standing, running deadlines) read
+state that is already persisted or already computed, and its third pane is
+the reserved space C3 and C4 later furnish. It also gives
+[G32](../campaign/contracts/complete/g32-player-event-popup.md)'s **Hold**
+option somewhere to go — today a deferred event popup dismisses into nothing.
+Its slice 1 is a spike: confirm a `TOGGLE` ability with a no-op `activate()`
+fires `pressButton()` without latching, before anything is built on top.
 
 [C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
 unblocked and is worth doing early: it settles the language and the command
@@ -74,7 +84,17 @@ enum can change outright.
    freely — no legacy alias map, no migration slice. (The mechanism still
    matters once saves exist: xstream writes enums by name, so deleting a
    constant is the breaking direction; adding a field is the safe one.)
-6. **Take C8's capacity change now, re-tune after.** The opening ladder's
+6. **The company is reachable from the campaign map, not from a planet.**
+   The between-contracts surface gets an ability-bar button opening the
+   planet-free host [G32](../campaign/contracts/complete/g32-player-event-popup.md)
+   shipped. The ability bar is already the campaign-only HUD element, so it
+   hides itself whenever a core tab, dialog, or menu opens and needs no
+   visibility gate of ours. Checked while deciding: `ArmoryScreen` has zero
+   market/planet references and `StationingWithdrawalService.withdraw` takes
+   no planet, so most roster work was gated by where its button sits, not by
+   any fiction. That is [C10](stories/c10-company-between-contracts.md), and
+   it supersedes C4's slice 3.
+7. **Take C8's capacity change now, re-tune after.** The opening ladder's
    force ratios are mid-playtest against today's seats, and raising the
    floor moves them 50–100% — tuning against numbers we intend to replace
    is wasted work. Flagged in
