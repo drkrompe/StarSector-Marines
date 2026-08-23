@@ -1,10 +1,11 @@
-"""Normalize raw ImageGen tileset sources into the canonical runtime atlases.
+"""Normalize and material-pack sources into the canonical runtime atlases.
 
 The generated images use model-selected canvas sizes and a near-black matte.
 This script preserves the generated surface rendering while restoring the
 runtime atlas dimensions, fixed-grid alpha topology, and auto-strip frame
 ordering. The checked-in runtime atlases are the geometry templates and are
-overwritten in place with normalized output.
+overwritten in place with normalized output. Individual material replacements
+are applied afterward through ``texture-atlases.json``.
 """
 
 from __future__ import annotations
@@ -14,6 +15,8 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
+
+from pack_texture_atlas import pack_manifest
 
 
 HERE = Path(__file__).resolve().parent
@@ -95,20 +98,6 @@ STRIP_GROUND_EDGE_FRAMES = {
     # ImageGen's ground frames have a shallow 3px side outline but a much
     # deeper bottom shadow; sample vertical edges 6px inward.
     "nature-tiles.png": (7, (3, 6)),
-}
-
-# The nature strip's grass/dirt frames use purchased, natively seamless
-# materials instead of the ImageGen reskin. Each checked-in source is a 52px
-# FFmpeg downsample from the original 4K texture. A 2px wrapped guard band
-# restores a 56px atlas frame because the runtime deliberately crops 2px from
-# every sliced ground frame before stretching it to a map cell.
-STRIP_MATERIAL_OVERRIDES = {
-    "nature-tiles.png": (
-        (0, "forest-material-source/forest-grass.png"),
-        (1, "forest-material-source/forest-grass.png"),
-        (2, "forest-material-source/forest-dirt.png"),
-        (3, "forest-material-source/forest-dirt.png"),
-    ),
 }
 
 # The three 16px sand variants were generated with different left/right
@@ -270,32 +259,6 @@ def _clean_strip_ground_edges(
         _clone_rgb_edge_band(output, box, band)
 
 
-def _apply_strip_material_overrides(
-    output: np.ndarray,
-    output_name: str,
-    frame_boxes: list[tuple[int, int, int, int]],
-) -> None:
-    overrides = STRIP_MATERIAL_OVERRIDES.get(output_name)
-    if overrides is None:
-        return
-
-    guard = 2
-    for frame_index, relative_path in overrides:
-        x0, y0, x1, y1 = frame_boxes[frame_index]
-        material = np.asarray(Image.open(HERE / relative_path).convert("RGBA"))
-        expected_shape = (y1 - y0 - guard * 2, x1 - x0 - guard * 2, 4)
-        if material.shape != expected_shape:
-            raise ValueError(
-                f"{relative_path}: shape {material.shape}, expected {expected_shape}"
-            )
-        guarded = np.pad(
-            material,
-            ((guard, guard), (guard, guard), (0, 0)),
-            mode="wrap",
-        )
-        output[y0:y1, x0:x1] = guarded
-
-
 def normalize_grid(spec: GridSpec) -> None:
     source = Image.open(TILESETS / spec.source).convert("RGBA")
     raw = Image.open(HERE / spec.raw).convert("RGB")
@@ -412,7 +375,6 @@ def normalize_strip(spec: StripSpec) -> None:
         output[sy0:sy1, sx0:sx1, 3] = alpha_arr
 
     _clean_strip_ground_edges(output, spec.output, source_boxes)
-    _apply_strip_material_overrides(output, spec.output, source_boxes)
     Image.fromarray(output, "RGBA").save(TILESETS / spec.output)
 
 
@@ -440,9 +402,12 @@ def main() -> None:
         normalize_grid(spec)
     for spec in STRIP_SPECS:
         normalize_strip(spec)
+    packed = pack_manifest(HERE / "texture-atlases.json")
     validate()
     for spec in (*GRID_SPECS, *STRIP_SPECS):
         print(TILESETS / spec.output)
+    for atlas in packed:
+        print(f"packed {atlas.atlas_id}: {atlas.placements} placement(s)")
 
 
 if __name__ == "__main__":
