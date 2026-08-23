@@ -4,6 +4,8 @@ Status: ACTIVE — the Bulwark/Hound/Sirocco family and production composition a
 
 Written: 2026-08-23
 
+Updated: 2026-08-23 — expended long-range racks now force a direct-fire fallback posture.
+
 ## Purpose
 
 Mechs are a readable family of armored battlefield actors, not one universal
@@ -48,7 +50,11 @@ other Hounds cannot bootstrap a solo rush. The Sirocco is a fragile screened
 support strider: long-range fire is primary, while its cannon is an
 anti-hardened fallback rather than a replacement close-range saturation
 weapon. Its overwatch seeks a friendly, non-Sirocco screen and re-evaluates
-that screen as the battle changes.
+that screen as the battle changes. Once its long-range racks can no longer
+apply pressure, it abandons a cached distant perch and closes only to the outer
+edge of its installed arms range; resupply restores the normal long-range
+posture. Exhausted ammunition may change doctrine positioning, but never grants
+access to an absent mount or another role's withheld weapon.
 
 All variants share movement-aware targeting and a planted-hip torso envelope:
 near visible danger can interrupt a distant engagement, but the rear blind
