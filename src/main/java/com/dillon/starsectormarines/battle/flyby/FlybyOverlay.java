@@ -202,6 +202,7 @@ public final class FlybyOverlay {
     private boolean spritesLoadAttempted;
 
     private final Random rng = new Random();
+    private static final float STRAFE_PENETRATION = 5f;
 
     /**
      * Reused per-shot gather of the units inside a tracer's AoE before damage is
@@ -612,7 +613,8 @@ public final class FlybyOverlay {
             }
             boolean anyHit = !aoeHits.isEmpty();
             for (int i = 0, n = aoeHits.size(); i < n; i++) {
-                sim.applyExternalDamage(aoeHits.get(i), f.profile.perTracerDamage);
+                sim.applyExternalDamage(aoeHits.get(i), f.profile.perTracerDamage,
+                        STRAFE_PENETRATION);
             }
             aoeHits.clear();
             if (anyHit) {
@@ -682,7 +684,8 @@ public final class FlybyOverlay {
             }
             anyHit = !aoeHits.isEmpty();
             for (int i = 0, n = aoeHits.size(); i < n; i++) {
-                sim.applyExternalDamage(aoeHits.get(i), RUN_DAMAGE_PER_HIT);
+                sim.applyExternalDamage(aoeHits.get(i), RUN_DAMAGE_PER_HIT,
+                        STRAFE_PENETRATION);
             }
             aoeHits.clear();
         }
@@ -909,7 +912,7 @@ public final class FlybyOverlay {
                     p.worldX, p.worldY, /*remainingTime*/ 0f,
                     /*aoeRadius*/ r,
                     /*damage*/ p.profile.projectileAoeDamage,
-                    /*vsTurretMult*/ 1f,
+                    /*penetration*/ 18f,
                     p.profile.wallDamage, p.side,
                     /*aerialDelivery*/ true,
                     /*wallDamageRadius*/ r,

@@ -28,8 +28,8 @@ import org.json.JSONObject;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v2 added APPLY_DAMAGE phase; v3 added APPLY_OCCUPANCY phase; v4 added APPLY_SPAWNS phase. */
-    private static final int SCHEMA_VERSION = 4;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v5 separates contact-picture and swarm-pressure attribution. */
+    private static final int SCHEMA_VERSION = 5;
 
     private TickProfileDumper() {}
 
@@ -82,6 +82,8 @@ public final class TickProfileDumper {
             // the time we serialize them; for manual dumps we read the live
             // counters directly. Either way the JSON shape is identical.
             JSONArray innerArr = new JSONArray();
+            root.put("innerTimingSemantics",
+                    "aggregate worker time; primitive buckets overlap behavior buckets");
             TickInnerProfile.Snapshot innerSnap = (spike != null) ? spike.innerSnapshot : null;
             TickInnerProfile liveInner = sim.getTickInnerProfile();
             for (TickInnerProfile.Bucket b : TickInnerProfile.Bucket.VALUES) {

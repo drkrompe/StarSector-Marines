@@ -47,9 +47,12 @@ public final class InfantryLoadoutRolls {
         RiskLevel resolvedRisk = risk != null ? risk : RiskLevel.LOW;
         int amrSlot = resolvedRisk == RiskLevel.HIGH && type != UnitType.MILITIA
                 && capacity >= 4 ? capacity - 1 : -1;
+        int smokeSlot = resolvedRisk != RiskLevel.LOW && type != UnitType.MILITIA
+                && capacity >= 4 ? capacity - 2 : -1;
         for (int i = 0; i < roster.length; i++) {
             MarineSecondary special = i == amrSlot
-                    ? MarineSecondary.ANTI_MATERIEL_RIFLE : null;
+                    ? MarineSecondary.ANTI_MATERIEL_RIFLE
+                    : i == smokeSlot ? MarineSecondary.SMOKE_GRENADE : null;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
                     defenderPrimary(type, rng),
                     defenderEquipmentGrade(type, resolvedRisk, rng),

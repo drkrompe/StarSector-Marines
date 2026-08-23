@@ -65,6 +65,11 @@ public class SquadServiceTest {
         assertTrue(squad.hasSquad(id));
         assertEquals(9, squad.squadId(id));
         assertEquals(0, squad.fireTeamIndex(id));
+        assertEquals(1, r.squadMemberCount(9));
+        assertEquals(id, r.squadMemberArray(9)[0]);
+
+        r.releaseFromRegistry(id);
+        assertEquals(0, r.squadMemberCount(9));
     }
 
     @Test

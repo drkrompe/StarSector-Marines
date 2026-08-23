@@ -104,6 +104,8 @@ public final class SquadAlertSystem {
     private final NoiseEventBus noiseEvents;
     /** Serial-pass scratch reused by every member query; grows only to the largest local crowd. */
     private final LongBucket awarenessCandidates = new LongBucket();
+    /** Serial-pass scratch reused by hostile-shot endpoint queries. */
+    private final LongBucket underFireCandidates = new LongBucket();
 
     public SquadAlertSystem(NavigationService navigation,
                             UnitRosterService roster,
@@ -230,33 +232,31 @@ public final class SquadAlertSystem {
             }
         }
 
-        // Per-tick under-fire-at-LoS scan for every squad. Mirrors
-        // WorldStateBuilder's evalUnderFireAtLos predicate, but runs before the
+        // Per-tick under-fire-at-LoS scan for every squad. This is the
+        // authoritative fact consumed by WorldStateBuilder and runs before the
         // GOAP replan pass so infantry can treat incoming fire as an immediate
         // plan interrupt rather than waiting for the two-second cadence.
         // Garrison squads additionally consume the same flag below for the
         // legacy timeUnderSustainedFire kill-zone diagnostic/override.
+        // Shots are the sparse side of this relationship, so query the unit
+        // index around each endpoint instead of testing every squadmate against
+        // every active shot. The flag itself deduplicates squads reached by
+        // multiple members or shots.
         if (!activeShots.isEmpty()) {
-            for (int i = 0; i < liveCount; i++) {
-                long u = dense[i];
-                if (!roster.squad().hasSquad(u)) continue;
-                Squad squad = roster.getSquad(roster.squad().squadId(u));
-                if (squad == null) continue;
-                if (squad._underFireAtLosThisTick) continue;
-                int uCellX = world.cellX(u);
-                int uCellY = world.cellY(u);
-                for (ShotEvent shot : activeShots) {
+            for (ShotEvent shot : activeShots) {
+                unitIndex.gather(shot.toX, shot.toY, 2f, underFireCandidates);
+                int fromCellX = (int) Math.floor(shot.fromX);
+                int fromCellY = (int) Math.floor(shot.fromY);
+                for (int i = 0; i < underFireCandidates.size; i++) {
+                    long u = underFireCandidates.ids[i];
+                    if (!roster.squad().hasSquad(u)) continue;
+                    Squad squad = roster.getSquad(roster.squad().squadId(u));
+                    if (squad == null || squad._underFireAtLosThisTick) continue;
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.toX - world.x(u);
-                    float dy = shot.toY - world.y(u);
-                    // Same 2-cell-squared "shot landed near me" gate the
-                    // predicate evaluator uses — keeps the two paths in sync.
-                    if (dx * dx + dy * dy > 4f) continue;
-                    int fromCellX = (int) Math.floor(shot.fromX);
-                    int fromCellY = (int) Math.floor(shot.fromY);
+                    int uCellX = world.cellX(u);
+                    int uCellY = world.cellY(u);
                     if (grid.hasLineOfSight(uCellX, uCellY, fromCellX, fromCellY)) {
                         squad._underFireAtLosThisTick = true;
-                        break;
                     }
                 }
             }

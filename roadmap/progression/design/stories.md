@@ -1,8 +1,8 @@
 # Progression open work
 
-Status: ACTIVE — 13 open stories
+Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped S2A anti-materiel rifles and opened its item seam to S2B–S2D.
+Updated: 2026-08-23 — shipped S2B smoke grenades with shared LoS and squad maneuver use.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -12,7 +12,6 @@ Read `progression-nouns.md` before changing a progression story.
 | `s4-performance-derived-experience.md` | Ready | Requires shipped telemetry and follows the lethality/grade pass. Recommended after the S1 play acceptance. |
 | `xp-authority-cleanup.md` | Proposed | Terra synthesis finding; gated by S4 settling the frozen-outcome XP authority. |
 | `s2-primary-weapon-catalog-expansion.md` | Planned | Depends on the shipped lethality scale; adds close-quarters and sustained-fire primary roles. |
-| `s2b-smoke-grenades.md` | Planned | Uses the shipped special-equipment identity seam; adds neutral transient LoS occlusion plus crossing/withdrawal plans. |
 | `s2c-satchel-charges.md` | Planned | Uses the shipped special-equipment identity seam; adds AI-selected close demolition with planter, cordon, and hazard response. |
 | `s2d-frag-grenades.md` | Planned | Uses the shipped special-equipment identity seam; preserves the planned anti-personnel grenade with cluster, safety, and response policy. |
 | `s5-parts-acquisition-channels.md` | Planned | No hard code dependency; pairs with S6. Defines the economy before its expansion. |

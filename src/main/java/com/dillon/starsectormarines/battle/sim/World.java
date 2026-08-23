@@ -80,6 +80,18 @@ public final class World {
     public float damageTakenMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT); }
     public float incomingAccuracyMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT); }
 
+    // Armor is an OPTIONAL, live-only capability. Presence means the actor was
+    // authored with armor even when the current pool has reached zero; armorless
+    // actors omit it. All field reads are fail-loud without the component, so a
+    // maybe-armored caller must gate on hasArmor first.
+    public boolean hasArmor(long id) { return entityWorld.has(id, components.ARMOR); }
+    public float armor(long id) { return entityWorld.getFloat(id, components.ARMOR, BattleComponents.ARMOR_CURRENT); }
+    public void setArmor(long id, float v) { entityWorld.setFloat(id, components.ARMOR, BattleComponents.ARMOR_CURRENT, v); }
+    public float maxArmor(long id) { return entityWorld.getFloat(id, components.ARMOR, BattleComponents.ARMOR_MAX); }
+    public void setMaxArmor(long id, float v) { entityWorld.setFloat(id, components.ARMOR, BattleComponents.ARMOR_MAX, v); }
+    public float armorRating(long id) { return entityWorld.getFloat(id, components.ARMOR, BattleComponents.ARMOR_RATING); }
+    public void setArmorRating(long id, float v) { entityWorld.setFloat(id, components.ARMOR, BattleComponents.ARMOR_RATING, v); }
+
     // The continuous position lives in the entity world's POSITION columns.
     // POSITION persists alive→dead, so a corpse still answers position reads.
     // x/y are the authoritative float coordinates in cell space (cell (cx,cy)
