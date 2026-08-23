@@ -87,15 +87,26 @@ public class BiomeCompoundSeederTest {
     }
 
     @Test
-    public void skipsBiomeWithExistingCompoundSeed() {
+    public void normalizesNaturalMilitaryBasesToOnePerTargetBiome() {
         BiomeMap biome = makeBiomeMap();
         List<BlockLeaf> leaves = new ArrayList<>();
 
-        // Place a natural MILITARY_BASE seed in FORTRESS.
+        // Natural seeds are not authoritative: include duplicates in the
+        // fortress band and one out-of-band base that must be demoted.
         BlockLeaf fortressLeaf = leafInBiome(biome, BiomeKind.FORTRESS_DISTRICT, 8);
         if (fortressLeaf != null) {
             fortressLeaf.kind = BlockKind.MILITARY_BASE;
             leaves.add(fortressLeaf);
+        }
+        BlockLeaf fortressDuplicate = leafInBiome(biome, BiomeKind.FORTRESS_DISTRICT, 7);
+        if (fortressDuplicate != null) {
+            fortressDuplicate.kind = BlockKind.MILITARY_BASE;
+            leaves.add(fortressDuplicate);
+        }
+        BlockLeaf beachBase = leafInBiome(biome, BiomeKind.BEACH, 8);
+        if (beachBase != null) {
+            beachBase.kind = BlockKind.MILITARY_BASE;
+            leaves.add(beachBase);
         }
 
         // Place a residential leaf in PORT and CITY for forcing.
@@ -109,8 +120,20 @@ public class BiomeCompoundSeederTest {
 
         int forced = BiomeCompoundSeeder.seed(leaves, biome);
 
-        assertEquals(2, forced,
-                "should only force-seed PORT + CITY; FORTRESS already has a natural seed");
+        assertEquals(3, forced,
+                "the canonical pass should reserve one seed in every target biome");
+        for (BiomeKind target : new BiomeKind[]{
+                BiomeKind.PORT, BiomeKind.CITY, BiomeKind.FORTRESS_DISTRICT}) {
+            long count = leaves.stream()
+                    .filter(leaf -> leaf.kind == BlockKind.MILITARY_BASE)
+                    .filter(leaf -> biome.biomeAt(leaf.centerX(), leaf.centerY()) == target)
+                    .count();
+            assertEquals(1, count, "target biome should have exactly one military base");
+        }
+        if (beachBase != null) {
+            assertEquals(BlockKind.FORTIFIED_POST, beachBase.kind,
+                    "out-of-band natural bases must not become extra command posts");
+        }
     }
 
     @Test

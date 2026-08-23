@@ -90,10 +90,15 @@ public final class CompoundClaim {
                             BlockKind.FORTIFIED_POST, BlockKind.MILITARY_BASE,
                             BlockKind.NATURE_WETLAND, BlockKind.NATURE_BEACH)));
 
-    /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
+    /**
+     * Conquest spec set — {@link BiomeCompoundSeeder} reserves exactly three
+     * MILITARY_BASE leaves (one per biome band). A reserved base may claim as a
+     * single-leaf fallback so the mission-authored supply anchor cannot disappear
+     * when no eligible neighbor survives the theme roll.
+     */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
-                    3, 3, 2, 4, 6, 7,
+                    3, 3, 1, 4, 6, 7,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 3, 12, 10,

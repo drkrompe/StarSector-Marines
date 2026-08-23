@@ -10,10 +10,10 @@
 ## Current sizes
 
 `MapScale` tiers (cells): SMALL 112×64 = 7,168 · MEDIUM 144×80 = 11,520 ·
-LARGE 240×160 = 38,400. The bridge now runs its **own** decoupled grid —
-`S0BattleCreationPlugin.BRIDGE_GRID_W/H = 480×320 = 153,600` (2× LARGE linear),
-via the explicit-dimensions `BattleSetup.createConquestBuild` overload, so it does
-not enlarge (or pay the decal cost of) standalone HIGH-risk battles.
+LARGE 240×160 = 38,400. Conquest is currently standardized on **240×160** in
+every host through `BattleSetup.CONQUEST_GRID_W/H`; tier and risk do not resize
+it. The 480×320 figures below remain the next useful **2×-linear benchmark**, not
+a currently generated bridge map.
 
 ## Gut-check verdict (two read-only audits, 2026-06-27)
 
@@ -109,10 +109,9 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
 
 ## Shipped / status
 
-- ✅ **Bridge map → 480×320** (2× LARGE), decoupled from `MapScale` via the explicit-dims
-  `createConquestBuild` overload. Cheap today (no bridge decals). `BRIDGE_GRID_W/H` dialable.
-  Playtest watch-items: does the BSP generator behave past its 240×160 test size? is HIGH-risk
-  defender density too sparse spread over 4× area? (both → scale back or tune if bad).
+- ✅ **All Conquest hosts → 240×160.** The bridge-only 480×320 override and
+  explicit-dimension factory were retired; `BattleSetup.CONQUEST_GRID_W/H` is the single
+  mode-level dial. The 2× benchmark remains useful before any future increase.
 - ⏳ **Tiled decal FBO + camera residency** — the #1/#2 plan above; lands with/unblocks S3j
   (DECALS in the bridge) and removes the standalone's world-sized FBO ceiling.
   Render-side board for that work (and for GROUND bake) is captured, not queued, in
