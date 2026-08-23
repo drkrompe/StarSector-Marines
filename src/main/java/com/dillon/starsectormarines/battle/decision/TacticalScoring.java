@@ -216,6 +216,8 @@ public final class TacticalScoring {
      * toward the mech and the SMG marine toward the infantry.
      */
     public static final float WEAPON_AFFINITY_WEIGHT = 8f;
+    /** Caps hardened-target preference so suitability cannot overwhelm engagement range. */
+    public static final float MAX_WEAPON_AFFINITY_RELATIVE = 3.5f;
 
     /**
      * Seconds of unit travel that govern the fall-back candidate scan radius.
@@ -413,10 +415,26 @@ public final class TacticalScoring {
     public long findBestTarget(float selfX, float selfY, Faction selfFaction,
                                int selfSquadId, long excludeFromCrowding,
                                float shooterAirRadius, boolean allowNoLos) {
+        return findBestTargetWithinRange(selfX, selfY, selfFaction, selfSquadId,
+                excludeFromCrowding, shooterAirRadius, allowNoLos,
+                0f, Float.POSITIVE_INFINITY);
+    }
+
+    /**
+     * Mount acquisition variant that scores only targets the mount can engage.
+     * Static weapons cannot path toward an otherwise attractive candidate, so
+     * allowing out-of-range actors into their preference pass can starve a
+     * valid in-range target indefinitely.
+     */
+    public long findBestTargetWithinRange(float selfX, float selfY, Faction selfFaction,
+                                          int selfSquadId, long excludeFromCrowding,
+                                          float shooterAirRadius, boolean allowNoLos,
+                                          float minRange, float maxRange) {
         long _profT0 = System.nanoTime();
         try {
             return findBestTargetImpl(selfX, selfY, selfFaction, selfSquadId,
-                    excludeFromCrowding, shooterAirRadius, allowNoLos);
+                    excludeFromCrowding, shooterAirRadius, allowNoLos,
+                    minRange, maxRange);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.TARGET_PICK, System.nanoTime() - _profT0);
@@ -425,7 +443,8 @@ public final class TacticalScoring {
 
     private long findBestTargetImpl(float selfX, float selfY, Faction selfFaction,
                                     int selfSquadId, long excludeFromCrowding,
-                                    float shooterAirRadius, boolean allowNoLos) {
+                                    float shooterAirRadius, boolean allowNoLos,
+                                    float minRange, float maxRange) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
         // excludes released slots (no isAlive() filter inside the loop).
 
@@ -455,6 +474,7 @@ public final class TacticalScoring {
             int ox = world.cellX(other);
             int oy = world.cellY(other);
             float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
+            if (d < minRange || d > maxRange) continue;
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
@@ -499,8 +519,10 @@ public final class TacticalScoring {
      * temporary type-based preference until D2 moves the decision onto a full
      * expected-damage comparison over current armor state.
      *
-     * <p>{@code self} is {@code 0L} for non-combatant callers (shuttle / static
-     * turrets) — they get no affinity term.
+     * <p>{@code self} is {@code 0L} for anonymous mounts. Static turrets carry
+     * a real entity id, so their transitional catalog penetration participates
+     * in the same bounded preference until D2 replaces this type-based seam
+     * with live armor-state evaluation.
      */
     private float scoreWeaponAffinity(long self, long target) {
         if (self == 0L) return 0f;
@@ -509,10 +531,18 @@ public final class TacticalScoring {
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
         MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
-        float primary = primaryWeapon != null ? primaryWeapon.penetration() : 0f;
+        float primary;
+        if (primaryWeapon != null) {
+            primary = primaryWeapon.penetration();
+        } else if (roster.identity().type(self).isTurret()) {
+            primary = roster.turretState().kind(self).targetAffinityPenetration();
+        } else {
+            primary = 0f;
+        }
         float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
                 ? world.secondaryWeapon(self).penetration() : 0f;
-        float relativeToServiceRifle = Math.max(primary, secondary) / 5f;
+        float relativeToServiceRifle = Math.min(
+                MAX_WEAPON_AFFINITY_RELATIVE, Math.max(primary, secondary) / 5f);
         return WEAPON_AFFINITY_WEIGHT * (1f - relativeToServiceRifle);
     }
 

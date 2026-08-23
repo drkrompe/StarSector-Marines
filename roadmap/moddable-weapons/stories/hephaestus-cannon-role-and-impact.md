@@ -2,7 +2,7 @@
 
 > Make the loud shot behave and read like the anti-armor shell it promises.
 
-Status: IN PROGRESS
+Status: IMPLEMENTED
 
 Written: 2026-08-23
 

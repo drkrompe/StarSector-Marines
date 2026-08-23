@@ -3,7 +3,7 @@
 Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped penetration through every live damage path while mech and turret definitions remain transitional enum authorities.
+Updated: 2026-08-23 — established distinct contact and area payloads for explosive direct-fire weapons while mech and turret definitions remain transitional enum authorities.
 
 ## Purpose
 
@@ -18,9 +18,11 @@ without turning a JSON typo into a silent zero-damage battle.
 - A **weapon definition** is the immutable, stable-id description of combat
   behavior, catalog identity, and shot presentation. It does not own a unit's
   health, hardpoint geometry, magazine policy, or progression eligibility.
-- **Damage** is the definition's effect against exposed structure;
-  **penetration** is its efficiency input against actor armor. Neither value
-  identifies a target category or changes the other after armor breaks.
+- A **damage payload** pairs damage against exposed structure with penetration
+  against actor armor. One shot may own a **contact payload** for the actor
+  physically struck and a separate **area payload** for nearby actors. The
+  contacted actor receives only the contact payload; neither payload identifies
+  a target category or changes its damage after armor breaks.
 - A **weapon id** is the durable reference to a definition. It is the future
   persistence and cross-catalog handle; Java enums are transitional handles,
   not a second source of weapon values.
@@ -72,6 +74,9 @@ shared consumer exists.
   permanent second catalogue.
 - Penetration replaces anti-hardened and anti-turret damage multipliers. A
   weapon never owns a list of platform types against which its damage changes.
+- Contact privilege comes from physical interception. An explosive direct-fire
+  shot does not grant its contact payload to a selected target after a wall stop
+  or miss, and it does not stack contact and area payloads on one actor.
 - An id is stable across authored catalogs and later persistence. A missing
   persisted id must be repaired to a safe starter weapon with a warning, not
   break a roster.
@@ -101,7 +106,10 @@ anti-materiel heavy round through the same marine-secondary mount class.
 the latter points through a distinct special-equipment definition so a loadout
 item and the weapon it activates do not become one identity. Mech weapons and
 turrets remain enum-owned work, but now author penetration with the same live
-semantics until their catalog migrations ship. The open work is on `stories.md`.
+semantics until their catalog migrations ship. The Hephaestus is the current
+transitional proof that one direct-fire weapon can carry mutually exclusive
+contact and area payloads through those semantics. The open work is on
+`stories.md`.
 
 W2 turns effect recipes into ordered authored layers. W3 has migrated the
 current rocket and added marine mount validation; its remaining slice moves
