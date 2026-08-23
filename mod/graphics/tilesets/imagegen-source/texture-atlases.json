@@ -31,6 +31,15 @@
             { "rect": [136, 12, 56, 56] },
             { "rect": [200, 12, 56, 56] }
           ]
+        },
+        {
+          "id": "game-buffs-desert-nature-sand",
+          "source": "atlas-material-source/game-buffs-desert/nature-sand.png",
+          "guardPx": 2,
+          "requireOpaque": true,
+          "targets": [
+            { "rect": [278, 14, 49, 51] }
+          ]
         }
       ]
     },
