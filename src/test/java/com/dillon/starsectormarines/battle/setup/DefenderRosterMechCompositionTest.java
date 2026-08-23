@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
@@ -16,10 +19,54 @@ class DefenderRosterMechCompositionTest {
     @Test
     void lowRiskNeverSpawnsDefenderMechs() {
         for (MissionType type : MissionType.values()) {
-            DefenderRoster roster = DefenderRoster.forMission(type, RiskLevel.LOW, true);
+            DefenderRoster roster = DefenderRoster.forMission(type,
+                    OperationTier.FULL_STRENGTH, RiskLevel.LOW, true);
             assertEquals(0, roster.mechCount, type + " LOW mech count");
             assertTrue(roster.mechVariants.isEmpty(), type + " LOW mech profiles");
         }
+    }
+
+    @Test
+    void smallFirstContractRaidCannotAffordItsCandidateBulwark() {
+        float attackerScore = BattleForceScore.attackers(List.of(
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1)));
+
+        DefenderRoster roster = DefenderRoster.forMission(MissionType.RAID,
+                OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, true,
+                attackerScore);
+
+        assertTrue(roster.mechVariants.isEmpty());
+        assertEquals(roster.totalCount,
+                roster.eliteCount + roster.militiaCount);
+    }
+
+    @Test
+    void enoughCombinedAttackerAndAlliedStrengthCanSupportABeginnerMech() {
+        float attackerScore = BattleForceScore.attackers(List.of(
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1)));
+
+        DefenderRoster roster = DefenderRoster.forMission(MissionType.RAID,
+                OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, true,
+                attackerScore);
+
+        assertEquals(List.of(MechVariant.BULWARK), roster.mechVariants);
+    }
+
+    @Test
+    void unaffordableHighRiskGroupTrimsSpecialistsBeforeItsBulwarkAnchor() {
+        float attackerScore = BattleForceScore.attackers(List.of(
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 1)));
+
+        DefenderRoster roster = DefenderRoster.forMission(MissionType.RAID,
+                OperationTier.FIRST_CONTRACT, RiskLevel.HIGH, true,
+                attackerScore);
+
+        assertEquals(List.of(MechVariant.BULWARK), roster.mechVariants);
     }
 
     @Test
@@ -33,7 +80,8 @@ class DefenderRosterMechCompositionTest {
     @Test
     void mediumIntroducesOneBulwark() {
         for (MissionType type : MissionType.values()) {
-            DefenderRoster roster = DefenderRoster.forMission(type, RiskLevel.MEDIUM, true);
+            DefenderRoster roster = DefenderRoster.forMission(type,
+                    OperationTier.ESTABLISHED, RiskLevel.MEDIUM, true);
             assertEquals(List.of(MechVariant.BULWARK), roster.mechVariants, type.name());
             assertEquals(roster.mechVariants.size(), roster.mechCount);
         }

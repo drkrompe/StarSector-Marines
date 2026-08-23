@@ -5,13 +5,14 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Defender composition for one battle, derived from {@link MissionType} +
- * {@link RiskLevel} + whether the target planet fields heavy armor. Consumed
- * by {@link BattleSetup#allocateDefenders} to size and stiffen the opposing
- * force.
+ * {@link OperationTier} + {@link RiskLevel} + whether the target planet fields
+ * heavy armor. Consumed by {@link BattleSetup#allocateDefenders} to size and
+ * stiffen the opposing force.
  *
  * <p>Per-mission flavor:
  * <ul>
@@ -24,10 +25,13 @@ import java.util.List;
  *       two coordinated lances).</li>
  * </ul>
  *
- * <p>Composition shifts with risk: LOW has no mechs, MEDIUM introduces one
- * Bulwark when heavy armor is available, and HIGH replaces the old flat mech
- * count with complementary Bulwark/Hound/Sirocco groups. Infantry ratios also
- * tighten from 70/30 at LOW to 50/40 at HIGH.
+ * <p>Risk authors candidate composition: LOW has no mechs, MEDIUM introduces
+ * one Bulwark when heavy armor is available, and HIGH replaces the old flat
+ * mech count with complementary Bulwark/Hound/Sirocco groups. The candidate
+ * mechs must then fit beneath the combined attacker's
+ * {@link BattleForceScore}; this keeps small unsupported operations playable
+ * while allowing allied or otherwise reinforced attacks to face armor.
+ * Infantry ratios also tighten from 70/30 at LOW to 50/40 at HIGH.
  */
 public final class DefenderRoster {
 
@@ -80,14 +84,27 @@ public final class DefenderRoster {
 
     public static DefenderRoster forMission(MissionType type, OperationTier tier,
                                             RiskLevel risk, boolean hasHeavyArmor) {
+        return forMission(type, tier, risk, hasHeavyArmor,
+                Float.POSITIVE_INFINITY);
+    }
+
+    /**
+     * Battle-start roster with mech candidates capped by the attacking force.
+     * The score covers player and allied waves; tier continues to own the base
+     * infantry count, so this does not scale the whole encounter to whatever
+     * the player happened to bring.
+     */
+    public static DefenderRoster forMission(MissionType type, OperationTier tier,
+                                            RiskLevel risk, boolean hasHeavyArmor,
+                                            float attackerScore) {
         int total = totalFor(type, tier, risk);
-        List<MechVariant> mechVariants = mechVariantsFor(type, risk, hasHeavyArmor);
+        List<MechVariant> mechVariants = affordableMechVariants(total, risk,
+                mechVariantsFor(type, risk, hasHeavyArmor), attackerScore);
         int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
         // the rest fills with militia.
         int nonMech = Math.max(0, total - mechs);
-        int elites = Math.round(nonMech * eliteRatioFor(risk));
-        if (elites > nonMech) elites = nonMech;
+        int elites = eliteCountFor(nonMech, risk);
         int militia = nonMech - elites;
         return new DefenderRoster(total, elites, mechVariants, militia, patrolSizeFor(risk), risk);
     }
@@ -154,5 +171,35 @@ public final class DefenderRoster {
                     MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
         }
         return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+    }
+
+    /**
+     * Keeps the stable candidate prefix and removes the least essential rear
+     * profiles until the whole defender roster fits the attacker-derived cap.
+     * A HIGH mixed group therefore loses Sirocco, then Hound, then its anchor;
+     * it never degenerates into a random lone specialist.
+     */
+    private static List<MechVariant> affordableMechVariants(
+            int total, RiskLevel risk, List<MechVariant> candidates,
+            float attackerScore) {
+        if (!Float.isFinite(attackerScore) || candidates.isEmpty()) return candidates;
+        List<MechVariant> selected = new ArrayList<>(candidates);
+        float budget = BattleForceScore.defenderBudget(attackerScore);
+        while (!selected.isEmpty()
+                && defenderScore(total, risk, selected) > budget) {
+            selected.remove(selected.size() - 1);
+        }
+        return List.copyOf(selected);
+    }
+
+    private static float defenderScore(int total, RiskLevel risk,
+                                       List<MechVariant> mechVariants) {
+        int nonMech = Math.max(0, total - mechVariants.size());
+        int elites = eliteCountFor(nonMech, risk);
+        return BattleForceScore.defenders(nonMech - elites, elites, mechVariants);
+    }
+
+    private static int eliteCountFor(int nonMech, RiskLevel risk) {
+        return Math.min(nonMech, Math.round(nonMech * eliteRatioFor(risk)));
     }
 }

@@ -27,8 +27,13 @@ chassis, while a heavy can still be assigned either of today's doctrines.
 
 `UnitType.HEAVY_MECH` remains the shared pre-spawn capability tag, while
 `MechVariant` supplies the live Bulwark/Hound/Sirocco profile. Production
-defenders now field none at LOW, one Bulwark at MEDIUM, and deterministic
-mixed groups at HIGH when the target has heavy armor. `LR_SUPPORT`,
+defenders propose none at LOW risk, one Bulwark at MEDIUM, and deterministic
+mixed groups at HIGH when the target has heavy armor. The final group must also
+fit the battle-start force score: attacker infantry seats include employer and
+allied waves, while defender infantry and each chassis consume the opposing
+budget. A small unsupported job therefore drops its mech candidate, but a
+reinforced or joint operation at the same tier can legitimately retain one.
+`LR_SUPPORT`,
 `ARMORED_SUPPORT`, and `ASSAULT` change how a mech uses its equipment, not what
 it carries.
 
