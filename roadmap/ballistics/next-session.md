@@ -1,6 +1,6 @@
 # Ballistics — next session handoff
 
-## State of play (2026-08-19)
+## State of play (2026-08-22)
 
 - **S1 SHIPPED and merged to main** (fast-forward to `76a7f1be`,
   2026-08-13): core `85ec50e6`, merge of main's separation steering +
@@ -72,6 +72,12 @@
   contacts, while defender sources retain ordinary civilian targeting and
   collision. This is a direct-fire rule; it does not redefine civilians as a
   marine faction or suppress alien damage.
+- **S4b SHIPPED** in `8881ff41`. Infantry primary rounds committed to a
+  friendly victim now receive an experience-scaled trigger-discipline roll
+  before emission: 20% Green, 50% Regular, 75% Veteran, 90% Elite. A hold
+  spends cadence but produces no round, impact, noise, or fired telemetry, so
+  training reduces friendly fire without reducing hostile DPS. Full record:
+  `s4b-trigger-discipline.md`. All 2,093 repository tests pass.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 100% hostile / 35%
   friendly incidental base catches). NOTE one design-doc drift, corrected in
@@ -82,15 +88,15 @@
 
 ## Active work
 
-**S4b is active:** `s4b-trigger-discipline.md`. Infantry primary fire now
-resolves its exact counterfactual trajectory first; only a result committed to
-a friendly victim receives a Green/Regular/Veteran/Elite hold roll. Successful
-holds emit no round but the caller still consumes cooldown and burst cadence,
-so training cannot lower hostile DPS. Focused verification is green; complete
-the implementation commit, move the story to `complete/`, then run the full
-suite and record its count.
+**S4b shipped in `8881ff41`:** `s4b-trigger-discipline.md`. Infantry primary
+fire resolves its exact counterfactual trajectory first; only a result
+committed to a friendly victim receives a Green/Regular/Veteran/Elite hold
+roll. Successful holds emit no round but the caller still consumes cooldown
+and burst cadence, so training cannot lower hostile DPS. All 2,093 repository
+tests pass (2,092 root + 1 asset-pipeline).
 
-After S4b, the next useful ballistics step is an in-game feel pass: watch units
+No implementation story is active. The next useful ballistics step is an
+in-game feel pass: watch units
 fire from immediately behind low cover, dense squad firing lanes, and
 midfield/target-side cover to calibrate whether the 2–8-cell transition reads
 naturally without making downrange cover feel weak.

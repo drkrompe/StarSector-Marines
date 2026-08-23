@@ -1,7 +1,19 @@
 # S4b — trigger discipline
 
-> **Active.** Reduce post-lethality-pass friendly fire without making
-> inexperienced soldiers offensively stronger than veterans.
+> **Shipped 2026-08-22** on `session/friendly-fire-discipline`, implementation
+> commit `8881ff41`. Experience-scaled trigger discipline now suppresses only
+> infantry primary rounds already committed to a friendly victim, preserving
+> hostile DPS and normal firing cadence.
+>
+> **Landed vs. planned deviations:** none. Post-implementation verification:
+> all 2,093 repository tests green (2,092 root + 1 asset-pipeline).
+
+Original contract below, kept for the record.
+
+---
+
+> Reduce post-lethality-pass friendly fire without making inexperienced
+> soldiers offensively stronger than veterans.
 
 Parent design: `overview.md`.
 
