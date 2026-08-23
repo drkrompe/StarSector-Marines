@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 14 open stories
+Status: ACTIVE — 13 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — split primary breadth from four AI-integrated special-equipment stories.
+Updated: 2026-08-23 — shipped the AMR and stable special-equipment activation seam.
 
 ## Purpose
 
@@ -108,6 +108,25 @@ assignment, fabrication value, and reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
+The first two built-in identities are the rocket launcher and anti-materiel
+rifle. Both are direct-fire activations, but only the item definition owns
+loadout identity, initial ammunition, Armory art, and activation type; the
+referenced weapon definition owns range, damage, accuracy, impact, projectile,
+and audio behavior. Persisted marines, billets, stock, and recipes use the
+stable `special.*` id. `MarineSecondary` remains a transitional battle handle
+and legacy-save input, not a second stat catalogue.
+
+The anti-materiel rifle is a four-round precision answer to visible hardened
+targets. Its long brace locks one target and cancels when the target or direct
+firing solution becomes illegal. The physical heavy round uses ordinary
+ballistic collision, has no splash or wall damage, and cannot intentionally
+select soft infantry. Squad reservation counts both carriers already bracing
+and committed direct rounds so scarce shots do not overkill. The same policy
+drives player and defender carriers; current authored availability is one
+starter player rifle plus one carrier in high-risk non-militia defender
+fireteams. Its report is an ordinary localized shot noise, not omniscient
+identity disclosure.
+
 ### Telemetry and career
 
 `CombatTelemetryService` records combat evidence at the shared firing and
@@ -171,8 +190,8 @@ The following are direction, not current behavior:
   learning from losses.
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
-  reachable path. The first planned additions are anti-materiel rifles, smoke
-  grenades, satchel charges, and fragmentation grenades.
+  reachable path. The anti-materiel rifle is shipped; the next planned
+  additions are smoke grenades, satchel charges, and fragmentation grenades.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in

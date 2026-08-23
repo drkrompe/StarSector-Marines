@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class VehicleRescueRouteTest {
@@ -23,7 +24,8 @@ class VehicleRescueRouteTest {
         VehicleClearance clearance = VehicleClearance.erode(grid, 0);
 
         VehicleRoutePlanner.RescueRoute forward = VehicleRoutePlanner.routeAvoidingForwardFirst(
-                5, 5, 9, 5, -90f, 0, grid, cost, clearance, 8, 8, 0f);
+                5, 5, 9, 5, -90f, 0, grid, cost, clearance, 8, 8, 0f,
+                VehicleType.HEAVY_APC);
 
         assertNotNull(forward);
         assertEquals(Direction.E.bit(), forward.firstStepDirectionBit());
@@ -32,10 +34,44 @@ class VehicleRescueRouteTest {
 
         VehicleRoutePlanner.RescueRoute next = VehicleRoutePlanner.routeAvoidingForwardFirst(
                 5, 5, 9, 5, -90f, 1 << Direction.E.bit(),
-                grid, cost, clearance, 8, 8, 0f);
+                grid, cost, clearance, 8, 8, 0f, VehicleType.HEAVY_APC);
 
         assertNotNull(next);
         assertEquals(Direction.NE.bit(), next.firstStepDirectionBit(),
                 "once straight ahead was attempted, the next rescue must turn before backing up");
+    }
+
+    @Test
+    void cumulativeAvoidanceCannotReturnThroughAnEarlierFailedTurn() {
+        NavigationGrid grid = new NavigationGrid(14, 12);
+        CellTopology topology = new CellTopology(14, 12);
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 14; x++) {
+            grid.setWalkableFloor(x, y);
+            topology.setGroundKind(x, y, GroundKind.GRASS);
+        }
+        TerrainCostField cost = TerrainCostField.from(topology);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 0);
+
+        VehicleRoutePlanner.RescueRoute rescue = VehicleRoutePlanner.routeAvoidingForwardFirst(
+                2, 5, 11, 5, -90f, 0, grid, cost, clearance,
+                new int[]{5, 8}, new int[]{5, 5}, 2, 1f, VehicleType.HEAVY_APC);
+
+        assertNotNull(rescue);
+        assertFalse(covers(rescue.points(), 5, 5));
+        assertFalse(covers(rescue.points(), 8, 5));
+    }
+
+    private static boolean covers(float[][] route, int cellX, int cellY) {
+        for (int i = 1; i < route[0].length; i++) {
+            float ax = route[0][i - 1], ay = route[1][i - 1];
+            float dx = route[0][i] - ax, dy = route[1][i] - ay;
+            int samples = Math.max(1, (int) Math.ceil(Math.hypot(dx, dy) / 0.1));
+            for (int sample = 0; sample <= samples; sample++) {
+                float t = sample / (float) samples;
+                if ((int) Math.floor(ax + dx * t) == cellX
+                        && (int) Math.floor(ay + dy * t) == cellY) return true;
+            }
+        }
+        return false;
     }
 }

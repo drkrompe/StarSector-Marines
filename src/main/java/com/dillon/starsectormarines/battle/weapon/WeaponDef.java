@@ -60,6 +60,20 @@ public final class WeaponDef {
     public final float hitSpread;
     /** Round speed in cells/sec. */
     public final float roundVelocity;
+    /** Minimum legal firing range; zero for ordinary direct fire. */
+    public final float minRange;
+    /** Splash radius in cells; zero for precise rounds. */
+    public final float aoeRadius;
+    /** Structural damage applied by a detonation. */
+    public final int wallDamage;
+    /** Structural-damage reach around the impact point. */
+    public final float wallDamageRadius;
+    /** Carrier-owned pre-fire commitment window for handheld specials. */
+    public final float aimDuration;
+    /** Maximum-range travel time retained for projectile presentation. */
+    public final float flightSec;
+    /** Visual arc height for lobbed projectiles. */
+    public final float arcHeight;
 
     // ---- render ----
     /** Traveling-body tint, so the player can identify fire at a glance. */
@@ -77,15 +91,20 @@ public final class WeaponDef {
     // ---- audio ----
     /** Vanilla fire sound id; mono, pre-registered by the core install. */
     public final String fireSoundId;
+    /** Optional impact sound for projectile or detonation presentation. */
+    public final String impactSoundId;
 
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
                       float range, float damage, float accuracy, float cooldown,
                       float vsHardenedMult, int burstCount, float burstSpacing,
                       float accuracyFalloff, float hitSpread, float roundVelocity,
+                      float minRange, float aoeRadius, int wallDamage,
+                      float wallDamageRadius, float aimDuration, float flightSec,
+                      float arcHeight,
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
-                      String fireSoundId) {
+                      String fireSoundId, String impactSoundId) {
         this.id = id;
         this.mount = mount;
         this.displayName = displayName;
@@ -102,11 +121,19 @@ public final class WeaponDef {
         this.accuracyFalloff = accuracyFalloff;
         this.hitSpread = hitSpread;
         this.roundVelocity = roundVelocity;
+        this.minRange = minRange;
+        this.aoeRadius = aoeRadius;
+        this.wallDamage = wallDamage;
+        this.wallDamageRadius = wallDamageRadius;
+        this.aimDuration = aimDuration;
+        this.flightSec = flightSec;
+        this.arcHeight = arcHeight;
         this.tracerColor = tracerColor;
         this.impactProfile = impactProfile;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
         this.fireSoundId = fireSoundId;
+        this.impactSoundId = impactSoundId;
     }
 
     /** Catalog designation for one equipment tier — "PLS-2", or "FR-1" for an untiered entry. */
@@ -131,7 +158,7 @@ public final class WeaponDef {
         JSONObject sim = json.getJSONObject("sim");
         JSONObject render = json.optJSONObject("render");
         JSONObject audio = json.optJSONObject("audio");
-        return new WeaponDef(
+        WeaponDef def = new WeaponDef(
                 id,
                 mount,
                 requireText(catalog, "displayName"),
@@ -148,11 +175,39 @@ public final class WeaponDef {
                 (float) sim.optDouble("accuracyFalloff", 0.0),
                 (float) sim.optDouble("hitSpread", 0.0),
                 (float) sim.optDouble("roundVelocity", 0.0),
+                (float) sim.optDouble("minRange", 0.0),
+                (float) sim.optDouble("aoeRadius", 0.0),
+                sim.optInt("wallDamage", 0),
+                (float) sim.optDouble("wallDamageRadius", 0.0),
+                (float) sim.optDouble("aimDuration", 0.0),
+                (float) sim.optDouble("flightSec", 0.0),
+                (float) sim.optDouble("arcHeight", 0.0),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
                 render != null ? parseImpact(render.optString("impact", null), id) : ImpactProfile.RIFLE,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
-                audio != null ? emptyToNull(audio.optString("fireSound", null)) : null);
+                audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
+                audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
+        validateMountFields(def);
+        return def;
+    }
+
+    private static void validateMountFields(WeaponDef def) throws JSONException {
+        if (def.mount == MountClass.MARINE_PRIMARY
+                && (def.aoeRadius != 0f || def.wallDamage != 0
+                || def.wallDamageRadius != 0f || def.aimDuration != 0f
+                || def.minRange != 0f || def.arcHeight != 0f)) {
+            throw new JSONException("Marine primary '" + def.id
+                    + "' declares special or mounted-weapon fields");
+        }
+        if (def.mount != MountClass.MARINE_SECONDARY && def.aimDuration != 0f) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares aimDuration outside the marine-secondary mount class");
+        }
+        if (def.wallDamageRadius > 0f && def.wallDamage <= 0) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares wallDamageRadius without wallDamage");
+        }
     }
 
     private static String requireText(JSONObject json, String key) throws JSONException {

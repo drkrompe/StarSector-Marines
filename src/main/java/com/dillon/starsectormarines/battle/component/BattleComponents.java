@@ -33,8 +33,7 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * dissolution is done — the dense roster lives on {@code UnitRosterService},
  * by-id access on {@code World}.
  *
- * <p><b>Air craft</b> (the air-into-world epic,
- * {@code roadmap/air/air-entities-into-world.md}) are world entities too, with a
+ * <p><b>Air craft</b> (see {@code air-nouns.md}) are world entities too, with a
  * disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION,
  * APPEARANCE}} (+ optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) and
  * <em>no</em> grid/combat components — so every grid system skips them for free
@@ -599,8 +598,7 @@ public final class BattleComponents {
      * each tick). An OBJECT column (not decomposed floats) because {@code AirBody}
      * is a small, shared POJO (drones, the non-entity {@code FlybyOverlay}, and
      * {@code CrashingComponent} all hold one) and air is a tiny population — the
-     * CRASHING/MECH_LOADOUT precedent. The air-into-world epic
-     * ({@code roadmap/air/air-entities-into-world.md}).
+     * CRASHING/MECH_LOADOUT precedent; see {@code air-nouns.md}.
      */
     public final ComponentType KINEMATICS;
     /**
@@ -648,7 +646,7 @@ public final class BattleComponents {
      * handle. Part of the air spawn archetype (every craft has one); written by
      * {@code AirSystem}'s state-machine tick, read by the render + audio passes by
      * id. The [[feedback_appearance_authored_component]] pattern. See
-     * {@code roadmap/air/air-entities-into-world.md}.
+     * {@code air-nouns.md}.
      */
     public final ComponentType APPEARANCE;
     /**

@@ -2,11 +2,12 @@
 
 > The weapons that are only weapons.
 
-Status: PLANNED
+Status: IN PROGRESS — marine-secondary schema and rocket migration shipped with
+progression S2A; five mech weapons and mech mount validation remain.
 
 Written: 2026-08-22
 
-Updated: 2026-08-23 — scoped the portable migration to the current weapon-like rocket, not future utility specials.
+Updated: 2026-08-23 — marine-secondary half landed; remaining scope is the five mech weapons.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -32,7 +33,7 @@ at a weapon id and changing nothing else.
 
 This story migrates the one shipped weapon-like secondary; it does not declare
 that every future item in the same player-facing slot is a weapon. The
-anti-materiel rifle in `s2a-anti-materiel-rifle.md` may reference this schema.
+shipped anti-materiel rifle described in `progression-nouns.md` references this schema.
 The frag grenade in `s2d-frag-grenades.md` may do the same for an arcing
 explosive definition. Smoke and satchel activations remain owned by their
 progression stories.

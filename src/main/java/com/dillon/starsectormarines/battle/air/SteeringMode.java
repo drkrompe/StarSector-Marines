@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 /**
- * How {@link AirBody#tickToward} treats the goal point.
+ * How {@link AirSteeringSystem} treats the goal point.
  *
  * <ul>
  *   <li>{@link #CRUISE} — fly at {@link AirHandling#maxSpeed()}. Doesn't try to

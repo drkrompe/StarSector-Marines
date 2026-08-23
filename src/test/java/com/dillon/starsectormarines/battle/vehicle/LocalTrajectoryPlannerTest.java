@@ -187,15 +187,6 @@ public class LocalTrajectoryPlannerTest {
 
         Trajectory t = LocalTrajectoryPlanner.plan(start, corr, TYPE, grid);
 
-        // Whatever it returns, it must be feasible and smooth — that's the
-        // invariant. (It may legitimately be null if no feasible plan exists.)
-        if (t != null) {
-            assertAllPosesFeasible(t, grid);
-            assertHeadingsSmooth(t);
-            float maxX = 0f;
-            for (float x : t.xs()) maxX = Math.max(maxX, x);
-            assertTrue(maxX > 12.5f,
-                    "a non-null tight-corridor plan must engage the elbow, not stop short (maxX=" + maxX + ")");
-        }
+        assertNull(t, "a forward-only APC plan must reject the statically fitting but unturnable elbow");
     }
 }

@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -149,6 +151,33 @@ public class SpaceportFillerTest {
             rolledPad = MapDistrictTheme.HARBOR_PORT.pickBlockKind(rng) == BlockKind.SPACEPORT_PAD;
         }
         assertTrue(rolledPad);
+    }
+
+    @Test
+    void legacyCoverPropsRemainShootThroughFixturesAfterFinalize() {
+        BlockLeaf leaf = new BlockLeaf(2, 2, 17, 12, false);
+        int width = 21;
+        int height = 17;
+        long seed = 7L;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+        GenContext ctx = new GenContext(grid, topology, new Random(seed),
+                width, height, seed);
+        ctx.put(BspKeys.AXIS, TraversalAxis.SOUTH_TO_NORTH);
+
+        FILLER.fill(leaf, ctx);
+        new FinalizeStage().run(ctx);
+
+        int blockingProps = 0;
+        for (Doodad doodad : ctx.doodads) {
+            if (grid.isWalkable(doodad.cellX, doodad.cellY)) continue;
+            blockingProps++;
+            assertTrue(grid.isSeeThrough(doodad.cellX, doodad.cellY));
+            assertTrue(topology.isFixture(doodad.cellX, doodad.cellY));
+            assertFalse(topology.isWall(doodad.cellX, doodad.cellY));
+            assertEquals(0, grid.getWallHp(doodad.cellX, doodad.cellY));
+        }
+        assertTrue(blockingProps >= 2, "legacy apron should place tactical cover props");
     }
 
     private static int walkableOutdoorCount(GenContext ctx, BlockLeaf leaf) {

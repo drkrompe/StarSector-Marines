@@ -13,8 +13,7 @@ package com.dillon.starsectormarines.battle.air;
  * PENDING after DEPARTING and flies another sortie.
  *
  * <p>A top-level enum (formerly {@code Shuttle.State}) so it outlives the
- * dissolving {@code Shuttle} handle — see
- * {@code roadmap/air/air-entities-into-world.md}.
+ * dissolved {@code Shuttle} handle; see {@code air-nouns.md}.
  */
 public enum ShuttleState {
     PENDING, INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE

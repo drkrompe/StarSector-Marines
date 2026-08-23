@@ -37,6 +37,10 @@ public final class VehicleControlComponent {
     public float sinceReplan;
     /** True when last tick's carrot pinned to the trajectory end (consumed) — forces a replan. */
     public boolean trajCarrotAtEnd;
+    /** Consecutive on-grid seconds for which the rolling planner has returned no executable forward trajectory. */
+    public float localPlanFailureTime;
+    /** True after the immediate re-route attempt for the current uninterrupted local-plan failure. */
+    public boolean localPlanFailureRerouteAttempted;
 
     /** Active Reeds-Shepp docking path, or {@code null} when not docking. */
     public ReedsShepp.Path dockingPath;
@@ -75,6 +79,10 @@ public final class VehicleControlComponent {
      * escape instead of driving into the same failed corridor again.
      */
     public int rescueFirstStepTriedMask;
+    /** Failed turn areas retained for this inbound/outbound leg so rescue routes cannot ping-pong through an earlier bad bend. */
+    public final int[] rerouteAvoidX = new int[8];
+    public final int[] rerouteAvoidY = new int[8];
+    public int rerouteAvoidCount;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by the control system's {@code consumeArrived}. */
     public boolean arrived;

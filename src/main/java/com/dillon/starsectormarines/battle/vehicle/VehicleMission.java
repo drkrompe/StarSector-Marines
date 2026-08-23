@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -43,6 +44,8 @@ public final class VehicleMission {
     /** LZ position — terminal waypoint of {@link #inboundX}. */
     public final float lzX;
     public final float lzY;
+    /** Heading used by terminal docking so the parked APC is already aligned with its outbound corridor. */
+    public final float lzDepartureFacingDeg;
 
     public float pendingDelay;
     public float deboardCountdown;
@@ -137,8 +140,17 @@ public final class VehicleMission {
         this.outboundY = outboundY;
         this.lzX = inboundX[inboundX.length - 1];
         this.lzY = inboundY[inboundY.length - 1];
+        this.lzDepartureFacingDeg = initialHeading(outboundX, outboundY);
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = marinesRemaining;
+    }
+
+    private static float initialHeading(float[] xs, float[] ys) {
+        for (int i = 1; i < xs.length; i++) {
+            float dx = xs[i] - xs[0], dy = ys[i] - ys[0];
+            if (dx * dx + dy * dy > 1e-6f) return AirBody.facingToward(dx, dy);
+        }
+        return 0f;
     }
 
     /** True when the vehicle is on-map and rendered. */
