@@ -1,8 +1,8 @@
 # U2 — Clipping, scrolling, focus, and canvas input
 
-Status: IN PROGRESS — overflow clipping and vertical scrolling implemented; focus, capture, and canvas remain
+Status: IN PROGRESS — clipping, scrolling, focus, and pointer capture implemented; canvas remains
 Written: 2026-08-23
-Updated: 2026-08-23 — ported MoonLight's retained scroll state, layout extent, wheel ancestry, and overlay thumb.
+Updated: 2026-08-23 — added semantic Starsector input translation, document focus actions, and explicit pointer capture.
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1.
 
@@ -61,6 +61,28 @@ screen can be retired.
 - The workbench template library is now a bounded eight-row scroll proof. Headless
   tests cover both clamps, retained offset, shifted hit-testing, nested handoff,
   terminal consumption, fitting/visible content, and thumb travel.
+
+## Implemented slice — focus, named input, and pointer capture
+
+- `UiKey`, `KeyModifier`, and `PointerButton` are semantic retained-UI names copied
+  from MoonLight. The `StarsectorUiInputAdapter` is the only retained class that
+  imports `InputEventAPI` or LWJGL keyboard codes and converts host coordinates.
+- A small HTML element vocabulary (`DIV`, `BUTTON`, `CANVAS`) establishes native
+  focus behavior without teaching layout about domain-specific widgets.
+- `tabIndex` supports the HTML subset required here: `0` joins document-order Tab
+  traversal and `-1` permits programmatic/pointer focus while skipping traversal.
+  Positive ordering is rejected rather than inventing a partial algorithm.
+- Tab and Shift+Tab wrap; Enter activates once on key-down; Space arms on key-down
+  and activates on the matching release; unmodified Escape invokes the document's
+  cancel action. Keyboard focus receives an explicit visible outline while pointer
+  focus does not synthesize one.
+- Pointer events bubble from the deepest geometric element. Handlers may explicitly
+  capture the pointer; movement and release then continue outside the original box,
+  and primary release ends capture after dispatch/default click handling.
+- Screen resize callbacks relayout the same document. Actual detach clears hover,
+  focus, armed keys, pressed buttons, and capture while preserving retained scroll.
+- Headless tests cover traversal/wrapping, focus eligibility, Enter/Space/Escape,
+  nearest-focusable pointer targeting, captured outside delivery/click, and detach.
 
 ## Acceptance
 

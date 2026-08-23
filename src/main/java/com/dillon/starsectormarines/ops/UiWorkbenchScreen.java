@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -44,6 +46,7 @@ public final class UiWorkbenchScreen implements Screen {
     private MarineOpsContext context;
     private UiViewport viewport;
     private UiDocument document;
+    private StarsectorUiInputAdapter input;
     private UiElement viewportReadout;
     private UiElement selectedTeamReadout;
     private UiElement selectedTemplateReadout;
@@ -60,6 +63,7 @@ public final class UiWorkbenchScreen implements Screen {
         updateViewportReadout();
         updateSelectionReadouts();
         document.layout(viewport.width(), viewport.height());
+        input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private UiDocument buildDocument() {
@@ -105,7 +109,8 @@ public final class UiWorkbenchScreen implements Screen {
                 GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
-        UiDocument built = new UiDocument(root);
+        UiDocument built = new UiDocument(root)
+                .onCancel(() -> context.goTo(ScreenId.COMPANY_HQ));
         updateSelectionReadouts();
         return built;
     }
@@ -250,11 +255,13 @@ public final class UiWorkbenchScreen implements Screen {
 
     private static UiElement button(String id, String text, float width, Runnable action) {
         UiElement button = new UiElement(id)
+                .tag(UiTag.BUTTON)
                 .preferredWidth(width)
                 .background(BUTTON)
                 .hoverBackground(BUTTON_HOVER)
                 .armedBackground(BUTTON_ARMED)
                 .border(1f, BORDER)
+                .focusOutline(2f, ACCENT)
                 .padding(9f)
                 .overflow(Overflow.HIDDEN)
                 .text(Fonts.ORBITRON_20, text, TEXT)
@@ -314,22 +321,12 @@ public final class UiWorkbenchScreen implements Screen {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
-        if (events == null || document == null || viewport == null) return;
-        for (InputEventAPI event : events) {
-            if (event.isConsumed()) continue;
-            float x = viewport.documentX(event.getX());
-            float y = viewport.documentY(event.getY());
-            if (event.isMouseMoveEvent()) {
-                document.pointerMoved(x, y);
-            } else if (event.isMouseScrollEvent()) {
-                int raw = event.getEventValue();
-                float delta = raw > 0 ? -53f : (raw < 0 ? 53f : 0f);
-                if (document.pointerScrolled(x, y, delta)) event.consume();
-            } else if (event.isLMBDownEvent()) {
-                if (document.pointerDown(x, y)) event.consume();
-            } else if (event.isLMBUpEvent()) {
-                if (document.pointerUp(x, y)) event.consume();
-            }
-        }
+        if (input != null) input.process(events);
+    }
+
+    @Override
+    public void detach() {
+        if (document != null) document.deactivateInput();
+        input = null;
     }
 }
