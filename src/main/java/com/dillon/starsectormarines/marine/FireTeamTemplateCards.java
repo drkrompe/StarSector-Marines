@@ -15,9 +15,10 @@ public final class FireTeamTemplateCards {
     public static final String RECON_ID = "recon";
     public static final String FIRE_SUPPORT_ID = "fire_support";
     public static final String ANTI_MATERIEL_ID = "anti_materiel";
+    public static final String SCREEN_ID = "screen";
 
     private static final Set<String> STARTER_IDS = Set.of(
-            FIELD_ID, LINE_ID, RECON_ID, FIRE_SUPPORT_ID, ANTI_MATERIEL_ID);
+            FIELD_ID, LINE_ID, RECON_ID, FIRE_SUPPORT_ID, ANTI_MATERIEL_ID, SCREEN_ID);
 
     private FireTeamTemplateCards() {}
 
@@ -69,6 +70,16 @@ public final class FireTeamTemplateCards {
                                 MarineArmorPattern.CHARCOAL),
                         billet("Heavy Marksman", MarineWeapon.PULSE_RIFLE,
                                 MarineSecondary.ANTI_MATERIEL_RIFLE,
+                                MarineArmorPattern.CHARCOAL)),
+                card(SCREEN_ID, "Screen",
+                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Grenadier", MarineWeapon.SMG,
+                                MarineSecondary.SMOKE_GRENADE,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Marksman", MarineWeapon.DMR, null,
                                 MarineArmorPattern.CHARCOAL)));
     }
 

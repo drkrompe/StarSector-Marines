@@ -133,7 +133,7 @@ the player never sees it. It leaks through:
   compass reads "ruthless" beyond a threshold; others *prefer* them.
 - **Briefing flavor shifts** — patrons of an alignment write differently to
   a player they perceive as similar (see
-  [`narrative/overview.md`](narrative/overview.md)).
+  `narrative-nouns.md`).
 - **The kingmaker capstone** — the one moment the compass is *explicitly*
   surfaced: the deposed ruler's testament names what the player chose to
   become. Reserved for narrative apex.
@@ -142,7 +142,7 @@ the player never sees it. It leaks through:
 
 - Contract acceptance/refusal (refusing a fallen-noble for ethics ticks
   honor; accepting a SUSPICIOUS patron's grey contracts ticks ruthlessness
-  — see [`narrative/overview.md`](narrative/overview.md) archetypes).
+  — see `narrative-nouns.md` archetypes).
 - Mission outcomes (collateral damage, civilians killed, surrendered
   defenders' treatment).
 - [Black-swan event](events.md) responses — the densest compass-touching
@@ -185,5 +185,5 @@ the player learns to read).
 - [black-swan events](events.md) — highest-density compass-touching content.
 - `t3-endgame-nouns.md` — the kingmaker
   capstone reveal.
-- [`narrative/overview.md`](narrative/overview.md) — patron dialog gates +
+- `narrative-nouns.md` — patron dialog gates +
   briefing flavor the compass feeds.

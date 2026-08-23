@@ -98,7 +98,7 @@ not having to dock at all five planets to comparison-shop.
 This is the load-bearing constraint, and it is the one worth defending when the
 board later feels like it should just have an Accept button.
 
-G32 (`g32-player-event-popup.md`) established remote action — its **Deploy
+G32, recorded in `contracts-nouns.md`, established remote action — its **Deploy
 Now** opens Marine Ops against a contract's own market from deep space. But
 what it lets the player do remotely is *respond to an obligation they already
 signed*. Taking on new work is the opposite direction. If a contract can be
@@ -139,8 +139,9 @@ Why the fee is split rather than a single number:
 
 - **`playerMrbRep` starts doing something the player can feel.** Today MRB rep
   gates which patrons will offer work
-  (G21 (`g21-contract-eligibility-gates.md`)) — a gate on offers the player
-  never sees, so the number moves and nothing observable changes.
+  (the shipped eligibility gate recorded in `contracts-nouns.md`) — a gate on
+  offers the player never sees, so the number moves and nothing observable
+  changes.
 - **The maintenance fee lands on the standing pane's headline number.**
   It is upkeep, so it shortens the runway the standing pane leads with. An
   information advantage that costs runway is a trade rather than a reward.
@@ -202,11 +203,11 @@ The one case that would genuinely earn an offer a slot on the clock pane is an
 offer the player has **decided on** and is flying toward — a watchlist. Not
 modelled, and deliberately not built here; see Open questions.
 
-**Against the contracts track.** `roadmap/campaign/contracts/` owns the
+**Against the contracts track.** `contracts-nouns.md` owns the
 *rules* — what MRB standing buys, what the feed costs, offer supply. This story
 owns the *surface*. The tuning slice below is a contracts-track change made
 from here because the board is what makes it observable; it should be reviewed
-against `contracts/next-session.md` before it lands.
+against `contracts-nouns.md` and `contracts-live-acceptance.md` before it lands.
 
 ## Slices
 

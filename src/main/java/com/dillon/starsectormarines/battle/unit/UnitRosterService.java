@@ -371,6 +371,8 @@ public final class UnitRosterService {
         // {IDENTITY, POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
         // universal — sight stats + the behavior-dispatch role; both removed on
         // death); on top of that:
+        //   - ARMOR iff the spec supplies a positive maximum armor pool. Presence
+        //     remains after depletion and means the actor has the armor capability.
         //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
         //     engineer / scientist; UnitType.combatant == false) never fires and is
         //     never targeted, so "has COMBAT" defines a combatant — presence IS the
@@ -407,6 +409,7 @@ public final class UnitRosterService {
         // MOVEMENT / AI_STATE / SECONDARY_WEAPON.
         boolean mobile = !spec.type.isStatic();
         boolean combatant = spec.type.combatant;
+        boolean hasArmor = spec.maxArmor > 0f;
         boolean hasSecondary = spec.secondaryWeapon != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
@@ -448,7 +451,7 @@ public final class UnitRosterService {
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
-                5 + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
@@ -456,6 +459,7 @@ public final class UnitRosterService {
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
         archetype[c++] = components.HEALTH;
+        if (hasArmor) archetype[c++] = components.ARMOR;
         archetype[c++] = components.VISION;
         archetype[c++] = components.ROLE;
         if (combatant) archetype[c++] = components.COMBAT;
@@ -539,6 +543,14 @@ public final class UnitRosterService {
                 BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, spec.damageTakenMult);
         entityWorld.setFloat(id, components.HEALTH,
                 BattleComponents.HEALTH_INCOMING_ACCURACY_MULT, spec.incomingAccuracyMult);
+        if (hasArmor) {
+            entityWorld.setFloat(id, components.ARMOR,
+                    BattleComponents.ARMOR_CURRENT, spec.currentArmor);
+            entityWorld.setFloat(id, components.ARMOR,
+                    BattleComponents.ARMOR_MAX, spec.maxArmor);
+            entityWorld.setFloat(id, components.ARMOR,
+                    BattleComponents.ARMOR_RATING, spec.armorRating);
+        }
         // VISION is universal — sight stats seeded from the unit's write-only seeds
         // (a ground unit's airLosRadius just seeds to 0). Removed on death.
         entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_RANGE, spec.visionRange);

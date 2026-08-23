@@ -76,7 +76,7 @@ class MechVariantTest {
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertEquals(45f, MechWeapon.HEAVY_CANNON.damage, 0.001f);
-        assertEquals(3f, MechWeapon.HEAVY_CANNON.vsTurretMult, 0.001f);
+        assertEquals(18f, MechWeapon.HEAVY_CANNON.penetration, 0.001f);
         assertEquals(26f, MechWeapon.HEAVY_CANNON.range, 0.001f);
         assertSame(ImpactProfile.CANNON_HE, MechWeapon.HEAVY_CANNON.impactProfile);
         assertEquals(1f, MechWeapon.HEAVY_CANNON.aoeRadius, 0.001f);
@@ -103,7 +103,9 @@ class MechVariantTest {
         sim.world().attachMechLoadout(hound, MechVariant.HOUND.createLoadout(null));
 
         assertSame(MechVariant.HOUND, sim.identity().mechVariant(hound));
-        assertEquals(MechVariant.HOUND.maxHp, sim.world().maxHp(hound), 0.001f);
+        assertEquals(MechVariant.HOUND.maxStructure, sim.world().maxHp(hound), 0.001f);
+        assertEquals(MechVariant.HOUND.armorPool, sim.world().armor(hound), 0.001f);
+        assertEquals(MechVariant.HOUND.armorRating, sim.world().armorRating(hound), 0.001f);
         assertEquals(MechVariant.HOUND.moveSpeed, sim.movement().moveSpeed(hound), 0.001f);
         assertEquals(MechVariant.HOUND.radius, sim.getRoster().radius(hound), 0.001f);
         assertEquals(MechVariant.HOUND.hitHalfHeight,

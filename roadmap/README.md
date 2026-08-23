@@ -142,13 +142,13 @@ universe over time, not retrofitted into intel slots.
   (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
   and expose four read-only debug heatmaps. No commander assignments consume
   the fields yet.
-- **Combat durability** *(implementation starting)* — a real armor pool now has
-  a contracted place in front of structure, with weapon penetration replacing
-  target-type hardened multipliers. The model separates mech endurance from
-  weapon effectiveness, preserves cover and wall boundaries, and provides one
-  armor-break transition for AI, morale, telemetry, and presentation. D1 is
-  the active foundation slice; decision, evidence/UI, and measured balance
-  follow-ons are planned. See `combat-durability-nouns.md` and its adjacent
+- **Combat durability** *(D1 shipped; D2 planned)* — actors now carry an
+  optional live armor pool and rating in front of structure, while every live
+  damage path transports weapon penetration instead of target-type damage
+  multipliers. Infantry patterns, mech variants, turrets, and drone hubs have
+  initial profiles behind one allocation-free resolver that preserves cover
+  and wall boundaries. Armor-aware decisions, split evidence/UI, and measured
+  balance remain follow-ons. See `combat-durability-nouns.md` and its adjacent
   open-story board.
 - **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned
@@ -170,9 +170,9 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 now separates primary breadth from four special-equipment stories—AMR,
-  smoke, satchels, and the retained frag grenade—with their gameplay-AI use
-  and counterplay contracted;
+  S2 separates primary breadth from special-equipment stories. AMR and smoke
+  are shipped, while satchels and the retained frag grenade remain contracted
+  with their gameplay-AI use and counterplay;
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
@@ -373,8 +373,8 @@ universe over time, not retrofitted into intel slots.
    measured same-market engagement; selected history variants can now name the
    prior operation's frozen target location. Contract the next narrative story
    before adding patron evolution, captain observations, or longer-form
-   continuity. See
-   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+   continuity. See `narrative-nouns.md` and
+   `narrative-live-acceptance.md`.
 5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
    hold back individual source ships, verify cards disappear and return, deploy
    a mixed deck, and confirm that the battle receives exactly the selected
@@ -420,8 +420,8 @@ universe over time, not retrofitted into intel slots.
    boundaries. `CampaignClock` replaces it with a monotonic counter anchored so
    existing saves keep their numbering; **an in-game confirmation pass is queued**.
    See `campaign-framework-nouns.md`,
-   `monotonic-clock-live-acceptance.md`, and
-   [`campaign/contracts/next-session.md`](campaign/contracts/next-session.md).
+   `monotonic-clock-live-acceptance.md`, `contracts-nouns.md`, and
+   `contracts-live-acceptance.md`.
 
 *(Shipped since this list was written: **offer expiry + patron archetypes** —
 offers now lapse per archetype-driven windows (`ContractGenerator` +
