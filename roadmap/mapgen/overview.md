@@ -69,6 +69,11 @@ rock as structural architecture. Medium rocks remain walkable cover. Large
 rocks block navigation but are see-through, skip wall art/HP through the
 non-structural fixture contract, stay off leaf perimeters, and are rejected
 when their placement would disconnect the leaf's remaining walkable space.
+The same fixture contract governs navigation-blocking doodads: fences,
+sandbags, shelves, planters, and comparable props remain shoot-through and use
+one authored directional edge-cover profile rather than stacking prop-crossing
+and grid-edge protection. Non-walkable water explicitly suppresses generic
+edge cover, so a shoreline is a movement boundary rather than a parapet.
 
 The room-purpose seam, introduced by the refactor:
 

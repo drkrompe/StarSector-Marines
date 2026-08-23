@@ -121,6 +121,7 @@ public final class BeachShorelineStage implements GenStage {
         // floor flags we don't care about here.
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
+        grid.setEdgeCoverSuppressed(x, y, true);
     }
 
     /**

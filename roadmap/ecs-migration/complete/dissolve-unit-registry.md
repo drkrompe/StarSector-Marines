@@ -74,5 +74,5 @@ Behavior-preserving: pure receiver/name swaps, no logic change. Suite green at
 state in the `EntityWorld`; `UnitRosterService` is the live roster; `World` is the
 by-id facade. `ComponentStore<T>` survives only for the **air-FX** subsystem
 (`ThrusterFx`/`AirTurrets`), a separate entity space — it dies in the captured
-[air-entities-into-the-world epic](../../air/air-entities-into-world.md), now
-unblocked (it adopts air craft into the sim-owned world this step leaves behind).
+air-entity model now folded into `air-nouns.md` (it adopts air craft into the
+sim-owned world this step leaves behind).

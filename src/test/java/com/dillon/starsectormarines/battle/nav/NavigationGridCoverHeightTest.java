@@ -31,4 +31,18 @@ class NavigationGridCoverHeightTest {
         assertEquals(0f, grid.getCoverCatchHalfHeightAtFacing(
                 2, 2, NavigationGrid.FACING_N), EPS);
     }
+
+    @Test
+    void nonWalkableCellCanSuppressPhantomEdgeCover() {
+        NavigationGrid grid = new NavigationGrid(5, 3);
+        grid.setWalkableFloor(2, 1);
+        grid.setWalkable(3, 1, false);
+
+        grid.recomputeCoverAt(2, 1);
+        assertEquals(1, grid.getCoverAtFacing(2, 1, NavigationGrid.FACING_E));
+
+        grid.setEdgeCoverSuppressed(3, 1, true);
+        grid.recomputeCoverAt(2, 1);
+        assertEquals(0, grid.getCoverAtFacing(2, 1, NavigationGrid.FACING_E));
+    }
 }

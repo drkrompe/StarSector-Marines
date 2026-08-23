@@ -16,6 +16,7 @@ class DoodadServiceTest {
     @Test
     void stackedProfilesChooseTheStrongestLevelThatContainsTheRound() {
         NavigationGrid grid = new NavigationGrid(4, 4);
+        grid.setWalkableFloor(2, 2);
         DoodadService service = new DoodadService(grid);
         TileManifest.TileFrame frame = new TileManifest.TileFrame(0, 0);
         service.addDoodad(new Doodad(2, 2, frame, false,
@@ -36,6 +37,8 @@ class DoodadServiceTest {
     @Test
     void multicellDoodadPublishesCoverAndBallisticsAcrossItsWholeFootprint() {
         NavigationGrid grid = new NavigationGrid(5, 4);
+        grid.setWalkableFloor(1, 1);
+        grid.setWalkableFloor(2, 1);
         DoodadService service = new DoodadService(grid);
         Doodad sofa = new Doodad(1, 1, new TileManifest.TileFrame(0, 0),
                 TileManifest.DOODAD_SHEET, Doodad.COVER_MED, 0.42f, 2, 1);
@@ -54,6 +57,31 @@ class DoodadServiceTest {
         assertEquals(1, sofa.footprintCellsY);
         assertEquals(true, sofa.occupiesCell(2, 1));
         assertEquals(false, sofa.occupiesCell(3, 1));
+    }
+
+    @Test
+    void navigationBlockingDoodadPublishesOnlyDirectionalEdgeCover() {
+        NavigationGrid grid = new NavigationGrid(5, 4);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        grid.setWalkable(2, 2, false);
+        grid.setSeeThrough(2, 2, true);
+        grid.recomputeCoverAt(1, 2);
+        DoodadService service = new DoodadService(grid);
+
+        service.addDoodad(new Doodad(2, 2,
+                new TileManifest.TileFrame(0, 0), false,
+                Doodad.COVER_HEAVY, 0.72f));
+
+        assertEquals(Doodad.COVER_NONE, service.getDoodadLevelOnCell(2, 2, 0f),
+                "blocked fixture must not also roll crossed-prop interception");
+        assertEquals(Doodad.COVER_NONE,
+                service.getDoodadCoverAtFacing(1, 2, NavigationGrid.FACING_E));
+        assertEquals(Doodad.COVER_HEAVY,
+                grid.getCoverAtFacing(1, 2, NavigationGrid.FACING_E));
+        assertEquals(0.72f,
+                grid.getCoverCatchHalfHeightAtFacing(1, 2, NavigationGrid.FACING_E), EPS);
     }
 
     @Test
