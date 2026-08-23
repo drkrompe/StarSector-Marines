@@ -1,6 +1,6 @@
 # C4 — Whereabouts: where every team actually is
 
-> The game already knows a fireteam is garrisoned three systems away for
+> The game already knows a squad is garrisoned three systems away for
 > another forty days. No screen says so.
 
 **Status:** not started. Depends on [C2](c2-formation-model.md),
@@ -8,7 +8,7 @@
 
 ## Problem
 
-A fireteam can be: at home and ready, committed to the sortie being
+A squad can be: at home and ready, committed to the sortie being
 briefed, bound to a stationing contract, or hollowed out by casualties who
 return on a known day. The data exists —
 `MarineSquad.stationingContractId`, `roster.squadsStationedOn(contractId)`,
@@ -27,14 +27,14 @@ doing" is not a question the mod currently answers on its own terms.
 
 ## Goal
 
-Every fireteam carries a legible state chip on its card, and the company
+Every squad carries a legible state chip on its card, and the company
 view is reachable without accepting a mission.
 
 ## Design
 
 ### The whereabouts axis
 
-One enum on `FireteamSnapshot`, resolved in C2's builder:
+One enum on `SquadSnapshot`, resolved in C2's builder:
 
 - `HOME` — available, at the company's home posting.
 - `COMMITTED` — selected for the sortie currently being briefed. View-state
@@ -48,7 +48,7 @@ One enum on `FireteamSnapshot`, resolved in C2's builder:
 - `LOST` — every member KIA/MIA and the team is awaiting reconstitution.
 
 Marine-level state stays on `MarineSnapshot` (status + return day); the
-fireteam chip is a rollup, not a replacement for it.
+squad chip is a rollup, not a replacement for it.
 
 ### Consequences on the card
 
@@ -79,7 +79,7 @@ row, not new infrastructure.
 
 ## Acceptance
 
-- A stationed fireteam is identifiable, with its location and remaining
+- A stationed squad is identifiable, with its location and remaining
   term, without leaving the company view.
 - A team whose last deployable marine is recovering reads as unavailable
   *with a return day*, not as an empty row.

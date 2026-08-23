@@ -16,7 +16,7 @@ the ephemeral battle squad id.
 What is missing:
 
 - **Names.** `SQUAD 3` is not an object the player has a relationship with.
-  `2nd Fireteam` is — especially once [C6](c6-after-action-by-fireteam.md)
+  `2nd Squad` is — especially once [C6](c6-after-action-by-fireteam.md)
   hands it back to them at debrief.
 - **The tier above.** With six or seven squads on a Conquest map, the
   overview list is a wall of rows with no summary. There is no "how is my
@@ -32,7 +32,7 @@ What is missing:
 
 ## Goal
 
-Three levels in the HUD — company → fireteam → marine — sharing the
+Three levels in the HUD — company → squad → marine — sharing the
 existing dock slot and selection model, with no new player agency.
 
 ## Design
@@ -49,11 +49,11 @@ per tick.
 This is the readout that tells the player, without reading seven rows,
 that their force is degrading.
 
-### Rows named by fireteam
+### Rows named by squad
 
-Row label becomes C1's `fireteamLabel` when present, falling back to
+Row label becomes C1's `squadLabel` when present, falling back to
 today's `SQUAD <id>` for anything without a campaign identity (militia,
-walk-in reinforcements, employer forces). Squads sharing a fireteam id —
+walk-in reinforcements, employer forces). Squads sharing a squad id —
 the split-lift case from C1 — group under one entry with their `(A)`/`(B)`
 suffixes visible on expansion.
 
@@ -91,7 +91,7 @@ Untouched. The overview panel already filters to the player's faction.
 ## Acceptance
 
 - The player can read force state from one line without scanning rows.
-- Every row that came from campaign personnel shows its fireteam name;
+- Every row that came from campaign personnel shows its squad name;
   every other row is unchanged.
 - Reinforcement waves that rejoin an existing squad do not create a
   second unrelated row.

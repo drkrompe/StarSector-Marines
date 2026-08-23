@@ -1,8 +1,8 @@
-# C8 — Lift capacity in squads, and multi-pass drops
+# C8 — Lift capacity in fire teams, and multi-pass drops
 
-> A squad is six. Seven of eleven transports carry fewer than six. Every
-> small hull splits a squad by arithmetic, and every reinforcement wave
-> mints a brand-new one.
+> Capacities are 3, 4, 5, 6, 7, 8 — a set of numbers that divides into no
+> organizational unit at all. Every lift splits a squad by arithmetic, and
+> every reinforcement wave mints a brand-new one.
 
 **Status:** not started. Pairs with
 [C1](c1-fireteam-identity-through-the-drop.md) — C1 gives the seat an
@@ -10,16 +10,25 @@ identity, C8 makes the lift respect it.
 
 ## Decision this story implements
 
-Transport capacity is expressed in **squads**, with a floor of one whole
-squad per lift. Bigger hulls carry multiple squads or a squad plus
-equipment. Where a squad still cannot arrive in one pass, later arrivals
-join the same squad and catch up.
+*Revised 2026-08-22 alongside [C7](c7-organization-and-ranks.md)'s
+twelve-marine squad.* Transport capacity is denominated in **fire teams of
+four**, with a floor of one whole team per lift. A squad (three teams)
+arrives in one to three passes depending on the hull, later arrivals join
+the same battle squad, and the squad forms up before it is committed
+forward.
+
+The earlier version of this story used a floor of one whole *squad* per
+lift. At twelve that would put a rifle squad inside a Kite, which the
+fiction will not carry. Denominating in teams keeps the lift believable,
+keeps the numbers close to today's, and makes C1's join-and-catch-up
+machinery load-bearing rather than an edge case.
 
 ## Problem
 
-### The capacity table fights the squad size
+### The capacity table divides into nothing
 
-`ShuttleType` capacities today, against `MarineSquad.CAPACITY = 6`:
+`ShuttleType` capacities today, against a twelve-marine squad of three
+four-marine teams:
 
 | Hull | Seats | Hull | Seats |
 | --- | --- | --- | --- |
@@ -30,8 +39,8 @@ join the same squad and catch up.
 | Shepherd | 4 | | |
 | Wayfarer | 4 | Tarsus | 5 |
 
-Seven of eleven cannot carry a squad. The most common early-game lift
-(Aeroshuttle / Kite, 4 seats) delivers two-thirds of a squad, so the
+Not one of 3, 5, 6, 7 divides into a fire team. A 6-seat Buffalo delivers a
+team and a half; a 7-seat Nebula delivers a team and three strangers. The
 organizational unit the player selected on the deployment screen never
 exists as such on the ground.
 
@@ -50,27 +59,37 @@ marines somewhere else. It reads as attrition.
 
 ## Design
 
-### Capacity in squad-slots, with a floor
+### Capacity in team-slots
 
-- **Floor:** no transport in a marine manifest carries fewer than
-  `MarineSquad.CAPACITY`. Hermes 3, the five 4-seat hulls, and Tarsus 5 all
-  rise to 6.
-- **Above the floor:** capacity is squads plus payload, not arbitrary
-  seats. A heavy hull carries 2–3 squads; a medium hull carries one squad
-  plus an equipment slot.
+Every hull carries a whole number of four-marine teams:
+
+| Hull | Seats now | Teams | Seats |
+| --- | ---: | ---: | ---: |
+| Hermes | 3 | 1 | 4 |
+| Aeroshuttle, Kite, Mudskipper, Shepherd, Wayfarer | 4 | 1 | 4 |
+| Tarsus, Buffalo, Mule, Nebula | 5–7 | 2 | 8 |
+| Valkyrie | 8 | 3 | **12** |
+
+Only a Valkyrie puts a whole squad on the ground in one pass — which is a
+good piece of fiction: the dedicated assault transport is the one that
+delivers a squad intact, and everything else trickles.
+
 - **Differentiation moves off seat count.** The small end already differs
   on turn rate, acceleration, lateral damping, hardpoints, HP, and loiter
-  time (`AirHandling` + the turret kit). Flattening 3/4/5 → 6 costs
-  nothing the player was reading anyway; a Hermes stays a fast, fragile,
-  one-hardpoint courier that happens to fit a squad.
+  time (`AirHandling` + the turret kit). Flattening 3 → 4 and 5/6/7 → 8
+  costs nothing the player was reading; a Hermes stays a fast, fragile,
+  one-hardpoint courier that happens to fit a team.
 - **Equipment instead of marines** is already a modelled concept: the
   `AirDeliveryPayload` seam has `InfantryPayload` and `MechSupportPayload`
-  side by side. A squad-slot spent on equipment is that seam, not a new
+  side by side. A team-slot spent on equipment is that seam, not a new
   mechanism.
+- The change is also *smaller* than the earlier squad-floor plan: only
+  Hermes moves at the bottom of the table, where the squad floor would have
+  raised six hulls by 50%.
 
 ### One squad, however many passes
 
-- With C1's `(fireteam, LZ)` minting key, later arrivals **join** the
+- With C1's `(campaign squad, LZ)` minting key, later arrivals **join** the
   existing battle squad instead of minting a new one. That requires scoping
   `AirSystem`'s per-cycle `squadId` reset so it applies to generated
   personnel (militia waves, walk-in reinforcements) but not to campaign
@@ -79,6 +98,25 @@ marines somewhere else. It reads as attrition.
   `aliveMembers / originalSize` — a joining wave must keep incrementing it
   rather than resetting, so the squad's morale ceiling rises as it
   assembles instead of reading as a half-strength unit.
+
+### Form up before committing — the trickle trap
+
+A twelve-marine squad arriving four at a time is **defeat in detail** if
+the commander pushes each team forward as it lands, and under the 9×
+lethality scale that is a wipe rather than a setback. The catch-up rule
+alone does not prevent it: catching up means walking to a squad that is
+already in contact.
+
+So a squad that is still assembling holds at its landing zone. Concretely:
+its commander assignment does not advance until either the squad is at
+full landed strength or a timeout expires (a mission that never gets its
+third lift must not deadlock). Arriving teams rally at the LZ, and the
+squad steps off as a squad.
+
+This is a commander-tier gate, not a new behavior: it is a condition on
+when `MissionCommand` issues the squad's first advancing assignment. The
+LZ-guard posture the rescue missions already use is the nearest shipped
+precedent.
 
 ### Late arrivals catch up
 
@@ -98,31 +136,32 @@ mechanism; the two would fight.
 
 ## Slices
 
-1. **Capacity floor + squad-slot expression.** `ShuttleType` values, and
-   whatever in `DetachmentResolver` / `getMarineDeploymentCapacity` derives
-   seats from them.
+1. **Team-denominated capacity.** `ShuttleType` values, and whatever in
+   `DetachmentResolver` / `getMarineDeploymentCapacity` derives seats from
+   them.
 2. **Scope the per-cycle reset.** Campaign squads persist across cycles;
    generated waves keep today's behavior.
-3. **Rejoin state for late arrivals.**
+3. **Form-up gate** before the commander advances an assembling squad.
+4. **Rejoin state for late arrivals.**
 
 ## Acceptance
 
-- No lift in a player manifest carries a partial squad.
+- No lift in a player manifest carries a partial fire team.
 - A shuttle flying three cycles for one squad produces **one** battle
   squad, with `originalSize` equal to the marines actually landed.
+- An assembling squad holds at its LZ and steps off as a squad; a lift that
+  never arrives times out instead of deadlocking the mission.
 - A late arrival paths to its squad without soloing into contact, and
   behaves normally once it arrives.
 - Militia, walk-in reinforcement, and employer spawns are unchanged.
 - **Balance re-tune, decided up front.** *Settled 2026-08-22: take the
-  capacity change now and re-tune around it.* Raising the floor increases
-  every early-game lift by 50–100%, and the two Independent opening jobs
-  are mid-playtest against today's seats — so their force ratios get
-  re-derived after this lands, not before. The reasoning is that the floor
-  is not only a readability fix: fewer, whole squads per lift is one of the
-  two governors keeping the meta game away from a hundred-squad state that
-  neither the UI nor the campaign layer can carry (the other being the
-  officer rank cap, [C7](c7-organization-and-ranks.md)). Tuning against a
-  seat count we intend to change would be wasted work. Flagged in
+  capacity change now and re-tune around it.* The two Independent opening
+  jobs are mid-playtest against today's seats, so their force ratios get
+  re-derived after this lands, not before — tuning against numbers we
+  intend to replace is wasted work. Note the team-denominated table is a
+  much smaller disturbance than the earlier squad-floor plan (only Hermes
+  moves at the bottom), but the *squad* the player fields is now twelve
+  marines rather than six, which moves the ratios regardless. Flagged in
   [`campaign/early-operations/next-session.md`](../../campaign/early-operations/next-session.md).
 
 ## Files touched
@@ -133,10 +172,12 @@ mechanism; the two would fight.
 - `ops/detachment/DetachmentResolver.java`, `ops/MarineOpsContext.java` —
   seat derivation.
 - `battle/infantry/` — the rejoin state, on the existing cohesion layer.
+- `battle/command/` — the form-up gate, as a condition on the first
+  advancing assignment.
 
 ## Out of scope
 
-- Building the equipment payload itself. The squad-slot model reserves the
+- Building the equipment payload itself. The team-slot model reserves the
   room; `MechSupportPayload` already proves the seam. Wiring a chooseable
   "this slot carries a vehicle" is a separate story, and probably belongs
   to the convoy or command-powers track rather than here.
@@ -148,11 +189,14 @@ mechanism; the two would fight.
 
 ## Open questions
 
-- Does the floor make the small hulls interchangeable in the player's
-  mental model, even if they differ on handling? If it does, the answer is
-  probably to differentiate on **cycles** — a light hull flies more, faster
-  sorties for the same total delivery — rather than to reintroduce partial
-  squads.
-- Should a heavy hull's second squad-slot be selectable (squad vs.
+- Does the four-seat floor make the small hulls interchangeable in the
+  player's mental model, even if they differ on handling? If it does, the
+  answer is probably to differentiate on **cycles** — a light hull flies
+  more, faster sorties for the same total delivery — rather than to
+  reintroduce partial teams.
+- Should a heavy hull's spare team-slot be selectable (marines vs.
   equipment) at briefing, or resolved automatically from what the player
   brought? Selectable is better play; automatic is shippable sooner.
+- How long should the form-up timeout be, and should it scale with the
+  number of lifts still inbound? Too short and the gate does nothing; too
+  long and a squad stands at the LZ while the mission burns.

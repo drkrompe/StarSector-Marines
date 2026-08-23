@@ -158,18 +158,22 @@ universe over time, not retrofitted into intel slots.
   organization is destroyed at deployment: `CampaignMarineDeployment.freeze`
   flattens squads into a seat list carrying no squad id, and
   `InfantryPayload` mints one battle squad per *shuttle mission*, so a
-  battle squad is "whoever rode this dropship" (a 4-seat Aeroshuttle
-  against a 6-marine squad splits it by arithmetic). Eight stories (C1-C8)
-  are contracted and unstarted: the identity seam, a derived formation
-  model, the card stack, whereabouts, a battle-HUD company rollup,
-  after-action by squad, the organization/rank restructure, and lift
-  capacity denominated in squads. Two decisions are settled — a card is one
-  officer's command (so the rank ladder changes: officers command, NCOs
-  lead squads), and a lift carries at least one whole squad with late
-  arrivals rejoining rather than forming a new unit. Read-only throughout —
-  in-battle orders are explicitly out of scope. Adjacent to progression S8,
-  which owns what a single marine row says. See
-  [`company-view/`](company-view/overview.md).
+  battle squad is "whoever rode this dropship". Nine stories (C1-C9) are
+  contracted and unstarted: the identity seam, a derived formation model,
+  the card stack, whereabouts, a battle-HUD company rollup, after-action by
+  squad, the organization/rank restructure, lift capacity denominated in
+  fire teams, and fire teams as the AI's maneuver element. The settled
+  decisions: a card is one officer's command, so the rank ladder changes
+  (officers command, NCOs lead squads); **a squad becomes twelve marines in
+  three four-marine fire teams**, because progression S1's shipped 9x
+  lethality scale makes a six-marine squad combat-ineffective within
+  seconds of contact; lifts are denominated in fire teams, so only a
+  Valkyrie lands a squad intact and an assembling squad forms up at its LZ
+  before advancing. Fire teams are modelled but behind the scenes — the
+  AI's maneuver element (bounding, fix-and-flank), never a level of the
+  player's hierarchy. Read-only throughout — in-battle orders are
+  explicitly out of scope. Adjacent to progression S8, which owns what a
+  single marine row says. See [`company-view/`](company-view/overview.md).
 
 ## Immediate next-up
 
