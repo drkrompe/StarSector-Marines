@@ -116,6 +116,16 @@ risk nudges it by `forceMult` (0.85 / 1.00 / 1.15). CONQUEST at Full
 Strength / HIGH lands on **322** — the old table's 320, preserved so the
 measurement play already made still means something.
 
+Mission tier still owns the base infantry force, but high-impact defender
+units also pass through a battle-start force score. Attacker infantry seats
+include employer and allied waves; defender militia, regulars, and mech chassis
+consume the opposing score budget. This is intentionally not whole-encounter
+rubber-banding: committing more lift does not add infantry defenders. It only
+allows an otherwise eligible mech candidate to remain when the combined attack
+has enough force to answer it. The first score table is conservative and
+limited to infantry plus mechs; equipment, air, command powers, terrain, and
+telemetry-derived values remain future inputs.
+
 ## Scope boundary
 
 This is a **model** change, not a content one. It does not retune any
