@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignClockAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
@@ -68,6 +69,37 @@ public final class CampaignClock {
         memoEpoch = state.clockEpochTimestamp;
         memoDay = value;
         return value;
+    }
+
+    /**
+     * Moves the campaign tier's day counter forward without waiting for real game time.
+     *
+     * <p>Vanilla's {@link CampaignClockAPI} is read-only — there is no way to advance the
+     * sector clock from the API — so this re-anchors instead: the epoch timestamp is
+     * restamped to now and the epoch day set to the target, which leaves future real time
+     * accruing normally from the new anchor.
+     *
+     * <p><b>This advances only what reads {@link #day()}</b> — every campaign-tier timer,
+     * deadline, and cadence in this mod. It does not advance vanilla's economy, so a
+     * monthly report will still only appear when a real in-game month rolls over.
+     *
+     * @return the new campaign day
+     */
+    @DebugOnly
+    public static int skipDays(CampaignState state, int days) {
+        SectorAPI sector = Global.getSector();
+        if (state == null || sector == null || sector.getClock() == null || days <= 0) {
+            return day();
+        }
+        int target = day() + days;
+        state.clockEpochTimestamp = sector.getClock().getTimestamp();
+        state.clockEpochDay = target;
+        // The memo keys on the epoch timestamp, and re-anchoring inside one frame can
+        // land on the same timestamp it already cached. Drop it explicitly rather than
+        // relying on the key to have changed.
+        memoTimestamp = Long.MIN_VALUE;
+        memoEpoch = Long.MIN_VALUE;
+        return target;
     }
 
     /**

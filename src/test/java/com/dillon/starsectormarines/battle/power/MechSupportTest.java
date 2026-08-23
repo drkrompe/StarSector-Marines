@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.air.MechSupportPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -85,6 +86,7 @@ public class MechSupportTest {
         }
 
         assertTrue(mech != 0L, "the Valkyrie eventually touches down and unloads its mech");
+        assertSame(MechVariant.BULWARK, sim.identity().mechVariant(mech));
         assertTrue(sim.world().hasMechLoadout(mech), "the support mech carries its full weapon state");
         assertTrue(sim.squad().hasSquad(mech));
         Squad squad = sim.getSquad(sim.squad().squadId(mech));
@@ -92,5 +94,15 @@ public class MechSupportTest {
         assertTrue(squad.isMechSquad());
         assertEquals(mech, squad.leaderId);
         assertEquals(1, squad.originalSize);
+    }
+
+    @Test
+    public void configuredSupportAssignsOneVariantPerPostCommitChargeCount() {
+        MechSupport power = new MechSupport(List.of(
+                MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK));
+
+        assertEquals(MechVariant.HOUND, power.variantForRemainingCharges(2));
+        assertEquals(MechVariant.SIROCCO, power.variantForRemainingCharges(1));
+        assertEquals(MechVariant.BULWARK, power.variantForRemainingCharges(0));
     }
 }

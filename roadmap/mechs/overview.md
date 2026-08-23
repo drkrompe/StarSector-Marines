@@ -97,6 +97,10 @@ and a corresponding GOAP role.
    enter command powers, ownership, salvage, and refit rather than exposing a
    debug-style loadout picker as progression.
 
+An intentionally non-progression playtest slice, `debug-player-mech-drops.md`,
+puts a count plus randomized family makeup in DEBUG briefings and routes those
+chassis through the real player-side Mech Support dropship power.
+
 ## Boundaries
 
 This track does not yet include procedural hardpoint construction, player mech

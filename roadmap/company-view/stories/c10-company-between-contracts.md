@@ -430,3 +430,53 @@ player's question is how many they can actually send.
 - The runway colour flips at 6 and 12 months and matches the officer's tone.
 - Three columns at 1.0x / 1.25x / 1.5x UI scale, with the employer list not
   overrunning the column.
+
+## Slice 2 follow-up — an unknown month, and a clock you can move
+
+`8ac4116a`. `gradlew.bat build` green.
+
+Two defects surfaced by the first live run of the standing pane, both rooted in
+the same thing: vanilla's `MonthlyReport` does not exist until a real in-game
+month rolls over.
+
+### Unknown upkeep printed as zero
+
+The pane rendered "Upkeep last month: Cr. 0" (and a zero debt) on a young
+campaign, because `SharedData.getData().getPreviousReport()` returns null until
+the first rollover and the snapshot's numeric fields defaulted to zero. Credits
+were right — those come off the fleet's cargo — so the line read as a company
+with no costs rather than a screen with no data.
+
+`OfficerMoodReader.Snapshot` now carries `hasMonthlyReport`, and the pane either
+shows the three report-derived lines or says why it cannot: *"No monthly report
+yet — upkeep, debt, and runway appear after the first month rolls over."*
+
+This is the same rule `runwayMonths()` already followed by returning -1. The
+principle is worth stating once for the whole track: **a derived number with no
+input says so.** Zero is a claim about the company; blank is a claim about the
+screen. Panes 2 and 3 inherit this.
+
+### The debug panel could not advance a day
+
+`CampaignDebugIntel`'s "Force daily tick" runs every system at
+`CampaignClock.day()` — the *current* day. It re-runs a day; it never leaves
+one. No deadline, retainer cadence, incident timer, or offer expiry could be
+reached with it, which made every dated behaviour on this screen unobservable.
+The button is relabelled "Force daily tick (run all systems, same day)" to stop
+it being read as time travel.
+
+Added **Skip 1 / 7 / 30 days**, backed by `CampaignClock.skipDays`. Vanilla's
+`CampaignClockAPI` is read-only — there is no advance or set — so the skip
+re-anchors instead: epoch timestamp restamped to now, epoch day set to the
+target, leaving future real time accruing normally from the new anchor. The
+per-frame memo keys on that timestamp and a re-anchor inside one frame can land
+on the timestamp it already cached, so it is dropped explicitly rather than
+trusted to differ.
+
+The buttons run **one full system pass per day crossed**, so a 30-day skip is
+thirty passes and timers fire in order rather than being jumped over.
+
+**What it does not do.** Only this mod's tier moves. Vanilla's economy does
+not, so skipping days will never produce a monthly report — upkeep, debt, and a
+computable runway still need a real in-game month. Which is exactly why the
+standing pane was blank on those fields in the first place.
