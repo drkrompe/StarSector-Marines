@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 
@@ -8,11 +9,22 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Static config for each shuttle variant — sprite, capacity, handling profile,
+ * Static config for each shuttle variant — sprite, lift capacity, handling
+ * profile,
  * combat capability (hardpoints + HP + fire-support window), and the vanilla
  * hull IDs that map to this type when scanning the player's fleet. Each
  * entry's sprite resolves against the vanilla install, so we don't ship any
  * of these textures.
+ *
+ * <p><b>Capacity is denominated in whole four-marine fire teams</b>, never in
+ * loose seats: 1 team for the small hulls, 2 for the freighters, 3 for the
+ * Valkyrie. The old table (3, 4, 5, 6, 7, 8) divided into no organizational
+ * unit at all, so every lift split a squad by arithmetic and the group the
+ * player selected never existed on the ground. Only the dedicated assault
+ * transport now lands a whole twelve-marine squad in one pass; everything else
+ * trickles, and the squad assembles at its LZ. Differentiation between the
+ * small hulls lives in handling, hardpoints, HP and loiter time — not in a
+ * seat count nobody was reading.
  *
  * <p>Also acts as the per-type {@link AirHandling} profile. Three rough
  * handling tiers:
@@ -44,7 +56,7 @@ public enum ShuttleType implements AirHandling {
     // {@link #KITE} so the player's roster shows the right name.
     AEROSHUTTLE(
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            4, 10f, 0.6f,
+            1, 10f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f),
 
     KITE(
@@ -52,65 +64,68 @@ public enum ShuttleType implements AirHandling {
             // visually identical to AEROSHUTTLE, but tagged as Kite in the
             // briefing so the player sees what's actually in their fleet.
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            4, 9f, 0.6f,
+            1, 9f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f,
             "kite", "kite_original"),
 
     HERMES(
             "graphics/ships/hermes/hermes_base.png",
-            3, 11f, 0.5f,
+            1, 11f, 0.5f,
             Profiles.NIMBLE, 1, 25f, 55f,
             "hermes"),
 
     MUDSKIPPER(
             "graphics/ships/mudskipper/mudskipper.png",
-            4, 12f, 0.55f,
+            1, 12f, 0.55f,
             Profiles.NIMBLE, 1, 25f, 60f,
             "mudskipper", "mudskipper_mk2"),
 
     SHEPHERD(
             "graphics/ships/drone_tender.png",
-            4, 7f, 0.7f,
+            1, 7f, 0.7f,
             Profiles.MEDIUM, 0, 0f, 80f,
             "shepherd"),
 
     WAYFARER(
             "graphics/ships/wayfarer/wayfarer.png",
-            4, 8f, 0.65f,
+            1, 8f, 0.65f,
             Profiles.MEDIUM, 0, 0f, 80f,
             "wayfarer"),
 
     BUFFALO(
             "graphics/ships/buffalo/buffalo_base.png",
-            6, 6f, 0.9f,
+            2, 6f, 0.9f,
             Profiles.BUS, 0, 0f, 100f,
             "buffalo"),
 
     TARSUS(
             "graphics/ships/tarsus/tarsus_base.png",
-            5, 6f, 0.85f,
+            2, 6f, 0.85f,
             Profiles.BUS, 0, 0f, 90f,
             "tarsus"),
 
     MULE(
             "graphics/ships/mule/mule_base.png",
-            6, 7f, 0.75f,
+            2, 7f, 0.75f,
             Profiles.BUS, 0, 0f, 100f,
             "mule"),
 
     NEBULA(
             "graphics/ships/nebula/nebula.png",
-            7, 5f, 0.85f,
+            2, 5f, 0.85f,
             Profiles.BUS, 0, 0f, 120f,
             "nebula"),
 
     VALKYRIE(
             "graphics/ships/valkyrie/valkyrie_ap.png",
-            8, 7f, 0.8f,
+            3, 7f, 0.8f,
             Profiles.BUS, 4, 60f, 150f,
             "valkyrie");
 
     public final String spritePath;
+    /** Whole four-marine fire teams this hull lifts per sortie. */
+    public final int teams;
+    /** Marine seats per sortie. Always a whole number of {@link Squad#FIRE_TEAM_SIZE} teams. */
     public final int capacity;
     /** Cruise / max forward velocity, cells/sec. Used as the AirHandling#maxSpeed cap. */
     public final float maxSpeed;
@@ -125,13 +140,14 @@ public enum ShuttleType implements AirHandling {
     /** Vanilla hull IDs that map to this type when scanning the player's fleet. */
     public final List<String> matchingHullIds;
 
-    ShuttleType(String spritePath, int capacity,
+    ShuttleType(String spritePath, int teams,
                 float maxSpeed, float deboardInterval,
                 HandlingProfile handling,
                 int hardpoints, float fireSupportSec, float maxHp,
                 String... matchingHullIds) {
         this.spritePath = spritePath;
-        this.capacity = capacity;
+        this.teams = teams;
+        this.capacity = teams * Squad.FIRE_TEAM_SIZE;
         this.maxSpeed = maxSpeed;
         this.deboardInterval = deboardInterval;
         this.handling = handling;

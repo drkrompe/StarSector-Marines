@@ -197,14 +197,14 @@ player has to remember which teams are out.
 
 | Story | Title | Depends on |
 | --- | --- | --- |
-| C1 (`c1-fireteam-identity-through-the-drop.md`) | Squad identity through the drop seam | — |
+| ~~C1~~ (`c1-fireteam-identity-through-the-drop.md`) | Squad identity through the drop seam — **shipped 2026-08-22** | — |
 | C2 (`c2-formation-model.md`) | Formation model — the hierarchy as data | — |
 | C3 (`c3-company-card-stack.md`) | Company card stack (fleet view) | C2 |
 | C4 (`c4-whereabouts-and-deployed-state.md`) | Whereabouts: where every team actually is | C2, C3 |
 | C5 (`c5-battle-hud-company-rollup.md`) | Battle HUD company rollup | C1, C2 |
 | C6 (`c6-after-action-by-fireteam.md`) | After-action by squad | C1 |
 | ~~C7~~ (`c7-organization-and-ranks.md`) | Organization and ranks — **shipped 2026-08-22** | — |
-| C8 (`c8-lift-capacity-and-multi-pass-drops.md`) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
+| C8 (`c8-lift-capacity-and-multi-pass-drops.md`) | Lift capacity in fire teams, multi-pass drops — **slices 1-3 shipped** | pairs with C1 |
 | C9 (`c9-fire-teams-as-the-maneuver-element.md`) | Fire teams as the maneuver element | C7 |
 | C10 (`c10-company-between-contracts.md`) | The company between contracts: a campaign-map home | — |
 
