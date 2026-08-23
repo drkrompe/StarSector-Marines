@@ -4,8 +4,13 @@
 > of arbitrary members, and throws it away at the next replan. Give the AI
 > a real element to maneuver.
 
-**Status:** not started. Depends on
-C7 (`c7-organization-and-ranks.md`) for the structure.
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on the derived fire-team structure in `company-view-nouns.md`.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Decision this story implements
 
@@ -31,7 +36,7 @@ its own sub-groups:
 - **Cordons** (`HoldPortalCordon`, `CordonForPlant`) draw individuals into
   portal slots.
 
-At six marines that was tolerable. At twelve (C7 (`c7-organization-and-ranks.md`))
+At six marines that was tolerable. At the shipped twelve-marine size
 a squad converging as one blob is worse, not better — and the 9× lethality
 scale means a blob crossing open ground is a wipe.
 
@@ -43,9 +48,9 @@ the comment stops being true.
 
 ### A persistent partition, not a per-plan one
 
-- The fire team is a property of the **squad's organization** (C7's team
-  index per billet), carried into battle on C1's seat data, not a thing the
-  planner invents. Three teams of four, each with a leader.
+- The fire team is a property of the **squad's organization**, derived from
+  billet order and copied into the frozen deployment, not a thing the planner
+  invents. Three teams of four, each with a leader.
 - Role assignment prefers **intact teams**: give `RoleAssigner` a
   team-cohesion scorer so a slot wanting "half the squad" fills with whole
   teams rather than the first N members. Slots keep their existing
@@ -109,14 +114,14 @@ team. That is the whole player-facing surface.
 - `battle/decision/goap/action/EnterZone.java` — team-based bounding.
 - `battle/infantry/FlankApproach.java`, `ReinforceContact.java` —
   team-scoped flank.
-- `battle/air/InfantryPayload.java` — carry the team index in from C1's
+- `battle/air/InfantryPayload.java` — carry the derived team index in from frozen
   seats.
 
 ## Out of scope
 
 - Team-level player orders. The whole point is that this tier is the AI's.
 - Per-team loadout composition (automatic rifleman / grenadier / anti-armor
-  billets) — noted in C7 (`c7-organization-and-ranks.md`)'s open questions
+  billets) — a progression equipment concern
   and closer to progression's equipment work.
 - Reworking cohesion itself. `InfantryCohesion` stays the one cohesion
   layer; teams change *who* is grouped, not how grouping is enforced.
@@ -124,7 +129,7 @@ team. That is the whole player-facing surface.
 ## Open questions
 
 - Should a team that loses its leader be consolidated immediately, or
-  promote within the team first? Promoting matches C7's rank model;
+  promote within the team first? Promoting matches the enlisted-rank law;
   consolidating matches the lethality reality. Probably promote while ≥ 2
   effectives remain, consolidate below that.
 - Does the commander tier ever want to address a team directly — a

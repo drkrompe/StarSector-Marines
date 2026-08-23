@@ -17,7 +17,7 @@ The `company-view` track changes the size of the unit these missions
 deploy.
 
 - **Shipped 2026-08-22.** A player squad is now **twelve** marines in three
-  four-marine fire teams (`c7-organization-and-ranks.md`), because
+  four-marine fire teams (`company-view-nouns.md`), because
   progression S1's shipped 9x lethality scale makes a six-marine squad
   combat-ineffective within seconds of contact. The officer ladder now caps
   command in squads and the company starts under a Lieutenant with one full

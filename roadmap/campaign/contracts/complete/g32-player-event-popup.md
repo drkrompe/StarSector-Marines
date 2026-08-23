@@ -278,8 +278,8 @@ Per the G5 / G13 precedent the dialog half ships on in-game verification:
 - Move the living-world `PENDING_CHOICE` events onto `PlayerEventInbox` so the Distress
   Net and Encrypted Channel decisions push as well. The columns already accommodate it.
 - A lightweight event-history record so a popup dismissed in a hurry can be reviewed.
-  **Claimed** by `c10-company-between-contracts.md`:
-  its deadline pane is where **Hold** goes, rendered straight off
+  **Claimed** by the obligation-clock law in `company-view-nouns.md`:
+  the deadline pane is where **Hold** goes, rendered straight off
   `PlayerEventInbox.pending`, with Respond routing back through
   `PlayerEventPresenter.requestDeployment`.
 - `StationingScreen` still owns its own `incidentLabel` / `defenseLabel` switches
