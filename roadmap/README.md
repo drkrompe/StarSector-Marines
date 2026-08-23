@@ -350,7 +350,9 @@ universe over time, not retrofitted into intel slots.
    panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
    the reciprocal Hound/infantry screen: the Hound should lead by no more than
    six cells and hold rather than solo-charge when its infantry or lance-mate
-   support is lost. Tune chassis identities plus that formation leash.
+   support is lost. Confirm Sirocco angles behind a non-Sirocco ally in its
+   new 24–36-cell firing band and uses both the heavy-cannon opportunity band
+   and longer LRM band. Tune chassis identities plus those formation rules.
    Budgeted production defender composition is already approved. See
    [`mechs/next-session.md`](mechs/next-session.md).
 7. **Manual verification queue (deferred this session)** — the loot loop's
