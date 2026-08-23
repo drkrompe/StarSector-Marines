@@ -207,6 +207,7 @@ player has to remember which teams are out.
 | C8 (`c8-lift-capacity-and-multi-pass-drops.md`) | Lift capacity in fire teams, multi-pass drops — **slices 1-3 shipped** | pairs with C1 |
 | C9 (`c9-fire-teams-as-the-maneuver-element.md`) | Fire teams as the maneuver element | C7 |
 | C10 (`c10-company-between-contracts.md`) | The company between contracts: a campaign-map home | — |
+| C11 (`c11-the-contract-board.md`) | The contract board: seeing work you are not standing on | C10 slice 1 |
 
 C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
@@ -214,7 +215,8 @@ names; C8 is what makes the deployed force match the one the player
 selected; C7 settles the language and the command scope the UI stories
 render. C10 builds the between-contracts home the track's first surface
 needs — the campaign-map entry point and a planet-free host — and reserves
-the pane C3 and C4 later furnish.
+the pane C3 and C4 later furnish. C11 fills that home's outward-facing half:
+C10 answers "how is my company", C11 answers "where should it go next".
 
 ## Cross-refs
 
@@ -255,6 +257,22 @@ the pane C3 and C4 later furnish.
   the HUD and needs no visibility gate of ours; the host is the one
   G32 (`g32-player-event-popup.md`) shipped. See C10
   (`c10-company-between-contracts.md`), which supersedes C4's slice 3.
+
+- **Where does the player see work they are not standing on?** On a contract
+  board in the same planet-free host, with distance governing *resolution*
+  rather than existence — docked shows everything, in-system shows everything
+  at every market in the system, and an earned sector-wide feed shows that an
+  offer exists without its terms. *Settled 2026-08-22.* Acceptance stays local
+  at every tier, because the thing that makes an employer a character rather
+  than a row is the briefing, and the briefing is attached to arriving. See
+  C11 (`c11-the-contract-board.md`).
+
+- **Do lapsing offers belong on C10's clock pane?** No — obligations bite and
+  opportunities lapse, so they are different surfaces. A missed response
+  deadline costs reputation and loses a garrison; a missed offer costs nothing
+  but the job. Offer expiry lives on C11's board, where the action is, and
+  C10's clock pane renders two sources rather than three. *Settled
+  2026-08-22.*
 
 ## Open questions
 
