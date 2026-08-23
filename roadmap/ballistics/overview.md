@@ -99,11 +99,13 @@ the crate, strays stopped, interposers at risk) is gained emergently.
 **Two interception mechanisms, no overlap** (this is how the double-count
 is structurally avoided, not just tuned away):
 
-- **Doodads block by ray crossing.** A ray that crosses a doodad cell rolls
-  block by that doodad's level only when its target-plane Z intersects the
-  prop's authored ballistic half-height. Directionality is emergent — flank
-  the crate and the ray no longer crosses it; fire high/low and a short prop
-  may be cleared. Doodad *facing* cover is never consulted at unit contact.
+- **Physical cover features block by ray crossing.** A ray that crosses a
+  doodad or walkable covered nature-overlay cell rolls block by that feature's
+  level only when its target-plane Z intersects the authored/default ballistic
+  half-height. Directionality is emergent — flank the crate or medium rock and
+  the ray no longer crosses it; fire high/low and a short feature may be
+  cleared. Facing cover published for tactical position scoring is never
+  consulted at unit contact.
 - **Wall cover blocks by edge-clip at contact.** A target hugging a wall
   corner gains nothing from ray crossing (the ray never enters the wall
   cell — the shooter has LoS). So the grid's directional wall cover
@@ -111,6 +113,11 @@ is structurally avoided, not just tuned away):
   height-gated block roll applied *at unit contact* — "the round clipped the
   parapet." Wall cells crossed by the ray itself remain a full-height hard stop
   (`firstWallOnLine`).
+
+Non-walkable see-through nature cover follows the second, edge-profile shape
+without becoming a wall hard-stop: a large rock upgrades adjacent standable
+facings to its authored cover level and silhouette. It is not also registered
+as crossed physical cover, preventing two interception rolls from one rock.
 
 ### 5. Accuracy stack authors the intended trajectory once
 

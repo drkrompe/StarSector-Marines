@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.gen.UrbanMapGenerator;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -214,6 +215,7 @@ public final class BattleSetup {
                                     List<DefensePost> defensePosts,
                                     List<ParkedAircraft> parkedAircraft, long seed) {
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology, seed);
+        sim.addNatureOverlayCover(TileRegistry.installed());
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
         sim.setDefensePosts(defensePosts);

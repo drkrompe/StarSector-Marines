@@ -205,17 +205,23 @@ public class SquadMoraleTest {
 
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sq.moraleBroken, "morale below broken threshold → moraleBroken flips true");
+        assertTrue(sq._moraleBrokenChangedThisTick,
+                "the break transition is published for the same-tick planner interrupt");
 
         // Drive recovery ticks until morale climbs over the clear threshold.
         // Recovery rate scales with cap: 0.20 * 0.75 = 0.15/sec for a 3-of-4
         // squad. clear_at = 0.5 * 0.75 = 0.375. From 0.15 needs > 0.225 /
         // 0.15 = 1.5s. Drive 3 sim-seconds to give headroom.
-        for (int i = 0; i < 90; i++) sim.advance(BattleSimulation.TICK_DT);
+        for (int i = 0; i < 90 && sq.moraleBroken; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
 
         assertTrue(sq.morale > SquadMoraleSystem.MORALE_CLEAR_THRESHOLD * 0.75f,
                 "morale should have recovered past the (scaled) clear threshold within 3 sim-seconds");
         assertFalse(sq.moraleBroken,
                 "above clear threshold → moraleBroken flips false (hysteresis cleared)");
+        assertTrue(sq._moraleBrokenChangedThisTick,
+                "the clear transition is also published on the exact crossing tick");
     }
 
     @Test

@@ -63,6 +63,13 @@ survey in [`pipeline-audit.md`](pipeline-audit.md)):
   then wall-HP seeding, cover baking, building flood-fill, spawn-anchor
   selection.
 
+Nature fillers also publish playable terrain semantics. Rock definitions own
+their cover and passability values; the filler applies them without treating a
+rock as structural architecture. Medium rocks remain walkable cover. Large
+rocks block navigation but are see-through, skip wall art/HP through the
+non-structural fixture contract, stay off leaf perimeters, and are rejected
+when their placement would disconnect the leaf's remaining walkable space.
+
 The room-purpose seam, introduced by the refactor:
 
 - **`RoomPurpose` enum** in `battle.map` (next to `BuildingKind`) —

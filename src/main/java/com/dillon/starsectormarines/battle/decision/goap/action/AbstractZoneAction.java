@@ -188,7 +188,7 @@ abstract class AbstractZoneAction implements Action {
         synchronized (squad.lock) {
             if (squad.advanceThreatTick == tick) return;
             TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
-                    .assessAdvanceThreat(squad, destX, destY);
+                    .assessAdvanceThreat(squad, destX, destY, tick);
             squad.advanceEngageWeight = threat.weight();
             squad.advanceEngageCommitted = shouldCommitAdvance(
                     squad.advanceEngageCommitted, threat.weight());
