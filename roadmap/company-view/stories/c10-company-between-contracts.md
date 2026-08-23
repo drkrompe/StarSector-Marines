@@ -247,9 +247,10 @@ battle seam.
 2. ~~**Standing.**~~ **Shipped** (`b204c237`). Runway headline through
    `OfficerMoodReader.Snapshot`, retainer sum, MRB and employer standing,
    personnel gap, and the comms-officer line via `OfficerHeaderWidget`.
-3. **The clock.** Merged deadline list over the two obligation sources, with
-   **Respond** routing through `PlayerEventPresenter.requestDeployment`.
-   Offer expiry belongs to C11 (`c11-the-contract-board.md`).
+3. ~~**The clock.**~~ **Shipped** (`20f498de`). Merged deadline list over the two
+   obligation sources, with **Respond** routing through
+   `PlayerEventPresenter.requestDeployment`. Offer expiry belongs to
+   C11 (`c11-the-contract-board.md`).
 4. **The company pane.** Strength rollup and the armory route.
 
 Slices 2–4 are independently valuable and can ship in any order after 1.
@@ -492,3 +493,57 @@ thirty passes and timers fire in order rather than being jumped over.
 not, so skipping days will never produce a monthly report — upkeep, debt, and a
 computable runway still need a real in-game month. Which is exactly why the
 standing pane was blank on those fields in the first place.
+
+## Slice 3 — shipped
+
+`20f498de`. `gradlew.bat build` green; 13 assertions in `CompanyClocksTest`.
+
+### What landed
+
+- `CompanyClocks` — pure, `Global`-free derivation of every obligation deadline,
+  soonest first, contract id then kind as tiebreaks so the column cannot reshuffle
+  between frames. `CompanyClocks.current()` is the thin live-world entry point;
+  `rows(state, roster, day)` is what the tests drive.
+- `CompanyHqScreen` — the middle column, populated. Each row states days remaining,
+  what it is, and where; response rows carry a **Respond** button.
+- `PlayerEventTarget.market(int)` / `displayName(int)` — the registry-slot overloads,
+  so a term row that has no notice can still name its market. The notice-shaped
+  callers now delegate to them.
+- Eleven new `Strings` keys; `companyHqDeadlinesPending` retired.
+
+### Decisions worth keeping
+
+**Obligations bite, opportunities lapse.** The pane carries pending responses and
+term boundaries and nothing else. A lapsing offer would put a row on this column
+whose only button is "fly somewhere else" — that belongs to
+C11 (`c11-the-contract-board.md`). The rule is pinned by a test rather than left to
+the next person's judgement.
+
+**A contract can own two clocks, and the second one knows about the first.** A
+stationing row with a pending response produces both a RESPONSE and a TERM_ENDING
+entry, because they are two deadlines with two consequences and two answers. The
+term entry carries `failsOnExpiry`, which is G31's invariant — a term boundary
+reached with a response still owing fails the contract rather than completing it —
+surfaced *before* it fires rather than explained afterwards.
+
+**Respond is a route, not a second battle path.** It calls
+`PlayerEventPresenter.requestDeployment` and closes the dialog, exactly as the event
+popup's Deploy Now does. `showInteractionDialog` refuses while our own dialog is up,
+so the hand-off has to go through the presenter's quiet gate on a later frame. This
+is what finally gives G32's **Hold** somewhere to come back to.
+
+**An overdue clock reads as due, never negative.** The lapse system runs on day
+boundaries and the pane is read on frames, so a row can legitimately be seen past
+its deadline.
+
+### Still to confirm in game
+
+- A pending response appears here with the same countdown the popup showed, and
+  **Respond** reaches the same briefing that Deploy Now reaches.
+- Pressing **Hold** on a popup and then opening the company view finds the decision
+  waiting, with its clock running.
+- The urgency colours flip at 2 and 7 days.
+- Rows fit the middle column at 1.0x / 1.25x / 1.5x UI scale — a two- or three-line
+  row plus a button is the tallest thing this screen renders, and `CLOCK_LIMIT` of 6
+  is a guess at what fits rather than a measurement.
+- With more than six clocks, the "+N more not shown" line appears and is accurate.
