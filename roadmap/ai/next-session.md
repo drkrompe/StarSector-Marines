@@ -84,9 +84,9 @@ destination stays within a six-cell lead of the nearest support anchor.
 Without one, the Hound clears its route and fights from its current position.
 See `28-assault-mech-cohesion.md`.
 
-Story 29's implementation is complete on its session branch: LR Support now
-searches a 24–36-cell medium/long band and strongly prefers a firing axis with
-a same-faction combatant between it and the threat. A Sirocco chassis cannot
+Story 29 shipped (2026-08-22, `98fcc3fb`): LR Support now searches a
+24–36-cell medium/long band and strongly prefers a firing axis with a
+same-faction combatant between it and the threat. A Sirocco chassis cannot
 screen another Sirocco. Cached screens invalidate when they die or leave the
 axis, while unscreened lanes periodically look again. The squad dump exposes
 the chosen screen. See `29-sirocco-screened-overwatch.md`.
@@ -190,8 +190,8 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
   immutable snapshots, and four read-only debug heatmaps (`4e7089d0`)
 - `28-assault-mech-cohesion.md` — shipped reciprocal Hound support
   acquisition, hold-and-fire gate, and six-cell assault leash (`eaef38b2`)
-- `29-sirocco-screened-overwatch.md` — code-complete medium/long Sirocco
-  firing band, non-Sirocco screen preference, cache invalidation, and dump
-  diagnostics; move to `complete/` after integration
+- `29-sirocco-screened-overwatch.md` — shipped medium/long Sirocco firing
+  band, non-Sirocco screen preference, cache invalidation, and dump
+  diagnostics (`98fcc3fb`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
