@@ -159,10 +159,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 ## Out of scope
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
-- New gear to unlock — `s2-primary-weapon-catalog-expansion.md`,
-  `s2c-satchel-charges.md`, and `s2d-frag-grenades.md`. The shipped AMR and
-  smoke grenades are already starter issue and must remain covered by the
-  stranded-asset check.
+- New gear to unlock — `s2-primary-weapon-catalog-expansion.md` and
+  `s2d-frag-grenades.md`. The shipped AMR, smoke grenades, and satchel kits are
+  already starter issue and must remain covered by the stranded-asset check.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income

@@ -170,7 +170,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     private static EnumMap<MarineSecondary, ShotFx> buildSecondaries() {
         EnumMap<MarineSecondary, ShotFx> effects = new EnumMap<>(MarineSecondary.class);
         for (MarineSecondary secondary : MarineSecondary.values()) {
-            if (secondary.activation() != SpecialActivation.UTILITY_SMOKE) {
+            if (secondary.specialDef().weaponId() != null) {
                 effects.put(secondary, deriveSecondary(secondary));
             }
         }

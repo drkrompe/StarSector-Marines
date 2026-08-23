@@ -18,10 +18,10 @@ close-quarters answer in a mod whose mapgen ships two-cell combat aisles and
 apartment interiors, and the current automatic option does not produce a
 legible suppression role.
 
-The special-equipment slot and shipped smoke utility are defined in
-`progression-nouns.md`; its remaining expansion stories are
-`s2c-satchel-charges.md` and the retained fragmentation-grenade plan in
-`s2d-frag-grenades.md`. This story does not duplicate their activation or AI work.
+The special-equipment slot and shipped smoke and satchel utilities are defined
+in `progression-nouns.md`; its remaining expansion story is the retained
+fragmentation-grenade plan in `s2d-frag-grenades.md`. This story does not
+duplicate its activation or AI work.
 
 ## Goal
 

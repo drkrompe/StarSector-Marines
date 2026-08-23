@@ -129,7 +129,7 @@ public final class MarineLoadout {
         } else {
             marine.soldierProfile(soldierProfile);
         }
-        if (secondary != null && secondaryAmmo > 0) {
+        if (secondary != null && secondary.hasAvailableUse(secondaryAmmo)) {
             marine.secondary(secondary, secondaryAmmo);
         }
         marine.campaignSoldierId(campaignSoldierId);

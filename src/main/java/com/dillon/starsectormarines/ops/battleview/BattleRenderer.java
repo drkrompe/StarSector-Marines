@@ -231,6 +231,7 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
                         collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
                 new UnitRenderService(sprites),
+                new SatchelRenderSystem(sprites),
                 new SmokeRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
@@ -271,6 +272,7 @@ public class BattleRenderer {
      */
     public void onAttach() {
         sprites.ensureSmokeSprites();
+        sprites.ensureSatchelSprite();
         impactFx.ensureSprites();
     }
 

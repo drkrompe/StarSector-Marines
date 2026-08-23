@@ -110,9 +110,9 @@ teams.
 
 The template is intent, while `MarineSoldier` equipment remains the materialized
 state consumed by deployment and battle. This preserves the campaign-to-battle
-contract while the designer grows. The initial library contains Field, Line,
-Recon, and mixed Fire Support templates, and the LOADOUTS surface exposes
-Alpha/Bravo/Charlie plus each assigned template.
+contract while the designer grows. The built-in library contains Field, Line,
+Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
+surface exposes Alpha/Bravo/Charlie plus each assigned template.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
