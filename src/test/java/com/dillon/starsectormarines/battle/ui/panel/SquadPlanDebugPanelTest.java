@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.FiringSystem;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
@@ -10,6 +14,9 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.ui.highlight.CellHighlight;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -59,6 +66,29 @@ class SquadPlanDebugPanelTest {
         squad.contactPicture = SquadContactPicture.NONE;
 
         assertTrue(SquadPlanDebugPanel.doctrineAxisCells(squad).isEmpty());
+    }
+
+    @Test
+    void selectedFireSummaryExposesRegistrationCooldownAndLastGate() {
+        NavigationGrid grid = new NavigationGrid(20, 12);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(grid.getWidth(), grid.getHeight()));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        long enemy = sim.spawn(new EntitySpec("Raider", Faction.DEFENDER,
+                UnitType.MARINE, 8, 5));
+        sim.world().setAttackRange(member, 10f);
+        sim.world().setCooldownTimer(member, 0.5f);
+        sim.combat().setFireIntent(member, enemy, FireStance.STANCED, false);
+        new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
+
+        assertEquals("Fire Ready 0   Reg 1   CD 1   Last REGISTERING 0t",
+                SquadPlanDebugPanel.fireSummary(squad, sim));
     }
 
     private static SquadContactPicture picture(float axisX, float axisY,

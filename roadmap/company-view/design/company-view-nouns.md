@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — the Fleet Armory now also hosts the campaign-authoritative Mech Lab.
+Updated: 2026-08-23 — clarified elastic battle fire-team tempo and contained-terrain authority.
 
 ## Purpose
 
@@ -209,10 +209,17 @@ shape; coherently moving sibling teams then occupy laterally separated anchors
 in a shallow squad arc. A team moving on a different path is formed around its
 own heading and is not pulled back toward the squad-wide arc. This replaces the
 old whole-squad ring dispersion for infantry while leaving mech formations
-independent. Navigation has authority in contained terrain: each team reads its
-near path clearance, contracts both its local interval and squad-arc anchor
-before a doorway or narrow run, queues through under ordinary pathing and
-collision separation, then reforms automatically after clearing the constraint.
+independent. An ordinary no-contact advance releases those teams as a spatial
+echelon: the lead team earns a short distance before the next team steps off,
+and each follower keys off the team immediately ahead rather than a shared
+timer. A shared-destination approach retains its last movement heading briefly
+after arrival so the open-ground footprint finishes settling instead of
+collapsing into a halt-point brick; distinct authored posts do not receive that
+arrival correction. Navigation has authority in contained terrain: each team
+reads its near path clearance, releases the echelon gate, contracts both its
+local interval and squad-arc anchor before a doorway or narrow run, queues
+through under ordinary pathing and collision separation, then reforms
+automatically after clearing the constraint.
 
 Bounding overwatch rotates one intact team forward while every sibling team
 with a firing solution covers it. With three healthy teams this is one moving

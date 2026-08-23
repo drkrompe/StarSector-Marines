@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 13 open stories; infantry armor is aligning with combat durability
 Written: 2026-08-23
-Updated: 2026-08-23 — aligned issued armor and weapon penetration with the combat-durability contract.
+Updated: 2026-08-23 — clarified stable new-threat acquisition under multi-angle contact.
 
 ## Purpose
 
@@ -82,10 +82,14 @@ Experience already has a behavioral meaning beyond output. For infantry
 training archetypes, `FiringSystem` holds the first primary shot against a
 newly selected threat until the tier's reflex delay expires. Continuing on the
 same threat does not restart the delay; opportunity fire registers its own
-observed threat without changing the pursuit target. Sustained cadence remains
-a weapon-and-handling concern. This applies to trained humanoid infantry, not
-to mechs, turrets, drones, or fauna. Experience changes first action without
-becoming another permanent damage multiplier.
+observed threat without changing the pursuit target. A legal in-range acquired
+threat remains the opportunity-fire choice until another is materially closer;
+near-equal hostiles cannot alternate the registration identity each tick and
+starve the first shot. Visual torso facing follows this acquisition at a
+bounded rate but is presentation state, never another fire gate. Sustained
+cadence remains a weapon-and-handling concern. This applies to trained humanoid
+infantry, not to mechs, turrets, drones, or fauna. Experience changes first
+action without becoming another permanent damage multiplier.
 
 ### Kit and armory
 

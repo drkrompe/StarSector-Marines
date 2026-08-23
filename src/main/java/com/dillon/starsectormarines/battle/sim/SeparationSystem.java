@@ -139,6 +139,7 @@ public final class SeparationSystem {
     private final NavigationGrid grid;
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    private final MovementService movement;
 
     /** Reused neighbor-query output buffer — cleared and repopulated by every {@link UnitSpatialIndex#gather} call inside {@link #tick}. */
     private final LongBucket scratch = new LongBucket();
@@ -164,6 +165,7 @@ public final class SeparationSystem {
         this.grid = grid;
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
+        this.movement = roster.movement();
     }
 
     /**
@@ -267,7 +269,10 @@ public final class SeparationSystem {
         for (FireTeamGroups.Team team : FireTeamGroups.organize(allMembers, roster.squad())) {
             List<Long> moving = new ArrayList<>();
             for (long member : team.members()) {
-                if (entityWorld.has(member, components.MOVEMENT) && hasActivePath(member)) {
+                if (entityWorld.has(member, components.MOVEMENT)
+                        && (hasActivePath(member)
+                        || (movement.formationMemoryTimer(member) > 0f
+                        && sharesFormationDestination(member, allMembers)))) {
                     moving.add(member);
                 }
             }
@@ -448,8 +453,38 @@ public final class SeparationSystem {
                 return;
             }
         }
+        // A just-settled mover retains the final authored path segment. It is
+        // sufficient to finish the formation correction without inventing a
+        // new movement direction or keeping a permanent formation state.
+        if (count >= 2 && movement.formationMemoryTimer(member) > 0f) {
+            float dx = Paths.cellX(path, count - 1) - Paths.cellX(path, count - 2);
+            float dy = Paths.cellY(path, count - 1) - Paths.cellY(path, count - 2);
+            float length = (float) Math.sqrt(dx * dx + dy * dy);
+            if (length > 1e-4f) {
+                output[0] = dx / length;
+                output[1] = dy / length;
+                return;
+            }
+        }
         output[0] = 0f;
         output[1] = 0f;
+    }
+
+    private boolean sharesFormationDestination(long member, List<Long> squadMembers) {
+        int[] path = world.path(member);
+        if (Paths.cellCount(path) < 2) return false;
+        int destX = Paths.destX(path);
+        int destY = Paths.destY(path);
+        int ownTeam = roster.squad().fireTeamIndex(member);
+        for (long other : squadMembers) {
+            if (other == member || !entityWorld.has(other, components.MOVEMENT)
+                    || roster.squad().fireTeamIndex(other) == ownTeam) continue;
+            int[] otherPath = world.path(other);
+            if (Paths.cellCount(otherPath) >= 2
+                    && Paths.destX(otherPath) == destX
+                    && Paths.destY(otherPath) == destY) return true;
+        }
+        return false;
     }
 
     float preferredMechFormationSpacing(long[] members, int count) {

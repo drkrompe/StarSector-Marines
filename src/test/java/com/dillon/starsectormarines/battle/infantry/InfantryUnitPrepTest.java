@@ -231,6 +231,33 @@ public class InfantryUnitPrepTest {
     }
 
     @Test
+    public void opportunityPrimaryKeepsNearEqualAcquisitionButSwitchesForMaterialAdvantage() {
+        BattleSimulation sim = openArena(30, 10);
+        long defender = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 5, 5));
+        long acquired = sim.spawn(new EntitySpec("acquired", Faction.MARINE, UnitType.MARINE, 10, 5));
+        long challenger = sim.spawn(new EntitySpec("challenger", Faction.MARINE, UnitType.MARINE, 9, 5));
+        sim.world().setAttackRange(defender, 10f);
+        sim.combat().setReflexTargetId(defender, acquired);
+        sim.combat().setReflexTimer(defender, 0.2f);
+
+        assertTrue(InfantryUnitPrep.tryOpportunityPrimary(defender, sim));
+        assertEquals(acquired, sim.combat().fireTargetId(defender),
+                "one-cell advantage must not churn a legal acquisition lock");
+        assertEquals(0.2f, sim.combat().reflexTimer(defender), 1e-6f,
+                "retaining the lock must not restart registration");
+
+        sim.getEntityWorld().setLong(defender, sim.getBattleComponents().COMBAT,
+                com.dillon.starsectormarines.battle.component.BattleComponents.COMBAT_FIRE_TARGET_ID, 0L);
+        sim.world().setCellPos(challenger, 7, 5);
+        assertTrue(InfantryUnitPrep.tryOpportunityPrimary(defender, sim));
+        assertEquals(challenger, sim.combat().fireTargetId(defender),
+                "a target more than two cells closer must replace the lock");
+        assertEquals(challenger, sim.combat().reflexTargetId(defender));
+        assertEquals(ExperienceTier.REGULAR.reflexDelaySeconds,
+                sim.combat().reflexTimer(defender), 1e-6f);
+    }
+
+    @Test
     public void tacticalActionsRetainDispatcherOpportunityFire() {
         assertTrue(OverwatchPosture.INSTANCE.permitsOpportunityFire(),
                 "holding ground must not mean waiting passively to be shot");

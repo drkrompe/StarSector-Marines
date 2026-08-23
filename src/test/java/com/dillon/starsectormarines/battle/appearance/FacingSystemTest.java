@@ -68,6 +68,12 @@ public class FacingSystemTest {
         return sim.getEntityWorld().getInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET);
     }
 
+    private static float layeredFacing(BattleSimulation sim, long id) {
+        BattleComponents c = sim.getBattleComponents();
+        return sim.getEntityWorld().getFloat(id, c.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_FACING_DEGREES);
+    }
+
     @Test
     public void drawnAsSheetTruthTable() {
         for (UnitType t : UnitType.values()) {
@@ -125,6 +131,38 @@ public class FacingSystemTest {
         sim.world().setCooldownTimer(marine, sim.world().attackCooldown(marine));
         system.tick();
         assertEquals(5, spriteIndex(sim, marine), "east weapon-up");
+    }
+
+    @Test
+    public void layeredMarineTracksReflexAcquisitionWithBoundedTurns() {
+        BattleSimulation sim = openArena(40, 40);
+        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE,
+                UnitType.MARINE, 20, 20));
+        long east = sim.spawn(new EntitySpec("east", Faction.DEFENDER,
+                UnitType.MARINE, 25, 20));
+        long west = sim.spawn(new EntitySpec("west", Faction.DEFENDER,
+                UnitType.MARINE, 15, 20));
+        BattleComponents c = sim.getBattleComponents();
+        sim.getEntityWorld().setFloat(marine, c.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_FACING_DEGREES, 0f);
+        sim.world().setTargetId(marine, west);
+        sim.combat().setReflexTargetId(marine, east);
+
+        FacingSystem system = systemFor(sim);
+        system.tick();
+        float first = layeredFacing(sim, marine);
+        float expectedStep = FacingSystem.COMBATANT_TURN_RATE_DEGREES_PER_SECOND
+                * BattleSimulation.TICK_DT;
+        assertEquals(expectedStep,
+                Math.abs(LayeredAppearance.wrapDegrees(first)), 1e-4f,
+                "visual aim follows reflex acquisition and turns one bounded step");
+
+        sim.combat().setReflexTargetId(marine, west);
+        system.tick();
+        float second = layeredFacing(sim, marine);
+        assertTrue(Math.abs(LayeredAppearance.wrapDegrees(second - first))
+                        <= expectedStep + 1e-4f,
+                "opposite-side acquisition cannot snap the layered torso");
     }
 
     @Test

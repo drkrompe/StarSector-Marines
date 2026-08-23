@@ -152,7 +152,9 @@ abstract class AbstractZoneAction implements Action {
             // zone push, the trigger just stops it being a sitting duck.
             // FiringSystem's beginBurst tracks the intent target, so the
             // follow-up burst tracks the enemy we shot, not the pursuit target.
-            long opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+            long opportune = sim.getTacticalScoring().closestEnemyInAttackRange(
+                    member, sim.combat().reflexTargetId(member),
+                    TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN);
             if (opportune != 0L) {
                 sim.combat().setFireIntent(member, opportune, FireStance.MOVING, false);
             }

@@ -730,6 +730,8 @@ public final class TacticalScoring {
      * close mech walks up next to a marine engaged on a distant turret.
      */
     public static final float RETARGET_DISTANCE_MARGIN = 5f;
+    /** Smaller hysteresis for a shot of opportunity that does not change pursuit. */
+    public static final float OPPORTUNITY_RETARGET_DISTANCE_MARGIN = 2f;
 
     /**
      * Pursuit gate: returns true when {@code currentTarget} is still a sensible
@@ -910,6 +912,18 @@ public final class TacticalScoring {
      * range tests gate the per-candidate LoS raycast.
      */
     public long closestEnemyInAttackRange(long self) {
+        return closestEnemyInAttackRange(self, 0L, 0f);
+    }
+
+    /**
+     * Nearest currently shootable enemy with acquisition hysteresis. A live,
+     * shootable {@code preferred} target remains selected unless another
+     * candidate is closer by more than {@code switchMargin} cells. This keeps
+     * near-equal threats around an encircled marine from alternating every
+     * tick and repeatedly restarting reflex registration.
+     */
+    public long closestEnemyInAttackRange(long self, long preferred,
+                                          float switchMargin) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
         int sx = world.cellX(self);
@@ -923,6 +937,7 @@ public final class TacticalScoring {
 
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
+        float preferredDist = Float.MAX_VALUE;
         for (int i = 0; i < liveCount; i++) {
             long other = dense[i];
             if (roster.identity().faction(other) == selfFaction) continue;
@@ -930,12 +945,17 @@ public final class TacticalScoring {
             int ox = world.cellX(other);
             int oy = world.cellY(other);
             float d = cellDistance(world.x(self), world.y(self), world.x(other), world.y(other));
-            if (d > range || d >= bestDist) continue;
+            if (d > range) continue;
             if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
-            bestDist = d;
-            best = other;
+            if (other == preferred) preferredDist = d;
+            if (d < bestDist) {
+                bestDist = d;
+                best = other;
+            }
         }
-        return best;
+        return preferredDist < Float.MAX_VALUE
+                && !(bestDist + Math.max(0f, switchMargin) < preferredDist)
+                ? preferred : best;
     }
 
     /**
