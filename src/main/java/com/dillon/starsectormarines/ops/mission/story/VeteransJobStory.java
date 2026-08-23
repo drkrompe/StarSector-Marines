@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -61,16 +60,18 @@ public final class VeteransJobStory implements StoryMissionDef {
         // story missions set their own difficulty.
         int payout = 25_000;
 
-        return new Mission(
-                ID, "The Veteran's Job",
-                MissionType.RAID, MissionSource.STORY,
-                payout, RiskLevel.MEDIUM,
-                "50+ marines, discretion",
-                flavor,
-                x, y,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                3, 0,
-                ctx.planet != null ? ctx.planet.getName() : null,
-                null);
+        return Mission.builder()
+                .id(ID)
+                .name("The Veteran's Job")
+                .type(MissionType.RAID)
+                .source(MissionSource.STORY)
+                .payout(payout)
+                .risk(RiskLevel.MEDIUM)
+                .requirements("50+ marines, discretion")
+                .flavor(flavor)
+                .mapPosition(x, y)
+                .requiredDrops(3)
+                .targetPlanetName(ctx.planet != null ? ctx.planet.getName() : null)
+                .build();
     }
 }

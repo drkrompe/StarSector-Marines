@@ -13,10 +13,23 @@ public final class MarineInsertion extends AirDeliveryPower {
 
     public static final String ID = "marine_insertion";
 
+    /**
+     * Fixed rather than clock-seeded, so a drop's loadout roll is reproducible like
+     * everything else in the sim.
+     *
+     * <p>Not the battle's own seed: {@code PowerCatalog} builds powers before any battle
+     * exists, so this instance has no seed to inherit. The consequence is that the first
+     * drop of every battle rolls the same loadout — deterministic, but uniform across
+     * battles. Tying it to the battle stream needs the activation path to hand the
+     * {@code BattleControl} down to {@code configureMission}; logged as a follow-up in
+     * {@code seeded-battle-determinism.md}.
+     */
+    private static final long LOADOUT_SEED = 0x10AD0107L;
+
     private final Random loadoutRng;
 
     public MarineInsertion() {
-        this(new Random());
+        this(new Random(LOADOUT_SEED));
     }
 
     MarineInsertion(Random loadoutRng) {

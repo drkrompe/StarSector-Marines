@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Non-combatant ambient behavior. Two modes, gated by whether an armed unit is
@@ -94,7 +93,7 @@ public final class FleeBehavior implements UnitBehavior {
             if (sim.world().pathIdx(u) >= Paths.cellCount(sim.world().path(u))) {
                 // Arrived this tick — clear the path and start dwelling.
                 sim.clearPath(u);
-                sim.world().setWanderDwellTimer(u, randomDwellSeconds(ThreadLocalRandom.current()));
+                sim.world().setWanderDwellTimer(u, randomDwellSeconds(sim.random()));
             }
             return;
         }
@@ -154,8 +153,8 @@ public final class FleeBehavior implements UnitBehavior {
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
-            dx = ThreadLocalRandom.current().nextFloat() * 2f - 1f;
-            dy = ThreadLocalRandom.current().nextFloat() * 2f - 1f;
+            dx = sim.random().nextFloat() * 2f - 1f;
+            dy = sim.random().nextFloat() * 2f - 1f;
             len = (float) Math.sqrt(dx * dx + dy * dy);
             if (len < 0.001f) { dx = 1f; dy = 0f; len = 1f; }
         }
@@ -184,7 +183,7 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static int[] pickWanderDestination(long u, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        Random rng = ThreadLocalRandom.current();
+        Random rng = sim.random();
         int span = WANDER_MAX_RADIUS * 2 + 1;
         for (int i = 0; i < WANDER_SAMPLE_ATTEMPTS; i++) {
             int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;

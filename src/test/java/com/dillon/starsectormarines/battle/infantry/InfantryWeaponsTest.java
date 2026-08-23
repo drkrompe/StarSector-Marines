@@ -101,7 +101,8 @@ class InfantryWeaponsTest {
         ShotService shots = new ShotService();
         BallisticResolver resolver = new BallisticResolver(grid,
                 new DoodadService(grid), sim.getUnitIndex(), sim.getRoster());
-        InfantryWeapons weapons = new InfantryWeapons(sim.getRoster(), resolver, shots);
+        InfantryWeapons weapons = new InfantryWeapons(
+                sim.getRoster(), resolver, shots, new Random(0L));
         return new Fixture(sim, weapons, shots, shooter, friendly, target);
     }
 

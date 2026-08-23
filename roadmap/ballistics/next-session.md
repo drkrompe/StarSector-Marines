@@ -77,7 +77,7 @@
   before emission: 20% Green, 50% Regular, 75% Veteran, 90% Elite. A hold
   spends cadence but produces no round, impact, noise, or fired telemetry, so
   training reduces friendly fire without reducing hostile DPS. Full record:
-  `s4b-trigger-discipline.md`. All 2,093 repository tests pass.
+  `s4b-trigger-discipline.md`. All 2,106 repository tests pass.
 - Design record: [`overview.md`](overview.md). Owner decisions all
   resolved (friendly fire 0.5×, path-proximity near-miss, 100% hostile / 35%
   friendly incidental base catches). NOTE one design-doc drift, corrected in
@@ -92,8 +92,8 @@
 fire resolves its exact counterfactual trajectory first; only a result
 committed to a friendly victim receives a Green/Regular/Veteran/Elite hold
 roll. Successful holds emit no round but the caller still consumes cooldown
-and burst cadence, so training cannot lower hostile DPS. All 2,093 repository
-tests pass (2,092 root + 1 asset-pipeline).
+and burst cadence, so training cannot lower hostile DPS. All 2,106 repository
+tests pass (2,105 root + 1 asset-pipeline).
 
 No implementation story is active. The next useful ballistics step is an
 in-game feel pass: watch units

@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
 
-import java.util.Collections;
 
 /** Builds a battle mission whose personnel and local lifts come from a Cadre payload. */
 public final class StationingIncidentMissionFactory {
@@ -24,13 +22,25 @@ public final class StationingIncidentMissionFactory {
         String title = title(payload.type) + " — " + planetName;
         String flavor = "The stationed Cadre is already on site. Respond with the assigned "
                 + "captain and " + payload.committedMarines + " committed marines.";
-        return new Mission(StationingIncidentMissionKey.encode(payload), title,
-                missionType, MissionSource.STATIONING, 0, risk,
-                "Stationed detachment", flavor, 0.5f, 0.5f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, drops, drops,
-                planetName, null, factionId, payload.contractId,
-                (byte) 5, (byte) 5, (byte) 100,
-                (byte) 5, (byte) 5, Collections.emptyList());
+        return Mission.builder()
+                .id(StationingIncidentMissionKey.encode(payload))
+                .name(title)
+                .type(missionType)
+                .source(MissionSource.STATIONING)
+                .risk(risk)
+                .requirements("Stationed detachment")
+                .flavor(flavor)
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(drops)
+                .employerShuttles(drops)
+                .targetPlanetName(planetName)
+                .targetFactionId(factionId)
+                .contractId(payload.contractId)
+                .salvageBaseline(5)
+                .salvageNegotiated(5)
+                .contractSalvageBaseline(5)
+                .contractSalvageNegotiated(5)
+                .build();
     }
 
     private static MissionType missionType(StationingIncidentType type) {

@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <b>Squad posture: patrol a turret emplacement's bounding box.</b> Custom-plan
@@ -256,7 +255,7 @@ public final class GuardPostPatrol implements Action {
     private int[] nextWaypoint(long member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int span = radius * 2 + 1;
-        Random rng = ThreadLocalRandom.current();
+        Random rng = sim.random();
         for (int i = 0; i < WAYPOINT_SAMPLE_ATTEMPTS; i++) {
             int cx = anchorX + rng.nextInt(span) - radius;
             int cy = anchorY + rng.nextInt(span) - radius;
