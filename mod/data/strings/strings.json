@@ -122,7 +122,6 @@
 		"companyHqNoReport":      "No monthly report yet — upkeep, debt, and runway appear after the first month rolls over.",
 		"companyHqRetainers":     "Retainers: Cr. {0} / month across {1} assignments",
 		"companyHqNoRetainers":   "No retainers — nothing is paying between contracts.",
-		"companyHqPersonnelHeader": "PERSONNEL",
 		"companyHqStrength":      "{0} on the books · {1} ready to deploy",
 		"companyHqUnavailable":   "{0} stationed · {1} wounded · {2} otherwise unavailable",
 		"companyHqReputationHeader": "REPUTATION",
@@ -140,7 +139,13 @@
 		"companyHqClockTermFails": "Ends unanswered — this fails the contract",
 		"companyHqClockWhere":    "{0} · {1}",
 		"companyHqClockRespond":  "Respond",
-		"companyHqRosterPending": "Strength by formation and the armory route — next slice.",
+		"companyHqFormation":     "Squads: {0}  ·  Officers: {1}",
+		"companyHqFormationStationed": "{0} away on assignment",
+		"companyHqNoSquads":      "No squads formed yet.",
+		"companyHqRecoveryDays":  "Next marine back in {0} days",
+		"companyHqRecoveryOneDay": "Next marine back tomorrow",
+		"companyHqRecoveryToday": "A marine returns to duty today",
+		"companyHqArmory":        "Armory",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",
