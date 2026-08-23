@@ -3,9 +3,10 @@
 > The stats differ. The presentation does not. During the fight the player
 > has no idea which of their marines is the veteran.
 
-**Status:** not started. Depends on
-S3 (`s3-per-soldier-telemetry.md`) for live per-marine performance.
-Coordinate with [S7](s7-grade-visual-identity.md) — see the split below.
+Status: READY — career evidence is shipped; coordinate with
+`s7-grade-visual-identity.md`.
+Written: 2026-08-22
+Updated: 2026-08-23 — redirected shipped dependencies and normalized references.
 
 ## Problem
 
@@ -63,15 +64,15 @@ beat, this is where it lives — a marine crossing into Veteran or Elite gets
 a readable moment, while the actual stat change still settles
 post-mission. Presentation of a threshold crossed, not a live stat mutation.
 
-The [`../../battle-radio/`](../../battle-radio/overview.md) pipeline is the
+The `battle-radio.md` pipeline is the
 obvious delivery vehicle and already has a global voice budget and a
 presentation-only cue policy that keeps audio out of sim determinism.
 
 ## Out of scope
 
 - Any sim behavior change. Conveyance only.
-- Equipment chrome — [S7](s7-grade-visual-identity.md).
-- Campaign-side roster views — [S8](s8-roster-legibility.md).
+- Equipment chrome — `s7-grade-visual-identity.md`.
+- Campaign-side roster views — `s8-roster-legibility.md`.
 - Post-battle results presentation. The Results debrief already exists and
   gets its career payload from S3/S8.
 

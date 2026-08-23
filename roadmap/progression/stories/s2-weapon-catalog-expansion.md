@@ -3,9 +3,9 @@
 > Four primaries and one secondary is not enough surface for an armory
 > screen, a preset system, and a tier ladder to sit on.
 
-**Status:** not started. Depends on
-[S1](s1-lethality-and-tier-spread.md) — new entries should be authored
-against the corrected lethality scale, not retuned twice.
+Status: PLANNED — depends on the shipped lethality scale in `progression-nouns.md`.
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated dependencies and references to the canonical model.
 
 ## Problem
 
@@ -20,7 +20,7 @@ That is a clean DMR / BR / AR triad plus a recruit rifle, and it is a
 reasonable *foundation* — but there is no close-quarters option in a mod
 whose mapgen ships two-cell combat aisles and apartment interiors, no
 thrown weapon, no way to make a hole in a wall on purpose, and nothing to
-unlock once the ladder in [S6](s6-unlock-ladder-expansion.md) grows.
+unlock once the ladder in `s6-unlock-ladder-expansion.md` grows.
 
 ## Goal
 
@@ -53,7 +53,7 @@ UI-visible slot with exactly one occupant.
 | --- | --- |
 | **Frag grenade** | Short arcing throw, small AoE, friendly fire on. The infantry staple. Ammo 2-3 |
 | **Breaching charge** | Placed, timed, large wall damage, negligible anti-personnel. Makes a door where there wasn't one — direct mapgen and tactical-AI payoff |
-| **Smoke grenade** | Blocks line of sight for a duration. Reads directly against the shipped [`../../fog-of-war/`](../../fog-of-war/overview.md) vision system and cover model |
+| **Smoke grenade** | Blocks line of sight for a duration. Reads directly against the shipped `fog-of-war.md` vision system and cover model |
 
 Smoke is the highest-value of the three because it is the first *utility*
 item — it changes the fight without dealing damage, which is a category the
@@ -78,7 +78,7 @@ transient LoS blocker the shadowcast pass respects.
 - Each new family has a one-sentence identity recorded in its enum Javadoc,
   matching the pattern the existing entries set.
 - Every entry is reachable: it has a starter unlock, a ladder unlock in
-  [S6](s6-unlock-ladder-expansion.md), or an explicit note saying which.
+  `s6-unlock-ladder-expansion.md`, or an explicit note saying which.
   **Nothing ships stranded** — that is the exact failure the audit found
   with four armor patterns.
 - Presets in `SquadEquipmentPreset` are revisited so the new families feed

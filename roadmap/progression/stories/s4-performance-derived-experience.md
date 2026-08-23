@@ -3,10 +3,9 @@
 > XP should be something a marine earned, and the ladder it climbs should
 > be worth climbing.
 
-**Status:** not started. Depends on
-S3 (`s3-per-soldier-telemetry.md`) for the input data, and should land after
-[S1](s1-lethality-and-tier-spread.md) so the experience ladder is retuned
-against the corrected grade spread rather than against the current one.
+Status: READY — the telemetry input and lethality/grade pass are shipped.
+Written: 2026-08-22
+Updated: 2026-08-23 — redirected shipped dependencies to `progression-nouns.md`.
 
 ## Problem
 
@@ -88,7 +87,7 @@ with no explanation is the kind of thing that reads as an oversight later.
 
 Counter-case worth hearing: a visible "promoted mid-battle" moment is a
 strong beat in this genre. If that is wanted, it belongs in
-[S9](s9-in-battle-quality-conveyance.md) as a *presentation* of a
+`s9-in-battle-quality-conveyance.md` as a *presentation* of a
 threshold crossed, with the stat change still settled afterwards.
 
 ## Out of scope
@@ -97,7 +96,7 @@ threshold crossed, with the stat change still settled afterwards.
   functioning system whose only effect is command breadth; changing it is
   its own story.
 - Aptitude. It stays innate.
-- Trait acquisition on promotion — [S10](s10-trait-mechanics.md).
+- Trait acquisition on promotion — `s10-trait-mechanics.md`.
 
 ## Acceptance
 

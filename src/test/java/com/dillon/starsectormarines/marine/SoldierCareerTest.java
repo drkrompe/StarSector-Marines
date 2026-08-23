@@ -14,9 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for {@link SoldierCareer} accumulation through
- * {@link MarineRoster#applySoldierOutcome} — progression S3 slice 3
- * ({@code s3-per-soldier-telemetry.md}).
+ * Coverage for campaign career evidence accumulated through
+ * {@link MarineRoster#applySoldierOutcome} ({@code progression-nouns.md}).
  *
  * <p>The distinction under test throughout: {@code outcomes} is the
  * <em>deployment manifest</em> and telemetry is the <em>evidence</em>. Every

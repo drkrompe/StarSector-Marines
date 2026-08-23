@@ -95,7 +95,7 @@ taken over. The focused interaction matrix and merged full root automated suite
 pass; manual in-game layout validation remains deferred as requested.
 
 The **progression side** of personnel is now contracted in the cross-tier
-[`../../progression/`](../../progression/overview.md) track — per-soldier
+`progression-nouns.md` model — per-soldier
 combat telemetry and career records (S3), performance-derived experience
 (S4), roster legibility for aptitude/career/traits (S8), and trait
 mechanics plus acquisition (S10). Those stories add progression *on top of*

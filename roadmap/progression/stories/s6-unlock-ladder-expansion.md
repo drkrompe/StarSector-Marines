@@ -3,9 +3,10 @@
 > The ladder is four rungs long and ends at mission five. Four armor
 > patterns are fully authored and unreachable.
 
-**Status:** not started. Depends on [S5](s5-parts-acquisition-channels.md)
-for income and the two-currency split, and on
-[S2](s2-weapon-catalog-expansion.md) for things worth unlocking.
+Status: PLANNED — depends on `s5-parts-acquisition-channels.md` and
+`s2-weapon-catalog-expansion.md`.
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 
 ## Problem
 
@@ -104,9 +105,9 @@ Why this fits the mod's existing commitments:
   generic unlock token.
 - It gives patron contract rewards real flavor, and pairs with the shipped
   house-flavor work in
-  [`../../campaign/themes.md`](../../campaign/themes.md) (Corporate /
+  `themes.md` (Corporate /
   Feudal / Underworld / Sectarian) rather than inventing a second axis.
-- It gives [S7](s7-grade-visual-identity.md) far more to signal than grade
+- It gives `s7-grade-visual-identity.md` far more to signal than grade
   alone.
 
 ### The two hard problems
@@ -154,10 +155,10 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 ## Out of scope
 
-- Where parts come from — [S5](s5-parts-acquisition-channels.md).
-- New gear to unlock — [S2](s2-weapon-catalog-expansion.md).
+- Where parts come from — `s5-parts-acquisition-channels.md`.
+- New gear to unlock — `s2-weapon-catalog-expansion.md`.
 - Visual differentiation of unlocked tiers —
-  [S7](s7-grade-visual-identity.md).
+  `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income
   curve.
 
