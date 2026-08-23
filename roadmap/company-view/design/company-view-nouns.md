@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — hardened maneuver constraints; non-card templates and atomic squad arrangements ship.
+Updated: 2026-08-23 — non-card templates and arrangements ship; the optional special-equipment slot is explicit.
 
 ## Purpose
 
@@ -35,6 +35,9 @@ company view composes their stable outputs.
 - **Fire-team template** — a reusable four-billet equipment design owned by the
   armory. The template is not physical inventory and is never consumed by
   assignment; each fielded copy still needs a complete physical kit.
+- **Special-equipment slot** — the one optional billet position beside a
+  marine's primary and armour. A template may issue a weapon-like special or a
+  utility special; the slot does not make the template a battle order.
 - **Billet** — one equipment position on a fire-team template. Templates describe
   positions rather than named marines; the current team materializes them.
 - **Template assignment** — the template id bound to one squad's Alpha, Bravo, or
@@ -88,13 +91,15 @@ a garrison is a posting, not a task force.
 The Fleet Armory authors routine equipment at fire-team scale. `MarineArmory`
 owns a reusable template library; `MarineSquad` persists one assigned template id for
 each of its three team slots. A template has exactly four billets, and each billet
-may specify primary family, grade, armour, and optional secondary. Special gear
+may specify primary family, grade, armour, and optional special equipment. The
+current `MarineSecondary` field is the compatibility materialization of that
+last concept until the id migration retires it. Special gear
 therefore belongs to a scarce team design rather than a parallel per-marine
 override system.
 
 Assignment is atomic and inventory-aware. The target team's current equipment
 is counted as returned before the candidate template is checked. Locked recipes or
-insufficient primaries, armour, or secondaries leave every marine and the prior
+insufficient primaries, armour, or special items leave every marine and the prior
 template id untouched. A complete four-marine RTD team is currently required before a
 new template can be assigned; later conformance work owns degraded and replacement
 teams.
@@ -311,6 +316,8 @@ production vehicle deployment seam exists.
   nor assignment.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.
+- A template may issue special equipment, but AI use follows faction-neutral
+  battle policy rather than a hidden instruction encoded by the card.
 - Officer capacity is checked per command; task forces do not flatten back into
   one officer's cap.
 - Reserve personnel do not count as formations or field-ready strength.

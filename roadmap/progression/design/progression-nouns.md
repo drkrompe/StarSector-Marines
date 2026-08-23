@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 10 open stories
+Status: ACTIVE — 14 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — folded the shipped lethality, telemetry, career, and combat-reflex stories.
+Updated: 2026-08-23 — split primary breadth from four AI-integrated special-equipment stories.
 
 ## Purpose
 
@@ -37,6 +37,11 @@ legibility.
 - **Equipment grade** — the four-step manufacturing/condition quality axis:
   Surplus, Service, Milspec, Masterwork. Grade composes with family and profile;
   it does not create a separate unit type.
+- **Special equipment** — one optional billet item carried alongside the
+  marine's primary. Rocket launchers, anti-materiel rifles, and fragmentation
+  grenades activate weapon definitions; smoke and satchel charges activate
+  utility behavior. “Secondary” remains a transitional code/catalog name, not
+  the enduring player-facing category.
 - **Armor pattern** — a player-owned infantry protection and appearance package.
   Unlike grade, it changes survivability and movement tradeoffs as its own kit
   choice.
@@ -94,6 +99,14 @@ two-currency split, recipe recovery, and full asset reachability are planned.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
 unlock ladder; their existence is not evidence of a shipped acquisition path.
+
+Each billet has at most one special-equipment slot. The item is a stable
+loadout identity with a typed activation: weapon-like specials reference the
+weapon catalog that owns their round, while utility specials own their battle
+action without becoming zero-damage weapons. Progression owns recipe, stock,
+assignment, fabrication value, and reachability; battle AI owns when legal
+issued equipment is used. The same use policy is faction-neutral even when
+campaign availability differs by faction.
 
 ### Telemetry and career
 
@@ -156,8 +169,10 @@ The following are direction, not current behavior:
 - Replace flat survivor XP with deterministic, bounded performance-derived
   awards from frozen outcomes, while preserving meaningful participation and
   learning from losses.
-- Expand weapon families, secondary options, and the unlock ladder so every
-  authored player asset has either starter status or a reachable path.
+- Expand primary families and special-equipment options, and extend the unlock
+  ladder so every authored player asset has either starter status or a
+  reachable path. The first planned additions are anti-materiel rifles, smoke
+  grenades, satchel charges, and fragmentation grenades.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in
@@ -173,6 +188,10 @@ The following are direction, not current behavior:
 - Family, grade, profile, and armor stay composable rather than being fused
   into special unit variants.
 - A recipe is not stock, and an authored item is not necessarily obtainable.
+- A billet carries at most one special item; utilities do not become
+  `WeaponDef` entries merely because they share that loadout slot with guns.
+- Special-equipment use policy is simulation-owned and faction-neutral;
+  template cards express issue, not hidden battle orders.
 - Career totals are lifetime evidence; adding a per-mission history requires a
   new retention and UI commitment.
 - All combat telemetry may inform balance; only identity-bound campaign rows

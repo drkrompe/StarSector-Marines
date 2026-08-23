@@ -42,7 +42,6 @@ public final class DetachmentResolver {
      * @param m                 the mission (employer support co-source)
      * @param committedShuttles the player's committed transports, priority-sorted
      * @param committedWings    the player's committed marine-side fighter cover
-     *                          (Slice 1: the whole fleet's fitted bays)
      */
     public static Detachment resolve(Mission m,
                                      List<ShuttleType> committedShuttles,
