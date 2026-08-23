@@ -7,7 +7,7 @@ import java.util.Arrays;
 /**
  * Campaign-tier data model: structure-of-arrays tables backed by Java primitive
  * arrays, persisted via xstream (no SQLite — see
- * <code>roadmap/campaign/mechanics.md</code> for the rationale).
+ * <code>roadmap/campaign/design/architecture.md</code> for the rationale).
  *
  * <p>This is a thin data container. The simulation loop lives in
  * {@link CampaignStateScript}; seeding lives in {@link HouseSeeder}; UI hangs
@@ -378,7 +378,7 @@ public final class CampaignState implements Serializable {
     public byte[]  contractCashMultiplier    = new byte[INITIAL_CAPACITY];
     public int     contractCount         = 0;
 
-    // ---------- O(1) id → row-index maps (architecture.md §4) ----------
+    // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();
     public final LongIntMap stakeIndexById     = new LongIntMap();
@@ -456,7 +456,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: house id → row index in houses table, or {@code -1}. */
+    /** Average O(1) lookup: house id → row index in houses table, or {@code -1}. */
     public int houseIndex(long id) {
         return houseIndexById.get(id);
     }
@@ -475,7 +475,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: stake id → row index in stakes table, or {@code -1}. */
+    /** Average O(1) lookup: stake id → row index in stakes table, or {@code -1}. */
     public int stakeIndex(long id) {
         return stakeIndexById.get(id);
     }
@@ -544,7 +544,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: chain id → row index in chains table, or {@code -1}. */
+    /** Average O(1) lookup: chain id → row index in chains table, or {@code -1}. */
     public int chainIndex(long id) {
         return chainIndexById.get(id);
     }
@@ -793,7 +793,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: throne-claim id to row index, or {@code -1}. */
+    /** Average O(1) lookup: throne-claim id to row index, or {@code -1}. */
     public int throneClaimIndex(long id) {
         return throneClaimIndexById.get(id);
     }
@@ -871,7 +871,7 @@ public final class CampaignState implements Serializable {
         return i;
     }
 
-    /** O(1) lookup: house id → row index in playerReputation table, or {@code -1} if no rep row exists. */
+    /** Average O(1) lookup: house id → row index in playerReputation table, or {@code -1} if no rep row exists. */
     public int repIndex(long houseIdValue) {
         return repIndexByHouseId.get(houseIdValue);
     }
@@ -951,7 +951,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: campaign event id to row index, or {@code -1}. */
+    /** Average O(1) lookup: campaign event id to row index, or {@code -1}. */
     public int eventIndex(long id) {
         return eventIndexById.get(id);
     }
@@ -1017,7 +1017,7 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
-    /** O(1) lookup: contract id → row index in contracts table, or {@code -1}. */
+    /** Average O(1) lookup: contract id → row index in contracts table, or {@code -1}. */
     public int contractIndex(long id) {
         return contractIndexById.get(id);
     }
@@ -1027,7 +1027,7 @@ public final class CampaignState implements Serializable {
      * current sector day. Returns {@code -1} for non-OFFERED rows, contracts
      * with no offer expiry (e.g. debug-spawned), and contracts that should
      * have already lapsed (caller should not be displaying these — they
-     * tombstone to {@link ContractState#EXPIRED} on the next tick). Bound
+     * transition to {@link ContractState#EXPIRED} on the next tick). Bound
      * for the dossier-card days-left bar on the mission-select surface.
      */
     public int contractDaysLeft(int row, int currentDay) {

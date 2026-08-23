@@ -22,8 +22,8 @@ import java.util.EnumSet;
  * <ul>
  *   <li>{@link ContractState#OFFERED OFFERED} past its
  *       {@code contractOfferExpiresTick} → {@link ContractState#EXPIRED EXPIRED}
- *       (tombstoned per the SoA soft-delete invariant; filters out of the
- *       offer list).</li>
+ *       (filters out of the offer list; the owning maintenance path may
+ *       compact terminal rows while preserving contract IDs).</li>
  *   <li>Stationing contract past its {@code expiresTick} → COMPLETED if all phases
  *       cleared, FAILED otherwise.</li>
  * </ul>
@@ -54,8 +54,8 @@ public final class ContractLifecycleSystem implements CampaignSystem {
             ContractState s = ContractState.fromByte(state.contractState[i]);
             if (s.isTerminal()) continue;
 
-            // OFFERED lapse — soft-delete to EXPIRED. Tombstones in place so
-            // the id→index map stays valid (architecture.md §1).
+            // OFFERED lapse — transition to EXPIRED. Callers retain the stable
+            // contract ID; row storage is an owner-controlled maintenance detail.
             if (s == ContractState.OFFERED) {
                 int offerExpires = state.contractOfferExpiresTick[i];
                 if (offerExpires >= 0 && day >= offerExpires) {

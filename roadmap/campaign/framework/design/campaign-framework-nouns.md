@@ -13,9 +13,9 @@ not define houses, contracts, events, personnel, or their policies; those
 concepts belong to their owning campaign features.
 
 `architecture.md` remains the canonical commitment for how campaign state is
-stored and accessed. `mechanics.md` remains the canonical model of the
-political simulation. This document owns the coordination contract that lets
-those models stay coherent over a save's lifetime.
+stored and accessed. `living-world-nouns.md` remains the canonical model of
+the political simulation. This document owns the coordination contract that
+lets those models stay coherent over a save's lifetime.
 
 ## Vocabulary
 
@@ -81,7 +81,7 @@ interactive actions and one-shot mission resolution should call their owning
 feature policy directly. Make ordering dependencies explicit before insertion,
 and update the system-order coverage with the new relationship. New persisted
 campaign facts follow `architecture.md`; new political vocabulary and policy
-belong in `mechanics.md` or the feature that owns it.
+belong in `living-world-nouns.md` or the feature that owns it.
 
 The remaining framework work is tracked by
 `monotonic-clock-live-acceptance.md` and
