@@ -3,9 +3,9 @@
 > Six of eleven traits are enums that do nothing. The Javadoc promises
 > level-up trait rewards that no code path grants.
 
-**Status:** not started. Should land **after**
-[S8](s8-roster-legibility.md) — traits need a surface to be read on before
-they get mechanics worth reading.
+Status: PLANNED — follows `s8-roster-legibility.md` so traits are readable first.
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 
 ## Problem
 
@@ -72,11 +72,11 @@ Deliver on the promise the enum already makes.
 
 ## Out of scope
 
-- The trait UI — [S8](s8-roster-legibility.md).
+- The trait UI — `s8-roster-legibility.md`.
 - Giving `IDEALIST`/`CYNICAL` combat effects. The moral-outlook story
   named that an explicit non-goal and it stays one.
-- Trait removal, transfer, or trading — also named non-goals in
-  `campaign/personnel/next-session.md`. Do not reopen them here.
+- Trait removal, transfer, or trading — also named non-goals by the personnel
+  lifecycle. Do not reopen them here.
 
 ## Acceptance
 

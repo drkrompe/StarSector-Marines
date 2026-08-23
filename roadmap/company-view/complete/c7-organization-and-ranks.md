@@ -86,7 +86,7 @@ roster claiming a Sergeant commands 42 marines in squads of twelve.
 The acceptance item "a twelve-marine squad survives first contact as a unit
 that can still maneuver" is a play-pass judgment. `TtkHarness` is a two-unit
 harness and cannot answer it, same as progression
-`s1-lethality-and-tier-spread.md`'s outstanding item. The roster, vacancy,
+`s1-lethality-feel-pass.md`. The roster, vacancy,
 transfer and promotion halves are covered by tests.
 
 ---
@@ -105,7 +105,7 @@ transfer and promotion halves are covered by tests.
 
 ### Why twelve
 
-Progression `s1-lethality-and-tier-spread.md`
+The quality model in `progression-nouns.md`
 slice 1 shipped a **9× infantry lethality scale**: a pulse rifle takes an
 unarmored marine from ~30 s to ~3.3 s. Under that, a six-marine squad loses
 half its strength — `SquadFallbackSystem`'s trigger ratio — in a few

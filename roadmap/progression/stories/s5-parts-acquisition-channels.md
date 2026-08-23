@@ -3,9 +3,9 @@
 > Today there is exactly one way to get fabrication feedstock: win. That is
 > not an economy, it is a scoreboard.
 
-**Status:** not started. No hard dependencies; pairs with
-[S6](s6-unlock-ladder-expansion.md) — income without a ladder and a ladder
-without income are each half a feature.
+Status: PLANNED — no hard dependency; pairs with `s6-unlock-ladder-expansion.md`.
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated references to stable slugs.
 
 ## Problem
 
@@ -54,13 +54,13 @@ screen.
 
 Optional and worth considering: conversion efficiency scaled by something
 diegetic in the player's fleet, in the spirit of how
-[`../../command-powers/`](../../command-powers/overview.md) sources powers
+`command-powers.md` sources powers
 from committed ships. A fabrication-capable hull or hullmod improving the
 rate would make fleet composition matter here too.
 
 ## Slice 2 — Battlefield loot
 
-Extend the shipped [`../../campaign/loot/`](../../campaign/loot/overview.md)
+Extend the shipped `loot.md`
 manifest with parts entries rather than building a parallel drop system.
 
 - Common parts scale with mission risk and with what was actually cleared —
@@ -98,10 +98,10 @@ Recovered enemy weapons and armor break down into common parts.
 
 ## Out of scope
 
-- What the currencies unlock — [S6](s6-unlock-ladder-expansion.md).
+- What the currencies unlock — `s6-unlock-ladder-expansion.md`.
 - Selling parts back, or a parts market between players/factions.
 - Wages, upkeep, or personnel costs. The company money loop lives in
-  [`../../campaign/economy.md`](../../campaign/economy.md) and this story
+  `economy.md` and this story
   must not fork it.
 
 ## Acceptance
