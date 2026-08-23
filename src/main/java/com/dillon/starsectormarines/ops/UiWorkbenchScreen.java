@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -100,7 +101,7 @@ public final class UiWorkbenchScreen implements Screen {
         footer.child(button("back", "BACK TO COMPANY HQ", 188f,
                 () -> context.goTo(ScreenId.COMPANY_HQ)));
         footer.child(label("retained-status",
-                "TREE BUILT ONCE  |  BOXES DRIVE PAINT + HIT TEST  |  U1 PROOF",
+                "RETAINED TREE  |  OVERFLOW CLIPS PAINT + HIT TEST  |  U2 PROOF",
                 GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
@@ -225,11 +226,15 @@ public final class UiWorkbenchScreen implements Screen {
     }
 
     private static UiElement panel(String id, Color color) {
-        return new UiElement(id).background(color);
+        return new UiElement(id)
+                .background(color)
+                .overflow(Overflow.HIDDEN);
     }
 
     private static UiElement label(String id, String text, Color color) {
-        return new UiElement(id).text(Fonts.ORBITRON_20, text, color);
+        return new UiElement(id)
+                .text(Fonts.ORBITRON_20, text, color)
+                .overflow(Overflow.HIDDEN);
     }
 
     private static UiElement button(String id, String text, float width, Runnable action) {
@@ -240,6 +245,7 @@ public final class UiWorkbenchScreen implements Screen {
                 .armedBackground(BUTTON_ARMED)
                 .border(1f, BORDER)
                 .padding(9f)
+                .overflow(Overflow.HIDDEN)
                 .text(Fonts.ORBITRON_20, text, TEXT)
                 .onClick(action);
         return button;
