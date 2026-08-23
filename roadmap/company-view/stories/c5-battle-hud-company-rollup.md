@@ -3,8 +3,14 @@
 > The battle HUD already drills squad → marine. Add the tier above it, and
 > give the squads their real names.
 
-**Status:** not started. Depends on C1 (`c1-fireteam-identity-through-the-drop.md`)
-(names) and C2 (`c2-formation-model.md`) (shared shape).
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on the shipped deployment-identity law in `company-view-nouns.md`
+and on `c2-formation-model.md` for the shared shape.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Problem
 
@@ -21,12 +27,11 @@ What is missing:
 - **The tier above.** With six or seven squads on a Conquest map, the
   overview list is a wall of rows with no summary. There is no "how is my
   force doing" line anywhere in the battle.
-- **Reinforcement waves fragment the list.** `AirSystem` resets
-  `mission.squadId` on each cycle (`AirSystem.java:471`), so a cycling
-  shuttle mints a new squad per sortie and the same squad appears as
-  several unrelated rows over the course of a battle.
-  C8 (`c8-lift-capacity-and-multi-pass-drops.md`) fixes the cause; this
-  story must not paper over it with display-only grouping.
+- **Split landings can fragment the presentation.** Repeated lifts at one
+  landing zone now join correctly, but the same campaign squad deployed at
+  distinct zones deliberately becomes several battle squads. The HUD should
+  explain those labelled fragments without pretending they are one tactical
+  unit.
 - **It has to hold twenty-plus squads.** The player may field a large
   organization, and the overview list is a fixed-row scroll today.
 
@@ -51,10 +56,10 @@ that their force is degrading.
 
 ### Rows named by squad
 
-Row label becomes C1's `squadLabel` when present, falling back to
-today's `SQUAD <id>` for anything without a campaign identity (militia,
+Row label becomes the frozen `campaignLabel` when present, falling back to
+today’s `SQUAD <id>` for anything without a campaign identity (militia,
 walk-in reinforcements, employer forces). Squads sharing a squad id —
-the split-lift case from C1 — group under one entry with their `(A)`/`(B)`
+the split-landing case from the deployment-identity law — group under one entry with their `(A)`/`(B)`
 suffixes visible on expansion.
 
 ### Density at scale
@@ -74,8 +79,8 @@ useful.
 panels already share one dock slot keyed off `hasSquadSelection()`. Add the
 company level as the *collapsed* state of that same slot: company band →
 click a team → `SquadDetailPanel` → back chip. No third panel, no modal
-stack manager, and no order channel — issuing orders from this surface is
-deliberately out of scope for this track (see the overview).
+stack manager, and no order channel — the noun model keeps this surface
+read-only.
 
 ### Non-player squads
 
@@ -84,8 +89,8 @@ Untouched. The overview panel already filters to the player's faction.
 ## Slices
 
 1. **Company header band.** Aggregate line above the existing list.
-   Independently valuable and does not need C1.
-2. **Named rows.** Consume C1's label with fallback.
+   Independently valuable and does not need frozen identity.
+2. **Named rows.** Consume the frozen campaign label with fallback.
 3. **Split-team grouping.** Fold `(A)`/`(B)` squads under one entry.
 
 ## Acceptance
@@ -112,14 +117,14 @@ Untouched. The overview panel already filters to the player's faction.
 
 - `battle/ui/panel/SquadOverviewPanel.java` — band + labels.
 - `battle/ui/BattleHud.java` — if the band needs its own dock slot.
-- `battle/squad/Squad.java` — read-only use of C1's fields.
+- `battle/squad/Squad.java` — read-only use of frozen campaign fields.
 
 ## Out of scope
 
 - Orders, waypoints, target designation, or any write path from HUD to
   `Squad.assignedObjective`. That field is owned by the `MissionCommand`
   tier; a player order channel needs its own design against
-  [`ai/stories/12-squad-of-squads.md`](../../ai/stories/12-squad-of-squads.md).
+  `12-squad-of-squads.md` in the AI track.
 - A minimap or objective panel (long-standing HUD backlog, unrelated).
 - Changing the squad-selection highlight in the world.
 

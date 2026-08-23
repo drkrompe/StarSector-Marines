@@ -8,9 +8,10 @@ package com.dillon.starsectormarines.battle.squad;
  * seam rather than looked up. A rename back home mid-battle therefore does not
  * change what the HUD says, which is the behaviour we want.
  *
- * <p>Null on every generated spawn — defenders, militia, employer personnel,
- * debug fixtures — which is what keeps those paths on the old per-shuttle
- * squad minting.
+ * <p>Null on scenario-generated spawns such as defenders, militia, and employer
+ * personnel, which keeps those paths on the per-sortie squad-minting fallback.
+ * Debug-company personnel intentionally carry tags because that fixture builds
+ * and freezes a real, detached campaign roster.
  */
 public final class CampaignSquadTag {
 
