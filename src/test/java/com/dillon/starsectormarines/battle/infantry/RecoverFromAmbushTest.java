@@ -184,6 +184,64 @@ public class RecoverFromAmbushTest {
     }
 
     @Test
+    public void additionalHostileDuringContinuousContactDoesNotInterruptFreshPlan() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long marine = sim.spawn(inert("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.spawn(inert("anchor", Faction.DEFENDER,
+                UnitType.MARINE, 12, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+        SquadPlan sentinel = installFreshOverwatchPlan(squad, marine);
+        long additional = sim.spawn(inert("additional", Faction.DEFENDER,
+                UnitType.MARINE, 12, 6));
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertNotNull(squad.believedContact(additional),
+                "the additional hostile still joins the shared squad belief");
+        assertFalse(squad._directContactStartedThisTick,
+                "another identity during continuous direct LOS is not a new contact episode");
+        assertSame(sentinel, squad.currentPlan,
+                "continuous contact must leave the fresh plan for the periodic convergence path");
+    }
+
+    @Test
+    public void contactReacquisitionAfterClearTickInterruptsEvenWhileAlertRemainsEngaged() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long marine = sim.spawn(inert("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.spawn(inert("enemy", Faction.DEFENDER,
+                UnitType.MARINE, 12, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            sim.getGrid().setWalkable(8, y, false);
+        }
+        sim.advance(BattleSimulation.TICK_DT);
+        assertFalse(squad._engagedThisTick);
+        assertSame(SquadAlertLevel.ENGAGED, squad.alertLevel,
+                "alert decay intentionally outlives a one-tick LOS gap");
+
+        SquadPlan sentinel = installFreshOverwatchPlan(squad, marine);
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            sim.getGrid().setWalkableFloor(8, y);
+        }
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(squad._directContactStartedThisTick,
+                "direct LOS after a clear tick starts a new contact episode");
+        assertFalse(squad._alertLevelChangedThisTick,
+                "the episode edge is distinct from the slower alert-state decay");
+        assertNotSame(sentinel, squad.currentPlan,
+                "reacquisition must replace a fresh plan immediately");
+    }
+
+    @Test
     public void moraleBreakInterruptsFreshPlanImmediatelyWithoutContact() {
         NavigationGrid grid = new NavigationGrid(30, 16);
         for (int y = 0; y < 16; y++) {
@@ -235,5 +293,28 @@ public class RecoverFromAmbushTest {
         assertEquals(1, plan.stepCount(), "single-step plan: BreakLOS produces UNDER_FIRE_AT_LOS=false");
         assertSame(BreakLOS.INSTANCE, plan.steps().get(0).action,
                 "the step must be BreakLOS — no other action in the library produces that effect");
+    }
+
+    private static EntitySpec inert(String name, Faction faction, UnitType type,
+                                    int x, int y) {
+        return new EntitySpec(name, faction, type, x, y)
+                .moveSpeed(0f)
+                .attackDamage(0f)
+                .attackRange(0f)
+                .accuracy(0f)
+                .health(1_000_000f);
+    }
+
+    private static SquadPlan installFreshOverwatchPlan(Squad squad, long member) {
+        squad.originalSize = 1;
+        squad.aliveMembers = 1;
+        squad.aliveMembersAtLastPlan = 1;
+        squad.timeSinceReplan = 0f;
+        SquadPlan.Step step = new SquadPlan.Step(OverwatchPosture.INSTANCE);
+        step.assignments.put("any", List.of(member));
+        SquadPlan plan = new SquadPlan(List.of(step));
+        squad.currentPlan = plan;
+        squad.currentGoal = EliminateEnemiesGoal.INSTANCE;
+        return plan;
     }
 }
