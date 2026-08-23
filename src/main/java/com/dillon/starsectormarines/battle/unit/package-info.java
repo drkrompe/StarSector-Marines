@@ -21,7 +21,7 @@
  *           Field-lifecycle docs on the {@code UnitRosterService} columns are
  *           mandated, not optional.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} and
+ * <p>See {@link com.dillon.starsectormarines.battle} and
  * {@code roadmap/ecs-migration/overview.md}.
  */
 package com.dillon.starsectormarines.battle.unit;

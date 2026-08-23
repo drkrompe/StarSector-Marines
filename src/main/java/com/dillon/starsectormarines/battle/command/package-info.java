@@ -13,6 +13,6 @@
  *           {@code decision/} and {@code squad/}; {@code command/} owns
  *           strategic objective assignment and mission win/loss state.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.command;

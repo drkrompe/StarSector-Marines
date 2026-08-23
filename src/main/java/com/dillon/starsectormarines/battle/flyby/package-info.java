@@ -17,6 +17,6 @@
  *           deferred until it shares that code, not before (see
  *           {@code roadmap/backlog.md}).
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.flyby;
