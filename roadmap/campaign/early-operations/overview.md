@@ -63,4 +63,6 @@ other missions where either side must actively close on a finite enemy force.
 - Give local-force survival an optional payout/debrief bonus once mission
   outcomes can carry allied casualty facts.
 - Replace the fixed green-company thresholds with an explicit campaign career
-  bracket if the broader contract layer gains one.
+  bracket if the broader contract layer gains one. **Contracted 2026-08-23**
+  as `mission-tiers/overview.md`, which makes this ladder tier `BEGINNER`
+  instead of an authored bypass of generic `LOW` risk.
