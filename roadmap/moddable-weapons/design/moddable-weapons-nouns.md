@@ -3,7 +3,7 @@
 Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
-Updated: 2026-08-23 — moved weapon-like marine specials into the registry while keeping item activation separate.
+Updated: 2026-08-23 — made penetration the weapon-owned input to the combat-durability contract.
 
 ## Purpose
 
@@ -18,6 +18,9 @@ without turning a JSON typo into a silent zero-damage battle.
 - A **weapon definition** is the immutable, stable-id description of combat
   behavior, catalog identity, and shot presentation. It does not own a unit's
   health, hardpoint geometry, magazine policy, or progression eligibility.
+- **Damage** is the definition's effect against exposed structure;
+  **penetration** is its efficiency input against actor armor. Neither value
+  identifies a target category or changes the other after armor breaks.
 - A **weapon id** is the durable reference to a definition. It is the future
   persistence and cross-catalog handle; Java enums are transitional handles,
   not a second source of weapon values.
@@ -67,6 +70,8 @@ shared consumer exists.
 - One weapon behavior has one authoritative authored value. Transitional
   parity evidence may compare the old enum values with data, but it is not a
   permanent second catalogue.
+- Penetration replaces anti-hardened and anti-turret damage multipliers. A
+  weapon never owns a list of platform types against which its damage changes.
 - An id is stable across authored catalogs and later persistence. A missing
   persisted id must be repaired to a safe starter weapon with a warning, not
   break a roster.
@@ -117,3 +122,5 @@ what an available weapon is. Combat and rendering own execution of the
 definition, not catalog parsing or progression choices. Progression also owns
 the special-equipment item catalog; this feature owns only any weapon
 definition that such an item references.
+`combat-durability-nouns.md` owns the shared calculation that combines authored
+damage and penetration with a target's current armor and structure.
