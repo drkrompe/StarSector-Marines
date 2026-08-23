@@ -20,7 +20,7 @@ import java.util.List;
  * recognizes, keyed by {@link CombatTelemetryRow#campaignSoldierId}; the
  * debug readout keeps all of them, because "what did the defenders' rifles
  * actually do" is the question a synthetic two-unit harness cannot answer
- * ({@code roadmap/progression/stories/s3-per-soldier-telemetry.md}).
+ * ({@code s3-per-soldier-telemetry.md}).
  *
  * <p><b>Order is spawn order</b>, recovered by sorting on entity id: the
  * archetype tables are grouped by membership, so a walk over them interleaves

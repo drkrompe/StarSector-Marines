@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObject
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryReport;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -54,6 +55,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 
 /**
@@ -173,14 +175,24 @@ public final class MissionResolver {
         }
         int marinesEngaged = marinesAlive + rawMarinesLost;
 
-        // Per-soldier combat telemetry, every entity including the defenders
-        // and the fallen. Currently a balance artifact only: progression S3
-        // slice 2 carries the marine-keyed rows onto MissionOutcome, and slice 3
-        // accumulates them into a career record. Logging it here means every
-        // played mission produces the data S1's tuning was argued without.
-        // See roadmap/progression/stories/s3-per-soldier-telemetry.md.
+        // Per-soldier combat telemetry. One gather, two consumers: the whole
+        // set (defenders, employer militia, turrets, the fallen) is the balance
+        // artifact and goes to the log, while only rows the campaign roster
+        // tracks cross onto the outcome for the career record.
+        //
+        // Deliberately a separate walk from the casualty tally above, even
+        // though both cover live-plus-corpses. That one defines survival as
+        // "in the live roster"; this one as "not yet transmuted to a corpse".
+        // The two agree at mission end, but folding them together would silently
+        // put the second definition behind the first.
+        // See s3-per-soldier-telemetry.md.
+        List<CombatTelemetryRow> telemetryRows = CombatTelemetryReport.gather(sim);
         LOG.info("MarineOps: combat telemetry for " + mission.id + System.lineSeparator()
-                + CombatTelemetryReport.format(CombatTelemetryReport.gather(sim)));
+                + CombatTelemetryReport.format(telemetryRows));
+        Map<String, CombatTelemetryRow> soldierTelemetry = new LinkedHashMap<>();
+        for (CombatTelemetryRow row : telemetryRows) {
+            if (row.campaignSoldierId() != null) soldierTelemetry.put(row.campaignSoldierId(), row);
+        }
 
         boolean hasFieldMedic = captain != null && captain.traits().contains(Trait.FIELD_MEDIC);
         int marinesLost = hasFieldMedic
@@ -292,7 +304,8 @@ public final class MissionResolver {
                 colonyArchiveOutcome,
                 salvageEntitlement,
                 recoveryModifier.recoveryBonusPct, recoveryModifier.highValueChancePct,
-                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds);
+                survivingSoldierIds, fallenSoldierIds, deployedFireteamIds,
+                soldierTelemetry);
     }
 
     public static void apply(MissionOutcome outcome) {
@@ -415,7 +428,8 @@ public final class MissionResolver {
             case HIGH -> 18f;
         };
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays);
+                resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays,
+                outcome.soldierTelemetry, outcome.victory);
         if (outcome.victory) {
             int materials = switch (outcome.risk) {
                 case LOW -> 2;

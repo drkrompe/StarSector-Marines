@@ -2,29 +2,38 @@
 
 ## State of play
 
-**S3 slice 1 is shipped** — in-battle telemetry: a lifecycle-stable
-`TELEMETRY` component, the attacker threaded through the damage pipeline, and
-a per-mission log dump covering every entity including defenders. Full
-details in `s3-per-soldier-telemetry.md` under "What shipped — slice 1".
-Slices 2 (carry the marine-keyed rows onto `MissionOutcome`) and 3
-(`SoldierCareer` on `MarineSoldier`) remain.
+**S3 is shipped — all three slices.** In-battle recording and attribution, the
+crossing onto `MissionOutcome`, and the persisted `SoldierCareer` on
+`MarineSoldier`. The story moved to `complete/`; full details there.
 
-The three things from that slice worth carrying anywhere else:
+A played mission now logs a combat-telemetry table covering every entity
+(defenders, employer militia, the fallen), and every deployed marine's
+lifetime record accumulates missions, rounds fired and landed, damage dealt
+and taken, kills, and times wounded.
+
+Four things worth carrying:
 
 1. **Attribution belongs at `DamageResolver.resolve`**, not at the fire site.
    It is the only point that knows what a hit cost after cover, armor and the
    hardened multiplier — a queued damage value is a request, not an outcome.
    Credited damage is clamped to the pool that was left, so overkill is not
    counted as output.
-2. **`roundsHit` is counted at the arriving `PendingImpact`, not at the
-   damage event.** One round is one landed round even when its detonation
-   damages six units; counting at the damage seam would make a rocketeer's
-   accuracy scale with how crowded the target was.
-3. **`DamageService.applyDamage` and `DamageResolver.resolve` both take an
-   attacker id now.** `CombatTelemetryService.NO_ATTACKER` (`0L`) is the
-   sentinel for scripted / strafing / bridge-mirrored damage. The old
-   `sim.applyDamage(target, damage, vsTurretMult[, moraleImpact])` overloads
-   still exist and pass the sentinel, so no test needed touching.
+2. **Attacker-side reads in the damage path must be presence-gated.** Slice 1
+   shipped a fail-loud `identity().faction(attackerId)` and an armed convoy
+   APC crashed the sim on its first splash round — a vehicle carries
+   `GROUND_IDENTITY`, not `IDENTITY`. Fixed in `ce031aba` by gating on
+   `CombatTelemetryService.isRecorded`. Not every attacker is a unit.
+3. **`roundsHit` is counted at the arriving `PendingImpact`**, not the damage
+   event, so one round stays one landed round even when its detonation
+   damages six units.
+4. **`outcomes` is the deployment manifest; telemetry is the evidence.**
+   Every marine in the manifest gets a deployment counted even with no
+   telemetry row — they were there. Only the ones with a row get counters.
+
+**S4 is now unblocked and is the obvious next story**: it converts these
+totals into experience, and S1 slice 2 deliberately made equipment 2.4x the
+soldier ladder on the understanding that S4 lifts the soldier side to match.
+S8 and S9 are unblocked too.
 
 **S1 is code-complete — Slices 0, 1 and 2 all shipped. Combat lethality and
 the equipment ladder both changed across the board, and the story's last
@@ -152,12 +161,12 @@ are closed by S1.
 last acceptance item is a feel pass. Everything below is worth more after a
 mission or two than before one.
 
-Then **S3 slice 2** (`s3-per-soldier-telemetry.md`), which carries the
-marine-keyed rows across the seam onto `MissionOutcome`, followed by slice 3's
-persisted `SoldierCareer`. `MissionResolver.compute` already walks live units
-plus corpses keyed by `IDENTITY_CAMPAIGN_SOLDIER_ID` for the casualty tally —
-slice 2's gather is the same walk and should join it rather than open a
-second. S3 unblocks S4, S8, and S9. It is now the highest-value next story for
+Then **S4** (`s4-performance-derived-experience.md`). S3 shipped the input
+data it needs, and S1 slice 2 made equipment 2.4x the soldier ladder on the
+explicit understanding that S4 lifts the soldier side to match — if it slips,
+veterans read as a rounding error next to kit. Confirm the story's open fork
+first: live in-battle XP is recommended *against* for v1, with the mid-battle
+promotion beat re-homed to S9 slice 4 as presentation. It is now the highest-value next story for
 two reasons beyond its own scope: S1's tuning is argued entirely from a
 synthetic two-unit harness, and per-soldier telemetry is what would let the
 same claims be checked against real missions; and **S4 is load-bearing now**
@@ -259,7 +268,12 @@ the blueprint reframe and patron rewards real flavor.
   ratio corrections, widened armor tiers.
 - `775eb26a` — S1 Slice 2: widen the equipment grade ladder to 4.3x
   measured TTK, and record the defender-difficulty effect.
-- *(this session)* — S3 Slice 1: `TELEMETRY` component, attacker threaded
+- `325b89ed` — S3 Slice 1: `TELEMETRY` component, attacker threaded
   through the damage pipeline, `CombatTelemetryService` /
-  `CombatTelemetryReport`, per-mission log dump. Full suite green with no
-  test expectation changed.
+  `CombatTelemetryReport`, per-mission log dump.
+- `ce031aba` — fix a crash that slice shipped: an armed convoy vehicle is an
+  attacker with no `IDENTITY`, so the fail-loud faction read took the sim down
+  on the first splash round.
+- *(this session)* — S3 Slices 2 and 3: telemetry frozen onto
+  `MissionOutcome`, `SoldierCareer` persisted on `MarineSoldier` and
+  accumulated by `MarineRoster`.

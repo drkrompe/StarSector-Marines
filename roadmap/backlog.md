@@ -280,6 +280,22 @@ as separate entries below.
   Right-click in the profiler result → "Attach Sources" pointing at
   `src/main/java` to wire it up.
 
+## Known flaky test
+
+- **`SquadLeadershipTest.anUndermannedSquadStillLeadsTheTeamsItHas` fails
+  about one run in five.** Found in passing during progression S3, 2026-08-22;
+  not caused by it, and reproducible on `main`. `MarineRoster.SENIORITY`
+  breaks ties on `MarineSoldier::id`, and ids are `UUID.randomUUID()` — so
+  among five equal-rank, zero-XP recruits the squad leader is effectively
+  chosen at random, while the test asserts the leader sits in team 0. A probe
+  constructing the roster 300 times measured 62 failures.
+
+  Not fixed here because it is a design question, not a typo: either
+  `refreshLeadership` should reorder the squad so the leader occupies roster
+  position 0, or the tiebreak should be roster position rather than a random
+  id, or the test should stop asserting the leader's team index. The
+  company-view track owns squad leadership (C7) and should pick.
+
 ## Translation / community
 
 - **i18n coverage audit** — all user-facing strings should already route

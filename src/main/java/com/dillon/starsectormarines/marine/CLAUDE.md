@@ -11,7 +11,8 @@ instance by scanning `sector.getScripts()`.
 
 The same persisted graph owns `MarineArmory` and `MarineSoldier`. Recipes, the shared
 fabrication-material resource, printed inventory, soldier identity/aptitude/XP/status/enlisted
-rank and equipment allocations must remain plain serializable data. `readResolve` backfills new
+rank, equipment allocations and the per-soldier `SoldierCareer` service record must remain
+plain serializable data. `readResolve` backfills new
 collections/objects for legacy saves.
 
 ## Derived organizational state
