@@ -2,16 +2,18 @@
 
 ## State of play
 
-**S1 Slices 0 and 1 are shipped. Combat lethality has changed across the
-board and wants a play pass.** The track's documents are:
+**S1 is code-complete — Slices 0, 1 and 2 all shipped. Combat lethality and
+the equipment ladder both changed across the board, and the story's last
+acceptance item is a play pass that cannot be signed off from tests.** The
+track's documents are:
 
 - [`audit.md`](audit.md) — the source-read baseline for all four progression
   axes as of 2026-08-22. Numbers were read from source, not estimated.
 - [`overview.md`](overview.md) — concept, eight locked design commitments,
   and the ten-story decomposition.
 - [`stories/`](stories/) — S1 through S10, each with scope, out-of-scope,
-  acceptance, and open questions. S1 Slices 0 and 1 have shipped; the rest
-  are **contracted but unstarted**.
+  acceptance, and open questions. S1 has shipped; S2 through S10 are
+  **contracted but unstarted**.
 
 **S1 Slice 0 (TTK harness) shipped.** `TtkHarness` + `TtkReportTest` under
 `src/test/java/.../battle/balance/` drive the real firing pipeline —
@@ -54,28 +56,59 @@ Two things worth carrying forward:
   *damage* alone. Measured after: 1.73 s and 2.90 s, against 1.77 s and
   2.92 s before. When a later pass moves this scale again, that asymmetry has
   to be re-applied deliberately.
-- **The grade ladder got narrower, not wider.** Surplus → Masterwork was
-  1.75x before and measures 1.46x now, with Milspec and Masterwork inside
-  each other's error bars against an unarmored target. Higher damage means
-  fewer rounds per kill, and fewer rounds quantizes away the accuracy and
-  cooldown advantages that carried most of grade's value. That makes Slice 2
-  necessary rather than optional — it is the direct answer to "tier upgrades
-  feel too light".
+- **Slice 1 briefly made the grade ladder narrower, not wider** — 1.75x
+  down to 1.46x — because higher damage means fewer rounds per kill, and
+  fewer rounds quantizes away the accuracy and cooldown advantages that
+  carried most of grade's value. Slice 2 then fixed it. The lesson carries:
+  at this lethality, **damage per round is the only grade lever that moves
+  TTK cleanly**; accuracy and cooldown only pay off when the round count is
+  high enough to notice them.
 
-**This needs a play pass**, and two things in particular cannot be checked
-from tests: risk-scaled defender rosters (a T4 defender is now 2.7x an
-unarmored one, up from 1.65x) and the living-world rescue scenarios.
+**S1 Slice 2 (grade spread) shipped.** The story's proposed multiplier
+table went in as authored. Surplus → Masterwork now spans **4.3x** in
+measured TTK (from 1.46x), and every step is felt: 6.09 s / 3.42 s / 2.54 s
+/ 1.41 s against an unarmored marine.
+
+- **Defender difficulty barely moves at HIGH risk** and drops at LOW. The
+  player mix and the HIGH-risk defender mix are nearly identical, so a wider
+  ladder scales both equally; the player's edge over LOW-risk militia grows
+  from 1.23x to 1.75x. Weighted numbers are in the story.
+- **Defenders never wear armor packages.** `MarineLoadout.seedInto` applies
+  one only when the loadout carries an `armorFamily`, and only
+  `CampaignMarineDeployment` produces one. So Slice 1's widened armor tiers
+  are a player-only buff — worth knowing before anyone tries to balance
+  against "armored defenders".
+- **Equipment is now ~2.4x the soldier ladder in impact** (4.3x vs 1.77x).
+  Deliberate, and S4 is where the soldier side catches up. If S4 slips,
+  veterans will read as a rounding error next to kit.
+
+**Three existing tests implicitly depended on low lethality** and were
+fixed as part of this work: `CommanderInfluenceServiceTest` and
+`KillZoneIntegrationTest` both ran a measurement window long enough that a
+combatant now dies inside it, which ends the battle and freezes the counter
+under test; `SwarmRunnerContractTest` pinned deliberate hits-to-kill
+breakpoints. Expect the same shape from any test that spawns two hostile
+units in line of sight and then advances the sim for a while — give the
+unit that must survive an explicit pool rather than relying on the
+archetype's.
+
+**What still needs a play pass** — neither is checkable from tests: the
+living-world rescue scenarios (the alien and swarm exchange rates were
+preserved exactly, which is the specific thing that would have broken them,
+but every surrounding fight is 9x faster), and the Surplus-grade Field Rifle
+against heavy armor, which is now close to hopeless by construction.
 
 ## What the audit found
 
-Ordered by how badly it hurts. This is the 2026-08-22 record; item 1 is
-fixed by S1 Slice 1 and item 2 is what Slice 2 addresses.
+Ordered by how badly it hurts. This is the 2026-08-22 record; items 1 and 2
+are closed by S1.
 
 1. ~~**Lethality is far too low.** A 25 HP marine takes ~20 s to drop under
    sustained pulse-rifle fire. Firefights are attrition, not decisions.~~
    Measured at 30 s, and now 3.4 s.
-2. **The upgrade ladder moves damage 8-13% end to end.** Masterwork is a 3%
-   damage step over Milspec. Nothing reads as a power tier.
+2. ~~**The upgrade ladder moves damage 8-13% end to end.** Masterwork is a 3%
+   damage step over Milspec. Nothing reads as a power tier.~~ Now 4.3x in
+   measured TTK, Surplus to Masterwork.
 3. **Four armor patterns are authored and unreachable**, including
    `RED_ELITE`, the best armor in the game. `MarineArmory.recordVictory`
    unlocks no armor at all, ever.
@@ -91,32 +124,21 @@ fixed by S1 Slice 1 and item 2 is what Slice 2 addresses.
 
 ## Recommended pickup
 
-**Continue S1 at Slice 2 — the grade spread**
-([`stories/s1-lethality-and-tier-spread.md`](stories/s1-lethality-and-tier-spread.md)).
-The floor is fixed and the instrument is in place; what remains is making a
-grade step read as a power tier. Every other story in
-this track is a reward layered on combat — that combat should be worth
-rewarding first.
+**Play the game first.** S1 rewrote every combat number in the mod, and its
+last acceptance item is a feel pass. Everything below is worth more after a
+mission or two than before one.
 
-Three things to know before starting it:
+Then **S3** ([`stories/s3-per-soldier-telemetry.md`](stories/s3-per-soldier-telemetry.md)),
+which unblocks S4, S8, and S9. It is now the highest-value next story for
+two reasons beyond its own scope: S1's tuning is argued entirely from a
+synthetic two-unit harness, and per-soldier telemetry is what would let the
+same claims be checked against real missions; and **S4 is load-bearing now**
+— Slice 2 deliberately made equipment 2.4x the soldier ladder, on the
+understanding that S4 lifts the soldier side to match.
 
-- **Slice 2's proposed multiplier table predates the measurements.** It was
-  authored against the audit's "8-13% end to end" damage reading. Grade
-  actually spanned 1.75x in TTK before Slice 1 and spans 1.46x now, so the
-  table needs re-deriving against the current report rather than applying as
-  written.
-- **Grade fights quantization now.** With 2-4 landed rounds per kill, an
-  accuracy or cooldown advantage often buys nothing because the round count
-  does not change. Grade's spread against T4 armor is already 1.84x while
-  against an unarmored target it is 1.46x, for exactly this reason. Damage
-  per round is the lever that still moves cleanly.
-- **Re-run the report before and after**, and diff the two. The harness is
-  statistical, not seeded, so read the standard-error column and compare
-  bands — a 3% move between runs is noise, not a result.
-
-**Then S3** ([`stories/s3-per-soldier-telemetry.md`](stories/s3-per-soldier-telemetry.md)),
-which unblocks S4, S8, and S9 and starts accumulating the data S1's tuning
-will want anyway.
+When re-running the balance report: it is statistical, not seeded, so read
+the standard-error column and compare bands. A 3% move between runs is
+noise, not a result.
 
 ## Decisions already locked
 
@@ -204,6 +226,8 @@ the blueprint reframe and patron rewards real flavor.
   scale mult), and add factional equipment identity as S6 Slice 3.
 - `3a307354` — S1 Slice 0: TTK harness, measured baseline, and the
   three findings that re-scope Slices 1 and 2.
-- *(this session)* — S1 Slice 1: the lethality budget. Anti-personnel damage
+- `fdc49c36` — S1 Slice 1: the lethality budget. Anti-personnel damage
   x9, hardened HP x9, alien/swarm re-derived HP-side, DMR and Field Rifle
   ratio corrections, widened armor tiers.
+- *(this session)* — S1 Slice 2: widen the equipment grade ladder to 4.3x
+  measured TTK, and record the defender-difficulty effect.
