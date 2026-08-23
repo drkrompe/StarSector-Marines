@@ -59,6 +59,14 @@ Do not run builds or leave generated task files there.
 
 ## Build & deploy
 
+- Shell `JAVA_HOME`: `C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr`.
+  Set this explicitly before invoking Gradle from PowerShell; do not guess a
+  Java install or substitute Starsector's bundled runtime:
+
+  ```powershell
+  $env:JAVA_HOME = 'C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr'
+  ```
+
 - Toolchain: Eclipse Adoptium JDK 25 (registered via Gradle's auto-detected toolchain).
 - Bytecode target: Java 17 (`--release 17`). The game ships Zulu 17.0.10 + `--enable-preview`,
   so do NOT use language features newer than Java 17, and do NOT rely on preview features
