@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * leaves both maps byte-identical to their pre-bridge output.
  *
  * <p>No new districts here; the existing nine themes are the slice-0 stand-ins.
- * See {@code roadmap/economic-districts/overview.md}.
+ * The economic-districts feature owns the terrain content built on this
+ * substrate.
  */
 public class EconomicZoningTest {
 

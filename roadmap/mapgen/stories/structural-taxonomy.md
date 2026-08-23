@@ -196,12 +196,12 @@ length.
    deliberately deferred from the first consumer slice to isolate placement from
    balance.
 2. **Defense intensity from the market.** ✅ shipped — this parked slice became
-   the [campaign → battle bridge](../../campaign-battle-bridge/overview.md)
+   the campaign → battle bridge (`campaign-battle-bridge-nouns.md`)
    feature in its own right. `MapGenerator.generate(…)` now takes a
    `TargetProfile`; `OverwatchTowerStage` scales its budget *and* turret tier off
    the target world's `defenseLevel` (planetary defenses / orbital station / high
    command). See
-   [`campaign-battle-bridge/complete/defense-intensity.md`](../../campaign-battle-bridge/complete/defense-intensity.md).
+   `campaign-battle-bridge-nouns.md`.
 3. **Membership consumer.** Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
    want high-enclosure *membership* (the shipped `TacticalRegion.enclosure`), not
    the positional read — the other half of the corner-tower split. Plumb
