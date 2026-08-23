@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.retained.style.StyleResolver;
+import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
+import com.dillon.starsectormarines.ui.retained.style.UiTheme;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +20,7 @@ public final class UiDocument {
     private final UiElement root;
     private final UiLayoutEngine layout = new UiLayoutEngine();
     private final UiPainter painter = new UiPainter();
+    private final StyleResolver styles = new StyleResolver();
     private final CanvasRegistry canvases = new CanvasRegistry(this);
     private Rect viewport = Rect.EMPTY;
     private List<UiElement> hovered = List.of();
@@ -27,6 +32,8 @@ public final class UiDocument {
     private float pointerX;
     private float pointerY;
     private boolean pointerKnown;
+    private int layoutPasses;
+    private FrameStats lastFrame = FrameStats.IDLE;
 
     public UiDocument(UiElement root) {
         if (root == null) throw new IllegalArgumentException("root must not be null");
@@ -41,6 +48,24 @@ public final class UiDocument {
         return canvases;
     }
 
+    public StyleResolver styles() {
+        return styles;
+    }
+
+    public UiDocument addStyleSheet(StyleSheet sheet) {
+        styles.addSheet(sheet);
+        return this;
+    }
+
+    public UiDocument theme(UiTheme theme) {
+        styles.theme(theme);
+        return this;
+    }
+
+    public void replaceStyleSheet(StyleSheet sheet) {
+        styles.replaceSheet(sheet);
+    }
+
     public CanvasMetrics canvasMetrics(UiElement canvas, float devicePixelRatio) {
         if (!containsElement(canvas)) {
             throw new IllegalArgumentException("Canvas must belong to this document");
@@ -51,12 +76,49 @@ public final class UiDocument {
     public void layout(float width, float height) {
         validateInteractionReferences();
         viewport = new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height));
+        styles.resolve(root);
         layout.layout(root, viewport.width(), viewport.height());
+        layoutPasses++;
         canvases.prune();
+        refreshHoverAfterLayout();
     }
 
     public void render(UiViewport viewport, float alphaMult) {
-        painter.paint(root, viewport, alphaMult, canvases);
+        synchronizeStyles();
+        painter.paint(root, viewport, alphaMult, canvases, styles);
+    }
+
+    /** Resolves targets, advances retained motion on real time, and relayouts only when needed. */
+    public FrameStats advance(float realSeconds) {
+        StyleResolver.ResolveResult resolved = styles.resolve(root);
+        StyleResolver.AdvanceResult advanced = styles.advance(realSeconds);
+        boolean relayout = resolved.layoutChanged() || advanced.layoutChanged();
+        if (relayout) {
+            layout.layout(root, viewport.width(), viewport.height());
+            layoutPasses++;
+            canvases.prune();
+            refreshHoverAfterLayout();
+        }
+        lastFrame = new FrameStats(resolved.resolvedElements(), advanced.movedValues(),
+                relayout ? 1 : 0, advanced.runningTransitions());
+        return lastFrame;
+    }
+
+    public FrameStats lastFrameStats() {
+        return lastFrame;
+    }
+
+    public int layoutPasses() {
+        return layoutPasses;
+    }
+
+    private void synchronizeStyles() {
+        StyleResolver.ResolveResult resolved = styles.resolve(root);
+        if (!resolved.layoutChanged()) return;
+        layout.layout(root, viewport.width(), viewport.height());
+        layoutPasses++;
+        canvases.prune();
+        refreshHoverAfterLayout();
     }
 
     public void pointerMoved(float x, float y) {
@@ -288,10 +350,20 @@ public final class UiDocument {
     }
 
     private void updateHover(UiElement target) {
-        for (UiElement element : hovered) element.hovered(false);
         List<UiElement> path = pathToRoot(target);
-        for (UiElement element : path) element.hovered(true);
+        if (hovered.equals(path)) return;
+        for (UiElement element : hovered) {
+            if (!path.contains(element)) element.hovered(false);
+        }
+        for (UiElement element : path) {
+            if (!hovered.contains(element)) element.hovered(true);
+        }
         hovered = path;
+    }
+
+    private void refreshHoverAfterLayout() {
+        if (!pointerKnown) return;
+        updateHover(pointerCapture != null ? pointerCapture : elementAt(pointerX, pointerY));
     }
 
     private static List<UiElement> pathToRoot(UiElement target) {
@@ -385,5 +457,10 @@ public final class UiDocument {
         MOVE,
         DOWN,
         UP
+    }
+
+    public record FrameStats(int resolvedStyles, int transitionedValues,
+                             int layoutPasses, int runningTransitions) {
+        private static final FrameStats IDLE = new FrameStats(0, 0, 0, 0);
     }
 }

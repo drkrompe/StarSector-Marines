@@ -95,6 +95,29 @@ The workbench begins with direct retained mutations. General signals and keyed
 reconciliation belong to the authoring/binding story, where a real repeated Fleet
 Armory surface can prove their API.
 
+## Theme and transition contract
+
+The authorable style surface is closed and CSS-named. Sheets match tags, classes,
+ids, descendant relationships, `:root`, and the standard interaction pseudo-classes
+the input system actually owns. Later rules and sheets win; component sheets are
+installed before one final named theme sheet; Java presentation setters enter the
+same cascade as inline declarations. `.selected` is a semantic class because CSS has
+no `:selected` pseudo-class for buttons.
+
+The first value grammar accepts only capabilities the retained layout and painter
+consume. Lengths support document-pixel `px`, root-relative `rem`, percentages, and
+the CSS `min()`, `max()`, and `clamp()` functions. Starsector's host UI scale is
+applied once outside the document; flex growth, bounded functions, clipping, and
+scrolling provide the responsive behavior. Viewport units, media queries, and
+unsupported keywords fail by name until a real consumer and resolution proof land.
+
+Computed styles are the values currently presented. A new cascade result becomes a
+transition target, and `UiDocument.advance` resolves targets before advancing motion
+with unscaled real seconds. Color interpolation is premultiplied, reversal shortens
+to the distance already travelled, delay frames dirty nothing, and paint-only motion
+never buys a layout pass. The Starsector host still calls paint every render; the
+idle guarantee here is zero style resolution and zero layout work once settled.
+
 ## Testing and preview workflow
 
 - Geometry and hit-testing are headless unit tests over document pixels.

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.combat.FireGate;
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -8,6 +11,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +55,31 @@ class SquadStateDumperTest {
         assertEquals(15, evidence.getInt("previousDirectCellX"));
         assertEquals(10, evidence.getInt("previousDirectCellY"));
         assertEquals(sim.simTickIndex - 1, evidence.getInt("previousDirectTick"));
+    }
+
+    @Test
+    void memberDumpCarriesAcquisitionAndLastFireGate() throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        long enemy = sim.spawn(new EntitySpec("Raider", Faction.DEFENDER,
+                UnitType.MARINE, 8, 5));
+        sim.world().setAttackRange(member, 10f);
+        sim.combat().setTargetId(member, enemy);
+        sim.combat().setReflexTimer(member, 0f);
+        sim.combat().setFireIntent(member, enemy, FireStance.STANCED, false);
+        new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
+
+        JSONArray members = SquadStateDumper.buildMembersJson(squad, sim, member);
+        JSONObject row = members.getJSONObject(0);
+        assertEquals(enemy, row.getLong("reflexTargetId"));
+        assertEquals("Raider", row.getString("reflexTargetName"));
+        assertEquals(0.0, row.getDouble("reflexTimer"), 1e-6);
+        assertEquals(FireGate.FIRED.name(), row.getString("lastFireGate"));
+        assertEquals(sim.getSimTickIndex(), row.getInt("lastFireGateTick"));
+        assertEquals(0, row.getInt("lastFireGateAgeTicks"));
     }
 
     private static BattleSimulation openSim() {

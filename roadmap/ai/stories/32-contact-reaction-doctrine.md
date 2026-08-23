@@ -1,10 +1,10 @@
 # Story 32 — Contact-Reaction Doctrine
 
-**Status:** IN PROGRESS — implementation complete; playtest deferred
+**Status:** IN PROGRESS — implementation complete; tuning deferred
 
 **Written:** 2026-08-23
 
-**Updated:** 2026-08-23 — selected-squad doctrine visibility and dump contract
+**Updated:** 2026-08-23 — elastic fireteam tempo and stable fire acquisition follow-up
 
 ## The player-visible story
 
@@ -168,8 +168,55 @@ new threat score or read hidden hostile positions.
   ratio, the transition flag, and primary belief evidence in a test-covered
   JSON shape.
 
+## Playtest follow-up: elastic tempo and fire acquisition
+
+The first playtest established that fireteams communicate a coherent squad
+maneuver, but also exposed two over-coordinated failure modes. In ordinary
+movement every team steps off at once and settles into the same compact stop,
+which reads as a rigid brick rather than several teams cooperating. Under a
+multi-angle swarm, equally attractive hostiles can alternate as the preferred
+shot every tick. That repeatedly restarts the shooter's reflex delay, makes its
+look direction chatter, and can prevent an otherwise ready marine from firing.
+
+Ordinary, no-contact advances therefore use spatial fireteam echelons: the
+lead team establishes separation before the following teams release. The
+release is based on position along the movement axis, not a synchronized timer,
+and is disabled where local clearance is too constrained for formation
+authority. Contact bounding remains authoritative and unchanged. Formation
+steering also retains a brief movement-derived heading after arrival so teams
+finish in the footprint they approached with instead of collapsing onto the
+same halt point; authored posts and narrow-space navigation still win.
+
+Opportunity fire treats the registered reflex threat as an acquisition lock.
+A legal in-range lock survives a merely equal or marginally closer challenger;
+the shooter changes only for a material distance advantage or when the lock is
+no longer shootable. Visual aim follows that acquisition target and turns at a
+bounded rate, while firing mechanics remain independent of sprite alignment.
+The selected-squad panel and durable dump expose registration time and the last
+fire gate so a non-firing squad can be diagnosed without guessing from motion.
+
+### Acceptance
+
+- In open terrain, ordinary advance releases fireteams in stable spatial
+  echelons rather than stepping every team off on the same tick.
+- A following fireteam cannot deadlock a squad at a doorway or other locally
+  constrained passage; navigation authority releases the echelon there.
+- Recently arrived members preserve their open-terrain fireteam footprint
+  instead of converging into a common halt point, without displacing authored
+  defensive posts after the arrival window.
+- Contact bounding still moves one fireteam while sibling teams hold and cover.
+- A legal in-range acquisition lock is retained when near-equal hostiles trade
+  the closest-distance ranking; a materially better target can still replace
+  it.
+- Switching among near-equal threats cannot continually restart reflex delay
+  and starve a ready shooter of shots.
+- Marine visual facing follows the acquisition lock with a bounded turn rate;
+  facing alignment does not become a new fire gate.
+- Selected-squad and dump diagnostics expose reflex target/timer and the most
+  recent fire result or rejection gate in test-covered output.
+
 ## Parked follow-ons
 
 - Mechanical suppression and a commander consumer for the influence field.
 - Cross-squad briefing and reserve commitment.
-- Player-facing doctrine visualization and tuning playtests.
+- Doctrine, spacing, acquisition-margin, and turn-rate tuning playtests.

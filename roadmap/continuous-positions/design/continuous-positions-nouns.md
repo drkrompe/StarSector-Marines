@@ -4,6 +4,8 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
+Updated: 2026-08-23 — bounded arrival-formation memory for shared destinations.
+
 ## Vocabulary
 
 - **Continuous position** is a point in cell space. Cell `(cx, cy)` occupies `[cx, cx + 1) × [cy, cy + 1)` and its center is `(cx + 0.5, cy + 0.5)`.
@@ -39,7 +41,12 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    entity-targeted, while ballistic resolution tests the physical ray against
    unit radii and may contact an incidental body first.
 7. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
-8. Formation steering may shape a coherent moving allied group, but it must remain weaker than physical separation and must yield in constrained terrain. It does not grant units a shared destination or override individual orders.
+8. Formation steering may shape a coherent moving allied group, but it must
+   remain weaker than physical separation and must yield in constrained
+   terrain. A brief movement-derived heading may finish settling infantry that
+   already share one authored destination; it expires and never applies across
+   distinct posts. Formation does not grant units a shared destination or
+   override individual orders.
 
 ## Boundaries and extension points
 

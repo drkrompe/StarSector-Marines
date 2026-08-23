@@ -136,10 +136,8 @@ public final class GoapDroneBehavior implements UnitBehavior {
 
         if (plan != null && !plan.isComplete()) {
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
-            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                long u = sim.liveUnitAt(i);
-                if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
-                aliveMembers.add(u);
+            for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                aliveMembers.add(sim.squadMemberAt(squad.id, i));
             }
             for (SquadPlan.Step step : plan.steps()) {
                 List<RoleAssigner.Slot<Long>> slots = step.action.roles(squad, sim);

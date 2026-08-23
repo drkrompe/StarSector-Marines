@@ -110,10 +110,16 @@ public class LayeredFacingSystemTest {
 
         new FacingSystem(sim.getEntityWorld(), sim.getBattleComponents(), sim.getRoster()).tick();
 
-        assertEquals(0f, f(sim, marine, BattleComponents.LAYERED_FACING_DEGREES), 0.001f,
-                "torso follows northbound path");
-        assertEquals(-65f, f(sim, marine, BattleComponents.LAYERED_HEAD_LOOK_DEGREES), 0.001f,
-                "helmet tracks east target, clamped relative to torso");
+        float expectedTorso = LayeredAppearance.approachFacing(180f, 0f,
+                FacingSystem.COMBATANT_TURN_RATE_DEGREES_PER_SECOND
+                        * BattleSimulation.TICK_DT);
+        assertEquals(expectedTorso,
+                f(sim, marine, BattleComponents.LAYERED_FACING_DEGREES), 0.001f,
+                "torso turns toward the northbound path at the combatant visual rate");
+        assertEquals(LayeredAppearance.headLookDegrees(expectedTorso,
+                        LayeredAppearance.facingDegrees(1, 0)),
+                f(sim, marine, BattleComponents.LAYERED_HEAD_LOOK_DEGREES), 0.001f,
+                "helmet tracks the east target independently while the torso turns");
         assertEquals(0.25f, f(sim, marine, BattleComponents.LAYERED_LOCOMOTION_PHASE), 0.001f);
         assertTrue((i(sim, marine, BattleComponents.LAYERED_FLAGS)
                 & LayeredAppearance.FLAG_MOVING) != 0);

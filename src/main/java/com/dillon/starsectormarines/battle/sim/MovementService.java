@@ -51,6 +51,8 @@ public final class MovementService {
      * it every repath-gated behavior would re-run findPath every tick.
      */
     public static final float REPATH_INTERVAL = 0.35f;
+    /** Arrival window in which a shared-destination infantry formation may finish settling. */
+    public static final float FORMATION_MEMORY_SECONDS = 2f;
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
@@ -78,6 +80,11 @@ public final class MovementService {
             int n = t.rowCount();
             Arrays.fill(t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array(), 0, n, 0f);
             Arrays.fill(t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array(), 0, n, 0f);
+            float[] formationMemory = t.floats(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_FORMATION_MEMORY_TIMER).array();
+            for (int r = 0; r < n; r++) {
+                formationMemory[r] = Math.max(0f, formationMemory[r] - dt);
+            }
         }
     }
 
@@ -135,6 +142,17 @@ public final class MovementService {
 
     /** Velocity y actually applied by this tick's movement pass, cells/sec. See {@link #velX}. */
     public float velY(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y); }
+
+    float formationMemoryTimer(long id) {
+        return entityWorld.getFloat(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_FORMATION_MEMORY_TIMER);
+    }
+
+    void setFormationMemoryTimer(long id, float seconds) {
+        entityWorld.setFloat(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_FORMATION_MEMORY_TIMER,
+                Math.max(0f, seconds));
+    }
 
     public int[] path(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
     public void setPathRef(long id, int[] p) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, p); }
@@ -198,6 +216,7 @@ public final class MovementService {
             setPathIdx(id, count);
             setGaitPhase(id, 0f);
             setVelocity(id, dx / dt, dy / dt);
+            setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);
         } else if (dist > 1e-6f) {
             // Clamped so a mover faster than the carrot distance per tick
             // can't overshoot and oscillate around the pursuit line.
@@ -208,6 +227,7 @@ public final class MovementService {
             float gait = gaitPhase(id) + move;
             setGaitPhase(id, gait >= 1f ? gait % 1f : gait);
             setVelocity(id, dx / dist * move / dt, dy / dist * move / dt);
+            setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);
         }
     }
 }

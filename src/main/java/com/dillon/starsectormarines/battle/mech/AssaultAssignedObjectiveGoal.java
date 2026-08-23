@@ -56,10 +56,8 @@ public final class AssaultAssignedObjectiveGoal implements Goal {
     }
 
     private static boolean hasAssaultMember(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long member = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(member)
-                    || sim.squad().squadId(member) != squad.id) continue;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
             MechLoadoutComponent loadout = sim.world().mechLoadout(member);
             if (loadout != null && loadout.role == MechRole.ASSAULT) return true;
         }
