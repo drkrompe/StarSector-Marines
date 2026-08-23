@@ -159,6 +159,11 @@ counter-objective.
 
 ## Map shape
 
+Conquest currently has one mode-wide battlefield size: **240×160 cells**.
+Tier, risk, and host change the forces and presentation, not the dimensions;
+if the mode grows later, change the canonical `BattleSetup.CONQUEST_GRID_W/H`
+dial rather than adding per-caller sizes.
+
 The Conquest generator already lays out a fortress district at the end
 of the traversal axis with tactical nodes for the `MILITARY_BASE`
 compound. The central-keep extension makes that end-of-axis fortress
@@ -166,7 +171,10 @@ the visual + systemic climax:
 
 - **Central keep**: one COMMAND_POST tactical node at the heart of a
   fortress complex deep in the fortress district. Largest building on
-  the map. The "throne room" for the storming sequence.
+  the map. The "throne room" for the storming sequence. Generation
+  normalizes natural military-base rolls to one reserved base per target
+  biome, emits the COMMAND_POST only from the fortress base, and fails
+  closed unless the finished tactical map contains exactly one.
 - **Tiered compounds spread along the axis**: BARRACKS and ARMORY
   nodes scatter through PORT / KILL_ZONE / fortress edges so the
   player encounters them as they push. Outer compounds fall first
@@ -262,9 +270,11 @@ displays at the throne-room anchor; the keep's outer perimeter shows
 a separate "outer keep" indicator so the player can read partial
 progress.
 
-Keep emission is gated to Conquest maps and sized to risk: a LOW
-Conquest gets the courtyard + one inner chamber; HIGH gets the
-full three-chamber layout.
+Keep emission is gated to Conquest maps. At the current canonical 240×160
+size the fortress base uses the full three-chamber entry / inner / throne
+layout when its claimed shell permits it, with the deterministic smaller-shell
+partition fallback retained for constrained footprints. Risk does not resize
+the map or select a different keep objective.
 
 #### Visual north star — Star League fortresses
 

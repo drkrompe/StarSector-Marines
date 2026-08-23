@@ -117,6 +117,9 @@ public final class BattleSetup {
     /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forTier}. */
     public static final int GRID_W = MapScale.MEDIUM.width;
     public static final int GRID_H = MapScale.MEDIUM.height;
+    /** Canonical Conquest battlefield. Conquest does not scale with operation tier; change these together when the mode is deliberately resized. */
+    public static final int CONQUEST_GRID_W = MapScale.LARGE.width;
+    public static final int CONQUEST_GRID_H = MapScale.LARGE.height;
 
     /** Three drops × 4 marines/shuttle keeps total marine count at 12 — matches pre-shuttle balance. */
     private static final int SHUTTLE_COUNT = 3;
@@ -913,12 +916,13 @@ public final class BattleSetup {
 
     /**
      * CONQUEST variant: full beach→port→city→fortress biome push with the
-     * super-wall stamper active. Map size scales with risk (same tiers as
-     * Assault/Sabotage) and the traversal axis is rolled per-seed —
+     * super-wall stamper active. Map size is the mode-wide
+     * {@link #CONQUEST_GRID_W}×{@link #CONQUEST_GRID_H}, independent of tier,
+     * risk, or host; the traversal axis is rolled per-seed —
      * SOUTH_TO_NORTH or WEST_TO_EAST, so two conquest missions on the same
-     * world play with a different attacker approach. Objectives match Assault
-     * for v1 (eliminate the other side); a "capture the command post" variant
-     * is a natural follow-up once the AI consumer of the tactical map lands.
+     * world play with a different attacker approach. Marines win only after
+     * capturing every defender compound, including the one required central
+     * keep ({@code COMMAND_POST}); defenders win by eliminating the marines.
      *
      * <p>Marines and defenders pin to their respective biome anchors instead
      * of the legacy left/right halves — marine LZ in BEACH, defender garrison
@@ -936,35 +940,13 @@ public final class BattleSetup {
                 OperationTier.forRisk(risk), risk, profile);
     }
 
-    /** Tier-aware conquest build — scale comes from the tier, variance from the risk. */
+    /** Tier-aware Conquest build. Tier and risk shape the roster, never the map dimensions. */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor,
                                                OperationTier tier, RiskLevel risk,
                                                TargetProfile profile) {
-        MapScale scale = MapScale.forTier(tier);
-        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
-                scale.width, scale.height);
-    }
-
-    /**
-     * Explicit-dimensions overload — grid size decoupled from the risk→{@link MapScale} tier. A host
-     * that wants a battlefield larger than any standard tier (the combat bridge, pushing the ground
-     * scene bigger under the fleet) passes its own {@code gridW}/{@code gridH}; {@code risk} still
-     * drives the {@link DefenderRoster} density, <em>not</em> the map size. Standard callers use the
-     * risk-only overload above, which derives the tier dimensions.
-     */
-    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
-                                               boolean enemyHasHeavyArmor, RiskLevel risk,
-                                               TargetProfile profile, int gridW, int gridH) {
-        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
-                OperationTier.forRisk(risk), risk, profile, gridW, gridH);
-    }
-
-    /** Tier-aware explicit-dimensions conquest build. */
-    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
-                                               boolean enemyHasHeavyArmor,
-                                               OperationTier tier, RiskLevel risk,
-                                               TargetProfile profile, int gridW, int gridH) {
+        int gridW = CONQUEST_GRID_W;
+        int gridH = CONQUEST_GRID_H;
         Random rng = new Random(seed);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
         // Generator uses its own seeded RNG — pass the same seed so different

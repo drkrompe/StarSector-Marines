@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -13,7 +14,9 @@ import org.apache.log4j.Logger;
  * Marine-side Conquest win condition: complete when every defender
  * compound ({@code COMMAND_POST} / {@code BARRACKS} / {@code ARMORY}) has
  * flipped to {@link CompoundService.CompoundState#MARINE_HELD} and at
- * least one marine is in play. Replaces the marine-side
+ * least one marine is in play. A generated {@code COMMAND_POST} is required,
+ * so capturing the central keep is always part of the aggregate objective.
+ * Replaces the marine-side
  * {@link EliminateFactionObjective} on Conquest missions; the defender's
  * side keeps {@code EliminateFactionObjective(DEFENDER, MARINE)} so the
  * "every marine died" loss path still terminates.
@@ -69,6 +72,16 @@ public final class ConquestObjective implements Objective {
             return;
         }
 
+        boolean keepRegistered = false;
+        for (CompoundService.Record r : compounds.getRecords()) {
+            if (r.node.kind == TacticalNode.Kind.COMMAND_POST) keepRegistered = true;
+        }
+        if (!keepRegistered) {
+            LOG.warn("ConquestObjective: no COMMAND_POST registered — central keep is missing. "
+                    + "Marking objective failed rather than allowing a keep-less victory.");
+            failed = true;
+            return;
+        }
         for (CompoundService.Record r : compounds.getRecords()) {
             if (r.state != CompoundService.CompoundState.MARINE_HELD) return;
         }
