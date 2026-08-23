@@ -191,14 +191,20 @@ public final class BattleSetup {
      * construction (it flips the turret-pad cells non-walkable post-bake), so the
      * historical turret-after-vehicle cover-bake ordering is preserved.
      */
-    public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles, List<DefensePost> defensePosts) {
-        return buildMap(map, vehicles, defensePosts, Collections.emptyList());
+    public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles,
+                                    List<DefensePost> defensePosts, long seed) {
+        return buildMap(map, vehicles, defensePosts, Collections.emptyList(), seed);
     }
 
+    /**
+     * @param seed the battle seed, carried through to {@link BattleSimulation}'s random
+     *             stream so the fight is as reproducible as the map already is. Hosts
+     *             pass the same seed they generated the map with.
+     */
     public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles,
                                     List<DefensePost> defensePosts,
-                                    List<ParkedAircraft> parkedAircraft) {
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+                                    List<ParkedAircraft> parkedAircraft, long seed) {
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology, seed);
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
         sim.setDefensePosts(defensePosts);
@@ -292,7 +298,7 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
-                map, vehiclePlacements, defensePosts, parkedAircraft).sim();
+                map, vehiclePlacements, defensePosts, parkedAircraft, seed).sim();
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -512,7 +518,7 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
-                map, vehiclePlacements, defensePosts, parkedAircraft).sim();
+                map, vehiclePlacements, defensePosts, parkedAircraft, seed).sim();
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.
@@ -583,7 +589,7 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(map, vehiclePlacements,
-                Collections.emptyList(), parkedAircraft).sim();
+                Collections.emptyList(), parkedAircraft, seed).sim();
 
         sim.addObjective(new EliminateFactionObjective(
                 Faction.MARINE, Faction.DEFENDER));
@@ -690,8 +696,10 @@ public final class BattleSetup {
                     assignments.size(), LZ_MIN_SEPARATION);
             List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
             BattleSimulation sim =
+                    // battleSeed, not seed: this attempt's map was generated from it,
+                    // so the fight on that map must be too.
                     buildMap(map, vehiclePlacements,
-                            Collections.emptyList(), parkedAircraft).sim();
+                            Collections.emptyList(), parkedAircraft, battleSeed).sim();
 
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, map, battleSeed);
@@ -791,8 +799,12 @@ public final class BattleSetup {
                     map, assignments.size(), LZ_MIN_SEPARATION);
             List<ParkedAircraft> parkedAircraft = stampParkedAircraft(
                     map, lzCells, scenarioRng);
+            // scenarioSeed, not battleSeed: the map, the vehicle stamp, and the
+            // defense-post selection for this attempt all derive from it, so the
+            // fight has to as well or a retried attempt would replay a different
+            // battle on the same ground.
             BattleSimulation sim = buildMap(map, vehiclePlacements,
-                    automatedPosts, parkedAircraft).sim();
+                    automatedPosts, parkedAircraft, scenarioSeed).sim();
 
             CivilianEvacuationPayload survivors =
                     CivilianEvacuationPayload.install(sim, map,
@@ -925,7 +937,7 @@ public final class BattleSetup {
         // {@link #linkGuardpostSquads} below — that's the difference from the
         // non-conquest path, which stamps the same shapes unmanned via
         // {@code DefensePostStamper.stampNonConquest}.
-        MapBuild build = buildMap(map, vehiclePlacements, map.defensePosts);
+        MapBuild build = buildMap(map, vehiclePlacements, map.defensePosts, seed);
         BattleSimulation sim = build.sim();
 
         // Conquest win condition: marines dismantle defender supply

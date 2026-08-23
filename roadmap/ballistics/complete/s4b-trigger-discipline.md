@@ -5,8 +5,8 @@
 > infantry primary rounds already committed to a friendly victim, preserving
 > hostile DPS and normal firing cadence.
 >
-> **Landed vs. planned deviations:** none. Post-implementation verification:
-> all 2,093 repository tests green (2,092 root + 1 asset-pipeline).
+> **Landed vs. planned deviations:** none. Post-merge verification: all 2,106
+> repository tests green (2,105 root + 1 asset-pipeline).
 
 Original contract below, kept for the record.
 

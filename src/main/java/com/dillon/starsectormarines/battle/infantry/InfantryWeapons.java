@@ -14,9 +14,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Handheld squad weapons — rifles, SMGs, DMRs (primary line tracers / kinetic
@@ -53,11 +51,15 @@ public class InfantryWeapons {
      */
     private final LongArrayList burstScratch = new LongArrayList();
 
+    /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
+    private final Random rng;
+
     public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
-                           ShotService shots) {
+                           ShotService shots, Random rng) {
         this.roster = roster;
         this.resolver = resolver;
         this.shots = shots;
+        this.rng = rng;
     }
 
     /**
@@ -137,14 +139,15 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing.
      */
     public void fireShot(long shooter, long target, FireStance stance) {
-        fireShot(shooter, target, stance, ThreadLocalRandom.current());
+        fireShot(shooter, target, stance, rng);
     }
 
     /**
      * Deterministic seam for the committed ballistic outcome and the
      * experience-scaled trigger-discipline roll. Package-visible for tests;
-     * production callers share {@link ThreadLocalRandom} across both rolls so
-     * the hold decision cannot perturb the already-resolved trajectory.
+     * production callers share the battle's seeded stream across both rolls,
+     * preserving replay determinism while the hold decision occurs only after
+     * the trajectory is already resolved.
      */
     void fireShot(long shooter, long target, FireStance stance, Random rng) {
         World world = roster.world();
@@ -285,7 +288,7 @@ public class InfantryWeapons {
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
-                secondaryAccuracy, 0f, sec.roundVelocity(), ThreadLocalRandom.current());
+                secondaryAccuracy, 0f, sec.roundVelocity(), rng);
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever
         // it physically contacts. A free-flight overshoot keeps its visible
         // projectile entity but carries no phantom ground detonation.

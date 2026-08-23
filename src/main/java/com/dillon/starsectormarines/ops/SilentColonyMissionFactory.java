@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 
-import java.util.Collections;
 import java.util.Random;
 
 /** Builds the immutable mission boundary for one funded colony expedition. */
@@ -38,20 +36,24 @@ public final class SilentColonyMissionFactory {
         }
 
         Random random = new Random(eventId ^ 0x53494C454E54434FL);
-        return new Mission(SilentColonyMissionKey.encode(eventId),
-                "Silent Colony Expedition — " + planetName,
-                MissionType.EXTRACTION, MissionSource.CAMPAIGN_EVENT,
-                0, RiskLevel.HIGH, "Funded blind expedition",
-                "The distress burst has gone quiet. Locate any survivors "
-                        + "and recover the sealed colony archive.",
-                0.2f + random.nextFloat() * 0.6f,
-                0.2f + random.nextFloat() * 0.6f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                4, 0, planetName, null, factionId,
-                -1L, eventId, localMarketId,
-                state.eventCiviliansAtRisk[row],
-                state.eventColonyThreatSeed[row],
-                (byte) 0, (byte) 0, (byte) 100,
-                (byte) 0, (byte) 0, Collections.emptyList());
+        return Mission.builder()
+                .id(SilentColonyMissionKey.encode(eventId))
+                .name("Silent Colony Expedition — " + planetName)
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.CAMPAIGN_EVENT)
+                .risk(RiskLevel.HIGH)
+                .requirements("Funded blind expedition")
+                .flavor("The distress burst has gone quiet. Locate any survivors "
+                        + "and recover the sealed colony archive.")
+                .mapPosition(0.2f + random.nextFloat() * 0.6f,
+                        0.2f + random.nextFloat() * 0.6f)
+                .requiredDrops(4)
+                .targetPlanetName(planetName)
+                .targetFactionId(factionId)
+                .campaignEventId(eventId)
+                .campaignEventMarketId(localMarketId)
+                .civiliansAtRisk(state.eventCiviliansAtRisk[row])
+                .campaignEventThreatSeed(state.eventColonyThreatSeed[row])
+                .build();
     }
 }

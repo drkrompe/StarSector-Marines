@@ -62,6 +62,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
+import com.dillon.starsectormarines.battle.profile.TickStallWatchdog;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetSystem;
@@ -311,7 +312,21 @@ public class BattleSimulation implements BattleControl {
     private final DamageService damageService;
     /** Stateless body of {@code applyDamage} — cover-curve / HP write / death cascade / leader promotion / morale drain. Wired into {@link #damageService} as the damage applier so inline and queued paths share semantics. */
     private final DamageResolver damageResolver;
-    private final Random rng = new Random();
+    /**
+     * The battle's single random stream, seeded at construction.
+     *
+     * <p><b>Every roll in the sim draws from here.</b> Nothing under {@code battle/}
+     * may call {@code ThreadLocalRandom} or {@code Math.random} — a battle whose hit
+     * rolls, morale breaks, and patrol wander come from an unseeded global source
+     * cannot be reproduced from a bug report, cannot be replayed, and cannot be tested
+     * without saturating the inputs until the roll stops mattering. It also silently
+     * changes behaviour the moment any sim work moves off this thread, because
+     * {@code ThreadLocalRandom} is per-thread by definition.
+     *
+     * <p>Not thread-safe, deliberately: the sim ticks serially, and a stream that could
+     * be drawn from concurrently would not be reproducible even with a seed.
+     */
+    private final Random rng;
 
     /** Alias of {@link NavigationService#getOccupancyMap()}. */
     private final byte[] occupancyMap;
@@ -357,7 +372,24 @@ public class BattleSimulation implements BattleControl {
     private final TacticalContextService tactical =
             new TacticalContextService();
 
+    /**
+     * Fixed seed for the no-seed constructor, so tests and any host that does not care
+     * still get a reproducible battle. Production goes through
+     * {@code BattleSetup.buildMap}, which always passes the real battle seed.
+     */
+    public static final long DEFAULT_SEED = 0xB4771E5EEDL;
+
+    /**
+     * Deterministic by default. A battle built this way replays identically every run,
+     * which is what test fixtures want; {@link #BattleSimulation(NavigationGrid,
+     * CellTopology, long)} is the production path.
+     */
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
+        this(grid, topology, DEFAULT_SEED);
+    }
+
+    public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
+        this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
         this.commandPowerSystem = new com.dillon.starsectormarines.battle.power.CommandPowerSystem(
@@ -456,7 +488,7 @@ public class BattleSimulation implements BattleControl {
                 entityWorld, battleComponents);
         this.hitResponse = new HitResponseSystem(
                 grid, rosterService, tacticalScoring, damageService,
-                () -> simTickIndex);
+                () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
@@ -464,9 +496,9 @@ public class BattleSimulation implements BattleControl {
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
-        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, rng);
         this.firingSystem = new FiringSystem(grid, rosterService);
-        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations);
+        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);
@@ -502,6 +534,15 @@ public class BattleSimulation implements BattleControl {
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
+
+    /**
+     * The battle's single seeded random stream. Every roll in the sim — hit, morale,
+     * patrol wander, drone slotting — draws from here so a battle is reproducible from
+     * its seed. See the {@link #rng} field for why nothing may use
+     * {@code ThreadLocalRandom} instead.
+     */
+    @Override
+    public Random random() { return rng; }
 
     /** Data owner for the IDENTITY component (type/faction/name) — {@code sim.identity().name(id)} is the greppable-name read for debug dumps / logs. */
     public IdentityService identity() { return rosterService.identity(); }
@@ -1053,6 +1094,17 @@ public class BattleSimulation implements BattleControl {
 
     private void tick() {
         simTickIndex++;
+        // The ordinary phase profiler can report only after a tick returns.
+        // Arm an out-of-band daemon around the whole tick so a permanent stall
+        // still leaves every JVM thread and owned monitor in the common folder.
+        try (TickStallWatchdog.TickGuard ignored =
+                     TickStallWatchdog.watchTick(simTickIndex)) {
+            tickGuarded();
+        }
+    }
+
+    /** Fixed-tick phase pipeline, bracketed by {@link #tick()}'s stall watchdog. */
+    private void tickGuarded() {
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.

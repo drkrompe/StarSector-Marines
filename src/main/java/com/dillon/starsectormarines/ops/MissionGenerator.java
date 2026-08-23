@@ -143,10 +143,23 @@ public final class MissionGenerator {
                 String name = type.name() + " — " + risk.name();
                 String flavor = "DEBUG: " + type.name() + " at " + risk.name() + " risk.";
 
-                out.add(new Mission(id, name, type, MissionSource.DEBUG,
-                        payout, risk, requirementsFor(risk), flavor, x, y,
-                        clientSupport, enemySupport, requiredDrops, employerShuttles,
-                        planet.getName(), industryId));
+                out.add(Mission.builder()
+                        .id(id)
+                        .name(name)
+                        .type(type)
+                        .source(MissionSource.DEBUG)
+                        .payout(payout)
+                        .risk(risk)
+                        .requirements(requirementsFor(risk))
+                        .flavor(flavor)
+                        .mapPosition(x, y)
+                        .clientFighterSupport(clientSupport)
+                        .enemyFighterSupport(enemySupport)
+                        .requiredDrops(requiredDrops)
+                        .employerShuttles(employerShuttles)
+                        .targetPlanetName(planet.getName())
+                        .targetIndustryId(industryId)
+                        .build());
             }
         }
         out.addAll(debugCivilianRescueMissions(
@@ -161,19 +174,19 @@ public final class MissionGenerator {
         int index = Math.max(0, startIndex);
         float canonicalX = 0.08f + random.nextFloat() * 0.84f;
         float canonicalY = 0.08f + random.nextFloat() * 0.84f;
-        missions.add(new Mission(
-                "debug:CIVILIAN_RESCUE:CANONICAL:" + index++,
-                "SWARM RESCUE — CANONICAL",
-                MissionType.EXTRACTION,
-                MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE,
-                0, RiskLevel.HIGH, requirementsFor(RiskLevel.HIGH),
-                "DEBUG: production rescue pressure and four-drop response budget.",
-                canonicalX, canonicalY, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                4, 0, planetName, null, null,
-                -1L, -1L, -1,
-                CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT,
-                (byte) 0, (byte) 0, (byte) 100,
-                (byte) 0, (byte) 0, Collections.emptyList()));
+        missions.add(Mission.builder()
+                .id("debug:CIVILIAN_RESCUE:CANONICAL:" + index++)
+                .name("SWARM RESCUE — CANONICAL")
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE)
+                .risk(RiskLevel.HIGH)
+                .requirements(requirementsFor(RiskLevel.HIGH))
+                .flavor("DEBUG: production rescue pressure and four-drop response budget.")
+                .mapPosition(canonicalX, canonicalY)
+                .requiredDrops(4)
+                .targetPlanetName(planetName)
+                .civiliansAtRisk(CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT)
+                .build());
         for (RiskLevel risk : RiskLevel.values()) {
             int requiredDrops = requiredDropsFor(MissionType.EXTRACTION, risk);
             if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
@@ -185,20 +198,21 @@ public final class MissionGenerator {
             float y = 0.08f + random.nextFloat() * 0.84f;
             String id = "debug:CIVILIAN_RESCUE:"
                     + risk.name() + ":" + index++;
-            missions.add(new Mission(id,
-                    "SWARM RESCUE STRESS — " + risk.name(),
-                    MissionType.EXTRACTION,
-                    MissionSource.DEBUG_CIVILIAN_RESCUE,
-                    0, risk, requirementsFor(risk),
-                    "DEBUG STRESS TEST: evacuate the registered civilian cohort under "
-                            + risk.name() + " force-scaled swarm pressure.",
-                    x, y, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                    requiredDrops, employerShuttles,
-                    planetName, null, null,
-                    -1L, -1L, -1,
-                    CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT,
-                    (byte) 0, (byte) 0, (byte) 100,
-                    (byte) 0, (byte) 0, Collections.emptyList()));
+            missions.add(Mission.builder()
+                    .id(id)
+                    .name("SWARM RESCUE STRESS — " + risk.name())
+                    .type(MissionType.EXTRACTION)
+                    .source(MissionSource.DEBUG_CIVILIAN_RESCUE)
+                    .risk(risk)
+                    .requirements(requirementsFor(risk))
+                    .flavor("DEBUG STRESS TEST: evacuate the registered civilian cohort under "
+                            + risk.name() + " force-scaled swarm pressure.")
+                    .mapPosition(x, y)
+                    .requiredDrops(requiredDrops)
+                    .employerShuttles(employerShuttles)
+                    .targetPlanetName(planetName)
+                    .civiliansAtRisk(CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT)
+                    .build());
         }
         return missions;
     }
@@ -325,17 +339,31 @@ public final class MissionGenerator {
                         state.contractPhaseAttempts[row])
                 : "contract:" + contractId;
 
-        return new Mission(id, name, missionType, MissionSource.GENERATED,
-                basePayout, risk, requirementsFor(risk), flavor, x, y,
-                clientSupport, enemySupport, requiredDrops, employerShuttles,
-                targetPlanetName, targetIndustryId, targetMarket.getFactionId(),
-                contractId,
-                missionSalvageBaseline,
-                missionSalvageNegotiated,
-                state.contractCashMultiplier[row],
-                state.contractSalvageBaseline[row],
-                state.contractSalvageNegotiated[row],
-                employerPowers);
+        return Mission.builder()
+                .id(id)
+                .name(name)
+                .type(missionType)
+                .source(MissionSource.GENERATED)
+                .payout(basePayout)
+                .risk(risk)
+                .requirements(requirementsFor(risk))
+                .flavor(flavor)
+                .mapPosition(x, y)
+                .clientFighterSupport(clientSupport)
+                .enemyFighterSupport(enemySupport)
+                .requiredDrops(requiredDrops)
+                .employerShuttles(employerShuttles)
+                .targetPlanetName(targetPlanetName)
+                .targetIndustryId(targetIndustryId)
+                .targetFactionId(targetMarket.getFactionId())
+                .contractId(contractId)
+                .salvageBaseline(missionSalvageBaseline)
+                .salvageNegotiated(missionSalvageNegotiated)
+                .cashMultiplier(state.contractCashMultiplier[row])
+                .contractSalvageBaseline(state.contractSalvageBaseline[row])
+                .contractSalvageNegotiated(state.contractSalvageNegotiated[row])
+                .employerPowerIds(employerPowers)
+                .build();
     }
 
     static boolean contractMissionAvailable(CampaignState state, int row, int currentDay) {
@@ -427,10 +455,23 @@ public final class MissionGenerator {
         String requirements = requirementsFor(risk);
         String id = client.factionId + ":" + industry.id + ":" + index;
 
-        return new Mission(id, archetype.name, archetype.type, MissionSource.GENERATED,
-                payout, risk, requirements, archetype.flavor, x, y,
-                clientSupport, enemySupport, requiredDrops, employerShuttles,
-                planet.getName(), industry.id);
+        return Mission.builder()
+                .id(id)
+                .name(archetype.name)
+                .type(archetype.type)
+                .source(MissionSource.GENERATED)
+                .payout(payout)
+                .risk(risk)
+                .requirements(requirements)
+                .flavor(archetype.flavor)
+                .mapPosition(x, y)
+                .clientFighterSupport(clientSupport)
+                .enemyFighterSupport(enemySupport)
+                .requiredDrops(requiredDrops)
+                .employerShuttles(employerShuttles)
+                .targetPlanetName(planet.getName())
+                .targetIndustryId(industry.id)
+                .build();
     }
 
     /**

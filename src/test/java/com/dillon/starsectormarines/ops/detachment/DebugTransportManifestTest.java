@@ -60,10 +60,17 @@ class DebugTransportManifestTest {
 
     private static Mission mission(MissionSource source, int requiredDrops,
                                    int employerShuttles) {
-        return new Mission("test", "Test", MissionType.ASSAULT, source,
-                0, RiskLevel.LOW, "", "", 0.5f, 0.5f,
-                null, null, requiredDrops, employerShuttles,
-                "Test Colony", null);
+        return Mission.builder()
+                .id("test")
+                .name("Test")
+                .type(MissionType.ASSAULT)
+                .source(source)
+                .risk(RiskLevel.LOW)
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(requiredDrops)
+                .employerShuttles(employerShuttles)
+                .targetPlanetName("Test Colony")
+                .build();
     }
 
     private static void assertAssignment(ShuttleAssignment assignment,
