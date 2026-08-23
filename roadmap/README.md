@@ -81,17 +81,14 @@ universe over time, not retrofitted into intel slots.
   blocks, and apartment facades add non-traversable firing windows that preserve
   sight, shots, and directional cover. See
   [`mapgen/`](mapgen/).
-- **Moddable tilesets** *(Phases 1 + 2 shipped; Phase 3 deferred)* — moved
-  tile definitions and their gen→tile mappings out of hardcoded Java
-  (`NatureTile`, `TileManifest`, per-`BlockKind` filler presets) into a
-  dual-JSON, id-addressed `TileRegistry` so a submod can extend the tile
-  catalog without recompiling. Phase 1 (id-registry, behavior-preserving)
-  already paid off pre-submod: it killed the "enum order = PNG order" +
-  hardcoded `(col,row)` fragility, and Phase 2 made the gen→tile mapping
-  (doodad pools, ground-render dispatch, filler params) data too. Phase 3
-  (mod-merge: load order, id-override, validation) is deferred until a real
-  submod exists. Nests under `mapgen`'s shipped `GenRecipe`. See
-  [`moddable-tilesets/`](moddable-tilesets/overview.md).
+- **Moddable tilesets** *(Phases 1 + 2 shipped; one proposed cleanup)* — the
+  built-in visual catalog and its generation mapping are dual-JSON and
+  id-addressed. `TileRegistry` owns what assets exist; `GenMappingRegistry`
+  owns how code-driven generation and rendering use them. Phase 3 discovery,
+  merge, override, and strict-validation semantics remain direction until a
+  real second content provider exists. `moddable-tilesets-nouns.md` carries the
+  standing model; its adjacent `stories.md` board tracks the remaining narrow
+  nature-pool authority cleanup.
 - **Moddable weapons** *(W1 shipped)* — the same move for the weapon
   catalog. Nineteen weapons across four enums (`MarineWeapon`,
   `MarineSecondary`, `MechWeapon`, `TurretKind`) with near-identical field
