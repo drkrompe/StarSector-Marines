@@ -10,6 +10,11 @@ Every weapon in the mod is an enum entry with `public final` stat fields:
 near-identical field sets, all requiring a recompile to change and none
 reachable by a submod.
 
+`TurretKind` is the odd one out and gets its own treatment: it is not a
+weapon catalog at all but a platform, a mount and a gun fused together —
+already carried by three different platforms that disagree about which of
+its fields mean anything. See `w6-emplacements-and-structures.md`.
+
 This track moves the catalog into id-addressed JSON behind a registry —
 the same shape the `moddable-tilesets` track
 already proved for tiles — and takes the presentation layer with it, so a
@@ -36,10 +41,12 @@ it:
 
 These are settled. Change them here, not in a story.
 
-1. **One schema across all four catalogs.** Marine primaries, secondaries,
-   mech mounts and turret mounts share a field set already; they will share
-   a `WeaponDef`. Which catalog a weapon belongs to becomes a *mount class*
-   property, not a separate Java type.
+1. **One weapon schema, however many carriers.** Marine primaries,
+   secondaries, mech mounts and emplacement guns all describe the same
+   thing — what a round does — and share one `WeaponDef`. Which kind of
+   carrier a weapon is built for becomes a *mount class* property, not a
+   separate Java type. This is about the ballistic definition only; what
+   *carries* it is commitment 7.
 2. **Registry is the single source of truth.** No dual authoring — a stat
    lives in JSON or it does not exist. The enums degrade to id handles and
    are then retired.
@@ -60,6 +67,15 @@ These are settled. Change them here, not in a story.
 6. **Fail loud on a missing registry.** A tile registry that is not
    installed degrades to "no overlay scatter". A weapon registry that is not
    installed would mean zero-damage weapons, so it throws instead.
+7. **Platform, mount, weapon are three layers, not one.** A weapon describes
+   what a round does. A *mount* describes the hardware it is installed in —
+   ammo capacity, traverse, the visual shell. A *platform* describes what
+   carries the mount — health, footprint, how many hardpoints. Mechs already
+   model this (`MechVariant` → `MechWeaponComponent` → `MechWeapon`) and it
+   is the shape emplacements and structures adopt in
+   `w6-emplacements-and-structures.md`. The test for which layer a field
+   belongs to: **if two carriers of the same weapon disagree about a field's
+   value, it is not a weapon field.**
 
 ## Stories
 
@@ -67,11 +83,12 @@ These are settled. Change them here, not in a story.
 | --- | --- | --- |
 | W1 | `w1-weapon-registry.md` | `WeaponDef` + `WeaponRegistry` + marine-primary JSON + parity test. Enum becomes an id handle. |
 | W2 | `w2-layered-fx.md` | Effect layers in data, replacing `ImpactProfile` dispatch. Parity-pinned against the current recipes. |
-| W3 | `w3-remaining-catalogs.md` | Secondaries, mech mounts, turret mounts onto the same schema. |
+| W3 | `w3-remaining-catalogs.md` | Marine secondaries and mech mounts onto the same schema. |
+| W6 | `w6-emplacements-and-structures.md` | Split `TurretKind` into platform / mount / weapon. Structures become a data shape. |
 | W4 | `w4-retire-enums.md` | Ids as the only handle; `MarineSoldier` save migration. |
 | W5 | `w5-submod-merge.md` | Discovery, load order, id override, validation. Deferred — shared with moddable-tilesets Phase 3. |
 
-Ship order is W1 → W2 → W3 → W4, with W5 deferred until a real submod
+Ship order is W1 → W2 → W3 → W6 → W4, with W5 deferred until a real submod
 exists (the same call moddable-tilesets made for its Phase 3).
 
 ## Relationships
