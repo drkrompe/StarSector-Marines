@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * small and almost always succeeds — and because it replans every few ticks
  * against the <em>current</em> grid, it naturally handles dynamic obstacles
  * (wrecks, other trucks, marines) that a one-time refined path can't. See
- * {@code navigation-rework/overview.md}.
+ * {@code convoy-nouns.md}.
  *
  * <p>Pure and stateless: (pose, corridor, type, grid) → trajectory or
  * {@code null}. No {@link VehicleMission} / {@link GroundSystem} coupling, which is

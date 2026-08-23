@@ -1,11 +1,14 @@
 # Story: vehicle variants — supply truck + light scout
 
-**Queued (content slice).** HEAVY_APC shipped as the sole `VehicleType`.
-Both variants below reuse the same kinematic + path-following + wall
-constraint code; the work is asset-side (sprites) + variant-specific
-deboard logic. Each is a one-enum-constant addition plus its sprite sheet
-(`VehicleType.spritePath` + `spriteFrame` + facing offsets parameterize
-the rest; `TurretAuthorPanel` validates mounts).
+Status: PLANNED — new payload roles need explicit supply and roster authority.
+
+Written: 2026-05-28
+
+Updated: 2026-08-23 — retained supply/scout roles without assuming they are asset-only variants.
+
+Read `convoy-nouns.md` first. `HEAVY_APC` is the sole operational convoy type.
+New variants reuse the route, motion, and lifecycle contracts, but each still
+needs its own payload behavior and acceptance.
 
 ## Supply truck
 
@@ -18,11 +21,11 @@ deliver bodies.
 
 Faster, smaller footprint, no turret. Runs supplies or carries a 2-man
 recon team. The smaller footprint may open the BSP-frame perim
-"infiltration" entries that the APC's 5×3 footprint can't fit (see the
-Parked list in [`../overview.md`](../overview.md)).
+"infiltration" entries that the APC's 5×3 footprint cannot fit. This uses the
+map-boundary extension described by `convoy-nouns.md`.
 
 ## Out of scope here
 
 Tanks with hull-mounted turrets that fire while moving are a separate
-big slice (new combat-side wiring), not a content variant — parked in
-[`../overview.md`](../overview.md).
+big slice with new combat-side wiring, not a content variant. That boundary is
+recorded in `convoy-nouns.md`.

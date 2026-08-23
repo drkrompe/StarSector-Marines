@@ -188,8 +188,9 @@ station-shaped graph framing lives on for stations in
 - [`../conquest/central-keep.md`](../conquest/central-keep.md) — Slice 6
   of that doc (multi-room keep) is what surfaced the need for this
   refactor. The keep is the immediate driver but not the only consumer.
-- [`../convoy/overview.md`](../convoy/overview.md) — the road graph the
-  partition step reserves is consumed by convoy path-planning; see
+- `convoy-nouns.md` — the road graph the partition step reserves provides
+  convoy approach/drop-off vocabulary, while cost-field search routes between
+  those points; see
   [[road_graph_design]].
 - [[battle_services_systems]] — Services vs Systems decomposition the
   rest of the battle tier follows. The map-gen refactor is structurally

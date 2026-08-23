@@ -130,7 +130,7 @@ content-driven need.
 - **`ConvoyMeans`** — spawns a *vehicle*, not infantry, so no
   `UnitType` pick at dispatch. Its normal deboard already routes through
   this roster (per-faction, `ef4cfeb`); any future squashed-crew
-  ejection (convoy [`truck-infantry-interaction`](../convoy/stories/truck-infantry-interaction.md))
+  ejection (convoy `truck-infantry-interaction.md`)
   draws from the same lookup.
 
 ## Cross-refs
@@ -138,5 +138,5 @@ content-driven need.
 - [`architecture.md`](architecture.md) §v4 — once this lands, the
   attacker-side walk-in / shuttle paths can drop their hard-coded
   faction reject.
-- [`../convoy/stories/truck-infantry-interaction.md`](../convoy/stories/truck-infantry-interaction.md)
+- `truck-infantry-interaction.md`
   — convoy crew ejection routes through the same roster.

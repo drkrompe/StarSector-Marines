@@ -85,10 +85,10 @@ public final class VehicleController {
     /** Step (cells) for the backward footprint march that measures achievable backup distance — sub-cell so a 1-cell wall behind can't slip between samples. */
     private static final float REVERSE_MARCH_STEP = 0.25f;
     /**
-     * Recoveries without net progress toward the LZ before the controller stops
-     * retrying and holds position. The formal give-up rung — re-route / abandon /
-     * deload-in-place — is slice 3; this just stops the visible thrash when a
-     * route is kinematically impossible.
+     * Committed reverse recoveries allowed without net progress toward the LZ.
+     * Reaching the cap prevents another reverse maneuver; ordinary tracking and
+     * rate-limited reroute attempts may continue. The durable terminal policy —
+     * abort, hold, or deload-in-place — remains open in slice 3.
      */
     static final int MAX_RECOVERY_ATTEMPTS = 5;
     /**
