@@ -4,8 +4,9 @@
 > stand and look at it. Every roster surface hangs off a planet
 > interaction, so "how is my army doing" is only answerable while docked.
 
-**Status:** not started. Independent of C1 (`c1-fireteam-identity-through-the-drop.md`)
-— see [Sequencing](#sequencing) below.
+**Status:** **shipped 2026-08-23** — slices 1–4 (`2b959e44`, `b204c237`,
+`8ac4116a`, `20f498de`, `822065cd`). Independent of
+C1 (`c1-fireteam-identity-through-the-drop.md`) — see [Sequencing](#sequencing) below.
 
 ## Problem
 
@@ -251,7 +252,8 @@ battle seam.
    obligation sources, with **Respond** routing through
    `PlayerEventPresenter.requestDeployment`. Offer expiry belongs to
    C11 (`c11-the-contract-board.md`).
-4. **The company pane.** Strength rollup and the armory route.
+4. ~~**The company pane.**~~ **Shipped** (`822065cd`). Formation band, the personnel
+   rollup moved in from STANDING, next recovery, and the armory route.
 
 Slices 2–4 are independently valuable and can ship in any order after 1.
 
@@ -547,3 +549,54 @@ its deadline.
   row plus a button is the tallest thing this screen renders, and `CLOCK_LIMIT` of 6
   is a guess at what fits rather than a measurement.
 - With more than six clocks, the "+N more not shown" line appears and is accurate.
+
+## Slice 4 — shipped
+
+`822065cd`. `gradlew.bat build` green; 4 new assertions in `CompanyStandingTest`
+(32 in the two company-view suites).
+
+### What landed
+
+- `CompanyStanding.lineSquads` / `stationedSquads` / `nextRecoveryDay`, with their
+  statics. Still derived, still never persisted.
+- `CompanyHqScreen.buildRoster` — the formation band, the personnel rollup, the next
+  recovery, and an **Armory** button.
+- The personnel block **moved** out of `buildStanding`. `buildPlaceholder` is gone;
+  every column is real.
+- `companyHqPersonnelHeader`, `companyHqRosterPending`, and
+  `companyHqDeadlinesPending` retired; seven keys added.
+
+### Decisions worth keeping
+
+**The people belong under the header that names them.** Slice 2 put strength-vs-available
+in STANDING because C4 (`c4-whereabouts-and-deployed-state.md`) named that gap as the
+interesting number. It is — but with slice 4 populating a column literally headed
+ROSTER, keeping the count under a financial header would have meant either duplicating
+it or leaving ROSTER to say nothing about people. STANDING is now money and reputation;
+ROSTER is people. This is a revision of a shipped slice, made deliberately.
+
+**The reserve pool is not a formation.** `MarineRoster.reserveSquad()` is a
+`MarineSquad`, so a naive `squads().size()` overstates the company by one — always, and
+invisibly. It is also created lazily, which is why the test asserts the count does not
+move when it appears rather than assuming it is there.
+
+**Next recovery is the screen's one forward-looking number.** "3 wounded" says how bad
+it is; "next marine back in 4 days" says whether to wait. `nextRecoveryDay` returns -1
+when nobody is recovering, and the line is omitted rather than rendered as zero — the
+same rule the runway and the monthly report already follow.
+
+**One derivation feeds both columns.** `rebuild()` reads `CompanyStanding.current` once
+and passes it to STANDING and ROSTER. Two reads could straddle a day boundary or a
+monthly rollover and put disagreeing numbers side by side on a single screen.
+
+**The armory needed nothing.** `ArmoryScreen` has no market or planet reference in 1443
+lines, exactly as the story's audit claimed, so it runs unchanged on the planet-free
+host. `openArmoryFrom(ScreenId.COMPANY_HQ, 0)` sets the return screen so Back lands
+here and not on mission select — which this host must never reach.
+
+### Still to confirm in game
+
+- The armory opens from the company view, allocates gear, and Back returns to HQ.
+- The formation band matches the roster, and a stationed squad shows as away.
+- The recovery line appears only while someone is wounded, and counts down.
+- All three columns at 1.0x / 1.25x / 1.5x UI scale.
