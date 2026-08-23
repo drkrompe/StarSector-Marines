@@ -470,7 +470,7 @@ class MarineArmoryTest {
         assertEquals(EquipmentGrade.MASTERWORK, persisted.billet(0).grade());
         assertEquals(MarineSecondary.ROCKET_LAUNCHER, persisted.billet(0).secondary());
         assertEquals(MarineArmorPattern.RED_ELITE, persisted.billet(0).armor());
-        assertEquals(6, loaded.templateCards().size(),
+        assertEquals(7, loaded.templateCards().size(),
                 "readResolve restores missing starters without duplicating existing ones");
     }
 

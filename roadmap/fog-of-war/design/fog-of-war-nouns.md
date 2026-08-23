@@ -3,7 +3,7 @@
 Status: ACTIVE — shipped visibility spine; deferred time-of-day direction
 
 Written: 2026-08-23
-Updated: 2026-08-23 — clarified how planned tactical smoke enters observation without becoming fog authority.
+Updated: 2026-08-23 — folded shipped tactical smoke into the shared observation boundary.
 
 Read `stories.md` for open work.
 
@@ -123,8 +123,8 @@ cells. Neither adjacent system owns player sight. The combat bridge is another
 render host and must advance the same roof and unit fade presentation as the
 standalone battle screen.
 
-Planned smoke grenades in `s2b-smoke-grenades.md` are another adjacent input,
-not a fog feature. Battle simulation owns each transient smoke field and the
+Smoke grenades are another adjacent input, not a fog feature. Battle
+simulation owns each transient smoke field and the
 shared tactical line-of-sight layer treats its cells as temporary opacity.
 Fog responds by invalidating and recasting affected observation footprints,
 including stationary contributors, so player reveal reflects the same
