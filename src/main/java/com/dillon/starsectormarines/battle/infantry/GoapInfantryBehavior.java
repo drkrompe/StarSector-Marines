@@ -273,10 +273,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // sabotage cordon, suppressor+bounder for bounding overwatch, etc.)
             // and the same call here distributes members per slot.
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
-            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                long u = sim.liveUnitAt(i);
-                if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
-                aliveMembers.add(u);
+            for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                aliveMembers.add(sim.squadMemberAt(squad.id, i));
             }
             for (SquadPlan.Step step : plan.steps()) {
                 Map<String, List<Long>> assignment = step.action.assignRoles(

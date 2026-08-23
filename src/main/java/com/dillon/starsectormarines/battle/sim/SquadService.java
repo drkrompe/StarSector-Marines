@@ -32,12 +32,20 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  */
 public final class SquadService {
 
+    @FunctionalInterface
+    public interface MembershipListener {
+        void onAssignment(long id, int previousSquadId, int squadId);
+    }
+
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    private final MembershipListener membershipListener;
 
-    public SquadService(EntityWorld entityWorld, BattleComponents components) {
+    public SquadService(EntityWorld entityWorld, BattleComponents components,
+                        MembershipListener membershipListener) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.membershipListener = membershipListener;
     }
 
     /** Presence check — true iff {@code id} is in a squad (carries SQUAD). Gate {@link #squadId} reads on this. */
@@ -65,6 +73,10 @@ public final class SquadService {
     }
 
     public void assignSquad(long id, int squadId, int fireTeamIndex) {
+        int previousSquadId = hasSquad(id) ? squadId(id) : Squad.NO_SQUAD;
+        if (previousSquadId != squadId) {
+            membershipListener.onAssignment(id, previousSquadId, squadId);
+        }
         if (!entityWorld.has(id, components.SQUAD)) entityWorld.addComponent(id, components.SQUAD);
         entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, squadId);
         entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_FIRE_TEAM_INDEX,

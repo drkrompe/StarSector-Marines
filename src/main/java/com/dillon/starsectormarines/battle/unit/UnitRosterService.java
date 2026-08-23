@@ -121,6 +121,22 @@ public final class UnitRosterService {
     private final Long2IntOpenHashMap indexById = new Long2IntOpenHashMap();
 
     /**
+     * Dense live-only faction slices. Identity faction is immutable for a
+     * ground unit, so maintaining these alongside the canonical roster turns
+     * faction-wide queries into a tight primitive walk instead of repeatedly
+     * filtering every live entity. Each slice uses the same swap-and-pop
+     * lifecycle as {@link #dense}; its row order is deliberately not semantic.
+     */
+    private final long[][] denseByFaction = new long[Faction.values().length][INITIAL_CAPACITY];
+    private final int[] liveCountByFaction = new int[Faction.values().length];
+    /** Entity id -> row inside its faction slice. */
+    private final Long2IntOpenHashMap factionIndexById = new Long2IntOpenHashMap();
+    /** Stable-spawn-order, live-only member slices keyed by monotonic squad id. */
+    private long[][] denseBySquad = new long[16][];
+    private int[] liveCountBySquad = new int[16];
+    private static final long[] EMPTY_ENTITY_IDS = new long[0];
+
+    /**
      * The battle's archetype-table entity world + its game component
      * registrations + the by-id access facade. Owned here because {@link #adopt}
      * is the single spawn seam — minting the id and adopting it into the world stay
@@ -136,7 +152,8 @@ public final class UnitRosterService {
     private final CombatService combatService = new CombatService(entityWorld, components);
     private final MovementService movementService = new MovementService(entityWorld, components);
     private final VisionService visionService = new VisionService(entityWorld, components);
-    private final SquadService squadService = new SquadService(entityWorld, components);
+    private final SquadService squadService = new SquadService(
+            entityWorld, components, this::onSquadAssignment);
     private final RoleService roleService = new RoleService(entityWorld, components);
     private final HomeService homeService = new HomeService(entityWorld, components);
     private final HubStateService hubStateService = new HubStateService(entityWorld, components);
@@ -190,6 +207,7 @@ public final class UnitRosterService {
         // this too (Long2IntOpenHashMap.remove returns the default when the key is
         // absent), so a duplicate release is a no-op without the caller checking.
         indexById.defaultReturnValue(INVALID_INDEX);
+        factionIndexById.defaultReturnValue(INVALID_INDEX);
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -623,6 +641,8 @@ public final class UnitRosterService {
         }
         indexById.put(id, liveCount);
         liveCount++;
+        addToFactionSlice(id, spec.faction);
+        if (inSquad) addToSquadSlice(id, spec.squadId);
         return id;
     }
 
@@ -692,8 +712,13 @@ public final class UnitRosterService {
      */
     public void release(long id) {
         if (id == 0L) return;
-        int idx = indexById.remove(id);
+        int idx = indexById.get(id);
         if (idx == INVALID_INDEX) return;
+        if (squadService.hasSquad(id)) {
+            removeFromSquadSlice(id, squadService.squadId(id));
+        }
+        removeFromFactionSlice(id, identityService.faction(id));
+        indexById.remove(id);
         int last = liveCount - 1;
         if (idx != last) {
             long tail = dense[last];
@@ -702,6 +727,83 @@ public final class UnitRosterService {
         }
         dense[last] = 0L;
         liveCount--;
+    }
+
+    private void onSquadAssignment(long id, int previousSquadId, int squadId) {
+        if (indexById.get(id) == INVALID_INDEX) {
+            throw new IllegalArgumentException(
+                    "squad assignment requires a live ground unit: " + id);
+        }
+        if (previousSquadId != Squad.NO_SQUAD) {
+            removeFromSquadSlice(id, previousSquadId);
+        }
+        addToSquadSlice(id, squadId);
+    }
+
+    private void addToFactionSlice(long id, Faction faction) {
+        int factionOrdinal = faction.ordinal();
+        int count = liveCountByFaction[factionOrdinal];
+        long[] factionDense = denseByFaction[factionOrdinal];
+        if (count == factionDense.length) {
+            factionDense = Arrays.copyOf(factionDense, factionDense.length * 2);
+            denseByFaction[factionOrdinal] = factionDense;
+        }
+        factionDense[count] = id;
+        factionIndexById.put(id, count);
+        liveCountByFaction[factionOrdinal] = count + 1;
+    }
+
+    private void removeFromFactionSlice(long id, Faction faction) {
+        int index = factionIndexById.remove(id);
+        if (index == INVALID_INDEX) {
+            throw new IllegalStateException("live unit missing faction index: " + id);
+        }
+        int factionOrdinal = faction.ordinal();
+        long[] factionDense = denseByFaction[factionOrdinal];
+        int last = liveCountByFaction[factionOrdinal] - 1;
+        if (index != last) {
+            long tail = factionDense[last];
+            factionDense[index] = tail;
+            factionIndexById.put(tail, index);
+        }
+        factionDense[last] = 0L;
+        liveCountByFaction[factionOrdinal] = last;
+    }
+
+    private void addToSquadSlice(long id, int squadId) {
+        ensureSquadSliceCapacity(squadId);
+        long[] members = denseBySquad[squadId];
+        int count = liveCountBySquad[squadId];
+        if (members == null) {
+            members = new long[4];
+            denseBySquad[squadId] = members;
+        } else if (count == members.length) {
+            members = Arrays.copyOf(members, members.length * 2);
+            denseBySquad[squadId] = members;
+        }
+        members[count] = id;
+        liveCountBySquad[squadId] = count + 1;
+    }
+
+    private void removeFromSquadSlice(long id, int squadId) {
+        long[] members = denseBySquad[squadId];
+        int count = liveCountBySquad[squadId];
+        int index = 0;
+        while (index < count && members[index] != id) index++;
+        if (index == count) {
+            throw new IllegalStateException("live unit missing squad index: " + id);
+        }
+        int moved = count - index - 1;
+        if (moved > 0) System.arraycopy(members, index + 1, members, index, moved);
+        members[count - 1] = 0L;
+        liveCountBySquad[squadId] = count - 1;
+    }
+
+    private void ensureSquadSliceCapacity(int squadId) {
+        if (squadId < denseBySquad.length) return;
+        int capacity = Math.max(squadId + 1, denseBySquad.length * 2);
+        denseBySquad = Arrays.copyOf(denseBySquad, capacity);
+        liveCountBySquad = Arrays.copyOf(liveCountBySquad, capacity);
     }
 
     /** Returns the current dense index for {@code id}, or {@link #INVALID_INDEX} if released or never allocated. */
@@ -749,6 +851,38 @@ public final class UnitRosterService {
      */
     public long[] denseArray() {
         return dense;
+    }
+
+    /**
+     * Direct access to one live faction slice. Indices in
+     * {@code [0, factionLiveCount(faction))} are live ids; the same phase-local
+     * aliasing rule as {@link #denseArray()} applies because a spawn may grow
+     * and replace this backing array between phases.
+     */
+    public long[] factionDenseArray(Faction faction) {
+        return denseByFaction[faction.ordinal()];
+    }
+
+    /** Number of live ground-roster units currently in {@code faction}. */
+    public int factionLiveCount(Faction faction) {
+        return liveCountByFaction[faction.ordinal()];
+    }
+
+    /**
+     * Live members of {@code squadId} in stable spawn order. The returned
+     * grow-and-stay array is phase-local just like {@link #denseArray()}; walk
+     * only {@code [0, squadMemberCount(squadId))}.
+     */
+    public long[] squadMemberArray(int squadId) {
+        if (squadId < 0 || squadId >= denseBySquad.length) return EMPTY_ENTITY_IDS;
+        long[] members = denseBySquad[squadId];
+        return members != null ? members : EMPTY_ENTITY_IDS;
+    }
+
+    /** Number of live members currently indexed under {@code squadId}. */
+    public int squadMemberCount(int squadId) {
+        return squadId >= 0 && squadId < liveCountBySquad.length
+                ? liveCountBySquad[squadId] : 0;
     }
 
     /**

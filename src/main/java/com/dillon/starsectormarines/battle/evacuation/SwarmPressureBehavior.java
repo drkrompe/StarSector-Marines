@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 /** Direct pressure behavior for swarm runners; no squad or infantry GOAP. */
 public final class SwarmPressureBehavior implements UnitBehavior {
@@ -14,6 +15,11 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     private static final int ROAM_MIN_DISTANCE = 3;
     private static final int ROAM_RADIUS = 7;
     private static final int ROAM_SAMPLE_ATTEMPTS = 16;
+    /** Conservative bridge from continuous-position buckets to cell-distance sensing. */
+    private static final float SENSE_GATHER_PADDING = 1.414214f;
+    /** UPDATE_UNITS is parallel, so every worker owns its candidate buffer. */
+    private static final ThreadLocal<LongBucket> TARGET_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
 
     public static final SwarmPressureBehavior INSTANCE =
             new SwarmPressureBehavior();
@@ -80,30 +86,43 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         int span = ROAM_RADIUS * 2 + 1;
         long seed = runner * 0x9E3779B97F4A7C15L
                 ^ (long) sim.getSimTickIndex() * 0xBF58476D1CE4E5B9L;
+        int destinationX = Integer.MIN_VALUE;
+        int destinationY = Integer.MIN_VALUE;
         for (int attempt = 0; attempt < ROAM_SAMPLE_ATTEMPTS; attempt++) {
             long sample = mix(seed + attempt * 0x94D049BB133111EBL);
             int dx = Math.floorMod((int) sample, span) - ROAM_RADIUS;
             int dy = Math.floorMod((int) (sample >>> 32), span) - ROAM_RADIUS;
             if (Math.abs(dx) + Math.abs(dy) < ROAM_MIN_DISTANCE) continue;
-            int destinationX = originX + dx;
-            int destinationY = originY + dy;
-            if (!sim.getGrid().inBounds(destinationX, destinationY)
-                    || !sim.getGrid().isWalkable(destinationX, destinationY)
+            int candidateX = originX + dx;
+            int candidateY = originY + dy;
+            if (!sim.getGrid().inBounds(candidateX, candidateY)
+                    || !sim.getGrid().isWalkable(candidateX, candidateY)
                     || sim.isInsideRescueOpeningProtectedZone(
-                            destinationX, destinationY)) {
+                            candidateX, candidateY)) {
                 continue;
             }
-            int destinationCell = sim.getGrid().index(destinationX, destinationY);
+            int destinationCell = sim.getGrid().index(candidateX, candidateY);
             if ((sim.getOccupancyMap()[destinationCell] & 0xFF) != 0) continue;
-            int[] path = GridPathfinder.findPath(sim.getGrid(),
-                    originX, originY, destinationX, destinationY,
-                    sim.getOccupancyMap());
-            if (Paths.isEmpty(path) || crossesProtectedZone(path, sim)) continue;
-            sim.setPath(runner, path);
-            sim.advanceMovement(runner);
+            destinationX = candidateX;
+            destinationY = candidateY;
+            break;
+        }
+        if (destinationX == Integer.MIN_VALUE) {
+            sim.clearPath(runner);
             return;
         }
-        sim.clearPath(runner);
+
+        // Candidate sampling is deliberately cheap. Pay for at most one A*
+        // per roam decision; a blocked result simply waits for the next
+        // decorrelated repath window instead of multiplying path searches.
+        int[] path = GridPathfinder.findPath(sim.getGrid(), originX, originY,
+                destinationX, destinationY, sim.getOccupancyMap());
+        if (Paths.isEmpty(path) || crossesProtectedZone(path, sim)) {
+            sim.clearPath(runner);
+            return;
+        }
+        sim.setPath(runner, path);
+        sim.advanceMovement(runner);
     }
 
     private static boolean crossesProtectedZone(int[] path,
@@ -154,8 +173,12 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             }
         }
 
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long candidate = sim.liveUnitAt(i);
+        LongBucket nearby = TARGET_CANDIDATES.get();
+        float senseRange = sim.vision().visionRange(runner);
+        sim.getUnitIndex().gatherFaction(sim.world().x(runner), sim.world().y(runner),
+                senseRange + SENSE_GATHER_PADDING, Faction.MARINE, nearby);
+        for (int i = 0, n = nearby.size; i < n; i++) {
+            long candidate = nearby.ids[i];
             if (!eligibleMarine(candidate, sim)) continue;
             if (!canSense(runner, candidate, sim)) continue;
             float distance = distanceSquared(runner, candidate, sim);
@@ -181,17 +204,13 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         // Strategic pressure fallback: the swarm still advances when all
         // marines are beyond local sensing range, but civilians remain unknown
         // until first contact reveals them.
-        bestDistance = Float.MAX_VALUE;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long candidate = sim.liveUnitAt(i);
-            if (!eligibleMarine(candidate, sim)) continue;
-            float distance = distanceSquared(runner, candidate, sim);
-            if (isBetter(candidate, distance, best, bestDistance)) {
-                best = candidate;
-                bestDistance = distance;
-            }
+        if (sim.isCivilianShelterProtected()) {
+            return sim.getUnitIndex().nearestFaction(
+                    sim.world().x(runner), sim.world().y(runner),
+                    Faction.MARINE, candidate -> eligibleMarine(candidate, sim));
         }
-        return best;
+        return sim.getUnitIndex().nearestFaction(
+                sim.world().x(runner), sim.world().y(runner), Faction.MARINE);
     }
 
     private static boolean isEligibleRememberedTarget(
