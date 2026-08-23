@@ -9,6 +9,12 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -220,6 +226,28 @@ public class AdvanceThreatLeashTest {
                 "contact prosecution stays inside the weight-scaled off-axis leash");
         assertTrue(pathDestX != DEST_X || pathDestY != DEST_Y,
                 "committed member takes a firing position instead of blindly following the objective path");
+    }
+
+    @Test
+    public void staleDoctrineHoldWithoutActionableEvidenceResumesObjectivePath() {
+        BattleSimulation sim = openSim();
+        Squad squad = marineSquad(sim, 4);
+        long enemy = defender(sim, "stale-flank", 20, 25);
+        long leader = squad.leaderId;
+        sim.world().setAttackRange(leader, 5f);
+        sim.world().setTargetId(leader, enemy);
+        squad.contactPicture = new SquadContactPicture(sim.getSimTickIndex(),
+                Posture.ADVANCING, 1f, 0f, 1, 0, 0.6f, 4,
+                ForceBalance.FAVORABLE, Sector.RIGHT_FLANK, Motion.UNKNOWN,
+                enemy, 20, 25, 0.6f, Doctrine.HOLD);
+
+        new ProbeZoneAction().advance(leader, squad, sim, DEST_X, DEST_Y);
+
+        assertFalse(squad.advanceEngageCommitted);
+        assertFalse(Paths.isEmpty(sim.world().path(leader)),
+                "stale doctrine memory may guide aim but must not plant the advance");
+        assertEquals(DEST_X, Paths.destX(sim.world().path(leader)));
+        assertEquals(DEST_Y, Paths.destY(sim.world().path(leader)));
     }
 
     private static int fireStance(BattleSimulation sim, long member) {
