@@ -120,7 +120,12 @@ universe over time, not retrofitted into intel slots.
   Sirocco works behind one; their geometry, silhouettes, installed mounts, and
   encounter costs agree. Production admits deterministic mixed groups through
   the shared force budget, while DEBUG family delivery remains non-progression
-  playtest scaffolding. `mechs-nouns.md` carries the standing model; its
+  playtest scaffolding. The campaign Fleet Armory now also hosts a Mech Lab:
+  one persistent support squad owns its installed kit, finite replenisher
+  inventory can refit it atomically, and sourced Mech Support freezes that
+  configured squad into battle without exposing campaign objects. Chassis
+  acquisition and weapon-component inventory remain future progression.
+  `mechs-nouns.md` carries the standing model; its
   adjacent `stories.md` board tracks the remaining acceptance pass.
   Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
