@@ -201,7 +201,7 @@ public class InfantryWeapons {
         // The caller still consumes this firing opportunity (trigger cooldown
         // and one burst slot), exactly as if the friendly-bound round had been
         // emitted. Safe rounds never make a discipline roll.
-        if (res.friendlyHit() && usesInfantryTraining(shooterType)) {
+        if (res.friendlyHit() && shooterType.usesInfantryTraining()) {
             ExperienceTier experience = roster.combat().soldierProfile(shooter)
                     .experienceTier();
             if (rng.nextFloat() < experience.friendlyFireHoldChance) return;
@@ -235,13 +235,6 @@ public class InfantryWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, lifetime,
                 tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
-    }
-
-    private static boolean usesInfantryTraining(UnitType type) {
-        return type == UnitType.MARINE
-                || type == UnitType.MARINE_BLUE
-                || type == UnitType.MARINE_RED
-                || type == UnitType.MILITIA;
     }
 
     /**

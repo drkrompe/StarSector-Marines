@@ -169,6 +169,18 @@ public enum UnitType {
     public boolean isDrone() { return this == DRONE; }
 
     /**
+     * Whether this unit is a trained humanoid whose individual soldier profile
+     * controls handling, trigger discipline, and reflexes. Kept here so every
+     * combat subsystem uses the same boundary: fauna, drones, turrets, and
+     * mechs have their own behavior models rather than inheriting a synthetic
+     * {@code SoldierProfile.REGULAR} skill roll.
+     */
+    public boolean usesInfantryTraining() {
+        return this == MARINE || this == MARINE_BLUE || this == MARINE_RED
+                || this == MILITIA;
+    }
+
+    /**
      * Whether this archetype's body renders as a facing-indexed frame of
      * {@link #spritePath} — the classification that gates the {@code SPRITE}
      * component at spawn ({@code UnitRosterService.allocate}) and that the

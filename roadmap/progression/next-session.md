@@ -2,6 +2,14 @@
 
 ## State of play
 
+**S11 combat reflexes shipped in `cb22c3d3`.** New-threat registration is a
+universal experience passive, not a doorway rule: Green / Regular / Veteran /
+Elite soldiers wait 0.50 / 0.35 / 0.20 / 0.05 seconds before primary fire at a
+new target. The timer advances while closing, resets on a target switch, and is
+not reapplied to follow-up cadence. Opportunity fire shares the same gate;
+fauna, drones, turrets, and mechs are excluded. Full record:
+[`complete/s11-combat-reflexes.md`](complete/s11-combat-reflexes.md).
+
 **S3 is shipped — all three slices.** In-battle recording and attribution, the
 crossing onto `MissionOutcome`, and the persisted `SoldierCareer` on
 `MarineSoldier`. The story moved to `complete/`; full details there.
