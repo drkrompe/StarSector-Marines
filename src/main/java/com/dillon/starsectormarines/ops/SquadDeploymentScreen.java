@@ -19,7 +19,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.awt.Color;
 import java.util.List;
 
-/** Compact pre-battle whole-fireteam assignment surface. */
+/** Compact pre-battle whole-squad assignment surface. */
 public final class SquadDeploymentScreen implements Screen {
 
     private static final float PAD = 18f;

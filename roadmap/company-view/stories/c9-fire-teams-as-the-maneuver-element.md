@@ -4,14 +4,20 @@
 > of arbitrary members, and throws it away at the next replan. Give the AI
 > a real element to maneuver.
 
-**Status:** not started. Depends on
-C7 (`c7-organization-and-ranks.md`) for the structure.
+Status: PLANNED
+Written: 2026-08-22
+Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+
+Depends on the derived fire-team structure in `company-view-nouns.md`.
+
+Read `company-view-nouns.md` before changing this story.
 
 ## Decision this story implements
 
-Fire teams are modelled and **behind the scenes**: the player commands
-squads, the AI maneuvers teams. Teams surface in the UI only as pip
-grouping on a squad row — never as a card level, never as an order target.
+The player equips fire teams in the Fleet Armory, commands squads, and the AI
+maneuvers teams. Fire teams may surface as card assignments and billet groups
+on campaign equipment screens, and as pip grouping in battle; they never become
+a deployment selection or player order target.
 
 ## Problem
 
@@ -31,7 +37,7 @@ its own sub-groups:
 - **Cordons** (`HoldPortalCordon`, `CordonForPlant`) draw individuals into
   portal slots.
 
-At six marines that was tolerable. At twelve (C7 (`c7-organization-and-ranks.md`))
+At six marines that was tolerable. At the shipped twelve-marine size
 a squad converging as one blob is worse, not better — and the 9× lethality
 scale means a blob crossing open ground is a wipe.
 
@@ -43,9 +49,9 @@ the comment stops being true.
 
 ### A persistent partition, not a per-plan one
 
-- The fire team is a property of the **squad's organization** (C7's team
-  index per billet), carried into battle on C1's seat data, not a thing the
-  planner invents. Three teams of four, each with a leader.
+- The fire team is a property of the **squad's organization**, derived from
+  billet order and copied into the frozen deployment, not a thing the planner
+  invents. Three teams of four, each with a leader.
 - Role assignment prefers **intact teams**: give `RoleAssigner` a
   team-cohesion scorer so a slot wanting "half the squad" fills with whole
   teams rather than the first N members. Slots keep their existing
@@ -68,12 +74,13 @@ the comment stops being true.
 - **Screens and cordons** draw a team for the job and leave the rest of the
   squad on its objective, instead of committing every member to a posture.
 
-### What stays out of the player's way
+### What stays out of battle command
 
-No new selection level, no team-level orders, no extra HUD panel. The
-squad row's twelve pips group 4 / 4 / 4 so a player who looks closely can
-see a team has been shot away; the battle detail panel may label rows by
-team. That is the whole player-facing surface.
+No new battle selection level, no team-level orders, no extra HUD panel. The
+squad row's twelve pips group 4 / 4 / 4 so a player who looks closely can see a
+team has been shot away; the battle detail panel may label rows by team. Fleet
+Armory equipment authorship belongs to `c14-fire-team-template-cards.md` and
+does not imply an order channel.
 
 ## Slices
 
@@ -93,8 +100,7 @@ team. That is the whole player-facing surface.
 - A twelve-marine squad crossing open ground never moves as one body.
 - A squad reduced to five effectives still bounds, as two teams, without
   special-casing.
-- No new player-facing hierarchy level, no new order target, no change to
-  `Selection`.
+- No new battle-selection level, no new order target, no change to `Selection`.
 - Determinism holds: team assignment is derived from persisted billet
   order, not from spawn race order or a random draw.
 - Parallel-replan safety: the partition is read-only during the replan
@@ -109,22 +115,22 @@ team. That is the whole player-facing surface.
 - `battle/decision/goap/action/EnterZone.java` — team-based bounding.
 - `battle/infantry/FlankApproach.java`, `ReinforceContact.java` —
   team-scoped flank.
-- `battle/air/InfantryPayload.java` — carry the team index in from C1's
+- `battle/air/InfantryPayload.java` — carry the derived team index in from frozen
   seats.
 
 ## Out of scope
 
 - Team-level player orders. The whole point is that this tier is the AI's.
 - Per-team loadout composition (automatic rifleman / grenadier / anti-armor
-  billets) — noted in C7 (`c7-organization-and-ranks.md`)'s open questions
-  and closer to progression's equipment work.
+  billets) — owned by `c14-fire-team-template-cards.md` and consumed here only
+  if a later tactical story explicitly needs card-derived information.
 - Reworking cohesion itself. `InfantryCohesion` stays the one cohesion
   layer; teams change *who* is grouped, not how grouping is enforced.
 
 ## Open questions
 
 - Should a team that loses its leader be consolidated immediately, or
-  promote within the team first? Promoting matches C7's rank model;
+  promote within the team first? Promoting matches the enlisted-rank law;
   consolidating matches the lethality reality. Probably promote while ≥ 2
   effectives remain, consolidate below that.
 - Does the commander tier ever want to address a team directly — a

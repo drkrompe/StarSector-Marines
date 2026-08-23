@@ -464,10 +464,10 @@ public class AirSystem {
                             // shuttle dies early on a later run despite "re-arming". Symmetric with
                             // the magazine refill below.
                             mission.hp = type.maxHp;
-                            // Each sortie spawns an independent squad — without
-                            // this reset, marines from cycle N+1 reinforce the
-                            // surviving squad from cycle N instead of forming
-                            // a fresh fireteam at the LZ.
+                            // Clear the sortie-local squad cache. Untagged
+                            // personnel mint a fresh squad next cycle; tagged
+                            // campaign personnel resolve their existing
+                            // (campaign squad, LZ) group again while deboarding.
                             mission.squadId = Squad.NO_SQUAD;
                             body.teleport(mission.entryX, mission.entryY,
                                     AirBody.facingToward(mission.lzX - mission.entryX, mission.lzY - mission.entryY));

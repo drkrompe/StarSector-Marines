@@ -20,7 +20,7 @@ import java.util.List;
  * and loses the garrison; a term boundary stops the retainer and can fail the contract
  * outright. Lapsing <em>offers</em> are deliberately excluded: a missed offer costs
  * nothing but the job, and its only useful action is "fly somewhere else", which is the
- * contract board's job rather than this pane's. See {@code c10-company-between-contracts.md}
+ * contract board's job rather than this pane's. See {@code company-view-nouns.md}
  * and {@code c11-the-contract-board.md}.
  *
  * <h2>One contract can own two clocks</h2>
