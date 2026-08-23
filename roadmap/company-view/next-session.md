@@ -3,8 +3,9 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. **Design stage: ten stories
-contracted (C1–C10), none started, no code written.**
+commander ("squad of squads") tiers. **Ten stories contracted (C1–C10). One
+slice is shipped — C10 slice 1, the campaign-map entry point (`2b959e44`);
+everything else is design stage.**
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -35,15 +36,19 @@ unblocked and can land in parallel; it is the prerequisite for all three UI
 stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
 visible change) is a safe proof.
 
-[C10 — The company between contracts](stories/c10-company-between-contracts.md)
+**C10 — The company between contracts** (`c10-company-between-contracts.md`)
 is unblocked too, and is the one story here that ships player-visible value
 without C2 first: two of its three panes (standing, running deadlines) read
 state that is already persisted or already computed, and its third pane is
 the reserved space C3 and C4 later furnish. It also gives
-[G32](../campaign/contracts/complete/g32-player-event-popup.md)'s **Hold**
+G32 (`g32-player-event-popup.md`)'s **Hold**
 option somewhere to go — today a deferred event popup dismisses into nothing.
-Its slice 1 is a spike: confirm a `TOGGLE` ability with a no-op `activate()`
-fires `pressButton()` without latching, before anything is built on top.
+**Its slice 1 shipped** (`2b959e44`): the ability, the planet-free host, a
+`COMPANY_HQ` stub screen, and `AbilitiesCsvTest`. The spike question it
+existed to answer — does a `TOGGLE` press reach `pressButton()` without
+latching — **is still open**, because it can only be answered in a running
+game. Confirm that before writing slices 2-4 on top of it; the fallbacks are
+`DURATION`, then a `CampaignUIRenderingListener` widget.
 
 [C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
 unblocked and is worth doing early: it settles the language and the command
@@ -92,7 +97,7 @@ enum can change outright.
    visibility gate of ours. Checked while deciding: `ArmoryScreen` has zero
    market/planet references and `StationingWithdrawalService.withdraw` takes
    no planet, so most roster work was gated by where its button sits, not by
-   any fiction. That is [C10](stories/c10-company-between-contracts.md), and
+   any fiction. That is C10 (`c10-company-between-contracts.md`), and
    it supersedes C4's slice 3.
 7. **Take C8's capacity change now, re-tune after.** The opening ladder's
    force ratios are mid-playtest against today's seats, and raising the

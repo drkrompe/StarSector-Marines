@@ -4,7 +4,7 @@
 > stand and look at it. Every roster surface hangs off a planet
 > interaction, so "how is my army doing" is only answerable while docked.
 
-**Status:** not started. Independent of [C1](c1-fireteam-identity-through-the-drop.md)
+**Status:** not started. Independent of C1 (`c1-fireteam-identity-through-the-drop.md`)
 — see [Sequencing](#sequencing) below.
 
 ## Problem
@@ -27,7 +27,7 @@ fiction. Checked against the code:
 
 The one thing that genuinely needs a planet is *responding* to a stationing
 event, because a response builds a ground battle and a battle needs a map.
-And contracts [G32](../../campaign/contracts/complete/g32-player-event-popup.md)
+And contracts G32 (`g32-player-event-popup.md`)
 already solved reaching that from anywhere: the event popup's **Deploy Now**
 opens Marine Ops against the *contract's own* market regardless of where the
 fleet is.
@@ -37,7 +37,7 @@ space, and then has no standing surface to review the decisions they
 deferred, the contracts already running, or the company that would fight
 them.
 
-### What [C4](c4-whereabouts-and-deployed-state.md) already asked for, and why it is not enough
+### What C4 (`c4-whereabouts-and-deployed-state.md`) already asked for, and why it is not enough
 
 C4 names this exactly — *"there is also no way to look at the company at all
 except inside a pre-battle flow"* — and its slice 3 contracts a "standalone
@@ -151,7 +151,7 @@ Also here:
 - retainer income — sum of `contractRetainerPerMonth` over ACTIVE /
   IN_PROGRESS stationing rows, one loop;
 - MRB standing (`playerMrbRep`) and employer standing from `repValue`;
-- strength vs. available strength — [C4](c4-whereabouts-and-deployed-state.md)
+- strength vs. available strength — C4 (`c4-whereabouts-and-deployed-state.md`)
   names the gap between "living marines on the books" and "deployable right
   now" as the interesting number; this pane is where it belongs.
 
@@ -170,7 +170,7 @@ Three row sources, already persisted:
 
 | Row | Field | Shipped by |
 | --- | --- | --- |
-| Pending response | `contractResponseDeadlineTick` | [G31](../../campaign/contracts/complete/g31-stationing-response-deadlines.md) |
+| Pending response | `contractResponseDeadlineTick` | G31 (`g31-stationing-response-deadlines.md`) |
 | Stationing term ending | `contractExpiresTick` | G5 |
 | Offer lapsing | `contractOfferExpiresTick` | offer expiry |
 
@@ -199,8 +199,8 @@ Today this pane ships the army-management work that never needed a planet:
 - a strength / ready / recovering rollup;
 - a route into `ArmoryScreen`, verified planet-free, returning to HQ.
 
-Tomorrow [C3](c3-company-card-stack.md)'s card stack lands **in this pane**
-and [C4](c4-whereabouts-and-deployed-state.md)'s whereabouts chips with it.
+Tomorrow C3 (`c3-company-card-stack.md`)'s card stack lands **in this pane**
+and C4 (`c4-whereabouts-and-deployed-state.md`)'s whereabouts chips with it.
 C10 reserves the space and builds the room; C3 and C4 furnish it.
 
 **Do not build a second card stack here.** Until C2/C3 land, the rollup is a
@@ -305,7 +305,7 @@ the same gate as G5, G13, and G32.
   line for recalling a stationed team. If it is wanted, it belongs to the
   contracts track.
 - **Changing stationing mechanics, terms, or payloads.**
-  [`campaign/contracts/`](../../campaign/contracts/) owns those; G31 and G32
+  `roadmap/campaign/contracts/` owns those; G31 and G32
   have just reshaped them.
 - **Deployment selection.** Seats and missions exist only in a briefing flow;
   that surface stays there.
@@ -330,3 +330,61 @@ the same gate as G5, G13, and G32.
   is less useful than "four months, down from seven." `MonthlyReport` carries
   the previous report, so the data is there; whether one extra number earns
   its space is a layout call for slice 2.
+
+---
+
+## Slice 1 — shipped
+
+`2b959e44`. `gradlew.bat build` green.
+
+### What landed
+
+- `mod/data/campaign/abilities.csv` — one row, merging with vanilla's table.
+- `mod/graphics/icons/abilities/company_view.png` — 48x48 to match vanilla's
+  ability icons; twelve pips in three fire teams of four, the same squad shape
+  C7 settles and C3's rows will use.
+- `ops/CompanyViewAbility` — `pressButton()` only.
+- `ops/CompanyHqScreen` — stub: header, three placeholder lines naming the
+  panes to come, and a Back that dismisses.
+- `ScreenId.COMPANY_HQ`, registered on `MarineOpsPanelPlugin` with the routing
+  constraint recorded in its class javadoc.
+- `StarsectorMarinesModPlugin.ensureCompanyViewAbility` — grant plus a
+  vanilla-shaped slot scan, self-defensive so a malformed row cannot take game
+  load down.
+- `AbilitiesCsvTest` — four checks on seams that otherwise fail silently.
+
+### Deviations
+
+**The ability lives in `ops/`, not `campaign/ability/`.** It is a door into an
+ops screen, and `ops` already depends on `campaign`; putting it under
+`campaign` would have inverted that dependency for no gain.
+
+**The latching risk was smaller than this story claimed.** Extending
+`BaseAbilityPlugin` directly — rather than `BaseToggleAbility` — already gives
+`isActive()` false, `getProgressFraction()` zero, and `getCooldownFraction()`
+one, so `showActiveIndicator`, `showProgressIndicator`, and
+`showCooldownIndicator` all return false without being touched. Only the two
+abstract cooldown accessors had to be satisfied. `activate()` and
+`deactivate()` are still stubbed, because the base implementations call
+`reportPlayerActivatedAbility` and would fire an activation event and an on/off
+sound the player never asked for.
+
+That lowers the risk but does not retire it: none of it proves the engine
+routes a TOGGLE press through `pressButton()` at all. That is still a live-run
+question.
+
+### Still to confirm in game
+
+- The button appears on the ability bar, with its icon and tooltip.
+- Clicking it opens the company screen, and **nothing latches** — no active
+  indicator, no cooldown sweep, no on/off sound.
+- Back returns to the campaign map with no residual dialog.
+- The button is absent in the fleet, refit, intel, and map tabs, in an
+  interaction dialog, and in the pause menu.
+- Opening it from deep space, with no market in sensor range, works.
+- An existing save picks the ability up on load and places it on a free slot;
+  dragging it off the bar and reloading does not put it back.
+
+If a TOGGLE press does not reach `pressButton()`, the fallbacks are `DURATION`
+with no `durationDays`, then the `CampaignUIRenderingListener` +
+`CampaignInputListener` widget described above.

@@ -61,16 +61,16 @@ squad chip is a rollup, not a replacement for it.
   books) from *available strength* (deployable right now). The gap between
   those two numbers is the interesting one and currently has no display.
 
-### The non-mission entry point — moved to [C10](c10-company-between-contracts.md)
+### The non-mission entry point — moved to C10 (`c10-company-between-contracts.md`)
 
 This was originally contracted here as a company/personnel route *inside*
 Marine Ops. That only delivers "readable without accepting a mission" — the
 planet interaction is still required to reach it, so the problem statement
 above stays half-answered.
 
-[C10](c10-company-between-contracts.md) owns it instead: a campaign-map
-ability-bar button opening the planet-free host
-[G32](../../campaign/contracts/complete/g32-player-event-popup.md) shipped,
+C10 (`c10-company-between-contracts.md`) owns it instead: a campaign-map
+ability-bar button opening the planet-free host G32
+(`g32-player-event-popup.md`) shipped,
 on a `COMPANY_HQ` screen whose company pane is where C3's stack and this
 story's chips land. C4 keeps the whereabouts model and the chips; the entry
 point is not its work.
@@ -81,8 +81,8 @@ point is not its work.
    the stationing contract lookup and the recovery rollup.
 2. **Chips on the card.** Render state, block selection with a reason,
    split strength vs. available in the band.
-3. ~~**Standalone entry.**~~ Moved to
-   [C10](c10-company-between-contracts.md); C4 is slices 1-2.
+3. ~~**Standalone entry.**~~ Moved to C10
+   (`c10-company-between-contracts.md`); C4 is slices 1-2.
 
 ## Acceptance
 
@@ -92,8 +92,8 @@ point is not its work.
   *with a return day*, not as an empty row.
 - Selection blocking always states a reason (command limit, stationed,
   no deployable members).
-- Opening the company view between contracts — through
-  [C10](c10-company-between-contracts.md)'s campaign-map entry — shows the
+- Opening the company view between contracts — through C10
+  (`c10-company-between-contracts.md`)'s campaign-map entry — shows the
   same stack with the briefing-only affordances (seat counts, selection)
   absent or inert.
 - Replay-safe: the view reads state, never writes it. No contract or
