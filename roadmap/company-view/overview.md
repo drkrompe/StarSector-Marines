@@ -142,9 +142,9 @@ player has to remember which teams are out.
    is its in-battle instance.** One id maps them. Everything else in this
    track follows from that. A squad is **twelve marines in three
    four-marine fire teams**, led by an NCO — see
-   [C7](stories/c7-organization-and-ranks.md). Fire teams are modelled but
+   C7 (`c7-organization-and-ranks.md`). Fire teams are modelled but
    behind the scenes: they are the AI's maneuver element
-   ([C9](stories/c9-fire-teams-as-the-maneuver-element.md)), not a level of
+   (C9 (`c9-fire-teams-as-the-maneuver-element.md`)), not a level of
    the player's hierarchy.
 2. **A card is one officer's command — the company.** *Settled
    2026-08-22.* The named officer is the company commander; the squads
@@ -154,13 +154,13 @@ player has to remember which teams are out.
    becomes-an-institution arc the campaign already tells. Where the current
    rank ladder makes this incoherent — a Private capped at five marines, a
    Sergeant capped at forty-two — the ladder changes
-   ([C7](stories/c7-organization-and-ranks.md)).
+   (C7 (`c7-organization-and-ranks.md`)).
 3. **The company rollup is derived, never persisted.** Built from
    `MarineRoster` on demand with deterministic ordering. No cached view
    state. (C7's enlisted rank and squad leader are persisted roster
    *facts*, not rollups. Nothing is shipped and there are no saves to
    preserve, so neither carries a migration burden — see
-   [C7](stories/c7-organization-and-ranks.md).)
+   C7 (`c7-organization-and-ranks.md`).)
 4. **Read-only first.** Every story here ships a view. Mutation stays where
    it already lives (armory transfers, deployment toggles, stationing).
 5. **One selection model, two hosts.** Company → squad → marine behaves
@@ -183,7 +183,7 @@ player has to remember which teams are out.
    up, and a still-assembling squad holds at its landing zone rather than
    feeding in piecemeal — under the shipped 9x lethality scale, trickling a
    squad forward is a wipe
-   ([C8](stories/c8-lift-capacity-and-multi-pass-drops.md)).
+   (C8 (`c8-lift-capacity-and-multi-pass-drops.md`)).
 9. **Scale is governed at the source, and the view degrades rather than
    forbids.** Hundreds of squads is not a state the meta game or the UI can
    carry, so the officer rank cap and the lift capacity bound what reaches
@@ -197,16 +197,16 @@ player has to remember which teams are out.
 
 | Story | Title | Depends on |
 | --- | --- | --- |
-| [C1](stories/c1-fireteam-identity-through-the-drop.md) | Squad identity through the drop seam | — |
-| [C2](stories/c2-formation-model.md) | Formation model — the hierarchy as data | — |
-| [C3](stories/c3-company-card-stack.md) | Company card stack (fleet view) | C2 |
-| [C4](stories/c4-whereabouts-and-deployed-state.md) | Whereabouts: where every team actually is | C2, C3 |
-| [C5](stories/c5-battle-hud-company-rollup.md) | Battle HUD company rollup | C1, C2 |
-| [C6](stories/c6-after-action-by-fireteam.md) | After-action by squad | C1 |
-| [C7](stories/c7-organization-and-ranks.md) | Organization and ranks | — |
-| [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
-| [C9](stories/c9-fire-teams-as-the-maneuver-element.md) | Fire teams as the maneuver element | C7 |
-| [C10](stories/c10-company-between-contracts.md) | The company between contracts: a campaign-map home | — |
+| C1 (`c1-fireteam-identity-through-the-drop.md`) | Squad identity through the drop seam | — |
+| C2 (`c2-formation-model.md`) | Formation model — the hierarchy as data | — |
+| C3 (`c3-company-card-stack.md`) | Company card stack (fleet view) | C2 |
+| C4 (`c4-whereabouts-and-deployed-state.md`) | Whereabouts: where every team actually is | C2, C3 |
+| C5 (`c5-battle-hud-company-rollup.md`) | Battle HUD company rollup | C1, C2 |
+| C6 (`c6-after-action-by-fireteam.md`) | After-action by squad | C1 |
+| ~~C7~~ (`c7-organization-and-ranks.md`) | Organization and ranks — **shipped 2026-08-22** | — |
+| C8 (`c8-lift-capacity-and-multi-pass-drops.md`) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
+| C9 (`c9-fire-teams-as-the-maneuver-element.md`) | Fire teams as the maneuver element | C7 |
+| C10 (`c10-company-between-contracts.md`) | The company between contracts: a campaign-map home | — |
 
 C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
@@ -233,11 +233,11 @@ the pane C3 and C4 later furnish.
 
 - **What is one card?** One officer's command — the company. Squads under
   it are led by NCOs, and the rank ladder changes to make that coherent.
-  See design commitment 2 and [C7](stories/c7-organization-and-ranks.md).
+  See design commitment 2 and C7 (`c7-organization-and-ranks.md`).
 - **Is a squad split across lifts one battle squad or two?** One. The
   capacity floor makes the split rare, and where it still happens the later
   arrivals join the same squad and catch up. See commitment 8 and
-  [C8](stories/c8-lift-capacity-and-multi-pass-drops.md).
+  C8 (`c8-lift-capacity-and-multi-pass-drops.md`).
 - **How big is a squad?** Twelve, in three fire teams of four. *Revised
   from six on 2026-08-22.* Progression
   [S1](../progression/stories/s1-lethality-and-tier-spread.md) shipped a
@@ -254,7 +254,7 @@ the pane C3 and C4 later furnish.
   already the campaign-only HUD element, so it hides itself with the rest of
   the HUD and needs no visibility gate of ours; the host is the one
   [G32](../campaign/contracts/complete/g32-player-event-popup.md) shipped.
-  See [C10](stories/c10-company-between-contracts.md), which supersedes C4's
+  See C10 (`c10-company-between-contracts.md`), which supersedes C4's
   slice 3.
 
 ## Open questions

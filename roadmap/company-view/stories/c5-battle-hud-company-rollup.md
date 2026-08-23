@@ -3,8 +3,8 @@
 > The battle HUD already drills squad → marine. Add the tier above it, and
 > give the squads their real names.
 
-**Status:** not started. Depends on [C1](c1-fireteam-identity-through-the-drop.md)
-(names) and [C2](c2-formation-model.md) (shared shape).
+**Status:** not started. Depends on C1 (`c1-fireteam-identity-through-the-drop.md`)
+(names) and C2 (`c2-formation-model.md`) (shared shape).
 
 ## Problem
 
@@ -16,7 +16,7 @@ the ephemeral battle squad id.
 What is missing:
 
 - **Names.** `SQUAD 3` is not an object the player has a relationship with.
-  `2nd Squad` is — especially once [C6](c6-after-action-by-fireteam.md)
+  `2nd Squad` is — especially once C6 (`c6-after-action-by-fireteam.md`)
   hands it back to them at debrief.
 - **The tier above.** With six or seven squads on a Conquest map, the
   overview list is a wall of rows with no summary. There is no "how is my
@@ -25,7 +25,7 @@ What is missing:
   `mission.squadId` on each cycle (`AirSystem.java:471`), so a cycling
   shuttle mints a new squad per sortie and the same squad appears as
   several unrelated rows over the course of a battle.
-  [C8](c8-lift-capacity-and-multi-pass-drops.md) fixes the cause; this
+  C8 (`c8-lift-capacity-and-multi-pass-drops.md`) fixes the cause; this
   story must not paper over it with display-only grouping.
 - **It has to hold twenty-plus squads.** The player may field a large
   organization, and the overview list is a fixed-row scroll today.

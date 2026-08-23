@@ -5,7 +5,7 @@
 > a real element to maneuver.
 
 **Status:** not started. Depends on
-[C7](c7-organization-and-ranks.md) for the structure.
+C7 (`c7-organization-and-ranks.md`) for the structure.
 
 ## Decision this story implements
 
@@ -31,7 +31,7 @@ its own sub-groups:
 - **Cordons** (`HoldPortalCordon`, `CordonForPlant`) draw individuals into
   portal slots.
 
-At six marines that was tolerable. At twelve ([C7](c7-organization-and-ranks.md))
+At six marines that was tolerable. At twelve (C7 (`c7-organization-and-ranks.md`))
 a squad converging as one blob is worse, not better — and the 9× lethality
 scale means a blob crossing open ground is a wipe.
 
@@ -116,7 +116,7 @@ team. That is the whole player-facing surface.
 
 - Team-level player orders. The whole point is that this tier is the AI's.
 - Per-team loadout composition (automatic rifleman / grenadier / anti-armor
-  billets) — noted in [C7](c7-organization-and-ranks.md)'s open questions
+  billets) — noted in C7 (`c7-organization-and-ranks.md`)'s open questions
   and closer to progression's equipment work.
 - Reworking cohesion itself. `InfantryCohesion` stays the one cohesion
   layer; teams change *who* is grouped, not how grouping is enforced.

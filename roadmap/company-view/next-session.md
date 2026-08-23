@@ -3,8 +3,24 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. **Design stage: ten stories
-contracted (C1–C10), none started, no code written.**
+commander ("squad of squads") tiers. Ten stories contracted (C1–C10).
+**`c7-organization-and-ranks.md` has shipped** — slices 1–4; its slice 5
+moved into C1, which owns the seam it needs. The other nine are unstarted.
+
+The organization is now settled in code, so every later story renders a
+real hierarchy rather than a proposed one:
+
+- A squad is twelve marines in three four-marine fire teams
+  (`MarineSquad.TEAM_SIZE`, `TEAMS_PER_SQUAD`, `CAPACITY`). Team membership
+  is **derived from roster order**, not stored.
+- Officer rank caps command in squads: `Rank.squadCommandCap`, Lieutenant 3
+  through Colonel 24. The company starts under a Lieutenant.
+- Squads have NCOs: `EnlistedRank` on `MarineSoldier`,
+  `MarineSquad.leaderSoldierId`, re-derived by
+  `MarineRoster.refreshLeadership` after any membership or fitness change.
+  Successors are picked by rank, then experience, then a stable id
+  tiebreak.
+- The UI says "squad" for the twelve and "fire team" for the four.
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -22,20 +38,20 @@ Campaign fireteam identity does not survive deployment:
   `MarineSquad.CAPACITY`, so lifts split teams by arithmetic.
 
 Everything that wants to show a *deployed* force under its real names is
-blocked on that seam. That is [C1](stories/c1-fireteam-identity-through-the-drop.md).
+blocked on that seam. That is C1 (`c1-fireteam-identity-through-the-drop.md`).
 
 ## Recommended pickup
 
-**[C1 — Fireteam identity through the drop seam](stories/c1-fireteam-identity-through-the-drop.md).**
+**C1 (`c1-fireteam-identity-through-the-drop.md`).**
 No dependencies, small, and it unblocks C5 and C6. Slice 1 (fields +
 deterministic freeze ordering) is pure plumbing verifiable by unit test.
 
-[C2 — Formation model](stories/c2-formation-model.md) is equally
+C2 (`c2-formation-model.md`) is equally
 unblocked and can land in parallel; it is the prerequisite for all three UI
 stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
 visible change) is a safe proof.
 
-[C10 — The company between contracts](stories/c10-company-between-contracts.md)
+C10 (`c10-company-between-contracts.md`)
 is unblocked too, and is the one story here that ships player-visible value
 without C2 first: two of its three panes (standing, running deadlines) read
 state that is already persisted or already computed, and its third pane is
@@ -45,11 +61,11 @@ option somewhere to go — today a deferred event popup dismisses into nothing.
 Its slice 1 is a spike: confirm a `TOGGLE` ability with a no-op `activate()`
 fires `pressButton()` without latching, before anything is built on top.
 
-[C7 — Organization and ranks](stories/c7-organization-and-ranks.md) is also
-unblocked and is worth doing early: it settles the language and the command
-scope every UI story renders, and doing it *after* the cards exist means
-rewriting them. With no saves to preserve it is now a clean edit — the
-enum can change outright.
+~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
+`c7-organization-and-ranks.md` under `complete/`. One consequence worth
+carrying into the next pickup: a stationed squad's monthly retainer
+doubled, because `StationingContractTerms` is linear in committed marines
+and nothing was tuned to compensate.
 
 ## Decisions taken (2026-08-22)
 
@@ -59,12 +75,12 @@ enum can change outright.
    capped at 5 marines, a starting Sergeant capped at 42 because seven
    six-marine teams had to fit), so it changes: officer ranks denominated
    in squads, a separate enlisted ladder, and an explicit squad leader.
-   That is [C7](stories/c7-organization-and-ranks.md).
+   That shipped as `c7-organization-and-ranks.md`.
 2. **A lift carries at least one whole fire team, and a split squad stays
    one squad.** Capacity is denominated in four-marine teams — only a
    Valkyrie lands a whole squad in one pass — and late arrivals join their
    squad and catch up rather than forming a new unit. That is
-   [C8](stories/c8-lift-capacity-and-multi-pass-drops.md), and it settles
+   C8 (`c8-lift-capacity-and-multi-pass-drops.md`), and it settles
    C1's open split-lift question.
 3. **A squad is twelve marines in three fire teams of four.** *Revised
    from six.* Progression S1 shipped a **9x infantry lethality scale**
@@ -72,7 +88,7 @@ enum can change outright.
    squad past `SquadFallbackSystem`'s trigger ratio within seconds and
    leaves the shipped two-team bounding overwatch nothing to split. Fire
    teams are modelled but behind the scenes — the AI's maneuver element
-   ([C9](stories/c9-fire-teams-as-the-maneuver-element.md)), not a card
+   (C9 (`c9-fire-teams-as-the-maneuver-element.md`)), not a card
    level. Lifts are denominated in teams, so only a Valkyrie lands a squad
    intact and an assembling squad forms up at its LZ before advancing.
 4. **Large organizations degrade, never get forbidden.** Past ~8 squads the
@@ -92,7 +108,7 @@ enum can change outright.
    visibility gate of ours. Checked while deciding: `ArmoryScreen` has zero
    market/planet references and `StationingWithdrawalService.withdraw` takes
    no planet, so most roster work was gated by where its button sits, not by
-   any fiction. That is [C10](stories/c10-company-between-contracts.md), and
+   any fiction. That is C10 (`c10-company-between-contracts.md`), and
    it supersedes C4's slice 3.
 7. **Take C8's capacity change now, re-tune after.** The opening ladder's
    force ratios are mid-playtest against today's seats, and raising the
@@ -134,4 +150,9 @@ enum can change outright.
 
 ## Commit chain
 
-_(none yet)_
+- `2e187f54` — C7 slices 1+2: squad of twelve in three fire teams; officer
+  ranks counted in squads
+- `976bb87a` — C7 slice 3: `EnlistedRank`, squad leaders, deterministic
+  promotion on loss
+- `2786a3ed` — C7 slice 4: display sweep to "squad"; leader and NCO rank in
+  `ArmoryScreen`

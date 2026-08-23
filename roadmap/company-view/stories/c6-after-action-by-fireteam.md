@@ -3,7 +3,7 @@
 > The card the player deployed should be the card they get back.
 
 **Status:** not started. Depends on
-[C1](c1-fireteam-identity-through-the-drop.md).
+C1 (`c1-fireteam-identity-through-the-drop.md`).
 
 ## Problem
 

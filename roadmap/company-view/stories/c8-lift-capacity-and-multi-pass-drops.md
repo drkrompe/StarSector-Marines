@@ -5,12 +5,12 @@
 > every reinforcement wave mints a brand-new one.
 
 **Status:** not started. Pairs with
-[C1](c1-fireteam-identity-through-the-drop.md) — C1 gives the seat an
+C1 (`c1-fireteam-identity-through-the-drop.md`) — C1 gives the seat an
 identity, C8 makes the lift respect it.
 
 ## Decision this story implements
 
-*Revised 2026-08-22 alongside [C7](c7-organization-and-ranks.md)'s
+*Revised 2026-08-22 alongside C7 (`c7-organization-and-ranks.md`)'s
 twelve-marine squad.* Transport capacity is denominated in **fire teams of
 four**, with a floor of one whole team per lift. A squad (three teams)
 arrives in one to three passes depending on the hull, later arrivals join
