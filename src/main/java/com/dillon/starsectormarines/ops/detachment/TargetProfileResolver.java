@@ -20,7 +20,7 @@ import java.util.EnumSet;
  * with no backing market (story ops, missing sector, unmatched name), so the
  * generator's defaults keep that map byte-identical to the pre-bridge output.
  *
- * <p>See {@code roadmap/campaign-battle-bridge/overview.md}.
+ * <p>See {@code campaign-battle-bridge-nouns.md}.
  */
 public final class TargetProfileResolver {
 

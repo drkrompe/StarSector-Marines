@@ -38,6 +38,10 @@ public final class FireTeamTemplateCard implements Serializable {
     }
     public FireTeamBillet billet(int index) { return billets.get(index); }
 
+    void rename(String value) {
+        if (value != null && !value.isBlank()) displayName = value.trim();
+    }
+
     private Object readResolve() {
         if (id == null || id.isBlank() || billets == null
                 || billets.size() != MarineSquad.TEAM_SIZE || billets.contains(null)) {

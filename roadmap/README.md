@@ -141,7 +141,9 @@ universe over time, not retrofitted into intel slots.
   Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
   and static turret candidates the combined player/allied attack cannot support,
   keeping small Raids playable without making heavy defenses categorically
-  late-game. Hound's ASSAULT
+  late-game. Fighter sorties now use that same budget: allied air strengthens
+  the attack, ordinary strafing has a fixed per-sortie cost, and AoE missile
+  profiles carry a premium. Hound's ASSAULT
   doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
@@ -190,7 +192,7 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C14 Slice 1 shipped)* — the player's force as one legible
+- **Company view** *(active — C14 Slices 1–2 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
@@ -227,7 +229,11 @@ universe over time, not retrofitted into intel slots.
   ships the first end-to-end version:** four reusable starter cards, mixed
   four-billet issues including support weapons, atomic stock checks net of
   returned gear, persistent per-team assignments, and Alpha/Bravo/Charlie on
-  the Fleet Armory LOADOUTS surface. The player-authored designer is next. A tenth story
+  the Fleet Armory LOADOUTS surface. The Card Designer now creates, clones and
+  renames persistent custom cards, edits all four billets without stock gates,
+  and saves equipment changes as new revisions so assigned teams never refit
+  silently. Both the designer library and LOADOUTS picker page beyond the four
+  starters. Availability previews and fast swap are next. A tenth story
   (C10) settles where the company is
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the
