@@ -67,7 +67,10 @@ public class HeavyWeapons {
         this.rng = rng;
     }
 
-    /** Per-tick pass: drains queued rounds from every installed mech mount. */
+    /**
+     * Per-tick pass: replenishes finite missile racks and drains queued rounds
+     * from every installed mech mount.
+     */
     public void tick() {
         advanceMechWeapons();
     }
@@ -200,9 +203,9 @@ public class HeavyWeapons {
      *
      * <p>The trigger decisions (start a burst / launch a salvo / lob an LRM)
      * happen inside {@code MechCombatantBehavior.tryFireMechWeapons}. This pass
-     * only handles continuation — emitting queued rounds at their proper
-     * spacing — and ticks down the per-weapon cooldowns so the next trigger
-     * decision sees the right gating.
+     * handles continuation — emitting queued rounds at their proper spacing —
+     * ticks down per-weapon cooldowns, and advances each finite missile rack's
+     * installed replenisher cadence.
      */
     private void advanceMechWeapons() {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
@@ -229,6 +232,8 @@ public class HeavyWeapons {
 
             for (MechWeaponMount mount : m.mounts()) {
                 if (mount == null) continue;
+                mount.advanceReplenishment(BattleSimulation.TICK_DT,
+                        m.missileReplenisher());
                 if (mount.cooldown > 0f) mount.cooldown -= BattleSimulation.TICK_DT;
                 if (mount.burstRemaining <= 0) continue;
                 mount.burstTimer -= BattleSimulation.TICK_DT;

@@ -4,7 +4,7 @@ Status: ACTIVE — the Bulwark/Hound/Sirocco family and production composition a
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — expended long-range racks now force a direct-fire fallback posture.
+Updated: 2026-08-23 — onboard replenishment now sustains finite missile racks on an upgradeable cadence.
 
 ## Purpose
 
@@ -28,6 +28,11 @@ increasing an encounter's total armored threat.
   resupply state.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
+- A **missile replenisher** is an installed onboard subsystem. It owns how
+  quickly finite SRM and LRM mounts regain trigger packs, independently of
+  their weapon cooldown and ready-ammunition capacity. Replenishment repeats
+  for the life of the mech; the installed component is the future item-upgrade
+  seam for changing that cadence.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -52,9 +57,11 @@ anti-hardened fallback rather than a replacement close-range saturation
 weapon. Its overwatch seeks a friendly, non-Sirocco screen and re-evaluates
 that screen as the battle changes. Once its long-range racks can no longer
 apply pressure, it abandons a cached distant perch and closes only to the outer
-edge of its installed arms range; resupply restores the normal long-range
-posture. Exhausted ammunition may change doctrine positioning, but never grants
-access to an absent mount or another role's withheld weapon.
+edge of its installed arms range. It remains there while its onboard subsystem
+replenishes the racks, then returns to long-range posture only when every rack
+is full; individual restored triggers cannot make it oscillate between bands.
+Exhausted ammunition may change doctrine positioning, but never grants access
+to an absent mount or another role's withheld weapon.
 
 All variants share movement-aware targeting and a planted-hip torso envelope:
 near visible danger can interrupt a distant engagement, but the rear blind
@@ -93,6 +100,9 @@ delivery remains Bulwark-only until a player-access story owns that choice.
   lighter chassis cannot be a discounted all-range Bulwark.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
   resupply, and rendering must operate only on installed components.
+- Missile weapon hardware owns capacity and projectile behavior; the installed
+  replenisher owns refill cadence. Upgrade content changes the subsystem rather
+  than encoding reload speed in a chassis, role, or weapon definition.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
   structural damage. It must not be represented as a boost-ramping missile
   merely to obtain spectacle.
