@@ -91,6 +91,13 @@ screen another Sirocco. Cached screens invalidate when they die or leave the
 axis, while unscreened lanes periodically look again. The squad dump exposes
 the chosen screen. See `29-sirocco-screened-overwatch.md`.
 
+Story 30 shipped (2026-08-22, `861a5bf1`): a Hound no longer treats another
+Hound as the support that releases its ASSAULT advance, while infantry and a
+different mech chassis retain the reciprocal cohesion behavior. The shared
+separation pass now also gives all moving allied mech variants a gentle
+2.5-cell formation spacing force without moving idle posts or repelling enemy
+walkers. See `30-mech-formation-discipline.md`.
+
 Story 24 / Story I shipped (2026-08-19, `43c619ff`, `8888e6f8`): generic
 infantry pursuit now rejects targets that require movement into a two-plus
 hostile cluster, switches to a visible isolated alternative when possible,
@@ -119,10 +126,11 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 
 ## Immediate next
 
-1. **Tactical playtest pass** — exercise Stories 19–29 together: objective
+1. **Tactical playtest pass** — exercise Stories 19–30 together: objective
    press/commit, bounding, last stands, difficulty-scaled assault mechs,
-   reciprocal Hound/infantry cohesion, Sirocco screened firing angles,
-   mech-screen formations, and
+   reciprocal Hound/infantry cohesion, same-chassis support rejection,
+   Sirocco screened firing angles, moving-mech spacing, mech-screen formations,
+   and
    clustered-runner release into covered
    overwatch. Confirm magenta direct ghosts, amber audio contacts, and yellow
    noise bearings remain distinct; heard gunfire should pull squads through
@@ -193,5 +201,7 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 - `29-sirocco-screened-overwatch.md` — shipped medium/long Sirocco firing
   band, non-Sirocco screen preference, cache invalidation, and dump
   diagnostics (`98fcc3fb`)
+- `30-mech-formation-discipline.md` — shipped same-variant Hound support
+  rejection plus movement-scoped allied-mech separation (`861a5bf1`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

@@ -2,6 +2,12 @@
 
 ## State of play
 
+The mech-formation discipline follow-up shipped in `861a5bf1`. Hounds no
+longer count another Hound as the nearby support required to advance; combat
+infantry or a different live mech chassis still releases the push. All allied
+mech variants now receive a gentle movement-scoped separation force toward
+2.5-cell center spacing, while idle posts and enemy pairs remain untouched.
+
 The Sirocco screened-overwatch follow-up shipped in `98fcc3fb`. Its LR Support
 posture now searches a 24–36-cell medium/long band, strongly favors angles with
 a same-faction combatant on the firing axis, and explicitly refuses to treat
@@ -9,10 +15,11 @@ another Sirocco as that front line. It re-picks when the screen dies or leaves
 the lane and exposes the chosen ally in the squad dump.
 
 The Hound cohesion follow-up shipped in `eaef38b2`: its ASSAULT advance now
-requires nearby same-faction combat infantry or another live mech, and the
-route stays within a six-cell lead of that support. Losing support cancels the
-advance immediately while leaving the Hound's in-range fire pass active. This
-is reciprocal with the infantry screen rather than a new commander goal.
+requires nearby same-faction combat infantry or a different live mech chassis,
+and the route stays within a six-cell lead of that support. Losing support
+cancels the advance immediately while leaving the Hound's in-range fire pass
+active. This is reciprocal with the infantry screen rather than a new
+commander goal.
 
 The DEBUG player drop follow-up shipped in `6764caf1`: Mech Support now batches
 the selected total into four-chassis lances, with one Valkyrie and one mech
@@ -100,6 +107,11 @@ check that its shell remains visible at normal zoom, the muzzle/impact reads as
 a gun rather than a missile, and the 1-cell splash does not erase Sirocco's
 close-range weakness.
 
+For the lance as a whole, confirm moving Bulwarks, Hounds, and Siroccos fan out
+without orbiting or falling behind their paths, and that distinct idle firing
+posts do not drift. Tune `MECH_FORMATION_DISTANCE` and
+`MECH_FORMATION_STIFFNESS` only from that visible result.
+
 ## What shipped
 
 1. Stable `MechVariant` chassis profiles without multiplying `UnitType`.
@@ -119,10 +131,13 @@ close-range weakness.
    positional audio (`39aefccb`).
 8. Deterministic difficulty-scaled defender profiles and the Hound's
    faction-neutral ASSAULT doctrine (`1ef74f23`).
-9. Reciprocal assault cohesion: nearby infantry/mechs release the Hound's
-   advance, bounded by a six-cell formation lead (`eaef38b2`).
+9. Reciprocal assault cohesion: nearby infantry or a different mech chassis
+   releases the Hound's advance, bounded by a six-cell formation lead
+   (`eaef38b2`, corrected in `861a5bf1`).
 10. Sirocco screened overwatch: a 24–36-cell medium/long firing band with a
     non-Sirocco ally preference and live screen re-evaluation (`98fcc3fb`).
+11. Movement-scoped allied-mech separation across all current variants, with
+    idle and hostile non-interference (`861a5bf1`).
 
 Tune profile/component numbers from the production encounters; mixed-group
 adoption itself is complete.

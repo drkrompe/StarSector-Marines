@@ -32,6 +32,12 @@ mixed groups at HIGH when the target has heavy armor. `LR_SUPPORT`,
 `ARMORED_SUPPORT`, and `ASSAULT` change how a mech uses its equipment, not what
 it carries.
 
+ASSAULT Hounds now advance only with nearby combat infantry or a different
+live mech chassis; other Hounds cannot bootstrap the support gate. Independently
+of doctrine, moving same-faction mechs of every current variant receive a soft
+short-range separation force so lances travel loosely spaced without shifting
+idle firing posts.
+
 The renderer composes distinct Bulwark, Hound, and Sirocco chassis, several arm
 modules, and empty, SRM, LRM, or heavy-SRM shoulder slots. Hound now owns the
 narrow pointed silhouette, a single nose chaingun, and one dorsal SRM-5.
