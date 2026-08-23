@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * <b>Squad posture: patrol route walking.</b> Custom-plan action emitted by
@@ -77,7 +76,7 @@ public final class PatrolRoute implements Action {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
         int radius = squad.patrolRadius;
-        Random rng = ThreadLocalRandom.current();
+        Random rng = sim.random();
         if (anchor != null && map != null) {
             List<TacticalNode> nearby = map.within(anchor.anchorX, anchor.anchorY, radius);
             int[] best = null;

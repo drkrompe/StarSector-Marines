@@ -158,7 +158,9 @@ public final class TtkHarness {
         // this measures cover, not scenery.
         BallisticResolver resolver = new BallisticResolver(
                 grid, new DoodadService(grid), unitIndex, roster);
-        InfantryWeapons weapons = new InfantryWeapons(roster, resolver, shots);
+        // Shares the sim's seeded stream, so a TTK measurement is reproducible run
+        // to run rather than an average over whatever the global source handed out.
+        InfantryWeapons weapons = new InfantryWeapons(roster, resolver, shots, sim.random());
         FiringSystem firing = new FiringSystem(grid, roster);
 
         long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE, UnitType.MARINE,

@@ -137,15 +137,16 @@ public class CombatTelemetryServiceTest {
         long shooter = unit(sim, "shooter", Faction.MARINE, UnitType.MARINE, 5, 5);
         long target = unit(sim, "target", Faction.DEFENDER, UnitType.MILITIA, 9, 5);
         sim.combat().setPrimaryWeapon(shooter, MarineWeapon.PULSE_RIFLE);
-        // Certain accuracy and a pool the target cannot burn through. The
-        // firing pipeline rolls on ThreadLocalRandom, so leaving the nominal
-        // 0.35 accuracy in place makes this a coin-flip test rather than a
-        // measurement of the counting. 1.0 is not enough either: fireShot
-        // feeds the stat through RangeFalloff and the grade/profile
-        // multipliers, so even at a sixth of the weapon's range it lands just
-        // under certain and one round in twenty still misses. Overshoot the
-        // roll instead — what is under test is the bookkeeping, not the
-        // marksmanship.
+        // Overshoot the roll, and a pool the target cannot burn through. fireShot feeds
+        // accuracy through RangeFalloff and the grade/profile multipliers, so a nominal
+        // 1.0 lands just under certain and roughly one round in twenty misses.
+        //
+        // The sim's stream is seeded now, so 1.0 would at least be *reproducible* — but
+        // this assertion needs all five rounds to land, and reproducible-but-arbitrary
+        // is not the same as certain: it would pass on this seed and flip the first
+        // time anything upstream changes the draw order. Overshooting makes the
+        // assertion independent of the roll rather than lucky with it. Determinism is
+        // covered on its own in BattleDeterminismTest.
         sim.combat().setAccuracy(shooter, 10f);
         sim.world().setMaxHp(target, 1_000_000f);
         sim.world().setHp(target, 1_000_000f);
