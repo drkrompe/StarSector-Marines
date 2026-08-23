@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +90,16 @@ public final class CampaignMarineDeployment {
                 owners.add(roster.squadForSoldier(soldier.id()));
             }
         }
-        for (int i = 0; i < Math.min(requiredSeats, active.size()); i++) {
+        int seats = Math.min(requiredSeats, active.size());
+        // Counted over the seats that actually fit, not the squad's manning:
+        // a manifest can be short, and the battle tier assembles toward what
+        // was loaded rather than toward what is back home.
+        Map<String, Integer> strengths = new HashMap<>();
+        for (int i = 0; i < seats; i++) {
+            MarineSquad owner = owners.get(i);
+            if (owner != null) strengths.merge(owner.id(), 1, Integer::sum);
+        }
+        for (int i = 0; i < seats; i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();
             frozen.add(new MarineLoadout(UnitRole.COMBATANT, null,
@@ -97,7 +108,7 @@ public final class CampaignMarineDeployment {
                     soldier.id(), armorFamily(soldier.armor()),
                     soldier.armor().bonusHp, soldier.armor().damageReduction,
                     soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
-                    tag(owners.get(i), soldier)));
+                    tag(owners.get(i), soldier, strengths)));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -176,10 +187,12 @@ public final class CampaignMarineDeployment {
      * referenced — the battle tier has no roster access, and a rename back home
      * mid-battle must not change what the HUD says.
      */
-    private static CampaignSquadTag tag(MarineSquad squad, MarineSoldier soldier) {
+    private static CampaignSquadTag tag(MarineSquad squad, MarineSoldier soldier,
+                                        Map<String, Integer> strengths) {
         if (squad == null || squad.reserve()) return null;
         return new CampaignSquadTag(squad.id(), squad.name(),
-                soldier.id().equals(squad.leaderSoldierId()));
+                soldier.id().equals(squad.leaderSoldierId()),
+                strengths.getOrDefault(squad.id(), 0));
     }
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {

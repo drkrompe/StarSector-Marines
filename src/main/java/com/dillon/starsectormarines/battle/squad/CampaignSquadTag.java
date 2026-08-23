@@ -23,9 +23,18 @@ public final class CampaignSquadTag {
     /** True for the one seat holding this squad's NCO, who leads it on the ground. */
     public final boolean leader;
 
-    public CampaignSquadTag(String squadId, String label, boolean leader) {
+    /**
+     * Seats this squad holds in the whole manifest — the strength it is
+     * assembling toward once it starts landing. Lets the battle tier tell
+     * "still arriving" from "already mauled" without knowing anything about
+     * the campaign.
+     */
+    public final int strength;
+
+    public CampaignSquadTag(String squadId, String label, boolean leader, int strength) {
         this.squadId = squadId;
         this.label = label;
         this.leader = leader;
+        this.strength = strength;
     }
 }

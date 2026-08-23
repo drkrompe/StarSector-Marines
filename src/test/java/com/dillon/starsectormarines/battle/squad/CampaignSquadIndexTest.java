@@ -18,7 +18,7 @@ class CampaignSquadIndexTest {
     @Test
     void aSquadCrossingInThreeLiftsIsOneSquadOnTheGround() {
         CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
-        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", false);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", false, 12);
 
         int first = resolve(index, tag, 10, 20);
         int second = resolve(index, tag, 10, 20);
@@ -34,7 +34,7 @@ class CampaignSquadIndexTest {
     @Test
     void twoLandingZonesSplitIntoTwoSquadsAndBothSaySo() {
         CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
-        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", false);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", false, 12);
 
         int here = resolve(index, tag, 10, 20);
         assertEquals("Squad 01", squads.get(here).campaignLabel);
@@ -52,8 +52,8 @@ class CampaignSquadIndexTest {
     void differentCampaignSquadsAtOneZoneStayApart() {
         CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
 
-        int first = resolve(index, new CampaignSquadTag("cs-1", "Squad 01", false), 10, 20);
-        int second = resolve(index, new CampaignSquadTag("cs-2", "Squad 02", false), 10, 20);
+        int first = resolve(index, new CampaignSquadTag("cs-1", "Squad 01", false, 12), 10, 20);
+        int second = resolve(index, new CampaignSquadTag("cs-2", "Squad 02", false, 12), 10, 20);
 
         assertNotEquals(first, second);
         assertEquals("Squad 01", squads.get(first).campaignLabel);

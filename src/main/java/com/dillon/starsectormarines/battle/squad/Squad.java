@@ -197,6 +197,22 @@ public final class Squad {
      */
     public String campaignLabel;
 
+    /**
+     * Marines this squad is still expecting to land, from the deploy manifest.
+     * 0 for every generated spawn and for campaign squads before their first
+     * landing. Compared against {@link #originalSize} — which counts marines
+     * actually deboarded — to tell an assembling squad from a mauled one.
+     */
+    public int expectedSize = 0;
+
+    /**
+     * Sim-seconds this squad has spent waiting at its LZ for the rest of
+     * itself. Accumulated by {@link SquadFormUpSystem}, which stops holding
+     * the squad back once it crosses the form-up timeout so a lift that never
+     * arrives cannot deadlock the mission.
+     */
+    public float formUpElapsed = 0f;
+
     /** True once the squad has already executed its one-shot fallback this battle. Suppresses re-trigger so a squad doesn't cascade through every node in its FALLBACK_TO chain in one tick. */
     public boolean fallbackTriggered = false;
     /**
