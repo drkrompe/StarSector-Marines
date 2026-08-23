@@ -12,7 +12,7 @@ import java.util.Set;
  * <p><b>Slice 0 maps onto the existing nine themes</b> — no new district kinds
  * yet; the point is to prove the campaign → battle plumbing on known output. The
  * dedicated economic districts (mining, refinery, agriculture, …) replace these
- * stand-in mappings as they ship. See {@code roadmap/economic-districts/overview.md}.
+ * stand-in mappings as they ship under the economic-districts feature.
  */
 public final class EconomicZoning {
 

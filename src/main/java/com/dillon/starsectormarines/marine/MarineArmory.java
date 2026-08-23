@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Persisted fleet fabrication inventory. Recipes are permanent unlocks; printed
@@ -44,9 +45,46 @@ public final class MarineArmory implements Serializable {
     public FireTeamTemplateCard templateCardById(String id) {
         if (id == null) return null;
         for (FireTeamTemplateCard card : templateCards) {
-            if (id.equals(card.id())) return card;
+            if (card != null && id.equals(card.id())) return card;
         }
         return null;
+    }
+
+    /**
+     * Saves a player-authored design. Stock and recipe state are deliberately
+     * ignored: those constrain assignment, not what the player may design.
+     */
+    public FireTeamTemplateCard createTemplateCard(String displayName,
+                                                   List<FireTeamBillet> billets) {
+        if (displayName == null || displayName.isBlank()) {
+            throw new IllegalArgumentException("Card name is required");
+        }
+        FireTeamTemplateCard card = new FireTeamTemplateCard(
+                "custom:" + UUID.randomUUID(), displayName, billets);
+        templateCards.add(card);
+        return card;
+    }
+
+    /** Clones either a built-in or custom card into a new player-owned design. */
+    public FireTeamTemplateCard cloneTemplateCard(String sourceId) {
+        FireTeamTemplateCard source = templateCardById(sourceId);
+        if (source == null) return null;
+        return createTemplateCard(source.displayName() + " Copy", source.billets());
+    }
+
+    /** Renaming changes library metadata only and is therefore safe for assigned cards. */
+    public boolean renameTemplateCard(String id, String displayName) {
+        FireTeamTemplateCard card = templateCardById(id);
+        if (card == null || FireTeamTemplateCards.isStarterId(id)
+                || displayName == null || displayName.isBlank()) return false;
+        card.rename(displayName);
+        return true;
+    }
+
+    /** Assignment-aware callers must reject cards still referenced by a squad. */
+    boolean deleteTemplateCard(String id) {
+        if (id == null || FireTeamTemplateCards.isStarterId(id)) return false;
+        return templateCards.removeIf(card -> id.equals(card.id()));
     }
 
     public void addFabricationMaterials(int amount) {
@@ -166,7 +204,18 @@ public final class MarineArmory implements Serializable {
     }
 
     private void seedStarterCards() {
-        if (templateCards.isEmpty()) templateCards.addAll(FireTeamTemplateCards.starterCards());
+        List<FireTeamTemplateCard> ordered = new ArrayList<>();
+        for (FireTeamTemplateCard starter : FireTeamTemplateCards.starterCards()) {
+            FireTeamTemplateCard existing = templateCardById(starter.id());
+            ordered.add(existing != null ? existing : starter);
+        }
+        for (FireTeamTemplateCard card : templateCards) {
+            if (card != null && !FireTeamTemplateCards.isStarterId(card.id())
+                    && ordered.stream().noneMatch(existing -> existing.id().equals(card.id()))) {
+                ordered.add(card);
+            }
+        }
+        templateCards = ordered;
     }
 
     private void putAtLeast(String key, int count) {
