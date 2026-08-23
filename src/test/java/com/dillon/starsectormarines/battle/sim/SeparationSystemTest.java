@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * S1 + S2 coverage for {@link SeparationSystem} — tests 1, 2, 3, 4, 5, 6 of
  * the story doc's test plan
- * ({@code roadmap/continuous-positions/stories/separation-steering.md}),
+ * ({@code separation-steering.md}),
  * plus a drone-hub immovability regression and a production-tick-loop
  * wiring check (see {@link #droneHubNeverMovesWhileOverlappingMarineResolvesFully}
  * and {@link #separationRunsInsideTheProductionTickLoop}).
@@ -285,37 +286,162 @@ public class SeparationSystemTest {
     }
 
     @Test
-    public void everyMechVariantSpreadsIntoALooseFormationWhileMoving() {
-        BattleSimulation sim = openArena(28, 20);
+    public void mixedRoleMechLanceTakesAnOpenGroundDiamond() {
+        BattleSimulation sim = openArena(44, 36);
         SeparationSystem separation = separationFor(sim);
-        long hound = spawnMech(sim, MechVariant.HOUND, Faction.MARINE, 8, 10);
-        long bulwark = spawnMech(sim, MechVariant.BULWARK, Faction.MARINE, 10, 10);
-        long sirocco = spawnMech(sim, MechVariant.SIROCCO, Faction.MARINE, 12, 10);
-        long[] mechs = {hound, bulwark, sirocco};
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long hound = spawnMech(sim, MechVariant.HOUND, MechRole.ASSAULT,
+                Faction.MARINE, squadId, 20, 18);
+        long highBulwark = spawnMech(sim, MechVariant.BULWARK,
+                MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 18, 20);
+        long lowBulwark = spawnMech(sim, MechVariant.BULWARK,
+                MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 18, 16);
+        long sirocco = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+                Faction.MARINE, squadId, 16, 18);
+        long[] mechs = {hound, highBulwark, lowBulwark, sirocco};
         for (long mech : mechs) {
-            sim.setPath(mech, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(mech), sim.world().cellY(mech), 22, 10));
+            sim.setPath(mech, new int[]{sim.world().cellX(mech),
+                    sim.world().cellY(mech), 38, 18});
         }
         sim.getUnitIndex().rebuild(sim.getRoster());
 
+        assertEquals(SeparationSystem.MECH_FORMATION_OPEN_DISTANCE,
+                separation.preferredMechFormationSpacing(mechs, mechs.length),
+                1e-6f);
         float houndX = sim.world().x(hound);
         separation.tick(BattleSimulation.TICK_DT);
         float firstStep = Math.abs(sim.world().x(hound) - houndX);
         assertTrue(firstStep > 0f);
-        assertTrue(firstStep < SeparationSystem.MAX_PUSH_SPEED * BattleSimulation.TICK_DT,
+        assertTrue(firstStep <= SeparationSystem.FORMATION_MAX_SPEED
+                        * BattleSimulation.TICK_DT + 1e-6f,
                 "formation spacing should steer gently instead of hitting the collision cap");
 
-        int ticks = Math.round(3f / BattleSimulation.TICK_DT);
+        int ticks = Math.round(8f / BattleSimulation.TICK_DT);
         for (int tick = 1; tick < ticks; tick++) {
             separation.tick(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(distance(sim, hound, bulwark)
-                        >= SeparationSystem.MECH_FORMATION_DISTANCE - 0.15f,
-                "Hound and Bulwark should open formation spacing");
-        assertTrue(distance(sim, bulwark, sirocco)
-                        >= SeparationSystem.MECH_FORMATION_DISTANCE - 0.15f,
-                "Bulwark and Sirocco should open formation spacing");
+        assertTrue(sim.world().x(hound) > sim.world().x(highBulwark));
+        assertTrue(sim.world().x(hound) > sim.world().x(lowBulwark));
+        assertTrue(sim.world().x(sirocco) < sim.world().x(highBulwark));
+        assertTrue(sim.world().x(sirocco) < sim.world().x(lowBulwark));
+        assertTrue(sim.world().y(highBulwark) > sim.world().y(lowBulwark));
+        assertTrue(distance(sim, hound, highBulwark) >= 5.75f);
+        assertTrue(distance(sim, hound, lowBulwark) >= 5.75f);
+        assertTrue(distance(sim, sirocco, highBulwark) >= 5.75f);
+        assertTrue(distance(sim, sirocco, lowBulwark) >= 5.75f);
+    }
+
+    @Test
+    public void constrainedMechLanceUsesTheCompressionFloor() {
+        int width = 24;
+        int height = 7;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int x = 1; x < width - 1; x++) grid.setWalkableFloor(x, 3);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(width, height));
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long first = spawnMech(sim, MechVariant.BULWARK,
+                MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 7, 3);
+        long second = spawnMech(sim, MechVariant.BULWARK,
+                MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 8, 3);
+
+        assertEquals(SeparationSystem.MECH_FORMATION_MIN_DISTANCE,
+                separation.preferredMechFormationSpacing(
+                        new long[]{first, second}, 2), 1e-6f);
+        sim.setPath(first, new int[]{7, 3, 20, 3});
+        sim.setPath(second, new int[]{8, 3, 20, 3});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        int ticks = Math.round(5f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        float compressedDistance = distance(sim, first, second);
+        assertTrue(compressedDistance >= 2.35f,
+                "compressed lance should retain nearly the 2.5-cell floor; distance="
+                        + compressedDistance + ", first=(" + sim.world().x(first)
+                        + "," + sim.world().y(first) + "), second=("
+                        + sim.world().x(second) + "," + sim.world().y(second) + ")");
+        assertEquals(3, sim.world().cellY(first));
+        assertEquals(3, sim.world().cellY(second));
+    }
+
+    @Test
+    public void infantryFormationUsesWeaponRangeToSetDepth() {
+        BattleSimulation sim = openArena(30, 24);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long shortRange = sim.spawn(new EntitySpec("short", Faction.MARINE,
+                UnitType.MARINE, 14, 11).squad(squadId).attackRange(8f));
+        long longRange = sim.spawn(new EntitySpec("long", Faction.MARINE,
+                UnitType.MARINE, 14, 12).squad(squadId).attackRange(30f));
+        sim.setPath(shortRange, new int[]{14, 11, 26, 11});
+        sim.setPath(longRange, new int[]{14, 12, 26, 12});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        assertEquals(SeparationSystem.INFANTRY_FORMATION_OPEN_DISTANCE,
+                separation.preferredInfantryFormationSpacing(
+                        new long[]{shortRange, longRange}, 2), 1e-6f);
+        int ticks = Math.round(4f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        assertTrue(sim.world().x(shortRange) > sim.world().x(longRange),
+                "short-range marine should take the forward slot");
+        assertTrue(distance(sim, shortRange, longRange) >= 1.65f,
+                "fireteam should open to its infantry-scale interval");
+    }
+
+    @Test
+    public void divergentSquadOrdersDoNotCreateAFormationTug() {
+        BattleSimulation sim = openArena(24, 20);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long eastbound = sim.spawn(new EntitySpec("east", Faction.MARINE,
+                UnitType.MARINE, 10, 9).squad(squadId));
+        long westbound = sim.spawn(new EntitySpec("west", Faction.MARINE,
+                UnitType.MARINE, 10, 11).squad(squadId));
+        sim.setPath(eastbound, new int[]{10, 9, 20, 9});
+        sim.setPath(westbound, new int[]{10, 11, 2, 11});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        float eastX = sim.world().x(eastbound);
+        float westX = sim.world().x(westbound);
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertEquals(eastX, sim.world().x(eastbound), 0f);
+        assertEquals(westX, sim.world().x(westbound), 0f);
+    }
+
+    @Test
+    public void unrelatedMechSquadsUseOnlyTheCompressionFloor() {
+        BattleSimulation sim = openArena(30, 20);
+        SeparationSystem separation = separationFor(sim);
+        int firstSquad = sim.mintSquad(
+                Faction.MARINE, UnitType.HEAVY_MECH);
+        int secondSquad = sim.mintSquad(
+                Faction.MARINE, UnitType.HEAVY_MECH);
+        long first = spawnMech(sim, MechVariant.HOUND, MechRole.ASSAULT,
+                Faction.MARINE, firstSquad, 10, 10);
+        long second = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+                Faction.MARINE, secondSquad, 12, 10);
+        sim.setPath(first, new int[]{10, 10, 25, 10});
+        sim.setPath(second, new int[]{12, 10, 25, 10});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        int ticks = Math.round(5f / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            separation.tick(BattleSimulation.TICK_DT);
+        }
+
+        float distance = distance(sim, first, second);
+        assertTrue(distance >= 2.35f,
+                "separate lances still need the mech compression floor");
+        assertTrue(distance < 2.75f,
+                "separate lances must not be pulled into one six-cell formation");
     }
 
     @Test
@@ -340,10 +466,17 @@ public class SeparationSystemTest {
 
     private static long spawnMech(BattleSimulation sim, MechVariant variant,
                                   Faction faction, int x, int y) {
+        return spawnMech(sim, variant, MechRole.ARMORED_SUPPORT, faction,
+                Squad.NO_SQUAD, x, y);
+    }
+
+    private static long spawnMech(BattleSimulation sim, MechVariant variant,
+                                  MechRole role, Faction faction, int squadId,
+                                  int x, int y) {
         long mech = sim.spawn(variant.applyTo(new EntitySpec(
-                variant.id, faction, UnitType.HEAVY_MECH, x, y)));
-        sim.world().attachMechLoadout(mech,
-                variant.createLoadout(MechRole.ARMORED_SUPPORT));
+                variant.id, faction, UnitType.HEAVY_MECH, x, y)
+                .squad(squadId)));
+        sim.world().attachMechLoadout(mech, variant.createLoadout(role));
         return mech;
     }
 
