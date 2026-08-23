@@ -7,9 +7,11 @@ import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
-import com.dillon.starsectormarines.ops.detachment.DebugPersonnelPreset;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
+import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
 import com.fs.starfarer.api.Global;
@@ -62,7 +64,14 @@ public class MarineOpsContext {
     private boolean marineSquadSelectionInitialized;
     private int marineDeploymentCapacity;
     /** Picker-only fixture; debug missions never consume or mutate the campaign roster. */
-    private DebugPersonnelPreset debugPersonnelPreset = DebugPersonnelPreset.MIXED;
+    private DebugCompanyStage debugCompanyStage = DebugCompanyStage.FIRST_CONTRACT;
+    /**
+     * The company {@link #debugCompanyStage} describes, built once and held so
+     * the briefing names the marines that actually land. Rebuilt on a stage
+     * change; {@code MarineRoster} construction rolls names and aptitudes, so
+     * a fresh build per read would show one company and deploy another.
+     */
+    private MarineRoster debugCompanyRoster;
     /** Stationing offer selected for the dedicated assignment screen. */
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
@@ -133,12 +142,21 @@ public class MarineOpsContext {
 
     public int getMarineDeploymentCapacity() { return marineDeploymentCapacity; }
 
-    public DebugPersonnelPreset getDebugPersonnelPreset() {
-        return debugPersonnelPreset;
+    public DebugCompanyStage getDebugCompanyStage() {
+        return debugCompanyStage;
     }
 
-    public void cycleDebugPersonnelPreset() {
-        debugPersonnelPreset = debugPersonnelPreset.next();
+    public void cycleDebugCompanyStage() {
+        debugCompanyStage = debugCompanyStage.next();
+        debugCompanyRoster = null;
+    }
+
+    /** The debug company at the selected stage. Detached — never the campaign roster. */
+    public MarineRoster getDebugCompanyRoster() {
+        if (debugCompanyRoster == null) {
+            debugCompanyRoster = DebugCompany.roster(debugCompanyStage);
+        }
+        return debugCompanyRoster;
     }
 
     public boolean isMarineSquadSelected(String squadId) {
