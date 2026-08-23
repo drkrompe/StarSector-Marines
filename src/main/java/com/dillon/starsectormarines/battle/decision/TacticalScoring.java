@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 
@@ -60,6 +61,15 @@ public final class TacticalScoring {
 
     /** Radius around the squad centroid represented by its local contact picture. */
     public static final float CONTACT_PICTURE_RADIUS = 36f;
+    /**
+     * Time after losing direct LOS that an advancing squad may still plant on
+     * a doctrine-only HOLD. The belief remains useful for facing and target
+     * guidance after this window, but cannot immobilize the objective advance
+     * until the full fourteen-second belief lifetime expires.
+     */
+    public static final float HOLD_AFTER_LOS_SECONDS = 1f;
+    public static final int HOLD_AFTER_LOS_TICKS =
+            Math.round(HOLD_AFTER_LOS_SECONDS / BattleSimulation.TICK_DT);
     private static final float SECTOR_FRONT_COS = 0.70710677f;
     private static final float MOTION_RADIAL_THRESHOLD = 0.25f;
 
@@ -1222,8 +1232,11 @@ public final class TacticalScoring {
                 Math.round(squad.centroidY - 0.5f), CONTACT_PICTURE_RADIUS);
         ForceBalance balance = forceBalance(hostileStrength, friends);
         Motion motion = contactMotion(primary, squad, currentTick);
+        boolean holdContactFresh = contactHoldIsFresh(
+                primary, directCount, currentTick);
         Doctrine doctrine = selectDoctrine(posture, balance, dominant, motion,
-                mustHold(squad), squad.contactPicture.doctrine(), true);
+                mustHold(squad), squad.contactPicture.doctrine(), true,
+                holdContactFresh);
         return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
                 contactCount, directCount, hostileStrength, friends, balance,
                 dominant, motion, primary.unitId(), primary.lastSeenCellX(),
@@ -1256,6 +1269,15 @@ public final class TacticalScoring {
                                     Sector sector, Motion motion,
                                     boolean mustHold, Doctrine previous,
                                     boolean hasContacts) {
+        return selectDoctrine(posture, balance, sector, motion, mustHold,
+                previous, hasContacts, true);
+    }
+
+    static Doctrine selectDoctrine(Posture posture, ForceBalance balance,
+                                    Sector sector, Motion motion,
+                                    boolean mustHold, Doctrine previous,
+                                    boolean hasContacts,
+                                    boolean holdContactFresh) {
         if (!hasContacts || balance == ForceBalance.NONE) return Doctrine.ADVANCE;
         if (mustHold) return Doctrine.HOLD;
 
@@ -1279,10 +1301,38 @@ public final class TacticalScoring {
         }
         if (previous == Doctrine.HOLD) {
             if (risk >= 3) return Doctrine.DISENGAGE;
+            if (posture == Posture.ADVANCING && !holdContactFresh) {
+                return Doctrine.ADVANCE;
+            }
             return risk <= -2 ? Doctrine.ADVANCE : Doctrine.HOLD;
         }
         if (risk >= 3) return Doctrine.DISENGAGE;
         return risk >= 0 ? Doctrine.HOLD : Doctrine.ADVANCE;
+    }
+
+    /**
+     * Whether the contact evidence is fresh enough to hard-stop an advancing
+     * squad for doctrine HOLD. This deliberately expires before the belief:
+     * stale evidence still informs aim and awareness, but not indefinite path
+     * clearing.
+     */
+    public static boolean contactHoldIsFresh(Squad squad,
+                                             SquadContactPicture picture,
+                                             int currentTick) {
+        if (picture == null || !picture.hasContacts()) return false;
+        BelievedContact primary = squad.believedContact(
+                picture.primaryContactId());
+        return contactHoldIsFresh(primary, picture.directContactCount(),
+                currentTick);
+    }
+
+    private static boolean contactHoldIsFresh(BelievedContact primary,
+                                              int directContactCount,
+                                              int currentTick) {
+        if (directContactCount > 0) return true;
+        if (primary == null) return false;
+        return Math.max(0, currentTick - primary.lastSeenTick())
+                <= HOLD_AFTER_LOS_TICKS;
     }
 
     private Posture postureOf(Squad squad) {
