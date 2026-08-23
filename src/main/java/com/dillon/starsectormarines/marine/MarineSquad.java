@@ -12,7 +12,7 @@ import java.util.UUID;
  * A persistent campaign squad: twelve marines organized as three four-marine
  * fire teams. Tactical battle squads remain ephemeral.
  *
- * <p>Fire teams are the Fleet Armory's equipment-card tier and the AI's
+ * <p>Fire teams are the Fleet Armory's equipment-template tier and the AI's
  * maneuver element. The player still deploys and commands whole squads.
  */
 public final class MarineSquad implements Serializable {
@@ -35,7 +35,7 @@ public final class MarineSquad implements Serializable {
     private long stationingContractId = -1L;
     /** The NCO leading this squad; null while it has nobody fit to lead. Derived by the roster. */
     private String leaderSoldierId;
-    /** Reusable armory card assigned to each team; null until that team is first refit. */
+    /** Reusable armory template assigned to each team; null until first refit. */
     private String[] teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
 
     public MarineSquad(String name) {

@@ -3,6 +3,7 @@
 Status: ACTIVE — the marine-primary catalog is data-owned; the remaining weapon families are planned migrations
 
 Written: 2026-08-23
+Updated: 2026-08-23 — separated weapon definitions from the special-equipment slot that may reference them.
 
 ## Purpose
 
@@ -36,6 +37,11 @@ without turning a JSON typo into a silent zero-damage battle.
 - **Progression and loadout** own which weapons a marine may receive, grade,
   stock, unlocks, templates, and save repair. They consume weapon identity;
   a weapon definition must not decide whether the player owns it.
+- A **special-equipment item** is a progression/loadout identity with a typed
+  activation. Weapon-like specials such as rockets, anti-materiel rifles, and
+  fragmentation grenades reference a weapon definition; smoke and placed charges do not become
+  weapons merely because they occupy the same billet slot. The current
+  `MarineSecondary` enum conflates these concepts and is transitional.
 - **Effects** are presentation descriptions. A shot's simulation result never
   depends on particles, tracer art, or fire audio.
 
@@ -77,17 +83,23 @@ shared consumer exists.
   compatibility bridge, not the final extension surface.
 - Shared mod discovery and merge rules are one cross-catalog concern with
   moddable tilesets, not two independently invented override schemes.
+- A utility activation may reuse projectiles, detonations, and authored FX,
+  but those shared execution primitives do not make its cloud or placement
+  channel a weapon definition.
 
 ## Current boundary and direction
 
 W1 has moved the five marine-primary definitions into the registry, while
 `MarineWeapon` remains an id-backed compatibility handle for current callers
-and persistence. Marine secondaries, mech weapons, and turrets remain
-enum-owned work; their migration is deliberately not implied by the shared
-schema. The open work is on `stories.md`.
+and persistence. The current rocket carried through `MarineSecondary`, mech
+weapons, and turrets remain enum-owned work; their migration is deliberately
+not implied by the shared schema. The open work is on `stories.md`.
 
-W2 turns effect recipes into ordered authored layers. W3 adds the remaining
-portable and mech weapon families and the first meaningful mount validation.
+W2 turns effect recipes into ordered authored layers. W3 migrates the current
+rocket and mech weapon families and adds the first meaningful mount validation.
+Progression S2A then establishes a special-equipment identity that may point at
+those weapon ids; later smoke and satchel stories add non-weapon activations,
+while the frag story adds another weapon-like activation.
 W4 retires enum stat carriers and owns the save migration. W6 applies the
 platform/mount/weapon split to emplacements and structures. W5 is deferred
 direction: a real submod should establish shared weapon/tile discovery and
@@ -99,4 +111,6 @@ override semantics before either catalog claims a modding merge API.
 features share only future discovery/merge machinery, not weapon semantics.
 Progression owns availability and economic value, while this feature owns
 what an available weapon is. Combat and rendering own execution of the
-definition, not catalog parsing or progression choices.
+definition, not catalog parsing or progression choices. Progression also owns
+the special-equipment item catalog; this feature owns only any weapon
+definition that such an item references.

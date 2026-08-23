@@ -150,7 +150,8 @@ stampers guessing from raw geometry with magic offsets.
 This is not corridor- or station-specific. The existing **city** generator
 is the prime retrofit candidate: it already produces a `RoadGraph` and a
 `LeafAdjacency` graph, yet its stampers still each re-derive structure
-(`FortressWallStamper`'s 12-cell biome setback, `DefensePostStamper`'s
+(`FortressWallStamper`'s compound-enclosing outer-ward envelope,
+`DefensePostStamper`'s
 footprint validation, `CompoundPerimeterDefenderStamper`'s outward edge
 scan). Upgrading city gen to publish + consume a structural taxonomy would
 de-fragilize those passes and feed **battlespace readability** (set-pieces
