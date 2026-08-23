@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -14,6 +16,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -92,5 +95,25 @@ public class DefensePostFootprintTest {
         assertEquals(8, doodads.size());
         assertTrue(doodads.stream().allMatch(d -> TileManifest.DOODAD_SHEET.equals(d.sheetPath)));
         assertEquals(8, doodads.stream().map(d -> d.tile.col + "," + d.tile.row).distinct().count());
+    }
+
+    @Test
+    public void sandbagRingRemainsNonStructuralAfterFinalize() {
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        GenContext ctx = new GenContext(grid, topology, new Random(1L), W, H, 1L);
+        DefensePostStamper.stampPost(grid, topology, ctx.doodads,
+                DefensePostKind.MEDIUM, null, CX, CY, new Random(1L));
+
+        new FinalizeStage().run(ctx);
+
+        assertEquals(8, ctx.doodads.size());
+        for (Doodad sandbag : ctx.doodads) {
+            assertFalse(grid.isWalkable(sandbag.cellX, sandbag.cellY));
+            assertTrue(grid.isSeeThrough(sandbag.cellX, sandbag.cellY));
+            assertTrue(topology.isFixture(sandbag.cellX, sandbag.cellY));
+            assertFalse(topology.isWall(sandbag.cellX, sandbag.cellY));
+            assertEquals(0, grid.getWallHp(sandbag.cellX, sandbag.cellY));
+        }
     }
 }
