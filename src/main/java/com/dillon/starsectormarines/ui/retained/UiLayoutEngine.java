@@ -12,6 +12,18 @@ import java.util.List;
  */
 public final class UiLayoutEngine {
 
+    /**
+     * The clip rectangle an element's children inherit.
+     *
+     * <p>Copied from MoonLightEngine's retained layout contract and shared by
+     * paint and hit-testing on purpose. CSS clips overflow to the padding box,
+     * so the element's own border paints under the inherited clip while its
+     * content and descendants receive the intersected one.
+     */
+    public static Rect clipForChildren(Overflow overflow, LayoutBox box, Rect inherited) {
+        return overflow.clips() ? inherited.intersect(box.paddingBox()) : inherited;
+    }
+
     public void layout(UiElement root, float width, float height) {
         if (root == null) throw new IllegalArgumentException("root must not be null");
         arrange(root, new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height)));

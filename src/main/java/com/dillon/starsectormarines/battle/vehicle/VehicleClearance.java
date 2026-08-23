@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * traversal on this rather than raw walkability, so a planned route can never
  * thread a gap the truck can't physically drive through — correct by
  * construction, rather than committing to a pinch and relying on recovery. See
- * {@code cost-field-routing/overview.md}.
+ * {@code convoy-nouns.md}.
  *
  * <p>Erosion model (slice-0 starting point): a cell is passable iff it and every
  * cell within Chebyshev distance {@code radiusCells} are walkable. The radius is

@@ -29,6 +29,7 @@ public final class UiElement {
     private float grow;
     private UiAlign horizontalAlign = UiAlign.STRETCH;
     private UiAlign verticalAlign = UiAlign.STRETCH;
+    private Overflow overflow = Overflow.VISIBLE;
     private float borderWidth;
 
     private Color background;
@@ -141,6 +142,15 @@ public final class UiElement {
 
     public UiAlign verticalAlign() {
         return verticalAlign;
+    }
+
+    public UiElement overflow(Overflow overflow) {
+        this.overflow = Objects.requireNonNull(overflow, "overflow");
+        return this;
+    }
+
+    public Overflow overflow() {
+        return overflow;
     }
 
     public UiElement background(Color color) {

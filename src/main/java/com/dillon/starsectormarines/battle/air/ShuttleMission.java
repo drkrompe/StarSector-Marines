@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
@@ -79,6 +80,11 @@ public final class ShuttleMission {
      * {@link #mechVariant} for ordinary one-mech and rescue deliveries.
      */
     public MechVariant[] mechVariants;
+    /**
+     * Frozen configured mechs carried by campaign support. When present this
+     * owns chassis, doctrine, and installed subsystem for each deboard slot.
+     */
+    public MechDeploymentSpec[] mechDeployments;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
     public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */

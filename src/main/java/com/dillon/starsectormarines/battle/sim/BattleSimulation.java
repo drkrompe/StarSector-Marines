@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -671,6 +672,11 @@ public class BattleSimulation implements BattleControl {
         fogOfWar.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) { doodadService.addDoodad(d); }
+
+    /** Publishes rendered nature-overlay metadata into tactical and ballistic cover without adding render doodads. */
+    public void addNatureOverlayCover(TileRegistry registry) {
+        doodadService.addNatureOverlayCover(topology, registry);
+    }
 
     /** Directional doodad cover at (x, y) against a threat in direction {@code (fromDx, fromDy)} (offset from this cell to the threat). 0 if no doodad covers that facing. */
     public int getDoodadCoverAt(int x, int y, int fromDx, int fromDy) {
