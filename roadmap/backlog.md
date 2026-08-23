@@ -296,6 +296,18 @@ as separate entries below.
   id, or the test should stop asserting the leader's team index. The
   company-view track owns squad leadership (C7) and should pick.
 
+## Constructor sprawl
+
+- **`Mission` has six constructors** and twenty-one construction sites, for
+  the same reason `MissionOutcome` did: every new frozen field was bolted on
+  as one more overload delegating inward. `MissionOutcome` was converted to a
+  builder on 2026-08-22 and its constructors deleted; `Mission` is the same
+  fix and was deliberately left alone to keep that change reviewable.
+
+  Worth doing next time `Mission` gains a field. The blast radius is three
+  times larger, but no worse in kind: `Mission` is not `Serializable` and is
+  regenerated rather than persisted, so there is no save shape to preserve.
+
 ## Translation / community
 
 - **i18n coverage audit** — all user-facing strings should already route
