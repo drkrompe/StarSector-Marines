@@ -1,6 +1,6 @@
-# Convoy nouns
+# Convoy
 
-Status: ACTIVE
+Status: ACTIVE — the single-APC delivery, routing, control, and recovery spine is shipped; acceptance and expansion remain open.
 
 Written: 2026-08-23
 
@@ -18,8 +18,9 @@ system. It is nevertheless the chassis seam for later vehicle roles: a future
 vehicle may have a different body, payload, or parked behavior without changing
 the delivery lifecycle or treating roads as kinematic rails.
 
-The current operational variant is the defender `HEAVY_APC`: four militia
-passengers, a roof weapon, and a timed overwatch after disembarkation. The old
+The current operational variant is the defender `HEAVY_APC`: four
+faction-rostered infantry passengers, a roof weapon, and a timed overwatch
+after disembarkation. The old
 `MILITIA_TRUCK` is retired. Parked map vehicles are separate static scenery and
 obstacles, not convoy actors.
 
@@ -42,8 +43,8 @@ point to the landing zone. `LANDED` releases passengers one at a time into a
 nearby free cell and assigns their new squad to the reinforcement objective.
 An armed APC then `OVERWATCH`s before `DEPARTING`; a variant that does not
 linger may go straight to departure. `GONE` is terminal and removes the world
-actor. A failed route suppresses that delivery rather than creating a
-teleporting or stranded vehicle.
+actor. An initial route failure suppresses that dispatch rather than creating
+a teleporting or stranded vehicle.
 
 The vehicle is a world-resident actor but not a normal grid combatant. Its
 identity, motion, mission, and optional turret authority are separate from its
@@ -83,8 +84,9 @@ Recovery is progressive rather than a permission to clip geometry:
    reverse that creates room for a new forward plan.
 3. Lack of corridor progress re-routes around the failing area through the
    cost field, choosing a new initial bearing when needed.
-4. If no such route exists, the vehicle holds rather than thrashing; the
-   remaining terminal policy is open work.
+4. If no such route exists, reroute attempts are rate-limited while ordinary
+   tracking continues. A durable abort, hold, or deliver-in-place terminal
+   policy is open work.
 
 The macro terrain cost and clearance inputs are built for a battle and reused
 by recovery. They do not currently rebake for every terrain change; the local
@@ -102,8 +104,9 @@ macro reroute must refresh its inputs.
   until turn-aware routing is proven.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery.
-- A vehicle either moves under its own body, recovers, or holds. It never solves
-  a failure by crossing a wall, snapping through a corner, or looping forever.
+- A vehicle moves under its own body or performs a bounded recovery. It never
+  solves failure by crossing a wall or snapping through a corner; the durable
+  terminal outcome for an unrecoverable route remains open.
 - Passenger deboarding uses the same faction roster and squad/objective
   conventions as other reinforcement means. The convoy creates delivery; it
   does not create a separate infantry ruleset.
@@ -113,7 +116,7 @@ macro reroute must refresh its inputs.
 The road graph is enduring generator data: road reservation, compound
 circulation, validation, preview/debug information, and rally/approach
 selection still use it. Only its former role as the sole vehicle router is
-retired. `road_graph_design` remains the durable generator rationale.
+retired. `[[road_graph_design]]` remains the durable generator rationale.
 
 Convoy meets `architecture.md` at the reinforcement-means boundary,
 `central-keep.md` at ARMORY-driven defender supply, and `faction-roster.md` at
