@@ -15,6 +15,8 @@ public final class MarineSoldier implements Serializable {
     private String id;
     private String name;
     private SoldierAptitude aptitude;
+    /** Follows the marine's billet; rewritten by the roster whenever leadership is re-derived. */
+    private EnlistedRank enlistedRank;
     private int experienceXp;
     private MarineSoldierStatus status;
     private float unavailableUntilDay;
@@ -32,6 +34,7 @@ public final class MarineSoldier implements Serializable {
         this.id = id;
         this.name = name;
         this.aptitude = aptitude != null ? aptitude : SoldierAptitude.STEADY;
+        this.enlistedRank = EnlistedRank.MARINE;
         this.status = MarineSoldierStatus.ACTIVE;
         this.primary = MarineWeapon.FIELD_RIFLE;
         this.primaryGrade = EquipmentGrade.SERVICE;
@@ -41,6 +44,7 @@ public final class MarineSoldier implements Serializable {
     public String id() { return id; }
     public String name() { return name; }
     public SoldierAptitude aptitude() { return aptitude; }
+    public EnlistedRank enlistedRank() { return enlistedRank; }
     public int experienceXp() { return experienceXp; }
     public SoldierProfile profile() { return new SoldierProfile(aptitude, experienceXp); }
     public MarineSoldierStatus status() { return status; }
@@ -59,6 +63,10 @@ public final class MarineSoldier implements Serializable {
         primaryGrade = grade != null ? grade : EquipmentGrade.SERVICE;
     }
 
+    void setEnlistedRank(EnlistedRank value) {
+        enlistedRank = value != null ? value : EnlistedRank.MARINE;
+    }
+
     void setSecondary(MarineSecondary value) { secondary = value; }
     void setArmor(MarineArmorPattern value) {
         armor = value != null ? value : MarineArmorPattern.ARMORLESS;
@@ -75,6 +83,7 @@ public final class MarineSoldier implements Serializable {
         if (id == null) id = UUID.randomUUID().toString();
         if (name == null) name = "Marine";
         if (aptitude == null) aptitude = SoldierAptitude.STEADY;
+        if (enlistedRank == null) enlistedRank = EnlistedRank.MARINE;
         if (status == null) status = MarineSoldierStatus.ACTIVE;
         if (primary == null) primary = MarineWeapon.FIELD_RIFLE;
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;

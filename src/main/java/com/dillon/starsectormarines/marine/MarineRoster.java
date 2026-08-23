@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
@@ -450,6 +452,7 @@ public class MarineRoster implements Serializable {
         MarineSoldier recruit = createRecruit();
         squad.add(recruit.id());
         armory.ensureBasicIssue(activeSoldierCount());
+        refreshLeadership();
         return recruit;
     }
 
@@ -466,6 +469,7 @@ public class MarineRoster implements Serializable {
         MarineSoldier recruit = createRecruit();
         target.add(recruit.id());
         armory.ensureBasicIssue(activeSoldierCount());
+        refreshLeadership();
         return recruit;
     }
 
@@ -483,7 +487,10 @@ public class MarineRoster implements Serializable {
         if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
                 || squad == null || !squad.reserve()) return false;
         if (!squad.remove(soldierId)) return false;
-        if (soldiers.remove(soldier)) return true;
+        if (soldiers.remove(soldier)) {
+            refreshLeadership();
+            return true;
+        }
         squad.add(soldierId);
         return false;
     }
@@ -498,7 +505,10 @@ public class MarineRoster implements Serializable {
         if (source.stationed() || target.stationed()) return false;
         if (!target.reserve() && manningCount(target) >= MarineSquad.CAPACITY) return false;
         if (!source.remove(soldierId)) return false;
-        if (target.add(soldierId)) return true;
+        if (target.add(soldierId)) {
+            refreshLeadership();
+            return true;
+        }
         source.add(soldierId);
         return false;
     }
@@ -563,6 +573,7 @@ public class MarineRoster implements Serializable {
             assignToFireteam(recruit);
         }
         armory.ensureBasicIssue(activeSoldierCount());
+        refreshLeadership();
     }
 
     public boolean allocatePrimary(String soldierId, MarineWeapon weapon, EquipmentGrade grade) {
@@ -720,6 +731,7 @@ public class MarineRoster implements Serializable {
                 if (soldier != null) soldier.setStatus(MarineSoldierStatus.KIA);
             }
         }
+        refreshLeadership();
     }
 
     /** Applies the richer personnel report used by the squad debrief. */
@@ -740,6 +752,7 @@ public class MarineRoster implements Serializable {
             }
             soldier.setStatus(status);
         }
+        refreshLeadership();
     }
 
     /** Returns WIA personnel to duty once their campaign recovery timer expires. */
@@ -751,6 +764,7 @@ public class MarineRoster implements Serializable {
                 soldier.setUnavailableUntilDay(0f);
             }
         }
+        refreshLeadership();
     }
 
     private int activeSoldierCount() {
@@ -772,6 +786,67 @@ public class MarineRoster implements Serializable {
         if (roll < 25) return SoldierAptitude.GIFTED;
         if (roll < 90) return SoldierAptitude.STEADY;
         return SoldierAptitude.LIMITED;
+    }
+
+    /** Seniority order for picking a leader: rank, then experience, then a stable id tiebreak. */
+    private static final Comparator<MarineSoldier> SENIORITY =
+            Comparator.comparingInt((MarineSoldier s) -> s.enlistedRank().ordinal()).reversed()
+                    .thenComparing(Comparator.comparingInt(MarineSoldier::experienceXp).reversed())
+                    .thenComparing(MarineSoldier::id);
+
+    /** The NCO leading this squad, or null when nobody in it is fit for duty. */
+    public MarineSoldier squadLeader(MarineSquad squad) {
+        return squad == null ? null : soldierById(squad.leaderSoldierId());
+    }
+
+    /**
+     * Re-derives squad and fire-team leadership across the line. Rank follows the
+     * billet rather than being awarded on its own: the squad leader wears
+     * corporal's stripes (a sergeant's once they are a veteran), the leader of
+     * each other manned fire team wears a lance corporal's, and everyone else is
+     * a marine. Casualties therefore promote a successor deterministically —
+     * highest rank, then most experienced, then by id.
+     *
+     * <p>Only marines fit for duty are ranked. Personnel on the wounded list keep
+     * their stripes, so a corporal who returns outranks the marine who stood in
+     * and resumes the billet instead of the squad drifting to a new leader every
+     * time someone is hurt.
+     */
+    private void refreshLeadership() {
+        for (MarineSquad squad : squads) {
+            List<MarineSoldier> onDuty = new ArrayList<>();
+            if (!squad.reserve()) {
+                for (MarineSoldier soldier : squadMembers(squad)) {
+                    if (soldier.status() == MarineSoldierStatus.ACTIVE) onDuty.add(soldier);
+                }
+            }
+            if (onDuty.isEmpty()) {
+                squad.setLeaderSoldierId(null);
+                continue;
+            }
+            MarineSoldier leader = Collections.min(onDuty, SENIORITY);
+            squad.setLeaderSoldierId(leader.id());
+            for (MarineSoldier soldier : onDuty) soldier.setEnlistedRank(EnlistedRank.MARINE);
+            int leaderTeam = squad.teamIndexOf(leader.id());
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                if (team == leaderTeam) continue;
+                MarineSoldier teamLeader = seniorOnTeam(squad, team, onDuty);
+                if (teamLeader != null) teamLeader.setEnlistedRank(EnlistedRank.LANCE_CORPORAL);
+            }
+            leader.setEnlistedRank(
+                    leader.experienceXp() >= ExperienceTier.VETERAN.minimumXp
+                            ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL);
+        }
+    }
+
+    private static MarineSoldier seniorOnTeam(MarineSquad squad, int team,
+                                              List<MarineSoldier> onDuty) {
+        MarineSoldier best = null;
+        for (MarineSoldier soldier : onDuty) {
+            if (squad.teamIndexOf(soldier.id()) != team) continue;
+            if (best == null || SENIORITY.compare(soldier, best) < 0) best = soldier;
+        }
+        return best;
     }
 
     private void assignToFireteam(MarineSoldier recruit) {
@@ -842,6 +917,7 @@ public class MarineRoster implements Serializable {
         }
         repairSquadCommands();
         repairStationingBindings();
+        refreshLeadership();
         repairCaptainCandidates();
         return this;
     }

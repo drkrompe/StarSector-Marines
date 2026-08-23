@@ -32,6 +32,8 @@ public final class MarineSquad implements Serializable {
     private String homeCaptainId;
     /** Active named-stationing assignment; {@code -1} while available at home. */
     private long stationingContractId = -1L;
+    /** The NCO leading this squad; null while it has nobody fit to lead. Derived by the roster. */
+    private String leaderSoldierId;
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -51,6 +53,7 @@ public final class MarineSquad implements Serializable {
     public String name() { return name; }
     public boolean reserve() { return reserve; }
     public String homeCaptainId() { return homeCaptainId; }
+    public String leaderSoldierId() { return leaderSoldierId; }
     public long stationingContractId() { return stationingContractId; }
     public boolean stationed() { return stationingContractId > 0L; }
     public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
@@ -80,13 +83,17 @@ public final class MarineSquad implements Serializable {
         return true;
     }
 
-    boolean remove(String soldierId) { return memberIds.remove(soldierId); }
+    boolean remove(String soldierId) {
+        if (soldierId != null && soldierId.equals(leaderSoldierId)) leaderSoldierId = null;
+        return memberIds.remove(soldierId);
+    }
 
     void setName(String value) {
         if (value != null && !value.trim().isEmpty()) name = value.trim();
     }
 
     void setHomeCaptainId(String value) { homeCaptainId = value; }
+    void setLeaderSoldierId(String value) { leaderSoldierId = value; }
     void setStationingContractId(long value) {
         stationingContractId = value > 0L ? value : -1L;
     }
