@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.nav;
 
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 
@@ -29,6 +30,8 @@ import java.util.Arrays;
  * </ul>
  */
 public final class GridPathfinder {
+
+    private static final Logger LOG = Logger.getLogger(GridPathfinder.class);
 
     public static boolean USE_CARDINAL_NAVIGATION = false;
 
@@ -302,7 +305,8 @@ public final class GridPathfinder {
             heapPos[currentIdx] = CLOSED;
 
             if (currentIdx == goalIdx) {
-                return reconstructPath(parentIdx, w, startIdx, goalIdx);
+                return reconstructPath(parentIdx, w, totalCells,
+                        startIdx, goalIdx);
             }
 
             int cx = currentIdx % w;
@@ -382,16 +386,30 @@ public final class GridPathfinder {
      * cell {@code i} into slots {@code [i*2, i*2+1]}). Single allocation per
      * call.
      */
-    private static int[] reconstructPath(int[] parentIdx, int gridWidth, int startIdx, int goalIdx) {
+    private static int[] reconstructPath(int[] parentIdx, int gridWidth,
+                                         int totalCells, int startIdx,
+                                         int goalIdx) {
         int cellCount = 0;
         int cursor = goalIdx;
-        while (true) {
+        while (cellCount < totalCells) {
+            if (cursor < 0 || cursor >= totalCells) {
+                return invalidParentChain("parent index out of bounds",
+                        startIdx, goalIdx, cursor, cellCount, totalCells);
+            }
             cellCount++;
             if (cursor == startIdx) break;
             int parent = parentIdx[cursor];
-            if (parent == cursor) break;
+            if (parent == cursor) {
+                return invalidParentChain("self-parent before start",
+                        startIdx, goalIdx, cursor, cellCount, totalCells);
+            }
             cursor = parent;
         }
+        if (cursor != startIdx) {
+            return invalidParentChain("cycle or overlong parent chain",
+                    startIdx, goalIdx, cursor, cellCount, totalCells);
+        }
+
         int[] path = new int[cellCount * 2];
         cursor = goalIdx;
         int writeCell = cellCount - 1;
@@ -399,12 +417,28 @@ public final class GridPathfinder {
             path[writeCell * 2]     = cursor % gridWidth;
             path[writeCell * 2 + 1] = cursor / gridWidth;
             if (cursor == startIdx) break;
-            int parent = parentIdx[cursor];
-            if (parent == cursor) break;
-            cursor = parent;
+            cursor = parentIdx[cursor];
             writeCell--;
         }
         return path;
+    }
+
+    private static int[] invalidParentChain(String reason, int startIdx,
+                                            int goalIdx, int cursor,
+                                            int traversed, int totalCells) {
+        LOG.error("GridPathfinder: rejecting invalid A* parent chain ("
+                + reason + ") startIdx=" + startIdx + " goalIdx=" + goalIdx
+                + " cursor=" + cursor + " traversed=" + traversed
+                + " totalCells=" + totalCells);
+        return EMPTY_PATH;
+    }
+
+    /** Package-private seam for corrupt-parent-chain regression tests. */
+    static int[] reconstructPathForTest(int[] parentIdx, int gridWidth,
+                                        int totalCells, int startIdx,
+                                        int goalIdx) {
+        return reconstructPath(parentIdx, gridWidth, totalCells,
+                startIdx, goalIdx);
     }
 
     // ----- Heuristics and heap -----
