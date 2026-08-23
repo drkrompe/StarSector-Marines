@@ -11,6 +11,6 @@
  *           known future work (out of scope of the reorg) — see
  *           {@code overview.md}.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} for the full taxonomy.
+ * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.setup;

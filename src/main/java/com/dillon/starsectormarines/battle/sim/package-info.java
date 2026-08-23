@@ -13,7 +13,7 @@
  *           {@code BattleSimulation}'s tick order. Do NOT grow feature
  *           state or behavior onto the orchestrator itself.
  *
- * <p>See {@code roadmap/battle-reorg/overview.md} and
+ * <p>See {@link com.dillon.starsectormarines.battle} and
  * {@code roadmap/ecs-migration/overview.md} for the Services/Systems model.
  */
 package com.dillon.starsectormarines.battle.sim;
