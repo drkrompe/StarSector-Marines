@@ -2,7 +2,13 @@
 
 > Deferred until a real submod exists.
 
-**Status:** deferred, deliberately.
+Status: DEFERRED
+
+Written: 2026-08-22
+
+Updated: 2026-08-23 — still waits for a real provider and the shared catalog-discovery contract.
+
+Read `moddable-weapons-nouns.md` before implementing this story.
 
 ## Scope
 

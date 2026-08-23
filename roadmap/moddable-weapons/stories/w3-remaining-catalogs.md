@@ -2,7 +2,13 @@
 
 > The weapons that are only weapons.
 
-**Status:** not started. Depends on `w1-weapon-registry.md`.
+Status: PLANNED
+
+Written: 2026-08-22
+
+Updated: 2026-08-23 — follows W2 so the remaining catalogs adopt the durable effect schema once.
+
+Read `moddable-weapons-nouns.md` before implementing this story.
 
 ## Scope
 

@@ -2,7 +2,13 @@
 
 > A weapon composes its effects. It does not pick one of four.
 
-**Status:** not started. Depends on `w1-weapon-registry.md`.
+Status: READY
+
+Written: 2026-08-22
+
+Updated: 2026-08-23 — W1 is folded; layered effects are the recommended next slice.
+
+Read `moddable-weapons-nouns.md` before implementing this story.
 
 ## Problem
 
