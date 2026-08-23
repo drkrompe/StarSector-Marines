@@ -138,7 +138,10 @@ universe over time, not retrofitted into intel slots.
   now scale deterministically by risk (`1ef74f23`): LOW has no mechs, MEDIUM
   introduces one Bulwark, and HIGH fields budget-preserving mixed
   Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
-  a scout follows only when recon behavior can make it meaningful. See
+  it now requires infantry or a different chassis rather than letting Hounds
+  screen one another, and moving allied mechs of every variant softly spread
+  into a loose formation (`861a5bf1`). A scout follows only when recon behavior
+  can make it meaningful. See
   [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
   it follows behind the live chassis, fans to fire on contact, and receives
@@ -352,8 +355,10 @@ universe over time, not retrofitted into intel slots.
 6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
    the reciprocal Hound/infantry screen: the Hound should lead by no more than
-   six cells and hold rather than solo-charge when its infantry or lance-mate
-   support is lost. Confirm Sirocco angles behind a non-Sirocco ally in its
+   six cells and hold rather than solo-charge when its infantry or
+   different-chassis support is lost; a second Hound must not release it.
+   Confirm moving lances spread gently without idle posts drifting. Confirm
+   Sirocco angles behind a non-Sirocco ally in its
    new 24–36-cell firing band and uses both the heavy-cannon opportunity band
    and longer LRM band. Tune chassis identities plus those formation rules.
    Budgeted production defender composition is already approved. See

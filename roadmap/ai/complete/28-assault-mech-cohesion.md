@@ -2,6 +2,10 @@
 
 **Shipped 2026-08-22 in `eaef38b2`.**
 
+**Superseded detail:** `30-mech-formation-discipline.md` prevents another Hound
+from satisfying the mech-support clause while retaining different-chassis
+support.
+
 ## Player-facing result
 
 The Hound remains the short-range point mech, but no longer interprets that

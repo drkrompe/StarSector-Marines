@@ -225,6 +225,10 @@ no tuning change was warranted. Broader swarm roster/stat feel remains in the
 living-world manual tuning queue rather than being silently folded into this
 movement primitive. Full suite: 1503 tests, all green. Story complete.
 
+**2026-08-22 follow-up:** `30-mech-formation-discipline.md` extends the same
+two-phase pass with a weaker, movement-scoped allied-mech repulsion out to 2.5
+cells. Physical overlap behavior and the original constants remain unchanged.
+
 ## Cross-refs
 
 - `overview.md` — coordinate convention, radius provenance.
