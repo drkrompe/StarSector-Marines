@@ -1,6 +1,6 @@
 # DEBUG mech lances
 
-**Status:** In progress.
+**Status:** Shipped in `6764caf1`.
 
 ## Goal
 
@@ -33,3 +33,15 @@ than four repetitions of a single-unit call-in.
 This does not establish the eventual campaign definition of a lance, its lift
 requirements, or ownership/recovery. It is deliberately DEBUG battle-iteration
 scaffolding.
+
+## Shipped details
+
+`6764caf1` partitions the immutable randomized roster into ordered groups of
+four. Each activation stamps that group onto its `ShuttleMission`, deboards the
+members through the existing physical payload loop, and keeps all four in the
+same commander-visible squad with the first chassis as leader. The last charge
+can carry one to three mechs. The DEBUG picker now defaults to four, clamps at
+100, adds +/-10 controls, and summarizes both lance count and chassis makeup.
+Production's ordinary `MechSupport` constructor still supplies one Bulwark.
+Focused tests exercise 4+1 partitioning and a real four-mech unload; the full
+Gradle build passed.

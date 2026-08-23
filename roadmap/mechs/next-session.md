@@ -2,11 +2,11 @@
 
 ## State of play
 
-The DEBUG player drop follow-up is code-complete on the current session branch:
-Mech Support now batches the selected total into four-chassis lances, with one
-Valkyrie and one mech squad per activation plus a partial final lance. The
-picker defaults to four, caps at 100, and has +/-10 controls. Focused tests pass;
-the full build and in-game smoke remain.
+The DEBUG player drop follow-up shipped in `6764caf1`: Mech Support now batches
+the selected total into four-chassis lances, with one Valkyrie and one mech
+squad per activation plus a partial final lance. The picker defaults to four,
+caps at 100, and has +/-10 controls. Focused tests and the full build pass; the
+in-game smoke remains.
 
 A DEBUG-only player mech-drop picker shipped in `53a365ae`. Its first slice
 defaulted to three randomized Bulwark/Hound/Sirocco chassis and delivered one
