@@ -227,7 +227,10 @@ public final class FacingSystem {
                 }
                 // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
                 // stays out of this system — it authors the unclamped logical frame.
-                sheetSel[r] = inAim ? LiveAppearance.SHEET_SECONDARY_AIM : LiveAppearance.SHEET_BASE;
+                boolean smokeThrow = inAim && secondarySpec[r] == MarineSecondary.SMOKE_GRENADE;
+                sheetSel[r] = inAim && !smokeThrow
+                        ? LiveAppearance.SHEET_SECONDARY_AIM
+                        : LiveAppearance.SHEET_BASE;
 
                 if (hasLayeredAnimation) {
                     authorLayeredRow(r, type, hasCombat, hasMovement, inAim,
@@ -396,17 +399,19 @@ public final class FacingSystem {
             float progress = clamp01((duration - actionTimer[row]) / duration);
             boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
             boolean amr = secondary == MarineSecondary.ANTI_MATERIEL_RIFLE;
-            authoredPose = fired
-                    ? (amr ? LayeredAppearance.POSE_AMR_FIRE
-                            : LayeredAppearance.POSE_ROCKET_FIRE)
-                    : (amr ? LayeredAppearance.POSE_AMR_AIM
-                            : LayeredAppearance.POSE_ROCKET_AIM);
+            boolean smoke = secondary == MarineSecondary.SMOKE_GRENADE;
+            authoredPose = smoke ? LayeredAppearance.POSE_SMOKE_THROW
+                    : fired
+                            ? (amr ? LayeredAppearance.POSE_AMR_FIRE
+                                    : LayeredAppearance.POSE_ROCKET_FIRE)
+                            : (amr ? LayeredAppearance.POSE_AMR_AIM
+                                    : LayeredAppearance.POSE_ROCKET_AIM);
             authoredPhase = fired ? clamp01((progress - 0.5f) * 2f)
                     : clamp01(progress * 2f);
-            if (fired && !amr) {
+            if (fired && !amr && !smoke) {
                 authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
             }
-            if (fired) {
+            if (fired && !smoke) {
                 float elapsedAfterFire = Math.max(0f, progress - 0.5f) * duration;
                 if (elapsedAfterFire <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;

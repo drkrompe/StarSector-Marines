@@ -114,10 +114,10 @@ for the first economy pass.
 
 ### Investment
 
-- **Per-planet infrastructure** — Encampment, Training Facility,
+- **Candidate per-planet infrastructure** — Encampment, Training Facility,
   Administrative Office. One-time builds with monthly maintenance,
   reduce per-planet operational friction.
-- **Per-region infrastructure** — Regional HQ. Expensive, amortizes
+- **Candidate per-region infrastructure** — Regional HQ. Expensive, amortizes
   across all ops in a faction or region.
 
 ## Scale inefficiency (the anti-snowball)
@@ -160,11 +160,11 @@ but staving off entropy:
   reduces garrison default rate when stationed. Strong reason to
   assign a logistics-trait captain as a permanent garrison commander
   rather than a strike-team lead.
-- **Per-planet infrastructure** — Encampment (reduces marine loss
+- **Candidate per-planet infrastructure** — Encampment (reduces marine loss
   rate), Training Facility (reduces loss rate + accelerates XP),
   Administrative Office (reduces per-planet cash overhead). Each is
   a monthly maintenance sink and a one-time build cost.
-- **Per-region infrastructure** — Regional HQ (one per faction or
+- **Candidate per-region infrastructure** — Regional HQ (one per faction or
   geographic region). Expensive, amortizes overhead reduction across
   all ops in that region. Late-game investment that justifies
   consolidating operations geographically.
@@ -220,7 +220,7 @@ another.
   [Licensing](#licensing-the-identity-dial) exclusivity tiers are the first
   instance of this principle in code.
 - When tuning "is the player doing well" judgments (the `OfficerMoodReader`
-  SEASONED gate — see [`narrative/overview.md`](narrative/overview.md) and
+  SEASONED gate — see `narrative-nouns.md` and
   [[feedback-paycheck-runway-window]]), reputation *breadth* should
   eventually feed the gate ("respected by at least N houses", not just
   "MRB rep ≥ 0"). Widening the mood reader past MRB is a follow-up once
@@ -331,15 +331,14 @@ with it, the player feels the world acting on them.
 - [`mechanics.md`](mechanics.md) — data model the economy operates
   on (houses, stakes, reputation, chains, mission → stake-transfer
   resolution).
-- [`contracts/overview.md`](contracts/overview.md) — full contract-type
+- `contracts-nouns.md` — full contract-type
   specifications (Strike, Garrison, Cadre, Escort, Planetary Assault)
   with their terms, salvage rights, time commitments, and how each maps
   to direct contracts vs. background-sim garrison contracts.
 - `loot-nouns.md` — post-battle recovery choice and settlement;
   the "fence on the spot" discount conversion lives here.
-- [`infrastructure/overview.md`](infrastructure/overview.md) —
-  per-planet and per-region buildings: build cost, monthly maintenance,
-  exact mitigation effects, stacking rules.
+- `infrastructure-nouns.md` — location-bound investment direction; the first
+  facility, upkeep authority, effects, and stacking remain uncontracted.
 - `t3-endgame-nouns.md` — faction flips,
   market ownership change, vanilla rep consequences, the "marginal
   colony as reward" mechanic. Where the economy and mechanics docs cross

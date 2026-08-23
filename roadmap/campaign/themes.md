@@ -283,11 +283,11 @@ sector scale (a few thousand rows).
   stakes, relationships, chains, player reputation), tick loop,
   rank-ladder visibility, stake-transfer mechanics, hidden-heir
   layer. **Drafted.**
-- [`contracts/overview.md`](contracts/overview.md) — contract types
+- `contracts-nouns.md` — contract types
   (Strike, Garrison, Cadre, Escort, Planetary Assault), their
   time-commitment semantics, salvage and payment terms, the
   merc-registry reputation track. **Drafted + loop playable.**
-- [`narrative/overview.md`](narrative/overview.md) — the patron
+- `narrative-nouns.md` — the patron
   tapestry: comms-officer narrator, archetype content axis,
   procedural-fatigue discipline.
 - [`backgrounds.md`](backgrounds.md) — player starting-state seed (name +
@@ -296,9 +296,8 @@ sector scale (a few thousand rows).
   track; never surfaced as numbers, leaks through diegetic channels.
 - [`events.md`](events.md) — black-swan events: the cost-shaped,
   unknown-reward third content stream beside Chains and Contracts.
-- [`infrastructure/overview.md`](infrastructure/overview.md) —
-  per-planet and per-region buildings: build cost, monthly maintenance,
-  exact mitigation effects, stacking rules.
+- `infrastructure-nouns.md` — draft location-bound investment direction; its
+  first facility and exact financial/effect rules remain uncontracted.
 - `t3-endgame-nouns.md` — faction flips,
   market ownership change, vanilla rep consequences, splinter-faction
   creation, the "marginal colony as reward" mechanic.

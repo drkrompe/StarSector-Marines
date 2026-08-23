@@ -495,6 +495,21 @@ public final class Squad {
     /** Last tick that tried to start or flip a bound; prevents every sibling retrying the same failed search. */
     public volatile int boundingAttemptTick = -1;
 
+    // ---- planned smoke utility ----
+    public volatile long smokeCarrierId = 0L;
+    public volatile long smokeThreatId = 0L;
+    public volatile int smokeTargetX = -1;
+    public volatile int smokeTargetY = -1;
+
+    public void clearSmokeReservation() {
+        synchronized (lock) {
+            smokeCarrierId = 0L;
+            smokeThreatId = 0L;
+            smokeTargetX = -1;
+            smokeTargetY = -1;
+        }
+    }
+
     // ---- Story 23: mech-screened objective advance ----
 
     /** Friendly assault mech currently walking point for this infantry squad, or {@code 0L}. */
@@ -571,6 +586,32 @@ public final class Squad {
     /** True while at least one identified hostile contact remains in memory. */
     public boolean hasBelievedContacts() {
         return !believedContacts.isEmpty();
+    }
+
+    /**
+     * Whether the serial alert pass directly observed any hostile combatant
+     * this tick. Planning runs after that pass and treats this published fact
+     * as authoritative instead of rescanning live units and line of sight.
+     */
+    public boolean hasDirectContactThisTick() {
+        return _engagedThisTick;
+    }
+
+    /**
+     * Whether the serial alert pass directly observed a hostile combatant in
+     * this garrison's kill zone this tick. Meaningful only when
+     * {@link #holdsFireUntilKillZone} is true.
+     */
+    public boolean hasEnemyInKillZoneThisTick() {
+        return _killZoneSightedThisTick;
+    }
+
+    /**
+     * Whether the serial alert pass found hostile incoming fire with line of
+     * sight back to its origin this tick.
+     */
+    public boolean isUnderFireAtLosThisTick() {
+        return _underFireAtLosThisTick;
     }
 
     /**

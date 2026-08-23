@@ -78,6 +78,7 @@ public class UnderFireAtLosEvaluatorTest {
         // Hostile shot from (10.5, 5.5) aimed at the marine's cell (5.5, 5.5).
         // Open floor → LOS clear from marine cell to (10,5).
         sim.postShot(new ShotEvent(10.5f, 5.5f, 5.5f, 5.5f, true, Faction.DEFENDER, 1.0f));
+        sim.advance(BattleSimulation.TICK_DT);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertTrue(s.get(Predicate.UNDER_FIRE_AT_LOS),
@@ -99,6 +100,7 @@ public class UnderFireAtLosEvaluatorTest {
         // is blocked by the wall column at x=7. Evaluator must filter on the
         // LOS check.
         sim.postShot(new ShotEvent(10.5f, 5.5f, 3.5f, 5.5f, true, Faction.DEFENDER, 1.0f));
+        sim.advance(BattleSimulation.TICK_DT);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertFalse(s.get(Predicate.UNDER_FIRE_AT_LOS),
@@ -116,6 +118,7 @@ public class UnderFireAtLosEvaluatorTest {
 
         // Marine-faction shot near the marine — same faction, shouldn't trip.
         sim.postShot(new ShotEvent(10.5f, 5.5f, 5.5f, 5.5f, true, Faction.MARINE, 1.0f));
+        sim.advance(BattleSimulation.TICK_DT);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertFalse(s.get(Predicate.UNDER_FIRE_AT_LOS),
@@ -133,9 +136,26 @@ public class UnderFireAtLosEvaluatorTest {
 
         // Hostile shot landing way out of squadmate proximity (target at 14, 14).
         sim.postShot(new ShotEvent(10.5f, 10.5f, 14.5f, 14.5f, true, Faction.DEFENDER, 1.0f));
+        sim.advance(BattleSimulation.TICK_DT);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertFalse(s.get(Predicate.UNDER_FIRE_AT_LOS),
                 "shot whose target endpoint is far from every squadmate doesn't trip");
+    }
+
+    @Test
+    public void shotPostedAfterAlertSnapshotDoesNotLeakIntoPlannerState() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        marineAt(sim, 5, 5, squadId);
+
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.postShot(new ShotEvent(10.5f, 5.5f, 5.5f, 5.5f,
+                true, Faction.DEFENDER, 1.0f));
+
+        WorldState state = WorldStateBuilder.build(squad, sim);
+        assertFalse(state.get(Predicate.UNDER_FIRE_AT_LOS),
+                "planning must consume the completed alert snapshot instead of rescanning a later active-shot list");
     }
 }
