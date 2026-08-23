@@ -1,13 +1,16 @@
 # Vanilla fighter kinematics — reference data
 
-> **Offline design reference only.** These numbers were scraped from the
-> read-only game install (`starsector-core/data/hulls/`) for tuning the scale
-> factor and sanity-checking feel. They are **not** a runtime data path — at
-> runtime, read kinematics off `ShipHullSpecAPI.getEngineSpec()` (see
-> [`hull-extraction.md`](hull-extraction.md) § "Where the data lives").
->
-> Source: Starsector 0.98a-RC8, `ship_data.csv` + `wing_data.csv`. Re-scrape if
-> the game version changes.
+Status: ACTIVE — offline calibration evidence, never a runtime data path.
+
+Written: 2026-05-30
+
+These numbers were scraped from the read-only game install
+(`starsector-core/data/hulls/`) for tuning the scale factor and sanity-checking
+feel. At runtime, hull-derived motion comes from `ShipHullSpecAPI.getEngineSpec()`
+as described by `air-nouns.md`.
+
+Source: Starsector 0.98a-RC8, `ship_data.csv` + `wing_data.csv`. Re-scrape if
+the game version changes.
 
 ## Units
 

@@ -57,13 +57,10 @@ universe over time, not retrofitted into intel slots.
   zone → carrier establishes orbit → timed dropship waves fall through AA into a threat-scaled scatter
   → marines fight; the fleet you bring is the invasion depth, and losing the transport is the stake.
   Remaining: extraction/dustoff + the skybattle feature (the carrier-death source that arms the stake).
-  A third **design-stage** track — [`air/`](air/overview.md) — recaptures
-  vanilla/modded airborne craft (fighters and overhead ships) as sim entities
-  via a shared `ShipHullSpecAPI`-sourced hull-extraction pipeline (kinematics +
-  concave-poly geometry, so modded craft work for free), scaled and re-flavored
-  for ground-scale combat in atmosphere; shuttles are its already-shipped
-  exemplar, and it's the data-model foundation the "flyby fighters as real air
-  entities" backlog item is blocked on.
+  The active Air domain is described by `air-nouns.md`: shuttles already live
+  as composed world entities, fighters already use hull-derived body motion but
+  still await their final flyby-to-world ownership fold, and overhead ships
+  remain a bounded extension of the same mod-aware hull model.
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. The first green-company ladder now ships two Independent jobs:

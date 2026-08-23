@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.air;
 
 /**
- * Per-vehicle-type handling profile. Implementations live on the type enums
- * ({@code ShuttleType}, eventually {@code FighterType}) so an {@link AirBody}
- * holds a reference to its type's profile and looks up tunables each tick.
+ * Per-craft handling profile. Shuttle profiles live on {@code ShuttleType};
+ * fighters use hull-derived implementations from {@code HullKinematics}. The
+ * steering caller supplies a profile alongside the {@link AirBody} each tick.
  *
  * <p>Units are cells-per-second and degrees-per-second so the numbers stay in
  * the same space as the rest of the battle sim. Lateral / station damping are
