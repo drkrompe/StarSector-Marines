@@ -4,7 +4,7 @@
 
 **Written:** 2026-08-23
 
-**Updated:** 2026-08-23 — elastic fireteam tempo and stable fire acquisition follow-up
+**Updated:** 2026-08-23 — bound lost-contact HOLD so stale beliefs cannot plant an advance
 
 ## The player-visible story
 
@@ -195,6 +195,12 @@ bounded rate, while firing mechanics remain independent of sprite alignment.
 The selected-squad panel and durable dump expose registration time and the last
 fire gate so a non-firing squad can be diagnosed without guessing from motion.
 
+A remembered contact continues to guide awareness, facing, and acquisition,
+but it cannot hard-stop an advancing squad for the belief's full lifetime.
+Doctrine-only HOLD retains a one-second reaction window after direct LOS is
+lost; after that, the squad resumes its objective unless a live route threat,
+must-hold order, or another tactical authority still calls for the stop.
+
 ### Acceptance
 
 - In open terrain, ordinary advance releases fireteams in stable spatial
@@ -214,6 +220,9 @@ fire gate so a non-firing squad can be diagnosed without guessing from motion.
   facing alignment does not become a new fire gate.
 - Selected-squad and dump diagnostics expose reflex target/timer and the most
   recent fire result or rejection gate in test-covered output.
+- Lost contact cannot leave every member settled without a path on an
+  objective advance until the full belief expires; selected-squad detail and
+  the dump expose whether the short HOLD reaction window is still active.
 
 ## Parked follow-ons
 

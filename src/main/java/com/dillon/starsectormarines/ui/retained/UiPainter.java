@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.ui.retained;
 
-import com.dillon.starsectormarines.ui.BitmapFont;
-import com.dillon.starsectormarines.ui.retained.style.StyleResolver;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.opengl.Display;
 
@@ -43,7 +41,7 @@ final class UiPainter {
     private static final Color SCROLL_THUMB = new Color(0xC8, 0xD0, 0xD8, 0xA6);
 
     void paint(UiElement root, UiViewport viewport, float alphaMult,
-               CanvasRegistry canvases, StyleResolver styles) {
+               CanvasRegistry canvases, UiTextMeasurer text) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT
                 | GL_LINE_BIT | GL_TEXTURE_BIT | GL_SCISSOR_BIT);
         try {
@@ -52,7 +50,7 @@ final class UiPainter {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_SCISSOR_TEST);
             Rect viewportClip = new Rect(0f, 0f, viewport.width(), viewport.height());
-            paintElement(root, viewport, alphaMult, viewportClip, canvases, styles);
+            paintElement(root, viewport, alphaMult, viewportClip, canvases, text);
         } finally {
             glUseProgram(0);
             glPopAttrib();
@@ -61,7 +59,7 @@ final class UiPainter {
 
     private void paintElement(UiElement element, UiViewport viewport, float alphaMult,
                               Rect inheritedClip, CanvasRegistry canvases,
-                              StyleResolver styles) {
+                              UiTextMeasurer text) {
         if (inheritedClip.width() <= 0f || inheritedClip.height() <= 0f) return;
         float elementAlpha = combinedAlpha(alphaMult, element);
         if (elementAlpha <= 0f) return;
@@ -78,16 +76,16 @@ final class UiPainter {
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         applyClip(viewport, childClip);
-        BitmapFont font = styles.fontFor(element);
-        if (font != null && element.text() != null && element.textColor() != null
+        UiTextMeasurer.Measurement measured = text.measure(element);
+        if (measured.font() != null && element.text() != null && element.textColor() != null
                 && childClip.width() > 0f && childClip.height() > 0f) {
-            Rect content = element.box().contentBox();
-            font.drawString(element.text(), viewport.screenXFor(content.x()),
-                    viewport.screenTopFor(content.y()), element.textColor(), elementAlpha);
+            Rect line = text.lineBox(element, measured);
+            measured.font().drawString(element.text(), viewport.screenXFor(line.x()),
+                    viewport.screenTopFor(line.y()), element.textColor(), elementAlpha);
         }
         paintCanvas(element, viewport, elementAlpha, childClip, canvases);
         for (UiElement child : element.children()) {
-            paintElement(child, viewport, elementAlpha, childClip, canvases, styles);
+            paintElement(child, viewport, elementAlpha, childClip, canvases, text);
         }
         if (element.focusVisible() && element.focusOutlineColor() != null
                 && element.focusOutlineWidth() > 0f) {

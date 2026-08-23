@@ -61,6 +61,16 @@ class SquadPlanDebugPanelTest {
     }
 
     @Test
+    void selectedSquadShowsWhetherDoctrineHoldCanStillStopMovement() {
+        BattleSimulation sim = openSim();
+        Squad squad = new Squad(9, Faction.MARINE);
+        squad.contactPicture = picture(1f, 0f, Doctrine.HOLD);
+
+        assertEquals("Hold stop ACTIVE   Evidence 0t/30t",
+                SquadPlanDebugPanel.holdReactionSummary(squad, sim));
+    }
+
+    @Test
     void tacticalAxisIsAbsentWhenThePictureHasNoDirection() {
         Squad squad = new Squad(8, Faction.MARINE);
         squad.contactPicture = SquadContactPicture.NONE;
@@ -70,12 +80,7 @@ class SquadPlanDebugPanelTest {
 
     @Test
     void selectedFireSummaryExposesRegistrationCooldownAndLastGate() {
-        NavigationGrid grid = new NavigationGrid(20, 12);
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
-        }
-        BattleSimulation sim = new BattleSimulation(grid,
-                new CellTopology(grid.getWidth(), grid.getHeight()));
+        BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
         long member = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
@@ -89,6 +94,15 @@ class SquadPlanDebugPanelTest {
 
         assertEquals("Fire Ready 0   Reg 1   CD 1   Last REGISTERING 0t",
                 SquadPlanDebugPanel.fireSummary(squad, sim));
+    }
+
+    private static BattleSimulation openSim() {
+        NavigationGrid grid = new NavigationGrid(20, 12);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid,
+                new CellTopology(grid.getWidth(), grid.getHeight()));
     }
 
     private static SquadContactPicture picture(float axisX, float axisY,
