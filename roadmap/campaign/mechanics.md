@@ -368,7 +368,7 @@ status quo paying. Both are valid, both have rep consequences.
 
 ## Followup docs
 
-- [`contracts/overview.md`](contracts/overview.md) — contract-type
+- `contracts-nouns.md` — contract-type
   specifications, how each rank-tier maps to which contracts appear,
   salvage/payment/time terms.
 - `infrastructure-nouns.md` — future location-bound investments and their

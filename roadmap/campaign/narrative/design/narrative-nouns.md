@@ -50,7 +50,7 @@ officer's frame with the patron register, and renders it through the existing
 briefing surfaces. The same frozen facts can ground after-action observation
 without turning either surface into a political simulator.
 
-`contracts/overview.md` owns commercial terms and terminal outcomes;
+`contracts-nouns.md` owns commercial terms and terminal outcomes;
 `mechanics.md` owns houses and archetype identity; `living-world` owns political
 and Chronicle truth; `moral-compass.md` owns hidden moral facts. Narrative owns
 only their truthful, bounded presentation. Longer patron arcs, anomaly events,

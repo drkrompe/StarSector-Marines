@@ -28,7 +28,7 @@ import java.util.EnumSet;
  *       cleared, FAILED otherwise.</li>
  * </ul>
  *
- * <p>See <code>roadmap/campaign/contracts/overview.md</code> §"Lifecycle".
+ * <p>See <code>roadmap/campaign/contracts/design/contracts-nouns.md</code>.
  */
 public final class ContractLifecycleSystem implements CampaignSystem {
 
