@@ -486,7 +486,7 @@ public final class TacticalScoring {
         MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
         float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult() : 0.3f;
         float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
-                ? world.secondaryWeapon(self).vsTurretMult : 0f;
+                ? world.secondaryWeapon(self).vsTurretMult() : 0f;
         float bestMult = Math.max(primary, secondary);
         return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
     }
@@ -528,7 +528,7 @@ public final class TacticalScoring {
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public boolean canRocketTarget(long shooter, long target) {
+    public boolean canSpecialTarget(long shooter, long target) {
         World world = roster.world();
         return isHardened(roster.identity().type(target))
                 && world.hasSecondaryWeapon(shooter)
@@ -544,9 +544,9 @@ public final class TacticalScoring {
      * to close to rifle range before firing.
      */
     public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
-        if (canRocketTarget(shooter, target)) {
+        if (canSpecialTarget(shooter, target)) {
             World world = roster.world();
-            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range);
+            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range());
         }
         return shooterAttackRange;
     }
@@ -568,12 +568,17 @@ public final class TacticalScoring {
      * re-checking on a later tick (after his own cooldown) isn't blocked by
      * his own prior contribution.
      */
-    public boolean shouldCommitRocket(long shooter, long target) {
+    public boolean shouldCommitSpecial(long shooter, long target) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        return projectedRocketDamageOnTarget(shooter, target)
+        return projectedSpecialDamageOnTarget(shooter, target)
                 < world.hp(target);
+    }
+
+    /** Compatibility name retained for focused rocket tests and older callers. */
+    public boolean shouldCommitRocket(long shooter, long target) {
+        return shouldCommitSpecial(shooter, target);
     }
 
     /**
@@ -593,7 +598,7 @@ public final class TacticalScoring {
      * the faction match. The squad-aim-window pre-fire half above remains
      * squadId-gated so a sibling squad's pre-launch aim isn't double-counted.
      */
-    private float projectedRocketDamageOnTarget(long shooter, long target) {
+    private float projectedSpecialDamageOnTarget(long shooter, long target) {
         World world = roster.world();
         float total = 0f;
         if (roster.squad().hasSquad(shooter)) {
@@ -606,7 +611,7 @@ public final class TacticalScoring {
                 if (world.secondaryActionTimer(u) <= 0f) continue;
                 if (world.secondaryAimTargetId(u) != target) continue;
                 MarineSecondary sw = world.secondaryWeapon(u);
-                total += sw.damage * sw.vsTurretMult;
+                total += sw.damage() * sw.vsTurretMult();
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
@@ -629,6 +634,12 @@ public final class TacticalScoring {
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
                 total += det.damage * det.vsTurretMult;
             }
+        }
+        for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
+            if (impact.marineSecondary == null || impact.victimId != target) continue;
+            if (!roster.isAliveById(impact.shooterId)) continue;
+            if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
+            total += impact.damage * impact.vsTurretMult;
         }
         return total;
     }
@@ -1036,7 +1047,7 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float maxWeaponReach = world.attackRange(self);
         if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
-            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range);
+            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range());
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         LongBucket scratch = new LongBucket();

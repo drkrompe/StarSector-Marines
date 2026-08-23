@@ -14,6 +14,8 @@ public final class LayeredAppearance {
     public static final int POSE_FIRING = 2;
     public static final int POSE_ROCKET_AIM = 3;
     public static final int POSE_ROCKET_FIRE = 4;
+    public static final int POSE_AMR_AIM = 5;
+    public static final int POSE_AMR_FIRE = 6;
 
     public static final int FLAG_MOVING = 1;
     public static final int FLAG_MUZZLE_FLASH = 1 << 1;
@@ -74,9 +76,11 @@ public final class LayeredAppearance {
 
     /** Small backward kick along a weapon's local axis, expressed in sw. */
     public static float recoilSw(int pose, float phase) {
-        if (pose != POSE_FIRING && pose != POSE_ROCKET_FIRE) return 0f;
+        if (pose != POSE_FIRING && pose != POSE_ROCKET_FIRE
+                && pose != POSE_AMR_FIRE) return 0f;
         float t = Math.max(0f, Math.min(1f, phase));
-        float peak = pose == POSE_ROCKET_FIRE ? 0.055f : 0.025f;
+        float peak = pose == POSE_ROCKET_FIRE ? 0.055f
+                : pose == POSE_AMR_FIRE ? 0.04f : 0.025f;
         return peak * (float) Math.sin(t * Math.PI);
     }
 

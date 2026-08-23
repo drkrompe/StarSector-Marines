@@ -1302,7 +1302,7 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "SECONDARY",
                 x + 104f, secondaryY + 66f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                soldier.secondary() != null ? soldier.secondary().displayName : "Empty slot",
+                soldier.secondary() != null ? soldier.secondary().displayName() : "Empty slot",
                 x + 104f, secondaryY + 36f,
                 soldier.secondary() != null ? GOOD : MUTED));
         boolean secondaryCanRemove = editable && soldier.secondary() != null;
@@ -1599,7 +1599,7 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new SelectableRowWidget(x, y, w, h, selected, !unlocked,
                 () -> selectSpecialRow(secondary, unlocked)));
         widgets.add(new SpriteThumbWidget(secondaryIcon(secondary), x + 8f, y + 5f, 58f, h - 10f));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName,
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName(),
                 x + 76f, y + h - 9f, unlocked ? HEADER : MUTED));
         boolean installed = soldier != null && soldier.secondary() == secondary;
         boolean canEquip = !installed && soldier != null
@@ -1612,7 +1612,7 @@ public final class ArmoryScreen implements Screen {
         boolean canPrint = armory.canPrintSecondary(secondary);
         addButton(x + w - 31f, y + 5f, 24f, 24f, "+", canPrint ? () -> {
             loadoutSucceeded = armory.printSecondary(secondary);
-            loadoutFeedback = loadoutSucceeded ? secondary.displayName + " fabricated"
+            loadoutFeedback = loadoutSucceeded ? secondary.displayName() + " fabricated"
                     : "Insufficient materials";
             rebuild();
         } : null, canPrint ? VALUE : MUTED);
@@ -1817,7 +1817,7 @@ public final class ArmoryScreen implements Screen {
         MarineSoldier soldier = selectedSoldier();
         MarineSecondary secondary = browsedSecondary;
         boolean unlocked = roster.armory().isSecondaryUnlocked(secondary);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName,
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName(),
                 x + 190f, top - 48f, VALUE));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 "Limited-ammunition support weapon", x + 190f, top - 76f, MUTED));
@@ -1830,20 +1830,20 @@ public final class ArmoryScreen implements Screen {
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
         float y = top - 368f;
-        addStatRow("DAMAGE", fmt(secondary.damage), secondary.damage / 18f,
+        addStatRow("DAMAGE", fmt(secondary.damage()), secondary.damage() / 42f,
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
-        addStatRow("RANGE", Integer.toString(Math.round(secondary.range)), secondary.range / 32f,
+        addStatRow("RANGE", Integer.toString(Math.round(secondary.range())), secondary.range() / 38f,
                 labelX, barX, y, barW, RANGE_BAR);
         y -= 30f;
-        addStatRow("ACCURACY", pct(secondary.accuracy), secondary.accuracy,
+        addStatRow("ACCURACY", pct(secondary.accuracy()), secondary.accuracy(),
                 labelX, barX, y, barW, ACCURACY_BAR);
         y -= 30f;
-        addStatRow("ANTI-ARMOR", fmt(secondary.vsTurretMult) + "x",
-                secondary.vsTurretMult / 3.5f, labelX, barX, y, barW, DPS_BAR);
+        addStatRow("ANTI-ARMOR", fmt(secondary.vsTurretMult()) + "x",
+                secondary.vsTurretMult() / 3.5f, labelX, barX, y, barW, DPS_BAR);
         y -= 30f;
-        addStatRow("AMMUNITION", Integer.toString(secondary.startingAmmo),
-                secondary.startingAmmo / 3f, labelX, barX, y, barW, VALUE);
+        addStatRow("AMMUNITION", Integer.toString(secondary.startingAmmo()),
+                secondary.startingAmmo() / 4f, labelX, barX, y, barW, VALUE);
     }
 
     private void buildSquadList(float x, float top, float bottom) {
@@ -2249,8 +2249,8 @@ public final class ArmoryScreen implements Screen {
 
     private void equipSecondary(MarineSoldier soldier, MarineSecondary secondary) {
         loadoutSucceeded = roster.allocateSecondary(soldier.id(), secondary);
-        loadoutFeedback = loadoutSucceeded ? secondary.displayName + " equipped"
-                : "No unassigned launcher available";
+        loadoutFeedback = loadoutSucceeded ? secondary.displayName() + " equipped"
+                : "No unassigned special item available";
         clearDoubleClick();
         rebuild();
     }
@@ -2316,10 +2316,7 @@ public final class ArmoryScreen implements Screen {
     }
 
     private static String secondaryIcon(MarineSecondary secondary) {
-        return switch (secondary) {
-            case ROCKET_LAUNCHER ->
-                    "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png";
-        };
+        return secondary.armoryIconPath();
     }
 
     private static String weaponFlavor(MarineWeapon weapon) {
@@ -2359,6 +2356,8 @@ public final class ArmoryScreen implements Screen {
         return switch (secondary) {
             case ROCKET_LAUNCHER -> "An Annihilator-pattern disposable tube cluster. Fire teams carry it for "
                     + "hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe.";
+            case ANTI_MATERIEL_RIFLE -> "The Breachlight braces a magnetic heavy round through armor seams "
+                    + "without endangering friendlies nearby. It carries four shots and cannot breach walls.";
         };
     }
 

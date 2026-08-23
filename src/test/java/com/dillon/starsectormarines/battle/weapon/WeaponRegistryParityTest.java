@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.weapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -40,9 +41,41 @@ class WeaponRegistryParityTest {
             assertSame(MountClass.MARINE_PRIMARY, weapon.def().mount,
                     weapon + " is a marine primary");
         }
-        assertEquals(MarineWeapon.values().length, WeaponRegistry.installed().size(),
-                "the catalog holds exactly the shipped primaries; a stray entry means "
-                        + "the JSON and the enum have diverged");
+        for (MarineSecondary weapon : MarineSecondary.values()) {
+            assertNotNull(weapon.def(), weapon + " must resolve through the registry");
+            assertTrue(ids.add(weapon.def().id), "duplicate id " + weapon.def().id);
+            assertSame(MountClass.MARINE_SECONDARY, weapon.def().mount,
+                    weapon + " is weapon-like special equipment");
+        }
+        assertEquals(MarineWeapon.values().length + MarineSecondary.values().length,
+                WeaponRegistry.installed().size(),
+                "the catalog holds exactly the shipped handheld weapons");
+    }
+
+    @Test
+    void rocketMigrationPreservesItsShippedValues() {
+        MarineSecondary rocket = MarineSecondary.ROCKET_LAUNCHER;
+        assertEquals(32f, rocket.range(), EPS);
+        assertEquals(162f, rocket.damage(), EPS);
+        assertEquals(0.85f, rocket.accuracy(), EPS);
+        assertEquals(3.5f, rocket.vsTurretMult(), EPS);
+        assertEquals(1.5f, rocket.aoeRadius(), EPS);
+        assertEquals(50, rocket.wallDamage());
+        assertEquals(0.65f, rocket.aimDuration(), EPS);
+        assertSame(ImpactProfile.HE, rocket.impactProfile());
+    }
+
+    @Test
+    void antiMaterielRifleIsPreciseRegistryOwnedHeavyFire() {
+        MarineSecondary amr = MarineSecondary.ANTI_MATERIEL_RIFLE;
+        assertEquals("weapon.anti-materiel-rifle", amr.def().id);
+        assertEquals(4, amr.startingAmmo());
+        assertTrue(amr.range() > MarineWeapon.DMR.range());
+        assertTrue(amr.vsTurretMult() > 1f);
+        assertEquals(0f, amr.aoeRadius(), EPS);
+        assertEquals(0, amr.wallDamage());
+        assertNull(amr.projectileSpritePath());
+        assertSame(ImpactProfile.KINETIC, amr.impactProfile());
     }
 
     @Test

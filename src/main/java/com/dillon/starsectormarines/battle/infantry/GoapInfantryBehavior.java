@@ -93,7 +93,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                                            boolean permitsOpportunityFire) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
-        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
+        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
         return true;
     }
 

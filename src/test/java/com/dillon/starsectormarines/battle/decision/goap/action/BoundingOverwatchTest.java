@@ -222,7 +222,7 @@ public class BoundingOverwatchTest {
         long marine = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 10, 15));
         sim.world().attachSecondaryWeapon(marine, MarineSecondary.ROCKET_LAUNCHER,
-                MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
+                MarineSecondary.ROCKET_LAUNCHER.startingAmmo());
         sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
                 TurretKind.VULCAN, 20, 15));
 
