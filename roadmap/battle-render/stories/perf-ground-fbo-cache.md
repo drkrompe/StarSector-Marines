@@ -1,7 +1,7 @@
 # Perf spike — FBO-cache the static ground layer
 
 > **Status: design-stage / superseded as the bake vehicle.** Follow-up to
-> [`perf-quadbatch-flush.md`](perf-quadbatch-flush.md). The goal (stop
+> `perf-quadbatch-flush.md`. The goal (stop
 > re-emitting static ground) still stands; the *surface* should not be one
 > world-sized FBO. The contracted architecture, when we pick this up, is
 > per-tile residency:

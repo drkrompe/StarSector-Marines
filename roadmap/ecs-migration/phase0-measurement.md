@@ -3,7 +3,7 @@
 > **Status: DONE (2026-06-29).** This is the artifact the
 > [`systems-to-columns`](stories/systems-to-columns.md) epic is gated on — the
 > answer to "nobody knows which world we're in. Find out first." The harness is
-> [`EcsAccessBenchTest`](../../src/test/java/com/dillon/starsectormarines/battle/component/EcsAccessBenchTest.java);
+> `EcsAccessBenchTest`;
 > the verdict is below.
 
 ## What was measured

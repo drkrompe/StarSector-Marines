@@ -125,11 +125,11 @@ Each slice leaves the game working.
 
 | # | Story | What it lands |
 | --- | --- | --- |
-| 0 | [`slice-0-cost-and-clearance`](stories/slice-0-cost-and-clearance.md) | `TerrainCostField` (GroundKind→cost) + `VehicleClearance` (eroded mask). Pure, unit-tested against hand-built fixtures. Not wired. |
-| 1 | [`slice-1-route-planner`](stories/slice-1-route-planner.md) | `VehicleRoutePlanner`: cost-weighted grid A\* over the clearance mask + clearance-aware string-pull → polyline. `GridPathfinder` cost-array overload. Unit-tested standalone. Not wired. |
-| 2 | [`slice-2-wire-spawn`](stories/slice-2-wire-spawn.md) | Swap `ConvoyMeans` + `BattleSetup` route construction to the cost router; cell-based entry/exit. Corridor stack untouched. **Vehicles route off-road here.** Playtest. |
-| 3 | [`slice-3-retire-roadgraph`](stories/slice-3-retire-roadgraph.md) | Audit RoadGraph consumers; delete the now-dead graph routing (`planPath`/`expandToWaypoints`/`pickExitNode`, `RoadGraphBuilder`, `RoadGraph`) if unused. |
-| 4 | [`slice-4-tune`](stories/slice-4-tune.md) | Cost weights per `GroundKind`, erosion radius, string-pull aggressiveness, optional cost-aware pull. Playtest pass; may fold into navigation-rework slice 4. |
+| 0 | `slice-0-cost-and-clearance.md` | `TerrainCostField` (GroundKind→cost) + `VehicleClearance` (eroded mask). Pure, unit-tested against hand-built fixtures. Not wired. |
+| 1 | `slice-1-route-planner.md` | `VehicleRoutePlanner`: cost-weighted grid A\* over the clearance mask + clearance-aware string-pull → polyline. `GridPathfinder` cost-array overload. Unit-tested standalone. Not wired. |
+| 2 | `slice-2-wire-spawn.md` | Swap `ConvoyMeans` + `BattleSetup` route construction to the cost router; cell-based entry/exit. Corridor stack untouched. **Vehicles route off-road here.** Playtest. |
+| 3 | `slice-3-retire-roadgraph.md` | Audit RoadGraph consumers; delete the now-dead graph routing (`planPath`/`expandToWaypoints`/`pickExitNode`, `RoadGraphBuilder`, `RoadGraph`) if unused. |
+| 4 | `slice-4-tune.md` | Cost weights per `GroundKind`, erosion radius, string-pull aggressiveness, optional cost-aware pull. Playtest pass; may fold into navigation-rework slice 4. |
 
 ### Why this order
 

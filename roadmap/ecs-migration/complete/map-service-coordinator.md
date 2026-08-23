@@ -16,11 +16,11 @@
 
 `NavigationService` currently owns map-mutation behavior that isn't
 navigation. `damageWall`, `destroyRoof`, `peelRoofAround`, and
-`flipCellToRubble` ([`NavigationService.java`](../../../src/main/java/com/dillon/starsectormarines/battle/nav/NavigationService.java))
+`flipCellToRubble` (`NavigationService.java`)
 write **topology** state — wall tags, `GroundKind.RUBBLE`, `ROOF_DESTROYED`
 — through `CellTopology`, which is a pure per-cell data holder (arrays +
 typed getters/setters, no behavior beyond the `tagDefaultWalls` bulk
-sweep — see [`CellTopology.java`](../../../src/main/java/com/dillon/starsectormarines/battle/map/CellTopology.java)).
+sweep — see `CellTopology.java`).
 So the topology-mutation *logic* lives one class away from the topology
 *data*, on the navigation service, because the same operations also flip
 grid walkability and the zone-graph dirty flag (which genuinely are nav's).

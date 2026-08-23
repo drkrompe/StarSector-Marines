@@ -16,7 +16,8 @@ unrelated jobs:
 And #3 is itself two tangled things: the **ordered list of passes**
 (orchestration) and **each pass's pull-from-sim + geometry/sprite logic**.
 
-This is the render-side mirror of [`battle-reorg/`](../battle-reorg/): the same
+This is the render-side mirror of the (completed, since-retired) battle-reorg
+track: the same
 move toward services + stateless systems, with the north star that
 `BattleScreen` becomes *just the loop* and `render()` becomes *just the layer
 drain*.
@@ -118,7 +119,7 @@ command model, using SHOTS/FX as the worked template: apply Story J's flyweight
 split stateful FX (contrail lifecycle) into services. FBO blits (decals)
 *stay* `Custom` — the goal is that every `Custom` is a genuine own-GL
 escape, not geometry hiding from the drain. Design + slices:
-[`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
+`fx-shots-command-model.md`.
 
 ## Future: dense render tiles (not queued)
 
@@ -229,8 +230,10 @@ machinery is sim-tier work gated behind Phase 2.
 
 - `ops/BattleScreen.java` — the god class being decomposed.
 - `render2d/` — the primitive batch/accumulator layer (stays put).
-- [`battle-reorg/`](../battle-reorg/) — the sim-side sibling; same
-  services/systems north star.
+- The battle-reorg track — the sim-side sibling; same services/systems
+  north star. Its docs were dropped when it shipped (`a86e6c45`); the
+  per-package charters it produced live on in the `battle/`
+  `package-info.java` files.
 - [`air/`](../air/overview.md) — depends on the camera-Z direction above for
   airborne-craft altitude and true zoom-out.
 - Memory: "Battle services + systems", "Default to ECS shape", "Script

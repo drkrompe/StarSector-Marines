@@ -7,7 +7,7 @@
 
 ## Why this is the first persistence-heavy system
 
-[`MarineRosterScript`](../../src/main/java/com/dillon/starsectormarines/marine/MarineRosterScript.java)
+`MarineRosterScript`
 already persists a captain list through Starsector's xstream
 serialization. The houses graph is a different scale of state:
 hundreds of entities with relationship edges, simulated every campaign
@@ -319,7 +319,7 @@ exist only to be *discovered*.
 - Random mission reward ("during the raid, you encountered an
   unusual prisoner...")
 - Captain `Trait.SCOUT`
-  ([`Trait.java`](../../src/main/java/com/dillon/starsectormarines/marine/Trait.java))
+  (`Trait.java`)
   ops increase per-mission discovery rolls.
 - Story missions that surface specific heirs (handcrafted; CK3's
   "secret child" events).
@@ -362,7 +362,7 @@ status quo paying. Both are valid, both have rep consequences.
 7. **Captain ↔ house binding** — captains accrue per-house reputation
    (per economy.md). Stored as a sixth table, or as a per-captain
    `Map<houseId, rep>` field on
-   [`MarineCaptain`](../../src/main/java/com/dillon/starsectormarines/marine/MarineCaptain.java)?
+   `MarineCaptain`?
    Per-captain field is simpler and rides existing serialization;
    sixth table is more SoA-uniform.
 

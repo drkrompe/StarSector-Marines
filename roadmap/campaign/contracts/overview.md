@@ -215,7 +215,7 @@ ABANDONED`. Encoded as a `byte` on the `contracts[]` SoA row.
 ## `contracts[]` — sixth SoA table
 
 Per [`../architecture.md`](../architecture.md) §1, this becomes the sixth
-table in [`CampaignState`](../../../src/main/java/com/dillon/starsectormarines/campaign/CampaignState.java).
+table in `CampaignState`.
 Skeleton columns:
 
 ```

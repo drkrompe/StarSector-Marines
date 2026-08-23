@@ -19,7 +19,7 @@ endgame), because a live unit would then *always* be registered.
 
 This story subsumes the old Phase-A Slice 3 (corpse handling) — the corpse
 home is the enabler — and is the concrete form of the "event-driven death
-emit" the [`UnitRegistry`](../../../src/main/java/com/dillon/starsectormarines/battle/unit/UnitRegistry.java)
+emit" the `UnitRegistry`
 javadoc flagged as future work.
 
 ## Goal
