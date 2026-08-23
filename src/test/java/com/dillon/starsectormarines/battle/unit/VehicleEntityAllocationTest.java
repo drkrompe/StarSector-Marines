@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Phase-1 foundation of the convoy-{@code Vehicle}-into-world epic
- * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}), mirroring
+ * ({@code ecs-nouns.md}), mirroring
  * {@link AirEntityAllocationTest}: {@link UnitRosterService#allocateVehicle} mints
  * a ground-vehicle entity from the SINGLE id authority (shared with ground
  * {@link UnitRosterService#spawn} and air {@link UnitRosterService#allocateAir},

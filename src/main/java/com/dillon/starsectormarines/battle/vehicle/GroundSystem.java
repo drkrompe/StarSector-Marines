@@ -172,7 +172,7 @@ public class GroundSystem {
      * {@code destroy} is idempotent). Bounds the list to live vehicles and covers any
      * terminal path in one place. Safe to remove from the list now that selection is
      * id-keyed (not a positional index), so removal shifts nothing — see the Phase-2
-     * critique in {@code roadmap/ecs-migration/stories/vehicle-into-world.md}.
+     * ownership contract in {@code ecs-nouns.md}.
      */
     private void reapGoneVehicles() {
         for (Iterator<Long> it = vehicleIds.iterator(); it.hasNext(); ) {

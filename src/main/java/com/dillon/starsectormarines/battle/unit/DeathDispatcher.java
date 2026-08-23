@@ -14,8 +14,8 @@ import java.util.function.Consumer;
  * <p>Decoupling the death reaction from the death <em>site</em>
  * ({@code DamageResolver}) is the point: new post-death behavior attaches as a
  * handler, never as another edit to the resolve god-method. It also keeps the
- * dense {@link UnitRosterService} strictly live-only — the spine of the
- * {@code retire-legacy-units-list} migration.
+ * dense {@link UnitRosterService} strictly live-only while corpse state remains
+ * in the entity world. See {@code ecs-nouns.md}.
  *
  * <h2>Buffered, not synchronous</h2>
  *

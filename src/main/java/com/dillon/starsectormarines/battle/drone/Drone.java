@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  * {@code pursuitTimer}/{@code homeHubId}) lives in the world {@code DRONE_STATE}
  * component (data owner {@code battle.sim.DroneStateService}); {@link #create}
  * seeds {@code homeHubId} via {@link EntitySpec#homeHubId}. See
- * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B3).
+ * {@code ecs-nouns.md}.
  */
 public final class Drone {
 

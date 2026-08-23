@@ -15,6 +15,6 @@
  *           <em>write-only</em> presentation, distinct from the real
  *           {@code facingDegrees} steer-state on air/vehicle bodies.
  *
- * <p>See {@code roadmap/ecs-migration/stories/live-appearance.md}.
+ * <p>See {@code ecs-nouns.md}.
  */
 package com.dillon.starsectormarines.battle.appearance;

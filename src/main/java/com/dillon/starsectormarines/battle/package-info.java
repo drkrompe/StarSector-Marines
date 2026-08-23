@@ -83,8 +83,7 @@
  *       in {@code combat/}; the {@code Mech*} role/loadout config lives in
  *       {@code mech/}.</li>
  *   <li><b>Services own state; Systems are stateless tick consumers.</b> See
- *       {@code roadmap/ecs-migration/overview.md} for how that state is
- *       stored.</li>
+ *       {@code ecs-nouns.md} for how that state is stored.</li>
  * </ol>
  *
  * <p>A new top-level subpackage gets a {@code package-info.java} stating its

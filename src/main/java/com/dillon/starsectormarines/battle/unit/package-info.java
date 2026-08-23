@@ -14,14 +14,11 @@
  *           the live registry. An entity is a bare {@code long} id: the roster
  *           holds a dense {@code long[]}, and every per-unit datum lives in the
  *           {@code EntityWorld}'s id-keyed component columns (reached via the
- *           {@code World} facade / per-component Services). The identity-collapse
- *           epic deleted the old {@code Entity} handle — {@code entity = id} holds
- *           at every layer. (A {@code unit/} → {@code entity/} package rename is
- *           now unblocked but not yet done — deferred as a pure move.)
+ *           {@code World} facade / per-component Services). There is no separate
+ *           entity handle: {@code entity = id} holds at every layer.
  *           Field-lifecycle docs on the {@code UnitRosterService} columns are
  *           mandated, not optional.
  *
- * <p>See {@link com.dillon.starsectormarines.battle} and
- * {@code roadmap/ecs-migration/overview.md}.
+ * <p>See {@link com.dillon.starsectormarines.battle} and {@code ecs-nouns.md}.
  */
 package com.dillon.starsectormarines.battle.unit;

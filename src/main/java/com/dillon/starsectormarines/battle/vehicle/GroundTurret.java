@@ -12,7 +12,7 @@ package com.dillon.starsectormarines.battle.vehicle;
  *
  * <p>Extracted from {@code Vehicle}'s former inline {@code turret*} fields in the
  * convoy-{@code Vehicle}-into-world epic
- * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}). During the aliasing
+ * ({@code ecs-nouns.md}). During the aliasing
  * phase the same instance is held by both the {@code Vehicle} handle and the
  * {@code GROUND_TURRET} column.
  */

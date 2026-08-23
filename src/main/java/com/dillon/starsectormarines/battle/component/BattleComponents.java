@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  *
  * <p>Components are grouped by lifecycle-stable capability (Identity persists
  * alive→dead; Health is live-only), per the committed decomposition in
- * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
+ * {@code ecs-nouns.md}. Registered capabilities include the
  * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
  * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #MOVEMENT},
  * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), the universal {@link #VISION}
@@ -399,7 +399,7 @@ public final class BattleComponents {
      * seed-only, the rest are mid-combat scalars that start at zero. Removed in the corpse transmute (a corpse does not fight),
      * so a live combatant is {@code {IDENTITY, POSITION, HEALTH, COMBAT}}. The
      * optional <em>secondary</em> weapon is a separate presence component, not a
-     * field here — see {@code roadmap/ecs-migration/archetype-storage.md}.
+     * field here — see {@code ecs-nouns.md}.
      *
      * <p><b>Fire-intent (consume-once):</b> {@code long fireTargetId; int
      * fireStance; int fireReposition}. A behavior that decides to shoot writes
@@ -412,7 +412,7 @@ public final class BattleComponents {
      * battle.combat.FiringSystem} consumes the intent every tick (clearing
      * {@code fireTargetId} whether or not it fired) and applies the uniform
      * cooldown/range/LoS execution gate. See
-     * {@code roadmap/ecs-migration/stories/firing-system.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType COMBAT;
     /**
@@ -443,7 +443,7 @@ public final class BattleComponents {
      * and destination-index rebuilds) gate on {@code World.hasMovement};
      * per-unit movement code only ever runs for movers. Removed in the corpse
      * transmute (a corpse does not move). See
-     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType MOVEMENT;
     /**
@@ -462,7 +462,7 @@ public final class BattleComponents {
      * ({@code HitResponseSystem}) gate on {@code World.hasAiState};
      * per-unit decision code only ever runs for thinkers. Removed in the corpse
      * transmute (a corpse does not think). See
-     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType AI_STATE;
     /**
@@ -477,7 +477,7 @@ public final class BattleComponents {
      * {@code battle.sim.VisionService} (the per-component Service mirroring
      * {@code CombatService}/{@code MovementService}); {@code FogOfWarService}'s
      * shadowcast + the decision/combat LoS checks read these by id off it. See
-     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 3).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType VISION;
     /**
@@ -495,7 +495,7 @@ public final class BattleComponents {
      * fail-loud {@code squadId} read), distinct from the squad <em>objects</em> the
      * roster owns. Removed in the corpse transmute (a corpse is not a squad member;
      * the death cascade reads membership pre-transmute). See
-     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 5).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType SQUAD;
     /**
@@ -513,8 +513,7 @@ public final class BattleComponents {
      * {@code COMBATANT}), so {@code RoleService} carries a live {@code setRole} seam
      * beside the {@code adopt}-time seed from {@code EntitySpec.role}. The data owner
      * is {@code battle.sim.RoleService}; the per-tick dispatch ({@code UnitUpdateSystem})
-     * reads it by id. See {@code roadmap/ecs-migration/stories/entity-field-migration.md}
-     * (slice 6).
+     * reads it by id. See {@code ecs-nouns.md}.
      */
     public final ComponentType ROLE;
     /**
@@ -528,7 +527,7 @@ public final class BattleComponents {
      * squad retreats to a new node) is a serial-phase write on units that already carry
      * HOME. Live-only (a corpse holds no post) — removed on the corpse transmute. Data
      * owner {@code battle.sim.HomeService}. See
-     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 7).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType HOME;
     /**
@@ -547,7 +546,7 @@ public final class BattleComponents {
      * ({@code KitRetrieverBehavior}), which must be a plain field-write, not a structural
      * remove. Live-only (the death cascade reads the task pre-transmute, in resolve()).
      * Data owner {@code battle.sim.TaskService}. See
-     * {@code roadmap/ecs-migration/stories/entity-field-migration.md} (slice 7).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType TASK;
     /**
@@ -560,7 +559,7 @@ public final class BattleComponents {
      * {@code spec} flyweight is weapon-type-agnostic; richer AI may later query
      * it to decide what the unit can do. Removed in the corpse transmute (no-op
      * for units that never had it). See
-     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType SECONDARY_WEAPON;
     /**
@@ -573,7 +572,7 @@ public final class BattleComponents {
      * {@code corpseRemove} mask) — the dead drone is a corpse that also carries
      * {@code CRASHING} while it falls, mirroring how the old {@code ComponentStore}
      * entry outlived the unit's registry release. See
-     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType CRASHING;
     /**
@@ -586,7 +585,7 @@ public final class BattleComponents {
      * off the {@code corpseRemove} mask) so {@code MechWreckSystem} can read the
      * dead mech's loadout to drop a wreck, then detaches it — mirroring how the old
      * {@code ComponentStore} entry outlived the unit's registry release. See
-     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType MECH_LOADOUT;
     /**
@@ -656,7 +655,7 @@ public final class BattleComponents {
      * (whose {@code type} is a concrete
      * {@link com.dillon.starsectormarines.battle.unit.UnitType}). Part of the
      * convoy-{@code Vehicle}-into-world epic
-     * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}).
+     * ({@code ecs-nouns.md}).
      */
     public final ComponentType GROUND_IDENTITY;
     /**
@@ -705,7 +704,7 @@ public final class BattleComponents {
      * see {@code battle.drone.HubDemolitionSystem}'s side-table for the
      * separate {@code demolished} flag, which is not world state). The data
      * owner is {@code battle.sim.HubStateService}. See
-     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B1).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType HUB_STATE;
     /**
@@ -738,7 +737,7 @@ public final class BattleComponents {
      * {@code battle.turret.TurretDemolitionSystem}'s side-table for the
      * separate {@code demolished} flag, which is not world state). The data
      * owner is {@code battle.sim.TurretStateService}. See
-     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B2).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType TURRET_STATE;
     /**
@@ -768,7 +767,7 @@ public final class BattleComponents {
      * patrol — removed in the corpse transmute, unlike {@code KINEMATICS},
      * which rides the transmute so the crash system can read the falling
      * body). The data owner is {@code battle.sim.DroneStateService}. See
-     * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B3).
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType DRONE_STATE;
 
@@ -778,7 +777,7 @@ public final class BattleComponents {
      * ({@link com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent}),
      * seeded at spawn and dropped wholesale at despawn (vehicles never corpse-transmute). The
      * data owner is {@code battle.sim.ConvoyService} ({@code control(id)}). See
-     * {@code roadmap/ecs-migration/stories/vehicle-control-ecs.md}.
+     * {@code ecs-nouns.md}.
      */
     public final ComponentType VEHICLE_CONTROL;
 
@@ -841,7 +840,7 @@ public final class BattleComponents {
      * iff its rows are movers, so a per-table {@code has(MOVEMENT)} check (not a
      * per-row probe) partitions path-reserving movers from cell-claiming statics —
      * the first per-tick combatant-population {@code Query} consumer (the systems
-     * half, {@code roadmap/ecs-migration/stories/systems-to-columns.md}).
+     * half, {@code ecs-nouns.md}).
      */
     public final Query gridOccupants;
 

@@ -20,7 +20,7 @@ import java.util.function.LongConsumer;
  * <p>A <b>System</b> (processor) — it owns no state; the drop list lives on the
  * Service, which this drives each tick. Named {@code *System}, not
  * {@code *Service}, under the Service(data-owner)/System(processor) convention —
- * see {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * see {@code ecs-nouns.md}.
  *
  * <p>Constructor-injected: {@link UnitRosterService} for the dense-registry
  * iteration the pickup + assignment passes do (live marines only), a

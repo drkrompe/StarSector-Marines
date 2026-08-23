@@ -29,7 +29,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * {@code droneSquadId}) lives in the world {@code HUB_STATE} component (data
  * owner {@code battle.sim.HubStateService}); {@link #create} returns a plain
  * {@code Entity} of type {@link UnitType#DRONE_HUB_STRUCTURE} seeded to carry
- * it. See {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B1).
+ * it. See {@code ecs-nouns.md}.
  */
 public final class DroneHub {
 

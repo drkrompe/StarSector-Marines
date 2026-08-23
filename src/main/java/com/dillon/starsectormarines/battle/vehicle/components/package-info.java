@@ -8,6 +8,7 @@
  * <b>Boundary:</b> pure data — no behavior, no sim/service refs; the {@code ComponentType}
  * registration lives in {@code BattleComponents} and the by-id accessors in
  * {@code battle.sim.ConvoyService}.
- * <b>Pointer:</b> {@code roadmap/ecs-migration/stories/vehicle-control-ecs.md}.
+ * <b>Pointer:</b> {@code ecs-nouns.md}; lifecycle acceptance remains in
+ * {@code vehicle-control-lifecycle-playtest.md}.
  */
 package com.dillon.starsectormarines.battle.vehicle.components;

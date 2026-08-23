@@ -19,10 +19,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  *
  * <p>The {@code BattleView} / {@code BattleControl} split mirrors the GOAP
  * thread-safety contract: parallel-replan methods take {@link BattleView}
- * (queries only, can't compile a mutation), the serial {@code execute} takes
- * {@code BattleControl}. Part of the {@code drop-sim-facade-delegators}
- * migration; the mutator surface grows as {@code execute} consumers migrate
- * off the raw {@code BattleSimulation} parameter.
+ * (queries only, can't compile a mutation), while serial {@code execute} takes
+ * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
 public interface BattleControl extends BattleView {
 

@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * is heading to (both nullable OBJECT fields).
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}): it <em>owns</em>
+ * {@code ecs-nouns.md}): it <em>owns</em>
  * a component's data and exposes the methods to read/modify it. A consumer reaches it
  * via {@code sim.task()} / {@code roster.task()} and calls
  * {@code task.assignedObjective(id)} directly — no {@link World} hop.

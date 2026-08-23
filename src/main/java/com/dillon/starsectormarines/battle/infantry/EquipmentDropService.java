@@ -19,7 +19,7 @@ import java.util.List;
  * read ({@link #getEquipmentDrops()}) and mutators ({@link #emitIfApplicable},
  * {@link #removeConsumed()}) for it, per the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <p>Holds {@link UnitRosterService} only for the dying carrier's cell read in
  * {@link #emitIfApplicable}. Sibling slice to {@link UnitRosterService},

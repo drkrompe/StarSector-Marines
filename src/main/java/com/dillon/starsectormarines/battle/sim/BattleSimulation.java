@@ -145,7 +145,7 @@ public class BattleSimulation implements BattleControl {
     /**
      * Consumes the per-tick {@code COMBAT} fire intent behaviors queue
      * instead of firing inline — the FiringSystem proving slice
-     * ({@code roadmap/ecs-migration/stories/firing-system.md}), wired for
+     * ({@code ecs-nouns.md}), wired for
      * {@code EngagePosture} only today. Ticked after the spawn flush and
      * before {@link #infantry}'s burst continuation, so the continuation
      * sees this tick's {@code beginBurst} state exactly as it did when
@@ -183,7 +183,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
     /** Drone-crash system — death-event handler that attaches a {@code CRASHING} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over the world's {@code CRASHING} query. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
-    /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}), owned by the {@link UnitRosterService} (allocate is the spawn seam that adopts ids into it). Every live unit lives here as {@code {IDENTITY, POSITION, HEALTH, COMBAT}} (+ optional movement/ai-state/secondary/mech); death transmutes it to the corpse archetype; the dead-sprite render and the mission resolver walk the corpse columns via {@link #battleComponents}' shared query. Alias assigned in the ctor from the roster service. */
+    /** The battle's transient archetype-table world, shared by ground, air, convoy, corpse, presentation, and reporting entity families. Owned by {@link UnitRosterService}; lifecycle-specific queries come from {@link #battleComponents}. */
     private final EntityWorld entityWorld;
     /** Game component-type registrations + shared queries over {@link #entityWorld}. Alias of the roster service's instance. */
     private final BattleComponents battleComponents;
@@ -197,7 +197,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.mech.MechTurretSystem mechTurretSystem;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
-    /** Entity-access facade — the artemis-shaped by-id read layer over the dense registry (hot primitives) + the sparse component stores (cold projection). Access half of the world-facade endgame; see {@link World}. Constructed in the ctor once the roster + stores exist. */
+    /** Broad by-id entity-access facade over {@link #entityWorld}; focused component owners remain separate Services. */
     private final World world;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
@@ -1428,7 +1428,7 @@ public class BattleSimulation implements BattleControl {
         // drains an empty buffer. The barrier stays here intentionally: its first
         // real consumer is a column-walking system that destroys/transmutes
         // mid-Query-walk and MUST defer (the swap-pop-during-iteration trap). See
-        // roadmap/ecs-migration/stories/systems-to-columns.md § CommandBuffer.
+        // Structural changes flush at the phase barrier described by ecs-nouns.md.
         entityWorld.flush();
         tickProfile.endTick(simTickIndex, tickInnerProfile);
         // Clear the inner-profile slot so any stray call outside the tick

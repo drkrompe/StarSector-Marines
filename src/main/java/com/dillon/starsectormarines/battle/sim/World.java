@@ -14,17 +14,15 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
- * Entity-access facade — the artemis-shaped read layer over the battle's entity
- * storage. The entity is its {@code long} id; you reach its state <em>by id</em>
- * through one receiver, instead of holding an {@code Entity} object that
- * self-routes. This is the access half of the {@code world-facade} endgame (see
- * {@code roadmap/ecs-migration/stories/world-facade.md}).
+ * Entity-access facade over the battle's component storage. The entity is its
+ * {@code long} id; irregular consumers reach state <em>by id</em> through this
+ * receiver or a narrower component service rather than holding an object handle.
+ * See {@code ecs-nouns.md}.
  *
  * <p><b>By-id accessors</b> ({@link #hp}/{@code setHp}, cell, combat, movement, …)
  * read the archetype {@link EntityWorld}'s component columns directly by id — one
- * location probe + column read, <b>zero object construction</b>. This is the sole
- * by-id facade; the dissolved {@code UnitRegistry}'s {@code *ById} adapter layer
- * folded into these methods (migration step 4). Mandatory columns (hp/cell) are
+ * location probe + column read, <b>zero object construction</b>. This is the broad
+ * by-id facade. Mandatory columns (hp/cell) are
  * always present; each optional capability exposes a presence check + typed
  * accessor ({@link #hasSecondaryWeapon}/{@link #secondaryWeapon},
  * {@link #hasMechLoadout}/{@link #mechLoadout}). The field reads are fail-loud
@@ -47,10 +45,9 @@ public final class World {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
-    // World no longer owns COMBAT / MOVEMENT access — it delegates to the
-    // per-component Services (the data owners). Held here only so the legacy
-    // world.<combat/movement>(id) call sites keep working during the incremental
-    // retirement of this facade; new consumers inject the Service directly.
+    // COMBAT and MOVEMENT operations delegate to their component Services, which
+    // own the field invariants. New focused consumers should inject those owners
+    // directly; World remains the broad irregular-access boundary.
     private final CombatService combat;
     private final MovementService movement;
 

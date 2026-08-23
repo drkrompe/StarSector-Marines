@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * squad membership in the archetype {@link EntityWorld}.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}): it <em>owns</em>
+ * {@code ecs-nouns.md}): it <em>owns</em>
  * a component's data and exposes the methods to read/modify it — distinct from a
  * per-tick <b>System</b>, which column-walks every entity matching an aspect. A
  * consumer reaches it via {@code sim.squad()} / {@code roster.squad()} and calls
