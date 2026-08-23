@@ -19,6 +19,7 @@ public final class StyleResolver {
     private final Map<UiElement, List<RunningTransition>> running = new IdentityHashMap<>();
     private UiTheme theme;
     private boolean forceAll = true;
+    private boolean fontAssetsChanged;
 
     public StyleResolver addSheet(StyleSheet sheet) {
         componentSheets.add(Objects.requireNonNull(sheet, "sheet"));
@@ -33,6 +34,7 @@ public final class StyleResolver {
             throw new UiStyleException("Theme replacement must keep the sheet name \""
                     + theme.sheet().name() + "\", not \"" + replacement.sheet().name() + "\".");
         }
+        fontAssetsChanged |= theme != null && !theme.fonts().equals(replacement.fonts());
         theme = replacement;
         invalidate();
         return this;
@@ -77,6 +79,11 @@ public final class StyleResolver {
         }
         ResolveAccumulator result = new ResolveAccumulator();
         resolve(root, null, forceAll, result);
+        if (fontAssetsChanged) {
+            result.layoutChanged = true;
+            result.paintChanged = true;
+            fontAssetsChanged = false;
+        }
         forceAll = false;
         if (result.resolved > 0) prune(root);
         return new ResolveResult(result.resolved, result.layoutChanged, result.paintChanged);

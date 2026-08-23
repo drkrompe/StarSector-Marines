@@ -6,8 +6,9 @@ import org.apache.log4j.Logger;
 /**
  * Higher-level operations on the rank ladder in {@code houses[]} — the
  * promotion-progress + promote step that {@link CampaignState}'s low-level
- * mutators leave out (see {@code architecture.md} §2). Stateless; operates on a
- * passed-in {@link CampaignState}.
+ * mutators leave out (see
+ * {@code roadmap/campaign/design/architecture.md}). Stateless; operates on
+ * a passed-in {@link CampaignState}.
  *
  * <p>The single primitive every promotion-driving caller routes through: the
  * player path (a backed patron's mission victories bump progress, via
@@ -77,11 +78,13 @@ public final class HousePromotion {
     }
 
     /**
-     * Side effects of a rank change. Two of {@code mechanics.md}'s three are
-     * intentionally absent for now:
+     * Side effects of a rank change. The current transition keeps these
+     * boundaries explicit:
      * <ul>
-     *   <li><b>Visibility recompute / new relationship edges</b> — lands with the
-     *       relationship sim (Slices C–D); no edges are seeded yet.</li>
+     *   <li><b>Visibility recompute / new relationship edges</b> — the
+     *       relationship seam remains an explicit no-op until
+     *       {@code roadmap/campaign/living-world/design/house-disposition.md}
+     *       defines visibility-gated edges.</li>
      *   <li><b>Contract-type unlock</b> — pull-based: {@code ContractGenerator}
      *       reads {@code houseRank} live each tick, so there's nothing to push.</li>
      *   <li><b>TIER_4 → faction flip</b> — the T3 endgame hand-off; that thread

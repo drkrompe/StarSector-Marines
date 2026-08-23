@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -184,6 +185,15 @@ public final class SquadStateDumper {
         contactPicture.put("primaryCellY", picture.primaryCellY());
         contactPicture.put("primaryConfidence", picture.primaryConfidence());
         contactPicture.put("doctrine", picture.doctrine().name());
+        boolean holdReactionFresh = TacticalScoring.contactHoldIsFresh(
+                squad, picture, sim.simTickIndex);
+        contactPicture.put("holdReactionFresh", holdReactionFresh);
+        contactPicture.put("holdAfterLosWindowTicks",
+                TacticalScoring.HOLD_AFTER_LOS_TICKS);
+        contactPicture.put("advanceHardHoldActive",
+                picture.posture() == SquadContactPicture.Posture.ADVANCING
+                        && picture.doctrine() == SquadContactPicture.Doctrine.HOLD
+                        && holdReactionFresh);
         contactPicture.put("doctrineChangedThisTick",
                 squad._contactDoctrineChangedThisTick);
         contactPicture.put("primaryEvidence",

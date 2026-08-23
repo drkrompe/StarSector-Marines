@@ -9,12 +9,11 @@ import java.util.EnumSet;
 /**
  * Tick phase 2: weekly relationship interaction rolls.
  *
- * <p>Per <code>mechanics.md</code>: every 7 days, walk the
- * {@code relationships[]} edges and roll interactions that shift affinity
- * (and may trigger chain creation).
- *
- * <p>Stub — no edges exist yet because visibility-gated edge creation
- * hasn't landed.
+ * <p>Relationship interaction is intentionally an explicit no-op. The weekly
+ * seam remains reserved for visibility-gated edges and interaction outcomes
+ * described by
+ * <code>roadmap/campaign/living-world/design/house-disposition.md</code>; no
+ * relationship edges are created here yet.
  */
 public final class RelationshipInteractionSystem implements CampaignSystem {
 

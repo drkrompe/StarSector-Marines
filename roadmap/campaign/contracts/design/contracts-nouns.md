@@ -48,9 +48,9 @@ and MRB credibility; no individual offer invents a parallel gate.
 The contract feature owns the agreement and its outcome.
 `campaign-framework-nouns.md` owns the monotonic campaign day and ordered
 autonomous-system seam on which offers, retainers, defaults, incidents, and
-deadlines depend. `mechanics.md` owns house rank, political power, and chain
-policy. A contract may advance or oppose that larger political work through its
-resolved outcome, but it does not own the political model.
+deadlines depend. `living-world-nouns.md` owns house rank, political power,
+and chain policy. A contract may advance or oppose that larger political work
+through its resolved outcome, but it does not own the political model.
 
 `loot-nouns.md` owns recovery manifests, claim selection, and transfer into
 cargo. Contract terms establish the negotiated entitlement and operation

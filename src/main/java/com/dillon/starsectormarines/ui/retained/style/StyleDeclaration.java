@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ui.retained.style;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 
 import java.awt.Color;
 import java.util.Collections;
@@ -63,6 +64,11 @@ public final class StyleDeclaration {
         return this;
     }
 
+    public StyleDeclaration remove(StyleProperty property) {
+        values.remove(property);
+        return this;
+    }
+
     private static boolean accepts(StyleProperty property, Object value) {
         return switch (property) {
             case FLEX_DIRECTION -> value instanceof UiLayout;
@@ -73,6 +79,7 @@ public final class StyleDeclaration {
             case OVERFLOW -> value instanceof Overflow;
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> value == null || value instanceof Color;
             case FONT_FAMILY -> value == null || value instanceof String || value instanceof BitmapFont;
+            case TEXT_ALIGN -> value instanceof UiTextAlign;
             case TRANSITION -> value instanceof List<?>;
             case GAP, PADDING -> false;
         };

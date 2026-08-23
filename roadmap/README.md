@@ -274,26 +274,16 @@ universe over time, not retrofitted into intel slots.
    arrival timing, and the counterattack's larger lift demand in live play
    before contracting a third pinned-assault variant. See
    `opening-ladder-live-acceptance.md`.
-2. **Campaign personnel spine** — persistent six-person fireteams, cargo-backed
-   enlistment, reserve management, armory allocation/presets, explicit
-   deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery, and debrief are
-   shipped (`aee9b9cf`, `b7bb10db`, `b3da11ad`, `4737404d`, `c35e88d4`,
-   `822572b7`). Captain home-command persistence and armory management are also
-   shipped (`9c4c4ee8`, `aa26d3ec`), as are debug personnel fixtures and the
-   production shortfall/recruitment route (`605cda22`, `59c4864b`, `75413bfc`).
-   Captain-scoped briefing defaults, rank-scaled whole-fireteam limits, and
-   frozen Results command context are now shipped (`f6247ace`, `48471e93`),
-   completing the captain-command story. Named stationing is also complete:
-   whole-team binding, legacy-safe return, incident casualties, default
-   extraction, repair, compaction, and debrief all ship. The hidden moral
-   compass's first diegetic reaction now ships too: long-serving captains gain
-   one deterministic, persistent `IDEALIST`/`CYNICAL` outlook from choices they
-   witnessed (`b9e8ffd6`, `ca0a6994`, `e0b12a9c`). Captain discovery is complete
-   too: eligible derelict salvage now produces deterministic, persistent
-   cryo-pod survivors with replay-safe commission/referral/defer resolution and
-   deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`). No personnel
-   story remains active; contract a new one before expanding this work. See
-   [`campaign/personnel/next-session.md`](campaign/personnel/next-session.md).
+2. **Campaign personnel spine** — named personnel live in persistent
+   12-marine squads, each composed of three four-marine tactical fire teams.
+   Cargo-backed enlistment, reserve management, finite armory allocation,
+   explicit deployment, deterministic RTD/WIA/MIA/KIA outcomes, recovery,
+   debrief, captain home-command persistence, named stationing, captain
+   discovery, and detached debug fixtures are shipped. Ordinary task-force
+   command follows each home officer's rank-scaled squad capacity; mission-local
+   borrowing does not rewrite home command. Remaining personnel work is parked
+   live acceptance; compatibility-sensitive terminology cleanup remains with
+   Company View. See `personnel-nouns.md`.
 3. **Living-world follow-through** — the first black-swan event now runs from
    deterministic trigger through player choice, swarm-rescue battle, explicit
    outcome writeback, debrief, hidden moral consequence, and durable Distress
