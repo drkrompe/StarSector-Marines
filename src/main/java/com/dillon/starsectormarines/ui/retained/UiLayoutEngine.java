@@ -26,11 +26,12 @@ public final class UiLayoutEngine {
 
     public void layout(UiElement root, float width, float height) {
         if (root == null) throw new IllegalArgumentException("root must not be null");
-        arrange(root, new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height)));
+        float availableWidth = Math.max(0f, width);
+        arrange(root, new Rect(0f, 0f, availableWidth, Math.max(0f, height)), availableWidth);
     }
 
-    private void arrange(UiElement element, Rect rect) {
-        element.box().place(rect, element.padding(), element.borderWidth());
+    private void arrange(UiElement element, Rect rect, float containingBlockWidth) {
+        element.box().place(rect, element.resolvedPadding(containingBlockWidth), element.borderWidth());
         Rect content = element.box().contentBox();
         List<UiElement> children = element.children();
         element.box().scrollHeight(0f);
@@ -64,24 +65,25 @@ public final class UiLayoutEngine {
                              Rect content, boolean horizontal) {
         float mainExtent = horizontal ? content.width() : content.height();
         float crossExtent = horizontal ? content.height() : content.width();
-        float totalGap = parent.gap() * Math.max(0, children.size() - 1);
+        float gap = parent.resolvedGap(content.width());
+        float totalGap = gap * Math.max(0, children.size() - 1);
         float totalBasis = 0f;
         float totalGrow = 0f;
 
         for (UiElement child : children) {
-            totalBasis += preferredMain(child, horizontal);
+            totalBasis += preferredMain(child, horizontal, content.width(), content.height());
             totalGrow += child.grow();
         }
 
         float free = Math.max(0f, mainExtent - totalGap - totalBasis);
         float cursor = horizontal ? content.x() : content.y();
         for (UiElement child : children) {
-            float main = preferredMain(child, horizontal);
+            float main = preferredMain(child, horizontal, content.width(), content.height());
             if (child.grow() > 0f && totalGrow > 0f) {
                 main += free * child.grow() / totalGrow;
             }
 
-            float preferredCross = preferredCross(child, horizontal);
+            float preferredCross = preferredCross(child, horizontal, content.width(), content.height());
             UiAlign crossAlign = horizontal
                     ? child.verticalAlign() : child.horizontalAlign();
             float cross = Float.isNaN(preferredCross) || crossAlign == UiAlign.STRETCH
@@ -92,36 +94,42 @@ public final class UiLayoutEngine {
             Rect childRect = horizontal
                     ? new Rect(cursor, crossOrigin, main, cross)
                     : new Rect(crossOrigin, cursor, cross, main);
-            arrange(child, childRect);
-            cursor += main + parent.gap();
+            arrange(child, childRect, content.width());
+            cursor += main + gap;
         }
     }
 
     private void arrangeStack(List<UiElement> children, Rect content) {
         for (UiElement child : children) {
-            float width = resolveStackExtent(preferredAxis(child, true), content.width(),
+            float width = resolveStackExtent(preferredAxis(child, true,
+                    content.width(), content.height()), content.width(),
                     child.horizontalAlign());
-            float height = resolveStackExtent(preferredAxis(child, false), content.height(),
+            float height = resolveStackExtent(preferredAxis(child, false,
+                    content.width(), content.height()), content.height(),
                     child.verticalAlign());
             float x = crossOrigin(content.x(), content.width(), width,
                     child.horizontalAlign());
             float y = crossOrigin(content.y(), content.height(), height,
                     child.verticalAlign());
-            arrange(child, new Rect(x, y, width, height));
+            arrange(child, new Rect(x, y, width, height), content.width());
         }
     }
 
-    private static float preferredMain(UiElement element, boolean horizontal) {
-        float preferred = preferredAxis(element, horizontal);
+    private static float preferredMain(UiElement element, boolean horizontal,
+                                       float widthBasis, float heightBasis) {
+        float preferred = preferredAxis(element, horizontal, widthBasis, heightBasis);
         return Float.isNaN(preferred) ? 0f : Math.max(0f, preferred);
     }
 
-    private static float preferredCross(UiElement element, boolean horizontal) {
-        return preferredAxis(element, !horizontal);
+    private static float preferredCross(UiElement element, boolean horizontal,
+                                        float widthBasis, float heightBasis) {
+        return preferredAxis(element, !horizontal, widthBasis, heightBasis);
     }
 
-    private static float preferredAxis(UiElement element, boolean horizontal) {
-        float preferred = horizontal ? element.preferredWidth() : element.preferredHeight();
+    private static float preferredAxis(UiElement element, boolean horizontal,
+                                       float widthBasis, float heightBasis) {
+        float preferred = horizontal ? element.resolvedPreferredWidth(widthBasis)
+                : element.resolvedPreferredHeight(heightBasis, widthBasis);
         if (Float.isNaN(preferred) && element.tag() == UiTag.CANVAS) {
             return horizontal ? element.canvasWidth() : element.canvasHeight();
         }
