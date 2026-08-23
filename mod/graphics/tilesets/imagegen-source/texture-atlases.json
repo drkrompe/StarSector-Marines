@@ -40,13 +40,13 @@
       "output": "../Floors_Tiles.png",
       "layout": {
         "mode": "grid",
-        "cellPx": 16
+        "cellPx": 56
       },
       "materials": [
         {
           "id": "game-buffs-mountain-stone",
           "source": "atlas-material-source/game-buffs-mountain/stone.png",
-          "guardPx": 1,
+          "guardPx": 2,
           "requireOpaque": true,
           "targets": [
             { "cell": [6, 10] },
@@ -57,7 +57,7 @@
         {
           "id": "game-buffs-desert-sand",
           "source": "atlas-material-source/game-buffs-desert/sand.png",
-          "guardPx": 1,
+          "guardPx": 2,
           "requireOpaque": true,
           "targets": [
             { "cell": [6, 14] },
