@@ -18,7 +18,7 @@ import java.util.Locale;
  * Gen scatters them by id; which ids go in which pool is the
  * {@code GenMappingRegistry}'s concern, not this def's.
  *
- * <p>See {@code roadmap/moddable-tilesets/stories/phase-2-doodad-pools.md}.
+ * <p>See {@code moddable-tilesets-nouns.md}.
  */
 public final class DoodadDef {
 
