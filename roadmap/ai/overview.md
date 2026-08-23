@@ -150,7 +150,10 @@ assigned objective; commander decides which squad goes where.
 `MissionCommand` interface, `ObjectiveAssignment` record,
 `ClearAssignedZoneGoal`, `SabotageCommand` (objective-cluster),
 `ConquestCommand` (lateral-strip), `AssaultCommand` (sector-grid
-sweep). Remaining work (defender-side commanders, richer scoring)
+sweep). Assault's map-wide exterior is searched through rotating
+`SWEEP_SECTOR` waypoints rather than handed to `ClearZone`: no-contact squads
+keep moving, anonymous sound redirects the search, and identified belief hands
+off to the ordinary engagement plan. Remaining work (defender-side commanders, richer scoring)
 queued behind playtest + doc 15.
 
 Design lives in [`12-squad-of-squads.md`](stories/12-squad-of-squads.md).
