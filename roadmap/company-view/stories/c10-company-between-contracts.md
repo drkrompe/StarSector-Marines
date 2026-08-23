@@ -236,8 +236,9 @@ battle seam.
    `ensure`-style grant + slot assignment. `pressButton()` opens the G32
    host on an empty `COMPANY_HQ` screen. Settles the TOGGLE-latching risk
    before anything is built on top.
-2. **Standing.** Runway headline through `OfficerMoodReader`, retainer sum,
-   MRB and employer standing, comms-officer line.
+2. ~~**Standing.**~~ **Shipped** (`b204c237`). Runway headline through
+   `OfficerMoodReader.Snapshot`, retainer sum, MRB and employer standing,
+   personnel gap, and the comms-officer line via `OfficerHeaderWidget`.
 3. **The clock.** Merged deadline list over the three sources, with
    **Respond** routing through `PlayerEventPresenter.requestDeployment`.
 4. **The company pane.** Strength rollup and the armory route.
@@ -388,3 +389,44 @@ question.
 If a TOGGLE press does not reach `pressButton()`, the fallbacks are `DURATION`
 with no `durationDays`, then the `CampaignUIRenderingListener` +
 `CampaignInputListener` widget described above.
+
+## Slice 2 — shipped
+
+`b204c237`. `gradlew.bat build` green; 13 assertions in `CompanyStandingTest`.
+
+### What landed
+
+- `OfficerMoodReader.Snapshot` — the world-read extracted from `currentMood()`,
+  carrying `runwayMonths()` next to the bands that already gate the mood.
+  `currentMood()` is now `read().mood()`; `bucket(...)` and its existing tests are
+  untouched. `DESPERATE_RUNWAY_MONTHS` / `SEASONED_RUNWAY_MONTHS` are public so the
+  pane colours on the same numbers the officer reacts to.
+- `CompanyStanding` — derived, never persisted: retainer income, employers ranked by
+  standing, and strength against what can deploy today.
+- `CompanyHqScreen` — the three columns it will keep, standing populated.
+- `OfficerHeaderWidget` reused verbatim; with no client selected it falls to the
+  overview flavor, and it needs no planet.
+
+### Decisions worth keeping
+
+**Runway leads, and an unknown runway says so.** `runwayMonths()` returns -1 when last
+month's upkeep is zero or unknown, and the pane renders "Runway unknown" rather than a
+number. A first-month campaign has no monthly report; printing anything there would
+read as good news.
+
+**Retainer counts only rows that are actually paying** — ACTIVE and IN_PROGRESS. An
+OFFERED row has not been accepted and a terminal row has stopped. This number feeds the
+runway the screen leads with, so overcounting it is the one direction it must never err
+in.
+
+**`unavailable` is the whole gap, not just casualties.** Wounded, stationed, and
+reserve-pool marines all sit between "on the books" and "can go today", and the
+player's question is how many they can actually send.
+
+### Still to confirm in game
+
+- Standing figures agree with the campaign's own numbers (credits, last month's
+  upkeep, debt) on a real save.
+- The runway colour flips at 6 and 12 months and matches the officer's tone.
+- Three columns at 1.0x / 1.25x / 1.5x UI scale, with the employer list not
+  overrunning the column.
